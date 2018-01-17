@@ -11,7 +11,6 @@
 #define SSS_USE_LDS_CACHE     1
 #define SSS_TAA_INTEGRATION   1 // Smoother results at the cost of a tiny amount of flickering in under-sampled areas
 #define SSS_ENABLE_NEAR_FIELD 0 // Greatly increases the number of samples. Comes at a high cost.
-#define SSS_SAMPLE_TEST_HTILE 0 // Potential optimization. YMMV.
 #define SSS_USE_TANGENT_PLANE 0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
 #define SSS_CLAMP_ARTIFACT    0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
 #define SSS_DEBUG_LOD         0
@@ -47,7 +46,7 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-float4 _FilterKernels[DIFFUSION_N_PROFILES][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
+float4 _FilterKernels[DIFFUSION_PROFILE_COUNT][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
 TEXTURE2D(_SSSHTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
@@ -148,14 +147,24 @@ void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 cen
                     float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
-    float  r   = _FilterKernels[profileID][i][iR];
+    float r   = _FilterKernels[profileID][i][iR];
     // The relative sample position is known at the compile time.
-    float  phi = SampleDiskFibonacci(i, n).y;
+    float phi = SampleDiskFibonacci(i, n).y;
 #if (SSS_TAA_INTEGRATION != 0)
     // Note that we repeat the pattern twice during the TAA cycle to reduce flickering.
-    phi += VanDerCorputBase2(_TaaFrameIndex % 4) * TWO_PI;
-#endif
+    float sinPsi = _TaaFrameRotation.x;
+    float cosPsi = _TaaFrameRotation.y;
+
+    // The angle 'psi' is loop-invariant. All the trigonometry is done at compile time.
+    // cos(a + b) = cos(a) * cos(b) - sin(a) * sin(b)
+    // sin(a + b) = sin(a) * cos(b) + cos(a) * sin(b)
+    float cosSum = cos(phi) * cosPsi - sin(phi) * sinPsi;
+    float sinSum = sin(phi) * cosPsi + cos(phi) * sinPsi;
+
+    float2 vec = r * float2(cosSum, sinSum);
+#else
     float2 vec = r * float2(cos(phi), sin(phi));
+#endif
 
     // Compute the screen-space position and the squared distance (in mm) in the image plane.
     int2 position; float xy2;

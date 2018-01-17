@@ -61,7 +61,7 @@ void Frag(PackedVaryingsToPS packedInput,
 
     // We need to skip lighting when doing debug pass because the debug pass is done before lighting so some buffers may not be properly initialized potentially causing crashes on PS4.
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE)
+    if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE || _DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
 #endif
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
@@ -79,7 +79,7 @@ void Frag(PackedVaryingsToPS packedInput,
         LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef OUTPUT_SPLIT_LIGHTING
-        if (_EnableSubsurfaceScattering != 0 && HaveSubsurfaceScattering(bsdfData))
+        if (_EnableSubsurfaceScattering != 0 && PixelHasSubsurfaceScattering(bsdfData))
         {
             outColor = float4(specularLighting, 1.0);
             outDiffuseLighting = float4(TagLightingForSSS(diffuseLighting), 1.0);
@@ -105,6 +105,7 @@ void Frag(PackedVaryingsToPS packedInput,
     if (_DebugViewMaterial != 0)
     {
         float3 result = float3(1.0, 0.0, 1.0);
+
         bool needLinearToSRGB = false;
 
         GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);

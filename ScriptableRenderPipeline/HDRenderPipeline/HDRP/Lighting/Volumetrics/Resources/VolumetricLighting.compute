@@ -7,7 +7,7 @@
 #pragma kernel VolumetricLightingClustered       VolumetricLighting=VolumetricLightingClustered       ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 #pragma kernel VolumetricLightingClusteredReproj VolumetricLighting=VolumetricLightingClusteredReproj ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
-#pragma enable_d3d11_debug_symbols
+// #pragma debug
 
 #define DEBUG_REPROJECTION 0
 
@@ -208,12 +208,15 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         posInput.positionWS = GetPointAtDistance(ray, t);
 
                         float3 lightToSample = posInput.positionWS - light.positionWS;
-                        float  dist          = sqrt(distSq);
-                        float3 L             = -lightToSample * rsqrt(distSq);
+                        float  distRcp       = rsqrt(distSq);
+                        float  dist          = distSq * distRcp;
+                        float  distProj      = dot(lightToSample, light.forward);
+                        float4 distances     = float4(dist, distSq, distRcp, distProj);
+                        float3 L             = -lightToSample * distRcp;
 
                         float3 color; float attenuation;
-                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, dist, distSq,
-                                               color, attenuation);
+                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
+                                               distances, color, attenuation);
 
                         float intensity = attenuation * rcpPdf;
 
@@ -253,11 +256,14 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         float t = tEntr + tOffset;
                         posInput.positionWS = GetPointAtDistance(ray, t);
 
-                        float3 L = -light.forward;
+                        float3 L             = -light.forward;
+                        float3 lightToSample = posInput.positionWS - light.positionWS;
+                        float  distProj      = dot(lightToSample, light.forward);
+                        float4 distances     = float4(1, 1, 1, distProj);
 
                         float3 color; float attenuation;
-                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, 1, 1,
-                                               color, attenuation);
+                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
+                                               distances, color, attenuation);
 
                         // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
                         float intensity = attenuation * weight;
@@ -327,6 +333,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: piecewise linear.
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
+        
+        // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
+        // which allows procedural definition of extinction and scattering.
 
     #if ENABLE_REPROJECTION
         // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.

@@ -8,7 +8,8 @@ namespace UnityEngine.Experimental.Rendering
     using ShadowDataVector = VectorArray<ShadowData>;
     using ShadowPayloadVector = VectorArray<ShadowPayload>;
     using ShadowIndicesVector = VectorArray<int>;
-    using ShadowAlgoVector = VectorArray<GPUShadowAlgorithm>;
+    using ShadowAlgoVector = VectorArray<int>;
+
     using Profiling;
 
     // Standard shadow map atlas implementation using one large shadow map
@@ -20,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         protected          RenderTexture              m_Shadowmap;
         protected          RenderTargetIdentifier     m_ShadowmapId;
         protected          VectorArray<CachedEntry>   m_EntryCache = new VectorArray<CachedEntry>( 0, true );
+        private            VectorArray<CachedEntry>   m_EntryPool = new VectorArray<CachedEntry>( 16, false );
         protected          uint                       m_ActiveEntriesCount;
         protected          FrameId                    m_FrameId;
         protected          string                     m_ShaderKeyword;
@@ -32,6 +34,9 @@ namespace UnityEngine.Experimental.Rendering
         protected          float[]                    m_TmpBorders = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
         protected          Material                   m_DebugMaterial = null;
+        private   readonly VectorArray<CachedEntry>.Cleanup         m_Cleanup;
+        private   readonly VectorArray<CachedEntry>.Comparator<Key> m_Comparator;
+        public             bool                       captureFrame { get; set; }
 
         private CustomSampler   m_SamplerShadowMaps = CustomSampler.Create("ShadowMaps");
 
@@ -106,6 +111,9 @@ namespace UnityEngine.Experimental.Rendering
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
+            m_Cleanup = (CachedEntry entry) => { Free( entry ); };
+            m_Comparator = (ref Key k, ref CachedEntry entry) => { return k.id == entry.key.id && k.faceIdx == entry.key.faceIdx; };
+
             m_ZClipId = Shader.PropertyToID( "_ZClip" );
             if( !IsNativeDepth() )
             {
@@ -135,11 +143,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             ShadowPrecision precision = m_ShadowmapBits == 32 ? ShadowPrecision.High : ShadowPrecision.Low;
             m_SupportedAlgorithms.Reserve( 5 );
-            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V0, precision ) );
-            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V1, precision ) );
-            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V2, precision ) );
-            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V3, precision ) );
-            m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V4, precision ) );
+            m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V0, precision ) );
+            m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V1, precision ) );
+            m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V2, precision ) );
+            m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V3, precision ) );
+            m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.PCF, ShadowVariant.V4, precision ) );
 
             ShadowRegistry.VariantDelegate del = ( Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock ) =>
                 {
@@ -220,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering
             m_FrameId = frameId;
 
             uint algoIdx;
-            GPUShadowAlgorithm shadowAlgo = sr.shadowAlgorithm;
+            int shadowAlgo = (int) sr.shadowAlgorithm;
             if( !m_SupportedAlgorithms.FindFirst( out algoIdx, ref shadowAlgo ) )
                 return false;
 
@@ -299,7 +307,7 @@ namespace UnityEngine.Experimental.Rendering
                         uint added = m_ActiveEntriesCount - originalActiveEntries;
                         for( uint i = originalActiveEntries; i < m_ActiveEntriesCount; ++i )
                             m_EntryCache.Swap( i, m_EntryCache.Count()-i-1 );
-                        m_EntryCache.Purge( added, Free );
+                        m_EntryCache.Purge( added, m_Cleanup );
                         m_ActiveEntriesCount = originalActiveEntries;
                         return false;
                     }
@@ -347,7 +355,7 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     // write :(
-                    ce.current.shadowAlgo = shadowAlgo;
+                    ce.current.shadowAlgo = (GPUShadowAlgorithm) shadowAlgo;
                     m_EntryCache[ceIdx] = ce;
 
                     sd.worldToShadow = vp.transpose; // apparently we need to transpose matrices that are sent to HLSL
@@ -461,11 +469,11 @@ namespace UnityEngine.Experimental.Rendering
                     // write back the correct results
                     entries[ce.key.shadowDataIdx] = sd;
                 }
-                m_EntryCache.Purge(m_EntryCache.Count() - m_ActiveEntriesCount, (CachedEntry entry) => { Free(entry); });
+                m_EntryCache.Purge(m_EntryCache.Count() - m_ActiveEntriesCount, m_Cleanup );
                 return true;
             }
             m_ActiveEntriesCount  = 0;
-            m_EntryCache.Reset( (CachedEntry entry) => { Free(entry); });
+            m_EntryCache.Reset( m_Cleanup );
             return false;
         }
 
@@ -484,7 +492,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_ActiveEntriesCount == 0)
                 return;
-            string sLabel = string.Format("Shadowmap{0}", m_TexSlot);
+            string sLabel = captureFrame ? string.Format("Shadowmap{0}", m_TexSlot) : "Shadowmap";
             var profilingSample = new ProfilingSample(cmd, sLabel, m_SamplerShadowMaps);
 
             string cbName = "";
@@ -509,7 +517,7 @@ namespace UnityEngine.Experimental.Rendering
                 if( entrySlice != curSlice )
                 {
                     Debug.Assert( curSlice == uint.MaxValue || entrySlice >= curSlice, "Entries in the entry cache are not ordered in slice order." );
-                    cbName = string.Format("Shadowmap.Update.Slice{0}", entrySlice);
+                    cbName = captureFrame ? string.Format("Shadowmap.Update.Slice{0}", entrySlice) : "Shadowmap.Update.Slice";
                     cmd.BeginSample(cbName);
 
                     if( curSlice != uint.MaxValue )
@@ -522,13 +530,18 @@ namespace UnityEngine.Experimental.Rendering
                     cmd.EndSample(cbName);
                 }
 
-                //cbName = string.Format("Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
-                //cmd.BeginSample(cbName);
+                if( captureFrame )
+                {
+                    cbName = string.Format( "Shadowmap.Update - slice: {0}, vp.x: {1}, vp.y: {2}, vp.w: {3}, vp.h: {4}", curSlice, m_EntryCache[i].current.viewport.x, m_EntryCache[i].current.viewport.y, m_EntryCache[i].current.viewport.width, m_EntryCache[i].current.viewport.height);
+                    cmd.BeginSample( cbName );
+                }
+
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
                 cmd.SetGlobalFloat( m_ZClipId, m_EntryCache[i].zclip ? 1.0f : 0.0f );
-                //cmd.EndSample(cbName);
+                if( captureFrame )
+                    cmd.EndSample( cbName );
 
                 dss.lightIndex = m_EntryCache[i].key.visibleIdx;
                 dss.splitData = m_EntryCache[i].current.splitData;
@@ -563,7 +576,15 @@ namespace UnityEngine.Experimental.Rendering
 
         protected bool Alloc( FrameId frameId, Key key, uint width, uint height, out uint cachedEntryIdx, VectorArray<ShadowPayload> payload )
         {
-            CachedEntry ce = new CachedEntry();
+            CachedEntry ce = null;
+            if( m_EntryPool.Count() > 0 )
+            {
+                ce = m_EntryPool[m_EntryPool.Count()-1];
+                m_EntryPool.Purge( 1 );
+            }
+            if( ce == null )
+                ce = new CachedEntry();
+
             ce.key                 = key;
             ce.current.frameId     = frameId;
             ce.current.contentHash = -1;
@@ -571,11 +592,12 @@ namespace UnityEngine.Experimental.Rendering
             ce.current.viewport    = new Rect( 0, 0, width, height );
 
             uint idx;
-            if ( m_EntryCache.FindFirst( out idx, ref key, (ref Key k, ref CachedEntry entry) => { return k.id == entry.key.id && k.faceIdx == entry.key.faceIdx; } ) )
+            if ( m_EntryCache.FindFirst( out idx, ref key, m_Comparator ) )
             {
                 if( m_EntryCache[idx].current.viewport.width == width && m_EntryCache[idx].current.viewport.height == height )
                 {
                     ce.previous = m_EntryCache[idx].current;
+                    m_EntryPool.Add( m_EntryCache[idx] );
                     m_EntryCache[idx] = ce;
                     cachedEntryIdx = m_ActiveEntriesCount;
                     m_EntryCache.SwapUnchecked( m_ActiveEntriesCount++, idx );
@@ -584,7 +606,7 @@ namespace UnityEngine.Experimental.Rendering
                 else
                 {
                     m_EntryCache.SwapUnchecked( idx, m_EntryCache.Count()-1 );
-                    m_EntryCache.Purge( 1, Free );
+                    m_EntryCache.Purge( 1, m_Cleanup );
                 }
             }
 
@@ -638,7 +660,7 @@ namespace UnityEngine.Experimental.Rendering
 
         protected void Free( CachedEntry ce )
         {
-            // Nothing to do for this implementation here, as the atlas is reconstructed each frame, instead of keeping state across frames
+            m_EntryPool.Add( ce );
         }
 
         override public void DisplayShadowMap(CommandBuffer debugCB, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
@@ -833,27 +855,27 @@ namespace UnityEngine.Experimental.Rendering
             m_SupportedAlgorithms.Reserve( 5 );
             if( supports_VSM )
             {
-                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.VSM, ShadowVariant.V0, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.VSM, ShadowVariant.V0, precision ) );
                 registry.Register( type, precision, ShadowAlgorithm.VSM, "Variance shadow map (VSM)",
                     new ShadowVariant[] { ShadowVariant.V0 }, new string[] { "2 moments" }, new ShadowRegistry.VariantDelegate[] { vsmDel } );
             }
             if( supports_EVSM_2 && !supports_EVSM_4 )
             {
-                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V0, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V0, precision ) );
                 registry.Register( type, precision, ShadowAlgorithm.EVSM, "Exponential variance shadow map (EVSM)",
                     new ShadowVariant[] { ShadowVariant.V0 }, new string[] { "2 moments" }, new ShadowRegistry.VariantDelegate[] { evsmDel } );
             }
             if( supports_EVSM_4 )
             {
-                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V0, precision ) );
-                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V1, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V0, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.EVSM, ShadowVariant.V1, precision ) );
                 registry.Register( type, precision, ShadowAlgorithm.EVSM, "Exponential variance shadow map (EVSM)",
                     new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "2 moments", "4 moments" }, new ShadowRegistry.VariantDelegate[] { evsmDel, evsmDel } );
             }
             if( supports_MSM )
             {
-                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.MSM, ShadowVariant.V0, precision ) );
-                m_SupportedAlgorithms.AddUniqueUnchecked( ShadowUtils.Pack( ShadowAlgorithm.MSM, ShadowVariant.V1, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.MSM, ShadowVariant.V0, precision ) );
+                m_SupportedAlgorithms.AddUniqueUnchecked( (int) ShadowUtils.Pack( ShadowAlgorithm.MSM, ShadowVariant.V1, precision ) );
                 registry.Register( type, precision, ShadowAlgorithm.MSM, "Moment shadow map (MSM)",
                     new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1 }, new string[] { "Hamburg", "Hausdorff" }, new ShadowRegistry.VariantDelegate[] { msmDel, msmDel } );
             }
@@ -1278,6 +1300,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        private readonly SortReverter                     m_SortReverter = new SortReverter();
+        private readonly VectorArray<long>.Extractor<int> m_Extractor = delegate(long key) { return (int) (key & 0xffffffff); };
+
         protected override void PrioritizeShadowCasters( Camera camera, List<VisibleLight> lights, uint shadowRequestsCount, int[] shadowRequests )
         {
             // this function simply looks at the projected area on the screen, ignoring all light types and shapes
@@ -1297,8 +1322,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_TmpSortKeys.AddUnchecked( val );
             }
 
-            m_TmpSortKeys.Sort( new SortReverter() );
-            m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, delegate(long key) { return (int) (key & 0xffffffff); } );
+            m_TmpSortKeys.Sort( m_SortReverter );
+            m_TmpSortKeys.ExtractTo( shadowRequests, 0, out shadowRequestsCount, m_Extractor );
         }
 
         protected override void PruneShadowCasters( Camera camera, List<VisibleLight> lights, ref VectorArray<int> shadowRequests, ref ShadowRequestVector requestsGranted, out uint totalRequestCount )
