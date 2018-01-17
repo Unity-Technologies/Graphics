@@ -1590,7 +1590,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || 
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ||
                 m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None ||
                 m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
@@ -1654,7 +1654,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
-        {            
+        {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
