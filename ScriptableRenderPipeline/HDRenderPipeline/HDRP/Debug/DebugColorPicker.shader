@@ -67,34 +67,50 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                     {
                         uint4 mouseValue = int4(mouseResult * 255.5);
 
+                        DrawCharacter('R', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                        DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         DrawInteger(mouseValue.x, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
 
                         if (_ColorPickerMode == COLORPICKERDEBUGMODE_BYTE4)
                         {
                             displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
+                            DrawCharacter('G', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             DrawInteger(mouseValue.y, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
+                            DrawCharacter('B', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             DrawInteger(mouseValue.z, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
+                            DrawCharacter('A', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             DrawInteger(mouseValue.w, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         }
                     }
                     else // float
                     {
+                        DrawCharacter('X', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                        DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         DrawFloat(mouseResult.x, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         if (_ColorPickerMode == COLORPICKERDEBUGMODE_FLOAT4)
                         {
                             displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
+                            DrawCharacter('Y', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             DrawFloat(mouseResult.y, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
+                            DrawCharacter('Z', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             DrawFloat(mouseResult.z, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = _MousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
+                            DrawCharacter('W', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             DrawFloat(mouseResult.w, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         }
                     }
