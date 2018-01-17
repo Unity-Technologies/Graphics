@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
                     visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
                         string.Format("float4((IN.{0}.xy / IN.{0}.w) * 2 - 1, 0, 0)", ShaderGeneratorNames.ScreenPosition)), true);
                     visitor.AddShaderChunk(string.Format("{0} = {1};", GetVariableNameForSlot(kOutputSlotId),
-                        string.Format("float4(IN.{0}.x * _ScreenParams.x / _ScreenParams.y, IN.{0}.y, 0, 0)", ShaderGeneratorNames.ScreenPosition)), true);
+                        string.Format("float4({0}.x * _ScreenParams.x / _ScreenParams.y, {0}.y, 0, 0)", GetVariableNameForSlot(kOutputSlotId))), true);
                     break;
                 default:
                     visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
