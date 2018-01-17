@@ -120,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");
         public static readonly int _MousePixelCoord = Shader.PropertyToID("_MousePixelCoord");
+        public static readonly int _DebugFont = Shader.PropertyToID("_DebugFont");
 
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterial");
         public static readonly int _DebugLightingMode = Shader.PropertyToID("_DebugLightingMode");
@@ -274,6 +275,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_DepthPyramidMip13"),
             Shader.PropertyToID("_DepthPyramidMip14"),
         };
+
+        public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
+        public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
+        public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
+        public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
+
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
 
