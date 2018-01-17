@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderGraph
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
                     break;
                 case PBRMasterNode.AlphaMode.Transparent:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
@@ -260,7 +260,7 @@ namespace UnityEditor.ShaderGraph
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
                     break;
                 case PBRMasterNode.AlphaMode.Fade:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
