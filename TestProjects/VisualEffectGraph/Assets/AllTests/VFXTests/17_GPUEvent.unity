@@ -223,7 +223,7 @@ VFXComponent:
   m_GameObject: {fileID: 508265863}
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 673d5614ee7737242a5bf6f474b0fdfd, type: 2}
-  m_StartSeed: 1
+  m_StartSeed: 15
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
