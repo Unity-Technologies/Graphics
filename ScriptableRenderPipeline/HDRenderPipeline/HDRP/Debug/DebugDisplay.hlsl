@@ -92,72 +92,95 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
     return originalColor;
 }
 
-// font texture is 256x128
+// DebugFont code assume black and white font with texture size 256x128 with bloc of 16x16
 #define DEBUG_FONT_TEXT_WIDTH	16
 #define DEBUG_FONT_TEXT_HEIGHT	16
-#define DEBUG_FONT_TEXT_SIZE	1.0f
 #define DEBUG_FONT_TEXT_COUNT_X	16
 #define DEBUG_FONT_TEXT_COUNT_Y	8
-#define DEBUG_FONT_TEXT_SCALE	0.7f
+#define DEBUG_FONT_TEXT_ASCII_START 32
 
-float3 DrawCharacter(uint asciiValue, float2 currentAbsCoords, inout float2 referenceAbsCoord, float fontSize, float incrementSign)
+// Only support ASCII symbol from DEBUG_FONT_TEXT_ASCII_START to 126
+// return black or white depends if we hit font character or not
+// currentUnormCoord is current unormalized screen position
+// fixedUnormCoord is the position where we want to draw something, this will be incremented by block font size in provided direction
+// color is current screen color
+// color of the font to use
+// direction is 1 or -1 and indicate fixedUnormCoord block shift
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
 {
-    uint2 asciiCoord = uint2(asciiValue % DEBUG_FONT_TEXT_COUNT_X, asciiValue / DEBUG_FONT_TEXT_COUNT_Y);
-    const float charWidth = DEBUG_FONT_TEXT_WIDTH * fontSize;
-    const float charHeight = DEBUG_FONT_TEXT_HEIGHT * fontSize;
-    const float2 localCoords = currentAbsCoords - referenceAbsCoord;
-
-    float3 output = float3(0, 0, 0);
-    if (localCoords.x >= 0 && localCoords.x < charWidth && localCoords.y >= 0 && localCoords.y < charHeight)
+    // Are we inside a font display block on the screen ?
+    uint2 localCharCoord = currentUnormCoord - fixedUnormCoord;
+    if (localCharCoord.x >= 0 && localCharCoord.x < DEBUG_FONT_TEXT_WIDTH && localCharCoord.y >= 0 && localCharCoord.y < DEBUG_FONT_TEXT_HEIGHT)
     {
-        float2 texOffset = float2(asciiCoord) / float2(DEBUG_FONT_TEXT_COUNT_X, DEBUG_FONT_TEXT_COUNT_Y);
-        float2 texCoord = localCoords / float2(charWidth * DEBUG_FONT_TEXT_COUNT_X, charHeight * DEBUG_FONT_TEXT_COUNT_Y);
-        output = SAMPLE_TEXTURE2D_LOD(_DebugFont, s_linear_clamp_sampler, texCoord + texOffset, 0).xyz;
+        #if UNITY_UV_STARTS_AT_TOP
+        localCharCoord.y = DEBUG_FONT_TEXT_HEIGHT - localCharCoord.y;
+        #endif
+
+        asciiValue -= DEBUG_FONT_TEXT_ASCII_START; // Our font start at ASCII table 32;
+        uint2 asciiCoord = uint2(asciiValue % DEBUG_FONT_TEXT_COUNT_X, asciiValue / DEBUG_FONT_TEXT_COUNT_X);
+        // Unorm coordinate inside the font texture
+        uint2 unormTexCoord = asciiCoord * uint2(DEBUG_FONT_TEXT_WIDTH, DEBUG_FONT_TEXT_HEIGHT) + localCharCoord;
+        // normalized coordinate
+        float2 normTexCoord = float2(unormTexCoord) / float2(DEBUG_FONT_TEXT_WIDTH * DEBUG_FONT_TEXT_COUNT_X, DEBUG_FONT_TEXT_HEIGHT * DEBUG_FONT_TEXT_COUNT_Y);
+
+        #if UNITY_UV_STARTS_AT_TOP
+        normTexCoord.y = 1.0 - normTexCoord.y;
+        #endif
+
+        float charColor = SAMPLE_TEXTURE2D_LOD(_DebugFont, s_point_clamp_sampler, normTexCoord, 0).r;
+        color = color * (1.0 - charColor) + charColor * fontColor;
     }
 
-    referenceAbsCoord.x += charWidth * incrementSign * DEBUG_FONT_TEXT_SCALE;
-
-    return output;
+    fixedUnormCoord.x += DEBUG_FONT_TEXT_WIDTH * direction;
 }
 
-float3 DrawCharacter(uint asciiValue, float2 currentAbsCoords, inout float2 referenceAbsCoord, float fontSize)
+// Shortcut to not have to file direction
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
-    return DrawCharacter(asciiValue, currentAbsCoords, referenceAbsCoord, fontSize, 1.0f);
+    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 1);
 }
 
-float GetTextSize(uint intValue, float fontSize)
+// Draw a signed integer
+// Can't display more than 16 digit
+void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
-    const uint charWidth = DEBUG_FONT_TEXT_WIDTH * fontSize * DEBUG_FONT_TEXT_SCALE;
-    const uint maxCharCount = 16;
-    uint charCount = 0;
+    const uint maxStringSize = 16;
 
-    for (uint charIt = 0; charIt < maxCharCount; ++charIt)
+    int absIntValue = abs(intValue);
+
+    // 1. Get size of the number of display
+    int numEntries = min((intValue == 0 ? 0 : log10(absIntValue)) + (intValue < 0 ? 1 : 0), maxStringSize);
+
+    // 2. Shift curseur to last location as we will go reverse
+    fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_WIDTH;
+
+    // 3. Display the number
+    for (uint i = 0; i < maxStringSize; ++i)
     {
-        ++charCount;
-        if (intValue  < 10)
+        // Numeric value incurrent font start on the second row at 0
+        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+        if (absIntValue  < 10)
             break;
-        intValue /= 10;
+        absIntValue /= 10;
     }
-    return charCount * charWidth;
+
+    // 4. Display sign
+    if (intValue < 0)
+    {
+        DrawCharacter('-', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+    }
+
+    // 5. Reset cursor at end location
+    fixedUnormCoord.x += (numEntries + 2) * DEBUG_FONT_TEXT_WIDTH;
 }
 
-float3 DrawInteger(in uint intValue, in float2 coords, inout float2 referenceCoord, in float fontSize)
+void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
-    const uint charWidth = DEBUG_FONT_TEXT_WIDTH * fontSize * DEBUG_FONT_TEXT_SCALE;
-    const uint maxCharCount = 16;
-    float2 localRefCoord = referenceCoord + float2(GetTextSize(intValue, fontSize), 0);
-    referenceCoord = localRefCoord + float2(charWidth, 0);
-
-    float3 output = float3(0, 0, 0);
-    for (uint charIt = 0; charIt < maxCharCount; ++charIt)
-    {
-        output += DrawCharacter((intValue % 10) + 48, coords, localRefCoord, fontSize, -1.0f).xyz;
-        if (intValue  < 10)
-            break;
-        intValue /= 10;
-    }
-
-    return output;
+    int intValue = int(floatValue);
+    DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color);
+    DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, color);
+    int fracValue = int(frac(floatValue) * 1e6); // 6 digit
+    DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, color);
 }
 
 #endif
