@@ -216,10 +216,11 @@
     #endif
 
     #if defined(UNITY_INSTANCED_SH) && !defined(LIGHTMAP_ON)
-        #if UNITY_SHOULD_SAMPLE_SH
+        //In HDRenderpipe we only decide to look at probe data based on Lightmap flags.
+        #if !defined(DYNAMICLIGHTMAP_ON) 
             #define UNITY_USE_SHCOEFFS_ARRAYS
         #endif
-        #if defined(UNITY_PASS_DEFERRED) && defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+        #if (SHADERPASS == SHADERPASS_GBUFFER) && defined(SHADOWS_SHADOWMASK)
             #define UNITY_USE_PROBESOCCLUSION_ARRAY
         #endif
     #endif
