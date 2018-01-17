@@ -3,7 +3,8 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using System;
 
 namespace UnityEditor.VFX.UI
