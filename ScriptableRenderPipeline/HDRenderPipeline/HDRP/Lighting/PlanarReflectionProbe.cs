@@ -156,48 +156,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ReflectionSystem.RegisterProbe(this);
             }
         }
-
-        public Matrix4x4 GetCaptureToWorld(Camera viewerCamera)
-        {
-            if (refreshMode == ReflectionProbeRefreshMode.EveryFrame
-                && capturePositionMode == CapturePositionMode.MirrorCamera)
-            {
-                var planeCenter = influenceToWorld.MultiplyPoint(m_CaptureMirrorPlaneLocalPosition);
-                var planeNormal = influenceToWorld.MultiplyVector(m_CaptureMirrorPlaneLocalNormal.normalized);
-                var sourcePosition = viewerCamera.transform.position;
-                var r = sourcePosition - planeCenter;
-                var capturePosition = r - 2 * Vector3.Dot(planeNormal, r) * planeNormal + planeCenter;
-
-                var tr = transform;
-                var influencePosition = influenceVolume.GetWorldPosition(tr);
-                return Matrix4x4.TRS(
-                    capturePosition,
-                    Quaternion.LookRotation(influencePosition - capturePosition, tr.up),
-                    Vector3.one
-                );
-            }
-            else
-            {
-                var tr = transform;
-                var capturePosition = tr.TransformPoint(m_CaptureLocalPosition);
-                var influencePosition = influenceVolume.GetWorldPosition(tr);
-                return Matrix4x4.TRS(
-                    capturePosition,
-                    Quaternion.LookRotation(influencePosition - capturePosition, tr.up),
-                    Vector3.one
-                );
-            }
-        }
-
-        public Matrix4x4 GetInfluenceToWorld()
-        {
-            var tr = transform;
-            var influencePosition = influenceVolume.GetWorldPosition(tr);
-            return Matrix4x4.TRS(
-                influencePosition,
-                tr.rotation,
-                Vector3.one
-            );
-        }
     }
 }

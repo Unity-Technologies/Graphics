@@ -134,7 +134,7 @@ float3 GetSampleEnvCoordinates(LightLoopContext lightLoopContext, int index, flo
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             float2 positionNCD = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + texCoord, _Env2DCaptureVP[index]);
-            outWeight = any(positionNCD > 1) || any(positionNCD < 0) ? 0 : 1;
+            outWeight = any(positionNCD.xy > 1) || any(positionNCD.xy < 0) ? 0 : 1;
             return float3(positionNCD, 1);
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)

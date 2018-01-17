@@ -232,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering
             points[2] = new Vector3(1, 1, distance); // rightTopFar
             points[3] = new Vector3(1, -1, distance); // rightBottomFar
             for (var i = 0; i < 4; ++i)
-                points[i] = CameraEditorUtils.PerspectiveClipToWorld(clipToWorld, viewPosition, points[i]);
+                points[i] = PerspectiveClipToWorld(clipToWorld, viewPosition, points[i]);
         }
 
         static Vector3 MidPointPositionSlider(Vector3 position1, Vector3 position2, Vector3 direction)

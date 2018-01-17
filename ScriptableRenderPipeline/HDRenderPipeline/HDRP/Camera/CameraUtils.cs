@@ -56,7 +56,7 @@
 
         public static Matrix4x4 CalculateWorldToCameraMatrixMirror(Matrix4x4 worldToCamera, Matrix4x4 reflection)
         {
-            return worldToCamera * reflection * Matrix4x4.Scale(new Vector3(-1, 1, 1));
+            return  worldToCamera * reflection;
         }
 
         public static Matrix4x4 CalculateReflectionMatrix(Vector4 plane)

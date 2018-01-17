@@ -126,30 +126,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void DrawGizmos_CaptureFrustrum(PlanarReflectionProbeUI s, PlanarReflectionProbe d)
         {
             var viewerCamera = Camera.current;
-
-            var captureToWorld = d.GetCaptureToWorld(viewerCamera);
-            var capturePosition = captureToWorld.GetColumn(3);
-            var captureRotation = captureToWorld.rotation;
             var c = Gizmos.color;
 
-            //var fov = ReflectionSystem.GetCaptureCameraFOVFor(d, viewerCamera);
-            //var clipToWorld = CameraEditorUtils.GetCameraClipToWorld(
-            //    capturePosition, captureRotation,
-            //    d.captureNearPlane, d.captureFarPlane,
-            //    fov, 1);
+            float nearClipPlane, farClipPlane, aspect, fov;
+            Color backgroundColor;
+            CameraClearFlags clearFlags;
+            Vector3 capturePosition;
+            Quaternion captureRotation;
+            Matrix4x4 worldToCamera, projection;
 
-            //var near = new Vector3[4];
-            //var far = new Vector3[4];
-            //CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureFarPlane, far);
-            //CameraEditorUtils.GetFrustrumPlaneAt(clipToWorld, capturePosition, d.captureNearPlane, near);
+            ReflectionSystem.CalculateCaptureCameraProperties(d,
+                out nearClipPlane, out farClipPlane,
+                out aspect, out fov, out clearFlags, out backgroundColor,
+                out worldToCamera, out projection,
+                out capturePosition, out captureRotation, viewerCamera);
 
-            //Gizmos.color = k_GizmoCamera;
-            //for (var i = 0; i < 4; ++i)
-            //{
-            //    Gizmos.DrawLine(near[i], near[(i + 1) % 4]);
-            //    Gizmos.DrawLine(far[i], far[(i + 1) % 4]);
-            //    Gizmos.DrawLine(near[i], far[i]);
-            //}
+            // TODO: draw frustrum gizmo
 
             Gizmos.DrawSphere(capturePosition, HandleUtility.GetHandleSize(capturePosition) * 0.2f);
             Gizmos.color = c;
