@@ -150,7 +150,5 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  testInPlayMode: 0
-  invokeAtStart: 1
   forcedFrameRate: 60
   waitForFrames: 30
