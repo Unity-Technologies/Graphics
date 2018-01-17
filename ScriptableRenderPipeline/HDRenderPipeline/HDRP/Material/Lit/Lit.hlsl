@@ -1153,7 +1153,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+        lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
 
@@ -1242,7 +1242,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+        lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
 
