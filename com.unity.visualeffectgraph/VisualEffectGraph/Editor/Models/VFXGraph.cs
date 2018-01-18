@@ -219,7 +219,7 @@ namespace UnityEditor.VFX
 #endif
 
                 // hide all sub assets
-                var assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+                var assets = allAssets;
                 foreach (var asset in assets)
                 {
                     asset.hideFlags |= HideFlags.HideInHierarchy;
@@ -249,12 +249,17 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
         }
 
+        IEnumerable<Object> allAssets
+        {
+            get {return AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader || o is VFXUI); }
+        }
+
         public  bool displaySubAssets
         {
             get {return (hideFlags & HideFlags.HideInHierarchy) == 0; }
             set
             {
-                var persistentAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+                var persistentAssets = allAssets;
 
                 if (value)
                 {
@@ -306,7 +311,7 @@ namespace UnityEditor.VFX
 
                 try
                 {
-                    var persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader || o is VFXUI));
+                    var persistentObjects = new HashSet<Object>(allAssets);
                     persistentObjects.Remove(this);
 
                     var currentObjects = new HashSet<ScriptableObject>();
