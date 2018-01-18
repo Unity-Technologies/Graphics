@@ -689,7 +689,16 @@ public class VFXComponentEditor : Editor
         GUI.enabled = true;
 
         s_IsEditingAsset = EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this);
+
+        if (s_IsEditingAsset && !m_WasEditingAsset)
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(component.vfxAsset);
+        }
+        m_WasEditingAsset = s_IsEditingAsset;
     }
+
+    bool m_WasEditingAsset;
 
     private void SetPlayRate(object rate)
     {

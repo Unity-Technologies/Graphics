@@ -296,7 +296,7 @@ MonoBehaviour:
   - {fileID: 114802777676336084}
   - {fileID: 114033350763109576}
   - {fileID: 114935258494753348}
-  m_Capacity: 65536
+  m_Capacity: 8
   m_Space: 0
 --- !u!114 &114089173068204810
 MonoBehaviour:
@@ -720,7 +720,7 @@ MonoBehaviour:
   - {fileID: 114654946085396038}
   - {fileID: 114831130251144830}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114265085260653516}
   m_MasterData:
@@ -729,7 +729,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
+      m_SerializableObject: '{"space":0,"center":{"x":-0.00014281272888183594,"y":0.266866534948349,"z":0.0},"size":{"x":0.4611510634422302,"y":0.5761944651603699,"z":0.0}}'
   m_Property:
     name: bounds
     m_serializedType:
@@ -1605,7 +1605,7 @@ MonoBehaviour:
   - {fileID: 114900620605141148}
   - {fileID: 114089173068204810}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 114265085260653516}
   m_MasterData:
@@ -2799,19 +2799,18 @@ VFXAsset:
       - m_ExpressionIndex: 10
         m_Value: 1
       - m_ExpressionIndex: 11
-        m_Value: 0
+        m_Value: 0.46115106
       - m_ExpressionIndex: 12
-        m_Value: 1
+        m_Value: 0.57619447
       - m_ExpressionIndex: 13
         m_Value: 1
       - m_ExpressionIndex: 14
-        m_Value: 0
+        m_Value: 0.26686653
       - m_ExpressionIndex: 15
-        m_Value: 0
+        m_Value: -0.00014281273
       - m_ExpressionIndex: 16
         m_Value: 0
       - m_ExpressionIndex: 17
-        m_Value: 1
       - m_ExpressionIndex: 19
         m_Value: 2.5
       - m_ExpressionIndex: 24
@@ -2891,8 +2890,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 655360
-    capacity: 65536
+    size: 80
+    capacity: 8
     layout:
     - name: velocity
       type: 3
@@ -2909,25 +2908,25 @@ VFXAsset:
     - name: sizeX
       type: 1
       offset:
-        bucket: 262144
+        bucket: 32
         structure: 1
         element: 0
     - name: age
       type: 1
       offset:
-        bucket: 327680
+        bucket: 40
         structure: 1
         element: 0
     - name: position
       type: 3
       offset:
-        bucket: 393216
+        bucket: 48
         structure: 4
         element: 0
     - name: alive
       type: 17
       offset:
-        bucket: 393216
+        bucket: 48
         structure: 4
         element: 3
   - type: 1
@@ -2941,7 +2940,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 65536
+    size: 8
     capacity: 0
     layout: []
   - type: 1
@@ -2989,7 +2988,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 65536
+    capacity: 8
     buffers:
     - index: 0
       nameId: attributeBuffer

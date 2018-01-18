@@ -649,11 +649,12 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 1
+  blendMode: 4
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
 --- !u!114 &114149745243873572
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1560,7 +1561,7 @@ MonoBehaviour:
   - {fileID: 114148650700201542}
   - {fileID: 114440299538930908}
   - {fileID: 114361518839833050}
-  m_Capacity: 65536
+  m_Capacity: 8
   m_Space: 0
 --- !u!114 &114340786042683758
 MonoBehaviour:
@@ -1770,6 +1771,38 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 114892713975119042}
   attribute: particleId
+--- !u!114 &114369422258304014
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114369422258304014}
+  m_MasterData:
+    m_Owner: {fileID: 114785343912027826}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.3
+  m_Property:
+    name: alphaThreshold
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114377748632666160
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1986,11 +2019,12 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 1
+  blendMode: 4
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   targetFromAttributes: 1
 --- !u!114 &114445986921503696
 MonoBehaviour:
@@ -2456,38 +2490,6 @@ MonoBehaviour:
       m_SerializableObject: 
   m_Property:
     name: z
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114545711947072876
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114545711947072876}
-  m_MasterData:
-    m_Owner: {fileID: 114785343912027826}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.3
-  m_Property:
-    name: alphaThreshold
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
@@ -3812,7 +3814,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 114056542592000672}
-  - {fileID: 114545711947072876}
+  - {fileID: 114369422258304014}
   m_OutputSlots: []
   m_Data: {fileID: 114337012759867870}
   m_InputFlowSlot:
@@ -3826,6 +3828,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114786253860938156
 MonoBehaviour:
@@ -5391,8 +5394,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 917504
-    capacity: 65536
+    size: 700672
+    capacity: 50048
     layout:
     - name: position
       type: 3
@@ -5409,25 +5412,25 @@ VFXAsset:
     - name: lifetime
       type: 1
       offset:
-        bucket: 262144
+        bucket: 200192
         structure: 1
         element: 0
     - name: velocity
       type: 3
       offset:
-        bucket: 327680
+        bucket: 250240
         structure: 4
         element: 0
     - name: age
       type: 1
       offset:
-        bucket: 589824
+        bucket: 450432
         structure: 1
         element: 0
     - name: color
       type: 3
       offset:
-        bucket: 655360
+        bucket: 500480
         structure: 4
         element: 0
   - type: 1
@@ -5441,7 +5444,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 65536
+    size: 50048
     capacity: 0
     layout: []
   - type: 1
@@ -5489,7 +5492,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 65536
+    capacity: 50048
     buffers:
     - index: 0
       nameId: attributeBuffer

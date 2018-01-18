@@ -630,10 +630,11 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  flipBook: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114472202488033534
 MonoBehaviour:
@@ -1652,7 +1653,7 @@ VFXAsset:
       - index: 19
         nameId: Max_d
       params: []
-      processor: {fileID: 7200000, guid: 777943fad2c652042a43e19c79a91255, type: 3}
+      processor: {fileID: 7200000, guid: 3d0080bf1b3c07a498a51dd51217050d, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1663,7 +1664,7 @@ VFXAsset:
       - index: 20
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 42046483a0e8f8241a5e14cccd0da6fd, type: 3}
+      processor: {fileID: 7200000, guid: f76bdf7a8f2455742adb86d28bb68805, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1678,7 +1679,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 079a5113fab9f6849b5576ab2408f9a4, type: 3}
+      processor: {fileID: 4800000, guid: 6268d8e91e8bcca45a77b75a962ad2e4, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

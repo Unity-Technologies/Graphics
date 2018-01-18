@@ -1604,7 +1604,7 @@ MonoBehaviour:
   - {fileID: 114064158827839248}
   - {fileID: 114177930399143018}
   - {fileID: 114680159770969686}
-  m_Capacity: 65536
+  m_Capacity: 8
   m_Space: 1
 --- !u!114 &114284239601355758
 MonoBehaviour:
@@ -5770,8 +5770,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 1179648
-    capacity: 65536
+    size: 4608
+    capacity: 256
     layout:
     - name: lifetime
       type: 1
@@ -5782,55 +5782,55 @@ VFXAsset:
     - name: position
       type: 3
       offset:
-        bucket: 65536
+        bucket: 256
         structure: 8
         element: 0
     - name: sizeX
       type: 1
       offset:
-        bucket: 65536
+        bucket: 256
         structure: 8
         element: 3
     - name: sizeY
       type: 1
       offset:
-        bucket: 65536
+        bucket: 256
         structure: 8
         element: 4
     - name: pivot
       type: 3
       offset:
-        bucket: 589824
+        bucket: 2304
         structure: 4
         element: 0
     - name: angleX
       type: 1
       offset:
-        bucket: 851968
+        bucket: 3328
         structure: 4
         element: 0
     - name: angleY
       type: 1
       offset:
-        bucket: 851968
+        bucket: 3328
         structure: 4
         element: 1
     - name: angleZ
       type: 1
       offset:
-        bucket: 851968
+        bucket: 3328
         structure: 4
         element: 2
     - name: alive
       type: 17
       offset:
-        bucket: 851968
+        bucket: 3328
         structure: 4
         element: 3
     - name: age
       type: 1
       offset:
-        bucket: 1114112
+        bucket: 4352
         structure: 1
         element: 0
   - type: 1
@@ -5844,7 +5844,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 65536
+    size: 256
     capacity: 0
     layout: []
   - type: 1
@@ -5892,7 +5892,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 65536
+    capacity: 256
     buffers:
     - index: 0
       nameId: attributeBuffer
