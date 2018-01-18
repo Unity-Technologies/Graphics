@@ -46,7 +46,6 @@ half4 _ShadowData; // (x: shadowStrength)
 half4 _ShadowmapSize; // (xy: width and height, zw: 1/width and 1/height)
 CBUFFER_END
 
-//#define SHADER_API_MOBILE
 inline half SampleShadowmap(float4 shadowCoord)
 {
 #if defined(_SHADOWS_PERSPECTIVE)
