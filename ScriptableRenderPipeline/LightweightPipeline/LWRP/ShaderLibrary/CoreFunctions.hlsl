@@ -71,6 +71,11 @@ real3 TransformObjectToWorldNormal(real3 normalOS)
 #endif
 }
 
+float3 TransformObjectToView(float3 positionOS)
+{
+    return mul(GetWorldToViewMatrix(), mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0))).xyz;
+}
+
 // Transforms position from object space to homogenous space
 float4 TransformObjectToHClip(float3 positionWS)
 {
