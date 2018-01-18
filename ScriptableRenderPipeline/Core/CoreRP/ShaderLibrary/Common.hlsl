@@ -367,23 +367,23 @@ real FastATan(real x)
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
-// Computes (FastSign(s) * x) using 2x VALU.
+// Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
-float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
+float CopySign(float x, float s, bool ignoreNegZero = true)
 {
 #if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
-        return (s >= 0) ? x : -x;
+        return (s >= 0) ? abs(x) : -abs(x);
     }
     else
     {
         uint negZero = 0x80000000u;
         uint signBit = negZero & asuint(s);
-        return asfloat(signBit ^ asuint(x));
+        return asfloat(signBit | asuint(abs(x)));
     }
 #else
-    return (s >= 0) ? x : -x;
+    return (s >= 0) ? abs(x) : -abs(x);
 #endif
 }
 
@@ -396,7 +396,7 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 // Note that the sign() function in HLSL implements signum, which returns 0 for 0.
 float FastSign(float s, bool ignoreNegZero = true)
 {
-    return FastMulBySignOf(s, 1.0, ignoreNegZero);
+    return CopySign(1.0, s, ignoreNegZero);
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
