@@ -273,11 +273,11 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
 }
 
 // Assume bsdfData.normalWS is init
-void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, inout BSDFData bsdfData)
+void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
-    bsdfData.anisotropy     = anisotropy;
-    bsdfData.tangentWS      = tangentWS;
-    bsdfData.bitangentWS    = cross(bsdfData.normalWS, bsdfData.tangentWS);
+    bsdfData.anisotropy  = anisotropy;
+    bsdfData.tangentWS   = tangentWS;
+    bsdfData.bitangentWS = bitangentWS;
 }
 
 void FillMaterialIridescence(float thicknessIrid, inout BSDFData bsdfData)
@@ -418,7 +418,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, bsdfData);
+        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
@@ -502,9 +502,16 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         }
         else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
-            // Encode tangent on 16bit with oct compression
-            float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-            outGBuffer2.rgb = float3(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy * 0.5 + 0.5);
+            // Reconstruct the default tangent frame.
+            float3x3 frame = GetLocalFrame(surfaceData.normalWS);
+
+            // Compute the rotation angle of the actual tangent frame with respect to the default one.
+            float sinFrame = dot(surfaceData.tangentWS, frame[1]);
+            float cosFrame = dot(surfaceData.tangentWS, frame[0]);
+            uint  storeSin = abs(sinFrame) < abs(cosFrame) ? 4 : 0;
+            uint  quadrant = ((sinFrame < 0) ? 1 : 0) | ((cosFrame < 0) ? 2 : 0);
+
+            outGBuffer2.rgb = float3(min(abs(sinFrame), abs(cosFrame)) * sqrt(2), PackByte(storeSin | quadrant), surfaceData.anisotropy * 0.5 + 0.5);
         }
         else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
         {
@@ -552,7 +559,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasSpecularColor = (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
     bool pixelHasTransmission  = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0); // Thickness > 0
     bool pixelHasSubsurface    = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0); // TagSSS > 0
-    bool pixelHasAnisotropy    = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && (inGBuffer2.b - 0.5) >= 1.0/255.0); // Anisotropy > 0
+    bool pixelHasAnisotropy    = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && abs(inGBuffer2.b - 0.5) >= 1.0/255.0); // Anisotropy > 0
     bool pixelHasIridescence   = (metallic15 == GBUFFER_LIT_IRIDESCENCE);
     bool pixelHasClearCoat     = (coatMask > 0);
 
@@ -617,21 +624,32 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Note that it mean that when we have the worse case, we always use Anisotropy and shader like deferred.shader are always the worst case (but only used for debugging)
     if (HasFeatureFlag(tileFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        float anisotropy;
-        float3 tangentWS;
+        float anisotropy = 0;
+        float3x3 frame = GetLocalFrame(bsdfData.normalWS);
 
         if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
             anisotropy = inGBuffer2.b * 2.0 - 1.0;
-            tangentWS  = UnpackNormalOctEncode(inGBuffer2.rg * 2.0 - 1.0);
-        }
-        else
-        {
-            anisotropy = 0.0;
-            tangentWS = GetLocalFrame(bsdfData.normalWS)[0];
+
+            // Get the rotation angle of the actual tangent frame with respect to the default one.
+            uint  quadrant = UnpackByte(inGBuffer2.g) & 3;
+            uint  storeSin = UnpackByte(inGBuffer2.g) & 4;
+            float absVal0  = inGBuffer2.r * rsqrt(2);
+            float absVal1  = sqrt(1 - absVal0 * absVal0);
+            float sinFrame = storeSin ? absVal0 : absVal1;
+            float cosFrame = storeSin ? absVal1 : absVal0;
+                  sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
+                  cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
+
+            // Rotate the reconstructed tangent around the normal.
+            float3 tangentWS   = sinFrame * frame[1] + cosFrame * frame[0];
+            float3 bitangentWS = cosFrame * frame[1] - sinFrame * frame[0];
+
+            frame[0] = tangentWS;
+            frame[1] = bitangentWS;
         }
 
-        FillMaterialAnisotropy(anisotropy, tangentWS, bsdfData);
+        FillMaterialAnisotropy(anisotropy, frame[0], frame[1], bsdfData);
     }
 
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
