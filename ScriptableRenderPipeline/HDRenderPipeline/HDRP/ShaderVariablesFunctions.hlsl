@@ -168,6 +168,20 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
     }
 }
 
+float3 GetWorldSpaceViewDir(float3 positionWS)
+{
+	if (IsPerspectiveProjection())
+	{
+		// Perspective
+		return GetCurrentViewPosition() - positionWS;
+	}
+	else
+	{
+		// Orthographic
+		return -GetViewForwardDir();
+	}
+}
+
 float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)
 {
     // For odd-negative scale transforms we need to flip the sign

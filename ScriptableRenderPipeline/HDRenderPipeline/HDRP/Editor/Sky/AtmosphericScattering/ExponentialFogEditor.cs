@@ -11,6 +11,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public class ExponentialFogEditor : AtmosphericScatteringEditor
     {
         private SerializedDataParameter m_FogDistance;
+        private SerializedDataParameter m_FogBaseHeight;
+        private SerializedDataParameter m_FogHeightAttenuation;
 
         public override void OnEnable()
         {
@@ -18,12 +20,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var o = new PropertyFetcher<ExponentialFog>(serializedObject);
 
             m_FogDistance = Unpack(o.Find(x => x.fogDistance));
+            m_FogBaseHeight = Unpack(o.Find(x => x.fogBaseHeight));
+            m_FogHeightAttenuation = Unpack(o.Find(x => x.fogHeightAttenuation));
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
             PropertyField(m_FogDistance);
+            PropertyField(m_FogBaseHeight);
+            PropertyField(m_FogHeightAttenuation);
         }
     }
 }
