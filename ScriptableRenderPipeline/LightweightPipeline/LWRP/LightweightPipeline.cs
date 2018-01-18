@@ -410,12 +410,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
         }
 
-        //TODO: Offline
+        //TODO: Find place to live.
         private Vector4[] GetFarPlaneCorners()
         {
             Vector4[] corners = new Vector4[4];
 
-            //http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-extracting-the-planes/
             float farH   = 2.0f * Mathf.Tan(m_CurrCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * m_CurrCamera.farClipPlane;
             float farW   = farH * m_CurrCamera.aspect;
             
@@ -434,13 +433,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void CollectShadowPass(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
-            //NOTE: Renderscale?
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
             
-            cmd.SetGlobalTexture("_Depth", m_DepthRT);
-            cmd.SetGlobalTexture("_ShadowCascades", m_ShadowMapRT);
             cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners());
-            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial); //TODO: PCF passes
+            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial); 
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
