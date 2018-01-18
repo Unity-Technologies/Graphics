@@ -62,6 +62,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         _CoatMask("Coat Mask", Range(0.0, 1.0)) = 1.0
 
+        [ToggleUI] _EnergyConservingSpecularColor("_EnergyConservingSpecularColor", Float) = 1.0
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
         _SpecularColorMap("SpecularColorMap", 2D) = "white" {}
 

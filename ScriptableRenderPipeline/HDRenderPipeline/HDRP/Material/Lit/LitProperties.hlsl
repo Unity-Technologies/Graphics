@@ -173,6 +173,7 @@ float4 _ThicknessRemap;
 float _CoatMask;
 
 float4 _SpecularColor;
+float _EnergyConservingSpecularColor;
 
 float _TexWorldScale;
 float _InvTilingScale;
