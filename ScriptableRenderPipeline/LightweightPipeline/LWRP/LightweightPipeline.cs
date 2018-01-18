@@ -410,6 +410,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
         }
 
+        //TODO: Offline
         private Vector4[] GetFarPlaneCorners()
         {
             Vector4[] corners = new Vector4[4];
@@ -436,9 +437,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //NOTE: Renderscale?
             cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
             
-            //TODO: Fullscreen triangle?
-            //SetRenderTarget(cmd, m_ScreenSpaceShadowMapRT, ClearFlag.Color); //NOTE: Clear Depth?
-
             cmd.SetGlobalTexture("_Depth", m_DepthRT);
             cmd.SetGlobalTexture("_ShadowCascades", m_ShadowMapRT);
             cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners());
