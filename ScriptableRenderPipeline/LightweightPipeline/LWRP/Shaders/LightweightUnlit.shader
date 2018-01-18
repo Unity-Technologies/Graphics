@@ -16,7 +16,7 @@ Shader "LightweightPipeline/Standard Unlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipe" }
+        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -105,5 +105,6 @@ Shader "LightweightPipeline/Standard Unlit"
             ENDHLSL
         }
     }
+    FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightUnlitGUI"
 }
