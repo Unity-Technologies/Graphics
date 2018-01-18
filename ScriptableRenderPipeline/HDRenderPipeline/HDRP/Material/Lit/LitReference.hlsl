@@ -152,7 +152,8 @@ float3 IntegrateLambertIBLRef(LightLoopContext lightLoopContext,
 
         if (NdotL > 0.0)
         {
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+            float sampleWeight = 1;
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, sampleWeight);
 
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
             acc += LambertNoPI() * weightOverPdf * val.rgb;
@@ -191,7 +192,8 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
             // in weightOverPdf of ImportanceSampleLambert call.
             float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
 
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+            float sampleWeight = 1;
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, sampleWeight);
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
             acc += disneyDiffuse * weightOverPdf * val.rgb;
         }
@@ -248,7 +250,8 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
             // Fresnel component is apply here as describe in ImportanceSampleGGX function
             float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
 
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+            float sampleWeight = 1;
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, sampleWeight);
 
             acc += FweightOverPdf * val.rgb;
         }
