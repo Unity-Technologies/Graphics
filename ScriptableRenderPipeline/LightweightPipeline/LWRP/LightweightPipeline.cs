@@ -130,9 +130,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private const int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount;
         private int m_ShadowMapRTID;
+        private int m_ScreenSpaceShadowMapRTID;
         private Matrix4x4[] m_ShadowMatrices = new Matrix4x4[kMaxCascades + 1];
         private RenderTargetIdentifier m_CurrCameraColorRT;
         private RenderTargetIdentifier m_ShadowMapRT;
+        private RenderTargetIdentifier m_ScreenSpaceShadowMapRT;
         private RenderTargetIdentifier m_ColorRT;
         private RenderTargetIdentifier m_CopyColorRT;
         private RenderTargetIdentifier m_DepthRT;
@@ -186,6 +188,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Material m_BlitMaterial;
         private Material m_CopyDepthMaterial;
         private Material m_ErrorMaterial;
+        private Material m_ScreenSpaceShadowsMaterial;
         private int m_BlitTexID = Shader.PropertyToID("_BlitTex");
 
         private CopyTextureSupport m_CopyTextureSupport;
@@ -216,6 +219,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
 
             m_ShadowMapRTID = Shader.PropertyToID("_ShadowMap");
+            m_ScreenSpaceShadowMapRTID = Shader.PropertyToID("_ScreenSpaceShadowMap");
 
             CameraRenderTargetID.color = Shader.PropertyToID("_CameraColorRT");
             CameraRenderTargetID.copyColor = Shader.PropertyToID("_CameraCopyColorRT");
@@ -223,6 +227,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CameraRenderTargetID.depthCopy = Shader.PropertyToID("_CameraCopyDepthTexture");
 
             m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapRTID);
+            m_ScreenSpaceShadowMapRT = new RenderTargetIdentifier(m_ScreenSpaceShadowMapRTID);
 
             m_ColorRT = new RenderTargetIdentifier(CameraRenderTargetID.color);
             m_CopyColorRT = new RenderTargetIdentifier(CameraRenderTargetID.copyColor);
@@ -246,6 +251,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
+            m_ScreenSpaceShadowsMaterial = CoreUtils.CreateEngineMaterial("Hidden/LightweightPipeline/ScreenSpaceShadows");
         }
 
         public override void Dispose()
@@ -332,6 +338,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                     DepthPass(ref context);
+
+                //TODO: Shadow Gather Here
+                //NOTE: Enable Depth PrePass flag based on SS Shadow Checkbox and then check for that again here?
+                CollectShadowPass(ref context);
+
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
                 // Release temporary RT
@@ -397,6 +408,44 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
 
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
+        }
+
+        private Vector4[] GetFarPlaneCorners()
+        {
+            Vector4[] corners = new Vector4[4];
+
+            //http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-extracting-the-planes/
+            float farH   = 2.0f * Mathf.Tan(m_CurrCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * m_CurrCamera.farClipPlane;
+            float farW   = farH * m_CurrCamera.aspect;
+            
+            Vector3 fc    = Vector3.forward * m_CurrCamera.farClipPlane;
+            Vector3 up    = Vector3.up; 
+            Vector3 right = Vector3.right; 
+
+            corners[0] = fc - (up * farH / 2) - (right * farW / 2);
+            corners[1] = fc + (up * farH / 2) - (right * farW / 2);
+            corners[2] = fc + (up * farH / 2) + (right * farW / 2);
+            corners[3] = fc - (up * farH / 2) + (right * farW / 2);
+
+            return corners;
+        }
+
+        private void CollectShadowPass(ref ScriptableRenderContext context)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
+            //NOTE: Renderscale?
+            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+            
+            //TODO: Fullscreen triangle?
+            //SetRenderTarget(cmd, m_ScreenSpaceShadowMapRT, ClearFlag.Color); //NOTE: Clear Depth?
+
+            cmd.SetGlobalTexture("_Depth", m_DepthRT);
+            cmd.SetGlobalTexture("_ShadowCascades", m_ShadowMapRT);
+            cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners());
+            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial); //TODO: PCF passes
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
