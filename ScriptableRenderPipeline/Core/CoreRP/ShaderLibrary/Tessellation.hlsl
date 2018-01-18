@@ -1,4 +1,4 @@
-#define TESSELLATION_INTERPOLATE_BARY(name, bary) ouput.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
+#define TESSELLATION_INTERPOLATE_BARY(name, bary) output.name = input0.name * bary.x +  input1.name * bary.y +  input2.name * bary.z
 
 // p0, p1, p2 triangle world position
 // p0, p1, p2 triangle world vertex normal
