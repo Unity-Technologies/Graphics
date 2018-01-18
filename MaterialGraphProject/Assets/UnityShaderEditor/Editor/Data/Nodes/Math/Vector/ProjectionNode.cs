@@ -16,8 +16,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Projection(
-            [Slot(0, Binding.None)] DynamicDimensionVector A,
-            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
+            [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return

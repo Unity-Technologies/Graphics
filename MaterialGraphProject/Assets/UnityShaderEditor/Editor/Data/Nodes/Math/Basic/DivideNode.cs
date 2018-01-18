@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_Divide(
             [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector B,
+            [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return @"
