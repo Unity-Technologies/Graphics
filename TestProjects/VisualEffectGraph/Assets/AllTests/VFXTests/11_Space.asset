@@ -255,6 +255,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114036124727929684
 MonoBehaviour:
@@ -794,6 +795,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114103004838022920
 MonoBehaviour:
@@ -4797,8 +4799,12 @@ VFXAsset:
         nameId: uniform_c
       - index: 40
         nameId: Velocity_d
-      params: []
-      processor: {fileID: 7200000, guid: e9d8076bda7d4cd43ae3756973f29507, type: 3}
+      params:
+      - index: 41
+        nameId: bounds_center
+      - index: 34
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: 3b9a941f087b680449be3f0da9c85840, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4811,7 +4817,7 @@ VFXAsset:
       - index: 42
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: dc2e799a0e9fe234fa783b29c04db7dd, type: 3}
+      processor: {fileID: 7200000, guid: f0f8f255fcc0e754f874fc20bcef949f, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4824,7 +4830,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 36e72f96f15478642a3f4df2a33a5e51, type: 3}
+      processor: {fileID: 4800000, guid: 940099a771423614f871cebc72f64d71, type: 3}
   - type: 1
     flags: 1
     capacity: 44
@@ -4862,8 +4868,12 @@ VFXAsset:
         nameId: Position_c
       - index: 8
         nameId: Velocity_d
-      params: []
-      processor: {fileID: 7200000, guid: 8914c01ad91154d4f8f4192cfec648ee, type: 3}
+      params:
+      - index: 32
+        nameId: bounds_center
+      - index: 47
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: f476d5024d9926f4da4d352f37029ee7, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -4876,7 +4886,7 @@ VFXAsset:
       - index: 42
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 04ed49fcfb007ae4dbffb3c8b873c453, type: 3}
+      processor: {fileID: 7200000, guid: a0531e1b88283f0488c8bfe4dfd8e728, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -4889,7 +4899,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 5fbf393f5edc0864ab8534c5f65f481c, type: 3}
+      processor: {fileID: 4800000, guid: d214db268f12e4443a3f032ffff7530c, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

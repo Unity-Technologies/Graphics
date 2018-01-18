@@ -192,6 +192,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114033604711334270
 MonoBehaviour:
@@ -272,7 +273,44 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
+--- !u!114 &114057662821370594
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c52d920e7fff73b498050a6b3c4404ca, type: 3}
+  m_Name: VFXSlotUint
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114057662821370594}
+  m_MasterData:
+    m_Owner: {fileID: 114935258494753348}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 4294967295
+  m_Property:
+    name: subMeshMask
+    m_serializedType:
+      m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Define a bitmask to control which submeshes are rendered.
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114069458236294264
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1461,7 +1499,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Texture to be applied to the mesh.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114627673100607158
@@ -1655,7 +1697,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes: []
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Mesh to be used for particle rendering.
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114742570842449686
@@ -1823,6 +1869,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114816275757540168
 MonoBehaviour:
@@ -2239,6 +2286,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 114618523269380432}
   - {fileID: 114719841985991520}
+  - {fileID: 114057662821370594}
   m_OutputSlots: []
   m_Data: {fileID: 114069458236294264}
   m_InputFlowSlot:
@@ -2252,6 +2300,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
 --- !u!114 &114960823469034090
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2719,61 +2768,67 @@ VFXAsset:
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 15
+      data[3]: 6
     - op: 0
-      valueIndex: 27
+      valueIndex: 26
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
     - op: 2
-      valueIndex: 29
+      valueIndex: 28
       data[0]: 15
       data[1]: 16
       data[2]: 14
       data[3]: -1
     - op: 0
-      valueIndex: 32
+      valueIndex: 31
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
+    - op: 2
+      valueIndex: 33
+      data[0]: 12
+      data[1]: 13
+      data[2]: 17
+      data[3]: -1
     - op: 0
-      valueIndex: 34
-      data[0]: -1
-      data[1]: -1
-      data[2]: -1
-      data[3]: 1
-    - op: 0
-      valueIndex: 35
+      valueIndex: 36
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
     - op: 13
-      valueIndex: 37
+      valueIndex: 38
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
+    - op: 0
+      valueIndex: 39
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
     - op: 2
-      valueIndex: 38
-      data[0]: 12
-      data[1]: 13
-      data[2]: 17
-      data[3]: -1
-    - op: 2
-      valueIndex: 41
+      valueIndex: 40
       data[0]: 10
       data[1]: 11
       data[2]: 9
       data[3]: -1
     - op: 0
-      valueIndex: 44
+      valueIndex: 43
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
+    - op: 0
+      valueIndex: 45
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 15
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
@@ -2799,21 +2854,22 @@ VFXAsset:
       - m_ExpressionIndex: 10
         m_Value: 1
       - m_ExpressionIndex: 11
-        m_Value: 0.46115106
+        m_Value: 0
       - m_ExpressionIndex: 12
-        m_Value: 0.57619447
+        m_Value: 0.46115106
       - m_ExpressionIndex: 13
-        m_Value: 1
+        m_Value: 0.57619447
       - m_ExpressionIndex: 14
-        m_Value: 0.26686653
+        m_Value: 0
       - m_ExpressionIndex: 15
         m_Value: -0.00014281273
       - m_ExpressionIndex: 16
-        m_Value: 0
+        m_Value: 0.26686653
       - m_ExpressionIndex: 17
+        m_Value: 0
       - m_ExpressionIndex: 19
         m_Value: 2.5
-      - m_ExpressionIndex: 24
+      - m_ExpressionIndex: 27
         m_Value: 2
     m_Vector2f:
       m_Array: []
@@ -2822,7 +2878,9 @@ VFXAsset:
     m_Vector4f:
       m_Array: []
     m_Uint:
-      m_Array: []
+      m_Array:
+      - m_ExpressionIndex: 20
+        m_Value: 4294967295
     m_Int:
       m_Array: []
     m_Matrix4x4f:
@@ -2884,7 +2942,7 @@ VFXAsset:
         m_Value: {fileID: 2800000, guid: 04a1a4f71875d89468defb5128b274bd, type: 3}
       - m_ExpressionIndex: 29
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
-      - m_ExpressionIndex: 20
+      - m_ExpressionIndex: 30
         m_Value: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     m_Bool:
       m_Array: []
@@ -2982,7 +3040,7 @@ VFXAsset:
     - type: 268435456
       buffers: []
       values:
-      - index: 24
+      - index: 27
         nameId: Rate
       params: []
       processor: {fileID: 0}
@@ -3003,7 +3061,7 @@ VFXAsset:
     values:
     - index: 22
       nameId: bounds_center
-    - index: 27
+    - index: 24
       nameId: bounds_size
     tasks:
     - type: 536870912
@@ -3024,7 +3082,7 @@ VFXAsset:
       params:
       - index: 22
         nameId: bounds_center
-      - index: 27
+      - index: 24
         nameId: bounds_size
       processor: {fileID: 7200000, guid: f95d80c42637e9345afb3cc2422d8790, type: 3}
     - type: 805306368
@@ -3091,8 +3149,10 @@ VFXAsset:
       - index: 21
         nameId: mainTexture
       params:
-      - index: 20
+      - index: 30
         nameId: mesh
+      - index: 20
+        nameId: subMeshMask
       - index: 0
         nameId: sortPriority
       processor: {fileID: 4800000, guid: 7fc39fb270071154cac0a132fa5850a3, type: 3}
