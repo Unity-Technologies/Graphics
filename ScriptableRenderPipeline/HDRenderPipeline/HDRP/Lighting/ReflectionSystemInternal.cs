@@ -322,13 +322,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             nearClipPlane = viewerCamera.nearClipPlane;
             farClipPlane = viewerCamera.farClipPlane;
             aspect = 1;
-            fov = viewerCamera.fieldOfView;
+            fov = Mathf.Max(viewerCamera.fieldOfView, viewerCamera.fieldOfView * viewerCamera.aspect);
             clearFlags = viewerCamera.clearFlags;
             backgroundColor = viewerCamera.backgroundColor;
 
             var worldToCapture = CameraUtils.CalculateWorldToCameraMatrix(viewerCamera.transform);
             var reflectionMatrix = CameraUtils.CalculateReflectionMatrix(probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
-            worldToCamera = CameraUtils.CalculateWorldToCameraMatrixMirror(worldToCapture, reflectionMatrix);
+            worldToCamera = worldToCapture * reflectionMatrix;
 
             var clipPlane = CameraUtils.CameraSpacePlane(worldToCamera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
             var sourceProj = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
