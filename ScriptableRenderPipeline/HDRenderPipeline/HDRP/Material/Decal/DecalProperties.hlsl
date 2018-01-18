@@ -11,9 +11,4 @@ SAMPLER(sampler_MaskMap);
 
 float _DecalBlend;
 
-CBUFFER_START(Decal)
-float4x4 _WorldToDecal;
-float4x4 _DecalToWorldR;
-CBUFFER_END
-
 #endif 

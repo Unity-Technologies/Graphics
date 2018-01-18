@@ -60,6 +60,8 @@ Shader "HDRenderPipeline/Decal"
             Cull Off
 			ZWrite Off
 			ZTest Always
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 
 			HLSLPROGRAM
 

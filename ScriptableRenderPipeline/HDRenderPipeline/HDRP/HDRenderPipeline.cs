@@ -107,6 +107,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_ColorMRTs;
         }
 
+		public void ClearNormalTarget(Color clearColor, CommandBuffer cmd)
+		{
+			// index 1 is normals
+			CoreUtils.SetRenderTarget(cmd, m_ColorMRTs[1], ClearFlag.Color, clearColor);
+		}
+
         public void PushGlobalParams(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
@@ -1178,7 +1184,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
 
-                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+				// for alpha compositing, color is cleared to 0, alpha to 1 
+				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+
+				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f); 
+				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
+
+				// we need to do a separate clear for normals, because they are cleared to a different color
+				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+				m_DbufferManager.ClearNormalTarget(clearColorNormal, cmd);
+
+				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT); // do not clear anymore
 				DecalSystem.instance.Render(renderContext, camera, cmd);
             }
         }
