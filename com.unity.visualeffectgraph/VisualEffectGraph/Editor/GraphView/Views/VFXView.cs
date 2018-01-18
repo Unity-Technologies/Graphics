@@ -659,11 +659,21 @@ namespace UnityEditor.VFX.UI
                     RemoveElement(groupNodes[deletedController]);
                 }
 
+
+                bool addNew = false;
+
                 foreach (var newController in controller.groupNodes.Except(groupNodes.Keys))
                 {
                     var newElement = new VFXGroupNode();
                     AddElement(newElement);
                     newElement.controller = newController;
+
+                    addNew = true;
+                }
+
+                if (addNew && panel != null)
+                {
+                    (panel as BaseVisualElementPanel).ValidateLayout();
                 }
             }
         }
@@ -1180,6 +1190,48 @@ namespace UnityEditor.VFX.UI
         IEnumerable<Controller> ElementsToController(IEnumerable<GraphElement> elements)
         {
             return elements.OfType<IControlledElement>().Select(t => t.controller);
+        }
+
+        void CollectElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
+        {
+            foreach (var element in elements)
+            {
+                if (element is GroupNode)
+                {
+                    CollectElements((element as GroupNode).containedElements, elementsToCopySet);
+                    elementsToCopySet.Add(element);
+                }
+                else if (element is Node || element is VFXContextUI)
+                {
+                    elementsToCopySet.Add(element);
+                }
+            }
+        }
+
+        protected override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
+        {
+            CollectElements(elements, elementsToCopySet);
+
+            var nodeuis = new HashSet<VFXNodeUI>(elementsToCopySet.SelectMany(t => t.Query().OfType<VFXNodeUI>().ToList()));
+            var contextuis = new HashSet<VFXContextUI>(elementsToCopySet.OfType<VFXContextUI>());
+
+            foreach (var edge in edges.ToList())
+            {
+                if (edge is VFXDataEdge)
+                {
+                    if (nodeuis.Contains(edge.input.GetFirstAncestorOfType<VFXNodeUI>()) && nodeuis.Contains(edge.output.GetFirstAncestorOfType<VFXNodeUI>()))
+                    {
+                        elementsToCopySet.Add(edge);
+                    }
+                }
+                else
+                {
+                    if (contextuis.Contains(edge.input.GetFirstAncestorOfType<VFXContextUI>()) && contextuis.Contains(edge.output.GetFirstAncestorOfType<VFXContextUI>()))
+                    {
+                        elementsToCopySet.Add(edge);
+                    }
+                }
+            }
         }
 
         string SerializeElements(IEnumerable<GraphElement> elements)

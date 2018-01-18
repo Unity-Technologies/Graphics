@@ -48,6 +48,26 @@ namespace UnityEditor.VFX.UI
             m_ViewController = viewController;
         }
 
+        void ValidateRect(ref Rect r)
+        {
+            if (float.IsInfinity(r.x) || float.IsNaN(r.x))
+            {
+                r.x = 0;
+            }
+            if (float.IsInfinity(r.y) || float.IsNaN(r.y))
+            {
+                r.y = 0;
+            }
+            if (float.IsInfinity(r.width) || float.IsNaN(r.width))
+            {
+                r.width = 100;
+            }
+            if (float.IsInfinity(r.height) || float.IsNaN(r.height))
+            {
+                r.height = 100;
+            }
+        }
+
         public Rect position
         {
             get
@@ -56,11 +76,16 @@ namespace UnityEditor.VFX.UI
                 {
                     return Rect.zero;
                 }
-                return m_UI.groupInfos[m_Index].position;
+                Rect result = m_UI.groupInfos[m_Index].position;
+                ValidateRect(ref result);
+                return result;
             }
             set
             {
                 if (m_Index < 0) return;
+
+                ValidateRect(ref value);
+
                 m_UI.groupInfos[m_Index].position = value;
                 m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
             }
