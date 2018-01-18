@@ -101,7 +101,9 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
+// Cubemap      : texCoord = direction vector
+// Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, out float weight)
 {
     // 31 bit index, 1 bit cache type
     uint cacheType = index & 1;
@@ -111,44 +113,23 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
-            return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, texCoord.xy, index, 0);
+        {
+            float2 ndc = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + texCoord, _Env2DCaptureVP[index]);
+            weight = any(ndc < 0) || any(ndc > 1) ? 0 : 1;
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc, index, 0);
+        }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
+        {
+            weight = 1;
             return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+        }
+        weight = 0;
         return float4(0, 0, 0, 0);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
+        weight = 1;
         return SampleSkyTexture(texCoord, lod);
-    }
-}
-
-float3 GetSampleEnvCoordinates(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, out float outWeight)
-{
-    // 31 bit index, 1 bit cache type
-    uint cacheType = index & 1;
-    index = index >> 1;
-
-    // This code will be inlined as lightLoopContext is hardcoded in the light loop
-    if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
-    {
-        if (cacheType == ENVCACHETYPE_TEXTURE2D)
-        {
-            float2 positionNCD = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + texCoord, _Env2DCaptureVP[index]);
-            outWeight = any(positionNCD.xy > 1) || any(positionNCD.xy < 0) ? 0 : 1;
-            return float3(positionNCD, 1);
-        }
-        else if (cacheType == ENVCACHETYPE_CUBEMAP)
-        {
-            outWeight = 1;
-            return texCoord;
-        }
-        outWeight = 0;
-        return float4(0, 0, 0, 0);
-    }
-    else // SINGLE_PASS_SAMPLE_SKY
-    {
-        outWeight = 1;
-        return texCoord;
     }
 }
 

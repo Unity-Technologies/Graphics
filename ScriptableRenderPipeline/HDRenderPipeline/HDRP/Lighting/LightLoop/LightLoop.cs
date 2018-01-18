@@ -1161,6 +1161,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
                 return false;
 
+            var capturePosition = Vector3.zero;
+            var influenceToWorld = probe.influenceToWorld;
+
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
             switch (probe.texture.dimension)
@@ -1173,7 +1176,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     float nearClipPlane, farClipPlane, aspect, fov;
                     Color backgroundColor;
                     CameraClearFlags clearFlags;
-                    Vector3 capturePosition;
                     Quaternion captureRotation;
                     Matrix4x4 worldToCamera, projection;
 
@@ -1186,12 +1188,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var gpuProj = GL.GetGPUProjectionMatrix(projection, true); // Had to change this from 'false'
                     var gpuView = worldToCamera;
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        // Zero out the translation component.
-                        gpuView *= Matrix4x4.Translate(camera.transform.position);
-                        capturePosition -= camera.transform.position;
-                    }
 
                     var vp = gpuProj * gpuView;
                     m_Env2DCapturePositionWS.Add(capturePosition);
@@ -1201,6 +1197,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TextureDimension.Cube:
                     envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
                     envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
+                    capturePosition = (Vector3)influenceToWorld.GetColumn(3) + probe.reflectionProbe.center;
                     break;
             }
             // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
@@ -1210,7 +1207,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Build light data
             var envLightData = new EnvLightData();
 
-            var influenceToWorld = probe.influenceToWorld;
 
             envLightData.envShapeType = probe.influenceShapeType;
             envLightData.dimmer = probe.dimmer;
@@ -1225,7 +1221,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.right = influenceToWorld.GetColumn(0).normalized;
             envLightData.up = influenceToWorld.GetColumn(1).normalized;
             envLightData.forward = influenceToWorld.GetColumn(2).normalized;
-            envLightData.capturePositionWS = Vector3.zero; //captureToWorld.GetColumn(3);
+            envLightData.capturePositionWS = capturePosition;
             envLightData.positionWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;
@@ -1683,6 +1679,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_lightList.envProxies[n - 1] = envProjData;
                             }
                         }
+                    }
+
+                    // We make the light position camera-relative as late as possible in order
+                    // to allow the preceding code to work with the absolute world space coordinates.
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        for (var i = 0; i < m_Env2DCaptureVP.Count; i++)
+                            m_Env2DCaptureVP[i] = m_Env2DCaptureVP[i] * Matrix4x4.Translate(camPosWS);
+                        for (var i = 0; i < m_Env2DCapturePositionWS.Count; i++)
+                            m_Env2DCapturePositionWS[i] = (Vector3)m_Env2DCapturePositionWS[i] - camPosWS;
                     }
                 }
 
