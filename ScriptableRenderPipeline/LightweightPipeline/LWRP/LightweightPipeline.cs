@@ -1031,15 +1031,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             noOpShadowMatrix.m33 = (SystemInfo.usesReversedZBuffer) ? 1.0f : 0.0f;
             m_ShadowMatrices[kMaxCascades] = noOpShadowMatrix;
 
-            float invShadowResolution = 0.5f / shadowResolution;
+            float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
+            float invHalfShadowResolution = 0.5f * invShadowResolution;
             cmd.SetGlobalMatrixArray("_WorldToShadow", m_ShadowMatrices);
             cmd.SetGlobalVector("_ShadowData", new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
             cmd.SetGlobalVector("_DirShadowSplitSphereRadii", m_DirectionalShadowSplitRadii);
-            cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset1", new Vector4(invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset3", new Vector4(invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset1", new Vector4( invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowOffset3", new Vector4( invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector("_ShadowmapSize", new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
