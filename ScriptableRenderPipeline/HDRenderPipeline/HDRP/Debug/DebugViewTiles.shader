@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
             uint _ViewTilesFlags;
             uint _NumTiles;
-            float2 _MousePixelCoord;
+            float4 _MousePixelCoord; // xy unorm, zw norm
 
             StructuredBuffer<uint> g_TileList;
             Buffer<uint> g_DispatchIndirectBuffer;

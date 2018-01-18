@@ -80,7 +80,7 @@ void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tan
 {
     half sign = vertexTangent.w * GetOddNegativeScale();
     normalWS = TransformObjectToWorldNormal(vertexNormal);
-    tangentWS = normalize(mul((half3x3)unity_ObjectToWorld, vertexTangent.xyz));
+    tangentWS = normalize(mul((half3x3)UNITY_MATRIX_M, vertexTangent.xyz));
     binormalWS = cross(normalWS, tangentWS) * sign;
 }
 

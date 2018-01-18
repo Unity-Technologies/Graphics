@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             // We should have the option to clear mip maps here, but since RenderTargetIdentifier, we can't know the number to clear...
             // So for now, we won't do it.
-            for(int i = 0; i < 6; ++i)
+            for (int i = 0; i < 6; ++i)
                 SetRenderTarget(cmd, buffer, ClearFlag.Color, clearColor, 0, (CubemapFace)i);
         }
 
@@ -199,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering
 
             for (int i = 0; i < 6; ++i)
             {
-                for (int mip = 0; mip < mipCount; ++ mip )
+                for (int mip = 0; mip < mipCount; ++mip)
                 {
                     SetRenderTarget(cmd, new RenderTargetIdentifier(renderTexture), ClearFlag.Color, clearColor, mip, (CubemapFace)i);
                 }
@@ -353,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         innerTypes = t.GetTypes();
                     }
-                    catch {}
+                    catch { }
                     return innerTypes;
                 });
         }

@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum FullScreenDebugMode
     {
         None,
+
         // Lighting
         MinLightingFullScreenDebug,
         SSAO,
@@ -53,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
         public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
+        public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
 
         public static GUIContent[] lightingFullScreenDebugStrings = null;
         public static int[] lightingFullScreenDebugValues = null;
@@ -191,6 +193,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
             DebugMenuManager.instance.AddDebugItem<DebugMipMapMode>("Rendering", "MipMaps", () => mipMapDebugSettings.debugMipMapMode, (value) => SetMipMapMode((DebugMipMapMode)value));
+
+            DebugMenuManager.instance.AddDebugItem<ColorPickerDebugMode>("Rendering", ColorPickerDebugSettings.kColorPickerDebugMode, () => (int)colorPickerDebugSettings.colorPickerMode, (value) => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold0Debug, () => colorPickerDebugSettings.colorThreshold0, (value) => colorPickerDebugSettings.colorThreshold0 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold1Debug, () => colorPickerDebugSettings.colorThreshold1, (value) => colorPickerDebugSettings.colorThreshold1 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold2Debug, () => colorPickerDebugSettings.colorThreshold2, (value) => colorPickerDebugSettings.colorThreshold2 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold3Debug, () => colorPickerDebugSettings.colorThreshold3, (value) => colorPickerDebugSettings.colorThreshold3 = (float)value);
+            DebugMenuManager.instance.AddDebugItem<Color>("Rendering", ColorPickerDebugSettings.kColorPickerFontColor, () => colorPickerDebugSettings.fontColor, (value) => colorPickerDebugSettings.fontColor = (Color)value);
+
         }
 
         public void OnValidate()

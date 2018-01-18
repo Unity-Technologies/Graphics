@@ -60,7 +60,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 // example of overriding punctual lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 lightPositionWS, float3 L)
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
 {
 #ifdef SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS
 	// example for choosing different algos for point and spot lights
@@ -74,26 +74,26 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 		Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_POINT_TEX];
 		SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_POINT_SMP];
 		uint					algo     = SHADOW_DISPATCH_POINT_ALG;
-		return EvalShadow_PointDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, lightPositionWS, L );
+		return EvalShadow_PointDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 	}
 	else
 	{
 		Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_SPOT_TEX];
 		SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_SPOT_SMP];
 		uint					algo     = SHADOW_DISPATCH_SPOT_ALG;
-		return EvalShadow_SpotDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, lightPositionWS, L );
+		return EvalShadow_SpotDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 	}
 #else
 	// example for choosing the same algo
 	Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX];
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_PUNC_SMP];
 	uint					algo     = SHADOW_DISPATCH_PUNC_ALG;
-	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, lightPositionWS, L );
+	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
 #endif
 }
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 lightPositionWS, float3 L, float2 positionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 positionSS )
 {
-	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, lightPositionWS, L );
+	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 
