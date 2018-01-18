@@ -313,6 +313,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _SPECULARCOLORMAP
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
 #endif
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+    // Require to have setup baseColor
+    // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
+    surfaceData.baseColor *= _EnergyConservingSpecularColor > 0.0 ? (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b)) : 1.0;
+#endif
 
 #if HAS_REFRACTION
     surfaceData.ior = _IOR;
