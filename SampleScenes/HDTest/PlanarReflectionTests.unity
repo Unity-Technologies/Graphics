@@ -1128,12 +1128,12 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 547467865}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1596124444}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &547467867
 MonoBehaviour:
@@ -3091,6 +3091,7 @@ Transform:
   - {fileID: 1927838485}
   - {fileID: 556113918}
   - {fileID: 1250450217}
+  - {fileID: 1596124444}
   m_Father: {fileID: 241156469}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3296,7 +3297,6 @@ Transform:
   - {fileID: 241156469}
   - {fileID: 1192322822}
   - {fileID: 1179256903}
-  - {fileID: 1596124444}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3955,13 +3955,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1561776757}
-  m_LocalRotation: {x: -0, y: -0.7071065, z: -0, w: 0.7071072}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.987, y: 2.751, z: 3.33}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1596124444}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: -90.00001, z: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1561776759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3976,25 +3976,25 @@ MonoBehaviour:
   m_ProxyVolumeReference: {fileID: 1654939277}
   m_InfluenceVolume:
     m_ShapeType: 0
-    m_BoxBaseSize: {x: 3.5541687, y: 3.9430876, z: 0.93649197}
-    m_BoxBaseOffset: {x: 0.23527569, y: -0.3748026, z: -0.08520496}
+    m_BoxBaseSize: {x: 0.39704847, y: 3.2606697, z: 3.1991441}
+    m_BoxBaseOffset: {x: -0.11343217, y: -0.14608002, z: 0.078737855}
     m_BoxInfluencePositiveFade: {x: 0, y: 0, z: 0}
     m_BoxInfluenceNegativeFade: {x: 0, y: 0, z: 0}
     m_BoxInfluenceNormalPositiveFade: {x: 0, y: 0, z: 0}
     m_BoxInfluenceNormalNegativeFade: {x: 0, y: 0, z: 0}
-    m_BoxPositiveFaceFade: {x: 0, y: 0, z: 0}
-    m_BoxNegativeFaceFade: {x: 0, y: 0, z: 0}
+    m_BoxPositiveFaceFade: {x: 1, y: 1, z: 1}
+    m_BoxNegativeFaceFade: {x: 1, y: 1, z: 1}
     m_SphereBaseRadius: 1.0270488
     m_SphereBaseOffset: {x: 0, y: 0, z: 0}
     m_SphereInfluenceFade: 0.14740431
     m_SphereInfluenceNormalFade: 0.18656206
   m_CaptureLocalPosition: {x: 0.30307975, y: 0.18300438, z: 4.7699223}
   m_Dimmer: 1
-  m_Mode: 2
-  m_RefreshMode: 0
+  m_Mode: 1
+  m_RefreshMode: 1
   m_CustomTexture: {fileID: 2800000, guid: 624b8c3a613121244b071ae2f92c971b, type: 3}
   m_BakedTexture: {fileID: 2800000, guid: 78df8455ea6df3949940f01d0907a72c, type: 2}
-  m_RealtimeTexture: {fileID: 0}
+  m_RealtimeTexture: {fileID: 1830406945}
   m_FrameSettings:
     enableShadow: 1
     enableSSR: 1
@@ -4029,8 +4029,11 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 1
       enableBigTilePrepass: 1
       isFptlEnabled: 1
-  m_CaptureNearPlane: 4.73
-  m_CaptureFarPlane: 99.96
+  m_CaptureNearPlane: 4.25
+  m_CaptureFarPlane: 98.64
+  m_CapturePositionMode: 1
+  m_CaptureMirrorPlaneLocalPosition: {x: 0, y: 0, z: 0}
+  m_CaptureMirrorPlaneLocalNormal: {x: 1, y: 0, z: 0}
 --- !u!1 &1562837666
 GameObject:
   m_ObjectHideFlags: 0
@@ -4226,15 +4229,15 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1596124443}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 5.828, y: 0, z: -3.431}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 547467866}
   - {fileID: 1654939276}
   - {fileID: 1561776758}
-  m_Father: {fileID: 1306845494}
-  m_RootOrder: 3
+  - {fileID: 547467866}
+  m_Father: {fileID: 1233674353}
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1623506277
 GameObject:
@@ -4335,7 +4338,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1596124444}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1654939277
 MonoBehaviour:
@@ -5010,6 +5013,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderPipelineAsset: {fileID: 11400000, guid: 1fa8c4c8604deee4e99ff30888538ca5,
     type: 2}
+--- !u!84 &1830406945
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: PlanarProbeRT Planar Reflection Probe
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_DepthFormat: 0
+  m_ColorFormat: 2
+  m_MipMap: 1
+  m_GenerateMips: 0
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &1882799006
 GameObject:
   m_ObjectHideFlags: 0

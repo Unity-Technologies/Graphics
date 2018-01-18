@@ -2027,8 +2027,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
-                cmd.SetGlobalInt(HDShaderIDs._isCullingInverted, GL.invertCulling ? 1 : 0);
-
                 // Cluster
                 {
                     cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
