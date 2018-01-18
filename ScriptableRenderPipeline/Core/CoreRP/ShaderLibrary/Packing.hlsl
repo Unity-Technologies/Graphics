@@ -44,7 +44,7 @@ real3 UnpackNormalOctEncode(real2 f)
     // Solve for {x, y, z} given {r, g}.
     real x = 0.5 * g + 0.5 - s * r;
     real y = g - x;
-    real z = s * (saturate(1.0 - abs(x) - abs(y)) + FLT_EPS); // saturate() and EPS are absolutely crucial for numerical stability
+    real z = s * max(FLT_EPS, 1.0 - abs(x) - abs(y)); // Clamping is absolutely crucial for numerical stability
 
     real3 p = real3(x, y, z);
 
