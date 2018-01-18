@@ -221,6 +221,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
 
+            ShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_WorldToShadow");
+            ShadowConstantBuffer._ShadowData = Shader.PropertyToID("_ShadowData");
+            ShadowConstantBuffer._DirShadowSplitSpheres = Shader.PropertyToID("_DirShadowSplitSpheres");
+            ShadowConstantBuffer._DirShadowSplitSphereRadii = Shader.PropertyToID("_DirShadowSplitSphereRadii");
+            ShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_ShadowOffset0");
+            ShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_ShadowOffset1");
+            ShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_ShadowOffset2");
+            ShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_ShadowOffset3");
+            ShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
+
             m_ShadowMapRTID = Shader.PropertyToID("_ShadowMap");
 
             CameraRenderTargetID.color = Shader.PropertyToID("_CameraColorRT");
@@ -1018,7 +1028,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight)
         {
             Light light = shadowLight.light;
-            float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             int cascadeCount = m_ShadowCasterCascadesCount;
             for (int i = 0; i < kMaxCascades; ++i)
@@ -1033,15 +1042,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
             float invHalfShadowResolution = 0.5f * invShadowResolution;
-            cmd.SetGlobalMatrixArray("_WorldToShadow", m_ShadowMatrices);
-            cmd.SetGlobalVector("_ShadowData", new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
-            cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector("_DirShadowSplitSphereRadii", m_DirectionalShadowSplitRadii);
-            cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset1", new Vector4( invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset3", new Vector4( invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowmapSize", new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
+            cmd.SetGlobalMatrixArray(ShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVectorArray(ShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
+            cmd.SetGlobalVector(ShadowConstantBuffer._DirShadowSplitSphereRadii, m_DirectionalShadowSplitRadii);
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset0, new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset1, new Vector4( invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset3, new Vector4( invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
