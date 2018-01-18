@@ -22,7 +22,7 @@ struct AttributesMesh
 #ifdef ATTRIBUTES_NEED_COLOR
     float4 color        : COLOR;
 #endif
-    
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -280,7 +280,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 {
     PackedVaryingsMeshToDS output;
 
-    UNITY_TRANSFER_INSTANCE_ID(input, output)
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.interpolators0 = input.positionWS;
     output.interpolators1 = input.normalWS;
@@ -309,8 +309,8 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 {
     VaryingsMeshToDS output;
-    
-    UNITY_TRANSFER_INSTANCE_ID(input, output)
+
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionWS = input.interpolators0;
     output.normalWS = input.interpolators1;
@@ -338,9 +338,9 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 
 VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, VaryingsMeshToDS input1, VaryingsMeshToDS input2, float3 baryCoords)
 {
-    VaryingsMeshToDS ouput;
+    VaryingsMeshToDS output;
 
-    UNITY_TRANSFER_INSTANCE_ID(input0, output)
+    UNITY_TRANSFER_INSTANCE_ID(input0, output);
 
     TESSELLATION_INTERPOLATE_BARY(positionWS, baryCoords);
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
@@ -364,7 +364,7 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 #endif
 
-    return ouput;
+    return output;
 }
 
 #endif // TESSELLATION_ON
