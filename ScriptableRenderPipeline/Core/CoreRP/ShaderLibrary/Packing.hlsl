@@ -30,7 +30,7 @@ real2 PackNormalOctEncode(real3 n)
 
     // Left side of the 2:1 rectangle for the negative hemisphere, right otherwise.
     // We also correct the aspect ratio from 2:1 to 1:1.
-    real s = (p.z >= 0) ? 0.5 : -0.5;
+    real s = CopySign(0.5, p.z);
 
     return real2(s * r, g);
 }
