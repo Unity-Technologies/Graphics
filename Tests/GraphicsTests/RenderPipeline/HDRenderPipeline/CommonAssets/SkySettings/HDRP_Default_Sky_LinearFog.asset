@@ -62,6 +62,12 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 15
     min: 0
+  fogHeightStart:
+    m_OverrideState: 1
+    m_Value: 5000
+  fogHeightEnd:
+    m_OverrideState: 1
+    m_Value: 5001
 --- !u!114 &114488915870882762
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -93,7 +99,6 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
     min: 0
-  useForBaking: 1
   skyHDRI:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
