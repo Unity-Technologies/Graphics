@@ -7,9 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public class DecalProjectorComponent : MonoBehaviour
     {
-        private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
-        private static readonly int m_DecalToWorldR = Shader.PropertyToID("_DecalToWorldR");
-
         public Material m_Material = null;
         private Material m_OldMaterial = null;
         public const int kInvalidIndex = -1;
