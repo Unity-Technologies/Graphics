@@ -43,7 +43,10 @@ namespace UnityEditor.VFX
             get
             {
                 var rs = base.renderState;
-                rs.WriteLine("Cull Back");
+                if (twoSided)
+                    rs.WriteLine("Cull Off");
+                else
+                    rs.WriteLine("Cull Back");
                 return rs;
             }
         }
@@ -56,16 +59,21 @@ namespace UnityEditor.VFX
             yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
+        [VFXSetting]
+        private bool twoSided;
+
         public class InputProperties
         {
             public Texture2D mainTexture;
             public Mesh mesh;
+            public uint subMeshMask = 0xffffffff;
         }
 
         public class InputPropertiesFlipbook
         {
             public Texture2D mainTexture;
             public Mesh mesh;
+            public uint subMeshMask = 0xffffffff;
             public Vector2 flipBookSize = new Vector2(5, 5);
         }
 
@@ -77,7 +85,8 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    mapper.AddExpression(GetInputSlot(1).GetExpression(), "mesh", -1);
+                    mapper.AddExpression(inputSlots.First(s => s.name == "mesh").GetExpression(), "mesh", -1);
+                    mapper.AddExpression(inputSlots.First(s => s.name == "subMeshMask").GetExpression(), "subMeshMask", -1);
                     break;
                 }
                 default:
