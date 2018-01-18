@@ -54,12 +54,12 @@ VaryingsPassToPS UnpackVaryingsPassToPS(PackedVaryingsPassToPS input)
 
 VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, VaryingsPassToDS input1, VaryingsPassToDS input2, float3 baryCoords)
 {
-    VaryingsPassToDS ouput;
+    VaryingsPassToDS output;
 
     TESSELLATION_INTERPOLATE_BARY(positionCS, baryCoords);
     TESSELLATION_INTERPOLATE_BARY(previousPositionCS, baryCoords);
 
-    return ouput;
+    return output;
 }
 
 #endif // TESSELLATION_ON

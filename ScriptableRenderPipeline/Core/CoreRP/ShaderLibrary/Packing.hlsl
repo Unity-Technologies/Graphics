@@ -433,12 +433,12 @@ uint PackToR10G10B10A2(real4 rgba)
 
 real4 UnpackFromR10G10B10A2(uint rgba)
 {
-    real4 ouput;
-    ouput.x = UnpackUIntToFloat(rgba, 0,  10);
-    ouput.y = UnpackUIntToFloat(rgba, 10, 10);
-    ouput.z = UnpackUIntToFloat(rgba, 20, 10);
-    ouput.w = UnpackUIntToFloat(rgba, 30, 2);
-    return ouput;
+    real4 output;
+    output.x = UnpackUIntToFloat(rgba, 0,  10);
+    output.y = UnpackUIntToFloat(rgba, 10, 10);
+    output.z = UnpackUIntToFloat(rgba, 20, 10);
+    output.w = UnpackUIntToFloat(rgba, 30, 2);
+    return output;
 }
 
 // Both the input and the output are in the [0, 1] range.
