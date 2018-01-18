@@ -107,8 +107,8 @@ namespace UnityEditor.VFX.UI
             m_EnableToggle.on = controller.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(controller.block.enabled);
-            if (m_SettingsContainer != null)
-                m_SettingsContainer.SetEnabled(controller.block.enabled);
+            if (settingsContainer != null)
+                settingsContainer.SetEnabled(controller.block.enabled);
         }
     }
 }

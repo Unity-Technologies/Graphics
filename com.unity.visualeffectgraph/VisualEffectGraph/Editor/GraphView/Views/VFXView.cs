@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 
@@ -257,9 +257,6 @@ namespace UnityEditor.VFX.UI
 
             this.AddManipulator(new ParameterDropper());
 
-            var bg = new GridBackground() { name = "VFXBackgroundGrid" };
-            Insert(0, bg);
-
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("PropertyRM");
@@ -293,13 +290,40 @@ namespace UnityEditor.VFX.UI
             VisualElement spacer = new VisualElement();
             spacer.style.flex = 1;
             toolbar.Add(spacer);
-
-
             m_ToggleDebug = new Toggle(OnToggleDebug);
             m_ToggleDebug.text = "Debug";
             toolbar.Add(m_ToggleDebug);
             m_ToggleDebug.AddToClassList("toolbarItem");
 
+            m_DropDownButtonCullingMode = new Button();
+
+            var cullingOption = new[]
+            {
+                new { option = "Cull simulation and bounds", value = (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate) },
+                new { option = "Cull simulation only", value = (VFXCullingFlags.CullSimulation) },
+                new { option = "Disable culling", value = VFXCullingFlags.CullNone },
+            };
+
+            Func<VFXCullingFlags, string> fnValueToGUI = delegate(VFXCullingFlags flags)
+                {
+                    return cullingOption.First(o => o.value == flags).option;
+                };
+
+            m_DropDownButtonCullingMode.text = fnValueToGUI(cullingFlags);
+            m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
+                    var menu = new GenericMenu();
+                    foreach (var val in cullingOption)
+                    {
+                        menu.AddItem(new GUIContent(val.option), val.value == cullingFlags, (v) =>
+                        {
+                            cullingFlags = (VFXCullingFlags)v;
+                            m_DropDownButtonCullingMode.text = fnValueToGUI((VFXCullingFlags)v);
+                        }, val.value);
+                    }
+                    menu.DropDown(m_DropDownButtonCullingMode.worldBound);
+                }));
+            toolbar.Add(m_DropDownButtonCullingMode);
+            m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
 
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
@@ -606,6 +630,30 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXRendererSettings();
+        }
+
+        VFXCullingFlags cullingFlags
+        {
+            get
+            {
+                if (controller != null)
+                {
+                    var asset = controller.model;
+                    if (asset != null)
+                        return asset.cullingFlags;
+                }
+                return VFXCullingFlags.CullDefault;
+            }
+
+            set
+            {
+                if (controller != null)
+                {
+                    var asset = controller.model;
+                    if (asset != null)
+                        asset.cullingFlags = value;
+                }
+            }
         }
 
         public void CreateTemplateSystem(string path, Vector2 tPos)
@@ -938,6 +986,7 @@ namespace UnityEditor.VFX.UI
                 SelectionUpdated();
         }
 
+        private Button m_DropDownButtonCullingMode;
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
 

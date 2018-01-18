@@ -1108,3 +1108,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
+  m_CullingFlags: 3

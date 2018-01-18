@@ -1213,7 +1213,6 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
-  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114806364651043532
 MonoBehaviour:
@@ -1519,3 +1518,4 @@ VFXAsset:
     receiveShadows: 0
     reflectionProbeUsage: 0
     lightProbeUsage: 0
+  m_CullingFlags: 3

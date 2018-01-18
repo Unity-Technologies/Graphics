@@ -4,7 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.VFX.Block.Test;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 
 using Object = UnityEngine.Object;

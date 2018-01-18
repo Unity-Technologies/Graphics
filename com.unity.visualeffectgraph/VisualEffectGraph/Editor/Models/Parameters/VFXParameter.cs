@@ -70,9 +70,20 @@ namespace UnityEditor.VFX
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
+            base.OnInvalidate(model, cause);
+
             if (cause == InvalidationCause.kSettingChanged)
             {
-                Invalidate(InvalidationCause.kExpressionGraphChanged);
+                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+                outputSlots[0].InvalidateExpressionTree();
+                Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
+            }
+            if (cause == InvalidationCause.kParamChanged)
+            {
+                for (int i = 0; i < m_ExprSlots.Length; ++i)
+                {
+                    m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                }
             }
         }
 
@@ -92,6 +103,46 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
+            m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
+            m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
         }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if (outputSlots.Count != 0)
+            {
+                m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
+                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+            }
+            else
+            {
+                m_ExprSlots = new VFXSlot[0];
+                m_ValueExpr = new VFXValue[0];
+            }
+        }
+
+        public override void UpdateOutputExpressions()
+        {
+            for (int i = 0; i < m_ExprSlots.Length; ++i)
+            {
+                m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
+                m_ExprSlots[i].SetExpression(m_ValueExpr[i]);
+            }
+        }
+
+        private VFXValue.Mode valueMode
+        {
+            get
+            {
+                return exposed ? VFXValue.Mode.Variable : VFXValue.Mode.FoldableVariable;
+            }
+        }
+
+        [NonSerialized]
+        private VFXSlot[] m_ExprSlots;
+
+        [NonSerialized]
+        private VFXValue[] m_ValueExpr;
     }
 }

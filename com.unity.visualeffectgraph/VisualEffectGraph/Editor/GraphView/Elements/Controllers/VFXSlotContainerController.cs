@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
@@ -65,7 +66,7 @@ namespace UnityEditor.VFX.UI
                     }
                     newAnchors.Add(propController);
 
-                    if (!typeof(ISpaceable).IsAssignableFrom(slot.property.type) || slot.children.Count() != 1)
+                    if (!VFXDataAnchorController.SlotShouldSkipFirstLevel(slot))
                     {
                         UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
                     }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -215,6 +215,28 @@ namespace UnityEditor.VFX
                     return true;
             }
             return false;
+        }
+
+        public static VFXValueType GetVFXValueTypeFromType(Type type)
+        {
+            if (type == typeof(float)) return VFXValueType.kFloat;
+            if (type == typeof(Vector2)) return VFXValueType.kFloat2;
+            if (type == typeof(Vector3)) return VFXValueType.kFloat3;
+            if (type == typeof(Vector4)) return VFXValueType.kFloat4;
+            if (type == typeof(int)) return VFXValueType.kInt;
+            if (type == typeof(uint)) return VFXValueType.kUint;
+            if (type == typeof(Texture2D)) return VFXValueType.kTexture2D;
+            if (type == typeof(Texture2DArray)) return VFXValueType.kTexture2DArray;
+            if (type == typeof(Texture3D)) return VFXValueType.kTexture3D;
+            if (type == typeof(Cubemap)) return VFXValueType.kTextureCube;
+            if (type == typeof(CubemapArray)) return VFXValueType.kTextureCubeArray;
+            if (type == typeof(Matrix4x4)) return VFXValueType.kTransform;
+            if (type == typeof(AnimationCurve)) return VFXValueType.kCurve;
+            if (type == typeof(Gradient)) return VFXValueType.kColorGradient;
+            if (type == typeof(Mesh)) return VFXValueType.kMesh;
+            if (type == typeof(List<Vector3>)) return VFXValueType.kSpline;
+            if (type == typeof(bool)) return VFXValueType.kBool;
+            return VFXValueType.kNone;
         }
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)

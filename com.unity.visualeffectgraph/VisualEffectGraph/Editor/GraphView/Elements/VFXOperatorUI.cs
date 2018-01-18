@@ -48,11 +48,11 @@ namespace UnityEditor.VFX.UI
         void OnPostLayout(PostLayoutEvent e)
         {
             float settingsLabelWidth = 30;
-            float settingsControlWidth = 110;
+            float settingsControlWidth = 50;
             GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);
 
             float labelWidth = 30;
-            float controlWidth = 110;
+            float controlWidth = 50;
             GetPreferedWidths(ref labelWidth, ref controlWidth);
 
             float newMinWidth = Mathf.Max(settingsLabelWidth + settingsControlWidth, labelWidth + controlWidth) + 20;

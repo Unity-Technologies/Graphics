@@ -3,7 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
 
         private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = slot.GetInExpression();
+            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
             if (expression != null)
             {
                 outExposedParameters.Add(new VFXExposedDesc()
