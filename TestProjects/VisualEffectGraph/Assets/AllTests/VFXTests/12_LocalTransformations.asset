@@ -180,6 +180,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   targetFromAttributes: 1
 --- !u!114 &114064158827839248
 MonoBehaviour:
@@ -216,6 +217,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   targetFromAttributes: 1
 --- !u!114 &114070202346853930
 MonoBehaviour:
@@ -307,6 +309,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   targetFromAttributes: 1
 --- !u!114 &114097502706988368
 MonoBehaviour:
@@ -949,6 +952,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: -1
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114178076996238554
 MonoBehaviour:
@@ -5270,7 +5274,7 @@ VFXAsset:
       - index: 90
         nameId: ArcSphere_arc_e
       params: []
-      processor: {fileID: 7200000, guid: 430c7633bbd51a64888093d6008e93f6, type: 3}
+      processor: {fileID: 7200000, guid: 596cd97a3dcbfe34fb96a5a022c3ba4e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5289,7 +5293,7 @@ VFXAsset:
       - index: 55
         nameId: deltaTime_f
       params: []
-      processor: {fileID: 7200000, guid: 4c9fe673053824d41aeab204d057e801, type: 3}
+      processor: {fileID: 7200000, guid: 8028977ad8c9c454399b37d71716f344, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5308,7 +5312,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: b93feeba1100169479fc932ccf2ba9ce, type: 3}
+      processor: {fileID: 4800000, guid: 804c714b81712f44abcdc2bd876647db, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5327,7 +5331,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7d6e57884a0060946aec7a1c5ad3956e, type: 3}
+      processor: {fileID: 4800000, guid: f8719e6360c1f7445a34fcd8eee3e575, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5346,7 +5350,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9175dff017d0d7b489883de62554e8dc, type: 3}
+      processor: {fileID: 4800000, guid: 7ed21ea72e9a6ea45ad33f4a95d023d0, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5363,7 +5367,7 @@ VFXAsset:
       params:
       - index: -1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 04e62c47def686d47889832622a9b278, type: 3}
+      processor: {fileID: 4800000, guid: 112930e8f761ada4987a49b224805ff5, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

@@ -3481,6 +3481,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   targetFromAttributes: 1
 --- !u!114 &114978967300245268
 MonoBehaviour:
@@ -4082,14 +4083,14 @@ VFXAsset:
       - index: 49
         nameId: ArcSphere_arc_c
       params: []
-      processor: {fileID: 7200000, guid: 306cacea27329734696082207e8cd2bb, type: 3}
+      processor: {fileID: 7200000, guid: 63d4c824ece3bc94887223720099602f, type: 3}
     - type: 805306368
       buffers:
       - index: 0
         nameId: attributeBuffer
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 17387005917c8804a87e4f1197d1a6f0, type: 3}
+      processor: {fileID: 7200000, guid: a77019373557e1645b2f9a4bc3458349, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -4108,7 +4109,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9b90828b003f3a34e943364b2419d439, type: 3}
+      processor: {fileID: 4800000, guid: 3fa3c0bff01cd0b48b5778451bf73c9f, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

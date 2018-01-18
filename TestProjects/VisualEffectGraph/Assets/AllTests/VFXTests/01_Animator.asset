@@ -1021,6 +1021,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114799785256960774
 MonoBehaviour:
@@ -1664,7 +1665,7 @@ VFXAsset:
       - index: 14
         nameId: Lifetime_d
       params: []
-      processor: {fileID: 7200000, guid: 118b1d021ecd2df40ad4cf225bc3ed41, type: 3}
+      processor: {fileID: 7200000, guid: 0253d127108897f499e052c6f40d37c5, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1675,7 +1676,7 @@ VFXAsset:
       - index: 13
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: bd12cdbde9dc5a84988e3177bcf6d961, type: 3}
+      processor: {fileID: 7200000, guid: e88d053321f132b46918eadf4930551c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1688,7 +1689,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 629f358a5d8cb144ab4deaae97c8e6df, type: 3}
+      processor: {fileID: 4800000, guid: 328d3468b8195e941802512aafa2c2c7, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

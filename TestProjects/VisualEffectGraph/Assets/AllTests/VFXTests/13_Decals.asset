@@ -1999,6 +1999,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
 --- !u!114 &114311686034390686
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7978,7 +7979,7 @@ VFXAsset:
       - index: 72
         nameId: Max_d
       params: []
-      processor: {fileID: 7200000, guid: c66497de13f6b8f4b966c99eb81ef558, type: 3}
+      processor: {fileID: 7200000, guid: 61b7051ae55011d40a70a76c9233fe2e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -8015,7 +8016,7 @@ VFXAsset:
       - index: 77
         nameId: VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: 9307a96e5a8646a4ca0e13415e31b294, type: 3}
+      processor: {fileID: 7200000, guid: be7eb8d3b486e1649a14f4e798d0c7a8, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -8042,7 +8043,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: b498eaa0db165684c824cfadf0abb8de, type: 3}
+      processor: {fileID: 4800000, guid: 057d9e0095deda246be97bfee975711f, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
