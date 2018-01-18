@@ -107,6 +107,10 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
 
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
             // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
             #ifdef DIRLIGHTMAP_COMBINED
@@ -130,6 +134,11 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma target 2.0
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 

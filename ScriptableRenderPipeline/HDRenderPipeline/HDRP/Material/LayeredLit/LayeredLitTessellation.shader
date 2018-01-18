@@ -189,7 +189,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         // Layer blending options
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
-        [ToggleOff] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
+        [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
         _HeightOffset0("Height Offset0", Float) = 0
         _HeightOffset1("Height Offset1", Float) = 0
@@ -198,8 +198,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
-        [ToggleOff] _UseDensityMode("Use Density mode", Float) = 0.0
-        [ToggleOff] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
+        [ToggleUI] _UseDensityMode("Use Density mode", Float) = 0.0
+        [ToggleUI] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
         _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
         _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0
@@ -213,30 +213,30 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
 
-        [ToggleOff] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
-        [ToggleOff] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
-        [ToggleOff] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
-        [ToggleOff] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
+        [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
+        [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
+        [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
+        [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
         [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
 
-        [ToggleOff]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
+        [ToggleUI]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
 
         // Following are builtin properties
 
-        [ToggleOff]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
+        [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
-        [ToggleOff] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+        [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
-        [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
+        [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -255,20 +255,20 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
-        [ToggleOff] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
-        [ToggleOff] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
+        [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
+        [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
-        [ToggleOff] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+        [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1
         [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
-        [ToggleOff] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
-        [ToggleOff] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
-        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+        [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
+        [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
+        [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
-        [ToggleOff] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
+        [ToggleUI] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
 
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
@@ -283,7 +283,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
         // Wind
-        [ToggleOff]  _EnableWind("Enable Wind", Float) = 0.0
+        [ToggleUI]  _EnableWind("Enable Wind", Float) = 0.0
         _InitialBend("Initial Bend", float) = 1.0
         _Stiffness("Stiffness", float) = 1.0
         _Drag("Drag", float) = 1.0
@@ -326,10 +326,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
 
-        [ToggleOff] _LinkDetailsWithBase0("LinkDetailsWithBase0", Float) = 1.0
-        [ToggleOff] _LinkDetailsWithBase1("LinkDetailsWithBase1", Float) = 1.0
-        [ToggleOff] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
-        [ToggleOff] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
+        [ToggleUI] _LinkDetailsWithBase0("LinkDetailsWithBase0", Float) = 1.0
+        [ToggleUI] _LinkDetailsWithBase1("LinkDetailsWithBase1", Float) = 1.0
+        [ToggleUI] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
+        [ToggleUI] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
 
         [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
         [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
@@ -348,7 +348,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         // TODO: Handle culling mode for backface culling
 
         // Transparency
-        [ToggleOff] _PreRefractionPass("PreRefractionPass", Float) = 0.0
+        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}

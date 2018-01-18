@@ -17,8 +17,8 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #pragma fragment Frag
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
-            #include "../Debug/DebugDisplay.cs.hlsl"
             #include "../ShaderVariables.hlsl"
+            #include "../Debug/DebugDisplay.cs.hlsl"
 
             TEXTURE2D(_DebugFullScreenTexture);
             SAMPLER(sampler_DebugFullScreenTexture);
@@ -39,7 +39,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
             }
@@ -109,9 +109,9 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
-                #if UNITY_UV_STARTS_AT_TOP
+                    #if UNITY_UV_STARTS_AT_TOP
                     input.texcoord.y = 1.0 - input.texcoord.y;
-                #endif
+                    #endif
 
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
 

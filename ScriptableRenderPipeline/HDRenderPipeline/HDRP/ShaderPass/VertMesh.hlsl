@@ -107,8 +107,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
 #endif
 
+	float4 tangentWS = float4(0.0, 0.0, 0.0, 0.0);
 #ifdef ATTRIBUTES_NEED_TANGENT
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
     // TODO: deal with camera center rendering and instancing (This is the reason why we always perform two  steps transform to clip space + instancing matrix)
