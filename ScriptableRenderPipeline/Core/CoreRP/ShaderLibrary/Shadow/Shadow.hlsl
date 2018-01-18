@@ -71,8 +71,8 @@ void UnpackShadowType( uint packedShadowType, out uint shadowType )
 }
 
 // shadow sampling prototypes
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 lightPositionWS, real3 L );
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 lightPositionWS, real3 L, real2 positionSS );
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L );
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L, real2 positionSS );
 
 // shadow sampling prototypes with screenspace info
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L );
@@ -82,14 +82,14 @@ real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positio
 #include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 lightPositionWS, real3 L )
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L )
 {
-    return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, lightPositionWS, L);
+    return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, L);
 }
 
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 lightPositionWS, real3 L, real2 positionSS )
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L, real2 positionSS )
 {
-    return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, lightPositionWS, L );
+    return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 
@@ -101,7 +101,7 @@ real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positio
 
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real2 positionSS )
 {
-    return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, lightPositionWS, L );
+    return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 

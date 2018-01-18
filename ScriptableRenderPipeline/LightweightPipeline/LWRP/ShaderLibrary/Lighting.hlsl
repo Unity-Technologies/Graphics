@@ -529,8 +529,6 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
 half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
     half fogFactor, half3 bakedGI, half3 diffuse, half3 emission, half alpha)
 {
-    half3 lightDirection;
-
     Light mainLight = GetMainLight(positionWS);
     half3 indirectDiffuse = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
     half3 lambert = LightingLambert(mainLight.color, mainLight.direction, normalWS);
@@ -542,7 +540,7 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     {
         Light light = GetLight(i, positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
-        diffuseColor += LightingLambert(attenuatedLightColor, lightDirection, normalWS);
+        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, normalWS);
     }
 #endif
 
@@ -555,8 +553,6 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
 half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
     half fogFactor, half3 bakedGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
-    half3 lightDirection;
-
     Light mainLight = GetMainLight(positionWS);
     half3 indirectDiffuse = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
 

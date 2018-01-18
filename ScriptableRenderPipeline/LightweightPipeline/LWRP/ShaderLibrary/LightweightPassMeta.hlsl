@@ -72,11 +72,8 @@ half4 MetaFragment(MetaInput IN)
         // d3d9 shader compiler doesn't like NaNs and infinity.
         unity_OneOverOutputBoost = saturate(unity_OneOverOutputBoost);
 
-        // Disable pow(f, e) warning will not work with negative values
-#pragma warning (disable : 3571)
         // Apply Albedo Boost from LightmapSettings.
         res.rgb = clamp(pow(res.rgb, unity_OneOverOutputBoost), 0, unity_MaxOutputValue);
-#pragma warning (enable : 3571)
     }
     if (unity_MetaFragmentControl.y)
     {
