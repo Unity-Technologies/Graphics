@@ -193,10 +193,8 @@ namespace UnityEditor.ShaderGraph
 
             switch (masterNode.alphaMode)
             {
-                case PBRMasterNode.AlphaMode.Transparent:
-                case PBRMasterNode.AlphaMode.Fade:
-                case PBRMasterNode.AlphaMode.Additive:
-                case PBRMasterNode.AlphaMode.Multiply:
+                case PBRMasterNode.AlphaMode.AlphaBlend:
+                case PBRMasterNode.AlphaMode.AdditiveBlend:
                     defines.AddShaderChunk("#define _AlphaOut 1", true);
                     break;
             }
@@ -246,46 +244,31 @@ namespace UnityEditor.ShaderGraph
                 case PBRMasterNode.AlphaMode.Opaque:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
                     break;
-                case PBRMasterNode.AlphaMode.Transparent:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-                case PBRMasterNode.AlphaMode.Fade:
+                case PBRMasterNode.AlphaMode.AlphaBlend:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
                     break;
-                case PBRMasterNode.AlphaMode.Additive:
+                case PBRMasterNode.AlphaMode.AdditiveBlend:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-                case PBRMasterNode.AlphaMode.Multiply:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.DstColor;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
+                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
                     break;
             }
-
-            materialOptions.cullMode = masterNode.cullMode;
 
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
