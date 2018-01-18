@@ -13,6 +13,12 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
     {
         diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
     }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        // Take the luminance
+        diffuseLighting = Luminance(diffuseLighting).xxx;
+    }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
         specularLighting = float3(0.0, 0.0, 0.0);
