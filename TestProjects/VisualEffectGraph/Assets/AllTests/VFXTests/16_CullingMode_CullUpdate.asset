@@ -2090,8 +2090,12 @@ VFXAsset:
         nameId: Lifetime_b
       - index: 23
         nameId: Position_c
-      params: []
-      processor: {fileID: 7200000, guid: ae07b95df2ec4724d898d0be9be5a8bb, type: 3}
+      params:
+      - index: 23
+        nameId: bounds_center
+      - index: 21
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: 49082bd039837cf45b944944a09edb34, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -2102,7 +2106,7 @@ VFXAsset:
       - index: 24
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 9e408964c09dac94296e9a7d60fa61be, type: 3}
+      processor: {fileID: 7200000, guid: 9d9be92aa00a30043840fdd5e1f582ec, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -2119,7 +2123,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 58952416acee51f4d91ccfe337fc8068, type: 3}
+      processor: {fileID: 4800000, guid: 12357a9aa600f4b41af8d005db4bb4c0, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

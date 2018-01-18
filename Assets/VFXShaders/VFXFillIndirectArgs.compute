@@ -11,7 +11,9 @@ CBUFFER_END
 struct OutputData
 {
 	uint type;
-	uint indexCount;
+    uint indexCount;
+    uint startIndex;
+    uint baseVertex;
 };
 
 ByteAddressBuffer nbElements; // Filled by GPU
@@ -26,7 +28,9 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 	if (id.x < maxNb) 
 	{
 		uint indexCount = 0;
-		uint instanceCount = 0;
+        uint instanceCount = 0;
+        uint startIndex = 0;
+        uint baseVertex = 0;
 
 		uint elementCount = nbElements.Load(id.x << 2);
 
@@ -82,14 +86,18 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 			case 4: // meshes
 			{
 				indexCount = data.indexCount;
-				instanceCount = elementCount;
+                instanceCount = elementCount;
+                startIndex = data.startIndex;
+                baseVertex = data.baseVertex;
 				break;
 			}
 		}
 		
 		uint index = id.x * 5;
 		output[index + 0] = indexCount;
-		output[index + 1] = instanceCount;
-		// 3 next uint (startIndex, BaseVertex and StartInstance) set to 0 at initialization
+        output[index + 1] = instanceCount;
+        output[index + 2] = startIndex;
+        output[index + 3] = baseVertex;
+		// next uint (StartInstance) set to 0 at initialization
 	}
 }

@@ -195,7 +195,7 @@ Transform:
   m_GameObject: {fileID: 277433597}
   m_LocalRotation: {x: 0, y: 0, z: -0.052335896, w: 0.9986295}
   m_LocalPosition: {x: 4.08, y: -2.43, z: 4.24}
-  m_LocalScale: {x: 1.3701754, y: 0.9999999, z: 2}
+  m_LocalScale: {x: 1.3701754, y: 1, z: 2}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -306,7 +306,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -340,7 +340,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1605071568}
   m_LocalRotation: {x: -0.3133668, y: 0.24086387, z: -0.08250493, w: -0.9148655}
-  m_LocalPosition: {x: 7.8, y: 2.74, z: -6.87}
+  m_LocalPosition: {x: 5.01, y: 2.03, z: -5.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -369,7 +369,7 @@ VFXComponent:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1849253497}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 2e9227bf5dff5db4ebde6568b358d02a, type: 2}
+  m_Asset: {fileID: 8926484042661614526, guid: c0623b2cae556fe4880aea413fe5af89, type: 2}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:

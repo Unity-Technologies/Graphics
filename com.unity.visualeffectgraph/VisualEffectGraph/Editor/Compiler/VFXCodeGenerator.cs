@@ -511,9 +511,9 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, str, storeAttributes);
             }
 
-            foreach (var addionnalReplacement in context.additionnalReplacements)
+            foreach (var addionalReplacement in context.additionalReplacements)
             {
-                ReplaceMultiline(stringBuilder, addionnalReplacement.Key, addionnalReplacement.Value.builder);
+                ReplaceMultiline(stringBuilder, addionalReplacement.Key, addionalReplacement.Value.builder);
             }
 
             // Replace defines

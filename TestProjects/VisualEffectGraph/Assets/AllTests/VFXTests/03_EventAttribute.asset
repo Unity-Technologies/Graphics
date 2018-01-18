@@ -4362,8 +4362,12 @@ VFXAsset:
         nameId: Speed_g
       - index: 56
         nameId: DirectionBlend_g
-      params: []
-      processor: {fileID: 7200000, guid: 09a91db511a946840a18296ca1faeeb3, type: 3}
+      params:
+      - index: 65
+        nameId: bounds_center
+      - index: 66
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: 59c68a595851e8e48ab876b5d1fe4db6, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4374,7 +4378,7 @@ VFXAsset:
       - index: 59
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 50a6994334634e3488dd42f42364ff30, type: 3}
+      processor: {fileID: 7200000, guid: 5d561812a01b69e4bb012e2fa4be708b, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4391,7 +4395,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 5ec2eb391f2405448b978d67d0e59fe3, type: 3}
+      processor: {fileID: 4800000, guid: b8da15c4a3b43bc4da955806ccccadeb, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 0000000001000000
