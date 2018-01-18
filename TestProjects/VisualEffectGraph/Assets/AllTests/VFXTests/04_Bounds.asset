@@ -782,7 +782,11 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
-    attributes: []
+    attributes:
+    - m_Type: 1
+      m_Min: 0
+      m_Max: Infinity
+      m_Tooltip: 
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
@@ -854,41 +858,53 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 13
+    - op: 0
       valueIndex: 10
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: -1
+      data[3]: 1
     - op: 0
       valueIndex: 11
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 7
+      data[3]: 1
     - op: 0
-      valueIndex: 13
+      valueIndex: 12
       data[0]: -1
       data[1]: -1
       data[2]: -1
+      data[3]: 7
+    - op: 13
+      valueIndex: 14
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 32
+      valueIndex: 15
+      data[0]: 8
+      data[1]: 7
+      data[2]: -1
       data[3]: 1
     - op: 2
-      valueIndex: 14
+      valueIndex: 16
+      data[0]: 9
+      data[1]: 10
+      data[2]: 6
+      data[3]: -1
+    - op: 2
+      valueIndex: 19
       data[0]: 5
       data[1]: 4
       data[2]: 3
       data[3]: -1
     - op: 2
-      valueIndex: 17
+      valueIndex: 22
       data[0]: 2
       data[1]: 1
       data[2]: 0
-      data[3]: -1
-    - op: 2
-      valueIndex: 20
-      data[0]: 7
-      data[1]: 6
-      data[2]: 8
       data[3]: -1
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
@@ -909,15 +925,17 @@ VFXAsset:
       - m_ExpressionIndex: 5
         m_Value: 0
       - m_ExpressionIndex: 6
-        m_Value: 1
-      - m_ExpressionIndex: 7
-        m_Value: 0.7
-      - m_ExpressionIndex: 8
         m_Value: 0
-      - m_ExpressionIndex: 9
-        m_Value: 2
-      - m_ExpressionIndex: 12
+      - m_ExpressionIndex: 7
+        m_Value: 0
+      - m_ExpressionIndex: 8
         m_Value: 8
+      - m_ExpressionIndex: 9
+        m_Value: 0.7
+      - m_ExpressionIndex: 10
+        m_Value: 1
+      - m_ExpressionIndex: 11
+        m_Value: 2
     m_Vector2f:
       m_Array: []
     m_Vector3f:
@@ -936,7 +954,7 @@ VFXAsset:
       m_Array: []
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 11
+      - m_ExpressionIndex: 12
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
     m_Bool:
       m_Array: []
@@ -1028,7 +1046,7 @@ VFXAsset:
     - type: 268435456
       buffers: []
       values:
-      - index: 12
+      - index: 14
         nameId: Rate
       params: []
       processor: {fileID: 0}
@@ -1049,7 +1067,7 @@ VFXAsset:
     values:
     - index: 15
       nameId: bounds_center
-    - index: 14
+    - index: 17
       nameId: bounds_size
     tasks:
     - type: 536870912
@@ -1063,14 +1081,14 @@ VFXAsset:
       - index: 1
         nameId: sourceAttributeBuffer
       values:
-      - index: 13
+      - index: 16
         nameId: Velocity_b
-      - index: 9
+      - index: 11
         nameId: Lifetime_c
       params:
       - index: 15
         nameId: bounds_center
-      - index: 14
+      - index: 17
         nameId: bounds_size
       processor: {fileID: 7200000, guid: fbdf9ed29bd1a4c47a5c09f4e36e09b1, type: 3}
     - type: 805306368
@@ -1080,7 +1098,7 @@ VFXAsset:
       - index: 2
         nameId: deadListOut
       values:
-      - index: 10
+      - index: 13
         nameId: deltaTime_b
       params: []
       processor: {fileID: 7200000, guid: 1d4faf4ece2d6c141b2e396c1fe910d4, type: 3}
@@ -1089,7 +1107,7 @@ VFXAsset:
       - index: 0
         nameId: attributeBuffer
       values:
-      - index: 11
+      - index: 12
         nameId: mainTexture
       params:
       - index: 0
