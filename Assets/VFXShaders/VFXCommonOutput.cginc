@@ -81,9 +81,11 @@ float4 VFXGetFragmentColor(VFX_VARYING_PS_INPUTS i)
 
 void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
 {
-    #if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
+    #if USE_ALPHA_TEST
+    #if defined(VFX_VARYING_ALPHATHRESHOLD)
     clip(alpha - i.VFX_VARYING_ALPHATHRESHOLD);
     #else
     clip(alpha - 1e-5f);
+    #endif
     #endif
 }
