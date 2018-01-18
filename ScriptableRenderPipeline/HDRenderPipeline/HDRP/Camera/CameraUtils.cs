@@ -54,11 +54,6 @@
             return CalculateReflectionMatrix(Plane(position, normal));
         }
 
-        public static Matrix4x4 CalculateWorldToCameraMatrixMirror(Matrix4x4 worldToCamera, Matrix4x4 reflection)
-        {
-            return  worldToCamera * reflection;
-        }
-
         public static Matrix4x4 CalculateReflectionMatrix(Vector4 plane)
         {
             var reflectionMat = new Matrix4x4();

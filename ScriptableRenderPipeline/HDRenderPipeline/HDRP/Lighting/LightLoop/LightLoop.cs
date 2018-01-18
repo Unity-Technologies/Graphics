@@ -712,22 +712,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        static Matrix4x4 GetFlipMatrix()
-        {
-            Matrix4x4 flip = Matrix4x4.identity;
-            bool isLeftHand = ((int)LightDefinitions.s_UseLeftHandCameraSpace) != 0;
-            if (isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
-            return flip;
-        }
-
         static Matrix4x4 WorldToCamera(Camera camera)
         {
-            return GetFlipMatrix() * camera.worldToCameraMatrix;
+            return IsRHS(camera.worldToCameraMatrix) 
+                ? camera.worldToCameraMatrix
+                : Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.worldToCameraMatrix;
         }
 
         static Matrix4x4 CameraProjection(Camera camera)
         {
-            return camera.projectionMatrix * GetFlipMatrix();
+            return IsRHS(camera.worldToCameraMatrix)
+                ? camera.projectionMatrix
+                : camera.projectionMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
+        }
+
+        static bool IsRHS(Matrix4x4 mat)
+        {
+            return Vector3.Dot(Vector3.Cross(mat.GetColumn(0), mat.GetColumn(1)), mat.GetColumn(2)) > 0;
         }
 
         public Vector3 GetLightColor(VisibleLight light)
@@ -2025,6 +2026,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
+
+                cmd.SetGlobalInt(HDShaderIDs._isCullingInverted, GL.invertCulling ? 1 : 0);
 
                 // Cluster
                 {
