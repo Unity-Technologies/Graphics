@@ -178,7 +178,7 @@ namespace UnityEditor.VFX
                     shaderTags.Write("Tags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
                 else
                 {
-                    string queueName = preRefraction ? "Geometry + 750" : "Transparent"; // TODO Geometry + 750 is currently hardcoded value from HDRP...
+                    string queueName = preRefraction ? "Geometry+750" : "Transparent"; // TODO Geometry + 750 is currently hardcoded value from HDRP...
                     shaderTags.Write(string.Format("Tags {{ \"Queue\"=\"{0}\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }}", queueName));
                 }
 
