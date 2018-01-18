@@ -113,6 +113,11 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
                 half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
                 float3 positionWS               : TEXCOORD7;
+
+#ifdef _SHADOWS_ENABLED
+                half4 shadowCoord               : TEXCOORD8;
+#endif
+
                 float4 clipPos                  : SV_POSITION;
             };
 
@@ -149,7 +154,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
             VertexOutput SplatmapVert(VertexInput v)
             {
-                VertexOutput o;
+                VertexOutput o = (VertexOutput)0;
 
                 float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
                 float4 clipPos = TransformWorldToHClip(positionWS);
@@ -171,6 +176,11 @@ Shader "LightweightPipeline/Standard Terrain"
                 o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
                 o.positionWS = positionWS;
                 o.clipPos = clipPos;
+
+#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
+                o.shadowCoord = ComputeShadowCoord(o.positionWS.xyz);
+#endif
+
                 return o;
             }
 
@@ -200,9 +210,14 @@ Shader "LightweightPipeline/Standard Terrain"
                 indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
+                half4 shadowCoord = half4(0, 0, 0, 0);
+#ifdef _SHADOWS_ENABLED
+                shadowCoord = IN.shadowCoord;
+#endif
+
                 half3 viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
                 half fogFactor = IN.fogFactorAndVertexLight.x;
-                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, indirectDiffuse,
+                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, shadowCoord, indirectDiffuse,
                     IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
 
                 ApplyFog(color.rgb, fogFactor);

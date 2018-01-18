@@ -105,7 +105,7 @@ Shader "LightweightPipeline/Particles/Standard"
 #endif
 
                 half3 zero = half3(0.0, 0.0, 0.0);
-                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.albedo,
+                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, half4(0, 0, 0, 0), /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.albedo,
                     surfaceData.metallic, /* specularColor */ zero, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
                 ApplyFog(color.rgb, fogFactor);
                 return color;
