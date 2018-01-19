@@ -300,8 +300,9 @@ real3 GetViewReflectedNormal(real3 N, real3 V, out real NdotV)
     return N;
 }
 
-// Generates an orthonormal right-handed basis from a unit vector.
-// Ref: http://marc-b-reynolds.github.io/quaternions/2016/07/06/Orthonormal.html
+// Generates an orthonormal (row-major) basis from a unit vector. TODO: make it column-major.
+// The resulting rotation matrix has the determinant of +1.
+// Ref: 'ortho_basis_pixar_r2' from http://marc-b-reynolds.github.io/quaternions/2016/07/06/Orthonormal.html
 real3x3 GetLocalFrame(real3 localZ)
 {
     real x  = localZ.x;
@@ -316,9 +317,13 @@ real3x3 GetLocalFrame(real3 localZ)
     real3 localX = real3(c * x * a - 1, sz * b, c);
     real3 localY = real3(b, y * ya - sz, y);
 
+    // Note: due to the quaternion formulation, the generated frame is rotated by 180 degrees,
+    // s.t. if localZ = {0, 0, 1}, then localX = {-1, 0, 0} and localY = {0, -1, 0}.
     return real3x3(localX, localY, localZ);
 }
 
+// Generates an orthonormal (row-major) basis from a unit vector. TODO: make it column-major.
+// The resulting rotation matrix has the determinant of +1.
 real3x3 GetLocalFrame(real3 localZ, real3 localX)
 {
     real3 localY = cross(localZ, localX);

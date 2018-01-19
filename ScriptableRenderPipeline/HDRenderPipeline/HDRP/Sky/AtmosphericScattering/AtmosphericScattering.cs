@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ColorParameter          color = new ColorParameter(Color.grey);
         public ClampedFloatParameter   density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         [Tooltip("Maximum mip map used for mip fog (0 being lowest and 1 highest mip).")]
-        public ClampedFloatParameter   mipFogMaxMip = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter   mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
         [Tooltip("Distance at which minimum mip of blurred sky texture is used as fog color.")]
         public MinFloatParameter       mipFogNear = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("Distance at which maximum mip of blurred sky texture is used as fog color.")]

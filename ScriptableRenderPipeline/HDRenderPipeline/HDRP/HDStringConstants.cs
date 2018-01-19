@@ -287,6 +287,7 @@
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
         public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
         public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
+        public static readonly int _ApplyLinearToSRGB = Shader.PropertyToID("_ApplyLinearToSRGB");
         public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
