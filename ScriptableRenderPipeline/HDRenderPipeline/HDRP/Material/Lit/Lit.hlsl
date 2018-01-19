@@ -642,11 +642,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
                   cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
 
             // Rotate the reconstructed tangent around the normal.
-            float3 tangentWS   = sinFrame * frame[1] + cosFrame * frame[0];
-            float3 bitangentWS = cosFrame * frame[1] - sinFrame * frame[0];
-
-            frame[0] = tangentWS;
-            frame[1] = bitangentWS;
+            frame[0] = sinFrame * frame[1] + cosFrame * frame[0];
+            frame[1] = cross(frame[2], frame[0]);
         }
 
         FillMaterialAnisotropy(anisotropy, frame[0], frame[1], bsdfData);
