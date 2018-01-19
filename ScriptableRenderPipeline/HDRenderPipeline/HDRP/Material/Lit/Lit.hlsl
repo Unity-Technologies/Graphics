@@ -162,7 +162,7 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
     else
     {
         // Return the compile-time feature flags.
-    return kFeatureVariantFlags[variant];
+        return kFeatureVariantFlags[variant];
     }
 }
 
@@ -233,7 +233,7 @@ void FillMaterialSSS(float subsurfaceMask, inout BSDFData bsdfData)
 
 // Assume that bsdfData.diffusionProfile is init
 void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
-    {
+{
     int diffusionProfile = bsdfData.diffusionProfile;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
@@ -309,7 +309,7 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
     // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
     bsdfData.fresnel0 = lerp(IORToFresnel0(ior).xxx, baseColor, metallic);
 
-    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption (transmittanceColor, atDistance);
+    bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance);
     bsdfData.transmittanceMask = transmittanceMask;
     bsdfData.thickness = max(thickness, 0.0001);
 }
@@ -386,18 +386,18 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.materialFeatures       = surfaceData.materialFeatures | MATERIALFEATUREFLAGS_LIT_STANDARD; // Not really needed but for consistency with deferred path
 
     // Standard material
-    bsdfData.specularOcclusion      = surfaceData.specularOcclusion;
-    bsdfData.normalWS               = surfaceData.normalWS;
-    bsdfData.perceptualRoughness    = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    bsdfData.specularOcclusion   = surfaceData.specularOcclusion;
+    bsdfData.normalWS            = surfaceData.normalWS;
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // There is no mettalic with SSS and specular color mode
     float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
 
-    bsdfData.diffuseColor           = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0     = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
     // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
-    bsdfData.diffusionProfile       = surfaceData.diffusionProfile;
+    bsdfData.diffusionProfile = surfaceData.diffusionProfile;
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
 
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
@@ -1079,7 +1079,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 // Note: 'bsdfData.thickness' is in world units, and already accounts for the transmission mode.
 float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 {
-        // Compute the thickness in world units along the light vector.
+    // Compute the thickness in world units along the light vector.
     // We need a max(x, 0) here, but the saturate() is free,
     // and we don't expect the total displacement of over 1 meter.
     float displacement = saturate(bsdfData.thickness / -NdotL);
@@ -1135,8 +1135,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-    // Compute displacement for fake thickObject transmission
-    posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+        // Compute displacement for fake thickObject transmission
+        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
     }
 
     float3 color;
@@ -1201,23 +1201,23 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     else
     {
         float3 unL     = -lightToSample;
-    float  distSq  = dot(unL, unL);
-    float  distRcp = rsqrt(distSq);
-    float  dist    = distSq * distRcp;
+        float  distSq  = dot(unL, unL);
+        float  distRcp = rsqrt(distSq);
+        float  dist    = distSq * distRcp;
 
         L = unL * distRcp;
         distances.xyz = float3(dist, distSq, distRcp);
     }
 
-    float3 N       = bsdfData.normalWS;
-    float  NdotL   = dot(N, L);
+    float3 N     = bsdfData.normalWS;
+    float  NdotL = dot(N, L);
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-    // Compute displacement for fake thickObject transmission
+        // Compute displacement for fake thickObject transmission
         // Warning: distances computed above are NOT modified!
         // This is not correct, of course, but is done for performance reasons.
-    posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
+        posInput.positionWS += ComputeThicknessDisplacement(bsdfData, L, NdotL);
     }
 
     float3 color;
@@ -1298,7 +1298,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
     // Compute the light attenuation.
     float intensity = EllipsoidalDistanceAttenuation(unL, lightData.invSqrAttenuationRadius,
-                                                        axis, invAspectRatio);
+                                                     axis, invAspectRatio);
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0)

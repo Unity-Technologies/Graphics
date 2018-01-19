@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Camera  m_camera;
         string  m_CameraRegisterName;
 
-        // For custom projection matrixes
+        // For custom projection matrices
         // Set the proper getter
         public NonObliqueProjectionGetter nonObliqueProjectionGetter = CameraUtils.CalculateProjectionMatrix;
 

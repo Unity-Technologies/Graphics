@@ -1,4 +1,4 @@
-﻿#ifndef UNITY_MATERIAL_INCLUDED
+#ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
 #include "CoreRP/ShaderLibrary/Color.hlsl"
