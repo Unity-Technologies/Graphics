@@ -354,11 +354,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
+                {
                     DepthPass(ref context);
-
-                //TODO: Shadow Gather Here
-                //NOTE: Enable Depth PrePass flag based on SS Shadow Checkbox and then check for that again here?
-                CollectShadowPass(ref context);
+                    if(m_Asset.UsesScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
+                        ShadowCollectPass(ref context);
+                }
 
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
@@ -447,7 +447,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return corners;
         }
 
-        private void CollectShadowPass(ref ScriptableRenderContext context)
+        private void ShadowCollectPass(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
             cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
@@ -1131,6 +1131,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
+            CoreUtils.SetKeyword(cmd, "_SCREEN_SPACE_SHADOWS", m_RequireDepthTexture && m_Asset.UsesScreenSpaceShadows);
 
             bool linearFogModeEnabled = false;
             bool exponentialFogModeEnabled = false;
