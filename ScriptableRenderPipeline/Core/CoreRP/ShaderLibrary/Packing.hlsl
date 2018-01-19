@@ -387,7 +387,7 @@ real2 Unpack2Byte(real inputs)
 // ...
 // Example: precision is 1024.0, maxi is 8, i is [0..7] encode on 3 bit. f is [0..1] encode on 7 bit.
 //...
-real PackFloatInt(real f, int i, real maxi, real precision)
+real PackFloatInt(real f, uint i, real maxi, real precision)
 {
     // Constant
     real precisionMinusOne = precision - 1.0;
@@ -397,7 +397,7 @@ real PackFloatInt(real f, int i, real maxi, real precision)
     return t1 * f + t2 * real(i);
 }
 
-void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
+void UnpackFloatInt(real val, real maxi, real precision, out real f, out uint i)
 {
     // Constant
     real precisionMinusOne = precision - 1.0;
@@ -412,32 +412,32 @@ void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
 }
 
 // Define various variante for ease of read
-real PackFloatInt8bit(real f, int i, real maxi)
+real PackFloatInt8bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 256.0);
 }
 
-void UnpackFloatInt8bit(real val, real maxi, out real f, out int i)
+void UnpackFloatInt8bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 256.0, f, i);
 }
 
-real PackFloatInt10bit(real f, int i, real maxi)
+real PackFloatInt10bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-void UnpackFloatInt10bit(real val, real maxi, out real f, out int i)
+void UnpackFloatInt10bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
 
-real PackFloatInt16bit(real f, int i, real maxi)
+real PackFloatInt16bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-void UnpackFloatInt16bit(real val, real maxi, out real f, out int i)
+void UnpackFloatInt16bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }

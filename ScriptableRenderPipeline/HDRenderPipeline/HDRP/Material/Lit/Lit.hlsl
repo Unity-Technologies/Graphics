@@ -59,10 +59,11 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 #define DEFAULT_SPECULAR_VALUE 0.04
 
-#define GBUFFER_LIT_SPECULAR_COLOR 15
-#define GBUFFER_LIT_SSS_OR_TRANSMISSION 14
-#define GBUFFER_LIT_IRIDESCENCE 13
-#define GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND 12
+#define GBUFFER_LIT_STANDARD         0
+#define GBUFFER_LIT_TRANSMISSION     1 // TODO
+#define GBUFFER_LIT_TRANSMISSION_SSS 2
+#define GBUFFER_LIT_ANISOTROPIC      3
+#define GBUFFER_LIT_IRIDESCENCE      4 // TODO
 
 #define CLEAR_COAT_IOR 1.5
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
@@ -464,71 +465,82 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     ApplyDebugToSurfaceData(surfaceData);
 
     // RT0 - 8:8:8:8 sRGB
+    // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
     // RT1 - 10:10:10:2
-    // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
-    // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
-    // Encode normal on 20bit with oct compression + 2bit of sign
     float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
-    // To have more precision encode the sign of xy in a separate uint
+    // To have better precision encode the sign of XY separately.
     uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
+    // We store perceptualRoughness instead of roughness because it is perceptually linear.
     outGBuffer1 = float4(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), abs(octNormalWS), PackInt(octNormalSign, 2));
 
     // RT2 - 8:8:8:8
-    // mettalic will be store on 4 bit and store special value when not used
-    int metallic15 = int(surfaceData.metallic * (GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND + 0.5)); // Remap to [0..12] range. 13, 14, 15 are special value
+    uint materialFeatureId;
 
-    // IMPORTANT: In case of foward or gbuffer pass materialFeatures is statically know at compile time, so the compiler can do compile time optimization
-    // Currently material features SpecularColor, Iridescence, SubsurfaceScattering/Transmission, Anisotropy are mutually exclusive due to Gbuffer constrain
-    // The priority of feature is handled in the code here and reflect in the UI (see LitUI.cs)
-
-    // Process SSS and Transmission together as they encode almost the same data, negligible cost
+    // TODO: split SSS and transmission.
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-        metallic15 = GBUFFER_LIT_SSS_OR_TRANSMISSION;
-        // Special case: For SSS we will store the profile id and the subsurface radius at the location of the specular occlusion (in alpha channel of GBuffer0)
-        // and we will move the specular occlusion in GBuffer2. This is an optimization for SSSSS and have no other side effect as specular occlusion is always used
-        // during lighting pass when other buffer (Gbuffer0, 1, 2) and read anyway.
+        materialFeatureId = GBUFFER_LIT_TRANSMISSION_SSS;
+
+        // For the SSS feature, the alpha channel is overwritten with (diffusionProfile | subsurfaceMask).
+        // It is done so that the SSS pass only has to read a single G-Buffer 0.
+        // We move specular occlusion to the red channel of the G-Buffer 2.
         EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(surfaceData), positionSS, outGBuffer0);
-        outGBuffer2.rgb = float3(surfaceData.specularOcclusion, surfaceData.thickness, HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING) ? 1.0 : 0.0); // thickness for Transmission
+
+        // We duplicate the alpha channel of the G-Buffer 0 (for diffusion profile).
+        // It allows us to delay reading the G-Buffer 0 until the end of the deferred lighting shader.
+        outGBuffer2.rgb = float3(surfaceData.specularOcclusion, surfaceData.thickness, outGBuffer0.a);
     }
-    else
+    else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR))
-        {
-            metallic15 = GBUFFER_LIT_SPECULAR_COLOR;
-            outGBuffer2.rgb = LinearToGamma20(surfaceData.specularColor);
-        }
-        else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-        {
-            // Reconstruct the default tangent frame.
-            float3x3 frame = GetLocalFrame(surfaceData.normalWS);
+        materialFeatureId = GBUFFER_LIT_ANISOTROPIC;
 
-            // Compute the rotation angle of the actual tangent frame with respect to the default one.
-            float sinFrame = dot(surfaceData.tangentWS, frame[1]);
-            float cosFrame = dot(surfaceData.tangentWS, frame[0]);
-            uint  storeSin = abs(sinFrame) < abs(cosFrame) ? 4 : 0;
-            uint  quadrant = ((sinFrame < 0) ? 1 : 0) | ((cosFrame < 0) ? 2 : 0);
+        // Reconstruct the default tangent frame.
+        float3x3 frame = GetLocalFrame(surfaceData.normalWS);
 
-            outGBuffer2.rgb = float3(min(abs(sinFrame), abs(cosFrame)) * sqrt(2), PackByte(storeSin | quadrant), surfaceData.anisotropy * 0.5 + 0.5);
-        }
-        else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+        // Compute the rotation angle of the actual tangent frame with respect to the default one.
+        float sinFrame = dot(surfaceData.tangentWS, frame[1]);
+        float cosFrame = dot(surfaceData.tangentWS, frame[0]);
+        uint  storeSin = abs(sinFrame) < abs(cosFrame) ? 4 : 0;
+        uint  quadrant = ((sinFrame < 0) ? 1 : 0) | ((cosFrame < 0) ? 2 : 0);
+
+        // sin [and cos] are approximately linear up to [after] 45 degrees.
+        float sinOrCos = min(abs(sinFrame), abs(cosFrame)) * sqrt(2);
+
+        outGBuffer2.rgb = float3(surfaceData.anisotropy * 0.5 + 0.5,
+                                 sinOrCos,
+                                 PackFloatInt8bit(surfaceData.metallic, storeSin | quadrant, 8));
+    }
+    else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    {
+        materialFeatureId = GBUFFER_LIT_IRIDESCENCE;
+
+        outGBuffer2.rgb = float3(0.0 /* TODO: IOR */, surfaceData.thicknessIrid,
+                                 PackFloatInt8bit(surfaceData.metallic, 0, 8));
+    }
+    else // Standard
+    {
+        materialFeatureId = GBUFFER_LIT_STANDARD;
+
+        float3 diffuseColor = surfaceData.baseColor;
+        float3 fresnel0     = surfaceData.specularColor;
+
+        if (!HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR))
         {
-            metallic15 = GBUFFER_LIT_IRIDESCENCE;
-            outGBuffer2.rgb = float3(0.0, surfaceData.thicknessIrid, 0.0);
+            // Convert from the metallic parametrization.
+            diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, surfaceData.metallic);
+            fresnel0     = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
         }
-        else
-        {
-            // Caution: Neutral value for anisotropy is 0.5 not 0
-            outGBuffer2.rgb = float3(0.0, 0.0, 0.5);
-        }
+
+        outGBuffer0.rgb = diffuseColor;               // sRGB RT
+        outGBuffer2.rgb = FastLinearToSRGB(fresnel0); // TODO: optimize
     }
 
-    // Encode coatMask (4bit) / mettalic (4bit)
-    outGBuffer2.a = PackFloatInt8bit(HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0, metallic15, 16.0);
+    float coatMask = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
+    outGBuffer2.a  = PackFloatInt8bit(coatMask, materialFeatureId, 8);
 
-    // Lighting: 11:11:10f
+    // RT3 - 11f:11f:10f
     outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
 }
 
@@ -538,6 +550,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 // If you're not using the feature classification system, pass 0.
 uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
 {
+    // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID,
+    // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // Isolate material features.
@@ -550,30 +564,30 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, positionSS);
     GBufferType3 inGBuffer3 = LOAD_TEXTURE2D(_GBufferTexture3, positionSS);
 
-    // Init all material flags from Gbuffer2
+    // Material classification only uses the G-Buffer 2.
     float coatMask;
-    int metallic15;
-    UnpackFloatInt8bit(inGBuffer2.a, 16.0, coatMask, metallic15);
+    uint materialFeatureId;
+    UnpackFloatInt8bit(inGBuffer2.a, 8, coatMask, materialFeatureId);
 
-    uint pixelFeatureFlags     = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard material flag
-    bool pixelHasSpecularColor = (metallic15 == GBUFFER_LIT_SPECULAR_COLOR); // This is always a dynamic test as it is very cheap
-    bool pixelHasTransmission  = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.g > 0); // Thickness > 0
-    bool pixelHasSubsurface    = (metallic15 == GBUFFER_LIT_SSS_OR_TRANSMISSION && inGBuffer2.b > 0); // TagSSS > 0
-    bool pixelHasAnisotropy    = (metallic15 <= GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND && abs(inGBuffer2.b - 0.5) >= 1.0/255.0); // Anisotropy > 0
-    bool pixelHasIridescence   = (metallic15 == GBUFFER_LIT_IRIDESCENCE);
-    bool pixelHasClearCoat     = (coatMask > 0);
+    // Only sky/background do not have the Standard flag.
+    uint pixelFeatureFlags    = MATERIALFEATUREFLAGS_LIT_STANDARD;
+    bool pixelHasSubsurface   = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS;
+    bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION || pixelHasSubsurface;
+    bool pixelHasAnisotropy   = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
+    bool pixelHasIridescence  = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
+    bool pixelHasClearCoat    = coatMask > 0;
 
     // Disable pixel features disabled by the tile.
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSpecularColor ? MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR        : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission  ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface    ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy    ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence   ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
-    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat     ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasTransmission ? MATERIALFEATUREFLAGS_LIT_TRANSMISSION          : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasAnisotropy   ? MATERIALFEATUREFLAGS_LIT_ANISOTROPY            : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
+    pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
-    // Start decompressing GBuffer
+    // Decompress feature-agnostic data from the G-Buffer.
     float3 baseColor = inGBuffer0.rgb;
-    bsdfData.specularOcclusion   = inGBuffer0.a;
+
+    bsdfData.specularOcclusion   = inGBuffer0.a; // Later overwritten for SSS
     bsdfData.perceptualRoughness = inGBuffer1.r;
 
     float2 octNormalWS = inGBuffer1.gb;
@@ -584,32 +598,43 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS);
 
-    // metallic15 is range [0..12] if metallic data is needed
-    bool pixelHasNoMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
-    float metallic = pixelHasNoMetallic ? 0 : metallic15 * (1.0 / GBUFFER_LIT_ANISOTROPIC_UPPER_BOUND);
-    bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-    bsdfData.fresnel0 = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? Gamma20ToLinear(inGBuffer2.rgb) : ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+    bakeDiffuseLighting = inGBuffer3.rgb;
 
-    // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
-    // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID, bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0 etc...
+    // Decompress feature-specific data from the G-Buffer.
+    bool pixelHasMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE);
 
-    // Process SSS and Transmission together as they encode almost the same data
+    if (pixelHasMetallic)
+    {
+        float metallic;
+        uint unused;
+        UnpackFloatInt8bit(inGBuffer2.b, 8, metallic, unused);
+
+        bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
+        bsdfData.fresnel0     = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+    }
+    else
+    {
+        bsdfData.diffuseColor = baseColor;
+        bsdfData.fresnel0     = FastSRGBToLinear(inGBuffer2.rgb); // Later overwritten for SSS
+    }
+
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-        // First we must extract the diffusion profile
+        SSSData sssData;
+        DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
+
+        // Overwrite the diffusion profile extracted by DecodeFromSSSBuffer().
+        // We must do this so the compiler can optimize away the read from the G-Buffer 0.
+        float unused;
+        UnpackFloatInt8bit(inGBuffer2.b, 16, unused, sssData.diffusionProfile);
 
         // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
         bsdfData.specularOcclusion = inGBuffer2.r;
 
-        SSSData sssData;
-        DecodeFromSSSBuffer(inGBuffer0, positionSS, sssData);
-
-        bsdfData.diffusionProfile = sssData.diffusionProfile;
-
         // The neutral value of subsurfaceMask is 0 (handled by ZERO_INITIALIZE).
         if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
         {
-            // Modify fresnel0
+            // Overwrite fresnel0
             FillMaterialSSS(sssData.subsurfaceMask, bsdfData);
         }
 
@@ -629,15 +654,15 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
         if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
-            anisotropy = inGBuffer2.b * 2.0 - 1.0;
+            anisotropy = inGBuffer2.r * 2.0 - 1.0;
 
             // Get the rotation angle of the actual tangent frame with respect to the default one.
-            uint  quadrant = UnpackByte(inGBuffer2.g);
-            uint  storeSin = UnpackByte(inGBuffer2.g) & 4;
-            float absVal0  = inGBuffer2.r * rsqrt(2);
-            float absVal1  = sqrt(1 - absVal0 * absVal0);
-            float sinFrame = storeSin ? absVal0 : absVal1;
-            float cosFrame = storeSin ? absVal1 : absVal0;
+            uint  quadrant = UnpackByte(inGBuffer2.b);
+            uint  storeSin = UnpackByte(inGBuffer2.b) & 4;
+            float sinOrCos = inGBuffer2.g * rsqrt(2);
+            float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
+            float sinFrame = storeSin ? sinOrCos : cosOrSin;
+            float cosFrame = storeSin ? cosOrSin : sinOrCos;
                   sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
                   cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
 
@@ -668,8 +693,6 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
     ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
-
-    bakeDiffuseLighting = inGBuffer3.rgb;
 
     return pixelFeatureFlags;
 }
