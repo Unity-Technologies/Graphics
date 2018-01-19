@@ -24,10 +24,10 @@
 */
 
 #ifndef SHADOW_SUPPORTS_DYNAMIC_INDEXING
-    #define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0
+	#define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0
 #endif
 #ifndef SHADOW_OPTIMIZE_REGISTER_USAGE
-    #define SHADOW_OPTIMIZE_REGISTER_USAGE   0
+	#define SHADOW_OPTIMIZE_REGISTER_USAGE   0
 #endif
 
 #include "CoreRP/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
@@ -35,28 +35,28 @@
 
 struct ShadowContext
 {
-    StructuredBuffer<ShadowData>	shadowDatas;
-    StructuredBuffer<int4>			payloads;
-    SHADOWCONTEXT_DECLARE_TEXTURES( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
+	StructuredBuffer<ShadowData>	shadowDatas;
+	StructuredBuffer<int4>			payloads;
+	SHADOWCONTEXT_DECLARE_TEXTURES( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
 };
 
 SHADOW_DEFINE_SAMPLING_FUNCS( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
 
 // helper function to extract shadowmap data from the ShadowData struct
-void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out real slice )
+void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
 {
 	texIdx  = (shadowmapId >> 24) & 0xff;
 	sampIdx = (shadowmapId >> 16) & 0xff;
-	slice   = (real)(shadowmapId & 0xffff);
+	slice   = shadowmapId & 0xffff;
 }
 void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx )
 {
 	texIdx  = (shadowmapId >> 24) & 0xff;
 	sampIdx = (shadowmapId >> 16) & 0xff;
 }
-void UnpackShadowmapId( uint shadowmapId, out real slice )
+void UnpackShadowmapId( uint shadowmapId, out float slice )
 {
-	slice = (real)(shadowmapId & 0xffff);
+	slice = shadowmapId & 0xffff;
 }
 
 void UnpackShadowType( uint packedShadowType, out uint shadowType, out uint shadowAlgorithm )
@@ -84,24 +84,24 @@ real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positio
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L )
 {
-    return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, L);
+	return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, L);
 }
 
 real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L, real2 positionSS )
 {
-    return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L )
 {
-    return EvalShadow_CascadedDepth_Blend( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_CascadedDepth_Blend( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real2 positionSS )
 {
-    return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 
