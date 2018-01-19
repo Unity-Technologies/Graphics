@@ -81,6 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         public void UnregisterProbe(PlanarReflectionProbe planarProbe)
         {
             m_PlanarReflectionProbes.Remove(planarProbe);
+            m_PlanarReflectionProbeBounds.Remove(planarProbe);
             m_PlanarReflectionProbe_DirtyBounds.Remove(planarProbe);
             m_PlanarReflectionProbe_RequestRealtimeRender.Remove(planarProbe);
             m_PlanarReflectionProbe_RealtimeUpdate.Remove(planarProbe);
