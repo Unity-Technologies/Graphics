@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return Matrix4x4.TRS(
-                    (Vector3)probe.localToWorld.GetColumn(3) + probe.center,
+                    (Vector3)probe.localToWorld.GetColumn(3) - probe.center,
                     probe.localToWorld.rotation,
                     Vector3.one
                 );
@@ -114,10 +114,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Vector3 boxSideFadePositive { get { return additional.boxSideFadePositive; } }
         public override Vector3 boxSideFadeNegative { get { return additional.boxSideFadeNegative; } }
 
-        public override EnvShapeType proxyShapeType { get { return influenceShapeType; } }
-        public override Vector3 proxyExtents { get { return influenceExtents; } }
-        public override bool infiniteProjection { get { return probe.boxProjection == 0; } }
-        public override Matrix4x4 proxyToWorld { get { return influenceToWorld; } }
+        public override EnvShapeType proxyShapeType
+        {
+            get
+            {
+                return additional.proxyVolumeComponent != null
+                    ? ConvertShape(additional.proxyVolumeComponent.proxyVolume.shapeType)
+                    : influenceShapeType;
+            }
+        }
+        public override Vector3 proxyExtents
+        {
+            get
+            {
+                return additional.proxyVolumeComponent != null
+                    ? additional.proxyVolumeComponent.proxyVolume.boxSize * 0.5f
+                    : influenceExtents;
+            }
+        }
+
+        public override bool infiniteProjection
+        {
+            get
+            {
+                return additional.proxyVolumeComponent != null
+                    ? additional.proxyVolumeComponent.proxyVolume.infiniteProjection
+                    : probe.boxProjection == 0;
+            }
+        }
+
+        public override Matrix4x4 proxyToWorld
+        {
+            get
+            {
+                return additional.proxyVolumeComponent != null
+                    ? additional.proxyVolumeComponent.transform.localToWorldMatrix
+                    : influenceToWorld;
+            }
+        }
     }
 
     class PlanarReflectionProbeWrapper : ProbeWrapper

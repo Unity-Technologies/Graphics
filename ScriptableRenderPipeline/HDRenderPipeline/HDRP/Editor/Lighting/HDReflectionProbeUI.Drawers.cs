@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Experimental.Rendering
 {
     using CED = CoreEditorDrawer<HDReflectionProbeUI, SerializedHDReflectionProbe>;
+    using _ = CoreEditorUtils;
 
     public partial class HDReflectionProbeUI
     {
@@ -42,7 +43,8 @@ namespace UnityEditor.Experimental.Rendering
             //CED.Action(Drawer_IntensityMultiplier),
             CED.space,
             CED.Action(Drawer_Toolbar),
-            CED.space
+            CED.space,
+            CED.Action((s, d, o) => EditorGUILayout.PropertyField(d.proxyVolumeComponent, _.GetContent("Proxy Volume")))
         );
 
         public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
