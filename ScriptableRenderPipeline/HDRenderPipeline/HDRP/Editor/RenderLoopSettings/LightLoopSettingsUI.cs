@@ -1,4 +1,4 @@
-using UnityEditor.AnimatedValues;
+﻿using UnityEditor.AnimatedValues;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering

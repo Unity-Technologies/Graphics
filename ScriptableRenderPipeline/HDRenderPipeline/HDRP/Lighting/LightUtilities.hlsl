@@ -1,4 +1,4 @@
-﻿#ifndef UNITY_LIGHT_UTILITIES_INCLUDED
+#ifndef UNITY_LIGHT_UTILITIES_INCLUDED
 #define UNITY_LIGHT_UTILITIES_INCLUDED
 
 #include "LightDefinition.cs.hlsl"

@@ -633,6 +633,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            // TODO: Render only visible probes
             var isReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
             if (!isReflection)
                 ReflectionSystem.RenderAllRealtimeProbes();
@@ -643,6 +644,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
 
                 if (camera.cameraType != CameraType.Reflection)
+                    // TODO: Render only visible probes
                     ReflectionSystem.RenderAllRealtimeProbesFor(camera);
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings

@@ -1,10 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
