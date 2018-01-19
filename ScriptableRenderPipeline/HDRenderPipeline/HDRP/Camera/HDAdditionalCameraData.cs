@@ -6,6 +6,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
+
 #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         // We can't rely on Unity for our additional data, we need to version it ourself.
         [SerializeField]
@@ -45,6 +47,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool    m_IsDebugRegistered = false;
         Camera  m_camera;
         string  m_CameraRegisterName;
+
+        // For custom projection matrixes
+        // Set the proper getter
+        public NonObliqueProjectionGetter nonObliqueProjectionGetter = CameraUtils.CalculateProjectionMatrix;
+
+        public Matrix4x4 GetNonObliqueProjection(Camera camera)
+        {
+            return nonObliqueProjectionGetter(camera);
+        }
 
         void RegisterDebug()
         {

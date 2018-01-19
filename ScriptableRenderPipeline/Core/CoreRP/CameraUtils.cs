@@ -90,5 +90,17 @@
         {
             return camera.projectionMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
         }
+
+        public static Matrix4x4 CalculateProjectionMatrix(Camera camera)
+        {
+            if (camera.orthographic)
+            {
+                var h = camera.orthographicSize;
+                var w = camera.orthographicSize * camera.aspect;
+                return Matrix4x4.Ortho(-w, w, -h, h, camera.nearClipPlane, camera.farClipPlane);
+            }
+            else
+                return Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+        }
     }
 }

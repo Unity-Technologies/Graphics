@@ -708,21 +708,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static Matrix4x4 WorldToCamera(Camera camera)
         {
-            return IsRHS(camera.worldToCameraMatrix) 
-                ? camera.worldToCameraMatrix
-                : Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.worldToCameraMatrix;
+            // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS
+            // We need to flip it to work with transforms
+            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.worldToCameraMatrix;
         }
 
-        static Matrix4x4 CameraProjection(Camera camera)
+        // For light culling system, we need non oblique projection matrices
+        static Matrix4x4 CameraProjectionNonObliqueLHS(HDCamera camera)
         {
-            return IsRHS(camera.worldToCameraMatrix)
-                ? camera.projectionMatrix
-                : camera.projectionMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
-        }
-
-        static bool IsRHS(Matrix4x4 mat)
-        {
-            return Vector3.Dot(Vector3.Cross(mat.GetColumn(0), mat.GetColumn(1)), mat.GetColumn(2)) > 0;
+            // camera.projectionMatrix expect RHS data and Unity's transforms are LHS
+            // We need to flip it to work with transforms
+            return camera.nonObliqueProjMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
         }
 
         public Vector3 GetLightColor(VisibleLight light)
@@ -1772,8 +1768,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
+            var camera = hdCamera.camera;
             cmd.BeginSample("Build Light List");
 
             var w = camera.pixelWidth;
@@ -1784,7 +1781,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var numBigTilesY = (h + 63) / 64;
 
             // camera to screen matrix (and it's inverse)
-            var proj = CameraProjection(camera);
+            var proj = CameraProjectionNonObliqueLHS(hdCamera);
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
@@ -1920,20 +1917,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.EndSample("Build Light List");
         }
 
-        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
-            PushGlobalParams(camera, cmd);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            PushGlobalParams(hdCamera.camera, cmd);
         }
 
-        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
+        public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
         {
             var cmd = CommandBufferPool.Get("Build light list");
             cmd.WaitOnGPUFence(startFence);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             GPUFence completeFence = cmd.CreateGPUFence();
             renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
             CommandBufferPool.Release(cmd);
