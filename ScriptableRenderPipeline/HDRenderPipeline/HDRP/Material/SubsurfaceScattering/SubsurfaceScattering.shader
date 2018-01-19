@@ -3,6 +3,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
     Properties
     {
         [HideInInspector] _DstBlend("", Float) = 1 // Can be set to 1 for blending with specular
+
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 7
     }
 
     SubShader
@@ -11,6 +13,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
         {
             Stencil
             {
+                ReadMask[_StencilMask]
                 Ref  1 // StencilLightingUsage.SplitLighting
                 Comp Equal
                 Pass Keep

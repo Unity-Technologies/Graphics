@@ -9,7 +9,6 @@ public class DebugViewController : MonoBehaviour
     public enum SettingType { Material, Rendering }
     public SettingType settingType = SettingType.Material;
 
-    MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
     [Header("Material")]
     [SerializeField] int gBuffer = 0;
 
