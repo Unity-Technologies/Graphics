@@ -279,8 +279,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 float center = mat.GetFloat("_HeightCenter" + x);
                                 float amplitude = valueMax - valueMin;
                                 mat.SetInt("_HeightMapParametrization" + x, 1);
-                                mat.SetFloat("_HeightPoMAmplitude" + x, valueMax - valueMin);
-                                mat.SetFloat("_HeightTessAmplitude" + x, valueMax - valueMin);
+                                mat.SetFloat("_HeightPoMAmplitude" + x, amplitude);
+                                mat.SetFloat("_HeightTessAmplitude" + x, amplitude);
                                 mat.SetFloat("_HeightOffset" + x, 0.0f);
                                 mat.SetFloat("_HeightTessCenter" + x, center);
 

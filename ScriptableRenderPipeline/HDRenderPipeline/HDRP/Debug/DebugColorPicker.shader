@@ -17,6 +17,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             #pragma fragment Frag
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
             #include "../Debug/DebugDisplay.hlsl"
@@ -27,6 +28,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             float4 _ColorPickerParam; // 4 increasing threshold
             int _ColorPickerMode;
             float3 _ColorPickerFontColor;
+            float _ApplyLinearToSRGB;
 
             struct Attributes
             {
@@ -52,6 +54,13 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             {
                 if (_MousePixelCoord.z >= 0.0 && _MousePixelCoord.z <= 1.0 && _MousePixelCoord.w >= 0 && _MousePixelCoord.w <= 1.0)
                 {
+                    // As when we read with the color picker we don't go through the final blit (that current hardcode a conversion to sRGB)
+                    // and as our material debug take it into account, we need to a transform here.
+                    if (_ApplyLinearToSRGB > 0.0)
+                    {
+                        mouseResult.rgb = LinearToSRGB(mouseResult.rgb);
+                    }
+
                     // Display message offset:
                     int displayTextOffsetX = 1.5 * DEBUG_FONT_TEXT_WIDTH;
                     #if UNITY_UV_STARTS_AT_TOP

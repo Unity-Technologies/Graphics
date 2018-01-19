@@ -9,12 +9,9 @@ public class SinScale : MonoBehaviour
     [SerializeField] float frequency = 1f;
     [SerializeField] float fps = 60;
 
-    Vector3 startAngles = Vector3.zero;
-
     // Use this for initialization
     void Start()
     {
-        startAngles = transform.eulerAngles;
     }
 
     // Update is called once per frame
