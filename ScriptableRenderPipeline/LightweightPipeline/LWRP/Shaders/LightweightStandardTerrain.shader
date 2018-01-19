@@ -115,7 +115,7 @@ Shader "LightweightPipeline/Standard Terrain"
                 float3 positionWS               : TEXCOORD7;
 
 #ifdef _SHADOWS_ENABLED
-                half4 shadowCoord               : TEXCOORD8;
+                float4 shadowCoord               : TEXCOORD8;
 #endif
 
                 float4 clipPos                  : SV_POSITION;
@@ -210,7 +210,7 @@ Shader "LightweightPipeline/Standard Terrain"
                 indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
 #endif
 
-                half4 shadowCoord = half4(0, 0, 0, 0);
+                float4 shadowCoord = float4(0, 0, 0, 0);
 #ifdef _SHADOWS_ENABLED
                 shadowCoord = IN.shadowCoord;
 #endif
