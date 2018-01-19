@@ -316,8 +316,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             capturePosition = probe.transform.TransformPoint(probe.captureLocalPosition);
             captureRotation = Quaternion.LookRotation((Vector3)probe.influenceToWorld.GetColumn(3) - capturePosition, probe.transform.up);
 
-            projection = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
             worldToCamera = CameraUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);
+            var clipPlane = CameraUtils.CameraSpacePlane(worldToCamera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
+            projection = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
+            projection = CameraUtils.CalculateObliqueMatrix(projection, clipPlane);
         }
 
         static void CalculateMirroredCaptureCameraProperties(PlanarReflectionProbe probe, Camera viewerCamera, out float nearClipPlane, out float farClipPlane, out float aspect, out float fov, out CameraClearFlags clearFlags, out Color backgroundColor, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation)
