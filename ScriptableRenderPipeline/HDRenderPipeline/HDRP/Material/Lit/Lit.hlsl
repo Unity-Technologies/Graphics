@@ -226,17 +226,18 @@ float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
 }
 
 // Assume that bsdfData.diffusionProfile is init
-void FillMaterialSSS(float subsurfaceMask, inout BSDFData bsdfData)
+void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].a;
+    bsdfData.diffusionProfile = diffusionProfile;
+    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
     bsdfData.subsurfaceMask = subsurfaceMask;
     // Note: ApplySubsurfaceScatteringTexturingMode also test the diffusionProfile for updating diffuseColor based on SSS
 }
 
 // Assume that bsdfData.diffusionProfile is init
-void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
+void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDFData bsdfData)
 {
-    int diffusionProfile = bsdfData.diffusionProfile;
+    bsdfData.diffusionProfile = diffusionProfile;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
     uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
@@ -398,9 +399,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0     = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
-    // Always assign even if not used, DIFFUSION_PROFILE_NEUTRAL_ID is 0
-    bsdfData.diffusionProfile = surfaceData.diffusionProfile;
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
+    // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
 
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
     // However in practice we keep parity between deferred and forward, so we should contrain the various features.
@@ -409,12 +409,12 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
         // Modify fresnel0
-        FillMaterialSSS(surfaceData.subsurfaceMask, bsdfData);
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-        FillMaterialTransmission(surfaceData.thickness, bsdfData);
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
@@ -635,13 +635,13 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
         {
             // Overwrite fresnel0
-            FillMaterialSSS(sssData.subsurfaceMask, bsdfData);
+            FillMaterialSSS(sssData.diffusionProfile, sssData.subsurfaceMask, bsdfData);
         }
 
         // The neutral value of thickness and transmittance is 0 (handled by ZERO_INITIALIZE).
         if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
-            FillMaterialTransmission(inGBuffer2.g, bsdfData);
+            FillMaterialTransmission(sssData.diffusionProfile, inGBuffer2.g, bsdfData);
         }
     }
 
