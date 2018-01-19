@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
         [VFXSetting, PushButton(typeof(LaunchEventBehavior), "Send")]
         public string eventName = "OnPlay";
 
-        public VFXBasicEvent() : base(VFXContextType.kEvent, VFXDataType.kNone, VFXDataType.kEvent) {}
+        public VFXBasicEvent() : base(VFXContextType.kEvent, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
         public override string name { get { return "Event"; } }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)

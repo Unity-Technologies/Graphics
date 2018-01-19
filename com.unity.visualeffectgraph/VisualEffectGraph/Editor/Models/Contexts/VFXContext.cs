@@ -32,8 +32,7 @@ namespace UnityEditor.VFX
         kNone =         0,
         kSpawnEvent =   1 << 0,
         kParticle =     1 << 1,
-        kEvent =        1 << 2,
-        kMesh =         1 << 3,
+        kMesh =         1 << 2,
     };
 
     [Serializable]

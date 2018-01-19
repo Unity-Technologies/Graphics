@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicSpawner : VFXContext
     {
-        public VFXBasicSpawner() : base(VFXContextType.kSpawner, VFXDataType.kEvent, VFXDataType.kSpawnEvent) {}
+        public VFXBasicSpawner() : base(VFXContextType.kSpawner, VFXDataType.kSpawnEvent, VFXDataType.kSpawnEvent) {}
         public override string name { get { return "Spawner"; } }
 
         protected override int inputFlowCount
