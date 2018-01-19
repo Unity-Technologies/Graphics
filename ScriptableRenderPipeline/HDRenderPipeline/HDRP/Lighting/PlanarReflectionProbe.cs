@@ -138,6 +138,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.proxyVolume.infiniteProjection; } }
+
+        public bool useMirrorPlane
+        {
+            get
+            {
+                return mode == ReflectionProbeMode.Realtime
+                    && refreshMode == ReflectionProbeRefreshMode.EveryFrame
+                    && capturePositionMode == CapturePositionMode.MirrorCamera;
+            }
+        }
+
         #endregion
 
         public void RequestRealtimeRender()

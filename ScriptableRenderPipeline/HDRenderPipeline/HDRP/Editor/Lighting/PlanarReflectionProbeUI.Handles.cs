@@ -26,14 +26,49 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case EditInfluenceNormalShape:
                     InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, d);
                     break;
+                case EditMirrorPosition:
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        var m = Handles.matrix;
+                        Handles.matrix = mat;
+                        var p = Handles.PositionHandle(d.captureMirrorPlaneLocalPosition, d.transform.rotation);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(d, "Translate Mirror Plane");
+                            d.captureMirrorPlaneLocalPosition = p;
+                            EditorUtility.SetDirty(d);
+                        }
+                        Handles.matrix = m;
+                        break;
+                    }
+                case EditMirrorRotation:
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        var m = Handles.matrix;
+                        Handles.matrix = mat;
+                        var q = Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal, Vector3.up);
+                        q = Handles.RotationHandle(q, Vector3.zero);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(d, "Rotate Mirror Plane");
+                            d.captureMirrorPlaneLocalNormal = q * Vector3.forward;
+                            EditorUtility.SetDirty(d);
+                        }
+                        Handles.matrix = m;
+                        break;
+                    }
                 case EditCenter:
                     {
                         EditorGUI.BeginChangeCheck();
                         var m = Handles.matrix;
                         Handles.matrix = mat;
-                        d.captureLocalPosition = Handles.PositionHandle(d.captureLocalPosition, d.transform.rotation);
+                        var p = Handles.PositionHandle(d.captureLocalPosition, d.transform.rotation);
                         if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(d, "Translate Capture Position");
+                            d.captureLocalPosition = p;
                             EditorUtility.SetDirty(d);
+                        }
                         Handles.matrix = m;
                         break;
                     }
@@ -96,15 +131,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (d.proxyVolumeReference != null)
                 ProxyVolumeComponentUI.DrawGizmos_EditNone(s.proxyVolume, d.proxyVolumeReference);
 
-            if (s.showCaptureHandles
-                || EditMode.editMode == EditCenter)
-            {
+            var showFrustrum = s.showCaptureHandles
+                || EditMode.editMode == EditCenter;
+            var showCaptureMirror = (s.showCaptureHandles && d.useMirrorPlane)
+                || EditMode.editMode == EditMirrorPosition
+                || EditMode.editMode == EditMirrorRotation;
+
+            if (showFrustrum)
                 DrawGizmos_CaptureFrustrum(s, d);
 
-                if (d.mode == ReflectionProbeMode.Realtime
-                    && d.refreshMode == ReflectionProbeRefreshMode.EveryFrame)
-                    DrawGizmos_CaptureMirror(s, d);
-            }
+            if (showCaptureMirror)
+                DrawGizmos_CaptureMirror(s, d);
         }
 
         static void DrawGizmos_CaptureMirror(PlanarReflectionProbeUI s, PlanarReflectionProbe d)

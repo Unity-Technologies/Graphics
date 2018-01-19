@@ -48,10 +48,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             for (var i = 0; i < k_ReflectionProbeModeModeCount; i++)
                 m_AnimBools[i].target = i == data.mode.intValue;
 
-            isSectionExpandedCaptureMirrorSettings.target = data.refreshMode.intValue == (int)ReflectionProbeRefreshMode.EveryFrame
-                && data.mode.intValue == (int)ReflectionProbeMode.Realtime
-                && data.capturePositionMode.intValue == (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
-            isSectionExpandedCaptureStaticSettings.target = !isSectionExpandedCaptureMirrorSettings.target;
+            isSectionExpandedCaptureMirrorSettings.target = data.isMirrored;
+            isSectionExpandedCaptureStaticSettings.target = !data.isMirrored;
 
             proxyVolume.Update();
             frameSettings.Update();

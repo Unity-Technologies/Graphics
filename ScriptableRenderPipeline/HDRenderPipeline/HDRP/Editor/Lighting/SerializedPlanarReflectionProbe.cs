@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -30,6 +31,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedFrameSettings frameSettings;
 
         public PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
+
+        public bool isMirrored
+        {
+            get
+            {
+                return refreshMode.intValue == (int)ReflectionProbeRefreshMode.EveryFrame
+                    && mode.intValue == (int)ReflectionProbeMode.Realtime
+                    && capturePositionMode.intValue == (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
+            }
+        }
 
         public SerializedPlanarReflectionProbe(SerializedObject serializedObject)
         {
