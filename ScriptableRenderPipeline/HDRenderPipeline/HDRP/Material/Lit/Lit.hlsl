@@ -656,9 +656,13 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         {
             anisotropy = inGBuffer2.r * 2.0 - 1.0;
 
+            float unused;
+            uint tangentFlags;
+            UnpackFloatInt8bit(inGBuffer2.b, 8, unused, tangentFlags);
+
             // Get the rotation angle of the actual tangent frame with respect to the default one.
-            uint  quadrant = UnpackByte(inGBuffer2.b);
-            uint  storeSin = UnpackByte(inGBuffer2.b) & 4;
+            uint  quadrant = tangentFlags;
+            uint  storeSin = tangentFlags & 4;
             float sinOrCos = inGBuffer2.g * rsqrt(2);
             float cosOrSin = sqrt(1 - sinOrCos * sinOrCos);
             float sinFrame = storeSin ? sinOrCos : cosOrSin;
