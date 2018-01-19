@@ -470,7 +470,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
     // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
     // Encode normal on 20bit with oct compression + 2bit of sign
-    float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
     uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
     outGBuffer1 = float4(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), abs(octNormalWS), PackInt(octNormalSign, 2));
@@ -582,7 +582,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     octNormalWS.x = (octNormalSign & 1) ? -octNormalWS.x : octNormalWS.x;
     octNormalWS.y = (octNormalSign & 2) ? -octNormalWS.y : octNormalWS.y;
 
-    bsdfData.normalWS = UnpackNormalOctEncode(octNormalWS);
+    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS);
 
     // metallic15 is range [0..12] if metallic data is needed
     bool pixelHasNoMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
