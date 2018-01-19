@@ -115,8 +115,11 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             float2 ndc = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + texCoord, _Env2DCaptureVP[index]);
-            weight = any(ndc < 0) || any(ndc > 1) ? 0 : 1;
-            return SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc, index, 0);
+            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc, index, 0);
+            // Discard pixels out of oblique projection
+            // We only check RGB because the texture may have BC6H compression
+            weight = any(ndc < 0) || any(ndc > 1) || all(color.rgb >= 1000) ? 0 : 1;
+            return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
