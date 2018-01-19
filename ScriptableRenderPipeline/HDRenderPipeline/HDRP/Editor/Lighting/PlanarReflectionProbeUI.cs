@@ -1,13 +1,14 @@
 ﻿using System;
 using UnityEditor.AnimatedValues;
 using UnityEngine.Events;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class PlanarReflectionProbeUI : BaseUI<SerializedPlanarReflectionProbe>
     {
-        const int k_AnimBoolFields = 3;
+        const int k_AnimBoolFields = 4;
         static readonly int k_ReflectionProbeModeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
         static readonly int k_AnimBoolTotal = k_AnimBoolFields + k_ReflectionProbeModeModeCount;
 
@@ -19,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 1]; } }
 
         public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 2]; } }
+        public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 3]; } }
 
         public bool showCaptureHandles { get; set; }
 
@@ -46,7 +48,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             for (var i = 0; i < k_ReflectionProbeModeModeCount; i++)
                 m_AnimBools[i].target = i == data.mode.intValue;
 
-            isSectionExpandedCaptureMirrorSettings.target = data.refreshMode.intValue == (int)ReflectionProbeRefreshMode.EveryFrame && data.mode.intValue == (int)ReflectionProbeMode.Realtime;
+            isSectionExpandedCaptureMirrorSettings.target = data.refreshMode.intValue == (int)ReflectionProbeRefreshMode.EveryFrame
+                && data.mode.intValue == (int)ReflectionProbeMode.Realtime
+                && data.capturePositionMode.intValue == (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
+            isSectionExpandedCaptureStaticSettings.target = !isSectionExpandedCaptureMirrorSettings.target;
 
             proxyVolume.Update();
             frameSettings.Update();

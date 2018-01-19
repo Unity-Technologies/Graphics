@@ -1665,7 +1665,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &599505013
 Transform:
   m_ObjectHideFlags: 0
@@ -4121,7 +4121,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1561776757}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
@@ -4188,6 +4188,8 @@ MonoBehaviour:
   m_CapturePositionMode: 1
   m_CaptureMirrorPlaneLocalPosition: {x: 0, y: 0, z: 0}
   m_CaptureMirrorPlaneLocalNormal: {x: 1, y: 0, z: 0}
+  m_OverrideFieldOfView: 0
+  m_FieldOfViewOverride: 90
 --- !u!1 &1562837666
 GameObject:
   m_ObjectHideFlags: 0

@@ -307,7 +307,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             nearClipPlane = probe.captureNearPlane;
             farClipPlane = probe.captureFarPlane;
             aspect = 1f;
-            fov = 90f;
+            fov = probe.overrideFieldOfView
+                ? probe.fieldOfViewOverride
+                : 90f;
             clearFlags = CameraClearFlags.Nothing;
             backgroundColor = Color.white;
 
@@ -323,7 +325,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             nearClipPlane = viewerCamera.nearClipPlane;
             farClipPlane = viewerCamera.farClipPlane;
             aspect = 1;
-            fov = Mathf.Max(viewerCamera.fieldOfView, viewerCamera.fieldOfView * viewerCamera.aspect);
+            fov = probe.overrideFieldOfView 
+                ? probe.fieldOfViewOverride
+                : Mathf.Max(viewerCamera.fieldOfView, viewerCamera.fieldOfView * viewerCamera.aspect);
             clearFlags = viewerCamera.clearFlags;
             backgroundColor = viewerCamera.backgroundColor;
 

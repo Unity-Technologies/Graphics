@@ -42,6 +42,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector3 m_CaptureMirrorPlaneLocalPosition;
         [SerializeField]
         Vector3 m_CaptureMirrorPlaneLocalNormal = Vector3.forward;
+        [SerializeField]
+        bool m_OverrideFieldOfView = false;
+        [SerializeField]
+        [Range(0, 180)]
+        float m_FieldOfViewOverride = 90;
+
+        public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
+        public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
         public ProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }

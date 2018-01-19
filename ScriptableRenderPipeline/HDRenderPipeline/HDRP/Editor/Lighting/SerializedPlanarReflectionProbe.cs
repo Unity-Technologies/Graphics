@@ -24,6 +24,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty refreshMode;
         public SerializedProperty customTexture;
 
+        public SerializedProperty overrideFieldOfView;
+        public SerializedProperty fieldOfViewOverride;
+
         public SerializedFrameSettings frameSettings;
 
         public PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
@@ -45,6 +48,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
             refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);
             customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);
+
+            overrideFieldOfView = serializedObject.Find((PlanarReflectionProbe p) => p.overrideFieldOfView);
+            fieldOfViewOverride = serializedObject.Find((PlanarReflectionProbe p) => p.fieldOfViewOverride);
 
             frameSettings = new SerializedFrameSettings(serializedObject.Find((PlanarReflectionProbe p) => p.frameSettings));
 
