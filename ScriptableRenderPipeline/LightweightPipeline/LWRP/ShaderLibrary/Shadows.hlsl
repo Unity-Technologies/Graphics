@@ -2,6 +2,7 @@
 #define LIGHTWEIGHT_SHADOWS_INCLUDED
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
@@ -42,6 +43,7 @@ half4 _ShadowOffset1;
 half4 _ShadowOffset2;
 half4 _ShadowOffset3;
 half4 _ShadowData; // (x: shadowStrength)
+half4 _ShadowmapSize; // (xy: width and height, zw: 1/width and 1/height)
 CBUFFER_END
 
 inline half SampleShadowmap(float4 shadowCoord)
@@ -50,17 +52,35 @@ inline half SampleShadowmap(float4 shadowCoord)
     shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
 #endif
 
+    half attenuation;
+
 #ifdef _SHADOWS_SOFT
+#ifdef SHADER_API_MOBILE
     // 4-tap hardware comparison
     half4 attenuation4;
     attenuation4.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset0.xyz);
     attenuation4.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset1.xyz);
     attenuation4.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset2.xyz);
     attenuation4.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset3.xyz);
-    half attenuation = dot(attenuation4, 0.25);
+    attenuation = dot(attenuation4, 0.25);
+#else
+    real fetchesWeights[9];
+    real2 fetchesUV[9];
+    SampleShadow_ComputeSamples_Tent_5x5(_ShadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
+
+    attenuation  = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[0].xy, shadowCoord.z));
+    attenuation += fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[1].xy, shadowCoord.z));
+    attenuation += fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[2].xy, shadowCoord.z));
+    attenuation += fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[3].xy, shadowCoord.z));
+    attenuation += fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[4].xy, shadowCoord.z));
+    attenuation += fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[5].xy, shadowCoord.z));
+    attenuation += fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[6].xy, shadowCoord.z));
+    attenuation += fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[7].xy, shadowCoord.z));
+    attenuation += fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[8].xy, shadowCoord.z));
+#endif
 #else
     // 1-tap hardware comparison
-    half attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
+    attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
 
     // Apply shadow strength
