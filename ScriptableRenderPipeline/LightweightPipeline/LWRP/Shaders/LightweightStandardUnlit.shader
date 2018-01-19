@@ -98,7 +98,7 @@ Shader "LightweightPipeline/Standard Unlit"
 
 #if _SAMPLE_GI
     #if _NORMALMAP
-                half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
+                half3 normalWS = TangentToWorldNormal(surfaceData.normalTS, IN.tangent, IN.binormal, IN.normal);
     #else
                 half3 normalWS = normalize(IN.normal);
     #endif

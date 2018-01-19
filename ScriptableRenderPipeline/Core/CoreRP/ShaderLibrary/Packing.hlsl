@@ -16,10 +16,45 @@ real3 UnpackNormalMaxComponent(real3 n)
     return normalize(n * 2.0 - 1.0);
 }
 
+// Ref: http://www.vis.uni-stuttgart.de/~engelhts/paper/vmvOctaMaps.pdf
+// Encode with Oct, this function work with any size of output
+// return real between [-1, 1]
+real2 PackNormalOctRectEncode(real3 n)
+{
+    // Perform planar projection.
+    real3 p = n * rcp(dot(abs(n), 1.0));
+
+    // Unfold the octahedron.
+    real r = 1 - p.x + p.y;
+    real g = p.x + p.y;
+
+    // Left side of the 2:1 rectangle for the negative hemisphere, right otherwise.
+    // We also correct the aspect ratio from 2:1 to 1:1.
+    real s = CopySign(0.5, p.z);
+
+    return real2(s * r, g);
+}
+
+real3 UnpackNormalOctRectEncode(real2 f)
+{
+    real r = f.r;
+    real g = f.g;
+    real s = FastSign(r);
+
+    // Solve for {x, y, z} given {r, g}.
+    real x = 0.5 * g + 0.5 - s * r;
+    real y = g - x;
+    real z = s * max(1.0 - abs(x) - abs(y), FLT_EPS); // Clamping is absolutely crucial for numerical stability
+
+    real3 p = real3(x, y, z);
+
+    return normalize(p);
+}
+
 // Ref: http://jcgt.org/published/0003/02/01/paper.pdf
 // Encode with Oct, this function work with any size of output
 // return real between [-1, 1]
-real2 PackNormalOctEncode(real3 n)
+real2 PackNormalOctQuadEncode(real3 n)
 {
     //real l1norm    = dot(abs(n), 1.0);
     //real2 res0     = n.xy * (1.0 / l1norm);
@@ -33,7 +68,7 @@ real2 PackNormalOctEncode(real3 n)
     return n.xy + (n.xy >= 0.0 ? t : -t);
 }
 
-real3 UnpackNormalOctEncode(real2 f)
+real3 UnpackNormalOctQuadEncode(real2 f)
 {
     real3 n = real3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
 
@@ -433,12 +468,12 @@ uint PackToR10G10B10A2(real4 rgba)
 
 real4 UnpackFromR10G10B10A2(uint rgba)
 {
-    real4 ouput;
-    ouput.x = UnpackUIntToFloat(rgba, 0,  10);
-    ouput.y = UnpackUIntToFloat(rgba, 10, 10);
-    ouput.z = UnpackUIntToFloat(rgba, 20, 10);
-    ouput.w = UnpackUIntToFloat(rgba, 30, 2);
-    return ouput;
+    real4 output;
+    output.x = UnpackUIntToFloat(rgba, 0,  10);
+    output.y = UnpackUIntToFloat(rgba, 10, 10);
+    output.z = UnpackUIntToFloat(rgba, 20, 10);
+    output.w = UnpackUIntToFloat(rgba, 30, 2);
+    return output;
 }
 
 // Both the input and the output are in the [0, 1] range.

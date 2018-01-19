@@ -21,13 +21,12 @@ Shader "HDRenderPipeline/Decal"
 	#pragma shader_feature _NORMALMAP
 	#pragma shader_feature _MASKMAP
 
-
+	#pragma multi_compile_instancing
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
-	#define UNITY_MATERIAL_DECAL // do we need this now that Material.hlsl is not getting included?
-
-
+	#define UNITY_MATERIAL_DECAL 
+	
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------

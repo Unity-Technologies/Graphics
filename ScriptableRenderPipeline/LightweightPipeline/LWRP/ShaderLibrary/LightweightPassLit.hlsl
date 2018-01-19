@@ -22,7 +22,7 @@ struct LightweightVertexOutput
     float3 posWS                    : TEXCOORD2;
     half3  normal                   : TEXCOORD3;
 
-#if _NORMALMAP
+#ifdef _NORMALMAP
     half3 tangent                   : TEXCOORD4;
     half3 binormal                  : TEXCOORD5;
 #endif
@@ -30,9 +30,41 @@ struct LightweightVertexOutput
     half3 viewDir                   : TEXCOORD6;
     half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
 
+#ifdef _SHADOWS_ENABLED
+    float4 shadowCoord               : TEXCOORD8;
+#endif
+
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
+
+void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputData inputData)
+{
+    inputData.positionWS = IN.posWS.xyz;
+
+#ifdef _NORMALMAP
+    inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
+#else
+    inputData.normalWS = normalize(IN.normal);
+#endif
+
+#ifdef SHADER_API_MOBILE
+    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
+    inputData.viewDirectionWS = IN.viewDir;
+#else
+    inputData.viewDirectionWS = normalize(IN.viewDir);
+#endif
+
+#ifdef _SHADOWS_ENABLED
+    inputData.shadowCoord = IN.shadowCoord;
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
+
+    inputData.fogCoord = IN.fogFactorAndVertexLight.x;
+    inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+    inputData.bakedGI = SampleGI(IN.lightmapUVOrVertexSH, inputData.normalWS);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //                  Vertex and Fragment functions                            //
@@ -65,6 +97,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
+#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
+    o.shadowCoord = ComputeShadowCoord(o.posWS.xyz);
+#endif
+
     return o;
 }
 
@@ -76,18 +112,12 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(IN.uv, surfaceData);
 
-#if _NORMALMAP
-    half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
-#else
-    half3 normalWS = normalize(IN.normal);
-#endif
+    InputData inputData;
+    InitializeInputData(IN, surfaceData.normalTS, inputData);
 
-    half3 indirectDiffuse = SampleGI(IN.lightmapUVOrVertexSH, normalWS);
-    float fogFactor = IN.fogFactorAndVertexLight.x;
+    half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
-    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
-    half4 color = LightweightFragmentPBR(IN.posWS.xyz, normalWS, IN.viewDir, indirectDiffuse, IN.fogFactorAndVertexLight.yzw, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-    ApplyFog(color.rgb, fogFactor);
+    ApplyFog(color.rgb, inputData.fogCoord);
     return color;
 }
 
@@ -97,7 +127,6 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     UNITY_SETUP_INSTANCE_ID(IN);
 
     float2 uv = IN.uv;
-
     half4 diffuseAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
     half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
 
@@ -109,33 +138,20 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 
     AlphaDiscard(alpha, _Cutoff);
 
-#if _NORMALMAP
-    half3 normalTangent = Normal(uv);
-    half3 normalWS = TangentToWorldNormal(normalTangent, IN.tangent, IN.binormal, IN.normal);
+#ifdef _NORMALMAP
+    half3 normalTS = Normal(uv);
 #else
-    half3 normalWS = normalize(IN.normal);
+    half3 normalTS = half3(0, 0, 1);
 #endif
 
     half3 emission = Emission(uv);
-
-    half3 viewDirectionWS = SafeNormalize(IN.viewDir.xyz);
-    float3 positionWS = IN.posWS.xyz;
-
-    half3 diffuseGI = SampleGI(IN.lightmapUVOrVertexSH, normalWS);
-
-#if _VERTEX_LIGHTS
-    diffuseGI += IN.fogFactorAndVertexLight.yzw;
-#endif
-
-    half shininess = _Shininess * 128.0h;
-    half fogFactor = IN.fogFactorAndVertexLight.x;
-
-#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
-    return LightweightFragmentBlinnPhong(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, specularGloss, shininess, emission, alpha);
-#else
-    return LightweightFragmentLambert(positionWS, normalWS, viewDirectionWS, fogFactor, diffuseGI, diffuse, emission, alpha);
-#endif
+    half shininess = _Shininess * 128.0h;
+
+    InputData inputData;
+    InitializeInputData(IN, normalTS, inputData);
+
+    return LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
 };
 
 #endif

@@ -262,6 +262,7 @@ Material:
     - _SubsurfaceRadius: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
+    - _TexWorldScaleEmissive: 1
     - _Thickness: 0.747
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
@@ -269,6 +270,7 @@ Material:
     - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
+    - _UVEmissive: 0
     - _UVMappingPlanar: 0
     - _UVSec: 0
     - _VertexDisplacementObjectScale: 1
@@ -288,3 +290,4 @@ Material:
     - _TransmittanceColor: {r: 0.816, g: 0.6632562, b: 0.374544, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}

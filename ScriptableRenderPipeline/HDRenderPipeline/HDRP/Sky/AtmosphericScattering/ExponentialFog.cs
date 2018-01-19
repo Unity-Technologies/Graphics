@@ -10,12 +10,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
 
-        public MinFloatParameter fogDistance = new MinFloatParameter(200.0f, 0.0f);
+        public MinFloatParameter        fogDistance = new MinFloatParameter(200.0f, 0.0f);
+        public FloatParameter           fogBaseHeight = new FloatParameter(0.0f);
+        public ClampedFloatParameter    fogHeightAttenuation = new ClampedFloatParameter(0.2f, 0.0f, 1.0f);
 
         public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
             PushShaderParametersCommon(cmd, FogType.Exponential, frameSettings);
-            cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(0.0f, fogDistance), 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(1e-6f, fogDistance), fogBaseHeight, fogHeightAttenuation, 0.0f));
         }
     }
 

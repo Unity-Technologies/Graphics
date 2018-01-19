@@ -43,14 +43,8 @@ public class GraphicTestsPlayMode : IPrebuildSetup
 #endif
     }
 
-    string prjRelativeGraphsPath;
-    string filePath;
-
     public IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)
     {
-        prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
-        filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
-
         // open the scene
         UnityEngine.SceneManagement.SceneManager.LoadScene( testInfo.sceneListIndex , UnityEngine.SceneManagement.LoadSceneMode.Single);
 

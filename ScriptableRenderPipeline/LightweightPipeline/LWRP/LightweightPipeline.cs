@@ -1035,10 +1035,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Scale bias by cascade's world space depth range.
                 // Directional shadow lights have orthogonal projection.
                 // proj.m22 = -2 / (far - near) since the projection's depth range is [-1.0, 1.0]
-                // Therefore we scale it by 0.5. We keep the negative sign and only flip it in case z is
-                // reversed.
+                // In order to be correct we should multiply bias by 0.5 but this introducing aliasing along cascades more visible.
                 float sign = (SystemInfo.usesReversedZBuffer) ? 1.0f : -1.0f;
-                bias = light.shadowBias * proj.m22 * 0.5f * sign;
+                bias = light.shadowBias * proj.m22 * sign;
 
                 // Currently only square POT cascades resolutions are used.
                 // We scale normalBias

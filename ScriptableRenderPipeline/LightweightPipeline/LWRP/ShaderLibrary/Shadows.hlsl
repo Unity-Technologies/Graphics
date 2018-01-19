@@ -35,15 +35,15 @@ CBUFFER_START(_ShadowBuffer)
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
-float4x4 _WorldToShadow[MAX_SHADOW_CASCADES + 1];
-float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
-float4 _DirShadowSplitSphereRadii;
-half4 _ShadowOffset0;
-half4 _ShadowOffset1;
-half4 _ShadowOffset2;
-half4 _ShadowOffset3;
-half4 _ShadowData; // (x: shadowStrength)
-half4 _ShadowmapSize; // (xy: width and height, zw: 1/width and 1/height)
+float4x4    _WorldToShadow[MAX_SHADOW_CASCADES + 1];
+float4      _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
+float4      _DirShadowSplitSphereRadii;
+half4       _ShadowOffset0;
+half4       _ShadowOffset1;
+half4       _ShadowOffset2;
+half4       _ShadowOffset3;
+half4       _ShadowData;    // (x: shadowStrength)
+float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
 inline half SampleShadowmap(float4 shadowCoord)
@@ -91,13 +91,13 @@ inline half SampleShadowmap(float4 shadowCoord)
     return (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || shadowCoord.z >= 1) ? 1.0 : attenuation;
 }
 
-inline half ComputeCascadeIndex(float3 wpos)
+inline half ComputeCascadeIndex(float3 positionWS)
 {
     // TODO: profile if there's a performance improvement if we avoid indexing here
-    float3 fromCenter0 = wpos.xyz - _DirShadowSplitSpheres[0].xyz;
-    float3 fromCenter1 = wpos.xyz - _DirShadowSplitSpheres[1].xyz;
-    float3 fromCenter2 = wpos.xyz - _DirShadowSplitSpheres[2].xyz;
-    float3 fromCenter3 = wpos.xyz - _DirShadowSplitSpheres[3].xyz;
+    float3 fromCenter0 = positionWS.xyz - _DirShadowSplitSpheres[0].xyz;
+    float3 fromCenter1 = positionWS.xyz - _DirShadowSplitSpheres[1].xyz;
+    float3 fromCenter2 = positionWS.xyz - _DirShadowSplitSpheres[2].xyz;
+    float3 fromCenter3 = positionWS.xyz - _DirShadowSplitSpheres[3].xyz;
     float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
 
     half4 weights = half4(distances2 < _DirShadowSplitSphereRadii);
@@ -106,40 +106,42 @@ inline half ComputeCascadeIndex(float3 wpos)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-inline float4 ComputeShadowCoord(float3 positionWS, half cascadeIndex = 0)
+float4 ComputeShadowCoord(float3 positionWS)
 {
 #ifdef _SHADOWS_CASCADE
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
     return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 #endif
 
     return mul(_WorldToShadow[0], float4(positionWS, 1.0));
 }
 
-inline half RealtimeShadowAttenuation(float3 positionWS)
+half GetShadowStrength()
+{
+    return _ShadowData.x;
+}
+
+half RealtimeShadowAttenuation(float3 positionWS)
 {
 #if !defined(_SHADOWS_ENABLED)
     return 1.0;
 #endif
 
-    half cascadeIndex = ComputeCascadeIndex(positionWS);
-    float4 shadowCoord = ComputeShadowCoord(positionWS, cascadeIndex);
+    float4 shadowCoord = ComputeShadowCoord(positionWS);
     return SampleShadowmap(shadowCoord);
 }
 
-half MixRealtimeAndBakedOcclusion(half realtimeAttenuation, half subtractiveModeBakedOcclusion, half4 shadowMaskModeBakedOcclusion = half4(0, 0, 0, 0))
+half RealtimeShadowAttenuation(float3 positionWS, float4 shadowCoord)
 {
-#if defined(LIGHTMAP_ON)
-#if defined(_MIXED_LIGHTING_SHADOWMASK)
-    // TODO:
-#elif defined(_MIXED_LIGHTING_SUBTRACTIVE)
-    // Subtractive Light mode has direct light contribution baked into lightmap for mixed lights.
-    // We need to remove direct realtime contribution from mixed lights
-    // subtractiveModeBakedOcclusion is set 0.0 if this light occlusion was baked in the lightmap, 1.0 otherwise.
-    return realtimeAttenuation * subtractiveModeBakedOcclusion;
-#endif
+#if !defined(_SHADOWS_ENABLED)
+    return 1.0;
 #endif
 
-    return realtimeAttenuation;
+#ifdef _SHADOWS_CASCADE
+    shadowCoord = ComputeShadowCoord(positionWS);
+#endif
+
+    return SampleShadowmap(shadowCoord);
 }
 
 #endif
