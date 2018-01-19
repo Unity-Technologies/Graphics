@@ -29,6 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionFoldoutCaptureSettings;
 
         public static readonly CED.IDrawer SectionCaptureMirrorSettings = CED.Action(Drawer_SectionCaptureMirror);
+        public static readonly CED.IDrawer SectionCaptureStaticSettings = CED.Action(Drawer_SectionCaptureStatic);
 
         static PlanarReflectionProbeUI()
         {
@@ -38,9 +39,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 true,
                 CED.Action(Drawer_SectionCaptureSettings),
                 CED.FadeGroup(
-                    (s, d, o, i) => s.isSectionExpandedCaptureMirrorSettings,
+                    (s, d, o, i) =>
+                    {
+                        switch (i)
+                        {
+                            default:
+                            case 0: return s.isSectionExpandedCaptureMirrorSettings;
+                            case 1: return s.isSectionExpandedCaptureStaticSettings;
+                        }
+                    },
                     false,
-                    SectionCaptureMirrorSettings)
+                    SectionCaptureMirrorSettings,
+                    SectionCaptureStaticSettings)
             );
 
             SectionProbeModeSettings = CED.Group(
@@ -84,6 +94,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
         const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
 
+        static void Drawer_SectionCaptureStatic(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.captureLocalPosition, _.GetContent("Capture Local Position"));
+
+            _.DrawMultipleFields(
+                "Clipping Planes",
+                new[] { d.captureNearPlane, d.captureFarPlane },
+                new[] { _.GetContent("Near|The closest point relative to the camera that drawing will occur."), _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n") });
+        }
+
         static void Drawer_SectionCaptureMirror(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.captureMirrorPlaneLocalPosition, _.GetContent("Plane Position"));
@@ -103,12 +123,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed);
             GUI.enabled = true;
 
-            EditorGUILayout.PropertyField(d.captureLocalPosition, _.GetContent("Capture Local Position"));
-
-            _.DrawMultipleFields(
-                "Clipping Planes",
-                new[] { d.captureNearPlane, d.captureFarPlane },
-                new[] { _.GetContent("Near|The closest point relative to the camera that drawing will occur."), _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n") });
+            EditorGUILayout.PropertyField(d.overrideFieldOfView, _.GetContent("Override FOV"));
+            if (d.overrideFieldOfView.boolValue)
+            {
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(d.fieldOfViewOverride, _.GetContent("Field Of View"));
+                --EditorGUI.indentLevel;
+            }
         }
 
         static void Drawer_SectionProbeModeCustomSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
