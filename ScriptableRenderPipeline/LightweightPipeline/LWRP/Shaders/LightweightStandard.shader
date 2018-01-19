@@ -188,6 +188,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMeta
 
+            #pragma shader_feature _SPECULAR_SETUP
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
