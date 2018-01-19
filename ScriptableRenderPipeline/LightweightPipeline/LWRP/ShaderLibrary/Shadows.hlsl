@@ -35,18 +35,18 @@ CBUFFER_START(_ShadowBuffer)
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
-float4x4 _WorldToShadow[MAX_SHADOW_CASCADES + 1];
-float4 _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
-float4 _DirShadowSplitSphereRadii;
-half4 _ShadowOffset0;
-half4 _ShadowOffset1;
-half4 _ShadowOffset2;
-half4 _ShadowOffset3;
-half4 _ShadowData; // (x: shadowStrength)
-half4 _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+float4x4    _WorldToShadow[MAX_SHADOW_CASCADES + 1];
+float4      _DirShadowSplitSpheres[MAX_SHADOW_CASCADES];
+float4      _DirShadowSplitSphereRadii;
+half4       _ShadowOffset0;
+half4       _ShadowOffset1;
+half4       _ShadowOffset2;
+half4       _ShadowOffset3;
+half4       _ShadowData;    // (x: shadowStrength)
+float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
-inline half SampleShadowmap(half4 shadowCoord)
+inline half SampleShadowmap(float4 shadowCoord)
 {
 #if defined(_SHADOWS_PERSPECTIVE)
     shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
@@ -106,7 +106,7 @@ inline half ComputeCascadeIndex(float3 positionWS)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-half4 ComputeShadowCoord(float3 positionWS)
+float4 ComputeShadowCoord(float3 positionWS)
 {
 #ifdef _SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
@@ -127,11 +127,11 @@ half RealtimeShadowAttenuation(float3 positionWS)
     return 1.0;
 #endif
 
-    half4 shadowCoord = ComputeShadowCoord(positionWS);
+    float4 shadowCoord = ComputeShadowCoord(positionWS);
     return SampleShadowmap(shadowCoord);
 }
 
-half RealtimeShadowAttenuation(float3 positionWS, half4 shadowCoord)
+half RealtimeShadowAttenuation(float3 positionWS, float4 shadowCoord)
 {
 #if !defined(_SHADOWS_ENABLED)
     return 1.0;

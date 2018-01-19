@@ -513,7 +513,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half4 shadowCoord,
+half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS, float4 shadowCoord,
     half3 bakedGI, half3 vertexLighting, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
@@ -541,7 +541,7 @@ half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirect
     return half4(color, alpha);
 }
 
-half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half4 shadowCoord,
+half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS, float4 shadowCoord,
     half fogFactor, half3 bakedGI, half3 diffuse, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(positionWS);
@@ -567,7 +567,7 @@ half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDi
     return half4(finalColor, alpha);
 }
 
-half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS, half4 shadowCoord,
+half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS, float4 shadowCoord,
     half fogFactor, half3 bakedGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(positionWS);

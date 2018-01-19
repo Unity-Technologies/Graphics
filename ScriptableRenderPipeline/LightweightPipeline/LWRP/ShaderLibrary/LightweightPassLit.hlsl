@@ -29,7 +29,7 @@ struct LightweightVertexOutput
     half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
 
 #ifdef _SHADOWS_ENABLED
-    half4 shadowCoord               : TEXCOORD8;
+    float4 shadowCoord               : TEXCOORD8;
 #endif
 
     float4 clipPos                  : SV_POSITION;
@@ -90,7 +90,7 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
     half3 viewDirectionWS = IN.viewDir;
 
-    half4 shadowCoord = half4(0, 0, 0, 0);
+    float4 shadowCoord = float4(0, 0, 0, 0);
 #ifdef _SHADOWS_ENABLED
     shadowCoord = IN.shadowCoord;
 #endif
@@ -128,7 +128,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     half3 normalWS = normalize(IN.normal);
 #endif
 
-    half4 shadowCoord = half4(0, 0, 0, 0);
+    float4 shadowCoord = float4(0, 0, 0, 0);
 #ifdef _SHADOWS_ENABLED
     shadowCoord = IN.shadowCoord;
 #endif
