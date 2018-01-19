@@ -6,7 +6,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         HLSLINCLUDE
 
-        //Keeping the compiler quiet about Shadows.hlsl. 
+        //Keep compiler quiet about Shadows.hlsl. 
         #include "CoreRP/ShaderLibrary/Common.hlsl"
         #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
         #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
@@ -34,7 +34,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float3 ray    : TEXCOORD1;
         };
 
-        //NOTE: Core library reconstructs via inv projection.
         float3 ComputeViewSpacePositionGeometric(Interpolators i)
         {
             float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
@@ -53,13 +52,12 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         half Fragment(Interpolators i) : SV_Target
         {
             //Reconstruct the world position.
-            //TODO: More/less optimal to do unprojection method?
+            //TODO: Profile against unprojection method in core library.
             float3 vpos = ComputeViewSpacePositionGeometric(i);
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
             
-            //Calculate the shadow coordinates.
-            half   cascade = ComputeCascadeIndex(wpos);
-            float4 coords  = ComputeShadowCoord(wpos, cascade);
+            //Fetch shadow coordinates.
+            float4 coords  = ComputeShadowCoord(wpos);
 
             return SampleShadowmap(coords);
         }
@@ -71,8 +69,8 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             ZTest Always ZWrite Off
 
             HLSLPROGRAM
+
             // -------------------------------------
-            // Lightweight Pipeline keywords
             // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
             // Lightweight combines light classification and shadows keywords to reduce shader variants.
             // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders

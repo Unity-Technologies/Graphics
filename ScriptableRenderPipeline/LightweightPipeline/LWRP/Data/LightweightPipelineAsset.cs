@@ -55,6 +55,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
+        [SerializeField] private bool m_UsesScreenSpaceShadows = false;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
@@ -177,6 +178,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool RequireSoftParticles
         {
             get { return m_RequireSoftParticles; }
+        }
+
+        public bool UsesScreenSpaceShadows
+        {
+            get { return m_UsesScreenSpaceShadows; }
         }
 
         public bool SupportsHDR

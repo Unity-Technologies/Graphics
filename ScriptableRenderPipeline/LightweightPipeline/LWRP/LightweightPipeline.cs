@@ -151,6 +151,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_RequireDepthTexture;
         private bool m_RequireCopyColor;
         private bool m_DepthRenderBuffer;
+        private bool m_UseScreenSpaceShadows;
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;

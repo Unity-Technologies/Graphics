@@ -23,6 +23,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.");
 
+            public static GUIContent usesScreenSpaceShadows = new GUIContent("Screen Space Shadows", "TODO");
+
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
 
@@ -48,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         AnimBool m_ShowSoftParticles = new AnimBool();
+        AnimBool m_ShowScreenSpaceShadows = new AnimBool();
 
         private int kMaxSupportedPixelLights = 8;
         private float kMinRenderScale = 0.1f;
@@ -56,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
         private SerializedProperty m_RequireDepthTextureProp;
+        private SerializedProperty m_UsesScreenSpaceShadowsProp;
         private SerializedProperty m_RequireSoftParticlesProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
@@ -74,6 +78,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
+            m_UsesScreenSpaceShadowsProp = serializedObject.FindProperty("m_UsesScreenSpaceShadows");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -86,16 +91,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
+
+            m_ShowScreenSpaceShadows.valueChanged.AddListener(Repaint);
+            m_ShowScreenSpaceShadows.value = m_UsesScreenSpaceShadowsProp.boolValue;
         }
 
         void OnDisable()
         {
             m_ShowSoftParticles.valueChanged.RemoveListener(Repaint);
+            m_ShowScreenSpaceShadows.valueChanged.RemoveListener(Repaint);
         }
 
         void UpdateAnimationValues()
         {
             m_ShowSoftParticles.target = m_RequireDepthTextureProp.boolValue;
+            m_ShowScreenSpaceShadows.target = m_RequireDepthTextureProp.boolValue;
         }
 
         void DrawAnimatedProperty(SerializedProperty prop, GUIContent content, AnimBool animation)
@@ -165,6 +175,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 EditorGUILayout.PropertyField(m_ShadowCascade2SplitProp, Styles.shadowCascadeSplit);
             }
+
+            DrawAnimatedProperty(m_UsesScreenSpaceShadowsProp, Styles.usesScreenSpaceShadows, m_ShowScreenSpaceShadows);
 
             EditorGUI.indentLevel--;
 
