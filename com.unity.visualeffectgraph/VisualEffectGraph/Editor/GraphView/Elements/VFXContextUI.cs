@@ -436,7 +436,7 @@ namespace UnityEditor.VFX.UI
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.originalMousePosition);
+            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
             int blockIndex = GetDragBlockIndex(mousePosition);
 
@@ -459,7 +459,7 @@ namespace UnityEditor.VFX.UI
         {
             DragFinished();
 
-            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.originalMousePosition);
+            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
             IEnumerable<VFXBlockUI> blocksUI = selection.OfType<VFXBlockUI>();
             if (!CanDrop(blocksUI))
@@ -467,7 +467,7 @@ namespace UnityEditor.VFX.UI
 
             int blockIndex = GetDragBlockIndex(mousePosition);
 
-            BlocksDropped(blockIndex, blocksUI, evt.imguiEvent.control);
+            BlocksDropped(blockIndex, blocksUI, evt.ctrlKey);
 
             DragAndDrop.AcceptDrag();
 
