@@ -43,9 +43,12 @@ Enter the following commands in your console application of choice:
 ## Scriptable Render Pipeline Assets
 The Scriptable Render Pipeline Asset controls the global rendering quality settings of your project and creates the rendering pipeline instance. The rendering pipeline instance contains intermediate resources and the render loop implementation.
 
-We have provided a Scriptable Render Pipeline Asset for HDRP and the Lightweight Pipeline. This Asset must be assigned to the Scriptable Render Pipeline Asset field in the Graphics inspector window in order to use the HDRP or Lightweight Pipeline.
+You can create multiple Pipeline Assets to store settings for different built platforms or for different testing environments. 
 
-Navigate to ___Edit > Project Settings > Graphics___ and add the required Asset (HDRP, Lightweight or your own custom asset) to the __Render Pipeline Settings__ field.
+To create a Render Pipeline Asset: 
+
+1. Navigate to the Project window, right click anywhere in the Project window and select ___Create > Render Pipeline >  High Definition or Lightweight > Render Pipeline/Pipeline Asset.___
+2. Navigate to ___Edit > Project Settings > Graphics___ and add the Render Pipeline Asset you created to the __Render Pipeline Settings__ field to use it in your project. 
 
 ## Using the High Definition Render Pipeline (HDRP) or the Lightweight Pipeline
 
@@ -54,11 +57,13 @@ Navigate to ___Edit > Project Settings > Graphics___ and add the required Asset 
 To use HDRP you must edit your project’s __Player__ and __Graphics__ settings as follows:
 
 1. Navigate to ___Edit > Project Settings > Player___ and set the color space of your project to Linear by selecting __Linear__ from the __Color Space__ dropdown. HDRP does not support Gamma lighting.
-2. Navigate to ___Edit > Project Settings > Graphics___ and add the HDRenderPipelineAsset Asset to the __Render Pipeline Settings__ field.
-Create a copy of the HDRenderPipelineAsset and store it outside of the Scriptable Render Pipeline folder. This ensures that your HDRP settings are not lost when merging new changes from the SRP repo.
+2. Navigate to the Project window, right click anywhere in the Project window and select ___Create > Render Pipeline >  High Definition > Render Pipeline.___
+3. Navigate to ___Edit > Project Settings > Graphics___ and add the High Definition Render Pipeline Asset you created to the __Render Pipeline Settings__ field.
+4. Store your new High Definition Render Pipeline Asset outside of the Scriptable Render Pipeline folder. This ensures that your HDRP settings are not lost when merging new changes from the SRP repo.
 
 ### Using Lightweight Pipeline
-To use the Lightweight Pipeline you must edit your project’s Graphics settings as follows:
+To use the Lightweight Pipeline you must edit your project’s __Graphics__ settings as follows:
 
-1. Navigate to ___Edit > Project Settings > Graphics___ and add the LightweightPipelineAsset Asset to the __Render Pipeline Settings__ field.
-2. Create a copy of the LightweightPipelineAsset and store it outside of the Scriptable Render Pipeline folder. This ensures that your Lightweight settings are not lost when merging new changes from the SRP repo.
+1. Navigate to the Project window, right click anywhere in the Project window and select ___Create > Render Pipeline >  Lightweight > Pipeline Asset.___
+2. Navigate to ___Edit > Project Settings > Graphics___ and add the Lightweight Render Pipeline Asset you created to the __Render Pipeline Settings__ field.
+3. Store your new Render Pipeline Asset outside of the Scriptable Render Pipeline folder. This ensures that your Lightweight settings are not lost when merging new changes from the SRP repo.
