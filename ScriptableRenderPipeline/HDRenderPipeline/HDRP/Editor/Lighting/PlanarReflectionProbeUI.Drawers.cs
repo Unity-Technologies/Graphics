@@ -93,6 +93,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
         const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
         const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+        const EditMode.SceneViewEditMode EditMirrorPosition = EditMode.SceneViewEditMode.GridMove;
+        const EditMode.SceneViewEditMode EditMirrorRotation = EditMode.SceneViewEditMode.GridSelect;
 
         static void Drawer_SectionCaptureStatic(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
@@ -171,7 +173,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditBaseShape,
             EditInfluenceShape,
             EditInfluenceNormalShape,
+            //EditCenter
+        };
+
+        static readonly EditMode.SceneViewEditMode[] k_Toolbar_Static_SceneViewEditModes =
+        {
             EditCenter
+        };
+        static readonly EditMode.SceneViewEditMode[] k_Toolbar_Mirror_SceneViewEditModes =
+        {
+            EditMirrorPosition,
+            EditMirrorRotation
         };
         static GUIContent[] s_Toolbar_Contents = null;
         static GUIContent[] toolbar_Contents
@@ -183,10 +195,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)"),
                     EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)"),
                     EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume. (SHIFT+3)"),
+                });
+            }
+        }
+
+        static GUIContent[] s_Toolbar_Static_Contents = null;
+        static GUIContent[] toolbar_Static_Contents
+        {
+            get
+            {
+                return s_Toolbar_Static_Contents ?? (s_Toolbar_Static_Contents = new[]
+                {
                     EditorGUIUtility.IconContent("MoveTool", "|Move the capture position.")
                 });
             }
         }
+
+        static GUIContent[] s_Toolbar_Mirror_Contents = null;
+        static GUIContent[] toolbar_Mirror_Contents
+        {
+            get
+            {
+                return s_Toolbar_Mirror_Contents ?? (s_Toolbar_Mirror_Contents = new[]
+                {
+                    EditorGUIUtility.IconContent("MoveTool", "|Move the mirror plane."),
+                    EditorGUIUtility.IconContent("RotateTool", "|Rotate the mirror plane.")
+                });
+            }
+        }
+
         static void Drawer_Toolbar(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             GUILayout.BeginHorizontal();
@@ -194,6 +231,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUI.changed = false;
 
             EditMode.DoInspectorToolbar(k_Toolbar_SceneViewEditModes, toolbar_Contents, GetBoundsGetter(o), o);
+
+            if (d.isMirrored)
+                EditMode.DoInspectorToolbar(k_Toolbar_Mirror_SceneViewEditModes, toolbar_Mirror_Contents, GetBoundsGetter(o), o);
+            else
+                EditMode.DoInspectorToolbar(k_Toolbar_Static_SceneViewEditModes, toolbar_Static_Contents, GetBoundsGetter(o), o);
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
