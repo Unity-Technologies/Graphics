@@ -111,7 +111,7 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
 // Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, out float weight)
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
 {
     // 31 bit index, 1 bit cache type
     uint cacheType = index & 1;
@@ -126,20 +126,19 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc, index, 0);
             // Discard pixels out of oblique projection
             // We only check RGB because the texture may have BC6H compression
-            weight = any(ndc < 0) || any(ndc > 1) || all(color.rgb >= 1000) ? 0 : 1;
+            color.a = any(ndc < 0) || any(ndc > 1) || all(color.rgb >= 1000) ? 0 : 1;
             return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-            weight = 1;
-            return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+            float4 color = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+            color.a = 1;
+            return color;
         }
-        weight = 0;
         return float4(0, 0, 0, 0);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
-        weight = 1;
         return SampleSkyTexture(texCoord, lod);
     }
 }
