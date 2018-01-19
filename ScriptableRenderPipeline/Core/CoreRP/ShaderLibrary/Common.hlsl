@@ -380,7 +380,7 @@ float CopySign(float x, float s, bool ignoreNegZero = true)
     {
         uint negZero = 0x80000000u;
         uint signBit = negZero & asuint(s);
-        return asfloat(BitFieldInsert(negZero, signBit, x));
+        return asfloat(BitFieldInsert(negZero, signBit, asuint(x)));
     }
 #else
     return (s >= 0) ? abs(x) : -abs(x);
