@@ -205,18 +205,6 @@ namespace UnityEditor.Experimental.Rendering
             return true;
         }
 
-        public static Matrix4x4 GetCameraClipToWorld(
-            Vector3 position, Quaternion rotation,
-            float nearClipPlane, float farClipPlane,
-            float fov, float aspect)
-        {
-            var p = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
-            var v = Matrix4x4.TRS(position, rotation, new Vector3(1, 1, -1)).inverse;
-            var vp = p * v;
-            var clipToWorld = vp.inverse;
-            return clipToWorld;
-        }
-
         public static Vector3 PerspectiveClipToWorld(Matrix4x4 clipToWorld, Vector3 viewPositionWS, Vector3 positionCS)
         {
             var tempCS = new Vector3(positionCS.x, positionCS.y, 0.95f);

@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -164,21 +165,66 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var viewerCamera = Camera.current;
             var c = Gizmos.color;
+            var m = Gizmos.matrix;
 
             float nearClipPlane, farClipPlane, aspect, fov;
             Color backgroundColor;
             CameraClearFlags clearFlags;
             Vector3 capturePosition;
             Quaternion captureRotation;
-            Matrix4x4 worldToCamera, projection;
+            Matrix4x4 worldToCameraRHS, projection;
 
             ReflectionSystem.CalculateCaptureCameraProperties(d,
                 out nearClipPlane, out farClipPlane,
                 out aspect, out fov, out clearFlags, out backgroundColor,
-                out worldToCamera, out projection,
+                out worldToCameraRHS, out projection,
                 out capturePosition, out captureRotation, viewerCamera);
 
-            // TODO: draw frustrum gizmo
+#if false
+            // TODO: fix frustrum drawing
+
+            var viewProj = projection * worldToCameraRHS;
+            var invViewProj = viewProj.inverse;
+
+            var near = new[]
+            {
+                new Vector3(-1, -1, -1),
+                new Vector3(-1, 1, -1),
+                new Vector3(1, 1, -1),
+                new Vector3(1, -1, -1),
+            };
+
+            var far = new[]
+            {
+                new Vector3(-1, -1, 1),
+                new Vector3(-1, 1, 1),
+                new Vector3(1, 1, 1),
+                new Vector3(1, -1, 1),
+            };
+
+            for (var i = 0; i < near.Length; ++i)
+            {
+                var p = invViewProj * new Vector4(near[i].x, near[i].y, near[i].z, 1);
+                var w = Mathf.Abs(p.w);
+                near[i].Set(p.x / w, p.y / w, p.z / w);
+            }
+
+            for (var i = 0; i < far.Length; ++i)
+            {
+                var p = invViewProj * new Vector4(far[i].x, far[i].y, far[i].z, 1);
+                var w = Mathf.Abs(p.w);
+                far[i].Set(p.x / w, p.y / w, p.z / w);
+            }
+
+            Gizmos.color = k_GizmoCamera;
+            for (var i = 0; i < 4; ++i)
+            {
+                Gizmos.DrawLine(near[i], near[(i + 1) % 4]);
+                Gizmos.DrawLine(far[i], far[(i + 1) % 4]);
+                Gizmos.DrawLine(near[i], far[i]);
+            }
+            Gizmos.matrix = m;
+#endif
 
             Gizmos.DrawSphere(capturePosition, HandleUtility.GetHandleSize(capturePosition) * 0.2f);
             Gizmos.color = c;
