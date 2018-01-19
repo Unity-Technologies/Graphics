@@ -19,7 +19,7 @@ real3 UnpackNormalMaxComponent(real3 n)
 // Ref: http://www.vis.uni-stuttgart.de/~engelhts/paper/vmvOctaMaps.pdf
 // Encode with Oct, this function work with any size of output
 // return real between [-1, 1]
-real2 PackNormalOctEncode(real3 n)
+real2 PackNormalOctRectEncode(real3 n)
 {
     // Perform planar projection.
     real3 p = n * rcp(dot(abs(n), 1.0));
@@ -35,7 +35,7 @@ real2 PackNormalOctEncode(real3 n)
     return real2(s * r, g);
 }
 
-real3 UnpackNormalOctEncode(real2 f)
+real3 UnpackNormalOctRectEncode(real2 f)
 {
     real r = f.r;
     real g = f.g;
@@ -44,11 +44,42 @@ real3 UnpackNormalOctEncode(real2 f)
     // Solve for {x, y, z} given {r, g}.
     real x = 0.5 * g + 0.5 - s * r;
     real y = g - x;
-    real z = s * max(FLT_EPS, 1.0 - abs(x) - abs(y)); // Clamping is absolutely crucial for numerical stability
+    real z = s * max(1.0 - abs(x) - abs(y), FLT_EPS); // Clamping is absolutely crucial for numerical stability
 
     real3 p = real3(x, y, z);
 
     return normalize(p);
+}
+
+// Ref: http://jcgt.org/published/0003/02/01/paper.pdf
+// Encode with Oct, this function work with any size of output
+// return real between [-1, 1]
+real2 PackNormalOctQuadEncode(real3 n)
+{
+    //real l1norm    = dot(abs(n), 1.0);
+    //real2 res0     = n.xy * (1.0 / l1norm);
+
+    //real2 val      = 1.0 - abs(res0.yx);
+    //return (n.zz < real2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+
+    // Optimized version of above code:
+    n *= rcp(dot(abs(n), 1.0));
+    real t = saturate(-n.z);
+    return n.xy + (n.xy >= 0.0 ? t : -t);
+}
+
+real3 UnpackNormalOctQuadEncode(real2 f)
+{
+    real3 n = real3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+
+    //real2 val = 1.0 - abs(n.yx);
+    //n.xy = (n.zz < real2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
+
+    // Optimized version of above code:
+    real t = max(-n.z, 0.0);
+    n.xy += n.xy >= 0.0 ? -t.xx : t.xx;
+
+    return normalize(n);
 }
 
 real2 PackNormalHemiOctEncode(real3 n)
