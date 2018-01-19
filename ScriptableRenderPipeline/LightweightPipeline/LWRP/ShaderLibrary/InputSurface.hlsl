@@ -40,7 +40,7 @@ struct SurfaceData
     half3 specular;
     half  metallic;
     half  smoothness;
-    half3 normal;
+    half3 normalTS;
     half3 emission;
     half  occlusion;
     half  alpha;
@@ -159,7 +159,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normal = Normal(uv);
+    outSurfaceData.normalTS = Normal(uv);
     outSurfaceData.occlusion = Occlusion(uv);
     outSurfaceData.emission = Emission(uv);
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
