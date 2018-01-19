@@ -476,6 +476,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_GroupNodeControllers[i].index = index;
             }
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         void RemoveFromGroupNodes(VFXNodeController presenter)
