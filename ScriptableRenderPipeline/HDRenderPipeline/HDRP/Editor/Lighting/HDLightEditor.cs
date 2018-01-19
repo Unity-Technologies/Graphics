@@ -386,7 +386,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
 
-            if (m_AdditionalLightData.showAdditionalSettings.boolValue)
+            // There is currently no additional settings for shadow on directional light
+            if (m_AdditionalLightData.showAdditionalSettings.boolValue && settings.lightType.enumValueIndex != (int)LightType.Directional)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
@@ -395,9 +396,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (settings.lightType.enumValueIndex == (int)LightType.Point || settings.lightType.enumValueIndex == (int)LightType.Spot)
                     EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
 
-                // No shadow dimmer on directional light
-                if (settings.lightType.enumValueIndex != (int)LightType.Directional)
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
+                EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
                 EditorGUI.indentLevel--;
             }
         }
