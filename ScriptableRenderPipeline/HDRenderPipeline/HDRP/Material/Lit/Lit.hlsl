@@ -273,11 +273,11 @@ void FillMaterialTransmission(float thickness, inout BSDFData bsdfData)
 }
 
 // Assume bsdfData.normalWS is init
-void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, inout BSDFData bsdfData)
+void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
-    bsdfData.anisotropy     = anisotropy;
-    bsdfData.tangentWS      = tangentWS;
-    bsdfData.bitangentWS    = cross(bsdfData.normalWS, bsdfData.tangentWS);
+    bsdfData.anisotropy  = anisotropy;
+    bsdfData.tangentWS   = tangentWS;
+    bsdfData.bitangentWS = bitangentWS;
 }
 
 void FillMaterialIridescence(float thicknessIrid, inout BSDFData bsdfData)
@@ -418,7 +418,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, bsdfData);
+        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
@@ -470,11 +470,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
     // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
     // Encode normal on 20bit with oct compression + 2bit of sign
-    float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
     // To have more precision encode the sign of xy in a separate uint
     uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
-    // Store octNormalSign on two bits with perceptualRoughness
-    outGBuffer1 = float4(abs(octNormalWS), PackFloatInt10bit(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), octNormalSign, 4.0), 0.0);
+    outGBuffer1 = float4(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), abs(octNormalWS), PackInt(octNormalSign, 2));
 
     // RT2 - 8:8:8:8
     // mettalic will be store on 4 bit and store special value when not used
@@ -503,9 +502,16 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         }
         else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
-            // Encode tangent on 16bit with oct compression
-            float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
-            outGBuffer2.rgb = float3(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy * 0.5 + 0.5);
+            // Reconstruct the default tangent frame.
+            float3x3 frame = GetLocalFrame(surfaceData.normalWS);
+
+            // Compute the rotation angle of the actual tangent frame with respect to the default one.
+            float sinFrame = dot(surfaceData.tangentWS, frame[1]);
+            float cosFrame = dot(surfaceData.tangentWS, frame[0]);
+            uint  storeSin = abs(sinFrame) < abs(cosFrame) ? 4 : 0;
+            uint  quadrant = ((sinFrame < 0) ? 1 : 0) | ((cosFrame < 0) ? 2 : 0);
+
+            outGBuffer2.rgb = float3(min(abs(sinFrame), abs(cosFrame)) * sqrt(2), PackByte(storeSin | quadrant), surfaceData.anisotropy * 0.5 + 0.5);
         }
         else if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
         {
@@ -567,14 +573,16 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     // Start decompressing GBuffer
     float3 baseColor = inGBuffer0.rgb;
-    bsdfData.specularOcclusion = inGBuffer0.a;
+    bsdfData.specularOcclusion   = inGBuffer0.a;
+    bsdfData.perceptualRoughness = inGBuffer1.r;
 
-    int octNormalSign;
-    UnpackFloatInt10bit(inGBuffer1.b, 4.0, bsdfData.perceptualRoughness, octNormalSign);
-    inGBuffer1.r = (octNormalSign & 1) ? -inGBuffer1.r : inGBuffer1.r;
-    inGBuffer1.g = (octNormalSign & 2) ? -inGBuffer1.g : inGBuffer1.g;
+    float2 octNormalWS = inGBuffer1.gb;
+    uint octNormalSign = UnpackInt(inGBuffer1.a, 2);
 
-    bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r, inGBuffer1.g));
+    octNormalWS.x = (octNormalSign & 1) ? -octNormalWS.x : octNormalWS.x;
+    octNormalWS.y = (octNormalSign & 2) ? -octNormalWS.y : octNormalWS.y;
+
+    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS);
 
     // metallic15 is range [0..12] if metallic data is needed
     bool pixelHasNoMetallic = HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
@@ -616,21 +624,29 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Note that it mean that when we have the worse case, we always use Anisotropy and shader like deferred.shader are always the worst case (but only used for debugging)
     if (HasFeatureFlag(tileFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        float anisotropy;
-        float3 tangentWS;
+        float anisotropy = 0;
+        float3x3 frame = GetLocalFrame(bsdfData.normalWS);
 
         if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
             anisotropy = inGBuffer2.b * 2.0 - 1.0;
-            tangentWS  = UnpackNormalOctEncode(inGBuffer2.rg * 2.0 - 1.0);
-        }
-        else
-        {
-            anisotropy = 0.0;
-            tangentWS = GetLocalFrame(bsdfData.normalWS)[0];
+
+            // Get the rotation angle of the actual tangent frame with respect to the default one.
+            uint  quadrant = UnpackByte(inGBuffer2.g);
+            uint  storeSin = UnpackByte(inGBuffer2.g) & 4;
+            float absVal0  = inGBuffer2.r * rsqrt(2);
+            float absVal1  = sqrt(1 - absVal0 * absVal0);
+            float sinFrame = storeSin ? absVal0 : absVal1;
+            float cosFrame = storeSin ? absVal1 : absVal0;
+                  sinFrame = (quadrant & 1) ? -sinFrame : sinFrame;
+                  cosFrame = (quadrant & 2) ? -cosFrame : cosFrame;
+
+            // Rotate the reconstructed tangent around the normal.
+            frame[0] = sinFrame * frame[1] + cosFrame * frame[0];
+            frame[1] = cross(frame[2], frame[0]);
         }
 
-        FillMaterialAnisotropy(anisotropy, tangentWS, bsdfData);
+        FillMaterialAnisotropy(anisotropy, frame[0], frame[1], bsdfData);
     }
 
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
@@ -882,6 +898,14 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
         bsdfData.diffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     }
 
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting), and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
+        return builtinData.bakeDiffuseLighting * PI;
+    }
+#endif
+
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
 }
@@ -1089,7 +1113,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
     attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, abs(backNdotL));
 #endif
 
-    float intensity = max(0, attenuation * backNdotL); // Warning: attenuation can be greater than 1
+    float intensity = max(0, attenuation * backNdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     return intensity * bsdfData.transmittance;
 }
@@ -1120,7 +1144,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1
+    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
@@ -1140,6 +1164,14 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // Save ALU by applying light and cookie colors only once.
     lighting.diffuse  *= color;
     lighting.specular *= color;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+    }
+#endif
 
     return lighting;
 }
@@ -1194,7 +1226,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
                            lightToSample, distances, color, attenuation);
 
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1
+    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     [branch] if (intensity > 0.0)
@@ -1221,6 +1253,14 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     // Save ALU by applying light and cookie colors only once.
     lighting.diffuse  *= color;
     lighting.specular *= color;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+    }
+#endif
 
     return lighting;
 }
@@ -1255,7 +1295,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
     // TODO: This could be precomputed.
     float radius         = rsqrt(lightData.invSqrAttenuationRadius);
-    float invAspectRatio = radius / (radius + (0.5 * len));
+    float invAspectRatio = saturate(radius / (radius + (0.5 * len)));
 
     // Compute the light attenuation.
     float intensity = EllipsoidalDistanceAttenuation(unL, lightData.invSqrAttenuationRadius,
@@ -1326,6 +1366,16 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        // Apply area light on lambert then multiply by PI to cancel Lambert
+        lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
+        lighting.diffuse *= PI * lightData.diffuseScale;
+    }
+#endif
 
     return lighting;
 }
@@ -1453,6 +1503,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 #endif // LIT_DISPLAY_REFERENCE_AREA
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        // Apply area light on lambert then multiply by PI to cancel Lambert
+        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+        lighting.diffuse *= PI * lightData.diffuseScale;
+    }
+#endif
 
     return lighting;
 }
@@ -1842,7 +1902,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
+
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
     {
         diffuseLighting = indirectAmbientOcclusion;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting

@@ -41,6 +41,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             normalMap = FindProperty(kNormalMap, props);
 			maskMap = FindProperty(kMaskMap, props);
             decalBlend = FindProperty(kDecalBlend, props);
+            // always instanced
+            SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
+            instancing.boolValue = true;
         }
 
 
@@ -74,7 +77,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
 				m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
-
                 EditorGUI.indentLevel--;
                 
             }

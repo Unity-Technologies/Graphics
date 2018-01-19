@@ -39,14 +39,6 @@ half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
 
-// These are set internally by the engine upon request by RendererConfiguration.
-// Check GetRendererSettings in LightweightPipeline.cs
-CBUFFER_START(_PerObject)
-half4 unity_LightIndicesOffsetAndCount;
-half4 unity_4LightIndices0;
-half4 unity_4LightIndices1;
-CBUFFER_END
-
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     unity_MatrixV
@@ -61,6 +53,7 @@ CBUFFER_END
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
 #include "InputBuiltin.hlsl"
+#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
 #include "CoreFunctions.hlsl"
 
 #endif

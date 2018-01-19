@@ -33,6 +33,7 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma multi_compile_fog
             #pragma shader_feature _SAMPLE_GI
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
@@ -44,6 +45,8 @@ Shader "LightweightPipeline/Standard Unlit"
                 float2 uv           : TEXCOORD0;
                 float2 lightmapUV   : TEXCOORD1;
                 float3 normal       : NORMAL;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct VertexOutput
@@ -58,12 +61,17 @@ Shader "LightweightPipeline/Standard Unlit"
     #endif
 #endif
                 float4 vertex : SV_POSITION;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             VertexOutput vert(VertexInput v)
             {
                 VertexOutput o = (VertexOutput)0;
 
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                
                 o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv0AndFogCoord.xy = TRANSFORM_TEX(v.uv, _MainTex);
                 o.uv0AndFogCoord.z = ComputeFogFactor(o.vertex.z);
@@ -79,6 +87,8 @@ Shader "LightweightPipeline/Standard Unlit"
 
             half4 frag(VertexOutput IN) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(IN);
+
                 half2 uv = IN.uv0AndFogCoord.xy;
                 half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 half3 color = texColor.rgb * _Color.rgb;

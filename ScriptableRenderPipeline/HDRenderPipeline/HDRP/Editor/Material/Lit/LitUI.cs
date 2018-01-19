@@ -65,6 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect (similar to change to IOR of 1");
 
             // Specular color
+            public static GUIContent energyConservingSpecularColorText = new GUIContent("Energy Conserving Specular Color", "Enable energy conservation when using Specular Color mode (i.e high Specular Color mean lower Diffuse Color");
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
 
             // Specular occlusion
@@ -217,6 +218,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty[] detailSmoothnessScale = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
 
+        protected MaterialProperty energyConservingSpecularColor = null;
+        protected const string kEnergyConservingSpecularColor = "_EnergyConservingSpecularColor";
         protected MaterialProperty specularColor = null;
         protected const string kSpecularColor = "_SpecularColor";
         protected MaterialProperty specularColorMap = null;
@@ -352,6 +355,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // The next properties are only supported for regular Lit shader (not layered ones) because it's complicated to blend those parameters if they are different on a per layer basis.
 
             // Specular Color
+            energyConservingSpecularColor = FindProperty(kEnergyConservingSpecularColor, props);
             specularColor = FindProperty(kSpecularColor, props);
             specularColorMap = FindProperty(kSpecularColorMap, props);
 
@@ -372,6 +376,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             thicknessMultiplier = FindProperty(kThicknessMultiplier, props, false);
             ior = FindProperty(kIOR, props, false);
             // We reuse thickness from SSS
+        }
+
+        protected void ShaderSpecularColorInputGUI(Material material)
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(energyConservingSpecularColor, Styles.energyConservingSpecularColorText);
+            EditorGUI.indentLevel--;
         }
 
         protected void ShaderSSSInputGUI(Material material, int layerIndex)
@@ -617,7 +629,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     ShaderAnisoInputGUI();
                     break;
                 case BaseLitGUI.MaterialId.LitSpecular:
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+                    ShaderSpecularColorInputGUI(material);
                     break;
                 case BaseLitGUI.MaterialId.LitClearCoat:
                     ShaderClearCoatInputGUI();
