@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return Matrix4x4.TRS(
-                    (Vector3)probe.localToWorld.GetColumn(3) - probe.center,
+                    (Vector3)probe.localToWorld.GetColumn(3) + probe.center,
                     probe.localToWorld.rotation,
                     Vector3.one
                 );
