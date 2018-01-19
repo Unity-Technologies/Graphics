@@ -28,6 +28,8 @@ namespace UnityEngine.Experimental.Rendering
         public Vector3 boxSideFadePositive = Vector3.one;
         public Vector3 boxSideFadeNegative = Vector3.one;
 
+        public ProxyVolumeComponent proxyVolumeComponent;
+
         public Vector3 boxBlendCenterOffset { get { return (blendDistanceNegative - blendDistancePositive) * 0.5f; } }
         public Vector3 boxBlendSizeOffset { get { return -(blendDistancePositive + blendDistanceNegative); } }
         public Vector3 boxBlendNormalCenterOffset { get { return (blendNormalDistanceNegative - blendNormalDistancePositive) * 0.5f; } }

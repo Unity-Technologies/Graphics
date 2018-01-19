@@ -432,7 +432,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 241156469}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Pillars
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -599,7 +599,7 @@ GameObject:
   - component: {fileID: 271321843}
   - component: {fileID: 271321845}
   - component: {fileID: 271321844}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1079,7 +1079,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 489703757}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Pillar Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1112,7 +1112,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 519373190}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Pillar Cylindrical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1192,13 +1192,14 @@ MonoBehaviour:
   blendNormalDistanceNegative: {x: 0, y: 0, z: 0}
   boxSideFadePositive: {x: 1, y: 1, z: 1}
   boxSideFadeNegative: {x: 1, y: 1, z: 1}
+  proxyVolumeComponent: {fileID: 1654939277}
 --- !u!23 &547467868
 MeshRenderer:
   m_ObjectHideFlags: 2
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 547467865}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1243,10 +1244,10 @@ ReflectionProbe:
   m_Enabled: 1
   serializedVersion: 2
   m_Type: 0
-  m_Mode: 0
+  m_Mode: 1
   m_RefreshMode: 1
   m_TimeSlicingMode: 0
-  m_Resolution: 128
+  m_Resolution: 512
   m_UpdateFrequency: 0
   m_BoxSize: {x: 20.1, y: 10.1, z: 20.1}
   m_BoxOffset: {x: 0, y: 2, z: 0}
@@ -1257,7 +1258,7 @@ ReflectionProbe:
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294967039
   m_IntensityMultiplier: 1
   m_BlendDistance: 0
   m_HDR: 1
@@ -1348,7 +1349,7 @@ GameObject:
   - component: {fileID: 556113918}
   - component: {fileID: 556113920}
   - component: {fileID: 556113919}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1658,7 +1659,7 @@ GameObject:
   - component: {fileID: 599505013}
   - component: {fileID: 599505015}
   - component: {fileID: 599505014}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (4) Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1730,7 +1731,7 @@ GameObject:
   - component: {fileID: 605786283}
   - component: {fileID: 605786285}
   - component: {fileID: 605786284}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2154,7 +2155,7 @@ GameObject:
   - component: {fileID: 743933948}
   - component: {fileID: 743933950}
   - component: {fileID: 743933949}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3131,7 +3132,7 @@ GameObject:
   - component: {fileID: 1207854011}
   - component: {fileID: 1207854013}
   - component: {fileID: 1207854012}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3201,7 +3202,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1233674353}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Pillar Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3268,7 +3269,7 @@ GameObject:
   - component: {fileID: 1250450217}
   - component: {fileID: 1250450219}
   - component: {fileID: 1250450218}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3815,7 +3816,7 @@ GameObject:
   - component: {fileID: 1534211091}
   - component: {fileID: 1534211093}
   - component: {fileID: 1534211092}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4094,7 +4095,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1561776758}
   - component: {fileID: 1561776759}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Planar Reflection Probe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4197,7 +4198,7 @@ GameObject:
   - component: {fileID: 1562837667}
   - component: {fileID: 1562837669}
   - component: {fileID: 1562837668}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4665,7 +4666,7 @@ GameObject:
   - component: {fileID: 1694442297}
   - component: {fileID: 1694442299}
   - component: {fileID: 1694442298}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5243,7 +5244,7 @@ GameObject:
   - component: {fileID: 1927838485}
   - component: {fileID: 1927838487}
   - component: {fileID: 1927838486}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5592,7 +5593,7 @@ GameObject:
   - component: {fileID: 2037444866}
   - component: {fileID: 2037444868}
   - component: {fileID: 2037444867}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5664,7 +5665,7 @@ GameObject:
   - component: {fileID: 2077996853}
   - component: {fileID: 2077996855}
   - component: {fileID: 2077996854}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mirror (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5870,7 +5871,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 2141715014}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Pillar Cylindrical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
