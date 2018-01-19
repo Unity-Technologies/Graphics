@@ -164,9 +164,10 @@ namespace UnityEngine.Experimental.Rendering
             float znear = vl.light.shadowNearPlane >= nearmin ? vl.light.shadowNearPlane : nearmin;
             float fov = vl.spotAngle;
             proj = Matrix4x4.Perspective(fov, 1.0f, znear, zfar);
-            // and the compound
-            InvertPerspective( ref proj, ref view, out vpinverse );
-            return proj * view;
+            // and the compound (deviceProj will potentially inverse-Z)
+            Matrix4x4 deviceProj = GL.GetGPUProjectionMatrix( proj, false );
+            InvertPerspective( ref deviceProj, ref view, out vpinverse );
+            return deviceProj * view;
         }
 
 
@@ -200,9 +201,10 @@ namespace UnityEngine.Experimental.Rendering
             float farPlane = vl.range;
             float nearPlane = vl.light.shadowNearPlane >= nearmin ? vl.light.shadowNearPlane : nearmin;
             proj = Matrix4x4.Perspective( 90.0f + fovBias, 1.0f, nearPlane, farPlane );
-            // and the compound
-            InvertPerspective( ref proj, ref view, out vpinverse );
-            return proj * view;
+            // and the compound (deviceProj will potentially inverse-Z)
+            Matrix4x4 deviceProj = GL.GetGPUProjectionMatrix( proj, false );
+            InvertPerspective( ref deviceProj, ref view, out vpinverse );
+            return deviceProj * view;
         }
 
         public static Matrix4x4 ExtractDirectionalLightMatrix( VisibleLight vl, uint cascadeIdx, int cascadeCount, float[] splitRatio, float nearPlaneOffset, uint width, uint height, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData, CullResults cullResults, int lightIndex )
@@ -220,9 +222,10 @@ namespace UnityEngine.Experimental.Rendering
             for( int i = 0, cnt = splitRatio.Length < 3 ? splitRatio.Length : 3; i < cnt; i++ )
                 ratios[i] = splitRatio[i];
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, ratios, (int) width, nearPlaneOffset, out view, out proj, out splitData );
-            // and the compound
-            InvertOrthographic( ref proj, ref view, out vpinverse );
-            return proj * view;
+            // and the compound (deviceProj will potentially inverse-Z)
+            Matrix4x4 deviceProj = GL.GetGPUProjectionMatrix( proj, false );
+            InvertPerspective( ref deviceProj, ref view, out vpinverse );
+            return deviceProj * view;
         }
 
         public static GPUShadowAlgorithm Pack( ShadowAlgorithm algo, ShadowVariant vari, ShadowPrecision prec )
