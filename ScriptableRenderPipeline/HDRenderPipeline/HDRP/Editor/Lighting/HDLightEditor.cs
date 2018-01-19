@@ -395,7 +395,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (settings.lightType.enumValueIndex == (int)LightType.Point || settings.lightType.enumValueIndex == (int)LightType.Spot)
                     EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
 
-                EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
+                // No shadow dimmer on directional light
+                if (settings.lightType.enumValueIndex != (int)LightType.Directional)
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
                 EditorGUI.indentLevel--;
             }
         }
