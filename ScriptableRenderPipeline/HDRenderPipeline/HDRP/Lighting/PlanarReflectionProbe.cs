@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RequestRealtimeRender()
         {
-            if (enabled)
+            if (isActiveAndEnabled)
                 ReflectionSystem.RequestRealtimeRender(this);
         }
 
@@ -169,11 +169,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnValidate()
         {
-            if (enabled)
-            {
-                ReflectionSystem.UnregisterProbe(this);
+            ReflectionSystem.UnregisterProbe(this);
+
+            if (isActiveAndEnabled)
                 ReflectionSystem.RegisterProbe(this);
-            }
         }
     }
 }
