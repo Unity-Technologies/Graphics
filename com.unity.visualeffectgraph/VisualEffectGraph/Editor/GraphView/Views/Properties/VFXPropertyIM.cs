@@ -135,7 +135,7 @@ namespace UnityEditor.VFX.UI
         }
 
         public const int iconSize = 16;
-        public const float depthOffset = 12;
+        public const float depthOffset = 8;
     }
 
     abstract class VFXPropertyIM<T> : VFXPropertyIM

@@ -29,6 +29,7 @@
 {
     text-color: rgb(153,153,153);
 	height:16;
+	margin-left:0;
 }
 
 .spaceablepropertyrm.propertyrm #label
