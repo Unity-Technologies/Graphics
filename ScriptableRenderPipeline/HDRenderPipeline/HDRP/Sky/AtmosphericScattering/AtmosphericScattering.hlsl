@@ -76,7 +76,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 	if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
 	{
 		fogColor = GetFogColor(posInput);
-		float3 distance = length(GetWorldSpaceViewDir(posInput.positionWS));
+		float distance = length(GetWorldSpaceViewDir(posInput.positionWS));
 		float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);
 		fogFactor = _FogDensity * TransmittanceHomogeneousMedium(_ExpFogHeightAttenuation, fogHeight) * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, distance));
 	}
