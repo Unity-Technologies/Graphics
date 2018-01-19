@@ -139,8 +139,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kInheritBaseColor = "_InheritBaseColor";
 
         // Height blend
-        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
-        const string kHeightOffset = "_HeightOffset";
+        MaterialProperty[] heightBlendOffset = new MaterialProperty[kMaxLayerCount];
+        const string kHeightBlendOffset = "_HeightOffset";
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
@@ -174,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
-                heightOffset[i] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
+                heightBlendOffset[i] = FindProperty(string.Format("{0}{1}", kHeightBlendOffset, i), props);
                 showLayer[i] = FindProperty(string.Format("{0}{1}", kShowLayer, i), props);
 
                 if (i != 0)
@@ -352,7 +352,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (heightBasedBlend)
             {
-                m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
+                m_MaterialEditor.ShaderProperty(heightBlendOffset[layerIndex], styles.heightOffset);
             }
 
             EditorGUI.indentLevel--;

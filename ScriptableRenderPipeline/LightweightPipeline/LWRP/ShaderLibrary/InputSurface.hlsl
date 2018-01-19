@@ -11,7 +11,7 @@
 #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, uv)
 #endif
 
-CBUFFER_START(MaterialProperties)
+CBUFFER_START(UnityPerMaterial)
 half4 _MainTex_ST;
 half4 _Color;
 half _Cutoff;

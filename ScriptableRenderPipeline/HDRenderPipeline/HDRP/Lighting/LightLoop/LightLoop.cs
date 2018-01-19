@@ -1,7 +1,8 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
 using System.Collections.Generic;
-using System;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -350,6 +351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredDirectionalShadowKernel;
+        static int s_deferredDirectionalShadow_Contact_Kernel;
 
         static ComputeBuffer s_LightVolumeDataBuffer = null;
         static ComputeBuffer s_ConvexBoundsBuffer = null;
@@ -492,6 +494,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl_DebugDisplay");
 
             s_deferredDirectionalShadowKernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow");
+            s_deferredDirectionalShadow_Contact_Kernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow_Contact");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -541,21 +544,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
             s_DefaultTextureCube.Apply();
 
-#if UNITY_EDITOR
-            UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-            UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
-#endif
-
             InitShadowSystem(hdAsset.GetRenderPipelineSettings().shadowInitParams, shadowSettings);
         }
 
         public void Cleanup()
         {
             DeinitShadowSystem();
-
-#if UNITY_EDITOR
-            UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-#endif
 
             CoreUtils.SafeRelease(s_DirectionalLightDatas);
             CoreUtils.SafeRelease(s_LightDatas);
@@ -1948,16 +1942,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-#if UNITY_EDITOR
-        private Vector2 m_mousePosition = Vector2.zero;
-
-        private void OnSceneGUI(UnityEditor.SceneView sceneview)
-        {
-            m_mousePosition = Event.current.mousePosition;
-        }
-
-#endif
-
         public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults)
         {
             // kick off the shadow jobs here
@@ -1971,23 +1955,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RenderTargetIdentifier deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
-            if (m_CurrentSunLight == null)
+            if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null)
                 return;
 
             using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {
-                m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel);
+                AdditionalShadowData asd = m_CurrentSunLight.GetComponent<AdditionalShadowData>();
+
+                bool enableContactShadows = m_FrameSettings.enableContactShadows && asd.enableContactShadows && asd.contactShadowLength > 0.0f;
+                int kernel = enableContactShadows ? s_deferredDirectionalShadow_Contact_Kernel : s_deferredDirectionalShadowKernel;
+
+                m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, kernel);
+
+                if (enableContactShadows)
+                {
+                    float contactShadowRange = Mathf.Clamp(asd.contactShadowFadeDistance, 0.0f, asd.contactShadowMaxDistance);
+                    float contactShadowFadeEnd = asd.contactShadowMaxDistance;
+                    float contactShadowOneOverFadeRange = 1.0f / (contactShadowRange);
+                    Vector4 contactShadowParams = new Vector4(asd.contactShadowLength, asd.contactShadowDistanceScaleFactor, contactShadowFadeEnd, contactShadowOneOverFadeRange);
+                    cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowParams, contactShadowParams);
+                    cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, (int)asd.contactShadowSampleCount);
+                }
 
                 cmd.SetComputeFloatParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, (float)m_CurrentSunLightShadowIndex);
-                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
-                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, HDShaderIDs._MainDepthTexture, depthTexture);
+                cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, -m_CurrentSunLight.transform.forward);
+                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
+                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
                 int numTilesX = (hdCamera.camera.pixelWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.camera.pixelHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
+                hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
+
                 // TODO: Update for stereo
-                cmd.DispatchCompute(deferredDirectionalShadowComputeShader, s_deferredDirectionalShadowKernel, numTilesX, numTilesY, 1);
+                cmd.DispatchCompute(deferredDirectionalShadowComputeShader, kernel, numTilesX, numTilesY, 1);
             }
         }
 
@@ -2158,14 +2160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
 
-                    Vector2 mousePixelCoord = Input.mousePosition;
-#if UNITY_EDITOR
-                    if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
-                    {
-                        mousePixelCoord = m_mousePosition;
-                        mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
-                    }
-#endif
+                    Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(hdCamera.screenSize.y);
 
                     // Debug tiles
                     if (lightingDebug.tileClusterDebug == LightLoop.TileClusterDebug.MaterialFeatureVariants)

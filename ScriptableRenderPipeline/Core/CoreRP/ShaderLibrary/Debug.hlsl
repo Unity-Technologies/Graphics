@@ -27,6 +27,18 @@ real3 GetIndexColor(int index)
         outColor = real3(0.75, 1.0, 0.25);
     else if (index == 9)
         outColor = real3(0.75, 0.25, 1.0);
+    else if (index == 10)
+        outColor = real3(0.25, 1.0, 0.75);
+    else if (index == 11)
+        outColor = real3(0.75, 0.75, 0.25);
+    else if (index == 12)
+        outColor = real3(0.75, 0.25, 0.75);
+    else if (index == 13)
+        outColor = real3(0.25, 0.75, 0.75);
+    else if (index == 14)
+        outColor = real3(0.25, 0.25, 0.75);
+    else if (index == 15)
+        outColor = real3(0.75, 0.25, 0.25);
 
     return outColor;
 }
@@ -133,7 +145,7 @@ float4 GetMipLevelColor(float2 uv, float4 texelSize)
 
     float4 colors[6] = {
         float4(0.0, 0.0, 1.0, 0.8), // 0 BLUE = too little texture detail
-        float4(0.0, 0.5, 1.0, 0.4), // 1 
+        float4(0.0, 0.5, 1.0, 0.4), // 1
         float4(1.0, 1.0, 1.0, 0.0), // 2 = optimal level
         float4(1.0, 0.7, 0.0, 0.2), // 3 (YELLOW tint)
         float4(1.0, 0.3, 0.0, 0.6), // 4 (clamped mipLevel 4.9999)
@@ -225,25 +237,40 @@ float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
     return float3(1.0, 0.0, 1.0);
 }
 
-#ifdef DEBUG_DISPLAY
-float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
+// Convert an arbitrary range to color base on threshold provide to the function, threshold must be in growing order
+real3 GetColorCodeFunction(real value, real4 threshold)
 {
-    switch (paramId)
+    const real3 red = { 1.0, 0.0, 0.0 };
+    const real3 lightGreen = { 0.5, 1.0, 0.5 };
+    const real3 darkGreen = { 0.1, 1.0, 0.1 };
+    const real3 yellow = { 1.0, 1.0, 0.0 };
+
+    real3 outColor = red;
+    if (value < threshold[0])
     {
-    case DEBUGMIPMAPMODE_MIP_RATIO:
-        return GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
-    case DEBUGMIPMAPMODE_MIP_COUNT:
-        return GetDebugMipCountColor(originalColor, tex);
-    case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
-        return GetDebugMipReductionColor(tex, mipInfo);
-    case DEBUGMIPMAPMODE_STREAMING_MIP_BUDGET:
-        return GetDebugStreamingMipColor(tex, mipInfo);
-    case DEBUGMIPMAPMODE_STREAMING_MIP:
-        return GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+        outColor = red;
+    }
+    else if (value >= threshold[0] && value < threshold[1])
+    {
+        real scale = (value - threshold[0]) / (threshold[1] - threshold[0]);
+        outColor = lerp(red, darkGreen, scale);
+    }
+    else if (value >= threshold[1] && value < threshold[2])
+    {
+        real scale = (value - threshold[1]) / (threshold[2] - threshold[1]);
+        outColor = lerp(darkGreen, lightGreen, scale);
+    }
+    else if (value >= threshold[2] && value < threshold[3])
+    {
+        real scale = (value - threshold[2]) / (threshold[2] - threshold[2]);
+        outColor = lerp(lightGreen, yellow, scale);
+    }
+    else
+    {
+        outColor = yellow;
     }
 
-    return originalColor;
+    return outColor;
 }
-#endif // DEBUG_DISPLAY
 
 #endif // UNITY_DEBUG_INCLUDED

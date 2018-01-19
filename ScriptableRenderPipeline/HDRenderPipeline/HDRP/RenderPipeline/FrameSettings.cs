@@ -8,7 +8,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class FrameSettings
     {
-        public static string kEnableShadow = "Enable Shadow";
+        public static string kEnableShadow = "Enable Shadows";
+        public static string kEnableContactShadows = "Enable Contact Shadows";
         public static string kEnableSSR = "Enable SSR";
         public static string kEnableSSAO = "Enable SSAO";
         public static string kEnableSubsurfaceScattering = "Enable SubsurfaceScattering";
@@ -40,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Lighting
         // Setup by users
         public bool enableShadow = true;
+        public bool enableContactShadows = true;
         public bool enableSSR = true; // Depends on DepthPyramid
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
@@ -79,6 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void CopyTo(FrameSettings frameSettings)
         {
             frameSettings.enableShadow = this.enableShadow;
+            frameSettings.enableContactShadows = this.enableContactShadows;
             frameSettings.enableSSR = this.enableSSR;
             frameSettings.enableSSAO = this.enableSSAO;
             frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
@@ -136,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             aggregate.enableShadow = srcFrameSettings.enableShadow;
+            aggregate.enableContactShadows = srcFrameSettings.enableContactShadows;
             aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
             aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
             aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
@@ -179,6 +183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Register the camera into the debug menu
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableShadow, () => frameSettings.enableShadow, (value) => frameSettings.enableShadow = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableContactShadows, () => frameSettings.enableContactShadows, (value) => frameSettings.enableContactShadows = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSR, () => frameSettings.enableSSR, (value) => frameSettings.enableSSR = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSAO, () => frameSettings.enableSSAO, (value) => frameSettings.enableSSAO = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSubsurfaceScattering, () => frameSettings.enableSubsurfaceScattering, (value) => frameSettings.enableSubsurfaceScattering = (bool)value);

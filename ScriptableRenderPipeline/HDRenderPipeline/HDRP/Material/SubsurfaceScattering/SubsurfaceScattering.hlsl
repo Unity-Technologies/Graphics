@@ -37,7 +37,10 @@ float3 ApplySubsurfaceScatteringTexturingMode(float3 color, int diffusionProfile
     bool enableSss = _EnableSubsurfaceScattering != 0;
 #endif
 
-    if (enableSss)
+    // We can enter in this function even if SSS is not enabled in case of material classification per tile
+    // (If there is SSS inside the tile we need to enable the feature for the whole tile with neutral value)
+    // thus why we test != DIFFUSION_PROFILE_NEUTRAL_ID here, to be sure neutral profile don't affect the scene
+    if (enableSss && diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID)
     {
         bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
 
