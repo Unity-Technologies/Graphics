@@ -112,7 +112,7 @@ struct BSDFData
     float3 normalWS;
     float perceptualRoughness;
     float coatMask;
-    int diffusionProfile;
+    uint diffusionProfile;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
