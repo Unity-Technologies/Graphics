@@ -27,6 +27,18 @@ real3 GetIndexColor(int index)
         outColor = real3(0.75, 1.0, 0.25);
     else if (index == 9)
         outColor = real3(0.75, 0.25, 1.0);
+    else if (index == 10)
+        outColor = real3(0.25, 1.0, 0.75);
+    else if (index == 11)
+        outColor = real3(0.75, 0.75, 0.25);
+    else if (index == 12)
+        outColor = real3(0.75, 0.25, 0.75);
+    else if (index == 13)
+        outColor = real3(0.25, 0.75, 0.75);
+    else if (index == 14)
+        outColor = real3(0.25, 0.25, 0.75);
+    else if (index == 15)
+        outColor = real3(0.75, 0.25, 0.25);
 
     return outColor;
 }

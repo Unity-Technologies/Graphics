@@ -173,9 +173,9 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
 #endif
 
 #if defined(_NORMALMAP)
-    float3 normal = normalize(UnpackNormalScale(readTexture(_BumpMap, sampler_BumpMap, IN), _BumpScale));
+    half3 normalTS = normalize(UnpackNormalScale(readTexture(_BumpMap, sampler_BumpMap, IN), _BumpScale));
 #else
-    float3 normal = float3(0, 0, 1);
+    half3 normalTS = float3(0, 0, 1);
 #endif
 
 #if defined(_EMISSION)
@@ -186,7 +186,7 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
 
     surfaceData.albedo = albedo.rbg;
     surfaceData.specular = half3(0, 0, 0);
-    surfaceData.normal = normal;
+    surfaceData.normalTS = normalTS;
     surfaceData.emission = emission * _EmissionColor.rgb;
     surfaceData.metallic = metallicGloss.r;
     surfaceData.smoothness = metallicGloss.g;
@@ -205,5 +205,21 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
 #if defined(_ALPHATEST_ON)
     clip(surfaceData.alpha - _Cutoff + 0.0001);
 #endif
+}
 
+void InitializeInputData(VertexOutputLit IN, half3 normalTS, out InputData input)
+{
+    input.positionWS = IN.posWS.xyz;
+
+#if _NORMALMAP
+    input.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
+#else
+    input.normalWS = normalize(IN.normal);
+#endif
+
+    input.viewDirectionWS = SafeNormalize(GetCameraPositionWS() - input.positionWS);
+    input.shadowCoord = float4(0, 0, 0, 0);
+    input.fogCoord = IN.posWS.w;
+    input.vertexLighting = half3(0, 0, 0);
+    input.bakedGI = half3(0, 0, 0);
 }

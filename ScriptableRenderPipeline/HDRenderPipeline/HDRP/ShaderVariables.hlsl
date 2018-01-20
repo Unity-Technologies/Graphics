@@ -206,6 +206,7 @@ CBUFFER_END
 // Avoid declaring extra samplers as they are 4x SGPR each on GCN.
 SAMPLER(s_point_clamp_sampler);
 SAMPLER(s_linear_clamp_sampler);
+SAMPLER(s_linear_repeat_sampler);
 SAMPLER(s_trilinear_clamp_sampler);
 
 // ----------------------------------------------------------------------------

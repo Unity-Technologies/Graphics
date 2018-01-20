@@ -12,7 +12,7 @@ float3 RemoveScale(float3 val)
 VaryingsMeshType Transform(AttributesMesh input)
 {
     VaryingsMeshType output;
-	
+
 	UNITY_SETUP_INSTANCE_ID(input)
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 
@@ -29,7 +29,7 @@ VaryingsMeshType Transform(AttributesMesh input)
 
 	output.positionWS = decalRotation[0];
     output.normalWS = decalRotation[1];
-    output.tangentWS = float4(decalRotation[2], 0); 
+    output.tangentWS = float4(decalRotation[2], 0.0);
 
     return output;
 }
@@ -42,22 +42,23 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 }
 
 void Frag(  PackedVaryingsToPS packedInput,
-            OUTPUT_DBUFFER(outDBuffer)            
+            OUTPUT_DBUFFER(outDBuffer)
             )
-{	
-
+{
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
 
-	float d = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
-	UpdatePositionInput(d, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
+	float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
+	UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
-	// calling absolute position only to go in decal space, so there is no loss of precision here
+    // Transform from world space to decal space (DS) to clip the decal.
+    // For this we must use absolute position.
+    // There is no lose of precision here as it doesn't involve the camera matrix
 	float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-	float3 positionDS = mul(UNITY_MATRIX_I_M, float4(positionWS, 1.0f)).xyz;
-	positionDS = positionDS * float3(1.0f, -1.0f, 1.0f) + float3(0.5f, 0.0f, 0.5f);
-	clip(positionDS < 0 ? -1 : 1);
-	clip(positionDS > 1 ? -1 : 1);
+	float3 positionDS = mul(UNITY_MATRIX_I_M, float4(positionWS, 1.0)).xyz;
+	positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
+	clip(positionDS);       // clip negative value
+	clip(1.0 - positionDS); // Clip value above one
 
     DecalSurfaceData surfaceData;
 	float3x3 decalToWorld = (float3x3)UNITY_ACCESS_INSTANCED_PROP(matrix, normalToWorld);

@@ -35,13 +35,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _8x = 8
     }
 
+    public enum DefaultMaterialType
+    {
+        Standard = 0,
+        Particle,
+        Terrain,
+        UnityBuiltinDefault
+    }
+
     public class LightweightPipelineAsset : RenderPipelineAsset
     {
         private const int PACKAGE_MANAGER_PATH_INDEX = 1;
+        private Shader m_DefaultShader;
         public static readonly string[] m_SearchPaths = {"Assets", "Packages/com.unity.render-pipelines.lightweight"};
 
         // Default values set when a new LightweightPipeline asset is created
-        [SerializeField] private float kAssetVersion = 1.0f;
+        [SerializeField] private int kAssetVersion = 2;
         [SerializeField] private int m_MaxPixelLights = 4;
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireDepthTexture = false;
@@ -58,12 +67,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
 
         // Resources
-        [SerializeField] private Shader m_DefaultShader;
         [SerializeField] private Shader m_BlitShader;
         [SerializeField] private Shader m_CopyDepthShader;
-        [SerializeField] private LightweightPipelineResource m_ResourceAsset;
 
 #if UNITY_EDITOR
+        private LightweightPipelineResource m_ResourceAsset;
 
         [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
@@ -77,30 +85,30 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<LightweightPipelineAsset>();
-
-                string[] guids = AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject", m_SearchPaths);
-                LightweightPipelineResource resourceAsset = null;
-                foreach (string guid in guids)
-                {
-                    string path = AssetDatabase.GUIDToAssetPath(guid);
-                    resourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
-                    if (resourceAsset != null)
-                        break;
-                }
-
-                // There's currently an issue that prevents FindAssets from find resources withing the package folder.
-                if (resourceAsset == null)
-                {
-                    string path = m_SearchPaths[PACKAGE_MANAGER_PATH_INDEX] + "/LWRP/Data/LightweightPipelineResource.asset";
-                    resourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
-                }
-
-                instance.m_ResourceAsset = resourceAsset;
-                instance.m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
                 instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
                 instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
 
                 AssetDatabase.CreateAsset(instance, pathName);
+            }
+        }
+
+        private void LoadResourceFile()
+        {
+            string[] guids = AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject", m_SearchPaths);
+            LightweightPipelineResource resourceAsset = null;
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                m_ResourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
+                if (m_ResourceAsset != null)
+                    break;
+            }
+
+            // There's currently an issue that prevents FindAssets from find resources withing the package folder.
+            if (m_ResourceAsset == null)
+            {
+                string path = m_SearchPaths[PACKAGE_MANAGER_PATH_INDEX] + "/LWRP/Data/LightweightPipelineResource.asset";
+                m_ResourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
             }
         }
 #endif
@@ -113,6 +121,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void OnValidate()
         {
             DestroyCreatedInstances();
+        }
+
+        private Material GetMaterial(DefaultMaterialType materialType)
+        {
+#if UNITY_EDITOR
+            if (m_ResourceAsset == null)
+                LoadResourceFile();
+
+            switch (materialType)
+            {
+                case DefaultMaterialType.Standard:
+                    return m_ResourceAsset.DefaultMaterial;
+
+                case DefaultMaterialType.Particle:
+                    return m_ResourceAsset.DefaultParticleMaterial;
+
+                case DefaultMaterialType.Terrain:
+                    return m_ResourceAsset.DefaultTerrainMaterial;
+
+                // Unity Builtin Default
+                default:
+                    return null;
+            }
+#else
+            return null;
+#endif
         }
 
         public bool AreShadowsEnabled()
@@ -216,58 +250,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override Material GetDefaultMaterial()
         {
-#if UNITY_EDITOR
-            if (m_ResourceAsset != null)
-                return m_ResourceAsset.DefaultMaterial;
-#endif
-            return null;
+            return GetMaterial(DefaultMaterialType.Standard);
         }
 
         public override Material GetDefaultParticleMaterial()
         {
-#if UNITY_EDITOR
-            if (m_ResourceAsset != null)
-                return m_ResourceAsset.DefaultParticleMaterial;
-#endif
-            return null;
+            return GetMaterial(DefaultMaterialType.Particle);
         }
 
         public override Material GetDefaultLineMaterial()
         {
-            return null;
+            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
         }
 
         public override Material GetDefaultTerrainMaterial()
         {
-#if UNITY_EDITOR
-            if (m_ResourceAsset != null)
-                return m_ResourceAsset.DefaultTerrainMaterial;
-#endif
-            return null;
+            return GetMaterial(DefaultMaterialType.Terrain);
         }
 
         public override Material GetDefaultUIMaterial()
         {
-            return null;
+            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
         }
 
         public override Material GetDefaultUIOverdrawMaterial()
         {
-            return null;
+            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
         }
 
         public override Material GetDefaultUIETC1SupportedMaterial()
         {
-            return null;
+            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
         }
 
         public override Material GetDefault2DMaterial()
         {
-            return null;
+            return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
         }
 
         public override Shader GetDefaultShader()
         {
+            if (m_DefaultShader == null)
+                m_DefaultShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_PBS));
             return m_DefaultShader;
         }
 
