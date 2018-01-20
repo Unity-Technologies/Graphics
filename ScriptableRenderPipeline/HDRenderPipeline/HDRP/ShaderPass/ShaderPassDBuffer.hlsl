@@ -60,11 +60,11 @@ void Frag(  PackedVaryingsToPS packedInput,
 	clip(positionDS > 1 ? -1 : 1);
 
     DecalSurfaceData surfaceData;
-	float3x3 decalToWorld;
+	float3x3 decalToWorld = (float3x3)UNITY_ACCESS_INSTANCED_PROP(matrix, normalToWorld);
 	// using the interpolators directly, because UnpackVaryingsMeshToFragInputs does some tangent space manipulations
-	decalToWorld[0] = packedInput.vmesh.interpolators0;
-	decalToWorld[1] = packedInput.vmesh.interpolators1;
-	decalToWorld[2] = packedInput.vmesh.interpolators2.xyz;
+//	decalToWorld[0] = packedInput.vmesh.interpolators0;
+//	decalToWorld[1] = packedInput.vmesh.interpolators1;
+//	decalToWorld[2] = packedInput.vmesh.interpolators2.xyz;
 
     GetSurfaceData(positionDS.xz, decalToWorld, surfaceData);
 
