@@ -719,7 +719,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Layered shader support SSS and Transmission features
     surfaceData.materialFeatures            = 0;
 
-#ifdef _MATERIALFEATURE_SUBSURFACE_SCATTERING
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION

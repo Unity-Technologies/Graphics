@@ -94,20 +94,12 @@ Shader "LightweightPipeline/Particles/Standard"
                 SurfaceData surfaceData;
                 InitializeSurfaceData(IN, surfaceData);
 
-                float3 positionWS = IN.posWS.xyz;
-                half3 viewDirWS = SafeNormalize(GetCameraPositionWS() - positionWS);
-                half fogFactor = IN.posWS.w;
+                InputData inputData;
+                InitializeInputData(IN, surfaceData.normalTS, inputData);
 
-#if _NORMALMAP
-                half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
-#else
-                half3 normalWS = normalize(IN.normal);
-#endif
-
-                half3 zero = half3(0.0, 0.0, 0.0);
-                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.albedo,
-                    surfaceData.metallic, /* specularColor */ zero, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-                ApplyFog(color.rgb, fogFactor);
+                half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo,
+                    surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+                ApplyFog(color.rgb, inputData.fogCoord);
                 return color;
             }
 
