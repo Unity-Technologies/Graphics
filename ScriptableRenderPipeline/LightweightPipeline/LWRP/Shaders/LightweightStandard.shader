@@ -101,6 +101,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ FOG_LINEAR FOG_EXP2
+            #pragma multi_compile _ _SCREEN_SPACE_SHADOWS //TODO: Move to Shadows.hlsl
 
             // -------------------------------------
             // Unity defined keywords
