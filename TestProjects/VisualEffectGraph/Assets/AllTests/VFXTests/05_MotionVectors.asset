@@ -3898,6 +3898,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
 --- !u!114 &114898393254782138
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5145,8 +5146,12 @@ VFXAsset:
         nameId: Sphere_center_f
       - index: 72
         nameId: Sphere_radius_f
-      params: []
-      processor: {fileID: 7200000, guid: 73f7f9fe401bc5b4880f58e589f05554, type: 3}
+      params:
+      - index: 63
+        nameId: bounds_center
+      - index: 64
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: 5772e0545cbde3d46ba92cd5942519dc, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5179,7 +5184,7 @@ VFXAsset:
       - index: 58
         nameId: Force_d
       params: []
-      processor: {fileID: 7200000, guid: ae8372709d265c641bfdc3851be47a27, type: 3}
+      processor: {fileID: 7200000, guid: 93008879702e9ea40a699c3857557daa, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5192,7 +5197,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 202c840ccb7de034883563a17b101223, type: 3}
+      processor: {fileID: 4800000, guid: 6186da915699f7a4296b26cc2728f301, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

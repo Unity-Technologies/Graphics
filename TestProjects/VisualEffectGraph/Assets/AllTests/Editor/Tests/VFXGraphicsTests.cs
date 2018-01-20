@@ -105,7 +105,7 @@ namespace UnityEditor.VFX.Test
         static void CaptureFrameAndClear(SceneCaptureInstance scene, string capturePath)
         {
             RenderTexture.active = scene.texture;
-            var captured = new Texture2D(scene.texture.width, scene.texture.height, TextureFormat.ARGB32, false);
+            var captured = new Texture2D(scene.texture.width, scene.texture.height, TextureFormat.RGB24, false);
             captured.ReadPixels(new Rect(0, 0, scene.texture.width, scene.texture.height), 0, 0);
             RenderTexture.active = null; //can help avoid errors
             Object.DestroyImmediate(scene.texture, true);

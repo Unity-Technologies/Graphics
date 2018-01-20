@@ -9,10 +9,12 @@ CBUFFER_END
  
 #define NB_THREADS_PER_GROUP 64
 
-struct InputData
+struct InputData //TODO use generic name (indexCount isn't always what it expects to be)
 {
 	uint type;
-	uint arg0; //indexCount for meshes
+	uint indexCount;
+	uint startIndex;
+	uint baseVertex;
 };
 
 ByteAddressBuffer inputGpuBuffer;
@@ -32,6 +34,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 		uint firstArg = 0u;
 		uint secondArg = 0u;
 		uint thirdArg = 0u;
+		uint fourthArg = 0u;
 		
 		switch(data.type)
 		{
@@ -83,16 +86,18 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
 			case 4: // meshes
 			{
-				firstArg = data.arg0;
+				firstArg = data.indexCount;
 				secondArg = elementCount;
+				thirdArg = data.startIndex;
+				fourthArg = data.baseVertex;
 				break;
 			}
 			case 0xffffffff: // dispatch
 			{
-				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;				
+				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
 				//Update total element count (spawnIndex)
 				outputAdditional[index * 2 + 0] = elementCount;
-				outputAdditional[index * 2 + 1] = outputAdditional[data.arg0 * 2 + 1] + elementCount;
+				outputAdditional[index * 2 + 1] = outputAdditional[data.indexCount * 2 + 1] + elementCount;
 				secondArg = thirdArg = 1u;
 				break;
 			}
@@ -102,6 +107,8 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 		outputIndirectArgs[indexOutput + 0] = firstArg; //IndexCountPerInstance or ThreadGroupCountX
 		outputIndirectArgs[indexOutput + 1] = secondArg; //InstanceCount or ThreadGroupCountY
 		outputIndirectArgs[indexOutput + 2] = thirdArg; //startIndex or ThreadGroupCountz
-		// 2 next uint (BaseVertex and StartInstance) set to 0 at initialization
+		outputIndirectArgs[indexOutput + 3] = fourthArg;//baseVertex
+		// next uint (StartInstance) set to 0 at initialization
+
 	}
 }

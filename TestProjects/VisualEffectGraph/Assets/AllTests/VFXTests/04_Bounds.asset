@@ -503,6 +503,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114697200481505942
 MonoBehaviour:
@@ -1084,8 +1085,12 @@ VFXAsset:
         nameId: Velocity_b
       - index: 11
         nameId: Lifetime_c
-      params: []
-      processor: {fileID: 7200000, guid: 45c97d45f0aa0a545b373b34a4ba4555, type: 3}
+      params:
+      - index: 15
+        nameId: bounds_center
+      - index: 17
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: fbdf9ed29bd1a4c47a5c09f4e36e09b1, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1096,7 +1101,7 @@ VFXAsset:
       - index: 13
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 18afbbea3295d434c88f12fc224cf9f7, type: 3}
+      processor: {fileID: 7200000, guid: 1d4faf4ece2d6c141b2e396c1fe910d4, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1107,7 +1112,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 22ec5e937b479d8478dfbd1a73db8a20, type: 3}
+      processor: {fileID: 4800000, guid: 6a7be8bee86f2094bacd7d2e9690c426, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

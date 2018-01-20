@@ -17,6 +17,7 @@ namespace UnityEditor.VFX
             Alpha,
             Masked,
             AlphaPremultiplied,
+            Opaque,
         }
 
         public enum FlipbookMode
@@ -41,6 +42,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool indirectDraw = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool preRefraction = false;
+
         public bool HasIndirectDraw() { return indirectDraw; }
 
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
@@ -49,12 +53,14 @@ namespace UnityEditor.VFX
 
         public virtual bool supportsFlipbooks { get { return false; } }
 
+        public virtual bool supportSoftParticles { get { return useSoftParticle && blendMode != BlendMode.Masked; } }
+
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             if (blendMode == BlendMode.Masked)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
-            if (useSoftParticle)
+            if (supportSoftParticles)
             {
                 var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
@@ -92,7 +98,7 @@ namespace UnityEditor.VFX
 
                 if (blendMode == BlendMode.Masked)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold"), 0.5f);
-                if (useSoftParticle)
+                if (supportSoftParticles)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance"), 1.0f);
             }
         }
@@ -103,7 +109,7 @@ namespace UnityEditor.VFX
             {
                 if (blendMode == BlendMode.Masked)
                     yield return "USE_ALPHA_TEST";
-                if (useSoftParticle)
+                if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
                 VFXAsset asset = GetAsset();
@@ -134,38 +140,57 @@ namespace UnityEditor.VFX
             {
                 if (!supportsFlipbooks)
                     yield return "flipbookMode";
+
+                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
+                    yield return "preRefraction";
+
+                if (blendMode == BlendMode.Opaque)
+                    yield return "useSoftParticle";
             }
         }
 
-        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionnalReplacements
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
             {
-                var renderState = new VFXShaderWriter();
-
-                if (blendMode == BlendMode.Additive)
-                    renderState.WriteLine("Blend SrcAlpha One");
-                else if (blendMode == BlendMode.Alpha)
-                    renderState.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
-                else if (blendMode == BlendMode.AlphaPremultiplied)
-                    renderState.WriteLine("Blend One OneMinusSrcAlpha");
-
-                renderState.WriteLine("ZTest LEqual");
-
-                if (blendMode == BlendMode.Masked)
-                    renderState.WriteLine("ZWrite On");
-                else
-                    renderState.WriteLine("ZWrite Off");
-
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXOutputRenderState}", renderState);
 
                 var shaderTags = new VFXShaderWriter();
-                if (blendMode == BlendMode.Masked)
+                if (blendMode == BlendMode.Opaque)
+                    shaderTags.Write("Tags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
+                else if (blendMode == BlendMode.Masked)
                     shaderTags.Write("Tags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\" }");
                 else
-                    shaderTags.Write("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+                {
+                    string queueName = preRefraction ? "Geometry+750" : "Transparent"; // TODO Geometry + 750 is currently hardcoded value from HDRP...
+                    shaderTags.Write(string.Format("Tags {{ \"Queue\"=\"{0}\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }}", queueName));
+                }
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXShaderTags}", shaderTags);
+            }
+        }
+
+        protected virtual VFXShaderWriter renderState
+        {
+            get
+            {
+                var rs = new VFXShaderWriter();
+
+                if (blendMode == BlendMode.Additive)
+                    rs.WriteLine("Blend SrcAlpha One");
+                else if (blendMode == BlendMode.Alpha)
+                    rs.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+                else if (blendMode == BlendMode.AlphaPremultiplied)
+                    rs.WriteLine("Blend One OneMinusSrcAlpha");
+
+                rs.WriteLine("ZTest LEqual");
+
+                if (blendMode == BlendMode.Masked)
+                    rs.WriteLine("ZWrite On");
+                else
+                    rs.WriteLine("ZWrite Off");
+
+                return rs;
             }
         }
 

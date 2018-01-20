@@ -6126,6 +6126,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114897702330652198
 MonoBehaviour:
@@ -8088,8 +8089,12 @@ VFXAsset:
         nameId: ArcSphere_sphere_radius_d
       - index: 108
         nameId: ArcSphere_arc_d
-      params: []
-      processor: {fileID: 7200000, guid: 29bc35a8aed0de34fa460a4900517ccf, type: 3}
+      params:
+      - index: 88
+        nameId: bounds_center
+      - index: 91
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: ee45f5a929ed7d8498d66e72eeaee87b, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -8146,7 +8151,7 @@ VFXAsset:
       - index: 106
         nameId: VectorField_e
       params: []
-      processor: {fileID: 7200000, guid: 084736c27aaa40d488f31de2e6fddcc9, type: 3}
+      processor: {fileID: 7200000, guid: 35293027ce3eeb74cb71e2e99f4c21b5, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -8185,7 +8190,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a60da6347cc159c4388281b8c4025623, type: 3}
+      processor: {fileID: 4800000, guid: e4a4abc8bb36a204f83ec5e002dc0bfc, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

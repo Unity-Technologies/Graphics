@@ -4180,6 +4180,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  preRefraction: 0
   useRimLight: 1
   useNormalMap: 1
 --- !u!114 &114957826577242634
@@ -5249,8 +5250,12 @@ VFXAsset:
         nameId: r_b
       - index: 69
         nameId: Lifetime_c
-      params: []
-      processor: {fileID: 7200000, guid: 12a89f9632bede0469ca72cfe856a9e0, type: 3}
+      params:
+      - index: 68
+        nameId: bounds_center
+      - index: 76
+        nameId: bounds_size
+      processor: {fileID: 7200000, guid: c489cd0e8022b9048995744d023d4169, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5265,7 +5270,7 @@ VFXAsset:
       - index: 18
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: b88c426f2e6b6a54e978bd36ead28734, type: 3}
+      processor: {fileID: 7200000, guid: ffd61caa998f3264490eedcad7ca8da1, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -5288,7 +5293,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 1a8ad659cfc1c924aa2f40417ec90b50, type: 3}
+      processor: {fileID: 4800000, guid: 4e8c3c53fb9c5e445af335b7cde9c9cd, type: 3}
   - type: 2
     flags: 0
     capacity: 0
