@@ -357,7 +357,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     DepthPass(ref context);
                     if(m_Asset.UsesScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
-                        ShadowCollectPass(ref context);
+                        ShadowCollectPass(ref context, visibleLights, ref lightData);
                 }
 
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
@@ -447,11 +447,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return corners;
         }
 
-        private void ShadowCollectPass(ref ScriptableRenderContext context)
+        private void ShadowCollectPass(ref ScriptableRenderContext context, List<VisibleLight> lights, ref LightData lightData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
+
+            //Reciever constants set up here in case of screen space shadows.
+            SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
+
             cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-            
             cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners());
             cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial); 
 
@@ -932,7 +935,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
-            if (lightData.shadowMapSampleType != LightShadows.None)
+            if (lightData.shadowMapSampleType != LightShadows.None && !m_Asset.UsesScreenSpaceShadows) //TODO: Nicer way to know about SSS.
                 SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
 
             SetupAdditionalListConstants(cmd, lights, ref lightData);
