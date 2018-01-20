@@ -363,6 +363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int s_GenListPerBigTileKernel;
 
         const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
+        //const bool k_UseDepthBuffer = false;      // only has an impact when EnableClustered is true (requires a depth-prepass)
 
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous

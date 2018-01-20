@@ -160,6 +160,9 @@ namespace UnityEngine.Experimental.Rendering
             baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
             // TODO: Explicit MSAA support will come in later
 
+            if ((format == RenderTextureFormat.Depth) && baseDesc.msaaSamples > 1)
+                baseDesc.bindMS = true;
+
             return new RenderTexture(baseDesc);
         }
 
@@ -182,6 +185,8 @@ namespace UnityEngine.Experimental.Rendering
             baseDesc.colorFormat = format;
             baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
             baseDesc.msaaSamples = msaaSamples;
+            if (msaaSamples > 1)
+                enableRandomWrite = false;
             baseDesc.enableRandomWrite = enableRandomWrite;
         }
 
