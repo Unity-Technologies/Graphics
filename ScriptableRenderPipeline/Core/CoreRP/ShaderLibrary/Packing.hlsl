@@ -23,30 +23,27 @@ real2 PackNormalOctRectEncode(real3 n)
 {
     // Perform planar projection.
     real3 p = n * rcp(dot(abs(n), 1.0));
+    real  x = p.x, y = p.y, z = p.z;
 
     // Unfold the octahedron.
-    real r = 1 - p.x + p.y;
-    real g = p.x + p.y;
+    // Also correct the aspect ratio from 2:1 to 1:1.
+    real r = saturate(0.5 - 0.5 * x + 0.5 * y);
+    real g = x + y;
 
-    // Left side of the 2:1 rectangle for the negative hemisphere, right otherwise.
-    // We also correct the aspect ratio from 2:1 to 1:1.
-    real s = CopySign(0.5, p.z);
-
-    return real2(s * r, g);
+    // Negative hemisphere on the left, positive on the right.
+    return real2(CopySign(r, z), g);
 }
 
 real3 UnpackNormalOctRectEncode(real2 f)
 {
-    real r = f.r;
-    real g = f.g;
-    real s = FastSign(r);
+    real r = f.r, g = f.g;
 
     // Solve for {x, y, z} given {r, g}.
-    real x = 0.5 * g + 0.5 - s * r;
+    real x = 0.5 + 0.5 * g - abs(r);
     real y = g - x;
-    real z = s * max(1.0 - abs(x) - abs(y), FLT_EPS); // Clamping is absolutely crucial for numerical stability
+    real z = max(1.0 - abs(x) - abs(y), FLT_EPS); // EPS is absolutely crucial for anisotropy
 
-    real3 p = real3(x, y, z);
+    real3 p = real3(x, y, CopySign(z, r));
 
     return normalize(p);
 }
