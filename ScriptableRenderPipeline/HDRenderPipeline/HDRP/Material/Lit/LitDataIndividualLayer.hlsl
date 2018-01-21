@@ -268,7 +268,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #if !defined(LAYERED_LIT_SHADER)
 
     // These static material feature allow compile time optimization
-    surfaceData.materialFeatures = 0;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
