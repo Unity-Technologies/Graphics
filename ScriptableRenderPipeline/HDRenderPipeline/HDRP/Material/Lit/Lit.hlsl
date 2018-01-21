@@ -882,9 +882,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     // This is a ad-hoc tweak to better match reference of anisotropic GGX.
     // TODO: We need a better hack.
     preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
-    float iblRoughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     // Corretion of reflected direction for better handling of rough material
-    preLightData.iblR = GetSpecularDominantDir(N, iblR, iblRoughness, NdotV);
+    preLightData.iblR = GetSpecularDominantDir(N, iblR, preLightData.iblPerceptualRoughness, NdotV);
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
     // Ref: Practical multiple scattering compensation for microfacet models.
