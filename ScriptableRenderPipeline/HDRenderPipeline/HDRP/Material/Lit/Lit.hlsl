@@ -648,6 +648,12 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
+    // If tileFeatureFlags == UINT_MAX it mean we are call from deferred.shader (or a debug mode) that have no classification
+    // in this case for the sake of performance saving we should rely on pixelFeatureFlags
+    // TODO: validate that this doesn't hurst performance somewhere with classification
+    if (tileFeatureFlags == UINT_MAX)
+        bsdfData.materialFeatures = pixelFeatureFlags;
+
     // Decompress feature-agnostic data from the G-Buffer.
     float3 baseColor = inGBuffer0.rgb;
 
