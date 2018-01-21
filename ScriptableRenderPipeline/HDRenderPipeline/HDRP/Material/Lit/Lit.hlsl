@@ -389,7 +389,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
-    bsdfData.materialFeatures       = surfaceData.materialFeatures | MATERIALFEATUREFLAGS_LIT_STANDARD; // Not really needed but for consistency with deferred path
+    bsdfData.materialFeatures    = surfaceData.materialFeatures;
 
     // Standard material
     bsdfData.specularOcclusion   = surfaceData.specularOcclusion;
@@ -600,6 +600,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 
     // Ensure that surfaceData.coatMask is 0 if the feature is not enabled
     float coatMask = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
+    // Note: no need to store MATERIALFEATUREFLAGS_LIT_STANDARD, always present
     outGBuffer2.a  = PackFloatUInt8bit(coatMask, materialFeatureId, 8);
 
     // RT3 - 11f:11f:10f
@@ -787,11 +788,27 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+    case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
+        result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+        break;
+    }
 }
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+    case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
+        result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+        break;
+    }
 }
 
 //-----------------------------------------------------------------------------
