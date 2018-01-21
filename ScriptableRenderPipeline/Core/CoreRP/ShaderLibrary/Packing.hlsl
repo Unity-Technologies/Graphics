@@ -23,30 +23,27 @@ real2 PackNormalOctRectEncode(real3 n)
 {
     // Perform planar projection.
     real3 p = n * rcp(dot(abs(n), 1.0));
+    real  x = p.x, y = p.y, z = p.z;
 
     // Unfold the octahedron.
-    real r = 1 - p.x + p.y;
-    real g = p.x + p.y;
+    // Also correct the aspect ratio from 2:1 to 1:1.
+    real r = saturate(0.5 - 0.5 * x + 0.5 * y);
+    real g = x + y;
 
-    // Left side of the 2:1 rectangle for the negative hemisphere, right otherwise.
-    // We also correct the aspect ratio from 2:1 to 1:1.
-    real s = CopySign(0.5, p.z);
-
-    return real2(s * r, g);
+    // Negative hemisphere on the left, positive on the right.
+    return real2(CopySign(r, z), g);
 }
 
 real3 UnpackNormalOctRectEncode(real2 f)
 {
-    real r = f.r;
-    real g = f.g;
-    real s = FastSign(r);
+    real r = f.r, g = f.g;
 
     // Solve for {x, y, z} given {r, g}.
-    real x = 0.5 * g + 0.5 - s * r;
+    real x = 0.5 + 0.5 * g - abs(r);
     real y = g - x;
-    real z = s * max(1.0 - abs(x) - abs(y), FLT_EPS); // Clamping is absolutely crucial for numerical stability
+    real z = max(1.0 - abs(x) - abs(y), FLT_EPS); // EPS is absolutely crucial for anisotropy
 
-    real3 p = real3(x, y, z);
+    real3 p = real3(x, y, CopySign(z, r));
 
     return normalize(p);
 }
@@ -387,7 +384,7 @@ real2 Unpack2Byte(real inputs)
 // ...
 // Example: precision is 1024.0, maxi is 8, i is [0..7] encode on 3 bit. f is [0..1] encode on 7 bit.
 //...
-real PackFloatInt(real f, int i, real maxi, real precision)
+real PackFloatInt(real f, uint i, real maxi, real precision)
 {
     // Constant
     real precisionMinusOne = precision - 1.0;
@@ -397,7 +394,7 @@ real PackFloatInt(real f, int i, real maxi, real precision)
     return t1 * f + t2 * real(i);
 }
 
-void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
+void UnpackFloatInt(real val, real maxi, real precision, out real f, out uint i)
 {
     // Constant
     real precisionMinusOne = precision - 1.0;
@@ -412,32 +409,32 @@ void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
 }
 
 // Define various variante for ease of read
-real PackFloatInt8bit(real f, int i, real maxi)
+real PackFloatUInt8bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 256.0);
 }
 
-void UnpackFloatInt8bit(real val, real maxi, out real f, out int i)
+void UnpackFloatUInt8bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 256.0, f, i);
 }
 
-real PackFloatInt10bit(real f, int i, real maxi)
+real PackFloatUInt10bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-void UnpackFloatInt10bit(real val, real maxi, out real f, out int i)
+void UnpackFloatUInt10bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
 
-real PackFloatInt16bit(real f, int i, real maxi)
+real PackFloatUInt16bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-void UnpackFloatInt16bit(real val, real maxi, out real f, out int i)
+void UnpackFloatUInt16bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }
