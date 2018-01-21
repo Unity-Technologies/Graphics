@@ -237,47 +237,25 @@ TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
-// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
-/*
-float CubemapFaceID(float3 dir)
+float CubeMapFaceID(float3 dir)
 {
     float faceID;
+
     if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
     {
-        faceID = (dir.z < 0.0) ? 5.0 : 4.0;
+        faceID = (dir.z < 0.0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
     }
     else if (abs(dir.y) >= abs(dir.x))
     {
-        faceID = (dir.y < 0.0) ? 3.0 : 2.0;
+        faceID = (dir.y < 0.0) ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
     }
     else
     {
-        faceID = (dir.x < 0.0) ? 1.0 : 0.0;
+        faceID = (dir.x < 0.0) ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
     }
+
     return faceID;
 }
-*/
-
-void GetCubeFaceID(float3 dir, out int faceIndex)
-{
-    // TODO: Use faceID intrinsic on console
-    float3 adir = abs(dir);
-
-    // +Z -Z
-    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
-
-    // +X -X
-    if (adir.x > adir.y && adir.x > adir.z)
-    {
-        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
-    }
-    // +Y -Y
-    else if (adir.y > adir.x && adir.y > adir.z)
-    {
-        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
-    }
-}
-
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
 // ----------------------------------------------------------------------------
