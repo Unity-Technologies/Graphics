@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorUtility.CopySerialized(c.GetComponent<HDAdditionalCameraData>(), m_PreviewAdditionalCameraData);
             var layer = c.GetComponent<PostProcessLayer>() ?? ComponentSingleton<PostProcessLayer>.instance;
             EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
-            m_PreviewCamera.cameraType = CameraType.SceneView;
+            m_PreviewCamera.cameraType = CameraType.SceneView; // This is required else if we use Preview the image is flipped... (Unity...)
             m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);

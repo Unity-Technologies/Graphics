@@ -29,9 +29,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         FrameSettings m_FrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
         // Not serialized, not visible, the settings effectively used
         FrameSettings m_FrameSettingsRuntime = new FrameSettings();
+
+        bool m_frameSettingsIsDirty = true;
+        public bool frameSettingsIsDirty
+        {
+            get { return m_frameSettingsIsDirty; }
+        }
+
         public FrameSettings GetFrameSettings()
         {
             return m_FrameSettingsRuntime;
+        }
+
+        // See comment in FrameSettings.UpdateDirtyFrameSettings()
+        // for detail about this function
+        public void UpdateDirtyFrameSettings()
+        {
+            if (m_frameSettingsIsDirty)
+            {
+                m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
+
+                m_frameSettingsIsDirty = false;
+            }
         }
 
         // Store the various RenderPipelineSettings for each platform (for now only one)
@@ -97,9 +116,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            // Modification of defaultFrameSettings in the inspector will call OnValidate().
-            // We do a copy of the settings to those effectively used
-            m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
+            // This is call on load or when this settings are change.
+            // When FrameSettings are manipulated we reset them to reflect the change, discarding all the Debug Windows change.
+            // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
+            m_frameSettingsIsDirty = true;
         }
     }
 }
