@@ -71,4 +71,5 @@ MonoBehaviour:
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
-  diffusionProfileSettings: {fileID: 0}
+  diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
+    type: 2}

@@ -51,7 +51,7 @@ struct Light
     half3   direction;
     half3   color;
     half    attenuation;
-    half    realtimeAttenuation;
+    half    subtractiveModeAttenuation;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,7 +109,7 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
     return atten * atten;
 }
 
-half4 GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, float3 positionWS)
+half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
     half4 directionAndAttenuation;
     float3 posToLightVec = lightInput.position.xyz - positionWS * lightInput.position.w;
@@ -121,19 +121,18 @@ half4 GetLightDirectionAndRealtimeAttenuation(LightInput lightInput, float3 posi
     return directionAndAttenuation;
 }
 
-half4 GetMainLightDirectionAndRealtimeAttenuation(LightInput lightInput, float3 positionWS)
+half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
     half4 directionAndAttenuation;
 
 #if defined(_MAIN_LIGHT_DIRECTIONAL)
     directionAndAttenuation = half4(lightInput.position.xyz, 1.0);
 #else
-    directionAndAttenuation = GetLightDirectionAndRealtimeAttenuation(lightInput, positionWS);
+    directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 #endif
 
-    // Cookies and shadows are only computed for main light
+    // Cookies are only computed for main light
     directionAndAttenuation.w *= CookieAttenuation(positionWS);
-    directionAndAttenuation.w *= RealtimeShadowAttenuation(positionWS);
 
     return directionAndAttenuation;
 }
@@ -151,12 +150,12 @@ Light GetMainLight(float3 positionWS)
     lightInput.spotDirection = _MainLightSpotDir;
     lightInput.spotAttenuation = _MainLightSpotAttenuation;
 
-    half4 directionAndRealtimeAttenuation = GetMainLightDirectionAndRealtimeAttenuation(lightInput, positionWS);
+    half4 directionAndRealtimeAttenuation = GetMainLightDirectionAndAttenuation(lightInput, positionWS);
 
     Light light;
     light.direction = directionAndRealtimeAttenuation.xyz;
-    light.realtimeAttenuation = directionAndRealtimeAttenuation.w;
-    light.attenuation = MixRealtimeAndBakedOcclusion(light.realtimeAttenuation, lightInput.distanceAttenuation.w);
+    light.attenuation = directionAndRealtimeAttenuation.w;
+    light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
     light.color = lightInput.color;
 
     return light;
@@ -174,12 +173,12 @@ Light GetLight(int i, float3 positionWS)
     lightInput.spotDirection = _AdditionalLightSpotDir[lightIndex];
     lightInput.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex];
 
-    half4 directionAndRealtimeAttenuation = GetLightDirectionAndRealtimeAttenuation(lightInput, positionWS);
+    half4 directionAndRealtimeAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
     Light light;
     light.direction = directionAndRealtimeAttenuation.xyz;
-    light.realtimeAttenuation = directionAndRealtimeAttenuation.w;
-    light.attenuation = MixRealtimeAndBakedOcclusion(light.realtimeAttenuation, lightInput.distanceAttenuation.w);
+    light.attenuation = directionAndRealtimeAttenuation.w;
+    light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
     light.color = lightInput.color;
 
     return light;
@@ -406,7 +405,6 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
 
 half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3 bakedGI)
 {
-#if defined(_MAIN_LIGHT_DIRECTIONAL) && defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
     // Let's try to make realtime shadows work on a surface, which already contains
     // baked lighting and shadowing from the main sun light.
     // Summary:
@@ -420,10 +418,10 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
     //    Preserves bounce and other baked lights
     //    No shadows on the geometry facing away from the light
-    half shadowStrength = _ShadowData.x;
+    half shadowStrength = GetShadowStrength();
     half NdotL = saturate(dot(mainLight.direction, normalWS));
     half3 lambert = mainLight.color * NdotL;
-    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.realtimeAttenuation);
+    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.attenuation);
     half3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
@@ -432,9 +430,6 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
 
     // 3) Pick darkest color
     return min(bakedGI, realtimeShadow);
-#endif
-
-    return bakedGI;
 }
 
 half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
@@ -446,6 +441,24 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
 
     return EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
+}
+
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+{
+#if defined(_MAIN_LIGHT_DIRECTIONAL) && defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
+    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
+#endif
+
+#if defined(LIGHTMAP_ON)
+    #if defined(_MIXED_LIGHTING_SHADOWMASK)
+        // TODO:
+    #elif defined(_MIXED_LIGHTING_SUBTRACTIVE)
+        // Subtractive Light mode has direct light contribution baked into lightmap for mixed lights.
+        // We need to remove direct realtime contribution from mixed lights
+        // subtractiveModeBakedOcclusion is set 0.0 if this light occlusion was baked in the lightmap, 1.0 otherwise.
+        light.attenuation *= light.subtractiveModeAttenuation;
+    #endif
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -488,7 +501,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     {
         Light light = GetLight(lightIter, positionWS);
 
-        half3 lightColor = light.color * light.realtimeAttenuation;
+        half3 lightColor = light.color * light.attenuation;
         vertexLightColor += LightingLambert(lightColor, light.direction, normalWS);
     }
 #endif
@@ -500,81 +513,62 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 LightweightFragmentPBR(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
-    half3 bakedGI, half3 vertexLighting, half3 albedo, half metallic, half3 specular,
+half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    Light mainLight = GetMainLight(positionWS);
-    bakedGI = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
-    half3 color = GlobalIllumination(brdfData, bakedGI, occlusion, normalWS, viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, mainLight, normalWS, viewDirectionWS);
+    Light mainLight = GetMainLight(inputData.positionWS);
+    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.positionWS, inputData.shadowCoord);
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(i, positionWS);
-        color += LightingPhysicallyBased(brdfData, light, normalWS, viewDirectionWS);
+        Light light = GetLight(i, inputData.positionWS);
+        color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
 
-    color += vertexLighting * brdfData.diffuse;
+    color += inputData.vertexLighting * brdfData.diffuse;
     color += emission;
     return half4(color, alpha);
 }
 
-half4 LightweightFragmentLambert(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
-    half fogFactor, half3 bakedGI, half3 diffuse, half3 emission, half alpha)
+half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
-    Light mainLight = GetMainLight(positionWS);
-    half3 indirectDiffuse = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
-    half3 lambert = LightingLambert(mainLight.color, mainLight.direction, normalWS);
-    half3 diffuseColor = lambert * mainLight.attenuation + indirectDiffuse;
-
-#ifdef _ADDITIONAL_LIGHTS
-    int pixelLightCount = GetPixelLightCount();
-    for (int i = 0; i < pixelLightCount; ++i)
-    {
-        Light light = GetLight(i, positionWS);
-        half3 attenuatedLightColor = light.color * light.attenuation;
-        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, normalWS);
-    }
-#endif
-
-    half3 finalColor = diffuseColor * diffuse + emission;
-
-    ApplyFog(finalColor, fogFactor);
-    return half4(finalColor, alpha);
-}
-
-half4 LightweightFragmentBlinnPhong(float3 positionWS, half3 normalWS, half3 viewDirectionWS,
-    half fogFactor, half3 bakedGI, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
-{
-    Light mainLight = GetMainLight(positionWS);
-    half3 indirectDiffuse = SubtractDirectMainLightFromLightmap(mainLight, normalWS, bakedGI);
+    Light mainLight = GetMainLight(inputData.positionWS);
+    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.positionWS, inputData.shadowCoord);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;
-    half3 diffuseColor = indirectDiffuse + LightingLambert(attenuatedLightColor, mainLight.direction, normalWS);
-    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, normalWS, viewDirectionWS, specularGloss, shininess);
+    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(i, positionWS);
+        Light light = GetLight(i, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
-        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, normalWS);
-        specularColor += LightingSpecular(attenuatedLightColor, light.direction, normalWS, viewDirectionWS, specularGloss, shininess);
+        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+        specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
     }
 #endif
 
     half3 finalColor = diffuseColor * diffuse + emission;
+    finalColor += inputData.vertexLighting * diffuse;
+    
+#if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;
+#endif
 
-    ApplyFog(finalColor, fogFactor);
+    ApplyFog(finalColor, inputData.fogCoord);
     return half4(finalColor, alpha);
 }
 #endif

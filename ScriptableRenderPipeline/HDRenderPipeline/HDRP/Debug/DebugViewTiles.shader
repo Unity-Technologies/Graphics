@@ -145,7 +145,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
 
                 int2 pixelCoord = posInput.positionSS.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
-                int2 mouseTileCoord = _MousePixelCoord / GetTileSize();
+                int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
 
                 int n = 0;
@@ -188,7 +188,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw, mouseTileCoord);
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, mouseTileCoord);
                     float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.positionSS).x;
                     UpdatePositionInput(depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, mousePosInput);
 
