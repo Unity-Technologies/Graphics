@@ -61,10 +61,12 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 
 // Enum for materialFeatureId (only use for encode/decode GBuffer)
 #define GBUFFER_LIT_STANDARD         0
-#define GBUFFER_LIT_TRANSMISSION     1 // TODO
-#define GBUFFER_LIT_TRANSMISSION_SSS 2
-#define GBUFFER_LIT_ANISOTROPIC      3
-#define GBUFFER_LIT_IRIDESCENCE      4 // TODO
+// we have not enough space (3bit) to store mat feature to have SSS and Transmission as bitmask, such why we have all variant
+#define GBUFFER_LIT_SSS              1
+#define GBUFFER_LIT_TRANSMISSION     2 
+#define GBUFFER_LIT_TRANSMISSION_SSS 3
+#define GBUFFER_LIT_ANISOTROPIC      4
+#define GBUFFER_LIT_IRIDESCENCE      5 // TODO
 
 #define CLEAR_COAT_IOR 1.5
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
@@ -525,10 +527,19 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // RT2 - 8:8:8:8
     uint materialFeatureId;
 
-    // TODO: split SSS and transmission.
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-        materialFeatureId = GBUFFER_LIT_TRANSMISSION_SSS;
+        // Reminder that during GBuffer pass we know statically material materialFeatures
+        if ((surfaceData.materialFeatures & (MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION)) == (MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+            materialFeatureId = GBUFFER_LIT_TRANSMISSION_SSS;
+        else if ((surfaceData.materialFeatures & MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING) == MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING)
+            materialFeatureId = GBUFFER_LIT_SSS;
+        else
+            materialFeatureId = GBUFFER_LIT_TRANSMISSION;
+
+        // We perform the same encoding for SSS and transmission even if not used as it is the same cost
+        // Note that regarding EncodeIntoSSSBuffer, as the lit.shader IS the deferred shader (and the SSS fullscreen pass is based on deferred encoding),
+        // it know the details of the encoding, so it is fine to assume here how SSSBuffer0 is encoded
 
         // For the SSS feature, the alpha channel is overwritten with (diffusionProfile | subsurfaceMask).
         // It is done so that the SSS pass only has to read a single G-Buffer 0.
@@ -624,8 +635,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     UnpackFloatUInt8bit(inGBuffer2.a, 8, coatMask, materialFeatureId);
 
     uint pixelFeatureFlags    = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard flag.
-    bool pixelHasSubsurface   = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS;
-    bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION || pixelHasSubsurface;
+    bool pixelHasSubsurface   = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_SSS;
+    bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_TRANSMISSION;
     bool pixelHasAnisotropy   = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
     bool pixelHasIridescence  = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
     bool pixelHasClearCoat    = coatMask > 0;

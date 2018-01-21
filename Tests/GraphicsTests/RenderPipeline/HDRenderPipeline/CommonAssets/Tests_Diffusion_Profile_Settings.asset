@@ -78,7 +78,7 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 6
+  - name: Profile 7
     scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
