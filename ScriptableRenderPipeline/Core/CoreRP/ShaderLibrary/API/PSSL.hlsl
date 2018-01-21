@@ -13,7 +13,7 @@
 #define INTRINSIC_MINMAX3
 #define Min3 min3
 #define Max3 max3
-//#define INTRINSIC_CUBEMAP_FACE_ID // Must investigate why AMD reference implementation is different than ours
+#define INTRINSIC_CUBEMAP_FACE_ID
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
