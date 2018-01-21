@@ -614,14 +614,14 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 // If you're not using the feature classification system, pass UINT_MAX.
 // Also, see comment in TileVariantToFeatureFlags. When we are the worse case (i.e last variant), we read the featureflags
 // from the structured buffer use to generate the indirect draw call. It allow to not go through all branch and the branch is scalar (not VGPR)
-uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
+uint DecodeFromGBuffer(uint2 positionSS, uint inTileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
 {
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID,
     // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     // Isolate material features.
-    tileFeatureFlags &= MATERIAL_FEATURE_MASK_FLAGS;
+    uint tileFeatureFlags = inTileFeatureFlags & MATERIAL_FEATURE_MASK_FLAGS;
 
     bsdfData.materialFeatures = tileFeatureFlags; // Only tile-uniform feature evaluation
 
@@ -652,7 +652,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // If tileFeatureFlags == UINT_MAX it mean we are call from deferred.shader (or a debug mode) that have no classification
     // in this case for the sake of performance saving we should rely on pixelFeatureFlags
     // TODO: validate that this doesn't hurst performance somewhere with classification
-    if (tileFeatureFlags == UINT_MAX)
+    if (inTileFeatureFlags == UINT_MAX)
         bsdfData.materialFeatures = pixelFeatureFlags;
 
     // Decompress feature-agnostic data from the G-Buffer.
