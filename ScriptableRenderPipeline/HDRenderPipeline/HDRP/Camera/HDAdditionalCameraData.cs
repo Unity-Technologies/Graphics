@@ -61,10 +61,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // otherwise it is the serialized m_FrameSettings that are used
         // This is required so each camera have its own debug settings even if they all use the RenderingPath.Default path
         // and important at Runtime as Default Camera from Scene Preview doesn't exist
+        // assetFrameSettingsIsDirty is the current dirty frame settings state of HDRenderPipelineAsset
+        // if it is dirty and camera use RenderingPath.Default, we need to update it
         // defaultFrameSettings are the settings store in the HDRenderPipelineAsset
-        public void UpdateDirtyFrameSettings(FrameSettings defaultFrameSettings)
+        public void UpdateDirtyFrameSettings(bool assetFrameSettingsIsDirty, FrameSettings defaultFrameSettings)
         {
-            if (m_frameSettingsIsDirty)
+            if (m_frameSettingsIsDirty || assetFrameSettingsIsDirty)
             {
                 // We do a copy of the settings to those effectively used
                 if (renderingPath == RenderingPath.Default)
@@ -86,7 +88,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Note that we register m_FrameSettingsRuntime, so manipulating it in the Debug windows
                 // doesn't affect the serialized version
-                FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
+                if (m_camera.cameraType != CameraType.Preview)
+                {
+                    FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
+                }
                 m_CameraRegisterName = m_camera.name;
                 m_IsDebugRegistered = true;
             }
@@ -96,7 +101,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_IsDebugRegistered)
             {
-                FrameSettings.UnRegisterDebug(m_CameraRegisterName);
+                if (m_camera.cameraType != CameraType.Preview)
+                {
+                    FrameSettings.UnRegisterDebug(m_CameraRegisterName);
+                }
                 m_IsDebugRegistered = false;
             }
         }

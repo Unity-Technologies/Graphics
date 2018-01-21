@@ -628,6 +628,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            // We first update the state of asset frame settings as they can be use by various camera
+            // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
+            bool assetFrameSettingsIsDirty = m_Asset.frameSettingsIsDirty;
+            m_Asset.UpdateDirtyFrameSettings();
+
             foreach (var camera in cameras)
             {
                 if (camera == null)
@@ -637,11 +642,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Note: the SceneView camera will never have additionalCameraData
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
-                // Get the effective frame settings for this camera (This is camera frame settings and debug settings)
+                // Init effective frame settings of each camera
+                // Each camera have its own debug frame settings control from the debug windows
+                // debug frame settings can't be aggregate with frame settings (i.e we can't aggregate forward only control for example)
+                // so debug settings (when use) are the effective frame settings
+                // To be able to have this behavior we init effective frame settings with serialized frame settings and copy
+                // debug settings change on top of it. Each time frame settings are change in the editor, we reset all debug settings
+                // to stay in sync. The loop below allow to update all frame settings correctly and is required because
+                // camera can rely on default frame settings from the HDRendeRPipelineAsset
                 FrameSettings srcFrameSettings;
                 if (additionalCameraData)
                 {
-                    additionalCameraData.UpdateDirtyFrameSettings(m_Asset.GetFrameSettings());
+                    additionalCameraData.UpdateDirtyFrameSettings(assetFrameSettingsIsDirty, m_Asset.GetFrameSettings());
                     srcFrameSettings = additionalCameraData.GetFrameSettings();
                 }
                 else
