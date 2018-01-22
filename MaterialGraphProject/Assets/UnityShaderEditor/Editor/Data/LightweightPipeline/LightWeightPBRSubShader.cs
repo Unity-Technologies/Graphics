@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             modelRequiements.requiresBitangent |= NeededCoordinateSpace.World;
             modelRequiements.requiresPosition |= NeededCoordinateSpace.World;
             modelRequiements.requiresViewDir |= NeededCoordinateSpace.World;
-            modelRequiements.requiresMeshUVs.Add(UVChannel.uv1);
+            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
             GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
