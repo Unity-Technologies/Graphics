@@ -24,6 +24,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public Material Mat
+        {
+            get { return this.m_Material; }
+        }
+
         public void OnEnable()
         {
             DecalSystem.instance.AddDecal(this);
@@ -83,15 +88,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DecalSystem.instance.UpdateBoundingSphere(this);
         }
 
+        public void OnDrawGizmos()
+        {
+            DrawGizmo(false);
+        }
+
         public bool IsValid()
         {
             if (m_Material == null)
                 return false;
-
-            if (!m_Material.GetTexture("_BaseColorMap") && !m_Material.GetTexture("_NormalMap") &&
-                !m_Material.GetTexture("_MaskMap"))
-                return false;
-
             return true;
         }
     }
