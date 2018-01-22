@@ -12,13 +12,14 @@ Pass
     #pragma prefer_hlslcc gles
     #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ENABLE STEREO_MULTIVIEW_ENABLE
     #pragma multi_compile_fog
+    #pragma multi_compile_instancing
 
 	#pragma vertex vert
     #pragma fragment frag
 
     // Lighting include is needed because of GI
-    #include "LWRP/Shaders/LightweightShaderLibrary/Core.hlsl"
-    #include "LWRP/Shaders/LightweightShaderLibrary/Lighting.hlsl"
+    #include "LWRP/ShaderLibrary/Core.hlsl"
+    #include "LWRP/ShaderLibrary/Lighting.hlsl"
     #include "CoreRP/ShaderLibrary/Color.hlsl"
     #include "ShaderGraphLibrary/Functions.hlsl"
 
