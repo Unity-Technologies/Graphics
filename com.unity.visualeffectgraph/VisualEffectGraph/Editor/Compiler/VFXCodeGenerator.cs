@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
@@ -237,7 +237,7 @@ namespace UnityEditor.VFX
             r.WriteLine("uint currentSumSpawnCount = 0u;");
             r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
             r.EnterScope();
-            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.kFloat), VFXAttributeLocation.Source));
+            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", VFXValueType.kFloat), VFXAttributeLocation.Source));
             r.WriteLine("if (id.x < currentSumSpawnCount)");
             r.EnterScope();
             r.WriteLine("break;");
@@ -511,9 +511,9 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, str, storeAttributes);
             }
 
-            foreach (var addionnalReplacement in context.additionnalReplacements)
+            foreach (var addionalReplacement in context.additionalReplacements)
             {
-                ReplaceMultiline(stringBuilder, addionnalReplacement.Key, addionnalReplacement.Value.builder);
+                ReplaceMultiline(stringBuilder, addionalReplacement.Key, addionalReplacement.Value.builder);
             }
 
             // Replace defines

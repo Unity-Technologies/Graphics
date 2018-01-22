@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -173,24 +173,10 @@ namespace UnityEditor.VFX
         private static VFXValueType ToValueType()
         {
             Type t = typeof(T);
-            if (t == typeof(float)) return VFXValueType.kFloat;
-            if (t == typeof(Vector2)) return VFXValueType.kFloat2;
-            if (t == typeof(Vector3)) return VFXValueType.kFloat3;
-            if (t == typeof(Vector4)) return VFXValueType.kFloat4;
-            if (t == typeof(int)) return VFXValueType.kInt;
-            if (t == typeof(uint)) return VFXValueType.kUint;
-            if (t == typeof(Texture2D)) return VFXValueType.kTexture2D;
-            if (t == typeof(Texture2DArray)) return VFXValueType.kTexture2DArray;
-            if (t == typeof(Texture3D)) return VFXValueType.kTexture3D;
-            if (t == typeof(Cubemap)) return VFXValueType.kTextureCube;
-            if (t == typeof(CubemapArray)) return VFXValueType.kTextureCubeArray;
-            if (t == typeof(Matrix4x4)) return VFXValueType.kTransform;
-            if (t == typeof(AnimationCurve)) return VFXValueType.kCurve;
-            if (t == typeof(Gradient)) return VFXValueType.kColorGradient;
-            if (t == typeof(Mesh)) return VFXValueType.kMesh;
-            if (t == typeof(System.Collections.Generic.List<Vector3>)) return VFXValueType.kSpline;
-            if (t == typeof(bool)) return VFXValueType.kBool;
-            throw new ArgumentException("Invalid type");
+            var valueType = GetVFXValueTypeFromType(t);
+            if (valueType == VFXValueType.kNone)
+                throw new ArgumentException("Invalid type");
+            return valueType;
         }
 
         static private readonly VFXValueType s_ValueType = ToValueType();

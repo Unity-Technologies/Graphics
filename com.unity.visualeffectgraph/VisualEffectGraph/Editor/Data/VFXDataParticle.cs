@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -248,7 +248,7 @@ namespace UnityEditor.VFX
             if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == UnityEngine.VFX.VFXValueType.kBool ? "uint" : "asuint");
+            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.kBool ? "uint" : "asuint");
         }
 
         public bool NeedsIndirectBuffer()
@@ -374,9 +374,12 @@ namespace UnityEditor.VFX
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                     uniformMappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
 
+                // Retrieve all cpu mappings at context level (-1)
+                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(expressionGraph.GetFlattenedIndex(exp.exp), exp.name));
+
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
-                taskDesc.parameters = contextData.parameters;
+                taskDesc.parameters = cpuMappings.Concat(contextData.parameters).ToArray();
                 taskDesc.processor = contextToCompiledData[context].processor;
 
                 taskDescs.Add(taskDesc);

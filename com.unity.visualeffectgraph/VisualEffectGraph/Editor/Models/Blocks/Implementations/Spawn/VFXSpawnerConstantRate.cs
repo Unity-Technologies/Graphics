@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerConstantRate; } }
         public class InputProperties
         {
+            [Min(0)]
             public float Rate = 10;
         }
     }
