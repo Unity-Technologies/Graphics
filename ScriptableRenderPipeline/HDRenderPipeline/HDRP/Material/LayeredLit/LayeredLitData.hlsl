@@ -282,28 +282,28 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 
 // In the case of subsurface profile index, the goal is to take the index with the hights weights.
 // Or the last found in case of equality.
-float BlendLayeredSSSprofile(float x0, float x1, float x2, float x3, float weight[4])
+float BlendLayeredDiffusionProfile(float x0, float x1, float x2, float x3, float weight[4])
 {
-    int sssProfileIndex = x0;
+    int diffusionProfileId = x0;
     float currentMax = weight[0];
 
-    sssProfileIndex = currentMax < weight[1] ? x1 : sssProfileIndex;
+    diffusionProfileId = currentMax < weight[1] ? x1 : diffusionProfileId;
     currentMax = max(currentMax, weight[1]);
 
 #if _LAYER_COUNT >= 3
-    sssProfileIndex = currentMax < weight[2] ? x2 : sssProfileIndex;
+    diffusionProfileId = currentMax < weight[2] ? x2 : diffusionProfileId;
     currentMax = max(currentMax, weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    sssProfileIndex = currentMax < weight[3] ? x3 : sssProfileIndex;
+    diffusionProfileId = currentMax < weight[3] ? x3 : diffusionProfileId;
 #endif
 
-    return sssProfileIndex;
+    return diffusionProfileId;
 }
 
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
-#define SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, name, mask) BlendLayeredSSSprofile(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
+#define SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, name, mask) BlendLayeredDiffusionProfile(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
@@ -714,16 +714,24 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
-    surfaceData.diffusionProfile = SURFACEDATA_BLEND_SSS_PROFILE(surfaceData, diffusionProfile, weights);
+    surfaceData.diffusionProfile = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfile, weights);
 
     // Layered shader support SSS and Transmission features
-    surfaceData.materialFeatures            = 0;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
-#ifdef _MATERIALFEATURE_SUBSURFACE_SCATTERING
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    // TEMP: The UI must control if we have transmission or not.
+    // Currently until we update the UI, this is control in the diffusion profile
+    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
+    // Caution: Because of this dynamic test we don't know anymore statically if we have transmission, which mess with performance.
+    // in deferred case as we still have both sss and transmission until we update the UI it should be the same perf
+    if (transmissionMode != TRANSMISSION_MODE_NONE)
+    {
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    }
 #endif
 
     // Init other parameters
