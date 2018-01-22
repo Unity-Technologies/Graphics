@@ -86,7 +86,7 @@ Pass
 	    o.clipPos = clipPos;
 
 #if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
-	    o.shadowCoord = ComputeShadowCoord(o.posWS.xyz);
+	    o.shadowCoord = ComputeShadowCoord(lwWorldPos);
 #else
 		o.shadowCoord = float4(0, 0, 0, 0);
 #endif
