@@ -52,7 +52,6 @@ TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
 TEXTURE2D_ARRAY(_Env2DTextures);
-float3 _Env2DCapturePositionWS[MAX_ENV2D_LIGHT];
 float4x4 _Env2DCaptureVP[MAX_ENV2D_LIGHT];
 
 TEXTURE2D(_DeferredShadowTexture);
@@ -122,7 +121,8 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     {
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
-            float2 ndc = ComputeNormalizedDeviceCoordinates(_Env2DCapturePositionWS[index] + texCoord, _Env2DCaptureVP[index]);
+            //_Env2DCaptureVP is in capture space
+            float2 ndc = ComputeNormalizedDeviceCoordinates(texCoord, _Env2DCaptureVP[index]);
             float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc, index, 0);
             // Discard pixels out of oblique projection
             // We only check RGB because the texture may have BC6H compression
