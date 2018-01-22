@@ -138,9 +138,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLine("Tile = fmod(Tile, Width*Height);");
                     s.AppendLine("{0}2 tileCount = {0}2(1.0, 1.0) / {0}2(Width, Height);", precision);
-                    s.AppendLine("{0} tileY = abs((Invert.y * Height) - floor(Tile * tileCount.x));", precision);
-                    s.AppendLine("{0} tileX = Tile - Width * floor(Tile * tileCount.x);", precision);
-                    s.AppendLine("Out = (UV + {0}2(abs((Width - 1) * Invert.x - tileX), tileY)) * tileCount;", precision);
+                    s.AppendLine("{0} tileY = abs(Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));", precision);
+                    s.AppendLine("{0} tileX = abs(Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));", precision);
+                    s.AppendLine("Out = (UV + {0}2(tileX, tileY)) * tileCount;", precision);
                 }
             });
         }
