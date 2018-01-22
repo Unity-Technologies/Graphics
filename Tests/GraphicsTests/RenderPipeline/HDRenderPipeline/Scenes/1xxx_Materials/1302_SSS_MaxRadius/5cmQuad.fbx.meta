@@ -1,14 +1,14 @@
 fileFormatVersion: 2
-guid: 003b412a0b1ef1e4c9038104f29ee2d4
+guid: 623687a12a1939644907378f2656f176
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
-    2100000: defaultMat
+    2100000: No Name
     2300000: //RootNode
     3300000: //RootNode
-    4300000: PerryHead
+    4300000: Quad
   externalObjects: {}
   materials:
     importMaterials: 1

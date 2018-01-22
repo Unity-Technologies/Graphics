@@ -306,10 +306,10 @@ Material:
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
     - _DiffusionProfile: 3
-    - _DiffusionProfile0: 13
-    - _DiffusionProfile1: 10
-    - _DiffusionProfile2: 11
-    - _DiffusionProfile3: 12
+    - _DiffusionProfile0: 10
+    - _DiffusionProfile1: 7
+    - _DiffusionProfile2: 8
+    - _DiffusionProfile3: 9
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
