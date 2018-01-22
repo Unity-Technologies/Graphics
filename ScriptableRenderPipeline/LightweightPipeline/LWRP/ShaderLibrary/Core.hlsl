@@ -14,7 +14,7 @@
 // Lightweight pipeline doesn't support point light shadows so they can't be //
 // classified as main light.                                                 //
 ///////////////////////////////////////////////////////////////////////////////
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
 #define _MAIN_LIGHT_DIRECTIONAL
 #endif
 
@@ -88,6 +88,14 @@ half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, h
 {
     half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
     return normalize(mul(normalTangent, tangentToWorld));
+}
+
+float4 ComputeScreenPos(float4 pos)
+{
+    float4 o = pos * 0.5f;
+    o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w;
+    o.zw = pos.zw;
+    return o;
 }
 
 half ComputeFogFactor(float z)
