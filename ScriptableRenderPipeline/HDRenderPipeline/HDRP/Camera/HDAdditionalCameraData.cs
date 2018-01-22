@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // For custom projection matrices
         // Set the proper getter
-        public NonObliqueProjectionGetter nonObliqueProjectionGetter = CameraUtils.CalculateProjectionMatrix;
+        public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
 
         public Matrix4x4 GetNonObliqueProjection(Camera camera)
         {

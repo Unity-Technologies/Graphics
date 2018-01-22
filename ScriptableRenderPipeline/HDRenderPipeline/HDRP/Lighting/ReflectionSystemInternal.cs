@@ -319,10 +319,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             capturePosition = probe.transform.TransformPoint(probe.captureLocalPosition);
             captureRotation = Quaternion.LookRotation((Vector3)probe.influenceToWorld.GetColumn(3) - capturePosition, probe.transform.up);
 
-            worldToCamera = CameraUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);
-            var clipPlane = CameraUtils.CameraSpacePlane(worldToCamera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
+            worldToCamera = GeometryUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);
+            var clipPlane = GeometryUtils.CameraSpacePlane(worldToCamera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
             projection = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
-            projection = CameraUtils.CalculateObliqueMatrix(projection, clipPlane);
+            projection = GeometryUtils.CalculateObliqueMatrix(projection, clipPlane);
         }
 
         static void CalculateMirroredCaptureCameraProperties(PlanarReflectionProbe probe, Camera viewerCamera, out float nearClipPlane, out float farClipPlane, out float aspect, out float fov, out CameraClearFlags clearFlags, out Color backgroundColor, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation)
@@ -336,13 +336,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             clearFlags = viewerCamera.clearFlags;
             backgroundColor = viewerCamera.backgroundColor;
 
-            var worldToCapture = CameraUtils.CalculateWorldToCameraMatrixRHS(viewerCamera.transform);
-            var reflectionMatrix = CameraUtils.CalculateReflectionMatrix(probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
+            var worldToCapture = GeometryUtils.CalculateWorldToCameraMatrixRHS(viewerCamera.transform);
+            var reflectionMatrix = GeometryUtils.CalculateReflectionMatrix(probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
             worldToCamera = worldToCapture * reflectionMatrix;
 
-            var clipPlane = CameraUtils.CameraSpacePlane(worldToCamera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
+            var clipPlane = GeometryUtils.CameraSpacePlane(worldToCamera, probe.captureMirrorPlanePosition, probe.captureMirrorPlaneNormal);
             var sourceProj = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
-            projection = CameraUtils.CalculateObliqueMatrix(sourceProj, clipPlane);
+            projection = GeometryUtils.CalculateObliqueMatrix(sourceProj, clipPlane);
 
             capturePosition = reflectionMatrix.MultiplyPoint(viewerCamera.transform.position);
 

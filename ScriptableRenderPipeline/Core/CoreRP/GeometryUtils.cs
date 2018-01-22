@@ -1,6 +1,6 @@
 ﻿namespace UnityEngine.Experimental.Rendering
 {
-    public static class CameraUtils
+    public static class GeometryUtils
     {
         public static readonly Matrix4x4 FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
