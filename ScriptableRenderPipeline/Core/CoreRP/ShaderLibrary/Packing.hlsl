@@ -409,32 +409,32 @@ void UnpackFloatInt(real val, real maxi, real precision, out real f, out uint i)
 }
 
 // Define various variante for ease of read
-real PackFloatUInt8bit(real f, uint i, real maxi)
+real PackFloatInt8bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 256.0);
 }
 
-void UnpackFloatUInt8bit(real val, real maxi, out real f, out uint i)
+void UnpackFloatInt8bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 256.0, f, i);
 }
 
-real PackFloatUInt10bit(real f, uint i, real maxi)
+real PackFloatInt10bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-void UnpackFloatUInt10bit(real val, real maxi, out real f, out uint i)
+void UnpackFloatInt10bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
 
-real PackFloatUInt16bit(real f, uint i, real maxi)
+real PackFloatInt16bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-void UnpackFloatUInt16bit(real val, real maxi, out real f, out uint i)
+void UnpackFloatInt16bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }
