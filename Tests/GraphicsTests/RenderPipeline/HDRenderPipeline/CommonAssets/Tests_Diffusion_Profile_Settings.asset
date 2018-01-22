@@ -78,39 +78,6 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 7
-    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
-    texturingMode: 0
-    transmissionMode: 0
-    thicknessRemap: {x: 0, y: 5}
-    worldScale: 1
-    ior: 1.4
-    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
-    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
-    lerpWeight: 1
-  - name: Profile 8
-    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
-    texturingMode: 0
-    transmissionMode: 0
-    thicknessRemap: {x: 0, y: 5}
-    worldScale: 1
-    ior: 1.4
-    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
-    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
-    lerpWeight: 1
-  - name: Profile 9
-    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
-    texturingMode: 0
-    transmissionMode: 0
-    thicknessRemap: {x: 0, y: 5}
-    worldScale: 1
-    ior: 1.4
-    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
-    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
-    lerpWeight: 1
   - name: Layer_1
     scatteringDistance: {r: 1, g: 0, b: 0, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
@@ -155,8 +122,8 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 14
-    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  - name: MaxRadius_1
+    scatteringDistance: {r: 0.09758736, g: 0, b: 0, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 0
@@ -166,8 +133,41 @@ MonoBehaviour:
     scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
     scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
     lerpWeight: 1
-  - name: Profile 15
-    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  - name: MaxRadius_5
+    scatteringDistance: {r: 0.48235294, g: 0, b: 0, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: MaxRadius_10
+    scatteringDistance: {r: 0.9646866, g: 0, b: 0, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: MaxRadius_15
+    scatteringDistance: {r: 1.4491405, g: 0, b: 0, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: MaxRadius_20
+    scatteringDistance: {r: 1.9321873, g: 0, b: 0, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
     transmissionMode: 0
