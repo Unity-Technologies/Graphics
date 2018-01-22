@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format(@"SAMPLER2D({0}){1}", referenceName, delimiter);
+            return string.Format(@"SAMPLER({0}){1}", referenceName, delimiter);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
+        private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -59,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
-
+            m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
 
             var content = new VisualElement { name = "content" };
@@ -77,6 +78,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
                 m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                 m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+
+                m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
 
                 m_GraphView.Add(m_GraphInspectorView);
 
@@ -121,6 +124,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             inspectorViewRect.height = Mathf.Min(inspectorViewRect.height, layout.height);
 
             m_GraphInspectorView.layout = inspectorViewRect;
+        }
+
+        void OnSpaceDown(KeyDownEvent evt)
+        {
+            if( evt.keyCode == KeyCode.Space)
+            {
+                if (graphView.nodeCreationRequest == null)
+                    return;
+
+                Vector2 referencePosition;
+                referencePosition = evt.imguiEvent.mousePosition;
+                Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
+
+                graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
+            }
         }
 
         void OnMouseDrag(Vector2 mouseDelta)

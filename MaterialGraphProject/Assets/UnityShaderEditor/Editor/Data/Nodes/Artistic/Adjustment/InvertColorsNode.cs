@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Channel", "Flip")]
-    public class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    [Title("Artistic", "Adjustment", "Invert Colors")]
+    public class InvertColorsNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
-        public FlipNode()
+        public InvertColorsNode()
         {
-            name = "Flip";
+            name = "Invert Colors";
             UpdateNodeAfterDeserialization();
         }
 
@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return "Unity_Flip_" + NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
+            return "Unity_InvertColors_" + NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0} _{1}_Flip = {0} ({2}",
+                sb.AppendLine("{0} _{1}_InvertColors = {0} ({2}",
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision),
                     GetVariableNameForNode(),
                     Convert.ToInt32(m_RedChannel));
@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph
                 sb.Append(");");
             }
 
-            sb.AppendLine("{0}({1}, _{2}_Flip, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
+            sb.AppendLine("{0}({1}, _{2}_InvertColors, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
 
             visitor.AddShaderChunk(sb.ToString(), false);
         }
@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.Add(new PreviewProperty(PropertyType.Vector4)
             {
-                name = string.Format("_{0}_Flip", GetVariableNameForNode()),
+                name = string.Format("_{0}_InvertColors", GetVariableNameForNode()),
                 vector4Value = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),
             });
         }
@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new Vector4ShaderProperty
             {
-                overrideReferenceName = string.Format("_{0}_Flip", GetVariableNameForNode()),
+                overrideReferenceName = string.Format("_{0}_InvertColors", GetVariableNameForNode()),
                 generatePropertyBlock = false
             });
         }
@@ -158,14 +158,14 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
-            sb.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
+            sb.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
                 GetFunctionName(),
                 FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
                 FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
                 FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
             using (sb.BlockScope())
             {
-                sb.AppendLine("Out = (Flip * -2 + 1) * In;");
+                sb.AppendLine("Out = abs(InvertColors - In);");
             }
             visitor.AddShaderChunk(sb.ToString(), true);
         }
@@ -174,14 +174,14 @@ namespace UnityEditor.ShaderGraph
         {
             registry.ProvideFunction(GetFunctionName(), s =>
             {
-                s.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
+                s.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
                     GetFunctionName(),
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
                 using (s.BlockScope())
                 {
-                    s.AppendLine("Out = (Flip * -2 + 1) * In;");
+                    s.AppendLine("Out = abs(InvertColors - In);");
                 }
             });
         }

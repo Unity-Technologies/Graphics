@@ -36,11 +36,11 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var colorValue = GetSlotValue(OutputSlotId, generationMode);
-            var densityValue = GetSlotValue(OutputSlot1Id, generationMode);
             visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId)), false);
             visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlot1Id)), false);
-            visitor.AddShaderChunk(string.Format("{0}(IN.{1}, {2}, {3});", GetFunctionName(), CoordinateSpace.Object.ToVariableName(InterpolatorType.Position), colorValue, densityValue), false);
+            visitor.AddShaderChunk(string.Format("{0}(IN.{1}, {2}, {3});", GetFunctionName(), 
+                CoordinateSpace.Object.ToVariableName(InterpolatorType.Position), 
+                GetVariableNameForSlot(OutputSlotId), GetVariableNameForSlot(OutputSlot1Id)), false);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)

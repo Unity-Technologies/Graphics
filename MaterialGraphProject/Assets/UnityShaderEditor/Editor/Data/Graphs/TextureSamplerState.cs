@@ -7,13 +7,16 @@ namespace UnityEditor.ShaderGraph
         public enum FilterMode
         {
             Linear,
-            Point
+            Point,
+            Trilinear
         }
 
         public enum WrapMode
         {
             Repeat,
-            Clamp
+            Clamp,
+            Mirror,
+            MirrorOnce
         }
 
         [SerializeField] private FilterMode m_filter = FilterMode.Linear;
