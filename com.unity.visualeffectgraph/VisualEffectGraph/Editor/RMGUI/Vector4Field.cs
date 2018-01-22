@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.UIElements
             m_Z = new LabeledField<FloatField, float>("Z");
             m_W = new LabeledField<FloatField, float>("W");
 
+            m_X.label.AddToClassList("first");
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
             m_Z.control.AddToClassList("fieldContainer");

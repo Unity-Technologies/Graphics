@@ -81,6 +81,11 @@ namespace UnityEditor.VFX.UIElements
             get { return m_Control; }
         }
 
+        public Label label
+        {
+            get { return m_Label; }
+        }
+
 
         public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
         {

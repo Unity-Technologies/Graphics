@@ -170,10 +170,10 @@ VFXParameterUI .value
 {
 	flex:1;
 }
-VFXParameterUI .label
+
+VFXParameterUI .propertyrm
 {
-	text-color:#c4c4c4;
-	width : 69;
+	margin-right:6;
 }
 
 VFXParameterUI #IconContainer

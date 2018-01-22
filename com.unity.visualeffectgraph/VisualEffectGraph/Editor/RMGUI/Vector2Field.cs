@@ -50,6 +50,7 @@ namespace UnityEditor.VFX.UIElements
             m_X = new LabeledField<FloatField, float>("X");
             m_Y = new LabeledField<FloatField, float>("Y");
 
+            m_X.label.AddToClassList("first");
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
             m_X.AddToClassList("fieldContainer");

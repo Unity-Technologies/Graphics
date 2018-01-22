@@ -16,6 +16,8 @@
     -flex:1;
     width:16;
 	height:16;
+	margin-left:4;
+	margin-right:8;
 }
 .propertyrm Button
 {
@@ -30,11 +32,6 @@
     text-color: rgb(153,153,153);
 	height:16;
 	margin-left:0;
-}
-
-.spaceablepropertyrm.propertyrm #label
-{
-	-margin-right:12px;
 }
 
 .spaceCamera
@@ -58,8 +55,6 @@
 .propertyrm .fieldContainer > *
 {
     flex:1;
-	margin-bottom:3;
-	margin-left:2;
 }
 
 #line
@@ -71,27 +66,36 @@
     text-color:#666;
 }
 
-.propertyrm .fieldContainer * .label
+.propertyrm .label
 {
     text-color:#888;
-    width:12;
 	flex:0;
     padding-left:2;
     text-alignment:middle-center;
+	margin-left:0;
+	padding-left:4;
+	margin-right:2;
+	padding-right:0;
 }
 
-.propertyrm .fieldContainer TextField
+.propertyrm .label.first
 {
-	margin-top:0;
-	margin-bottom:0;
-	margin-left:2;
-	margin-right:2;
+	padding-left:0;
 }
-.propertyrm .fieldContainer
+
+.propertyrm .fieldContainer, .propertyrm FloatField
 {
     -align-items: center;
     flex-direction:row;
     flex:1;
+
+	margin-left:0;
+	margin-right:0;
+	margin-top:0;
+	margin-bottom:0;
+	margin-left:0;
+	margin-right:0;
+	height:16;
 }
 
 BoolPropertyRM Toogle
@@ -123,7 +127,7 @@ ColorPropertyRM
 {
 	flex:1;
 }
-ColorPropertyRM .colorcontainer
+ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
 {
 	flex:1;
 	border-left-width:1;
@@ -138,11 +142,17 @@ ColorPropertyRM .colorcontainer
     margin-top:2;
     margin-bottom:2;
 }
+ColorPropertyRM FloatField
+{
+	flex:1;
+}
 
 ColorField
 {
     flex:1;
     flex-direction:row;
+	margin-left:0;
+	margin-right:0;
 }
 ColorPropertyRM OldFloatField TextField
 {

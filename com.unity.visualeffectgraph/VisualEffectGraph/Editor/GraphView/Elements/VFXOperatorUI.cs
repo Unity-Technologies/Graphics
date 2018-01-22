@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
-                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portLabelWidth = port.GetPreferredLabelWidth() + 1;
                 float portControlWidth = port.GetPreferredControlWidth();
 
                 if (labelWidth < portLabelWidth)

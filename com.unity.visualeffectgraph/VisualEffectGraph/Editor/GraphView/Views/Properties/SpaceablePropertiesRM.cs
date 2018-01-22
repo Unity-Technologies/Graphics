@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredLabelWidth()
         {
-            return base.GetPreferredLabelWidth() + m_Button.layout.width;
+            return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
         void OnButtonClick()
@@ -51,11 +51,16 @@ namespace UnityEditor.VFX.UI
             m_Button.SetEnabled(propertyEnabled);
         }
 
+        private float spaceButtonWidth
+        {
+            get { return m_Button != null ? m_Button.layout.width + m_Button.style.marginLeft +  +m_Button.style.marginRight : 28; }
+        }
+
         public override float effectiveLabelWidth
         {
             get
             {
-                return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
+                return m_labelWidth - spaceButtonWidth;
             }
         }
 
