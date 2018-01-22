@@ -110,6 +110,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE",
             "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT",
             "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT",
+            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT",
 
             "_MAIN_LIGHT_SPOT_SHADOW",
             "_MAIN_LIGHT_SPOT_SHADOW_SOFT"
@@ -447,16 +451,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return corners;
         }
 
+        //NOTE: Currently shader keywords are set before the forward pass, so the collect pass is one frame behind the current keyword.
         private void ShadowCollectPass(ref ScriptableRenderContext context, List<VisibleLight> lights, ref LightData lightData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
-            //Reciever constants set up here in case of screen space shadows.
-            SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
-
+            SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); //Reciever constants set up here in case of screen space shadows.
             cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-            cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners());
-            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial); 
+            cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners()); //TODO: Move to a constant buffer. Shadow or Camera?
+            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -1117,6 +1120,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     m_MainLightKeywordString.Append("_DIRECTIONAL_SHADOW");
                     if (m_Asset.CascadeCount > 1)
                         m_MainLightKeywordString.Append("_CASCADE");
+
+                    if(m_Asset.UsesScreenSpaceShadows)
+                        m_MainLightKeywordString.Append("_SCREEN");
                 }
                 else
                 {
@@ -1134,8 +1140,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
-            CoreUtils.SetKeyword(cmd, "_SCREEN_SPACE_SHADOWS", m_RequireDepthTexture && m_Asset.UsesScreenSpaceShadows);
-
+           
             bool linearFogModeEnabled = false;
             bool exponentialFogModeEnabled = false;
             if (RenderSettings.fog)

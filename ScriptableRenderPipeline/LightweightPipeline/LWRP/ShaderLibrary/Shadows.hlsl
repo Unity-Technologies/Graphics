@@ -12,21 +12,28 @@
 // In order to reduce shader variations main light keywords were combined    //
 // here we define shadow keywords.                                           //
 ///////////////////////////////////////////////////////////////////////////////
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
     #define _SHADOWS_ENABLED
 #endif
 
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
     #define _SHADOWS_SOFT
 #endif
 
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
     #define _SHADOWS_CASCADE
 #endif
 
 #if defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
     #define _SHADOWS_PERSPECTIVE
 #endif
+
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
+    #define _SHADOWS_SCREEN
+#endif
+
+TEXTURE2D(_ScreenSpaceShadowMap);
+SAMPLER(sampler_ScreenSpaceShadowMap);
 
 TEXTURE2D_SHADOW(_ShadowMap);
 SAMPLER_CMP(sampler_ShadowMap);
@@ -45,6 +52,12 @@ half4       _ShadowOffset3;
 half4       _ShadowData;    // (x: shadowStrength)
 float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
+
+inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
+{
+    //NOTE: No macro for proj sample?
+    return SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy / shadowCoord.w);
+}
 
 inline half SampleShadowmap(float4 shadowCoord)
 {
@@ -137,11 +150,14 @@ half RealtimeShadowAttenuation(float3 positionWS, float4 shadowCoord)
     return 1.0;
 #endif
 
-#ifdef _SHADOWS_CASCADE
-    shadowCoord = ComputeShadowCoord(positionWS);
+#ifdef _SHADOWS_SCREEN
+    return SampleScreenSpaceShadowMap(shadowCoord);
+#else
+    #ifdef _SHADOWS_CASCADE
+        shadowCoord = ComputeShadowCoord(positionWS);
+    #endif
+        return SampleShadowmap(shadowCoord);
 #endif
-
-    return SampleShadowmap(shadowCoord);
 }
 
 #endif
