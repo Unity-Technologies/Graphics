@@ -24,21 +24,30 @@ Pass
     #pragma multi_compile _ _ADDITIONAL_LIGHTS
     #pragma multi_compile _ _VERTEX_LIGHTS
     #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+    #pragma multi_compile _ FOG_LINEAR FOG_EXP2
 
     // -------------------------------------
     // Unity defined keywords
     #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
-    #pragma multi_compile _ LIGHTMAP_ON
-    #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-    #pragma multi_compile_fog
+    #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
+
+    //--------------------------------------
+    // GPU Instancing
+    #pragma multi_compile_instancing
+
+    // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
+    // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
+    #ifdef DIRLIGHTMAP_COMBINED
+    #define LIGHTMAP_ON
+    #endif
 
     #pragma vertex vert
 	#pragma fragment frag
 
 	${Defines}
 
-	#include "LWRP/Shaders/LightweightShaderLibrary/Core.hlsl"
-	#include "LWRP/Shaders/LightweightShaderLibrary/Lighting.hlsl"
+	#include "LWRP/ShaderLibrary/Core.hlsl"
+	#include "LWRP/ShaderLibrary/Lighting.hlsl"
 	#include "CoreRP/ShaderLibrary/Color.hlsl"
 	#include "ShaderGraphLibrary/Functions.hlsl"
 
@@ -46,9 +55,10 @@ Pass
 
 	struct GraphVertexOutput
     {
-        float4 clipPos : SV_POSITION;
-        float4 lightmapUVOrVertexSH : TEXCOORD0;
+        float4 clipPos                : SV_POSITION;
+        float4 lightmapUVOrVertexSH   : TEXCOORD0;
 		half4 fogFactorAndVertexLight : TEXCOORD1; // x: fogFactor, yzw: vertex light
+    	float4 shadowCoord            : TEXCOORD2;
         ${Interpolators}
     };
 
@@ -75,6 +85,12 @@ Pass
 	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 	    o.clipPos = clipPos;
 
+#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
+	    o.shadowCoord = ComputeShadowCoord(lwWorldPos);
+#else
+		o.shadowCoord = float4(0, 0, 0, 0);
+#endif
+
 		return o;
 	}
 
@@ -89,7 +105,7 @@ Pass
 
 		float3 Albedo = float3(0.5, 0.5, 0.5);
 		float3 Specular = float3(0, 0, 0);
-		float Metallic = 0;
+		float Metallic = 1;
 		float3 Normal = float3(0, 0, 1);
 		float3 Emission = 0;
 		float Smoothness = 0.5;
@@ -99,30 +115,44 @@ Pass
 
         ${SurfaceOutputRemap}
 
-#if _NORMALMAP
-    half3 normalWS = TangentToWorldNormal(Normal, WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal);
+		InputData inputData;
+		inputData.positionWS = WorldSpacePosition;
+
+#ifdef _NORMALMAP
+	    inputData.normalWS = TangentToWorldNormal(Normal, WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal);
 #else
-    half3 normalWS = normalize(WorldSpaceNormal);
+	    inputData.normalWS = normalize(WorldSpaceNormal);
 #endif
 
-	half3 indirectDiffuse = SampleGI(IN.lightmapUVOrVertexSH, normalWS);
+#ifdef SHADER_API_MOBILE
+	    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
+	    inputData.viewDirectionWS = WorldSpaceViewDirection;
+#else
+	    inputData.viewDirectionWS = normalize(WorldSpaceViewDirection);
+#endif
 
-	half4 color = LightweightFragmentPBR(
-			WorldSpacePosition,
-			normalWS,
-			WorldSpaceViewDirection,
-			indirectDiffuse,
-			IN.fogFactorAndVertexLight.yzw,
-			Albedo,
-			Metallic,
-			Specular,
-			Smoothness,
-			Occlusion,
-			Emission,
+#ifdef _SHADOWS_ENABLED
+	    inputData.shadowCoord = IN.shadowCoord;
+#else
+	    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
+
+	    inputData.fogCoord = IN.fogFactorAndVertexLight.x;
+	    inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+	    inputData.bakedGI = SampleGI(IN.lightmapUVOrVertexSH, inputData.normalWS);
+
+		half4 color = LightweightFragmentPBR(
+			inputData, 
+			Albedo, 
+			Metallic, 
+			Specular, 
+			Smoothness, 
+			Occlusion, 
+			Emission, 
 			Alpha);
 
-	// Computes fog factor per-vertex
-    ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
+		// Computes fog factor per-vertex
+    	ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
 
 #if _AlphaOut
 		color.a = Alpha;
