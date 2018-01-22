@@ -216,8 +216,7 @@
     #endif
 
     #if defined(UNITY_INSTANCED_SH) && !defined(LIGHTMAP_ON)
-        //In HDRenderpipe we only decide to look at probe data based on Lightmap flags.
-        #if !defined(DYNAMICLIGHTMAP_ON) 
+        #if !defined(DYNAMICLIGHTMAP_ON)
             #define UNITY_USE_SHCOEFFS_ARRAYS
         #endif
         #if defined(SHADOWS_SHADOWMASK)
@@ -286,16 +285,6 @@
 
     #undef UNITY_MATRIX_I_M
     #define UNITY_MATRIX_I_M     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
-
-    inline float4 UnityObjectToClipPosInstanced(in float3 pos)
-    {
-        return mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(pos, 1.0)));
-    }
-    inline float4 UnityObjectToClipPosInstanced(float4 pos)
-    {
-        return UnityObjectToClipPosInstanced(pos.xyz);
-    }
-    #define UnityObjectToClipPos UnityObjectToClipPosInstanced
 
 #else // UNITY_INSTANCING_ENABLED
 
