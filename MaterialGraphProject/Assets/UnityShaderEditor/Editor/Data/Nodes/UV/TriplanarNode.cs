@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         public const int TileInputId = 5;
         public const int BlendInputId = 6;
         const string kOutputSlotName = "Out";
-        const string kTextureInputName = "Tex";
+        const string kTextureInputName = "Texture";
         const string kSamplerInputName = "Sampler";
         const string kPositionInputName = "Position";
         const string kNormalInputName = "Normal";
