@@ -81,7 +81,7 @@ Pass
  		// We either sample GI from lightmap or SH. lightmap UV and vertex SH coefficients
 	    // are packed in lightmapUVOrVertexSH to save interpolator.
 	    // The following funcions initialize
-	    OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUVOrVertexSH);
+	    OUTPUT_LIGHTMAP_UV(v.texcoord1, unity_LightmapST, o.lightmapUVOrVertexSH);
 	    OUTPUT_SH(lwWNormal, o.lightmapUVOrVertexSH);
 
 	    half3 vertexLight = VertexLighting(lwWorldPos, lwWNormal);
