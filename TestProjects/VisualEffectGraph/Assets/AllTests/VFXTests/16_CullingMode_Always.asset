@@ -5018,7 +5018,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 61
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 0a5ca6e94d864e342a9ea068c51a2a2b, type: 3}
+      processor: {fileID: 7200000, guid: 7f9b2cbb0954c994bac300b7dc6ab8b9, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5045,7 +5045,7 @@ VFXAsset:
       - index: 55
         nameId: LifetimeLoss_c
       params: []
-      processor: {fileID: 7200000, guid: 3f6f57bcae83e264eb1ae96e37c4dd1e, type: 3}
+      processor: {fileID: 7200000, guid: 73939a5b1c582fe41a4bd179a2a9dbe3, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5060,7 +5060,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7cf629387418b3748aec152448719053, type: 3}
+      processor: {fileID: 4800000, guid: 3bcdff2ca6ba55c4882d30e35e227139, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

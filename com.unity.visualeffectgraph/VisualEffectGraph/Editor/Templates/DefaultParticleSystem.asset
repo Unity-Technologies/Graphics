@@ -1694,7 +1694,11 @@ VFXAsset:
         nameId: Min_d
       - index: 21
         nameId: Max_d
-      params: []
+      params:
+      - index: 32
+        nameId: bounds_center
+      - index: 28
+        nameId: bounds_size
       processor: {fileID: 7200000, guid: 3d0080bf1b3c07a498a51dd51217050d, type: 3}
     - type: 805306368
       buffers:
