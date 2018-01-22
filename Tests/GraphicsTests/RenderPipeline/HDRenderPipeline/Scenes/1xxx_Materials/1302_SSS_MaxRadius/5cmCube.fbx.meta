@@ -1,14 +1,14 @@
 fileFormatVersion: 2
-guid: 003b412a0b1ef1e4c9038104f29ee2d4
+guid: e3d03de02188b88428c03d8dca44f18e
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
-    2100000: defaultMat
+    2100000: No Name
     2300000: //RootNode
     3300000: //RootNode
-    4300000: PerryHead
+    4300000: Cube
   externalObjects: {}
   materials:
     importMaterials: 1
