@@ -155,14 +155,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (instanceCount == kDrawIndexedBatchSize)
                     {
                         m_PropertyBlock.SetMatrixArray(m_NormalToWorldID, m_InstanceNormalToWorld);
-                        cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Decals[0].m_Material, 0, m_InstanceMatrices, kDrawIndexedBatchSize, m_PropertyBlock);
+                        cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_InstanceMatrices, kDrawIndexedBatchSize, m_PropertyBlock);
                         instanceCount = 0;
                     }
                 }
                 if (instanceCount > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(m_NormalToWorldID, m_InstanceNormalToWorld);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Decals[0].m_Material, 0, m_InstanceMatrices, instanceCount, m_PropertyBlock);                    
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_InstanceMatrices, instanceCount, m_PropertyBlock);                    
                 }
             }
 
