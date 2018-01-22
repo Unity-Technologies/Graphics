@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         public ColorRGBASlotControlView(ColorRGBAMaterialSlot slot)
         {
             m_Slot = slot;
-            var colorField = new ColorField { value = slot.value };
+            var colorField = new ColorField { value = slot.value, showEyeDropper = false };
             colorField.OnValueChanged(OnValueChanged);
             Add(colorField);
         }

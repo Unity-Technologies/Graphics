@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
         void ValidateChannelCount()
         {
             int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-            if (channelMask > 1 << channelCount - 1)
+            if (channelMask >= 1 << channelCount)
                 channelMask = -1;
         }
 

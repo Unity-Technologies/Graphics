@@ -39,6 +39,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         Slider m_GreenSlider;
         Slider m_BlueSlider;
 
+        FloatField m_RedInputField;
+        FloatField m_GreenInputField;
+        FloatField m_BlueInputField;
+
         float m_Minimum;
         float m_Maximum;
         bool m_Initialized;
@@ -60,32 +64,54 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
 
+            var buttonPanel = new VisualElement { name = "buttonPanel" };
+
             Action changedOutputRed = () => OnClickButton(0);
             var outputButtonRed = new Button(changedOutputRed);
-            Add(outputButtonRed);
+            outputButtonRed.Add(new Label("R"));
+            buttonPanel.Add(outputButtonRed);
 
             Action changedOutputGreen = () => OnClickButton(1);
             var outputButtonGreen = new Button(changedOutputGreen);
-            Add(outputButtonGreen);
+            outputButtonGreen.Add(new Label("G"));
+            buttonPanel.Add(outputButtonGreen);
 
             Action changedOutputBlue = () => OnClickButton(2);
             var outputButtonBlue = new Button(changedOutputBlue);
-            Add(outputButtonBlue);
+            outputButtonBlue.Add(new Label("B"));
+            buttonPanel.Add(outputButtonBlue);
 
-            Add(new Label("Red"));
+            Add(buttonPanel);
+            
+            var redSliderPanel = new VisualElement { name = "sliderPanel" };
+            redSliderPanel.Add(new Label("R"));
             Action<float> changedRedIn = (s) => { OnChangeSlider(s, 0); };
             m_RedSlider = new Slider(m_Minimum, m_Maximum, changedRedIn);
-            Add(m_RedSlider);
+            redSliderPanel.Add(m_RedSlider);
+            m_RedInputField = new FloatField { value = m_ChannelMixer.outRed.x };
+            m_RedInputField.RegisterCallback<ChangeEvent<double>, int>(OnChangeInputField, 0);
+            redSliderPanel.Add(m_RedInputField);
+            Add(redSliderPanel);
 
-            Add(new Label("Green"));
+            var greenSliderPanel = new VisualElement { name = "sliderPanel" };
+            greenSliderPanel.Add(new Label("G"));
             Action<float> changedGreenIn = (s) => { OnChangeSlider(s, 1); };
             m_GreenSlider = new Slider(m_Minimum, m_Maximum, changedGreenIn);
-            Add(m_GreenSlider);
+            greenSliderPanel.Add(m_GreenSlider);
+            m_GreenInputField = new FloatField { value = m_ChannelMixer.outRed.y };
+            m_GreenInputField.RegisterCallback<ChangeEvent<double>, int>(OnChangeInputField, 1);
+            greenSliderPanel.Add(m_GreenInputField);
+            Add(greenSliderPanel);
 
-            Add(new Label("Blue"));
+            var blueSliderPanel = new VisualElement { name = "sliderPanel" };
+            blueSliderPanel.Add(new Label("B"));
             Action<float> changedBlueIn = (s) => { OnChangeSlider(s, 2); };
             m_BlueSlider = new Slider(m_Minimum, m_Maximum, changedBlueIn);
-            Add(m_BlueSlider);
+            blueSliderPanel.Add(m_BlueSlider);
+            m_BlueInputField = new FloatField { value = m_ChannelMixer.outRed.z };
+            m_BlueInputField.RegisterCallback<ChangeEvent<double>, int>(OnChangeInputField, 2);
+            blueSliderPanel.Add(m_BlueInputField);
+            Add(blueSliderPanel);
 
             m_Initialized = true;
             ResetSliders();
@@ -116,7 +142,53 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_ChannelMixer.outRed[inChannel] = value;
                     break;
             }
+            switch(inChannel)
+            {
+                case 1:
+                    m_GreenInputField.value = value;
+                    break;
+                case 2:
+                    m_BlueInputField.value = value;
+                    break;
+                default:
+                    m_RedInputField.value = value;
+                    break;
+            }
             m_PropertyInfo.SetValue(m_Node, m_ChannelMixer, null);
+        }
+
+        void OnChangeInputField(ChangeEvent<double> evt, int inChannel)
+        {
+            if (!m_Initialized)
+                return;
+            var value = Mathf.Max(Mathf.Min((float)evt.newValue, m_Maximum), m_Minimum);
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Input Field Change");
+            switch (m_OutChannel)
+            {
+                case 1:
+                    m_ChannelMixer.outGreen[inChannel] = value;
+                    break;
+                case 2:
+                    m_ChannelMixer.outBlue[inChannel] = value;
+                    break;
+                default:
+                    m_ChannelMixer.outRed[inChannel] = value;
+                    break;
+            }
+            switch(inChannel)
+            {
+                case 1:
+                    m_GreenSlider.value = value;
+                    break;
+                case 2:
+                    m_BlueSlider.value = value;
+                    break;
+                default:
+                    m_RedSlider.value = value;
+                    break;
+            }
+            m_PropertyInfo.SetValue(m_Node, m_ChannelMixer, null);
+            Dirty(ChangeType.Repaint);
         }
 
         void OnClickButton(int outChannel)
