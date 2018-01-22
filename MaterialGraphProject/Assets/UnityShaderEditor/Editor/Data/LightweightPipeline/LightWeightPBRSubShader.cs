@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -64,6 +63,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
                 vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
             
+            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", true);
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
         }
@@ -159,7 +159,6 @@ namespace UnityEditor.ShaderGraph
             var cullingVisitor = new ShaderGenerator();
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
-
 
             materialOptions.GetBlend(blendingVisitor);
             materialOptions.GetCull(cullingVisitor);

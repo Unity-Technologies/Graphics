@@ -60,6 +60,7 @@ Pass
 		half4 fogFactorAndVertexLight : TEXCOORD1; // x: fogFactor, yzw: vertex light
     	float4 shadowCoord            : TEXCOORD2;
         ${Interpolators}
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     GraphVertexOutput vert (GraphVertexInput v)
@@ -67,6 +68,9 @@ Pass
 	    v = PopulateVertexData(v);
 
         GraphVertexOutput o = (GraphVertexOutput)0;
+
+        UNITY_SETUP_INSTANCE_ID(v);
+    	UNITY_TRANSFER_INSTANCE_ID(v, o);
 
         ${VertexShader}
 
@@ -96,6 +100,9 @@ Pass
 
 	half4 frag (GraphVertexOutput IN) : SV_Target
     {
+
+    	UNITY_SETUP_INSTANCE_ID(IN);
+
     	${LocalPixelShader}
 
         SurfaceInputs surfaceInput = (SurfaceInputs)0;
