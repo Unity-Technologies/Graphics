@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor;
@@ -16,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Create an instance of the MaterialEditor
             m_DecalProjectorComponent = (DecalProjectorComponent)target;
-            m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);    
+            m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
         }
 
         public override void OnInspectorGUI()
@@ -35,8 +36,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Required to call m_MaterialEditor.OnInspectorGUI ();
                 m_MaterialEditor.DrawHeader();
 
-                //  We need to prevent the user to edit Unity default materials
-                bool isDefaultMaterial = !AssetDatabase.GetAssetPath(m_DecalProjectorComponent.Mat).StartsWith("Assets");
+                // We need to prevent the user to edit default decal materials
+                bool isDefaultMaterial = false;
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                if (hdrp != null)
+                {
+                    isDefaultMaterial = m_DecalProjectorComponent.Mat == hdrp.GetDefaultDecalMaterial();
+                }
                 using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
                 {
                     // Draw the material properties
