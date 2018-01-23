@@ -536,8 +536,11 @@ namespace UnityEditor.VFX.UI
         {
             (panel as BaseVisualElementPanel).scheduler.ScheduleOnce(
                 t => {
-                    (panel as BaseVisualElementPanel).ValidateLayout();
-                    FrameAll();
+                    if (panel != null)
+                    {
+                        (panel as BaseVisualElementPanel).ValidateLayout();
+                        FrameAll();
+                    }
                 }
                 ,
                 10
