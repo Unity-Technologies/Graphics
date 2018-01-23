@@ -347,6 +347,7 @@ GraphInspectorView {
     position-right: 0;
     position-top: 0;
     width: 400;
+    min-width: 300;
 }
 
 GraphInspectorView * {
@@ -435,6 +436,8 @@ MasterNodeView {
     position-bottom: 0;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
+    min-width: 200;
+    min-height: 200;
 }
 
 MasterNodeView > #top {

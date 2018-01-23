@@ -110,6 +110,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Vector2 normalizedResizeDelta = resizeDelta / 2f;
 
+            Vector2 minSize = new Vector2(60f, 60f);
+
+            if (!Mathf.Approximately(m_ResizeTarget.style.minWidth.value, 0f))
+            {
+                minSize.x = m_ResizeTarget.style.minWidth;
+            }
+
+            if (!Mathf.Approximately(m_ResizeTarget.style.minHeight.value, 0f))
+            {
+                minSize.y = m_ResizeTarget.style.minHeight.value;
+            }
+
             if (direction == ResizeDirection.Vertical)
             {
                 normalizedResizeDelta.x = 0f;
@@ -124,24 +136,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Resize form bottom/right
             if (!moveWhileResizeHorizontal)
             {
-                newLayout.width = Mathf.Max(newLayout.width + normalizedResizeDelta.x, 60f);
+                newLayout.width = Mathf.Max(newLayout.width + normalizedResizeDelta.x, minSize.x);
                 normalizedResizeDelta.x = 0f;
             }
 
             if (!moveWhileresizerVertical)
             {
-                newLayout.height = Mathf.Max(newLayout.height + normalizedResizeDelta.y, 60f);
+                newLayout.height = Mathf.Max(newLayout.height + normalizedResizeDelta.y, minSize.y);
                 normalizedResizeDelta.y = 0f;
             }
 
             float previousFarX = m_ResizeTarget.layout.x + m_ResizeTarget.layout.width;
             float previousFarY = m_ResizeTarget.layout.y + m_ResizeTarget.layout.height;
 
-            newLayout.width = Mathf.Max(newLayout.width - normalizedResizeDelta.x, 60f);
-            newLayout.height = Mathf.Max(newLayout.height - normalizedResizeDelta.y, 60f);
+            newLayout.width = Mathf.Max(newLayout.width - normalizedResizeDelta.x, minSize.x);
+            newLayout.height = Mathf.Max(newLayout.height - normalizedResizeDelta.y, minSize.y);
 
-            newLayout.x = Mathf.Min(newLayout.x + normalizedResizeDelta.x, previousFarX - 60f);
-            newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - 60f);
+            newLayout.x = Mathf.Min(newLayout.x + normalizedResizeDelta.x, previousFarX - minSize.x);
+            newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - minSize.y);
 
             m_ResizeTarget.layout = newLayout;
         }
