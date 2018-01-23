@@ -15,7 +15,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
+
         MasterNodeView m_MasterNodeView;
+
+        private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -60,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
-
+            m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
 
             var content = new VisualElement { name = "content" };
@@ -75,6 +78,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 content.Add(m_GraphView);
 
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
+
+                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+
+                m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
+
                 m_GraphView.Add(m_GraphInspectorView);
 
                 m_MasterNodeView = new MasterNodeView(assetName, previewManager, graph) { name = "masterNodePreview" };
@@ -100,6 +108,42 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        void OnPostLayout(PostLayoutEvent evt)
+        {
+            const float minimumVisibility = 60f;
+
+            Rect inspectorViewRect = m_GraphInspectorView.layout;
+
+            float minimumXPosition = minimumVisibility - inspectorViewRect.width;
+            float maximumXPosition = m_GraphView.layout.width - minimumVisibility;
+
+            float minimumYPosition = minimumVisibility - inspectorViewRect.height;
+            float maximumYPosition = m_GraphView.layout.height - minimumVisibility;
+
+            inspectorViewRect.x = Mathf.Clamp(inspectorViewRect.x, minimumXPosition, maximumXPosition);
+            inspectorViewRect.y = Mathf.Clamp(inspectorViewRect.y, minimumYPosition, maximumYPosition);
+
+            inspectorViewRect.width = Mathf.Min(inspectorViewRect.width, layout.width);
+            inspectorViewRect.height = Mathf.Min(inspectorViewRect.height, layout.height);
+
+            m_GraphInspectorView.layout = inspectorViewRect;
+        }
+
+        void OnSpaceDown(KeyDownEvent evt)
+        {
+            if( evt.keyCode == KeyCode.Space)
+            {
+                if (graphView.nodeCreationRequest == null)
+                    return;
+
+                Vector2 referencePosition;
+                referencePosition = evt.imguiEvent.mousePosition;
+                Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
+
+                graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
+            }
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)

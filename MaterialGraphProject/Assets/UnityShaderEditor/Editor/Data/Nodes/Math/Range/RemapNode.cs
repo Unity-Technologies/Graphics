@@ -17,8 +17,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Remap(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] Vector2 InMinMax,
+            [Slot(0, Binding.None, -1, -1, -1, -1)] DynamicDimensionVector In,
+            [Slot(1, Binding.None, -1, 1, 0, 0)] Vector2 InMinMax,
             [Slot(2, Binding.None, 0, 1, 0, 0)] Vector2 OutMinMax,
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {

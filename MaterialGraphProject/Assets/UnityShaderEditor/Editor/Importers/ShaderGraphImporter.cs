@@ -8,7 +8,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 
-[ScriptedImporter(1, ShaderGraphImporter.ShaderGraphExtension)]
+[ScriptedImporter(4, ShaderGraphImporter.ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
 {
     public const string ShaderGraphExtension = "shadergraph";
