@@ -768,7 +768,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
 #endif
 
+#ifndef _DISABLE_DBUFFER
     AddDecalContribution(posInput.positionSS, surfaceData);
+#endif
 
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
