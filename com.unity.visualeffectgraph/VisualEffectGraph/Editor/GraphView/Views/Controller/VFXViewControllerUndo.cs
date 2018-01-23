@@ -22,11 +22,11 @@ namespace UnityEditor.VFX.UI
             m_graphUndoCursor = ScriptableObject.CreateInstance<VFXGraphUndoCursor>();
 
             m_graphUndoCursor.hideFlags = HideFlags.HideAndDontSave;
-            m_undoStack = new SortedDictionary<int, string>();
+            m_undoStack = new SortedDictionary<int, SerializedState>();
 
             m_graphUndoCursor.index = 0;
             m_lastGraphUndoCursor = 0;
-            m_undoStack.Add(0, initialState.Backup());
+            m_undoStack.Add(0, new SerializedState() {serializedGraph = initialState.Backup()});
             m_Graph = initialState;
         }
 
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
                 m_undoStack.Remove(lastCursorInStack);
                 lastCursorInStack = m_undoStack.Last().Key;
             }
-            m_undoStack.Add(m_graphUndoCursor.index, graph.Backup());
+            m_undoStack.Add(m_graphUndoCursor.index, new SerializedState() {serializedGraph = graph.Backup()});
         }
 
         public void CleanDirtyState()
@@ -62,16 +62,41 @@ namespace UnityEditor.VFX.UI
 
         public void RestoreCurrentGraphState()
         {
-            string refGraph = null;
+            SerializedState refGraph = null;
             if (!m_undoStack.TryGetValue(m_graphUndoCursor.index, out refGraph))
             {
                 throw new Exception(string.Format("Unable to retrieve current state at : {0} (max {1})", m_graphUndoCursor.index, m_undoStack.Last().Key));
             }
-            m_Graph.Restore(refGraph);
+            m_Graph.Restore(refGraph.serializedGraph);
+            if (refGraph.slotDeltas != null)
+            {
+                foreach (var kv in refGraph.slotDeltas)
+                {
+                    kv.Key.value = kv.Value;
+                }
+            }
+        }
+
+        public void AddSlotDelta(VFXSlot slot)
+        {
+            SerializedState state = null;
+            if (m_undoStack.TryGetValue(m_lastGraphUndoCursor, out state))
+            {
+                if (state.slotDeltas == null)
+                    state.slotDeltas = new Dictionary<VFXSlot, object>();
+                state.slotDeltas[slot] = slot.value;
+            }
+        }
+
+        class SerializedState
+        {
+            public string serializedGraph;
+            public Dictionary<VFXSlot, object> slotDeltas;
         }
 
         [NonSerialized]
-        private SortedDictionary<int, string> m_undoStack;
+        private SortedDictionary<int, SerializedState> m_undoStack;
+
         [NonSerialized]
         private VFXGraphUndoCursor m_graphUndoCursor;
         [NonSerialized]
@@ -97,6 +122,12 @@ namespace UnityEditor.VFX.UI
 
         public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
         {
+            if (cause == VFXModel.InvalidationCause.kParamChanged && model is VFXSlot)
+            {
+                m_graphUndoStack.AddSlotDelta(model as VFXSlot);
+                return;
+            }
+
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kConnectionChanged &&
                 cause != VFXModel.InvalidationCause.kParamChanged &&

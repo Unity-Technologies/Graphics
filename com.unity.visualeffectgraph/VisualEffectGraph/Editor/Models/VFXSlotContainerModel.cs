@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
         void UpdateOutputExpressions();
 
         void Invalidate(VFXModel.InvalidationCause cause);
+        void Invalidate(VFXModel model, VFXModel.InvalidationCause cause);
 
         void SetSettingValue(string name, object value);
 
@@ -126,6 +127,11 @@ namespace UnityEditor.VFX
                 if (notify)
                     Invalidate(InvalidationCause.kStructureChanged);
             }
+        }
+
+        void IVFXSlotContainer.Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            Invalidate(model, cause);
         }
 
         public virtual void RemoveSlot(VFXSlot slot) { InnerRemoveSlot(slot, true); }
