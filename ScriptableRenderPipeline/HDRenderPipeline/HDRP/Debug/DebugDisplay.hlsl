@@ -8,6 +8,7 @@
 #include "MipMapDebug.cs.hlsl"
 #include "ColorPickerDebug.cs.hlsl"
 
+CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
@@ -15,6 +16,7 @@ int _DebugMipMapMode; // Match enum DebugMipMapMode
 float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 float4 _MousePixelCoord;  // xy unorm, zw norm
+CBUFFER_END
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
 
@@ -70,6 +72,13 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 #endif
             break;
 
+        case DEBUGVIEWPROPERTIES_INSTANCING:
+#if defined(UNITY_INSTANCING_ENABLED)
+            result = float3(1.0, 0.0, 0.0);
+#else
+            result = float3(0.0, 0.0, 0.0);
+#endif
+            break;
     }
 }
 

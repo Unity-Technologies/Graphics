@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -97,33 +98,164 @@ public partial class HDRenderPipeline : RenderPipeline
     VolumetricLightingPreset m_VolumetricLightingPreset
     { get { return (VolumetricLightingPreset)Math.Min(ShaderConfig.s_VolumetricLightingPreset, (int)VolumetricLightingPreset.Count); } }
 
-    ComputeShader            m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
+    ComputeShader m_VolumetricLightingCS { get { return m_Asset.renderPipelineResources.volumetricLightingCS; } }
 
-    float                    m_VBufferNearPlane  = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
-    float                    m_VBufferFarPlane   = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
-    const int                k_VBufferCount      = 3;     // 0 and 1 - history (prev) and feedback (next), 2 - integral (curr)
-
-    RenderTexture[]          m_VBufferLighting   = null;
-    RenderTargetIdentifier[] m_VBufferLightingRT = null;
-
-    int                      m_ViewCount         = 0;
-    int[]                    m_ViewIdArray       = new int[8]; // TODO: account for the CameraType
-
-    int ViewOffsetFromViewId(int viewId)
+    class VBuffer
     {
-        int viewOffset = -1;
+        public int                      viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
+        public RenderTexture[]          lightingRTEX = null;
+        public RenderTargetIdentifier[] lightingRTID = null;
 
-        Debug.Assert(m_ViewCount == 0 || m_ViewIdArray != null);
-
-        for (int i = 0; i < m_ViewCount; i++)
+        public RenderTargetIdentifier GetLightingIntegralBuffer() // Of the current frame
         {
-            if (m_ViewIdArray[i] == viewId)
+            Debug.Assert(viewID >= 0);
+            return lightingRTID[0];
+        }
+
+        public RenderTargetIdentifier GetLightingHistoryBuffer() // From the previous frame
+        {
+            Debug.Assert(viewID > 0); // Game View only
+            return lightingRTID[1 + ((Time.renderedFrameCount + 0) & 1)];
+        }
+
+        public RenderTargetIdentifier GetLightingFeedbackBuffer() // For the next frame
+        {
+            Debug.Assert(viewID > 0); // Game View only
+            return lightingRTID[1 + ((Time.renderedFrameCount + 1) & 1)];
+        }
+    };
+
+    List<VBuffer> m_VBuffers          = null;
+    float         m_VBufferNearPlane  = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
+    float         m_VBufferFarPlane   = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
+
+    // Warning: different views can use the same camera!
+    int GetViewID(HDCamera camera)
+    {
+        Debug.Assert(camera != null);
+
+        if (camera.camera.cameraType == CameraType.Game)
+        {
+            int viewID = camera.camera.GetInstanceID();
+            Debug.Assert(viewID > 0);
+            return viewID;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    VBuffer FindVBuffer(int viewID)
+    {
+        Debug.Assert(viewID >= 0);
+
+        VBuffer vBuffer = null;
+
+        if (m_VBuffers != null)
+        {
+            int n = m_VBuffers.Count;
+
+            for (int i = 0; i < n; i++)
             {
-                viewOffset = i;
+                if (viewID == m_VBuffers[i].viewID)
+                {
+                    vBuffer = m_VBuffers[i];
+                }
             }
         }
 
-        return viewOffset;
+        return vBuffer;
+    }
+
+    void ResizeVBuffer(int viewID, int screenWidth, int screenHeight)
+    {
+        Debug.Assert(viewID >= 0);
+
+        int w = 0, h = 0, d = 0;
+        ComputeVBufferResolutionAndScale(screenWidth, screenHeight, ref w, ref h, ref d);
+
+        VBuffer vBuffer = FindVBuffer(viewID);
+
+        if (vBuffer != null)
+        {
+            Debug.Assert(vBuffer.lightingRTEX    != null);
+            Debug.Assert(vBuffer.lightingRTEX[0] != null);
+            Debug.Assert(vBuffer.lightingRTID    != null);
+
+            // Found, check resolution.
+            if (w == vBuffer.lightingRTEX[0].width  &&
+                h == vBuffer.lightingRTEX[0].height &&
+                d == vBuffer.lightingRTEX[0].volumeDepth)
+            {
+                // Everything matches, nothing to do here.
+                return;
+            }
+        }
+
+        // Otherwise, we have to (re)create the VBuffer.
+        CreateVBuffer(viewID, w, h, d, vBuffer);
+    }
+
+    void CreateVBuffer(int viewID, int w, int h, int d, VBuffer vBuffer)
+    {
+        Debug.Assert(viewID >= 0);
+
+        if (vBuffer != null)
+        {
+            // Clean up first.
+            DestroyVBuffer(vBuffer);
+        }
+        else
+        {
+            // Grow the array.
+            vBuffer = new VBuffer();
+
+            if (m_VBuffers == null)
+            {
+                m_VBuffers = new List<VBuffer>(1);
+            }
+
+            m_VBuffers.Add(vBuffer);
+        }
+
+        bool isGameView = viewID > 0;
+        int  numBuffers = isGameView ? 3 : 1;
+
+        vBuffer.viewID       = viewID;
+        vBuffer.lightingRTEX = new RenderTexture[numBuffers];
+        vBuffer.lightingRTID = new RenderTargetIdentifier[numBuffers];
+
+        for (int i = 0; i < numBuffers; i++)
+        {
+            vBuffer.lightingRTEX[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            vBuffer.lightingRTEX[i].filterMode        = FilterMode.Trilinear;   // Custom
+            vBuffer.lightingRTEX[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
+            vBuffer.lightingRTEX[i].volumeDepth       = d;
+            vBuffer.lightingRTEX[i].enableRandomWrite = true;
+            vBuffer.lightingRTEX[i].Create();
+
+            vBuffer.lightingRTID[i] = new RenderTargetIdentifier(vBuffer.lightingRTEX[i]);
+        }
+    }
+
+    void DestroyVBuffer(VBuffer vBuffer)
+    {
+        if (vBuffer == null) return;
+
+        if (vBuffer.lightingRTEX != null)
+        {
+            int n = vBuffer.lightingRTEX.Length;
+
+            for (int i = 0; i < n; i++)
+            {
+                vBuffer.lightingRTEX[i].Release();
+            }
+        }
+
+        vBuffer.viewID       = -1;
+        vBuffer.lightingRTEX = null;
+        vBuffer.lightingRTID = null;
     }
 
     public static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
@@ -174,129 +306,6 @@ public partial class HDRenderPipeline : RenderPipeline
         return new Vector2(screenWidth / (w * t), screenHeight / (h * t));
     }
 
-    void ResizeVBuffer(int viewId, int screenWidth, int screenHeight)
-    {
-        int viewOffset = ViewOffsetFromViewId(viewId);
-
-        if (viewOffset >= 0)
-        {
-            // Found, check resolution.
-            int w = 0, h = 0, d = 0;
-            ComputeVBufferResolutionAndScale(screenWidth, screenHeight, ref w, ref h, ref d);
-
-            Debug.Assert(m_VBufferLighting != null);
-            Debug.Assert(m_VBufferLighting.Length >= (viewOffset + 1) * k_VBufferCount);
-            Debug.Assert(m_VBufferLighting[viewOffset * k_VBufferCount] != null);
-
-            if (w == m_VBufferLighting[viewOffset * k_VBufferCount].width  &&
-                h == m_VBufferLighting[viewOffset * k_VBufferCount].height &&
-                d == m_VBufferLighting[viewOffset * k_VBufferCount].volumeDepth)
-            {
-                // Everything matches, nothing to do here.
-                return;
-            }
-        }
-
-        // Otherwise, we have to recreate the VBuffer.
-        CreateVBuffer(viewId, screenWidth, screenHeight);
-    }
-
-    void CreateVBuffer(int viewId, int screenWidth, int screenHeight)
-    {
-        // Clean up first.
-        DestroyVBuffer(viewId);
-
-        int viewOffset = ViewOffsetFromViewId(viewId);
-
-        if (viewOffset < 0)
-        {
-            // Not found. Push back.
-            viewOffset = m_ViewCount++;
-            Debug.Assert(viewOffset < 8);
-            m_ViewIdArray[viewOffset] = viewId;
-
-            if (m_VBufferLighting == null)
-            {
-                // Lazy initialize.
-                m_VBufferLighting   = new RenderTexture[k_VBufferCount];
-                m_VBufferLightingRT = new RenderTargetIdentifier[k_VBufferCount];
-            }
-            else if (m_VBufferLighting.Length < m_ViewCount * k_VBufferCount)
-            {
-                // Grow by reallocation and copy.
-                RenderTexture[]          newArray   = new RenderTexture[m_ViewCount * k_VBufferCount];
-                RenderTargetIdentifier[] newArrayRT = new RenderTargetIdentifier[m_ViewCount * k_VBufferCount];
-                
-                for (int i = 0, n = m_VBufferLighting.Length; i < n; i++)
-                {
-                    newArray[i]   = m_VBufferLighting[i];
-                    newArrayRT[i] = m_VBufferLightingRT[i];
-                }
-
-                // Reassign and release memory.
-                m_VBufferLighting   = newArray;
-                m_VBufferLightingRT = newArrayRT;
-            }
-        }
-
-        Debug.Assert(m_VBufferLighting != null);
-
-        int w = 0, h = 0, d = 0;
-        ComputeVBufferResolutionAndScale(screenWidth, screenHeight, ref w, ref h, ref d);
-
-        for (int i = viewOffset * k_VBufferCount,
-                 n = viewOffset * k_VBufferCount + k_VBufferCount; i < n; i++)
-        {
-            m_VBufferLighting[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-            m_VBufferLighting[i].filterMode        = FilterMode.Trilinear;   // Custom
-            m_VBufferLighting[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
-            m_VBufferLighting[i].volumeDepth       = d;
-            m_VBufferLighting[i].enableRandomWrite = true;
-            m_VBufferLighting[i].Create();
-
-            m_VBufferLightingRT[i] = new RenderTargetIdentifier(m_VBufferLighting[i]);
-        }
-    }
-
-    void DestroyVBuffer(int viewId)
-    {
-        int viewOffset = ViewOffsetFromViewId(viewId);
-
-        if (viewOffset < 0)
-        {
-            // Not found.
-            return;
-        }
-
-        int lastOffset = m_ViewCount - 1;
-        Debug.Assert(lastOffset >= 0);
-
-        if (m_VBufferLighting != null)
-        {
-            Debug.Assert(m_VBufferLighting.Length >= m_ViewCount * k_VBufferCount);
-
-            for (int i = 0; i < k_VBufferCount; i++)
-            {
-                int viewBuffer = viewOffset * k_VBufferCount + i;
-                int lastBuffer = lastOffset * k_VBufferCount + i;
-
-                // Release the memory.
-                if (m_VBufferLighting[viewBuffer] != null)
-                {
-                    m_VBufferLighting[viewBuffer].Release();
-                }
-
-                // Swap with the last element.
-                m_VBufferLighting[viewBuffer]   = m_VBufferLighting[lastBuffer];
-                m_VBufferLightingRT[viewBuffer] = m_VBufferLightingRT[lastBuffer];
-            }
-        }
-
-        // Swap with the last element and shrink the array.
-        m_ViewIdArray[viewOffset] = m_ViewIdArray[lastOffset];
-        m_ViewCount--;
-    }
-
     // Uses a logarithmic depth encoding.
     // Near plane: depth = 0; far plane: depth = 1.
     // x = n, y = log2(f/n), z = 1/n, w = 1/log2(f/n).
@@ -334,21 +343,6 @@ public partial class HDRenderPipeline : RenderPipeline
         return globalFogComponent;
     }
 
-    RenderTargetIdentifier GetVBufferLightingHistory(int viewOffset) // From the previous frame
-    {
-        return m_VBufferLightingRT[viewOffset * k_VBufferCount + ((Time.renderedFrameCount + 0) & 1)]; // Does not work in the Scene view
-    }
-
-    RenderTargetIdentifier GetVBufferLightingFeedback(int viewOffset) // For the next frame
-    {
-        return m_VBufferLightingRT[viewOffset * k_VBufferCount + ((Time.renderedFrameCount + 1) & 1)]; // Does not work in the Scene view
-    }
-
-    RenderTargetIdentifier GetVBufferLightingIntegral(int viewOffset) // Of the current frame
-    {
-        return m_VBufferLightingRT[viewOffset * k_VBufferCount + 2];
-    }
-
     public void SetVolumetricLightingData(HDCamera camera, CommandBuffer cmd)
     {
         HomogeneousFog globalFogComponent = GetGlobalFogComponent();
@@ -363,15 +357,13 @@ public partial class HDRenderPipeline : RenderPipeline
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(camera.screenSize.x, camera.screenSize.y, ref w, ref h, ref d);
 
-        int viewId     = camera.camera.GetInstanceID();
-        int viewOffset = ViewOffsetFromViewId(viewId);
-
-        Debug.Assert(viewOffset >= 0 && viewOffset < 8);
+        VBuffer vBuffer = FindVBuffer(GetViewID(camera));
+        Debug.Assert(vBuffer != null);
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane));
-        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            GetVBufferLightingIntegral(viewOffset));
+        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
@@ -419,10 +411,8 @@ public partial class HDRenderPipeline : RenderPipeline
 
         using (new ProfilingSample(cmd, "Volumetric Lighting"))
         {
-            int viewId     = camera.camera.GetInstanceID(); // Warning: different views can use the same camera
-            int viewOffset = ViewOffsetFromViewId(viewId);
-
-            Debug.Assert(viewOffset >= 0 && viewOffset < 8);
+            VBuffer vBuffer = FindVBuffer(GetViewID(camera));
+            Debug.Assert(vBuffer != null);
 
             if (GetGlobalFogComponent() == null)
             {
@@ -487,9 +477,12 @@ public partial class HDRenderPipeline : RenderPipeline
             // TODO: set 'm_VolumetricLightingPreset'.
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  GetVBufferLightingHistory(viewOffset));  // Read
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, GetVBufferLightingFeedback(viewOffset)); // Write
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, GetVBufferLightingIntegral(viewOffset)); // Write
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
+            if (enableReprojection)
+            {
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, vBuffer.GetLightingFeedbackBuffer()); // Write
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  vBuffer.GetLightingHistoryBuffer());  // Read
+            }
 
             // The shader defines GROUP_SIZE_1D = 16.
             cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);

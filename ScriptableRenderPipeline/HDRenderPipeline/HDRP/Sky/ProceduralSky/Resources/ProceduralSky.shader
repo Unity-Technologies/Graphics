@@ -104,12 +104,9 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
     float getMiePhase(float eyeCos, float eyeCos2)
     {
         float temp = 1.0 + MIE_G2 - 2.0 * MIE_G * eyeCos;
-        temp = pow(max(temp, 0), pow(_SunSize,0.65) * 10);
+        temp = PositivePow(temp, PositivePow(_SunSize, 0.65) * 10);
         temp = max(temp,1.0e-4); // prevent division by zero, esp. in float precision
         temp = 1.5 * ((1.0 - MIE_G2) / (2.0 + MIE_G2)) * (1.0 + eyeCos2) / temp;
-        #if defined(UNITY_COLORSPACE_GAMMA) && SKYBOX_COLOR_IN_TARGET_COLOR_SPACE
-            temp = pow(temp, .454545);
-        #endif
         return temp;
     }
 
@@ -147,7 +144,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
         float3 cameraPos = float3(0,kInnerRadius + kCameraHeight,0);    // The camera's current position
 
         // Get the ray from the camera to the vertex and its length (which is the far point of the ray passing through the atmosphere)
-        float3 eyeRay = dir; // normalize(mul((float3x3)unity_ObjectToWorld, v.vertex.xyz));
+        float3 eyeRay = dir; // normalize(mul((float3x3)UNITY_MATRIX_M, v.vertex.xyz));
 
         float far = 0.0;
         float3 cIn = float3(0.0, 0.0, 0.0);

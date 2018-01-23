@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering
         public RenderPipelineSettingsUI()
             : base(0)
         {
-            
+
         }
 
         public override void Reset(SerializedRenderPipelineSettings data, UnityAction repaint)
@@ -65,7 +65,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportDBuffer, _.GetContent("Support Decal Buffer"));
             EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support MSAA"));
             EditorGUILayout.PropertyField(d.supportSubsurfaceScattering, _.GetContent("Support Subsurface Scattering"));
-            EditorGUILayout.PropertyField(d.supportAsyncCompute, _.GetContent("Support AsyncCompute"));
             --EditorGUI.indentLevel;
         }
     }

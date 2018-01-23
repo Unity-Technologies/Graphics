@@ -268,13 +268,21 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #if !defined(LAYERED_LIT_SHADER)
 
     // These static material feature allow compile time optimization
-    surfaceData.materialFeatures = 0;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    // TEMP: The UI must control if we have transmission or not.
+    // Currently until we update the UI, this is control in the diffusion profile
+    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
+    // Caution: Because of this dynamic test we don't know anymore statically if we have transmission, which mess with performance.
+    // in deferred case as we still have both sss and transmission until we update the UI it should be the same perf
+    if (transmissionMode != TRANSMISSION_MODE_NONE)
+    {
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    }
 #endif
 #ifdef _MATERIAL_FEATURE_ANISOTROPY
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;

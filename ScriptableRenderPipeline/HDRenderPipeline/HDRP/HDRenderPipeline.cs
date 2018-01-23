@@ -542,11 +542,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.AllocResolutionDependentBuffers(texWidth, texHeight);
             }
 
-            int viewId = hdCamera.camera.GetInstanceID(); // Warning: different views can use the same camera
-
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
             if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
-                ResizeVBuffer(viewId, texWidth, texHeight);
+            {
+                ResizeVBuffer(GetViewID(hdCamera), texWidth, texHeight);
+            }
 
             // update recorded window resolution
             m_CurrentWidth = texWidth;
@@ -634,17 +634,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            // We first update the state of asset frame settings as they can be use by various camera
+            // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
+            bool assetFrameSettingsIsDirty = m_Asset.frameSettingsIsDirty;
+            m_Asset.UpdateDirtyFrameSettings();
+
             foreach (var camera in cameras)
             {
                 if (camera == null)
                     continue;
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
+                // Note: the SceneView camera will never have additionalCameraData
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                // Note: the scene view camera will never have additionalCameraData
-                var srcFrameSettings = (additionalCameraData && additionalCameraData.renderingPath != HDAdditionalCameraData.RenderingPath.Default)
-                    ? additionalCameraData.GetFrameSettings()
-                    : m_Asset.GetFrameSettings();
+
+                // Init effective frame settings of each camera
+                // Each camera have its own debug frame settings control from the debug windows
+                // debug frame settings can't be aggregate with frame settings (i.e we can't aggregate forward only control for example)
+                // so debug settings (when use) are the effective frame settings
+                // To be able to have this behavior we init effective frame settings with serialized frame settings and copy
+                // debug settings change on top of it. Each time frame settings are change in the editor, we reset all debug settings
+                // to stay in sync. The loop below allow to update all frame settings correctly and is required because
+                // camera can rely on default frame settings from the HDRendeRPipelineAsset
+                FrameSettings srcFrameSettings;
+                if (additionalCameraData)
+                {
+                    additionalCameraData.UpdateDirtyFrameSettings(assetFrameSettingsIsDirty, m_Asset.GetFrameSettings());
+                    srcFrameSettings = additionalCameraData.GetFrameSettings();
+                }
+                else
+                {
+                    srcFrameSettings = m_Asset.GetFrameSettings();
+                }
+                // Get the effective frame settings for this camera taking into account the global setting and camera type
                 FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref m_FrameSettings);
 
                 // This is the main command buffer used for the frame.
