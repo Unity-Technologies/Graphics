@@ -79,8 +79,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
 
-                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
 
                 m_GraphView.Add(m_GraphInspectorView);
@@ -108,27 +106,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
-        }
-
-        void OnPostLayout(PostLayoutEvent evt)
-        {
-            const float minimumVisibility = 60f;
-
-            Rect inspectorViewRect = m_GraphInspectorView.layout;
-
-            float minimumXPosition = minimumVisibility - inspectorViewRect.width;
-            float maximumXPosition = m_GraphView.layout.width - minimumVisibility;
-
-            float minimumYPosition = minimumVisibility - inspectorViewRect.height;
-            float maximumYPosition = m_GraphView.layout.height - minimumVisibility;
-
-            inspectorViewRect.x = Mathf.Clamp(inspectorViewRect.x, minimumXPosition, maximumXPosition);
-            inspectorViewRect.y = Mathf.Clamp(inspectorViewRect.y, minimumYPosition, maximumYPosition);
-
-            inspectorViewRect.width = Mathf.Min(inspectorViewRect.width, layout.width);
-            inspectorViewRect.height = Mathf.Min(inspectorViewRect.height, layout.height);
-
-            m_GraphInspectorView.layout = inspectorViewRect;
         }
 
         void OnSpaceDown(KeyDownEvent evt)
