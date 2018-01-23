@@ -28,8 +28,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
-            this.AddManipulator(new WindowDraggable());
-
             var topContainer = new VisualElement() { name = "top" };
             {
                 var title = new Label(assetName + " master node preview") { name = "title" };
@@ -59,6 +57,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(bottomContainer);
 
             Add(new ResizeBorderFrame(this) { name = "resizeBorderFrame"});
+
+            this.AddManipulator(new WindowDraggable());
         }
 
         MasterNode masterNode
@@ -96,18 +96,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_Graph.previewData.rotation = previewRotation;
 
             masterNode.Dirty(ModificationScope.Node);
-        }
-
-        void OnMouseDrag(Vector2 mouseDelta)
-        {
-            Vector2 normalizedDelta = mouseDelta / 2f;
-
-            Rect inspectorWindowRect = layout;
-
-            inspectorWindowRect.x += normalizedDelta.x;
-            inspectorWindowRect.y += normalizedDelta.y;
-
-            layout = inspectorWindowRect;
         }
     }
 }
