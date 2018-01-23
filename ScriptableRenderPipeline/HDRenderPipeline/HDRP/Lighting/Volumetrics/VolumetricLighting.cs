@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-
 [GenerateHLSL]
 public struct VolumeProperties
 {
@@ -28,12 +27,14 @@ public class VolumeParameters
     public Bounds bounds;       // Position and dimensions in meters
     public Color  albedo;       // Single scattering albedo [0, 1]
     public float  meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
+    public float  asymmetry;    // Single global parameter for all volumes. TODO: UX
 
     public VolumeParameters()
     {
         bounds       = new Bounds(Vector3.zero, Vector3.positiveInfinity);
         albedo       = new Color(0.5f, 0.5f, 0.5f);
         meanFreePath = 10.0f;
+        asymmetry    = 0.0f;
     }
 
     public bool IsVolumeUnbounded()
@@ -72,6 +73,8 @@ public class VolumeParameters
         albedo.b = Mathf.Clamp01(albedo.b);
 
         meanFreePath = Mathf.Max(meanFreePath, 1.0f);
+
+        asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
     }
 
     public VolumeProperties GetProperties()
@@ -332,6 +335,7 @@ public class VolumetricLightingModule
 
         cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
         cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0);
 
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
