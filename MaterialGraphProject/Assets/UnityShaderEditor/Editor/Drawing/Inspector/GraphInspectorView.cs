@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using Object = UnityEngine.Object;
+using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
