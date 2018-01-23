@@ -166,11 +166,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             var fProp = (SliderShaderProperty)property;
             var value = fProp.value;
+            
+            GUILayoutOption[] sliderOptions = { GUILayout.ExpandWidth(true) };
+            GUILayoutOption[] options = { GUILayout.MaxWidth(30.0f) };
+            value.x = EditorGUILayout.Slider(fProp.value.x, fProp.value.y, fProp.value.z, sliderOptions);
             EditorGUILayout.BeginHorizontal();
-            GUILayoutOption[] options = { GUILayout.MaxWidth(48.0f) };
-            value.x = EditorGUILayout.Slider(fProp.value.x, fProp.value.y, fProp.value.z);
-            value.y = EditorGUILayout.FloatField(fProp.value.y, options);
-            value.z = EditorGUILayout.FloatField(fProp.value.z, options);
+            float previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 30f;
+            Rect minMaxRect = EditorGUILayout.GetControlRect(new GUILayoutOption[]{ GUILayout.ExpandWidth(true) } );
+            Rect minRect = new Rect(minMaxRect.x, minMaxRect.y, minMaxRect.width / 2, minMaxRect.height);
+            Rect maxRect = new Rect(minMaxRect.x + minMaxRect.width / 2, minMaxRect.y, minMaxRect.width / 2, minMaxRect.height);
+            value.y = EditorGUI.FloatField(minRect, "Min", fProp.value.y);
+            value.z = EditorGUI.FloatField(maxRect, "Max", fProp.value.z);
+            EditorGUIUtility.labelWidth = previousLabelWidth;
             EditorGUILayout.EndHorizontal();
             fProp.value = value;
         }
