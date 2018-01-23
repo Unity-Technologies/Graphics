@@ -541,7 +541,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            m_VolumetricLightingModule.ResizeVBuffer(hdCamera.GetViewID(), texWidth, texHeight);
+            m_VolumetricLightingModule.ResizeVBuffer(hdCamera, texWidth, texHeight);
 
             // update recorded window resolution
             m_CurrentWidth = texWidth;

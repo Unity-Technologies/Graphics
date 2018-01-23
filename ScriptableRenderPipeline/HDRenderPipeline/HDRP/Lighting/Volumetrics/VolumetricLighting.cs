@@ -118,7 +118,6 @@ public class VolumetricLightingModule
             return lightingRTID[1 + ((Time.renderedFrameCount + 1) & 1)];
         }
 
-        // n = number of buffers within the VBuffer
         public void Create(int viewID, int w, int h, int d)
         {
             Debug.Assert(viewID >= 0);
@@ -184,7 +183,7 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        CoreUtils.Destroy(m_VolumetricLightingCS);
+        m_VolumetricLightingCS = null;
 
         for (int i = 0, n = m_VBuffers.Count; i < n; i++)
         {
@@ -194,8 +193,10 @@ public class VolumetricLightingModule
         m_VBuffers = null;
     }
 
-    public void ResizeVBuffer(int viewID, int screenWidth, int screenHeight)
+    public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
     {
+        int viewID = camera.GetViewID();
+
         Debug.Assert(viewID >= 0);
 
         if (preset == VolumetricLightingPreset.Off) return;
