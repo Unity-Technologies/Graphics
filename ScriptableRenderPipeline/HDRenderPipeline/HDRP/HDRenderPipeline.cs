@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
 
-    public partial class HDRenderPipeline : RenderPipeline
+    public class HDRenderPipeline : RenderPipeline
     {
         enum ForwardPass
         {
@@ -296,6 +296,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly LightLoop m_LightLoop = new LightLoop();
         readonly ShadowSettings m_ShadowSettings = new ShadowSettings();
+        readonly VolumetricLightingModule m_VolumetricLightingModule = new VolumetricLightingModule();
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -386,6 +387,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightLoop.Build(asset, m_ShadowSettings, m_IBLFilterGGX);
 
             m_SkyManager.Build(asset, m_IBLFilterGGX);
+
+            m_VolumetricLightingModule.Build(asset);
 
             m_DebugDisplaySettings.RegisterDebug();
             FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
@@ -478,6 +481,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
+            m_VolumetricLightingModule.Cleanup();
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
         }
@@ -543,10 +547,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
-            {
-                ResizeVBuffer(GetViewID(hdCamera), texWidth, texHeight);
-            }
+            m_VolumetricLightingModule.ResizeVBuffer(hdCamera, texWidth, texHeight);
 
             // update recorded window resolution
             m_CurrentWidth = texWidth;
@@ -563,10 +564,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_DbufferManager.PushGlobalParams(cmd);
 
-                if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
-                {
-                    SetVolumetricLightingData(hdCamera, cmd);
-                }
+                m_VolumetricLightingModule.PushGlobalParams(hdCamera, cmd);
             }
         }
 
@@ -895,7 +893,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
-                        VolumetricLightingPass(hdCamera, cmd);
+                        m_VolumetricLightingModule.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -1334,7 +1332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
 
-            if (visualEnv.fogType != FogType.None || m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
+            if (visualEnv.fogType != FogType.None || m_VolumetricLightingModule.preset != VolumetricLightingModule.VolumetricLightingPreset.Off)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
