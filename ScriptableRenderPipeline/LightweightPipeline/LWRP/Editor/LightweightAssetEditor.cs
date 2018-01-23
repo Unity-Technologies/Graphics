@@ -105,7 +105,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void UpdateAnimationValues()
         {
             m_ShowSoftParticles.target = m_RequireDepthTextureProp.boolValue;
-            m_ShowScreenSpaceShadows.target = m_RequireDepthTextureProp.boolValue;
+
+            //TODO: Right now disabling MSAA cuts the depth prepass to generate the depth texture. For now, disable SS shadows as well.
+            //      When the depth prepass does not occur, depth is copied *after* opaque, which does not help us in this situation.
+            m_ShowScreenSpaceShadows.target = m_RequireDepthTextureProp.boolValue && m_MSAA.intValue > 1;
         }
 
         void DrawAnimatedProperty(SerializedProperty prop, GUIContent content, AnimBool animation)

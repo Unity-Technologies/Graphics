@@ -51,12 +51,13 @@ half4       _ShadowOffset2;
 half4       _ShadowOffset3;
 half4       _ShadowData;    // (x: shadowStrength)
 float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+float4      _FrustumCorners[4];
 CBUFFER_END
 
 inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
     //NOTE: No macro for proj sample?
-    return SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy / shadowCoord.w);
+    return SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy / shadowCoord.w).x;
 }
 
 inline half SampleShadowmap(float4 shadowCoord)
