@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.Experimental.UIElements;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 
 [ScriptedImporter(1, ShaderGraphImporter.ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
@@ -128,6 +131,11 @@ class ShaderGraphAssetPostProcessor : AssetPostprocessor
 
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
+        MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+        foreach (var matGraphEditWindow in windows)
+        {
+            matGraphEditWindow.forceRedrawPreviews = true;
+        }
         RegisterShaders(importedAssets);
     }
 }
