@@ -30,6 +30,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Enable transparent depth prepass", "It allow to to fill depth buffer to improve sorting");
             public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Enable transparent depth postpass", "It allow to fill depth buffer for postprocess effect like DOF");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Enable back then front rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
+
+            public static GUIContent transparentQueuePriorityText = new GUIContent("Transparent Queue Priority", "Allow to define priority (from -100 to +100) to solve sorting issue with transparent");
             public static GUIContent enableTransparentFogText = new GUIContent("Enable fog", "Enable fog on transparent material");
             public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Blend preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
 
@@ -83,6 +85,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
         protected MaterialProperty transparentBackfaceEnable = null;
         protected const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
+        protected MaterialProperty transparentQueuePriority = null;
+        protected const string kTransparentQueuePriority = "_TransparentQueuePriority";
         protected MaterialProperty doubleSidedEnable = null;
         protected const string kDoubleSidedEnable = "_DoubleSidedEnable";
         protected MaterialProperty blendMode = null;
@@ -145,6 +149,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             transparentDepthPrepassEnable = FindProperty(kTransparentDepthPrepassEnable, props, false);
             transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable, props, false);
             transparentBackfaceEnable = FindProperty(kTransparentBackfaceEnable, props, false);
+
+            transparentQueuePriority = FindProperty(kTransparentQueuePriority, props, false);
 
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, props, false);
             blendMode = FindProperty(kBlendMode, props, false);
@@ -266,6 +272,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (transparentBackfaceEnable != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
                 m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
 
+            if (transparentQueuePriority != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
+            {
+                EditorGUI.BeginChangeCheck();
+                m_MaterialEditor.ShaderProperty(transparentQueuePriority, StylesBaseUnlit.transparentQueuePriorityText);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    transparentQueuePriority.floatValue = Mathf.Clamp((int)transparentQueuePriority.floatValue, -(int)HDRenderQueuePriority.TransparentPriorityQueueRange, (int)HDRenderQueuePriority.TransparentPriorityQueueRange);
+                }
+            }
+
             // This function must finish with double sided option (see LitUI.cs)
             if (doubleSidedEnable != null)
             {
@@ -342,7 +358,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
                 var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
-                material.renderQueue = (int)(isPrepass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent);
+                material.renderQueue = (int)(isPrepass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent) + (int)material.GetFloat(kTransparentQueuePriority);
 
                 if (material.HasProperty(kBlendMode))
                 {
