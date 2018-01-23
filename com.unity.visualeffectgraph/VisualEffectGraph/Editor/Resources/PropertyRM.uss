@@ -32,6 +32,7 @@
     text-color: rgb(153,153,153);
 	height:16;
 	margin-left:0;
+	padding-left:1;
 }
 
 .spaceCamera
@@ -262,8 +263,9 @@ CurvePropertyRM
 	flex:0;
 }
 
-VFXEnumField Button
+VFXEnumField Button, StringFieldProvider Button
 {
+	text-alignment:middle-left;
 	height: 16;
 	slice-left: 6;
 	slice-top: 4;

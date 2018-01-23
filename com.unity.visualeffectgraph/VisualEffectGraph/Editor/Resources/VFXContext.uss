@@ -10,7 +10,7 @@ VFXContextUI #NodeContents
 {
 	width:368;	
 	background-color:rgba(29,29,29,0.8);
-	border-radius:6;
+	border-radius:8;
 	border-left-width:2;
 	border-right-width:2;
 	border-top-width:2;
@@ -128,6 +128,10 @@ VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
 	border-right-width:1;
 	border-top-width:1;
 	border-bottom-width:1;
+	padding-top: 2;
+	padding-left: 0;
+	padding-bottom: 2;
+	padding-right: 0;
 }
 
 VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI #settings
@@ -197,7 +201,6 @@ VFXContextUI	.title
 }
 VFXContextUI	#FooterTitle
 {
-	text-color:#959595;
 	font-size:11;
 	font-style: normal;
 	height:16;

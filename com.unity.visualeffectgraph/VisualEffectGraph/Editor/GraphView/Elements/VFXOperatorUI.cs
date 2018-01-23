@@ -97,10 +97,12 @@ namespace UnityEditor.VFX.UI
     {
         public VFXOperatorUI()
         {
-            VisualElement element = new VisualElement();
-            element.name = "middle";
-            inputContainer.parent.Insert(1, element);
+            m_Middle = new VisualElement();
+            m_Middle.name = "middle";
+            inputContainer.parent.Insert(1, m_Middle);
         }
+
+        VisualElement m_Middle;
 
         public new VFXOperatorController controller
         {
@@ -134,6 +136,24 @@ namespace UnityEditor.VFX.UI
             foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
             {
                 port.SetLabelWidth(labelWidth);
+            }
+        }
+
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+
+            bool hasMiddle = inputContainer.childCount != 0;
+            if (hasMiddle)
+            {
+                if (m_Middle.parent == null)
+                {
+                    inputContainer.parent.Insert(1, m_Middle);
+                }
+            }
+            else if (m_Middle.parent != null)
+            {
+                m_Middle.RemoveFromHierarchy();
             }
         }
     }
