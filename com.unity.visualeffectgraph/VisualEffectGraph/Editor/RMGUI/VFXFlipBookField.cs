@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class FlipBookField : VFXControl<FlipBook>
+    class VFXFlipBookField : VFXControl<FlipBook>
     {
         LabeledField<IntegerField, long> m_X;
         LabeledField<IntegerField, long> m_Y;
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(newValue);
         }
 
-        public FlipBookField()
+        public VFXFlipBookField()
         {
             CreateTextField();
 

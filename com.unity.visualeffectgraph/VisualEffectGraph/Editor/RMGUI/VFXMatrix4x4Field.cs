@@ -5,7 +5,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class Matrix4x4Field : VFXControl<Matrix4x4>
+    class VFXMatrix4x4Field : VFXControl<Matrix4x4>
     {
         LabeledField<FloatField, float>[,] m_FloatFields;
         void CreateTextField()
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        public Matrix4x4Field()
+        public VFXMatrix4x4Field()
         {
             CreateTextField();
 

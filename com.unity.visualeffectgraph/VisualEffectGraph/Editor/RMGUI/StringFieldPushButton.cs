@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class StringFieldPushButton : StringField
+    class StringFieldPushButton : VFXStringField
     {
         Action<string> m_fnOnClicked;
 

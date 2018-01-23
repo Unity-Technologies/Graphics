@@ -10,8 +10,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
-using FloatField = UnityEditor.Experimental.UIElements.FloatField;
+using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
+using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 using ColorField = UnityEditor.VFX.UIElements.ColorField;
 
 namespace UnityEditor.VFX.UI
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
     {
         ColorField m_ColorField;
 
-        Vector3Field m_VectorField;
+        VFXVector3Field m_VectorField;
 
         public Vector3PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
                 m_ColorField = new ColorField(m_Label);
                 m_ColorField.OnValueChanged = OnColorValueChanged;
                 m_ColorField.showAlpha = false;
-                m_VectorField = new Vector3Field();
+                m_VectorField = new VFXVector3Field();
                 m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
                 var mainContainer = new VisualElement() { name = "mainContainer" };
                 mainContainer.AddToClassList("maincontainer");
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var labeledField = new LabeledField<Vector3Field, Vector3>(m_Label);
+                var labeledField = new LabeledField<VFXVector3Field, Vector3>(m_Label);
                 m_VectorField = labeledField.control;
                 labeledField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
                 Add(labeledField);

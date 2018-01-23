@@ -10,7 +10,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
-using FloatField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.FloatField, float>;
+using FloatField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
 
 
 namespace UnityEditor.VFX.UI

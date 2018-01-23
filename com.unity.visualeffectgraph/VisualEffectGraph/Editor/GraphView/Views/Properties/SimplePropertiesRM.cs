@@ -10,9 +10,9 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using Vector2Field = UnityEditor.VFX.UIElements.Vector2Field;
-using Vector4Field = UnityEditor.VFX.UIElements.Vector4Field;
-using FloatField = UnityEditor.Experimental.UIElements.FloatField;
+using VFXVector2Field = UnityEditor.VFX.UIElements.VFXVector2Field;
+using VFXVector4Field = UnityEditor.VFX.UIElements.VFXVector4Field;
+using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 
 namespace UnityEditor.VFX
 {
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
                 range.x = Mathf.Max(0, Mathf.Round(range.x));
                 range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
 
-                var field = new LabeledField<IntSliderField, long>(m_Label);
+                var field = new LabeledField<VFXIntSliderField, long>(m_Label);
                 field.control.range = range;
                 return field;
             }
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX.UI
         {
             if (field is LabeledField<IntegerField, long>)
                 return (field as LabeledField<IntegerField, long>).control.hasFocus;
-            return (field as LabeledField<IntSliderField, long>).control.hasFocus;
+            return (field as LabeledField<VFXIntSliderField, long>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
                 range.x = Mathf.Round(range.x);
                 range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
 
-                var field = new LabeledField<IntSliderField, long>(m_Label);
+                var field = new LabeledField<VFXIntSliderField, long>(m_Label);
                 field.control.range = range;
                 return field;
             }
@@ -147,7 +147,7 @@ namespace UnityEditor.VFX.UI
         {
             if (field is LabeledField<IntegerField, long>)
                 return (field as LabeledField<IntegerField, long>).control.hasFocus;
-            return (field as LabeledField<IntSliderField, long>).control.hasFocus;
+            return (field as LabeledField<VFXIntSliderField, long>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -212,7 +212,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var field = new LabeledField<DoubleSliderField, float>(m_Label);
+                var field = new LabeledField<VFXDoubleSliderField, float>(m_Label);
                 field.control.range = range;
                 return field;
             }
@@ -222,7 +222,7 @@ namespace UnityEditor.VFX.UI
         {
             if (field is LabeledField<FloatField, float>)
                 return (field as LabeledField<FloatField, float>).control.hasFocus;
-            return (field as LabeledField<DoubleSliderField, float>).control.hasFocus;
+            return (field as LabeledField<VFXDoubleSliderField, float>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -262,7 +262,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<Vector4> CreateField()
         {
-            var field = new LabeledField<Vector4Field, Vector4>(m_Label);
+            var field = new LabeledField<VFXVector4Field, Vector4>(m_Label);
 
             return field;
         }
@@ -281,7 +281,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<Matrix4x4> CreateField()
         {
-            var field = new LabeledField<Matrix4x4Field, Matrix4x4>(m_Label);
+            var field = new LabeledField<VFXMatrix4x4Field, Matrix4x4>(m_Label);
 
             return field;
         }
@@ -300,7 +300,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<Vector2> CreateField()
         {
-            var field = new LabeledField<Vector2Field, Vector2>(m_Label);
+            var field = new LabeledField<VFXVector2Field, Vector2>(m_Label);
 
             return field;
         }
@@ -319,7 +319,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<FlipBook> CreateField()
         {
-            var field = new LabeledField<FlipBookField, FlipBook>(m_Label);
+            var field = new LabeledField<VFXFlipBookField, FlipBook>(m_Label);
 
             return field;
         }
@@ -395,7 +395,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                return new StringField(m_Label);
+                return new VFXStringField(m_Label);
             }
         }
 

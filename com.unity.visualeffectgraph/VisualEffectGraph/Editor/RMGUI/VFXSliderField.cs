@@ -7,12 +7,12 @@ using FloatField = UnityEditor.Experimental.UIElements.FloatField;
 
 namespace UnityEditor.VFX.UIElements
 {
-    abstract class BaseSliderField<T> : VisualElement, INotifyValueChanged<T>
+    abstract class VFXBaseSliderField<T> : VisualElement, INotifyValueChanged<T>
     {
         protected Slider m_Slider;
         protected INotifyValueChanged<T> m_Field;
 
-        public BaseSliderField()
+        public VFXBaseSliderField()
         {
             AddToClassList("sliderField");
         }
@@ -79,9 +79,9 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(e.newValue);
         }
     }
-    class DoubleSliderField : BaseSliderField<float>
+    class VFXDoubleSliderField : VFXBaseSliderField<float>
     {
-        public DoubleSliderField()
+        public VFXDoubleSliderField()
         {
             m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
@@ -114,9 +114,9 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(newValue);
         }
     }
-    class IntSliderField : BaseSliderField<long>
+    class VFXIntSliderField : VFXBaseSliderField<long>
     {
-        public IntSliderField()
+        public VFXIntSliderField()
         {
             m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, 0.1f);
             m_Slider.AddToClassList("textfield");

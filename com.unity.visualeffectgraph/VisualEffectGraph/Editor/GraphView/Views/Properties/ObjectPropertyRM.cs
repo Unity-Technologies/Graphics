@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
     }
 }
 #else
-using ObjectField = UnityEditor.VFX.UIElements.ObjectField;
+using ObjectField = UnityEditor.VFX.UIElements.VFXObjectField;
 
 namespace UnityEditor.VFX.UI
 {

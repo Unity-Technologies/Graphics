@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX.UIElements;
-using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
+using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.UI
     {
         public Vector3SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_VectorField = new LabeledField<Vector3Field, Vector3>(m_Label);
+            m_VectorField = new LabeledField<VFXVector3Field, Vector3>(m_Label);
             m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
             m_VectorField.AddToClassList("fieldContainer");
 
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
 
         public abstract void OnValueChanged(ChangeEvent<Vector3> e);
 
-        protected LabeledField<Vector3Field, Vector3> m_VectorField;
+        protected LabeledField<VFXVector3Field, Vector3> m_VectorField;
 
         protected override void UpdateEnabled()
         {
