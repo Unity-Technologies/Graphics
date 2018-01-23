@@ -15,7 +15,7 @@
 // Sampler and texture combinations are static. No shadowmap will ever be sampled with two different samplers.
 // Once shadowmaps and samplers are fixed consider writing custom dispatchers directly accessing textures and samplers.
 #	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_COMP( _Tex2DArraySlots, _SamplerCompSlots )											\
-		real4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, real3 tcs, real slice )					\
+		real4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, real3 tcs, real slice )					    \
 		{																														\
 			real4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
@@ -33,7 +33,7 @@
 		}
 
 #	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_SAMP( _Tex2DArraySlots, _SamplerSlots )												\
-		real4 SampleShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, real2 tcs, real slice, real lod = 0.0 )		\
+		real4 SampleShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, real2 tcs, real slice, real lod = 0.0 )		    \
 		{																														\
 			real4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
@@ -53,7 +53,7 @@
 #	define SHADOW_DEFINE_SAMPLING_FUNC_T2DA_LOAD( _Tex2DArraySlots )												            \
 		real LoadShadow_T2DA( ShadowContext ctxt, uint texIdx, uint2 tcs, uint slice, uint lod = 0 )		                    \
 		{																														\
-			real res = 1.0;																								    \
+			real res = 1.0;																								        \
 			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
 			{																													\
 				[branch] if( i == texIdx )																	                    \
@@ -85,7 +85,7 @@
 		}
 
 #	define SHADOW_DEFINE_SAMPLING_FUNC_TCA_SAMP( _TexCubeArraySlots, _SamplerSlots )											\
-		real4 SampleShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, real3 tcs, real cubeIdx, real lod = 0.0 )	\
+		real4 SampleShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, real3 tcs, real cubeIdx, real lod = 0.0 )	    \
 		{																														\
 			real4 res = 1.0.xxxx;																								\
 			[unroll] for( uint i = 0; i < _TexCubeArraySlots; i++ )																\
