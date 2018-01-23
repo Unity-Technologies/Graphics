@@ -47,7 +47,21 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod(string.Format("Unity_Comparison_{0}", comparisonType), BindingFlags.Static | BindingFlags.NonPublic);
+            switch(comparisonType)
+            {
+                case ComparisonType.NotEqual:
+                    return GetType().GetMethod("Unity_Comparison_NotEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonType.Less:
+                    return GetType().GetMethod("Unity_Comparison_Less", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonType.LessOrEqual:
+                    return GetType().GetMethod("Unity_Comparison_LessOrEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonType.Greater:
+                    return GetType().GetMethod("Unity_Comparison_Greater", BindingFlags.Static | BindingFlags.NonPublic);
+                case ComparisonType.GreaterOrEqual:
+                    return GetType().GetMethod("Unity_Comparison_GreaterOrEqual", BindingFlags.Static | BindingFlags.NonPublic);
+                default:
+                    return GetType().GetMethod("Unity_Comparison_Equal", BindingFlags.Static | BindingFlags.NonPublic);
+            }
         }
 
         static string Unity_Comparison_Equal(
