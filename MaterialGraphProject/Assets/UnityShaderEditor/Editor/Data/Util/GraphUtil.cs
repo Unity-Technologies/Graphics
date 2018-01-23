@@ -277,9 +277,7 @@ namespace UnityEditor.ShaderGraph
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                         if (foundEdges.Any())
                         {
-                            var outputRef = foundEdges[0].outputSlot;
-                            var fromNode = graph.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), fromNode.GetVariableNameForSlot(outputRef.slotId)), true);
+                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), masterNode.GetSlotValue(input.id, mode)), true);
                         }
                         else
                         {
@@ -290,7 +288,7 @@ namespace UnityEditor.ShaderGraph
                 else if (masterNode.hasPreview)
                 {
                     foreach (var slot in masterNode.GetOutputSlots<MaterialSlot>())
-                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetVariableNameForSlot(slot.id)), true);
+                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetSlotValue(slot.id, mode)), true);
                 }
             }
 
