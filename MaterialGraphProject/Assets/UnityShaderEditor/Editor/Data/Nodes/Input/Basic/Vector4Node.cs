@@ -59,7 +59,14 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + precision + "4" + m_Value + ";", true);
+            var s = string.Format("{0}4 {1} = {0}4({2},{3},{4},{5});",
+                precision,
+                GetVariableNameForNode(),
+                NodeUtils.FloatToShaderValue(m_Value.x),
+                NodeUtils.FloatToShaderValue(m_Value.y),
+                NodeUtils.FloatToShaderValue(m_Value.z),
+                NodeUtils.FloatToShaderValue(m_Value.w));
+            visitor.AddShaderChunk(s, true);
         }
 
         public override string GetVariableNameForSlot(int slotId)
