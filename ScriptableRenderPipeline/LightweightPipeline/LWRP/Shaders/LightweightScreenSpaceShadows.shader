@@ -22,6 +22,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float4 vertex : POSITION;
             float2 uv     : TEXCOORD0;
             uint   id     : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Interpolators
@@ -35,6 +36,8 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             //Orthographic Case
             float3 orthoPosNear : TEXCOORD2;
             float3 orthoPosFar  : TEXCOORD3;
+            
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         float3 ComputeViewSpacePositionGeometric(Interpolators i)
@@ -58,6 +61,9 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         Interpolators Vertex(VertexInput i)
         {
             Interpolators o;
+            UNITY_SETUP_INSTANCE_ID(i);
+            UNITY_TRANSFER_INSTANCE_ID(i, o);
+
             o.pos = TransformObjectToHClip(i.vertex.xyz);
             o.uv  = i.uv;
 
@@ -79,6 +85,8 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         half Fragment(Interpolators i) : SV_Target
         {
+            UNITY_SETUP_INSTANCE_ID(i);
+
             //Reconstruct the world position.
             float3 vpos = ComputeViewSpacePositionGeometric(i); //TODO: Profile against unprojection method in core library.
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
