@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX.UIElements;
-using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
+using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredLabelWidth()
         {
-            return base.GetPreferredLabelWidth() + m_Button.layout.width;
+            return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
         void OnButtonClick()
@@ -36,7 +36,8 @@ namespace UnityEditor.VFX.UI
         {
             foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
-                m_Button.RemoveFromClassList("space" + name);
+                if (m_Value.space.ToString() != name)
+                    m_Button.RemoveFromClassList("space" + name);
             }
 
             if (m_Value != null)
@@ -51,11 +52,16 @@ namespace UnityEditor.VFX.UI
             m_Button.SetEnabled(propertyEnabled);
         }
 
+        private float spaceButtonWidth
+        {
+            get { return m_Button != null ? m_Button.layout.width + m_Button.style.marginLeft +  +m_Button.style.marginRight : 28; }
+        }
+
         public override float effectiveLabelWidth
         {
             get
             {
-                return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
+                return m_labelWidth - spaceButtonWidth;
             }
         }
 
@@ -66,9 +72,8 @@ namespace UnityEditor.VFX.UI
     {
         public Vector3SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_VectorField = new LabeledField<Vector3Field, Vector3>(m_Label);
+            m_VectorField = new VFXLabeledField<VFXVector3Field, Vector3>(m_Label);
             m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
-            m_VectorField.control.dynamicUpdate = true;
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);
@@ -76,12 +81,12 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 195;
+            return 140;
         }
 
         public abstract void OnValueChanged(ChangeEvent<Vector3> e);
 
-        protected LabeledField<Vector3Field, Vector3> m_VectorField;
+        protected VFXLabeledField<VFXVector3Field, Vector3> m_VectorField;
 
         protected override void UpdateEnabled()
         {

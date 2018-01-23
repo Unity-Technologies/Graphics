@@ -3,33 +3,21 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 
+using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
 namespace UnityEditor.VFX.UIElements
 {
-    class Vector3Field : VFXControl<Vector3>
+    class VFXVector3Field : VFXControl<Vector3>
     {
-        LabeledField<FloatField, float> m_X;
-        LabeledField<FloatField, float> m_Y;
-        LabeledField<FloatField, float> m_Z;
-
-        public bool dynamicUpdate
-        {
-            get
-            {
-                return m_X.control.dynamicUpdate;
-            }
-            set
-            {
-                m_X.control.dynamicUpdate = value;
-                m_Y.control.dynamicUpdate = value;
-                m_Z.control.dynamicUpdate = value;
-            }
-        }
+        FloatField m_X;
+        FloatField m_Y;
+        FloatField m_Z;
         void CreateTextField()
         {
-            m_X = new LabeledField<FloatField, float>("X");
-            m_Y = new LabeledField<FloatField, float>("Y");
-            m_Z = new LabeledField<FloatField, float>("Z");
+            m_X = new FloatField("X");
+            m_Y = new FloatField("Y");
+            m_Z = new FloatField("Z");
 
+            m_X.label.AddToClassList("first");
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
             m_Z.control.AddToClassList("fieldContainer");
@@ -63,7 +51,7 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(newValue);
         }
 
-        public Vector3Field()
+        public VFXVector3Field()
         {
             CreateTextField();
 
@@ -75,9 +63,14 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_X.value = value.x;
-            m_Y.value = value.y;
-            m_Z.value = value.z;
+            if (!m_X.control.hasFocus)
+                m_X.value = value.x;
+
+            if (!m_Y.control.hasFocus)
+                m_Y.value = value.y;
+
+            if (!m_Z.control.hasFocus)
+                m_Z.value = value.z;
         }
     }
 }

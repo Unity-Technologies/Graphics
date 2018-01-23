@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UIElements
             Event evt = e.imguiEvent;
 
 
-            ObjectField target = this.target as ObjectField;
+            VFXObjectField target = this.target as VFXObjectField;
             switch (evt.type)
             {
                 case EventType.DragUpdated:
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.UIElements
             }
         }
     }
-    class ObjectField : ValueControl<Object>
+    class VFXObjectField : ValueControl<Object>
     {
         VisualElement m_IconContainer;
         Label m_NameContainer;
@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UIElements
 
         class Receiver : ObjectSelectorReceiver
         {
-            public ObjectField m_ObjectField;
+            public VFXObjectField m_ObjectField;
 
 
             public override void OnSelectionChanged(Object selection)
@@ -109,12 +109,12 @@ namespace UnityEditor.VFX.UIElements
             EditorGUIUtility.PingObject(value);
         }
 
-        public ObjectField(string label) : base(label)
+        public VFXObjectField(string label) : base(label)
         {
             Setup();
         }
 
-        public ObjectField(Label existingLabel) : base(existingLabel)
+        public VFXObjectField(Label existingLabel) : base(existingLabel)
         {
             Setup();
         }
@@ -179,6 +179,7 @@ namespace UnityEditor.VFX.UIElements
             m_NameContainer.text = value == null ? "null" : value.name;
         }
 
+/*
         private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
         {
             if (dropTarget == null)
@@ -197,5 +198,6 @@ namespace UnityEditor.VFX.UIElements
                     break;
             }
         }
+        */
     }
 }

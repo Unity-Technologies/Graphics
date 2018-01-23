@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class StringFieldProvider : ValueControl<string>
+    class VFXStringFieldProvider : ValueControl<string>
     {
         Button m_DropDownButton;
         Func<string[]> m_fnStringProvider;
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        public StringFieldProvider(string label, Func<string[]> stringProvider) : base(label)
+        public VFXStringFieldProvider(string label, Func<string[]> stringProvider) : base(label)
         {
             m_fnStringProvider = stringProvider;
             CreateButton();
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        public StringFieldProvider(Label existingLabel, Func<string[]> stringProvider) : base(existingLabel)
+        public VFXStringFieldProvider(Label existingLabel, Func<string[]> stringProvider) : base(existingLabel)
         {
             m_fnStringProvider = stringProvider;
             CreateButton();
