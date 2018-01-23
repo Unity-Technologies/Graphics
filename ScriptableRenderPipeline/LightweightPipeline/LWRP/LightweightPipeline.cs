@@ -110,10 +110,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE",
             "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT",
             "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT",
-            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN",
-            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN",
-            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT",
-            "_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT",
 
             "_MAIN_LIGHT_SPOT_SHADOW",
             "_MAIN_LIGHT_SPOT_SHADOW_SOFT"
@@ -1108,9 +1104,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     m_MainLightKeywordString.Append("_DIRECTIONAL_SHADOW");
                     if (m_Asset.CascadeCount > 1)
                         m_MainLightKeywordString.Append("_CASCADE");
-
-                    if(m_RequireScreenSpaceShadows)
-                        m_MainLightKeywordString.Append("_SCREEN");
                 }
                 else
                 {
