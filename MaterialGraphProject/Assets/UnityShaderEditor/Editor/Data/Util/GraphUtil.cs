@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -9,10 +10,26 @@ namespace UnityEditor.ShaderGraph
 {
     static class GraphUtil
     {
-        internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs, int vertexInputStartIndex, int maxVertexInputs)
+        internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {
-            int vertexInputIndex = vertexInputStartIndex;
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+            StringBuilder newText = new StringBuilder(text.Length * 2);
+            newText.Append(text[0]);
+            for (int i = 1; i < text.Length; i++)
+            {
+                if (char.IsUpper(text[i]))
+                    if ((text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) ||
+                        (preserveAcronyms && char.IsUpper(text[i - 1]) && 
+                        i < text.Length - 1 && !char.IsUpper(text[i + 1])))
+                        newText.Append(' ');
+                newText.Append(text[i]);
+            }
+            return newText.ToString();
+        }
 
+        internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
+        {
             vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
             vertexInputs.AddShaderChunk("{", false);
             vertexInputs.Indent();
@@ -26,10 +43,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
-            {
-                vertexInputs.AddShaderChunk(String.Format("float4 texcoord{0} : TEXCOORD{1};", ((int)channel).ToString(), vertexInputIndex.ToString()), false);
-                vertexInputIndex++;
-            }
+                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
 
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
@@ -83,7 +97,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
-            GenerateApplicationVertexInputs(requirements, vertexInputs, 0, 8);
+            GenerateApplicationVertexInputs(requirements, vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -167,10 +181,10 @@ namespace UnityEditor.ShaderGraph
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/EntityLighting.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
-
+                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
 
                 finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
                 finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));

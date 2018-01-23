@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -64,6 +63,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
                 vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
             
+            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", true);
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
         }
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             modelRequiements.requiresBitangent |= NeededCoordinateSpace.World;
             modelRequiements.requiresPosition |= NeededCoordinateSpace.World;
             modelRequiements.requiresViewDir |= NeededCoordinateSpace.World;
-            modelRequiements.requiresMeshUVs.Add(UVChannel.uv1);
+            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
             GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
@@ -159,7 +159,6 @@ namespace UnityEditor.ShaderGraph
             var cullingVisitor = new ShaderGenerator();
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
-
 
             materialOptions.GetBlend(blendingVisitor);
             materialOptions.GetCull(cullingVisitor);

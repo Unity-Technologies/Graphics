@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         static string Unity_Twirl(
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 0.5f, 0.5f, 0.5f, 0.5f)] Vector2 Center,
-            [Slot(2, Binding.None, 0f, 0f, 0f, 0f)] Vector1 Strength,
+            [Slot(2, Binding.None, 10f, 0f, 0f, 0f)] Vector1 Strength,
             [Slot(3, Binding.None)] Vector2 Offset,
             [Slot(4, Binding.None)] out Vector2 Out)
         {

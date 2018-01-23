@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Rsqrt(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return

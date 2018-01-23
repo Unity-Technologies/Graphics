@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private UVChannel m_OutputChannel;
 
-        [EnumControl("")]
+        [EnumControl("Channel")]
         public UVChannel uvChannel
         {
             get { return m_OutputChannel; }

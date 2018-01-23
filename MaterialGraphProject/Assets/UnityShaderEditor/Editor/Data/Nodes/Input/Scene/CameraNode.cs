@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         const string kOutputSlot2Name = "Orthographic";
         const string kOutputSlot3Name = "Near Plane";
         const string kOutputSlot4Name = "Far Plane";
-        const string kOutputSlot5Name = "Sign";
+        const string kOutputSlot5Name = "Z Buffer Sign";
         const string kOutputSlot6Name = "Width";
         const string kOutputSlot7Name = "Height";
 
