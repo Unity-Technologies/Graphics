@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
@@ -30,7 +31,7 @@ namespace UnityEditor.Graphing
 
             var toPrint = missingSlots.Select(x => x.ToString());
 
-            throw new SlotConfigurationException(String.Format("Missing slots {0} on node {1}", String.Join(", ", toPrint.ToArray()), node));
+            throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
         }
 
         public static IEnumerable<IEdge> GetAllEdges(INode node)
@@ -218,7 +219,13 @@ namespace UnityEditor.Graphing
             else if (Single.IsNaN(value))
                 return "NAN";
             else
-                return value.ToString();
+            {
+                decimal amount;
+                if( decimal.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out amount) )
+                    return amount.ToString();
+                else
+                    return value.ToString();
+            }
         }
     }
 }
