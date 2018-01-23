@@ -262,8 +262,6 @@ public class PlayModeTestsUI : MonoBehaviour
         currentRT.filterMode = resultRT.filterMode = FilterMode.Bilinear;
         currentRT.wrapMode = resultRT.wrapMode = TextureWrapMode.Clamp;
 
-        Camera testCamera = testSetup.cameraToUse;
-
         // render the scene
         var oldTarget = testSetup.cameraToUse.targetTexture;
         testSetup.cameraToUse.targetTexture = currentRT;

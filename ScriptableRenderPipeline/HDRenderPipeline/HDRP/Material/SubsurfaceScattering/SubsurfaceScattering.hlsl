@@ -37,7 +37,10 @@ float3 ApplySubsurfaceScatteringTexturingMode(float3 color, int diffusionProfile
     bool enableSss = _EnableSubsurfaceScattering != 0;
 #endif
 
-    if (enableSss)
+    // We can enter in this function even if SSS is not enabled in case of material classification per tile
+    // (If there is SSS inside the tile we need to enable the feature for the whole tile with neutral value)
+    // thus why we test != DIFFUSION_PROFILE_NEUTRAL_ID here, to be sure neutral profile don't affect the scene
+    if (enableSss && diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID)
     {
         bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
 
@@ -66,7 +69,7 @@ struct SSSData
 {
     float3 diffuseColor;
     float  subsurfaceMask;
-    int    diffusionProfile;
+    uint   diffusionProfile;
 };
 
 #define SSSBufferType0 float4
@@ -77,14 +80,14 @@ TEXTURE2D(_SSSBufferTexture0);
 // Note: The SSS buffer used here is sRGB
 void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
 {
-    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceMask, sssData.diffusionProfile, 16.0));
+    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceMask, sssData.diffusionProfile, 16));
 }
 
 // Note: The SSS buffer used here is sRGB
 void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData)
 {
     sssData.diffuseColor = sssBuffer.rgb;
-    UnpackFloatInt8bit(sssBuffer.a, 16.0, sssData.subsurfaceMask, sssData.diffusionProfile);
+    UnpackFloatInt8bit(sssBuffer.a, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
 }
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)

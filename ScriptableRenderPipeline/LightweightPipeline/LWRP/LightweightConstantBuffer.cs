@@ -25,4 +25,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int _AdditionalLightSpotDir;
         public static int _AdditionalLightSpotAttenuation;
     }
+
+    public static class ShadowConstantBuffer
+    {
+        public static int _WorldToShadow;
+        public static int _ShadowData;
+        public static int _DirShadowSplitSpheres;
+        public static int _DirShadowSplitSphereRadii;
+        public static int _ShadowOffset0;
+        public static int _ShadowOffset1;
+        public static int _ShadowOffset2;
+        public static int _ShadowOffset3;
+        public static int _ShadowmapSize;
+    }
 }

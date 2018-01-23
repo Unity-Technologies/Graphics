@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // SSS
             [SurfaceDataAttributes("Diffusion Profile")]
-            public int diffusionProfile;
+            public uint diffusionProfile;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 

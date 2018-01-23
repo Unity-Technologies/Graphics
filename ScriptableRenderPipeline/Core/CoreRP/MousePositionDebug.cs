@@ -20,12 +20,14 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
         private Vector2 m_mousePosition = Vector2.zero;
 
         private void OnSceneGUI(UnityEditor.SceneView sceneview)
         {
             m_mousePosition = Event.current.mousePosition;
         }
+#endif
 
         public void Build()
         {
