@@ -184,6 +184,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             renderTextureDesc = tempDesc;
         }
 
+        // Warning: different views can use the same camera!
+        public int GetViewID()
+        {
+            if (camera.cameraType == CameraType.Game)
+            {
+                int viewID = camera.GetInstanceID();
+                Debug.Assert(viewID > 0);
+                return viewID;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
         public void Reset()
         {
             m_LastFrameActive = -1;
