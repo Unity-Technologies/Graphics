@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Light light1 { get; private set; }
 
         Material m_CheckerboardMaterial;
+        Material m_BlitNoAlphaMaterial;
 
         static readonly Mesh[] s_Meshes = { null, null, null, null, null };
         static readonly GUIContent[] s_MeshIcons = { null, null, null, null, null };
@@ -71,7 +72,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
+            m_BlitNoAlphaMaterial = new Material(Shader.Find("Hidden/BlitNoAlpha"));
             checkerboardMaterial.hideFlags = HideFlags.HideAndDontSave;
+            blitNoAlphaMaterial.hideFlags = HideFlags.HideAndDontSave;
 
             if (s_Meshes[0] == null)
             {
@@ -162,6 +165,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Material checkerboardMaterial
         {
             get { return m_CheckerboardMaterial; }
+        }
+
+        public Material blitNoAlphaMaterial
+        {
+            get { return m_BlitNoAlphaMaterial; }
         }
 
         public Camera camera

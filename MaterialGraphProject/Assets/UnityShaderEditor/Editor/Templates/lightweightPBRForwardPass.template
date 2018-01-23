@@ -161,12 +161,6 @@ Pass
 		// Computes fog factor per-vertex
     	ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
 
-#if _AlphaOut
-		color.a = Alpha;
-#else
-		color.a = 1;
-#endif
-
 #if _AlphaClip
 		clip(Alpha - AlphaClipThreshold);
 #endif
