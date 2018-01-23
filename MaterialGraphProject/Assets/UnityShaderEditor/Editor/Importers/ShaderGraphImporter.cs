@@ -69,6 +69,10 @@ Shader ""Hidden/GraphErrorShader2""
         var text = GetShaderText<MaterialGraph>(ctx.assetPath, out configuredTextures);
         if (text == null)
             text = errorShader;
+        
+        var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
+        string shaderName = string.Format("graphs/{0}", name);
+        text = text.Replace("Hidden/GraphErrorShader2", shaderName);
 
         var shader = ShaderUtil.CreateShaderAsset(text);
 

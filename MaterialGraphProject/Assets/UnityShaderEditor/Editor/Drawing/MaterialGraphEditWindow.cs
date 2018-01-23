@@ -387,9 +387,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graph == null)
                 return;
 
-            List<PropertyCollector.TextureInfo> configuredTextures;
-            graph.GetShader(Path.GetFileNameWithoutExtension(path), GenerationMode.ForReals, out configuredTextures);
-
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
             if (shaderImporter == null)
                 return;
