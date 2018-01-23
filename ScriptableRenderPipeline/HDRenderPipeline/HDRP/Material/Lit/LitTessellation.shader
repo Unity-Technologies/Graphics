@@ -99,6 +99,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [ToggleUI] _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
         [ToggleUI] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
         [ToggleUI] _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
+        _TransparentQueuePriority("_TransparentQueuePriority", Float) = 0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
