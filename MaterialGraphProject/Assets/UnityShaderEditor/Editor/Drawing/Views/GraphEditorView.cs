@@ -72,16 +72,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.AddManipulator(new GraphDropTarget(graph));
+                m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
                 m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
                 m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                 m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-
-                m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
-
                 m_GraphView.Add(m_GraphInspectorView);
+
+                m_BlackboardProvider = new BlackboardProvider(assetName, graph);
+                m_GraphView.Add(m_BlackboardProvider.blackboard);
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
             }
@@ -240,6 +241,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             previewManager.HandleGraphChanges();
             previewManager.RenderPreviews();
             inspectorView.HandleGraphChanges();
+            m_BlackboardProvider.HandleGraphChanges();
 
             foreach (var node in m_Graph.removedNodes)
             {
@@ -380,6 +382,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<MaterialNodeView> m_NodeStack = new Stack<MaterialNodeView>();
+        BlackboardProvider m_BlackboardProvider;
 
         void UpdateEdgeColors(HashSet<MaterialNodeView> nodeViews)
         {
