@@ -138,6 +138,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Remaining light types don't support cookies
         }
 
+        public static Vector4[] GetFarPlaneCorners(Camera camera)
+        {
+            Vector4[] corners = new Vector4[4];
+
+            float farH   = 2.0f * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad) * camera.farClipPlane;
+            float farW   = farH * camera.aspect;
+            
+            Vector3 fc    = Vector3.forward * camera.farClipPlane;
+            Vector3 up    = Vector3.up; 
+            Vector3 right = Vector3.right; 
+
+            corners[0] = fc - (up * farH / 2) - (right * farW / 2);
+            corners[1] = fc + (up * farH / 2) - (right * farW / 2);
+            corners[2] = fc + (up * farH / 2) + (right * farW / 2);
+            corners[3] = fc - (up * farH / 2) + (right * farW / 2);
+
+            return corners;
+        }
+
         public static bool IsSupportedShadowType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;

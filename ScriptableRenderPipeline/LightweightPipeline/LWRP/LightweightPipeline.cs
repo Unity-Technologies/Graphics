@@ -431,38 +431,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
         }
 
-        //TODO: Find place to live.
-        private Vector4[] GetFarPlaneCorners()
-        {
-            Vector4[] corners = new Vector4[4];
-
-            float farH   = 2.0f * Mathf.Tan(m_CurrCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * m_CurrCamera.farClipPlane;
-            float farW   = farH * m_CurrCamera.aspect;
-            
-            Vector3 fc    = Vector3.forward * m_CurrCamera.farClipPlane;
-            Vector3 up    = Vector3.up; 
-            Vector3 right = Vector3.right; 
-
-            corners[0] = fc - (up * farH / 2) - (right * farW / 2);
-            corners[1] = fc + (up * farH / 2) - (right * farW / 2);
-            corners[2] = fc + (up * farH / 2) + (right * farW / 2);
-            corners[3] = fc - (up * farH / 2) + (right * farW / 2);
-
-            return corners;
-        }
-
         //NOTE: Currently shader keywords are set before the forward pass, so the collect pass is one frame behind the current keyword.
         private void ShadowCollectPass(ref ScriptableRenderContext context, List<VisibleLight> lights, ref LightData lightData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
+            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
-            SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); //Reciever constants set up here in case of screen space shadows.
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-            cmd.SetGlobalVectorArray("_FrustumCorners", GetFarPlaneCorners()); //TODO: Move to a constant buffer. Shadow or Camera?
-            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
+                SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); //Reciever constants set up here in case of screen space shadows.
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+                cmd.SetGlobalVectorArray("_FrustumCorners", LightweightUtils.GetFarPlaneCorners(m_CurrCamera)); //TODO: Move to a constant buffer. Shadow or Camera?
+                cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
         }
 
         private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
