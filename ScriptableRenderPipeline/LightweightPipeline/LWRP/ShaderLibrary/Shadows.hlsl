@@ -28,10 +28,6 @@
     #define _SHADOWS_PERSPECTIVE
 #endif
 
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
-    #define _SHADOWS_SCREEN
-#endif
-
 TEXTURE2D(_ScreenSpaceShadowMap);
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
@@ -78,7 +74,7 @@ inline half SampleShadowmap(float4 shadowCoord)
         attenuation4.w = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset3.xyz);
         attenuation = dot(attenuation4, 0.25);
     #else
-        #ifdef _SHADOWS_SCREEN
+        #ifdef _SHADOWS_CASCADE //Assume screen space shadows when cascades enabled
             real fetchesWeights[16];
             real2 fetchesUV[16];
             SampleShadow_ComputeSamples_Tent_7x7(_ShadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
@@ -174,13 +170,10 @@ half RealtimeShadowAttenuation(float3 positionWS, float4 shadowCoord)
     return 1.0;
 #endif
 
-#ifdef _SHADOWS_SCREEN
+#ifdef _SHADOWS_CASCADE //Assume screen space shadows when cascades are enabled
     return SampleScreenSpaceShadowMap(shadowCoord);
 #else
-    #ifdef _SHADOWS_CASCADE
-        shadowCoord = ComputeShadowCoord(positionWS);
-    #endif
-        return SampleShadowmap(shadowCoord);
+    return SampleShadowmap(shadowCoord);
 #endif
 }
 
