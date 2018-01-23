@@ -278,7 +278,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(transparentQueuePriority, StylesBaseUnlit.transparentQueuePriorityText);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    transparentQueuePriority.floatValue = Mathf.Clamp((int)transparentQueuePriority.floatValue, -(int)HDRenderQueuePriority.TransparentPriorityQueueRange, (int)HDRenderQueuePriority.TransparentPriorityQueueRange);
+                    transparentQueuePriority.floatValue = Mathf.Clamp((int)transparentQueuePriority.floatValue, -(int)HDRenderQueue.k_TransparentPriorityQueueRange, (int)HDRenderQueue.k_TransparentPriorityQueueRange);
                 }
             }
 
@@ -351,14 +351,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 material.SetInt("_ZWrite", 1);
-                material.renderQueue = alphaTestEnable ? (int)HDRenderQueue.AlphaTest : -1;
+                material.renderQueue = alphaTestEnable ? (int)HDRenderQueue.Priority.AlphaTest : -1;
             }
             else
             {
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
                 var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
-                material.renderQueue = (int)(isPrepass ? HDRenderQueue.PreRefraction : HDRenderQueue.Transparent) + (int)material.GetFloat(kTransparentQueuePriority);
+                material.renderQueue = (int)(isPrepass ? HDRenderQueue.Priority.PreRefraction : HDRenderQueue.Priority.Transparent) + (int)material.GetFloat(kTransparentQueuePriority);
 
                 if (material.HasProperty(kBlendMode))
                 {
