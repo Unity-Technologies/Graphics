@@ -23,8 +23,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.");
 
-            public static GUIContent requireScreenSpaceShadows = new GUIContent("Screen Space Shadows", "TODO");
-
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
 
@@ -59,7 +57,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_MaxPixelLights;
         private SerializedProperty m_SupportsVertexLightProp;
         private SerializedProperty m_RequireDepthTextureProp;
-        private SerializedProperty m_RequireScreenSpaceShadowsProp;
         private SerializedProperty m_RequireSoftParticlesProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
@@ -78,7 +75,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
-            m_RequireScreenSpaceShadowsProp = serializedObject.FindProperty("m_RequireScreenSpaceShadows");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -91,9 +87,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
-
-            m_ShowScreenSpaceShadows.valueChanged.AddListener(Repaint);
-            m_ShowScreenSpaceShadows.value = m_RequireScreenSpaceShadowsProp.boolValue;
         }
 
         void OnDisable()
@@ -178,8 +171,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 EditorGUILayout.PropertyField(m_ShadowCascade2SplitProp, Styles.shadowCascadeSplit);
             }
-
-            DrawAnimatedProperty(m_RequireScreenSpaceShadowsProp, Styles.requireScreenSpaceShadows, m_ShowScreenSpaceShadows);
 
             EditorGUI.indentLevel--;
 

@@ -52,8 +52,8 @@ CBUFFER_END
 
 inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
-    //NOTE: No macro for proj sample?
-    return SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy / shadowCoord.w).x;
+    shadowCoord.xyz = shadowCoord.xyz / shadowCoord.w;
+    return SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
 }
 
 inline half SampleShadowmap(float4 shadowCoord)
