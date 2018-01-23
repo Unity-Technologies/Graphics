@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_RequireDepthTexture;
         private bool m_RequireCopyColor;
         private bool m_DepthRenderBuffer;
-        private bool m_UseScreenSpaceShadows;
+        private bool m_RequireScreenSpaceShadows;
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
@@ -361,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                 {
                     DepthPass(ref context);
-                    if(m_UseScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
+                    if(m_RequireScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
                         ShadowCollectPass(ref context, visibleLights, ref lightData);
                 }
 
@@ -664,7 +664,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
           
-            m_UseScreenSpaceShadows = m_Asset.UsesScreenSpaceShadows && LightweightUtils.HasFlag(configuration, FrameRenderingConfiguration.DepthPrePass);
+            m_RequireScreenSpaceShadows = m_Asset.RequireScreenSpaceShadows && LightweightUtils.HasFlag(configuration, FrameRenderingConfiguration.DepthPrePass);
 
             Rect cameraRect = m_CurrCamera.rect;
             if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
@@ -1109,7 +1109,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (m_Asset.CascadeCount > 1)
                         m_MainLightKeywordString.Append("_CASCADE");
 
-                    if(m_UseScreenSpaceShadows)
+                    if(m_RequireScreenSpaceShadows)
                         m_MainLightKeywordString.Append("_SCREEN");
                 }
                 else
