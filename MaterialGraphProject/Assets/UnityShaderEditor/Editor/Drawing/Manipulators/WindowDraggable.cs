@@ -8,6 +8,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public class WindowDraggable : MouseManipulator
     {
+        bool m_ResizeWithParentWindow;
+
         bool m_Active;
 
         bool m_DockLeft;
@@ -16,8 +18,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         Vector2 m_LocalMosueOffset;
         Rect m_PreviousParentRect;
 
-        public WindowDraggable()
+        public WindowDraggable(bool resizeWithParentwindow = false)
         {
+            m_ResizeWithParentWindow = resizeWithParentwindow;
             m_Active = false;
             m_PreviousParentRect = new Rect(0f, 0f, 0f, 0f);
         }
@@ -94,13 +97,42 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Vector2 scaling = target.parent.layout.size / m_PreviousParentRect.size;
 
-            Vector2 distanceFromEdge = Vector2.zero;
-            distanceFromEdge.x = m_DockLeft ? target.layout.x : (m_PreviousParentRect.width - target.layout.x - target.layout.width);
-            distanceFromEdge.y = m_DockTop ? target.layout.y: (m_PreviousParentRect.height - target.layout.y - target.layout.height);
+            Vector2 minSize = new Vector2(60f, 60f);
 
-            Vector2 normalizedDistanceFromEdge = distanceFromEdge / m_PreviousParentRect.size;
+            if (!Mathf.Approximately(target.style.minWidth, 0f))
+            {
+                minSize.x = target.style.minWidth;
+            }
 
-            windowRect.size *= scaling;
+            if (!Mathf.Approximately(target.style.minHeight, 0f))
+            {
+                minSize.y = target.style.minHeight;
+            }
+
+            Vector2 distanceFromParentEdge = Vector2.zero;
+            distanceFromParentEdge.x = m_DockLeft ? target.layout.x : (m_PreviousParentRect.width - target.layout.x - target.layout.width);
+            distanceFromParentEdge.y = m_DockTop ? target.layout.y: (m_PreviousParentRect.height - target.layout.y - target.layout.height);
+
+            Vector2 normalizedDistanceFromEdge = distanceFromParentEdge / m_PreviousParentRect.size;
+
+            if (m_ResizeWithParentWindow)
+            {
+                if (scaling.x > 1f)
+                {
+                    scaling.x = target.parent.layout.width * .33f < minSize.x ? 1f : scaling.x;
+                }
+
+                if (scaling.y > 1f)
+                {
+                    scaling.y = target.parent.layout.height * .33f < minSize.y ? 1f : scaling.y;
+                }
+
+                windowRect.size *= scaling;
+            }
+            else
+            {
+                normalizedDistanceFromEdge = distanceFromParentEdge / target.parent.layout.size;
+            }
 
             if (m_DockLeft)
             {
@@ -120,14 +152,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 windowRect.y = (1f - normalizedDistanceFromEdge.y) * target.parent.layout.height- windowRect.height;
             }
 
-            float maximumXPosition = target.parent.layout.width - windowRect.width;
-            float maximumYPosition = target.parent.layout.height - windowRect.height;
+            windowRect.width = Mathf.Max(Mathf.Min(windowRect.width, target.parent.layout.width), minSize.x);
+            windowRect.height = Mathf.Max(Mathf.Min(windowRect.height, target.parent.layout.height), minSize.y);
+
+            float maximumXPosition = Mathf.Max(target.parent.layout.width - windowRect.width, 0f);
+            float maximumYPosition = Mathf.Max(target.parent.layout.height - windowRect.height, 0f);
 
             windowRect.x = Mathf.Clamp(windowRect.x, 0f, maximumXPosition);
             windowRect.y = Mathf.Clamp(windowRect.y, 0f, maximumYPosition);
-
-            windowRect.width = Mathf.Min(windowRect.width, target.parent.layout.width);
-            windowRect.height = Mathf.Min(windowRect.height, target.parent.layout.height);
 
             m_PreviousParentRect = target.parent.layout;
 
@@ -135,4 +167,3 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 }
-
