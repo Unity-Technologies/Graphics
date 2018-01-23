@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        [SliderControl("")]
+        [SliderControl("", true)]
         public Vector3 value
         {
             get { return m_Value; }
