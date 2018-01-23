@@ -26,15 +26,33 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         struct Interpolators
         {
-            half4  pos    : SV_POSITION;
-            half2  uv     : TEXCOORD0;
-            float3 ray    : TEXCOORD1;
+            half4  pos          : SV_POSITION;
+            half2  uv           : TEXCOORD0;
+            
+            //Perspective Case
+            float3 ray          : TEXCOORD1;
+
+            //Orthographic Case
+            float3 orthoPosNear : TEXCOORD2;
+            float3 orthoPosFar  : TEXCOORD3;
         };
 
         float3 ComputeViewSpacePositionGeometric(Interpolators i)
         {
-            float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
-            return i.ray * Linear01Depth(depth, _ZBufferParams);
+            float zDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
+            float depth  = Linear01Depth(zDepth, _ZBufferParams);
+
+        #ifdef UNITY_REVERSED_Z
+            zDepth = 1 - zDepth;
+        #endif
+
+            //Perspective Case
+            float3 vposPersp = i.ray * depth;
+
+            //Orthographics Case
+            float3 vposOrtho = lerp(i.orthoPosNear, i.orthoPosFar, zDepth);
+
+            return lerp(vposPersp, vposOrtho, unity_OrthoParams.w);
         }
 
         Interpolators Vertex(VertexInput i)
@@ -42,7 +60,20 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             Interpolators o;
             o.pos = TransformObjectToHClip(i.vertex.xyz);
             o.uv  = i.uv;
+
+            //Perspective Case
             o.ray = _FrustumCorners[i.id].xyz; 
+
+            //Orthographic Case
+            float4 clipPos = o.pos;
+            clipPos.y *= _ProjectionParams.x;
+            float3 orthoPosNear = mul(unity_CameraInvProjection, float4(clipPos.x, clipPos.y, -1, 1)).xyz;
+            float3 orthoPosFar  = mul(unity_CameraInvProjection, float4(clipPos.x, clipPos.y,  1, 1)).xyz;
+            orthoPosNear.z *= -1;
+            orthoPosFar.z  *= -1;
+            o.orthoPosNear = orthoPosNear;
+            o.orthoPosFar  = orthoPosFar;
+
             return o;
         }
 
