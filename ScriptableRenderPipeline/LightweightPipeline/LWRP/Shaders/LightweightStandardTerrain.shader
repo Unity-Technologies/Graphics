@@ -113,8 +113,37 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
                 half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
                 float3 positionWS               : TEXCOORD7;
+
+#ifdef _SHADOWS_ENABLED
+                float4 shadowCoord               : TEXCOORD8;
+#endif
+
                 float4 clipPos                  : SV_POSITION;
             };
+
+            void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
+            {
+                input = (InputData)0;
+                input.positionWS = IN.positionWS;
+
+#ifdef _TERRAIN_NORMAL_MAP
+                input.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
+#else
+                input.normalWS = normalize(IN.normal);
+#endif
+
+                input.viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
+
+#ifdef _SHADOWS_ENABLED
+                input.shadowCoord = IN.shadowCoord;
+#endif
+
+                input.fogCoord = IN.fogFactorAndVertexLight.x;
+
+#ifdef LIGHTMAP_ON
+                input.bakedGI = SampleLightmap(IN.uvControlAndLM.zw, input.normalWS);
+#endif
+            }
 
             void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
             {
@@ -149,7 +178,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
             VertexOutput SplatmapVert(VertexInput v)
             {
-                VertexOutput o;
+                VertexOutput o = (VertexOutput)0;
 
                 float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
                 float4 clipPos = TransformWorldToHClip(positionWS);
@@ -171,6 +200,11 @@ Shader "LightweightPipeline/Standard Terrain"
                 o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
                 o.positionWS = positionWS;
                 o.clipPos = clipPos;
+
+#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
+                o.shadowCoord = ComputeShadowCoord(o.positionWS.xyz);
+#endif
+
                 return o;
             }
 
@@ -180,8 +214,8 @@ Shader "LightweightPipeline/Standard Terrain"
                 half weight;
                 half4 mixedDiffuse;
                 half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
-                half3 normalTangent;
-                SplatmapMix(IN, defaultSmoothness, splat_control, weight, mixedDiffuse, normalTangent);
+                half3 normalTS;
+                SplatmapMix(IN, defaultSmoothness, splat_control, weight, mixedDiffuse, normalTS);
 
                 half3 albedo = mixedDiffuse.rgb;
                 half smoothness = mixedDiffuse.a;
@@ -189,23 +223,11 @@ Shader "LightweightPipeline/Standard Terrain"
                 half3 specular = half3(0, 0, 0);
                 half alpha = weight;
 
-#ifdef _TERRAIN_NORMAL_MAP
-                half3 normalWS = TangentToWorldNormal(normalTangent, IN.tangent, IN.binormal, IN.normal);
-#else
-                half3 normalWS = normalize(IN.normal);
-#endif
+                InputData inputData;
+                InitializeInputData(IN, normalTS, inputData);
+                half4 color = LightweightFragmentPBR(inputData, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
 
-                half3 indirectDiffuse = half3(0, 0, 0);
-#ifdef LIGHTMAP_ON
-                indirectDiffuse = SampleLightmap(IN.uvControlAndLM.zw, normalWS);
-#endif
-
-                half3 viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
-                half fogFactor = IN.fogFactorAndVertexLight.x;
-                half4 color = LightweightFragmentPBR(IN.positionWS, normalWS, viewDirectionWS, indirectDiffuse,
-                    IN.fogFactorAndVertexLight.yzw, albedo, metallic, specular, smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
-
-                ApplyFog(color.rgb, fogFactor);
+                ApplyFog(color.rgb, inputData.fogCoord);
                 return color;
             }
             ENDHLSL

@@ -12,6 +12,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         private SerializedDataParameter m_FogStart;
         private SerializedDataParameter m_FogEnd;
+        private SerializedDataParameter m_FogHeightStart;
+        private SerializedDataParameter m_FogHeightEnd;
 
         public override void OnEnable()
         {
@@ -20,6 +22,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_FogStart = Unpack(o.Find(x => x.fogStart));
             m_FogEnd = Unpack(o.Find(x => x.fogEnd));
+            m_FogHeightStart = Unpack(o.Find(x => x.fogHeightStart));
+            m_FogHeightEnd = Unpack(o.Find(x => x.fogHeightEnd));
         }
 
         public override void OnInspectorGUI()
@@ -28,6 +32,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             PropertyField(m_FogStart);
             PropertyField(m_FogEnd);
+            PropertyField(m_FogHeightStart);
+            PropertyField(m_FogHeightEnd);
         }
     }
 }

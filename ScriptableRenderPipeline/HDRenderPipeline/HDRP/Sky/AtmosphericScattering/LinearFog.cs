@@ -13,10 +13,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MinFloatParameter    fogStart = new MinFloatParameter(500.0f, 0.0f);
         public MinFloatParameter    fogEnd = new MinFloatParameter(1000.0f, 0.0f);
 
+        public FloatParameter fogHeightStart = new FloatParameter(0.0f);
+        public FloatParameter fogHeightEnd = new FloatParameter(10.0f);
+
         public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
             PushShaderParametersCommon(cmd, FogType.Linear, frameSettings);
-            cmd.SetGlobalVector(m_LinearFogParam, new Vector4(fogStart, fogEnd, 1.0f / (fogEnd - fogStart), 0.0f));
+            cmd.SetGlobalVector(m_LinearFogParam, new Vector4(fogStart, 1.0f / (fogEnd - fogStart), fogHeightEnd, 1.0f / (fogHeightEnd - fogHeightStart)));
         }
     }
 
