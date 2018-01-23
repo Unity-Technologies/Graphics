@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             var compatibleAnchors = new List<Port>();
-            var startSlot = startAnchor.userData as MaterialSlot;
+            var startSlot = startAnchor.GetSlot();
             if (startSlot == null)
                 return compatibleAnchors;
 
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var candidateAnchor in ports.ToList())
             {
-                var candidateSlot = candidateAnchor.userData as MaterialSlot;
+                var candidateSlot = candidateAnchor.GetSlot();
                 if (!startSlot.IsCompatibleWith(candidateSlot))
                     continue;
 
