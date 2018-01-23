@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -31,6 +32,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnEnable()
         {
+            if (m_Material == null)
+            {
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
+            }
+
             DecalSystem.instance.AddDecal(this);
         }
 
