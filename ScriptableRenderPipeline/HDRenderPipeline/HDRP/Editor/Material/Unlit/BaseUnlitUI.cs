@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Enable transparent depth postpass", "It allow to fill depth buffer for postprocess effect like DOF");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Enable back then front rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
 
-            public static GUIContent transparentQueuePriorityText = new GUIContent("Transparent Queue Priority", "Allow to define priority (from -100 to +100) to solve sorting issue with transparent");
+            public static GUIContent transparentSortPriorityText = new GUIContent("Transparent Sort Priority", "Allow to define priority (from -100 to +100) to solve sorting issue with transparent");
             public static GUIContent enableTransparentFogText = new GUIContent("Enable fog", "Enable fog on transparent material");
             public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Blend preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
 
@@ -85,8 +85,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
         protected MaterialProperty transparentBackfaceEnable = null;
         protected const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
-        protected MaterialProperty transparentQueuePriority = null;
-        protected const string kTransparentQueuePriority = "_TransparentQueuePriority";
+        protected MaterialProperty transparentSortPriority = null;
+        protected const string kTransparentSortPriority = "_TransparentSortPriority";
         protected MaterialProperty doubleSidedEnable = null;
         protected const string kDoubleSidedEnable = "_DoubleSidedEnable";
         protected MaterialProperty blendMode = null;
@@ -150,7 +150,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable, props, false);
             transparentBackfaceEnable = FindProperty(kTransparentBackfaceEnable, props, false);
 
-            transparentQueuePriority = FindProperty(kTransparentQueuePriority, props, false);
+            transparentSortPriority = FindProperty(kTransparentSortPriority, props, false);
 
             doubleSidedEnable = FindProperty(kDoubleSidedEnable, props, false);
             blendMode = FindProperty(kBlendMode, props, false);
@@ -272,13 +272,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (transparentBackfaceEnable != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
                 m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
 
-            if (transparentQueuePriority != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
+            if (transparentSortPriority != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
             {
                 EditorGUI.BeginChangeCheck();
-                m_MaterialEditor.ShaderProperty(transparentQueuePriority, StylesBaseUnlit.transparentQueuePriorityText);
+                m_MaterialEditor.ShaderProperty(transparentSortPriority, StylesBaseUnlit.transparentSortPriorityText);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    transparentQueuePriority.floatValue = Mathf.Clamp((int)transparentQueuePriority.floatValue, -(int)HDRenderQueue.k_TransparentPriorityQueueRange, (int)HDRenderQueue.k_TransparentPriorityQueueRange);
+                    transparentSortPriority.floatValue = Mathf.Clamp((int)transparentSortPriority.floatValue, -(int)HDRenderQueue.k_TransparentPriorityQueueRange, (int)HDRenderQueue.k_TransparentPriorityQueueRange);
                 }
             }
 
@@ -351,14 +351,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 material.SetInt("_ZWrite", 1);
-                material.renderQueue = alphaTestEnable ? (int)HDRenderQueue.Priority.AlphaTest : -1;
+                material.renderQueue = alphaTestEnable ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
             }
             else
             {
                 material.SetOverrideTag("RenderType", "Transparent");
                 material.SetInt("_ZWrite", 0);
                 var isPrepass = material.HasProperty(kPreRefractionPass) && material.GetFloat(kPreRefractionPass) > 0.0f;
-                material.renderQueue = (int)(isPrepass ? HDRenderQueue.Priority.PreRefraction : HDRenderQueue.Priority.Transparent) + (int)material.GetFloat(kTransparentQueuePriority);
+                material.renderQueue = (int)(isPrepass ? HDRenderQueue.Priority.PreRefraction : HDRenderQueue.Priority.Transparent) + (int)material.GetFloat(kTransparentSortPriority);
 
                 if (material.HasProperty(kBlendMode))
                 {
