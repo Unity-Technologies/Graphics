@@ -27,6 +27,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         [NonSerialized]
         bool m_HasError;
 
+        [NonSerialized]
+        public bool forceRedrawPreviews = false;
+
         GraphEditorView m_GraphEditorView;
 
         GraphEditorView graphEditorView
@@ -39,6 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.RemoveFromHierarchy();
                     m_GraphEditorView.Dispose();
                 }
+
                 m_GraphEditorView = value;
                 if (m_GraphEditorView != null)
                 {
@@ -96,6 +100,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
                 }
 
+                if (forceRedrawPreviews)
+                {
+                    // Redraw all previews
+                    foreach (INode node in m_GraphObject.graph.GetNodes<INode>())
+                        node.Dirty(ModificationScope.Node);
+                    forceRedrawPreviews = false;
+                }
+                    
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
             }
@@ -123,6 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Undo.ClearUndo(graphObject);
                 DestroyImmediate(graphObject);
             }
+
             graphEditorView = null;
         }
 
@@ -232,6 +245,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     subGraph.Connect(outputSlotRef, inputSlotRef);
                 }
+
                 // one edge needs to go to outside world
                 else if (outputSlotExistsInSubgraph)
                 {
