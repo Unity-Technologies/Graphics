@@ -27,12 +27,12 @@ VFXContextUI #NodeContents
 
 VFXContextUI.typeparticle #NodeContents
 {
-    border-color: #008580;
+    border-color: #BF9220;
 }
 
 VFXFlowAnchor.port.EdgeConnector.typeparticle
 {
-    port-color: #00fff5;
+    port-color: #FFBC21;
 }
 
 /*  output */
@@ -51,7 +51,7 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 
 VFXContextUI.typeevent #NodeContents,VFXContextUI.typespawnevent #NodeContents
 {
-    border-color: #13794C;
+    border-color: #17AB6A;
 }
 
 VFXFlowAnchor.port.EdgeConnector.typeevent, VFXFlowAnchor.port.EdgeConnector.typespawnevent

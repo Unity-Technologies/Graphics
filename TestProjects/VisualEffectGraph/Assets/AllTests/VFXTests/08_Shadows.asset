@@ -1645,7 +1645,7 @@ MonoBehaviour:
   - {fileID: 114148650700201542}
   - {fileID: 114440299538930908}
   - {fileID: 114361518839833050}
-  m_Capacity: 65536
+  m_Capacity: 5056
   m_Space: 0
 --- !u!114 &114340786042683758
 MonoBehaviour:
@@ -5494,8 +5494,8 @@ VFXAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 917504
-    capacity: 65536
+    size: 70784
+    capacity: 5056
     layout:
     - name: position
       type: 3
@@ -5512,25 +5512,25 @@ VFXAsset:
     - name: lifetime
       type: 1
       offset:
-        bucket: 262144
+        bucket: 20224
         structure: 1
         element: 0
     - name: velocity
       type: 3
       offset:
-        bucket: 327680
+        bucket: 25280
         structure: 4
         element: 0
     - name: age
       type: 1
       offset:
-        bucket: 589824
+        bucket: 45504
         structure: 1
         element: 0
     - name: color
       type: 3
       offset:
-        bucket: 655360
+        bucket: 50560
         structure: 4
         element: 0
   - type: 1
@@ -5544,7 +5544,7 @@ VFXAsset:
         structure: 1
         element: 0
   - type: 2
-    size: 65536
+    size: 5056
     capacity: 0
     layout: []
   - type: 1
@@ -5592,7 +5592,7 @@ VFXAsset:
       processor: {fileID: 0}
   - type: 1
     flags: 1
-    capacity: 65536
+    capacity: 5056
     buffers:
     - index: 0
       nameId: attributeBuffer
@@ -5644,7 +5644,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 68
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: d95a46231b42dad41953c7387573308b, type: 3}
+      processor: {fileID: 7200000, guid: ebe672251cd8bec44bd757e6f56cb78e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5671,7 +5671,7 @@ VFXAsset:
       - index: 84
         nameId: gradient_d
       params: []
-      processor: {fileID: 7200000, guid: a0f7380feb7ab6143a59366c9c5a771e, type: 3}
+      processor: {fileID: 7200000, guid: f0c0f7c4a8ef88c4bb7d3f2ebf46fd1c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5684,7 +5684,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 154e8d74bf5e05041866223abe57f192, type: 3}
+      processor: {fileID: 4800000, guid: a121abdde9dab39469e551c561e95655, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5701,7 +5701,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 9525f3a6c6b3cf847a613fa08c257ae8, type: 3}
+      processor: {fileID: 4800000, guid: a20b1cbdf77ecf04096e1adccb91c6d1, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5720,7 +5720,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 337145d89fa640c42bd1d60393d7205e, type: 3}
+      processor: {fileID: 4800000, guid: a011a05b46e65294b95f3e480a9cc006, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5741,7 +5741,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: fcb4e7e8c1e7e5f499e5eef676046525, type: 3}
+      processor: {fileID: 4800000, guid: 774316646c79aaa48ba0ff9137064b14, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
