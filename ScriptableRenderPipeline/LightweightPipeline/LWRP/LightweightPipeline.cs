@@ -357,7 +357,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                 {
                     DepthPass(ref context);
-                    if(m_RequireScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
+                    if(m_RequireScreenSpaceShadows) 
                         ShadowCollectPass(ref context, visibleLights, ref lightData);
                 }
 
