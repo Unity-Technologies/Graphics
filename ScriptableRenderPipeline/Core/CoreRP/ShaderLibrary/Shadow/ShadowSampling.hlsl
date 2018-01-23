@@ -253,7 +253,7 @@ void SampleShadow_ComputeSamples_Tent_7x7(real4 shadowMapTexture_TexelSize, real
 //
 //					1 tap PCF sampling
 //
-real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real bias, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, uint texIdx, uint sampIdx )
 {
 	real depthBias = asfloat( shadowContext.payloads[payloadOffset].x );
 	payloadOffset++;
@@ -264,7 +264,7 @@ real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffse
 	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, slice ).x;
 }
 
-real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real depthBias = asfloat( shadowContext.payloads[payloadOffset].x );
 	payloadOffset++;
@@ -278,7 +278,7 @@ real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffse
 //
 //					3x3 tent PCF sampling (4 taps)
 //
-real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -297,12 +297,12 @@ real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadO
 	SampleShadow_ComputeSamples_Tent_3x3(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
 	[loop] for (int i = 0; i < 4; i++)
 	{
-		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( fetchesUV[i].xy,  coord.z ), slice ).x;
+		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -321,7 +321,7 @@ real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOf
 	SampleShadow_ComputeSamples_Tent_3x3(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
 	for (int i = 0; i < 4; i++)
 	{
-		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy,  coord.z ), slice ).x;
+		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 	return shadow;
 }
@@ -329,14 +329,14 @@ real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOf
 //
 //					5x5 tent PCF sampling (9 taps)
 //
-real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
 	// TODO move this to shadow data to avoid the rcp?
-	real4 shadowMapTexture_TexelSize = real4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp( texelSizeRcp.xy ) );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -345,22 +345,22 @@ real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadO
 	real fetchesWeights[9];
 	real2 fetchesUV[9];
 
-	SampleShadow_ComputeSamples_Tent_5x5(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
+	SampleShadow_ComputeSamples_Tent_5x5( shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV );
 	[loop] for (int i = 0; i < 9; i++)
 	{
-		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( fetchesUV[i].xy,  coord.z ), slice ).x;
+		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
 	// TODO move this to shadow data to avoid the rcp
-	real4 shadowMapTexture_TexelSize = real4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp(texelSizeRcp.xy ) );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -369,11 +369,11 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 	real fetchesWeights[9];
 	real2 fetchesUV[9];
 
-	SampleShadow_ComputeSamples_Tent_5x5(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
+	SampleShadow_ComputeSamples_Tent_5x5( shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV );
 
 	for( int i = 0; i < 9; i++ )
 	{
-		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy,  coord.z ), slice ).x;
+		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 
 	return shadow;
@@ -382,14 +382,14 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 //
 //					7x7 tent PCF sampling (16 taps)
 //
-real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
 	// TODO move this to shadow data to avoid the rcp
-	real4 shadowMapTexture_TexelSize = real4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp(texelSizeRcp.xy ) );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -398,23 +398,23 @@ real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadO
 	real fetchesWeights[16];
 	real2 fetchesUV[16];
 
-	SampleShadow_ComputeSamples_Tent_7x7(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
+	SampleShadow_ComputeSamples_Tent_7x7( shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV );
 	[loop] for (int i = 0; i < 16; i++)
 	{
-		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( fetchesUV[i].xy,  coord.z ), slice ).x;
+		shadow += fetchesWeights[i] * SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
 	// TODO move this to shadow data to avoid the rcp
-	real4 shadowMapTexture_TexelSize = real4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp( texelSizeRcp.xy ) );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -423,46 +423,48 @@ real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOf
 	real fetchesWeights[16];
 	real2 fetchesUV[16];
 
-	SampleShadow_ComputeSamples_Tent_7x7(shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV);
+	SampleShadow_ComputeSamples_Tent_7x7( shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV );
 
 #if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
+	// the loops are only there to prevent the compiler form coalescing all 16 texture fetches which increases register usage
 	int i;
 	[loop]
 	for( i = 0; i < 1; i++ )
 	{
-		shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 0].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 1].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 2].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 3].xy, coord.z ), slice ).x;
+		shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 0].xy, coord.z + dot( fetchesUV[ 0].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 1].xy, coord.z + dot( fetchesUV[ 1].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 2].xy, coord.z + dot( fetchesUV[ 2].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 3].xy, coord.z + dot( fetchesUV[ 3].xy - coord.xy, sampleBias ) ), slice ).x;
+	}
+
+	[loop]
+	for( i = 0; i < 1; i++ )
+	{
+		shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 4].xy, coord.z + dot( fetchesUV[ 4].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 5].xy, coord.z + dot( fetchesUV[ 5].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 6].xy, coord.z + dot( fetchesUV[ 6].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 7].xy, coord.z + dot( fetchesUV[ 7].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 	[loop]
 	for( i = 0; i < 1; i++ )
 	{
-		shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 4].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 5].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 6].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 7].xy, coord.z ), slice ).x;
+		shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 8].xy, coord.z + dot( fetchesUV[ 8].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 9] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 9].xy, coord.z + dot( fetchesUV[ 9].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[10] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[10].xy, coord.z + dot( fetchesUV[10].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[11] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[11].xy, coord.z + dot( fetchesUV[11].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 	[loop]
 	for( i = 0; i < 1; i++ )
 	{
-		shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 8].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[ 9] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 9].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[10] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[10].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[11] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[11].xy, coord.z ), slice ).x;
-	}
-	[loop]
-	for( i = 0; i < 1; i++ )
-	{
-		shadow += fetchesWeights[12] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[12].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[13] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[13].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[14] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[14].xy, coord.z ), slice ).x;
-		shadow += fetchesWeights[15] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[15].xy, coord.z ), slice ).x;
+		shadow += fetchesWeights[12] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[12].xy, coord.z + dot( fetchesUV[12].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[13] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[13].xy, coord.z + dot( fetchesUV[13].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[14] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[14].xy, coord.z + dot( fetchesUV[14].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[15] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[15].xy, coord.z + dot( fetchesUV[15].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 #else
 	for( int i = 0; i < 16; i++ )
 	{
-		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy, coord.z ), slice ).x;
+		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
 #endif
 	return shadow;
@@ -471,7 +473,7 @@ real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOf
 //
 //					9 tap adaptive PCF sampling
 //
-real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real bias, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -490,10 +492,10 @@ real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint pay
 	real4 vShadow3x3PCFTerms3 = real4(-texelSizeRcp.x, -texelSizeRcp.y, 0.0, 0.0 );
 
 	real4 v20Taps;
-	v20Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.xy, tcs.z ), slice ).x; //  1  1
-	v20Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.zy, tcs.z ), slice ).x; // -1  1
-	v20Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.xw, tcs.z ), slice ).x; //  1 -1
-	v20Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.zw, tcs.z ), slice ).x; // -1 -1
+	v20Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.xy, tcs.z + dot( vShadow3x3PCFTerms1.xy, sampleBias ) ), slice ).x; //  1  1
+	v20Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.zy, tcs.z + dot( vShadow3x3PCFTerms1.zy, sampleBias ) ), slice ).x; // -1  1
+	v20Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.xw, tcs.z + dot( vShadow3x3PCFTerms1.xw, sampleBias ) ), slice ).x; //  1 -1
+	v20Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms1.zw, tcs.z + dot( vShadow3x3PCFTerms1.zw, sampleBias ) ), slice ).x; // -1 -1
 	real flSum = dot( v20Taps.xyzw, real4( 0.25, 0.25, 0.25, 0.25 ) );
 	// fully in light or shadow? -> bail
 	if( ( flSum == 0.0 ) || ( flSum == 1.0 ) )
@@ -503,10 +505,10 @@ real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint pay
 	flSum *= vShadow3x3PCFTerms0.x * 4.0;
 
 	real4 v33Taps;
-	v33Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms2.xz, tcs.z ), slice ).x; //  1  0
-	v33Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms3.xz, tcs.z ), slice ).x; // -1  0
-	v33Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms3.zy, tcs.z ), slice ).x; //  0 -1
-	v33Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms2.zy, tcs.z ), slice ).x; //  0  1
+	v33Taps.x = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms2.xz, tcs.z + dot( vShadow3x3PCFTerms2.xz, sampleBias ) ), slice ).x; //  1  0
+	v33Taps.y = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms3.xz, tcs.z + dot( vShadow3x3PCFTerms3.xz, sampleBias ) ), slice ).x; // -1  0
+	v33Taps.z = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms3.zy, tcs.z + dot( vShadow3x3PCFTerms3.zy, sampleBias ) ), slice ).x; //  0 -1
+	v33Taps.w = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, real3( tcs.xy + vShadow3x3PCFTerms2.zy, tcs.z + dot( vShadow3x3PCFTerms2.zy, sampleBias ) ), slice ).x; //  0  1
 	flSum += dot( v33Taps.xyzw, vShadow3x3PCFTerms0.yyyy );
 
 	flSum += SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, slice ).x * vShadow3x3PCFTerms0.z;
@@ -514,7 +516,7 @@ real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint pay
 	return flSum;
 }
 
-real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real bias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -533,10 +535,10 @@ real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payl
 	real4 vShadow3x3PCFTerms3 = real4(-texelSizeRcp.x, -texelSizeRcp.y, 0.0, 0.0);
 
 	real4 v20Taps;
-	v20Taps.x = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.xy, tcs.z ), slice ).x; //  1  1
-	v20Taps.y = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.zy, tcs.z ), slice ).x; // -1  1
-	v20Taps.z = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.xw, tcs.z ), slice ).x; //  1 -1
-	v20Taps.w = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.zw, tcs.z ), slice ).x; // -1 -1
+	v20Taps.x = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.xy, tcs.z + dot( vShadow3x3PCFTerms1.xy, sampleBias ) ), slice ).x; //  1  1
+	v20Taps.y = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.zy, tcs.z + dot( vShadow3x3PCFTerms1.zy, sampleBias ) ), slice ).x; // -1  1
+	v20Taps.z = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.xw, tcs.z + dot( vShadow3x3PCFTerms1.xw, sampleBias ) ), slice ).x; //  1 -1
+	v20Taps.w = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms1.zw, tcs.z + dot( vShadow3x3PCFTerms1.zw, sampleBias ) ), slice ).x; // -1 -1
 	real flSum = dot( v20Taps.xyzw, real4( 0.25, 0.25, 0.25, 0.25 ) );
 	// fully in light or shadow? -> bail
 	if( ( flSum == 0.0 ) || ( flSum == 1.0 ) )
@@ -546,10 +548,10 @@ real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payl
 	flSum *= vShadow3x3PCFTerms0.x * 4.0;
 
 	real4 v33Taps;
-	v33Taps.x = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms2.xz, tcs.z ), slice ).x; //  1  0
-	v33Taps.y = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms3.xz, tcs.z ), slice ).x; // -1  0
-	v33Taps.z = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms3.zy, tcs.z ), slice ).x; //  0 -1
-	v33Taps.w = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms2.zy, tcs.z ), slice ).x; //  0  1
+	v33Taps.x = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms2.xz, tcs.z + dot( vShadow3x3PCFTerms2.xz, sampleBias ) ), slice ).x; //  1  0
+	v33Taps.y = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms3.xz, tcs.z + dot( vShadow3x3PCFTerms3.xz, sampleBias ) ), slice ).x; // -1  0
+	v33Taps.z = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms3.zy, tcs.z + dot( vShadow3x3PCFTerms3.zy, sampleBias ) ), slice ).x; //  0 -1
+	v33Taps.w = SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( tcs.xy + vShadow3x3PCFTerms2.zy, tcs.z + dot( vShadow3x3PCFTerms2.zy, sampleBias ) ), slice ).x; //  0  1
 	flSum += dot( v33Taps.xyzw, vShadow3x3PCFTerms0.yyyy );
 
 	flSum += SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, tcs, slice ).x * vShadow3x3PCFTerms0.z;
@@ -729,16 +731,16 @@ real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffse
 
 //-----------------------------------------------------------------------------------------------------
 // helper function to dispatch a specific shadow algorithm
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real depthBias, uint slice, uint algorithm, uint texIdx, uint sampIdx )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint slice, uint algorithm, uint texIdx, uint sampIdx )
 {
 	[branch]
 	switch( algorithm )
 	{
-	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, depthBias, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_VSM				: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_EVSM_2			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, false );
 	case GPUSHADOWALGORITHM_EVSM_4			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, true );
@@ -748,22 +750,22 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
 	}
 }
 
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real depthBias, uint slice, uint algorithm, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint slice, uint algorithm, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	[branch]
 	switch( algorithm )
 	{
-	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, depthBias, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, depthBias, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
 
 	default: return 1.0;
 	}
 }
 
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real depthBias, uint slice, uint algorithm, Texture2DArray tex, SamplerState samp )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint slice, uint algorithm, Texture2DArray tex, SamplerState samp )
 {
 	[branch]
 	switch( algorithm )

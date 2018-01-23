@@ -2,6 +2,8 @@
 #pragma kernel DeferredDirectionalShadow				DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
 #pragma kernel DeferredDirectionalShadow_Contact		DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact	ENABLE_CONTACT_SHADOWS
 
+#define SHADOW_USE_ONLY_VIEW_BASED_BIASING      1   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
+
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../ShaderVariables.hlsl"
 #include "Lighting.hlsl" 
@@ -112,7 +114,7 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 	UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
 	ShadowContext shadowContext = InitShadowContext();
-	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, float3(0.0, 0.0, 0.0), (uint)_DirectionalShadowIndex, float3(0.0, 0.0, 0.0));
+	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, float3(0.0, 0.0, 0.0), (uint)_DirectionalShadowIndex, _LightDirection);
 
 #ifdef ENABLE_CONTACT_SHADOWS
 	float contactShadow = 1.0f;

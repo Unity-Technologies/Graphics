@@ -4,6 +4,9 @@
 #define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 #define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 
+#define SHADOW_USE_VIEW_BIAS_SCALING            1   // Enable view bias scaling to mitigate light leaking across edges. Uses the light vector if SHADOW_USE_ONLY_VIEW_BASED_BIASING is defined, otherwise uses the normal.
+#define SHADOW_USE_SAMPLE_BIASING               1   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
+
 #include "ShadowContext.hlsl"
 
 // This is an example of how to override the default dynamic resource dispatcher
@@ -60,7 +63,7 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 
 // example of overriding punctual lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist )
 {
 #ifdef SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS
 	// example for choosing different algos for point and spot lights
@@ -74,26 +77,26 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 		Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_POINT_TEX];
 		SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_POINT_SMP];
 		uint					algo     = SHADOW_DISPATCH_POINT_ALG;
-		return EvalShadow_PointDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+		return EvalShadow_PointDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L, L_dist );
 	}
 	else
 	{
 		Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_SPOT_TEX];
 		SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_SPOT_SMP];
 		uint					algo     = SHADOW_DISPATCH_SPOT_ALG;
-		return EvalShadow_SpotDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+		return EvalShadow_SpotDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L, L_dist );
 	}
 #else
 	// example for choosing the same algo
 	Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX];
 	SamplerComparisonState	compSamp = shadowContext.compSamplers[SHADOW_DISPATCH_PUNC_SMP];
 	uint					algo     = SHADOW_DISPATCH_PUNC_ALG;
-	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L );
+	return EvalShadow_PunctualDepth( shadowContext, algo, tex, compSamp, positionWS, normalWS, shadowDataIndex, L, L_dist );
 #endif
 }
-float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float4 L, float2 positionSS )
+float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, float2 positionSS )
 {
-	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
 }
 #endif
 

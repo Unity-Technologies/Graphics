@@ -17,17 +17,38 @@
 */
 
 /* Default values for optional defines:
-#define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0        // Dynamic indexing only works on >= sm 5.1
-#define SHADOW_OPTIMIZE_REGISTER_USAGE   0        // Redefine this as 1 in your ShadowContext.hlsl to optimize for register usage over instruction count
-// #define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL    // Enable custom implementations of GetPunctualShadowAttenuation. If not defined, a default implementation will be used.
-// #define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL // Enable custom implementations of GetDirectionalShadowAttenuation. If not defined, a default implementation will be used.
+#define SHADOW_SUPPORTS_DYNAMIC_INDEXING        0   // Dynamic indexing only works on >= sm 5.1
+#define SHADOW_OPTIMIZE_REGISTER_USAGE          0   // Redefine this as 1 in your ShadowContext.hlsl to optimize for register usage over instruction count
+#define SHADOW_USE_VIEW_BIAS_SCALING            0   // Enable view bias scaling to mitigate light leaking across edges. Uses the light vector if SHADOW_USE_ONLY_VIEW_BASED_BIASING is defined, otherwise uses the normal.
+#define SHADOW_USE_ONLY_VIEW_BASED_BIASING      0   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
+#define SHADOW_USE_SAMPLE_BIASING               0   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
+// #define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL      // Enable custom implementations of GetPunctualShadowAttenuation. If not defined, a default implementation will be used.
+// #define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL   // Enable custom implementations of GetDirectionalShadowAttenuation. If not defined, a default implementation will be used.
 */
 
+
 #ifndef SHADOW_SUPPORTS_DYNAMIC_INDEXING
-	#define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0
+#   define SHADOW_SUPPORTS_DYNAMIC_INDEXING 0
 #endif
 #ifndef SHADOW_OPTIMIZE_REGISTER_USAGE
-	#define SHADOW_OPTIMIZE_REGISTER_USAGE   0
+#   define SHADOW_OPTIMIZE_REGISTER_USAGE   0
+#endif
+#ifndef SHADOW_USE_VIEW_BIAS_SCALING
+#   define SHADOW_USE_VIEW_BIAS_SCALING     0
+#endif
+#ifndef SHADOW_USE_SAMPLE_BIAS
+#   define SHADOW_USE_SAMPLE_BIAS           0
+#endif
+#ifndef SHADOW_USE_SAMPLE_BIAS
+#   define SHADOW_USE_SAMPLE_BIAS           0
+#endif
+
+#if SHADOW_USE_ONLY_VIEW_BASED_BIASING != 0
+#   if SHADOW_USE_SAMPLE_BIASING != 0
+#       pragma message "Shadows: SHADOW_USE_SAMPLE_BIASING was enabled together with SHADOW_USE_ONLY_VIEW_BASED_BIASING. Sample biasing requires the normal. Disabling SHADOW_USE_SAMPLE_BIASING again."
+#       undef  SHADOW_USE_SAMPLE_BIASING
+#       define SHADOW_USE_SAMPLE_BIASING 0
+#   endif
 #endif
 
 #include "CoreRP/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
@@ -71,8 +92,8 @@ void UnpackShadowType( uint packedShadowType, out uint shadowType )
 }
 
 // shadow sampling prototypes
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L );
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L, real2 positionSS );
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real L_dist );
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real L_dist, real2 positionSS );
 
 // shadow sampling prototypes with screenspace info
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L );
@@ -82,14 +103,14 @@ real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positio
 #include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L )
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real L_dist )
 {
-	return EvalShadow_PunctualDepth(shadowContext, positionWS, normalWS, shadowDataIndex, L);
+	return EvalShadow_PunctualDepth( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
 }
 
-real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real4 L, real2 positionSS )
+real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real L_dist, real2 positionSS )
 {
-	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
 }
 #endif
 

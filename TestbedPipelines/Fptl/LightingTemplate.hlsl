@@ -184,7 +184,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
 			[branch]
 			if (shadowIdx >= 0)
 			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, float4(normalize(light.dir.xyz), dist));
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz), dist);
 				atten *= shadow;
 			}
 
@@ -224,7 +224,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
 			[branch]
 			if (shadowIdx >= 0)
 			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, float4(vLw, dist));
+				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw, dist);
 				atten *= shadow;
 			}
 

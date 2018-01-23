@@ -34,6 +34,18 @@ namespace UnityEngine.Experimental.Rendering
         public float contactShadowFadeDistance = 5.0f;
         [Range(4, 64)]
         public uint contactShadowSampleCount = 8;
+        // bias control
+        public float viewBiasMin        = 0.5f;
+        public float viewBiasMax        = 10.0f;
+        [Range(0.0F, 15.0F)]
+        public float viewBiasScale      = 1.0f;
+        public float nrmlBiasMin        = 0.2f;
+        public float nrmlBiasMax        = 4.0f;
+        [Range(0.0F, 10.0F)]
+        public float nrmlBiasScale      = 1.0f;
+        public bool sampleBiasScale     = true;
+        public bool edgeLeakFixup       = true;
+
 
         // shadow related parameters
         [System.Serializable]
