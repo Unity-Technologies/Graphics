@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class StringFieldPushButton : VFXStringField
+    class VFXStringFieldPushButton : VFXStringField
     {
         Action<string> m_fnOnClicked;
 
@@ -15,13 +15,13 @@ namespace UnityEditor.VFX.UIElements
             get { return m_fnOnClicked; }
         }
 
-        public StringFieldPushButton(string label, Action<string> fnClicked, string buttonName) : base(label)
+        public VFXStringFieldPushButton(string label, Action<string> fnClicked, string buttonName) : base(label)
         {
             m_fnOnClicked = fnClicked;
             Add(new Button(() => m_fnOnClicked(m_TextField.text)) {text = buttonName});
         }
 
-        public StringFieldPushButton(Label existingLabel, Action<string> fnClicked, string buttonName) : base(existingLabel)
+        public VFXStringFieldPushButton(Label existingLabel, Action<string> fnClicked, string buttonName) : base(existingLabel)
         {
             m_fnOnClicked = fnClicked;
             Add(new Button(() => m_fnOnClicked(m_TextField.text)) {text = buttonName});

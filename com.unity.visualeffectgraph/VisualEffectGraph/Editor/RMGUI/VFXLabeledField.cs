@@ -5,12 +5,12 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class LabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
+    class VFXLabeledField<T, U> : VisualElement, INotifyValueChanged<U> where T : VisualElement, INotifyValueChanged<U>, new()
     {
         protected Label m_Label;
         protected T m_Control;
 
-        public LabeledField(Label existingLabel)
+        public VFXLabeledField(Label existingLabel)
         {
             m_Label = existingLabel;
 
@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UIElements
             SetupLabel();
         }
 
-        public LabeledField(string label)
+        public VFXLabeledField(string label)
         {
             if (!string.IsNullOrEmpty(label))
             {

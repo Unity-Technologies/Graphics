@@ -12,13 +12,13 @@ using Type = System.Type;
 
 using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
-using ColorField = UnityEditor.VFX.UIElements.ColorField;
+using VFXColorField = UnityEditor.VFX.UIElements.VFXColorField;
 
 namespace UnityEditor.VFX.UI
 {
     class Vector3PropertyRM : PropertyRM<Vector3>
     {
-        ColorField m_ColorField;
+        VFXColorField m_ColorField;
 
         VFXVector3Field m_VectorField;
 
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
 
             if (isColor)
             {
-                m_ColorField = new ColorField(m_Label);
+                m_ColorField = new VFXColorField(m_Label);
                 m_ColorField.OnValueChanged = OnColorValueChanged;
                 m_ColorField.showAlpha = false;
                 m_VectorField = new VFXVector3Field();
@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var labeledField = new LabeledField<VFXVector3Field, Vector3>(m_Label);
+                var labeledField = new VFXLabeledField<VFXVector3Field, Vector3>(m_Label);
                 m_VectorField = labeledField.control;
                 labeledField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
                 Add(labeledField);

@@ -9,7 +9,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using MyCurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
+using MyCurveField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX.UI
 {

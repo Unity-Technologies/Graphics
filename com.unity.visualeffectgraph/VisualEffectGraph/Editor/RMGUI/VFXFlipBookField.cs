@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.UIElements
 {
     class VFXFlipBookField : VFXControl<FlipBook>
     {
-        LabeledField<IntegerField, long> m_X;
-        LabeledField<IntegerField, long> m_Y;
+        VFXLabeledField<IntegerField, long> m_X;
+        VFXLabeledField<IntegerField, long> m_Y;
 
         void CreateTextField()
         {
-            m_X = new LabeledField<IntegerField, long>("X");
-            m_Y = new LabeledField<IntegerField, long>("Y");
+            m_X = new VFXLabeledField<IntegerField, long>("X");
+            m_Y = new VFXLabeledField<IntegerField, long>("Y");
 
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");

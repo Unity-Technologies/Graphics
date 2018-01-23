@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
             if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
-                var field = new LabeledField<IntegerField, long>(m_Label);
+                var field = new VFXLabeledField<IntegerField, long>(m_Label);
                 return field;
             }
             else
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
                 range.x = Mathf.Max(0, Mathf.Round(range.x));
                 range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
 
-                var field = new LabeledField<VFXIntSliderField, long>(m_Label);
+                var field = new VFXLabeledField<VFXIntSliderField, long>(m_Label);
                 field.control.range = range;
                 return field;
             }
@@ -89,9 +89,9 @@ namespace UnityEditor.VFX.UI
 
         protected override bool HasFocus()
         {
-            if (field is LabeledField<IntegerField, long>)
-                return (field as LabeledField<IntegerField, long>).control.hasFocus;
-            return (field as LabeledField<VFXIntSliderField, long>).control.hasFocus;
+            if (field is VFXLabeledField<IntegerField, long>)
+                return (field as VFXLabeledField<IntegerField, long>).control.hasFocus;
+            return (field as VFXLabeledField<VFXIntSliderField, long>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -129,7 +129,7 @@ namespace UnityEditor.VFX.UI
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
             if (range != Vector2.zero && (range.y == Mathf.Infinity || (uint)range.x < (uint)range.y))
             {
-                var field = new LabeledField<IntegerField, long>(m_Label);
+                var field = new VFXLabeledField<IntegerField, long>(m_Label);
                 return field;
             }
             else
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
                 range.x = Mathf.Round(range.x);
                 range.y = Mathf.Max(range.x + 1, Mathf.Round(range.y));
 
-                var field = new LabeledField<VFXIntSliderField, long>(m_Label);
+                var field = new VFXLabeledField<VFXIntSliderField, long>(m_Label);
                 field.control.range = range;
                 return field;
             }
@@ -145,9 +145,9 @@ namespace UnityEditor.VFX.UI
 
         protected override bool HasFocus()
         {
-            if (field is LabeledField<IntegerField, long>)
-                return (field as LabeledField<IntegerField, long>).control.hasFocus;
-            return (field as LabeledField<VFXIntSliderField, long>).control.hasFocus;
+            if (field is VFXLabeledField<IntegerField, long>)
+                return (field as VFXLabeledField<IntegerField, long>).control.hasFocus;
+            return (field as VFXLabeledField<VFXIntSliderField, long>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -207,12 +207,12 @@ namespace UnityEditor.VFX.UI
 
             if (range == Vector2.zero || range.y == Mathf.Infinity)
             {
-                var field = new LabeledField<FloatField, float>(m_Label);
+                var field = new VFXLabeledField<FloatField, float>(m_Label);
                 return field;
             }
             else
             {
-                var field = new LabeledField<VFXDoubleSliderField, float>(m_Label);
+                var field = new VFXLabeledField<VFXDoubleSliderField, float>(m_Label);
                 field.control.range = range;
                 return field;
             }
@@ -220,9 +220,9 @@ namespace UnityEditor.VFX.UI
 
         protected override bool HasFocus()
         {
-            if (field is LabeledField<FloatField, float>)
-                return (field as LabeledField<FloatField, float>).control.hasFocus;
-            return (field as LabeledField<VFXDoubleSliderField, float>).control.hasFocus;
+            if (field is VFXLabeledField<FloatField, float>)
+                return (field as VFXLabeledField<FloatField, float>).control.hasFocus;
+            return (field as VFXLabeledField<VFXDoubleSliderField, float>).control.hasFocus;
         }
 
         public override object FilterValue(object value)
@@ -262,7 +262,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<Vector4> CreateField()
         {
-            var field = new LabeledField<VFXVector4Field, Vector4>(m_Label);
+            var field = new VFXLabeledField<VFXVector4Field, Vector4>(m_Label);
 
             return field;
         }
@@ -281,7 +281,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<Matrix4x4> CreateField()
         {
-            var field = new LabeledField<VFXMatrix4x4Field, Matrix4x4>(m_Label);
+            var field = new VFXLabeledField<VFXMatrix4x4Field, Matrix4x4>(m_Label);
 
             return field;
         }
@@ -300,7 +300,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<Vector2> CreateField()
         {
-            var field = new LabeledField<VFXVector2Field, Vector2>(m_Label);
+            var field = new VFXLabeledField<VFXVector2Field, Vector2>(m_Label);
 
             return field;
         }
@@ -319,7 +319,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<FlipBook> CreateField()
         {
-            var field = new LabeledField<VFXFlipBookField, FlipBook>(m_Label);
+            var field = new VFXLabeledField<VFXFlipBookField, FlipBook>(m_Label);
 
             return field;
         }
@@ -387,11 +387,11 @@ namespace UnityEditor.VFX.UI
             var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
             if (stringProvider != null)
             {
-                return new StringFieldProvider(m_Label, stringProvider);
+                return new VFXStringFieldProvider(m_Label, stringProvider);
             }
             else if (pushButtonProvider.action != null)
             {
-                return new StringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
+                return new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
             }
             else
             {
@@ -408,14 +408,14 @@ namespace UnityEditor.VFX.UI
 
             if (stringProvider != null)
             {
-                return m_Field is StringFieldProvider && (m_Field as StringFieldProvider).stringProvider == stringProvider;
+                return m_Field is VFXStringFieldProvider && (m_Field as VFXStringFieldProvider).stringProvider == stringProvider;
             }
             else if (pushButtonInfo.action != null)
             {
-                return m_Field is StringFieldPushButton && (m_Field as StringFieldPushButton).pushButtonProvider == pushButtonInfo.action;
+                return m_Field is VFXStringFieldPushButton && (m_Field as VFXStringFieldPushButton).pushButtonProvider == pushButtonInfo.action;
             }
 
-            return !(m_Field is StringFieldProvider) && !(m_Field is StringFieldPushButton);
+            return !(m_Field is VFXStringFieldProvider) && !(m_Field is VFXStringFieldPushButton);
         }
     }
 }

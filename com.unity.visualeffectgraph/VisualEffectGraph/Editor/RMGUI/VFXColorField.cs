@@ -6,7 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class ColorField : ValueControl<Color>
+    class VFXColorField : ValueControl<Color>
     {
         VisualElement m_ColorDisplay;
 
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UIElements
 
         VisualElement m_EyeDropper;
 
-        public ColorField(string label) : base(label)
+        public VFXColorField(string label) : base(label)
         {
             VisualElement container = CreateColorContainer();
             Add(container);
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_EyeDropper);
         }
 
-        public ColorField(Label existingLabel) : base(existingLabel)
+        public VFXColorField(Label existingLabel) : base(existingLabel)
         {
             VisualElement container = CreateColorContainer();
             Add(container);

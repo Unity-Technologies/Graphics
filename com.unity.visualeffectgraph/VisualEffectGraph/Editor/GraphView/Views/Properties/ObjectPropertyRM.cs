@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 using Type = System.Type;
 
 #if true
-using ObjectField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.ObjectField, UnityEngine.Object>;
+using ObjectField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.ObjectField, UnityEngine.Object>;
 
 namespace UnityEditor.VFX.UI
 {

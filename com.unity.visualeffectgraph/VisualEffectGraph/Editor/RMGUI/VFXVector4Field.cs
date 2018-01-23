@@ -7,17 +7,17 @@ namespace UnityEditor.VFX.UIElements
 {
     class VFXVector4Field : VFXControl<Vector4>
     {
-        LabeledField<FloatField, float> m_X;
-        LabeledField<FloatField, float> m_Y;
-        LabeledField<FloatField, float> m_Z;
-        LabeledField<FloatField, float> m_W;
+        VFXLabeledField<FloatField, float> m_X;
+        VFXLabeledField<FloatField, float> m_Y;
+        VFXLabeledField<FloatField, float> m_Z;
+        VFXLabeledField<FloatField, float> m_W;
 
         void CreateTextField()
         {
-            m_X = new LabeledField<FloatField, float>("X");
-            m_Y = new LabeledField<FloatField, float>("Y");
-            m_Z = new LabeledField<FloatField, float>("Z");
-            m_W = new LabeledField<FloatField, float>("W");
+            m_X = new VFXLabeledField<FloatField, float>("X");
+            m_Y = new VFXLabeledField<FloatField, float>("Y");
+            m_Z = new VFXLabeledField<FloatField, float>("Z");
+            m_W = new VFXLabeledField<FloatField, float>("W");
 
             m_X.label.AddToClassList("first");
             m_X.control.AddToClassList("fieldContainer");
