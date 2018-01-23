@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
@@ -65,14 +66,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-
-        // Resources
-        [SerializeField] private Shader m_BlitShader;
-        [SerializeField] private Shader m_CopyDepthShader;
-
-#if UNITY_EDITOR
+        
+        [SerializeField]
         private LightweightPipelineResource m_ResourceAsset;
 
+#if UNITY_EDITOR
         [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
@@ -85,9 +83,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<LightweightPipelineAsset>();
-                instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
-                instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
-
+                instance.LoadResourceFile();
                 AssetDatabase.CreateAsset(instance, pathName);
             }
         }
@@ -297,12 +293,30 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Shader BlitShader
         {
-            get { return m_BlitShader; }
+            get
+            {
+#if UNITY_EDITOR
+                if (m_ResourceAsset == null)
+                    LoadResourceFile();
+#endif
+                if (m_ResourceAsset)
+                    return m_ResourceAsset.BlitShader;
+                return null;
+            }
         }
 
         public Shader CopyDepthShader
         {
-            get { return m_CopyDepthShader; }
+            get
+            {
+#if UNITY_EDITOR
+                if (m_ResourceAsset == null)
+                    LoadResourceFile();
+#endif
+                if (m_ResourceAsset)
+                    return m_ResourceAsset.CopyDepthShader;
+                return null;
+            }
         }
     }
 }
