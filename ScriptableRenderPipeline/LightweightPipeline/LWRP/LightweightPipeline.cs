@@ -151,7 +151,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_RequireDepthTexture;
         private bool m_RequireCopyColor;
         private bool m_DepthRenderBuffer;
-        private bool m_RequireScreenSpaceShadows;
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
@@ -357,7 +356,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                 {
                     DepthPass(ref context);
-                    if(m_RequireScreenSpaceShadows) 
+                    if(m_ShadowCasterCascadesCount > 1) 
                         ShadowCollectPass(ref context, visibleLights, ref lightData);
                 }
 
@@ -618,7 +617,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
-            m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled;
+
+            //Assume screen space shadows when cascades enabled, which requires depth texture before forward pass.
+            m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled || m_Asset.CascadeCount > 1;
+
             if (postProcessEnabled)
             {
                 m_RequireDepthTexture = true;
@@ -643,7 +645,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
                 // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
-                if (!msaaEnabled)
+                if (!msaaEnabled && m_Asset.CascadeCount <= 1)
                 {
                     bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
                     m_DepthRenderBuffer = true;
@@ -660,8 +662,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
           
-            m_RequireScreenSpaceShadows = m_Asset.RequireScreenSpaceShadows && LightweightUtils.HasFlag(configuration, FrameRenderingConfiguration.DepthPrePass);
-
             Rect cameraRect = m_CurrCamera.rect;
             if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
                 configuration |= FrameRenderingConfiguration.DefaultViewport;
