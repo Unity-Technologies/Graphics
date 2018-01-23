@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "3 (" + value.x + "," + value.y + "," + value.z + ")";
+            return precision + "3 (" + NodeUtils.FloatToShaderValue(value.x) + "," + NodeUtils.FloatToShaderValue(value.y) + "," + NodeUtils.FloatToShaderValue(value.z) + ")";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

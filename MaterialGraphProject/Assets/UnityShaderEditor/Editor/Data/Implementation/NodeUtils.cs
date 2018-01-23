@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
+using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
@@ -29,7 +30,7 @@ namespace UnityEditor.Graphing
 
             var toPrint = missingSlots.Select(x => x.ToString());
 
-            throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
+            throw new SlotConfigurationException(String.Format("Missing slots {0} on node {1}", String.Join(", ", toPrint.ToArray()), node));
         }
 
         public static IEnumerable<IEdge> GetAllEdges(INode node)
@@ -206,6 +207,18 @@ namespace UnityEditor.Graphing
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
             return new string(arr);
+        }
+
+        public static string FloatToShaderValue(float value)
+        {
+            if (Single.IsPositiveInfinity(value))
+                return "1.#INF";
+            else if (Single.IsNegativeInfinity(value))
+                return "-1.#INF";
+            else if (Single.IsNaN(value))
+                return "NAN";
+            else
+                return value.ToString();
         }
     }
 }
