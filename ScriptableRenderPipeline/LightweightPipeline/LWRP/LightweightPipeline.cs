@@ -432,15 +432,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
         }
 
-        //NOTE: Currently shader keywords are set before the forward pass, so the collect pass is one frame behind the current keyword.
-        //      Might be best to move keyword + constant setup before shadow collect?
         private void ShadowCollectPass(ref ScriptableRenderContext context, List<VisibleLight> lights, ref LightData lightData)
         {
             if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
-                SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); //Reciever constants set up here in case of screen space shadows.
+                //NOTE: We need to set up certain constants + keywords in case of collecting shadows. Ideally a cleaner way than this.
+                SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); 
+                SetShaderKeywords(cmd, ref lightData, lights);
+
                 cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
                 cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
@@ -924,7 +925,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
-            if (lightData.shadowMapSampleType != LightShadows.None && !m_UseScreenSpaceShadows) //TODO: Nicer way to know about SSS.
+            if (lightData.shadowMapSampleType != LightShadows.None)
                 SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
 
             SetupAdditionalListConstants(cmd, lights, ref lightData);
