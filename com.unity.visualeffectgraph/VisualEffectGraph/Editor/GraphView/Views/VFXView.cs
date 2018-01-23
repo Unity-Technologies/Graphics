@@ -318,6 +318,14 @@ namespace UnityEditor.VFX.UI
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("PropertyRM");
+            if (EditorGUIUtility.isProSkin)
+            {
+                AddStyleSheetPath("PropertyRMDark");
+            }
+            else
+            {
+                AddStyleSheetPath("PropertyRMLight");
+            }
             AddStyleSheetPath("VFXContext");
             AddStyleSheetPath("VFXFlow");
             AddStyleSheetPath("VFXBlock");

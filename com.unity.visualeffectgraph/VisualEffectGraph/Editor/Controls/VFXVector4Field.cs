@@ -3,21 +3,23 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 
+using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
+
 namespace UnityEditor.VFX.UIElements
 {
     class VFXVector4Field : VFXControl<Vector4>
     {
-        VFXLabeledField<FloatField, float> m_X;
-        VFXLabeledField<FloatField, float> m_Y;
-        VFXLabeledField<FloatField, float> m_Z;
-        VFXLabeledField<FloatField, float> m_W;
+        FloatField m_X;
+        FloatField m_Y;
+        FloatField m_Z;
+        FloatField m_W;
 
         void CreateTextField()
         {
-            m_X = new VFXLabeledField<FloatField, float>("X");
-            m_Y = new VFXLabeledField<FloatField, float>("Y");
-            m_Z = new VFXLabeledField<FloatField, float>("Z");
-            m_W = new VFXLabeledField<FloatField, float>("W");
+            m_X = new FloatField("X");
+            m_Y = new FloatField("Y");
+            m_Z = new FloatField("Z");
+            m_W = new FloatField("W");
 
             m_X.label.AddToClassList("first");
             m_X.control.AddToClassList("fieldContainer");

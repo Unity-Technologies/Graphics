@@ -3,7 +3,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 using System.Collections.Generic;
-using FloatField = UnityEditor.Experimental.UIElements.FloatField;
+using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 
 namespace UnityEditor.VFX.UIElements
 {
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UIElements
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 
-            var doubleField = new UnityEditor.Experimental.UIElements.FloatField();
+            var doubleField = new FloatField();
             doubleField.RegisterCallback<ChangeEvent<float>>(ValueChanged);
             doubleField.name = "Field";
             m_Field = doubleField;
@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.UIElements
         {
             get
             {
-                return (m_Field as UnityEditor.Experimental.UIElements.FloatField).hasFocus;
+                return (m_Field as FloatField).hasFocus;
             }
         }
 
