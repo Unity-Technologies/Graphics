@@ -45,6 +45,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
                 vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
 
+            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", true);
             vertexInputs.Deindent();
             vertexInputs.AddShaderChunk("};", false);
         }
@@ -181,6 +182,7 @@ namespace UnityEditor.ShaderGraph
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
+                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/UnityInstancing.hlsl""");
                 finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/EntityLighting.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
