@@ -16,9 +16,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         //Scene Depth
         TEXTURE2D(_CameraDepthTexture);
         SAMPLER(sampler_CameraDepthTexture);
-        
-        //Far plane corners in view space
-        float4 _FrustumCorners[4];
 
         struct VertexInput
         {

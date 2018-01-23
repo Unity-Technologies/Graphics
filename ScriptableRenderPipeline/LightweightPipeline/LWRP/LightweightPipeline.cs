@@ -238,6 +238,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             ShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_ShadowOffset2");
             ShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_ShadowOffset3");
             ShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
+            ShadowConstantBuffer._FrustumCorners = Shader.PropertyToID("_FrustumCorners");
 
             m_ShadowMapRTID = Shader.PropertyToID("_ShadowMap");
             m_ScreenSpaceShadowMapRTID = Shader.PropertyToID("_ScreenSpaceShadowMap");
@@ -360,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                 {
                     DepthPass(ref context);
-                    if(m_Asset.UsesScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
+                    if(m_UseScreenSpaceShadows) //NOTE: Should this be added to the FrameRenderingConfiguration?
                         ShadowCollectPass(ref context, visibleLights, ref lightData);
                 }
 
@@ -432,6 +433,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         //NOTE: Currently shader keywords are set before the forward pass, so the collect pass is one frame behind the current keyword.
+        //      Might be best to move keyword + constant setup before shadow collect?
         private void ShadowCollectPass(ref ScriptableRenderContext context, List<VisibleLight> lights, ref LightData lightData)
         {
             if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
@@ -440,7 +442,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); //Reciever constants set up here in case of screen space shadows.
                 cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-                cmd.SetGlobalVectorArray("_FrustumCorners", LightweightUtils.GetFarPlaneCorners(m_CurrCamera)); //TODO: Move to a constant buffer. Shadow or Camera?
                 cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -661,6 +662,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     configuration |= FrameRenderingConfiguration.DepthPrePass;
                 }
             }
+          
+            m_UseScreenSpaceShadows = m_Asset.UsesScreenSpaceShadows && LightweightUtils.HasFlag(configuration, FrameRenderingConfiguration.DepthPrePass);
 
             Rect cameraRect = m_CurrCamera.rect;
             if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
@@ -921,7 +924,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, lights, lightData.mainLightIndex);
-            if (lightData.shadowMapSampleType != LightShadows.None && !m_Asset.UsesScreenSpaceShadows) //TODO: Nicer way to know about SSS.
+            if (lightData.shadowMapSampleType != LightShadows.None && !m_UseScreenSpaceShadows) //TODO: Nicer way to know about SSS.
                 SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
 
             SetupAdditionalListConstants(cmd, lights, ref lightData);
@@ -1083,6 +1086,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset3, new Vector4( invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
+            cmd.SetGlobalVectorArray(ShadowConstantBuffer._FrustumCorners, LightweightUtils.GetFarPlaneCorners(m_CurrCamera));
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
@@ -1104,7 +1108,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     if (m_Asset.CascadeCount > 1)
                         m_MainLightKeywordString.Append("_CASCADE");
 
-                    if(m_Asset.UsesScreenSpaceShadows)
+                    if(m_UseScreenSpaceShadows)
                         m_MainLightKeywordString.Append("_SCREEN");
                 }
                 else
