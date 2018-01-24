@@ -74,6 +74,11 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new Vector1MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
+            else if (property is BooleanShaderProperty)
+            {
+                AddSlot(new BooleanMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, false));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -132,6 +137,14 @@ namespace UnityEditor.ShaderGraph
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is SliderShaderProperty)
+            {
+                var result = string.Format("{0} {1} = {2};"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is BooleanShaderProperty)
             {
                 var result = string.Format("{0} {1} = {2};"
                         , precision
