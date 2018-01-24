@@ -30,6 +30,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         [NonSerialized]
         public bool forceRedrawPreviews = false;
 
+        ColorSpace m_ColorSpace = PlayerSettings.colorSpace;
+
         GraphEditorView m_GraphEditorView;
 
         GraphEditorView graphEditorView
@@ -76,6 +78,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_HasError)
                 return;
 
+            if (PlayerSettings.colorSpace != m_ColorSpace)
+            {
+                graphEditorView = null;
+            }
+
             try
             {
                 if (graphObject == null && selectedGuid != null)
@@ -98,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
                     graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
+                    m_ColorSpace = PlayerSettings.colorSpace;
                 }
 
                 if (forceRedrawPreviews)
