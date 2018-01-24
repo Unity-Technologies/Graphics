@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
 
-        MasterPreviewView m_MasterNodeView;
+        MasterPreviewView m_MasterPreviewView;
 
         private EditorWindow m_EditorWindow;
 
@@ -93,14 +93,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.Add(m_GraphInspectorView);
 
-                m_MasterNodeView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterNodePreview" };
-                m_MasterNodeView.RegisterCallback<PostLayoutEvent>(UpdateSerializedWindowLayout);
+                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterNodePreview" };
 
-                m_GraphView.Add(m_MasterNodeView);
+                WindowDraggable masterPreviewViewDraggable = new WindowDraggable();
+                masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
+                m_GraphView.Add(m_MasterPreviewView);
+
+                ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
+                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
-                m_FloatingWindowsLayoutKey = "FloatingWindowsLayout";
+                m_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
                 string serializedWindowLayout = EditorUserSettings.GetConfigValue(m_FloatingWindowsLayoutKey);
 
                 if (!String.IsNullOrEmpty(serializedWindowLayout))
@@ -108,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_FLoatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
 
                     m_GraphInspectorView.layout = m_FLoatingWindowsLayout.inspectorLayout;
-                    m_MasterNodeView.layout = m_FLoatingWindowsLayout.previewLayout;
+                    m_MasterPreviewView.layout = m_FLoatingWindowsLayout.previewLayout;
                 }
                 else
                 {
@@ -423,10 +429,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdateSerializedWindowLayout(PostLayoutEvent evt)
+        void UpdateSerializedWindowLayout()
         {
             m_FLoatingWindowsLayout.inspectorLayout = m_GraphInspectorView.layout;
-            m_FLoatingWindowsLayout.previewLayout = m_MasterNodeView.layout;
+            m_FLoatingWindowsLayout.previewLayout = m_MasterPreviewView.layout;
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FLoatingWindowsLayout);
             EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
