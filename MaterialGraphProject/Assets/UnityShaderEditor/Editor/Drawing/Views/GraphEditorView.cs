@@ -11,16 +11,29 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
+    [Serializable]
+    class FloatingWindowsLayout
+    {
+        public Rect inspectorLayout;
+        public Rect previewLayout;
+    }
+
     public class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
+
+        MasterPreviewView m_MasterPreviewView;
+
         private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
+
+        string m_FloatingWindowsLayoutKey;
+        FloatingWindowsLayout m_FLoatingWindowsLayout;
 
         public Action onUpdateAssetClick
         {
@@ -75,15 +88,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                 content.Add(m_GraphView);
 
                 m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
-                m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
-                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-                m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
 
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
 
                 m_GraphView.Add(m_GraphInspectorView);
 
+                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
+
+                WindowDraggable masterPreviewViewDraggable = new WindowDraggable();
+                masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
+                m_GraphView.Add(m_MasterPreviewView);
+
+                ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
+                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
+
                 m_GraphView.graphViewChanged = GraphViewChanged;
+
+                m_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
+                string serializedWindowLayout = EditorUserSettings.GetConfigValue(m_FloatingWindowsLayoutKey);
+
+                if (!String.IsNullOrEmpty(serializedWindowLayout))
+                {
+                    m_FLoatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+
+                    m_GraphInspectorView.layout = m_FLoatingWindowsLayout.inspectorLayout;
+                    m_MasterPreviewView.layout = m_FLoatingWindowsLayout.previewLayout;
+                }
+                else
+                {
+                    m_FLoatingWindowsLayout = new FloatingWindowsLayout();
+                }
             }
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
@@ -105,27 +141,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
-        void OnPostLayout(PostLayoutEvent evt)
-        {
-            const float minimumVisibility = 60f;
-
-            Rect inspectorViewRect = m_GraphInspectorView.layout;
-
-            float minimumXPosition = minimumVisibility - inspectorViewRect.width;
-            float maximumXPosition = m_GraphView.layout.width - minimumVisibility;
-
-            float minimumYPosition = minimumVisibility - inspectorViewRect.height;
-            float maximumYPosition = m_GraphView.layout.height - minimumVisibility;
-
-            inspectorViewRect.x = Mathf.Clamp(inspectorViewRect.x, minimumXPosition, maximumXPosition);
-            inspectorViewRect.y = Mathf.Clamp(inspectorViewRect.y, minimumYPosition, maximumYPosition);
-
-            inspectorViewRect.width = Mathf.Min(inspectorViewRect.width, layout.width);
-            inspectorViewRect.height = Mathf.Min(inspectorViewRect.height, layout.height);
-
-            m_GraphInspectorView.layout = inspectorViewRect;
-        }
-
         void OnSpaceDown(KeyDownEvent evt)
         {
             if( evt.keyCode == KeyCode.Space)
@@ -139,18 +154,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
             }
-        }
-
-        void OnMouseDrag(Vector2 mouseDelta)
-        {
-            Vector2 normalizedDelta = mouseDelta / 2f;
-
-            Rect inspectorWindowRect = m_GraphInspectorView.layout;
-
-            inspectorWindowRect.x += normalizedDelta.x;
-            inspectorWindowRect.y += normalizedDelta.y;
-
-            m_GraphInspectorView.layout = inspectorWindowRect;
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
@@ -423,6 +426,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+        }
+
+        void UpdateSerializedWindowLayout()
+        {
+            m_FLoatingWindowsLayout.inspectorLayout = m_GraphInspectorView.layout;
+            m_FLoatingWindowsLayout.previewLayout = m_MasterPreviewView.layout;
+
+            string serializedWindowLayout = JsonUtility.ToJson(m_FLoatingWindowsLayout);
+            EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
         }
 
         public void Dispose()
