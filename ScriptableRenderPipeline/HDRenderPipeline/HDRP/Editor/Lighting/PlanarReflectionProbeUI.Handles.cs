@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         var m = Handles.matrix;
                         Handles.matrix = mat;
                         var q = Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal, Vector3.up);
-                        q = Handles.RotationHandle(q, Vector3.zero);
+                        q = Handles.RotationHandle(q, d.captureMirrorPlaneLocalPosition);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(d, "Rotate Mirror Plane");
