@@ -22,7 +22,7 @@ GraphEditorView > #content > #inspector {
 }
 
 MaterialGraphView {
-    background-color: rgb(20, 21, 21);
+    background-color: #202020;
 }
 
 MaterialNodeView.graphElement.node.MaterialNode {
@@ -237,6 +237,19 @@ TextureSlotControlView > ObjectField {
     width: 100;
 }
 
+CubemapSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+CubemapSlotControlView > ObjectField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100;
+}
+
 MultiFloatSlotControlView {
     flex-direction: row;
     align-items: center;
@@ -268,7 +281,9 @@ ColorRGBASlotControlView {
 }
 
 ColorRGBASlotControlView > ColorField {
-    width: 50;
+    width: 41;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 ColorRGBSlotControlView {
@@ -277,7 +292,9 @@ ColorRGBSlotControlView {
 }
 
 ColorRGBSlotControlView > ColorField {
-    width: 50;
+    width: 41;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
@@ -670,6 +687,31 @@ SliderControlView > #FieldsPanel > FloatField {
     flex-grow: 1;
 }
 
+ToggleControlView > #togglePanel {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+ToggleControlView > #togglePanel > Label {
+    flex-grow: 1;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 8;
+    margin-right: 8;
+    margin-top: 4;
+    margin-bottom: 4;
+}
+
+ToggleControlView > #togglePanel > Toggle {
+    margin-left: 8;
+    margin-right: 8;
+    margin-top: 4;
+    margin-bottom: 4;
+    align-self: center;
+}
+
 ObjectControlView {
     flex-direction: row;
 }
@@ -735,7 +777,67 @@ EnumConversionControlView > Label {
     padding-bottom: 0;
 }
 
+ChannelMixerControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
 
+ChannelMixerControlView > Label {
+    margin-left: 0;
+    margin-right: 0;
+    cursor: slide-arrow;
+}
+
+ChannelMixerControlView > #buttonPanel {
+    flex-direction: row;
+    flex-grow: 1;
+    margin-bottom: 6;
+}
+
+ChannelMixerControlView > #buttonPanel > Button {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+    align-items: center;
+}
+
+ChannelMixerControlView > #buttonPanel > Button > Label {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+ChannelMixerControlView > #sliderPanel {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+ChannelMixerControlView > #sliderPanel > Label {
+    margin-left: 0;
+    margin-right: 0;
+    min-width: 20;
+}
+
+ChannelMixerControlView > #sliderPanel > Slider {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+ChannelMixerControlView > #sliderPanel > FloatField {
+    margin-left: 4;
+    margin-right: 2;
+    min-width: 30;
+    max-width: 30;
+}
 
 /* TEMP STUFF THAT SHOULD ACTUALLY STAY IN GRAPHVIEW */
 

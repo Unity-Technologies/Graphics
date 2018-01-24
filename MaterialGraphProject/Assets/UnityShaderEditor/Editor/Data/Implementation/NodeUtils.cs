@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEditor.ShaderGraph;
+using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
@@ -206,6 +208,24 @@ namespace UnityEditor.Graphing
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
             return new string(arr);
+        }
+
+        public static string FloatToShaderValue(float value)
+        {
+            if (Single.IsPositiveInfinity(value))
+                return "1.#INF";
+            else if (Single.IsNegativeInfinity(value))
+                return "-1.#INF";
+            else if (Single.IsNaN(value))
+                return "NAN";
+            else
+            {
+                decimal amount;
+                if( decimal.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out amount) )
+                    return amount.ToString();
+                else
+                    return value.ToString();
+            }
         }
     }
 }

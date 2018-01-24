@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         GraphInspectorView m_GraphInspectorView;
+        private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -59,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
-
+            m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
 
             var content = new VisualElement { name = "content" };
@@ -77,6 +78,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
                 m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
                 m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+
+                m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
 
                 m_GraphView.Add(m_GraphInspectorView);
 
@@ -123,6 +126,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphInspectorView.layout = inspectorViewRect;
         }
 
+        void OnSpaceDown(KeyDownEvent evt)
+        {
+            if( evt.keyCode == KeyCode.Space)
+            {
+                if (graphView.nodeCreationRequest == null)
+                    return;
+
+                Vector2 referencePosition;
+                referencePosition = evt.imguiEvent.mousePosition;
+                Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
+
+                graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
+            }
+        }
+
         void OnMouseDrag(Vector2 mouseDelta)
         {
             Vector2 normalizedDelta = mouseDelta / 2f;
@@ -141,8 +159,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 foreach (var edge in graphViewChange.edgesToCreate)
                 {
-                    var leftSlot = edge.output.userData as ISlot;
-                    var rightSlot = edge.input.userData as ISlot;
+                    var leftSlot = edge.output.GetSlot();
+                    var rightSlot = edge.input.GetSlot();
                     if (leftSlot != null && rightSlot != null)
                     {
                         m_Graph.owner.RegisterCompleteObjectUndo("Connect Edge");
@@ -286,8 +304,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var port = element as ShaderPort;
                     if (port == null)
                         continue;
-                    var slot = (MaterialSlot)port.userData;
-                    if (slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
+                    if (port.slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
                     {
                         port.RegisterCallback<PostLayoutEvent>(RepositionNode);
                         return;
@@ -337,10 +354,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             var sourceNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == sourceNode);
             if (sourceNodeView != null)
             {
-                var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<Port>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(sourceSlot));
+                var sourceAnchor = sourceNodeView.outputContainer.Children().OfType<ShaderPort>().FirstOrDefault(x => x.slot.Equals(sourceSlot));
 
                 var targetNodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(x => x.node == targetNode);
-                var targetAnchor = targetNodeView.inputContainer.Children().OfType<Port>().FirstOrDefault(x => x.userData is ISlot && (x.userData as ISlot).Equals(targetSlot));
+                var targetAnchor = targetNodeView.inputContainer.Children().OfType<ShaderPort>().FirstOrDefault(x => x.slot.Equals(targetSlot));
 
                 var edgeView = new Edge
                 {
@@ -378,7 +395,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     foreach (var edgeView in anchorView.connections.OfType<Edge>())
                     {
-                        var targetSlot = (MaterialSlot)edgeView.input.userData;
+                        var targetSlot = edgeView.input.GetSlot();
                         if (targetSlot.valueType == SlotValueType.Dynamic)
                         {
                             var connectedNodeView = edgeView.input.node as MaterialNodeView;
@@ -392,7 +409,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 foreach (var anchorView in nodeView.inputContainer.Children().OfType<Port>())
                 {
-                    var targetSlot = (MaterialSlot)anchorView.userData;
+                    var targetSlot = anchorView.GetSlot();
                     if (targetSlot.valueType != SlotValueType.Dynamic)
                         continue;
                     foreach (var edgeView in anchorView.connections.OfType<Edge>())

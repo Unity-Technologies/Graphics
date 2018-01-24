@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = {precision}3(In.rg * Strength, 1);
+    Out = {precision}3(In.rg * Strength, In.b);
 }
 ";
         }

@@ -191,25 +191,26 @@ namespace UnityEditor.ShaderGraph
             foreach (var par in method.GetParameters())
             {
                 var attribute = GetSlotAttribute(par);
+                var name = GraphUtil.ConvertCamelCase(par.Name, true);
 
                 MaterialSlot s;
                 if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
-                    s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
-                    s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
-                    s = new ColorRGBMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
                             ConvertTypeToSlotValueType(par),
                             attribute.slotId,
-                            par.Name,
+                            name,
                             par.Name,
                             par.IsOut ? SlotType.Output : SlotType.Input,
                             attribute.defaultValue ?? Vector4.zero,
                             hidden: attribute.hidden);
                 else
-                    s = CreateBoundSlot(attribute.binding, attribute.slotId, par.Name, par.Name, attribute.hidden);
+                    s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.hidden);
                 slots.Add(s);
 
                 m_Slots.Add(attribute);
@@ -258,13 +259,13 @@ namespace UnityEditor.ShaderGraph
                 case Binding.TangentSpacePosition:
                     return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
                 case Binding.MeshUV0:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv0);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV0);
                 case Binding.MeshUV1:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv1);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV1);
                 case Binding.MeshUV2:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv2);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV2);
                 case Binding.MeshUV3:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv3);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV3);
                 case Binding.ScreenPosition:
                     return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName);
                 case Binding.ObjectSpaceViewDirection:
