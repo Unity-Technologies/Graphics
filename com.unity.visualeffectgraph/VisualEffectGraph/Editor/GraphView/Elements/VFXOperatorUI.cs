@@ -14,39 +14,70 @@ using VFXEditableOperator = UnityEditor.VFX.VFXOperatorMultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {
-    /*
     class LineDragger : Manipulator
     {
-        VisualElement m_Item;
         MultiOperatorEdit m_Root;
+        VisualElement m_Line;
 
         public LineDragger(MultiOperatorEdit root, VisualElement item)
         {
-            this.root =
-
-            activators.Add(new ManipulatorActivationFilter { button = MouseButton.LeftMouse });
+            m_Root = root;
+            m_Line = item;
         }
 
         protected override void RegisterCallbacksOnTarget()
         {
             target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        bool m_Dragging;
+        Vector2 startPosition;
+
+
+        object m_Ctx;
+
+        void Release()
+        {
+            target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
+            target.ReleaseMouseCapture();
+            m_Dragging = false;
         }
 
         protected void OnMouseDown(MouseDownEvent evt)
         {
-            if (clicked != null)
+            if (evt.button == 0)
             {
-                clicked();
                 evt.StopPropagation();
+                target.TakeMouseCapture();
+                m_Dragging = true;
+                startPosition = evt.mousePosition;
+                target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+                m_Ctx = m_Root.StartDragging(m_Line);
             }
         }
+
+        protected void OnMouseUp(MouseUpEvent evt)
+        {
+            m_Root.EndDragging(m_Ctx, m_Line, evt.mousePosition.y - startPosition.y);
+            evt.StopPropagation();
+            Release();
+        }
+
+        protected void OnMouseMove(MouseMoveEvent evt)
+        {
+            evt.StopPropagation();
+
+            m_Root.ItemDragging(m_Ctx, m_Line, evt.mousePosition.y - startPosition.y);
+        }
     }
-    */
+
     class MultiOperatorEdit : VisualElement, IControlledElement<VFXOperatorController>
     {
         VFXOperatorController m_Controller;
@@ -73,6 +104,64 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
+
+        class DraggingContext
+        {
+            public Rect[] originalPositions;
+            public Rect myOriginalPosition;
+            public int draggedIndex;
+        }
+
+        public object StartDragging(VisualElement item)
+        {
+            //Fix all item so that they can be animated and we can control their positions
+            DraggingContext context = new DraggingContext();
+
+
+            var children = m_OperandContainer.Children().ToArray();
+            context.originalPositions = children.Select(t => t.layout).ToArray();
+            context.draggedIndex = m_OperandContainer.IndexOf(item);
+            context.myOriginalPosition = m_OperandContainer.layout;
+
+            for (int i = 0; i < children.Length; ++i)
+            {
+                VisualElement child = children[i];
+                Rect rect = context.originalPositions[i];
+                child.style.positionType = PositionType.Absolute;
+                child.style.positionLeft = rect.x;
+                child.style.positionTop = rect.y;
+                child.style.width = rect.width;
+                child.style.height = rect.height;
+            }
+
+            item.BringToFront();
+
+            m_OperandContainer.style.width = context.myOriginalPosition.width;
+            m_OperandContainer.style.height = context.myOriginalPosition.height;
+
+            return context;
+        }
+
+        public void EndDragging(object ctx, VisualElement item, float offset)
+        {
+            DraggingContext context = (DraggingContext)ctx;
+
+            foreach (var child in m_OperandContainer.Children())
+            {
+                child.ResetPositionProperties();
+            }
+            m_OperandContainer.Insert(context.draggedIndex, item);
+            m_OperandContainer.ResetPositionProperties();
+        }
+
+        public void ItemDragging(object ctx, VisualElement item, float offset)
+        {
+            DraggingContext context = (DraggingContext)ctx;
+
+            item.style.positionTop = context.originalPositions[context.draggedIndex].y + offset;
+        }
+
         VFXEditableOperator model
         {
             get
@@ -154,7 +243,7 @@ namespace UnityEditor.VFX.UI
 
             while (m_OperandContainer.childCount < count)
             {
-                m_OperandContainer.Add(new OperandInfo(op, m_OperandContainer.childCount));
+                m_OperandContainer.Add(new OperandInfo(this, op, m_OperandContainer.childCount));
                 sizeChanged = true;
             }
             while (m_OperandContainer.childCount > count)
@@ -177,18 +266,17 @@ namespace UnityEditor.VFX.UI
 
         class OperandInfo : VisualElement
         {
-            MultiOperatorEdit owner
-            {
-                get {return GetFirstAncestorOfType<MultiOperatorEdit>(); }
-            }
             public VFXStringField field;
             public Button type;
             public VisualElement draggingHandle;
 
+            MultiOperatorEdit m_Owner;
+
             public int index;
 
-            public OperandInfo(VFXEditableOperator op, int index)
+            public OperandInfo(MultiOperatorEdit owner, VFXEditableOperator op, int index)
             {
+                m_Owner = owner;
                 draggingHandle = new VisualElement() { name = "DraggingHandle"};
                 field = new VFXStringField("name");
                 field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
@@ -199,7 +287,7 @@ namespace UnityEditor.VFX.UI
                 Set(op);
 
                 Add(draggingHandle);
-                //draggingHandle.AddManipulator(new LineDragger());
+                draggingHandle.AddManipulator(new LineDragger(m_Owner, this));
                 Add(field);
                 Add(type);
             }
