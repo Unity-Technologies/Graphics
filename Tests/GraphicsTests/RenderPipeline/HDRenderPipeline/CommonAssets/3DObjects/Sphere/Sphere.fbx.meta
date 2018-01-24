@@ -21,6 +21,7 @@ ModelImporter:
     2186277476908879430: ImportLogs
     2186277476908879432: ImportLogs
     2186277476908879434: ImportLogs
+    2186277476908879436: ImportLogs
   externalObjects: {}
   materials:
     importMaterials: 0
@@ -75,7 +76,7 @@ ModelImporter:
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
-    tangentImportMode: 0
+    tangentImportMode: 3
     normalCalculationMode: 4
   importAnimation: 1
   copyAvatar: 0
