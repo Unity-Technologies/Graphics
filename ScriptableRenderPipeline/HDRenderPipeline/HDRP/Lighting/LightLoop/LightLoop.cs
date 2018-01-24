@@ -1154,6 +1154,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
 
+            var sampleDirectionDiscardWS = Vector3.zero;
+
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
             switch (probe.texture.dimension)
@@ -1182,6 +1184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We transform it to object space by translating the capturePosition
                     var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
                     m_Env2DCaptureVP.Add(vp);
+                    sampleDirectionDiscardWS = captureRotation * Vector3.forward;
                     break;
                 }
                 case TextureDimension.Cube:
@@ -1207,6 +1210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.blendDistanceNegative = probe.blendDistanceNegative;
             envLightData.boxSideFadePositive = probe.boxSideFadePositive;
             envLightData.boxSideFadeNegative = probe.boxSideFadeNegative;
+            envLightData.sampleDirectionDiscardWS = sampleDirectionDiscardWS;
 
             envLightData.right = influenceToWorld.GetColumn(0).normalized;
             envLightData.up = influenceToWorld.GetColumn(1).normalized;

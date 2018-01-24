@@ -22,6 +22,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.boxSideFadePositive = float3(0.0, 0.0, 0.0);
     output.boxSideFadeNegative = float3(0.0, 0.0, 0.0);
     output.dimmer = 1.0;
+    output.sampleDirectionDiscardWS = float3(0.0, 0.0, 0.0);
 
     return output;
 }

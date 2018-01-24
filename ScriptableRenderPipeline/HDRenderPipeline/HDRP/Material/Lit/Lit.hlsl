@@ -1825,6 +1825,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
+    if (dot(lightData.sampleDirectionDiscardWS, R) < 0)
+        return lighting;
+
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
