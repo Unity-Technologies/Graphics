@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -17,6 +18,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         Vector2 m_LocalMosueOffset;
         Rect m_PreviousParentRect;
+
+        public Action OnDragFinished;
 
         public WindowDraggable(bool resizeWithParentwindow = false)
         {
@@ -61,6 +64,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseUp(MouseUpEvent evt)
         {
+            bool emitDragFinishedEvent = m_Active;
+
             m_Active = false;
 
             if (target.HasMouseCapture())
@@ -71,6 +76,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.StopPropagation();
 
             RefreshDocking();
+
+            if (emitDragFinishedEvent && OnDragFinished != null)
+            {
+                OnDragFinished();
+            }
         }
 
         void RefreshDocking()

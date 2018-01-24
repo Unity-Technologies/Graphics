@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -55,10 +57,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 bottomContainer.Add(m_PreviewMeshPicker);
             }
             Add(bottomContainer);
-
-            Add(new ResizeBorderFrame(this) { name = "resizeBorderFrame"});
-
-            this.AddManipulator(new WindowDraggable());
         }
 
         MasterNode masterNode
