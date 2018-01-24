@@ -45,7 +45,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             }
 
             // Motion vector debug utilities
-            // >>>
             float DistanceToLine(float2 p, float2 p1, float2 p2)
             {
                 float2 center = (p1 + p2) * 0.5;
@@ -86,19 +85,9 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             float2 SampleMotionVectors(float2 coords)
             {
-            #if UNITY_UV_STARTS_AT_TOP
-            //    coords.y = 1.0 - coords.y;
-            #endif
-
-                float2 mv = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coords).xy;
-
-            #if UNITY_UV_STARTS_AT_TOP
-              //  mv.y *= -1.0;
-            #endif
-
-                return mv;
+                return SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coords).xy;
             }
-            // <<<
+            // end motion vector utilties
 
             float4 Frag(Varyings input) : SV_Target
             {
@@ -137,7 +126,9 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     float g = 2.0 - abs(hue * 6.0 - 2.0);
                     float b = 2.0 - abs(hue * 6.0 - 4.0);
 
-                    float3 color = saturate(float3(r, g, b) * kIntensity);
+                    float3 color = saturate(normalize(float3(mv,0)));
+
+//                    float3 color = saturate(float3(r, g, b) * kIntensity);
 
                     // Grid subdivisions - should be dynamic
                     const float kGrid = 64.0;
@@ -146,7 +137,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     float rows = floor(kGrid * _ScreenParams.y / _ScreenParams.x);
                     float cols = kGrid;
                     float2 size = _ScreenParams.xy / float2(cols, rows);
-                    float body = min(size.x, size.y) / 1.4142135623730951; // sqrt(2)
+                    float body = min(size.x, size.y) / sqrt(2.0);
                     float2 texcoord = input.positionCS.xy;
                     float2 center = (floor(texcoord / size) + 0.5) * size;
                     texcoord -= center;
