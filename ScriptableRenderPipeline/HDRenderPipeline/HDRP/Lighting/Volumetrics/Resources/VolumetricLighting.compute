@@ -63,6 +63,8 @@ CBUFFER_END
 // Implementation
 //--------------------------------------------------------------------------------------------------
 
+#define HG 0
+
 struct Ray
 {
     float3 originWS;
@@ -84,7 +86,7 @@ float3 GetCenterAtDistance(Ray ray, float t)
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput,
-                             Ray ray, float t0, float t1, float dt, float rndVal, float extinction
+                             Ray ray, float t0, float t1, float dt, float rndVal, float extinction, float asymmetry
                          #ifdef LIGHTLOOP_TILE_PASS
                            , uint clusterIndices[2], float clusterDepths[2])
                          #else
@@ -113,8 +115,15 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
             EvaluateLight_Directional(context, posInput, light, unused, 0, L,
                                       color, attenuation);
 
+            float cosTheta = dot(L, ray.directionWS);
+        #if HG
+            float phase    = HenyeyGreensteinPhasePartVarying(asymmetry, cosTheta);
+        #else
+            float phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+        #endif
+
             // Note: the 'weight' accounts for transmittance from 't0' to 't'.
-            float intensity = attenuation * weight;
+            float intensity = attenuation * (phase * weight);
 
             // Compute the amount of in-scattered radiance.
             voxelRadiance += intensity * color;
@@ -218,7 +227,14 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
                                                distances, color, attenuation);
 
-                        float intensity = attenuation * rcpPdf;
+                        float cosTheta = dot(L, ray.directionWS);
+                    #if HG
+                        float phase    = HenyeyGreensteinPhasePartVarying(asymmetry, cosTheta);
+                    #else
+                        float phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+                    #endif
+
+                        float intensity = attenuation * (phase * rcpPdf);
 
                         // Compute transmittance from 't0' to 't'.
                         intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
@@ -265,8 +281,15 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
                                                distances, color, attenuation);
 
+                        float cosTheta = dot(L, ray.directionWS);
+                    #if HG
+                        float phase    = HenyeyGreensteinPhasePartVarying(asymmetry, cosTheta);
+                    #else
+                        float phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+                    #endif
+
                         // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
-                        float intensity = attenuation * weight;
+                        float intensity = attenuation * (phase * weight);
 
                         // Compute transmittance from 't0' to 'tEntr'.
                         intensity *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
@@ -333,6 +356,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: piecewise linear.
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
+        float  asymmetry  = _GlobalFog_Asymmetry;
         
         // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
         // which allows procedural definition of extinction and scattering.
@@ -346,7 +370,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         float3 voxelRadiance = EvaluateVoxelLighting(context, featureFlags, posInput,
-                                                     ray, t0, t1, dt, rndVal, extinction
+                                                     ray, t0, t1, dt, rndVal, extinction, asymmetry
                                                 #ifdef LIGHTLOOP_TILE_PASS
                                                    , clusterIndices, clusterDepths);
                                                 #else
@@ -412,8 +436,14 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the transmittance from the camera to 't0'.
         float transmittance = Transmittance(opticalDepth);
 
+    #if HG
+        float phase = HenyeyGreensteinPhasePartConstant(asymmetry);
+    #else
+        float phase = CornetteShanksPhasePartConstant(asymmetry);
+    #endif
+
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        totalRadiance += (transmittance * IsotropicPhaseFunction()) * scattering * blendedRadiance;
+        totalRadiance += (transmittance * phase) * scattering * blendedRadiance;
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
