@@ -404,12 +404,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
 
             m_SceneResources.camera.targetTexture = temp;
-             Graphics.DrawMesh(mesh, transform, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+            Graphics.DrawMesh(mesh, transform, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
 
-             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-             Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
-             m_SceneResources.camera.Render();
-             Unsupported.useScriptableRenderPipeline = previousUseSRP;
+            var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+            Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
+            m_SceneResources.camera.Render();
+            Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
             Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
             RenderTexture.ReleaseTemporary(temp);

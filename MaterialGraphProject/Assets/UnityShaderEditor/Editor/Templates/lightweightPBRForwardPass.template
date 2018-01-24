@@ -49,7 +49,7 @@ Pass
 	#include "LWRP/ShaderLibrary/Core.hlsl"
 	#include "LWRP/ShaderLibrary/Lighting.hlsl"
 	#include "CoreRP/ShaderLibrary/Color.hlsl"
-    #include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
+	#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
 	#include "ShaderGraphLibrary/Functions.hlsl"
 
 	${Graph}
