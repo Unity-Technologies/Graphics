@@ -1509,7 +1509,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
 
-                cmd.SetGlobalTexture(HDShaderIDs._MainTex, m_CameraColorBufferRT);
+                cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, m_CameraColorBufferRT);
                 CoreUtils.DrawFullScreen(cmd, m_Blit, m_GaussianPyramidColorBufferRT, null, 1); // Bilinear filtering
 
                 var last = m_GaussianPyramidColorBuffer;
@@ -1652,7 +1652,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera)
+        // allowFlip is false if we call the function after the FinalPass or cmd.Blit that flip the screen
+        public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera, bool allowFlip = true)
         {
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
@@ -1660,7 +1661,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugColorPickerRT, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
                 // Mean that when we push the buffer here, we need to flip it to display correctly.
-                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
+                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView && allowFlip;
                 m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, 0);
                 cmd.Blit(textureID, m_DebugColorPickerRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flip
             }
@@ -1746,7 +1747,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_CurrentDebugDisplaySettings.fullScreenDebugMode);
                     CoreUtils.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
-                    PushColorPickerDebugTexture(cmd, m_DebugFullScreenTempRT, hdCamera);
+                    PushColorPickerDebugTexture(cmd, m_DebugFullScreenTempRT, hdCamera, false); // We are in RenderDebug() here so we msut not flip the copy
                 }
 
                 // Then overlays
