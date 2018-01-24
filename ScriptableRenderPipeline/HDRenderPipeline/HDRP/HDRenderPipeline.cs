@@ -636,7 +636,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Render only visible probes
             var isReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
             if (!isReflection)
-                ReflectionSystem.RenderAllRealtimeProbes();
+                ReflectionSystem.RenderAllRealtimeProbes(ReflectionProbeType.PlanarReflection);
 
             // We first update the state of asset frame settings as they can be use by various camera
             // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
@@ -650,7 +650,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (camera.cameraType != CameraType.Reflection)
                     // TODO: Render only visible probes
-                    ReflectionSystem.RenderAllRealtimeProbesFor(camera);
+                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
