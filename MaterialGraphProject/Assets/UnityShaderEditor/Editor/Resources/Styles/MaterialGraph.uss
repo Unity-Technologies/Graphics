@@ -22,7 +22,7 @@ GraphEditorView > #content > #inspector {
 }
 
 MaterialGraphView {
-    background-color: rgb(20, 21, 21);
+    background-color: #202020;
 }
 
 MaterialNodeView.graphElement.node.MaterialNode {
