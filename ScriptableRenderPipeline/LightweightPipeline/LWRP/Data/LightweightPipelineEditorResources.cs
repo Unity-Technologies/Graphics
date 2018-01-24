@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public class LightweightPipelineResource : ScriptableObject
+public class LightweightPipelineEditorResources : ScriptableObject
 {
     public Material DefaultMaterial;
     public Material DefaultParticleMaterial;

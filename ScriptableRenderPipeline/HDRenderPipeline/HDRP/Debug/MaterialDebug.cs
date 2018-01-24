@@ -48,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TessellationDisplacement,
             DepthOffset,
             Lightmap,
+            Instancing,
             Last,
         }
     }

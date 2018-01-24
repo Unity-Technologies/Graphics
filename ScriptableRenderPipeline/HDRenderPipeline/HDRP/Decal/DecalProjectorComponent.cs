@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -9,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Material m_Material = null;
         private Material m_OldMaterial = null;
-        public const int kInvalidIndex = -1;
+        public const int kInvalidIndex = -1;  
         private int m_CullIndex = kInvalidIndex;
 
         public int CullIndex
@@ -24,8 +25,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public Material Mat
+        {
+            get { return this.m_Material; }
+        }
+
         public void OnEnable()
         {
+            if (m_Material == null)
+            {
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
+            }
+
             DecalSystem.instance.AddDecal(this);
         }
 
@@ -83,15 +95,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DecalSystem.instance.UpdateBoundingSphere(this);
         }
 
+        public void OnDrawGizmos()
+        {
+            DrawGizmo(false);
+        }
+
         public bool IsValid()
         {
             if (m_Material == null)
                 return false;
-
-            if (!m_Material.GetTexture("_BaseColorMap") && !m_Material.GetTexture("_NormalMap") &&
-                !m_Material.GetTexture("_MaskMap"))
-                return false;
-
             return true;
         }
     }
