@@ -198,11 +198,11 @@ public class VolumetricLightingModule
 
     public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
     {
+        if (preset == VolumetricLightingPreset.Off) return;
+
         int viewID = camera.GetViewID();
 
         Debug.Assert(viewID >= 0);
-
-        if (preset == VolumetricLightingPreset.Off) return;
 
         int w = 0, h = 0, d = 0;
         ComputeVBufferResolutionAndScale(preset, screenWidth, screenHeight, ref w, ref h, ref d);
