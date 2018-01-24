@@ -1777,7 +1777,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
                     // (i.e. we have perform a flip, we need to flip the input texture) + we need to handle the case were we debug a fullscreen pass that have already perform the flip
                     m_DebugColorPicker.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
-                    //m_DebugFullScreen.SetFloat(HDShaderIDs._IsSceneView, (float)hdCamera.camera.cameraType == CameraType.SceneView ? 1.0f : 0.0f);
                     CoreUtils.DrawFullScreen(cmd, m_DebugColorPicker, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
             }
