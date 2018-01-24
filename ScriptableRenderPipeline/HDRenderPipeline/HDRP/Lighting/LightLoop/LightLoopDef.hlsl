@@ -142,6 +142,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
                 return ApplyDebugProjectionVolume(color, texCoord, _DebugEnvironmentProxyDepthScale);
 #endif
+            /*return float4(
+                (ndc.xyz > 0.5) * 0.5 + color.rgb * 0.5,
+                color.a);*/
             return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)

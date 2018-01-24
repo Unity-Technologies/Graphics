@@ -119,6 +119,8 @@ struct EnvLightData
     float unused6;
     float3 boxSideFadeNegative;
     float unused7;
+    float3 sampleDirectionDiscardWS;
+    float unused9;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvProxyData
@@ -371,6 +373,14 @@ float3 GetBoxSideFadeNegative(EnvLightData value)
 float GetUnused7(EnvLightData value)
 {
 	return value.unused7;
+}
+float3 GetSampleDirectionDiscardWS(EnvLightData value)
+{
+	return value.sampleDirectionDiscardWS;
+}
+float GetUnused9(EnvLightData value)
+{
+	return value.unused9;
 }
 
 //

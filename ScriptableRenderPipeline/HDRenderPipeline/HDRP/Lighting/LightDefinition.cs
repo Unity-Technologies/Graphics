@@ -146,6 +146,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float unused6;
         public Vector3 boxSideFadeNegative; //-X,-Y,-Z
         public float unused7;
+
+        public Vector3 sampleDirectionDiscardWS;
+        public float unused9;
     };
 
     [GenerateHLSL]
