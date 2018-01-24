@@ -11,15 +11,27 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
+    [Serializable]
+    class FloatingWindowsLayout
+    {
+        public Rect previewLayout;
+    }
+
     public class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
+        MasterPreviewView m_MasterPreviewView;
+
         private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
+        BlackboardProvider m_BlackboardProvider;
+
+        string m_FloatingWindowsLayoutKey;
+        FloatingWindowsLayout m_FLoatingWindowsLayout;
 
         public Action saveRequested { get; set; }
 
@@ -71,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var content = new VisualElement { name = "content" };
             {
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
-                m_GraphView.SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
+                m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
@@ -82,8 +94,33 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_BlackboardProvider = new BlackboardProvider(assetName, graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
+                m_BlackboardProvider.blackboard.layout = new Rect(new Vector2(10f, 10f), m_BlackboardProvider.blackboard.layout.size);
+
+                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
+
+                WindowDraggable masterPreviewViewDraggable = new WindowDraggable();
+                masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
+                m_GraphView.Add(m_MasterPreviewView);
+
+                ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
+                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
+
+                m_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
+                string serializedWindowLayout = EditorUserSettings.GetConfigValue(m_FloatingWindowsLayoutKey);
+
+                if (!String.IsNullOrEmpty(serializedWindowLayout))
+                {
+                    m_FLoatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+                    m_MasterPreviewView.layout = m_FLoatingWindowsLayout.previewLayout;
+                }
+                else
+                {
+                    m_FLoatingWindowsLayout = new FloatingWindowsLayout();
+                }
             }
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
@@ -347,7 +384,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<MaterialNodeView> m_NodeStack = new Stack<MaterialNodeView>();
-        BlackboardProvider m_BlackboardProvider;
 
         void UpdateEdgeColors(HashSet<MaterialNodeView> nodeViews)
         {
@@ -391,6 +427,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+        }
+
+        void UpdateSerializedWindowLayout()
+        {
+            m_FLoatingWindowsLayout.previewLayout = m_MasterPreviewView.layout;
+
+            string serializedWindowLayout = JsonUtility.ToJson(m_FLoatingWindowsLayout);
+            EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
         }
 
         public void Dispose()
