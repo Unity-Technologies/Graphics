@@ -99,6 +99,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [ToggleUI] _TransparentDepthPrepassEnable("_TransparentDepthPrepassEnable", Float) = 0.0
         [ToggleUI] _TransparentBackfaceEnable("_TransparentBackfaceEnable", Float) = 0.0
         [ToggleUI] _TransparentDepthPostpassEnable("_TransparentDepthPostpassEnable", Float) = 0.0
+        _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
@@ -191,6 +192,8 @@ Shader "HDRenderPipeline/LitTessellation"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -231,6 +234,8 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
+
+    #pragma shader_feature _DISABLE_DBUFFER
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

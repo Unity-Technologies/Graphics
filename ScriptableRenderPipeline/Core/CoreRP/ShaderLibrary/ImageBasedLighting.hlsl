@@ -83,17 +83,18 @@ real3 GetAnisotropicModifiedNormal(real3 grainDir, real3 N, real3 V, real anisot
 }
 
 // Ref: "Moving Frostbite to PBR", p. 69.
-real3 GetSpecularDominantDir(real3 N, real3 R, real roughness, real NdotV)
+real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real NdotV)
 {
-    real a = 1.0 - roughness;
+    real p = perceptualRoughness;
+    real a = 1.0 - p * p;
     real s = sqrt(a);
 
 #ifdef USE_FB_DSD
     // This is the original formulation.
-    real lerpFactor = (s + roughness) * a;
+    real lerpFactor = (s + p * p) * a;
 #else
     // TODO: tweak this further to achieve a closer match to the reference.
-    real lerpFactor = (s + roughness) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
+    real lerpFactor = (s + p * p) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
 #endif
 
     // The result is not normalized as we fetch in a cubemap
@@ -103,9 +104,10 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real roughness, real NdotV)
 // To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
 // which allow to fake an anisotropic specular lobe.
 // Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
-real AnisotropicStrechAtGrazingAngle(real roughness, real perceptualRoughness, real NdotV)
+real AnisotropicStrechAtGrazingAngle(real perceptualRoughness, real NdotV)
 {
-    return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
+    real p = perceptualRoughness;
+    return p * lerp(saturate(NdotV * 2.0) * p, p, p);
 }
 
 // ----------------------------------------------------------------------------

@@ -239,6 +239,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
@@ -354,6 +355,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -421,6 +424,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+
+    #pragma shader_feature _DISABLE_DBUFFER
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
