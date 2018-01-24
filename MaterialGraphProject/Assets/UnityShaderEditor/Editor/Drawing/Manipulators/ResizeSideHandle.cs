@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -26,6 +27,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class ResizeSideHandle : VisualElement
     {
         VisualElement m_ResizeTarget;
+
+        public Action OnResizeFinished;
 
         public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)
         {
@@ -104,6 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             bool moveWhileResizeVertical = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight || anchor == ResizeHandleAnchor.Top;
 
             this.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, resizeDirection, moveWhileResizeHorizontal, moveWhileResizeVertical)));
+            RegisterCallback<MouseUpEvent>(HandleDraggableMouseUp);
         }
 
         void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResizeHorizontal, bool moveWhileresizerVertical)
@@ -156,6 +160,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - minSize.y);
 
             m_ResizeTarget.layout = newLayout;
+        }
+
+        void HandleDraggableMouseUp(MouseUpEvent evt)
+        {
+            if (OnResizeFinished != null)
+            {
+                OnResizeFinished();
+            }
         }
     }
 }
