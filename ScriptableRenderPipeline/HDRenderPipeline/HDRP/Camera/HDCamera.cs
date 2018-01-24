@@ -24,6 +24,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
+        // This is the size actually used for this camera (as it can be altered by VR for example)
+        int m_ActualWidth;
+        int m_ActualHeight;
+
+        public int actualWidth { get { return m_ActualWidth; } }
+        public int actualHeight { get { return m_ActualHeight; } }
+
         public Matrix4x4 viewProjMatrix
         {
             get { return projMatrix * viewMatrix; }
@@ -33,8 +40,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
-
-        public RenderTextureDescriptor renderTextureDesc { get; private set; }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -162,26 +167,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LastFrameActive = Time.frameCount;
 
-            RenderTextureDescriptor tempDesc;
+            m_ActualWidth = camera.pixelWidth;
+            m_ActualHeight = camera.pixelHeight;
             if (frameSettings.enableStereo)
             {
-                screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
-                tempDesc = XRSettings.eyeTextureDesc;
-            }
-            else
-            {
-                screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
-                tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                m_ActualWidth = XRSettings.eyeTextureWidth;
+                m_ActualHeight = XRSettings.eyeTextureHeight;
             }
 
-            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
-            tempDesc.depthBufferBits = 0;
-            tempDesc.autoGenerateMips = false;
-            tempDesc.useMipMap = false;
-            tempDesc.enableRandomWrite = false;
-            tempDesc.memoryless = RenderTextureMemoryless.None;
+            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, 1.0f / m_ActualWidth, 1.0f / m_ActualHeight);
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA);
+            string toto = RTHandle.DumpRTInfo();
 
-            renderTextureDesc = tempDesc;
         }
 
         public void Reset()

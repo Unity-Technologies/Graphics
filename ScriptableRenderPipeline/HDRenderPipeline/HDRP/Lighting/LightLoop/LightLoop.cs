@@ -1953,7 +1953,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool outputSplitLighting;
         }
 
-        public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RenderTargetIdentifier deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
+        public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
             if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null)
                 return;
@@ -1983,13 +1983,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
-                int numTilesX = (hdCamera.camera.pixelWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
-                int numTilesY = (hdCamera.camera.pixelHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                int numTilesX = (deferredShadowRT.rt.width + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                int numTilesY = (deferredShadowRT.rt.height + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
                 hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
 
                 // TODO: Update for stereo
                 cmd.DispatchCompute(deferredDirectionalShadowComputeShader, kernel, numTilesX, numTilesY, 1);
+
+                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, deferredShadowRT);
             }
         }
 
@@ -2154,8 +2156,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (lightingDebug.tileClusterDebug != LightLoop.TileClusterDebug.None)
                 {
 
-                    int w = hdCamera.camera.pixelWidth;
-                    int h = hdCamera.camera.pixelHeight;
+                    int w = hdCamera.actualWidth;
+                    int h = hdCamera.actualHeight;
                     int numTilesX = (w + 15) / 16;
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
@@ -2226,14 +2228,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         for (uint i = 0; i < faceCount; ++i)
                         {
                             m_ShadowMgr.DisplayShadow(cmd, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                         }
                     }
                 }
                 else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                 {
                     m_ShadowMgr.DisplayShadowMap(cmd, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.camera.pixelWidth);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }
         }
