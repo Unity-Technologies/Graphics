@@ -13,7 +13,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Core.hlsl"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
-        //Scene Depth
         TEXTURE2D(_CameraDepthTexture);
         SAMPLER(sampler_CameraDepthTexture);
 

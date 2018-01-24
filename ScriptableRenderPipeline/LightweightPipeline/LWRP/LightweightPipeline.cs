@@ -151,6 +151,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_RequireDepthTexture;
         private bool m_RequireCopyColor;
         private bool m_DepthRenderBuffer;
+        private bool m_RequireScreenSpaceShadows;
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
@@ -356,8 +357,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                 {
                     DepthPass(ref context);
-                    if(m_ShadowCasterCascadesCount > 1) 
-                        ShadowCollectPass(ref context, visibleLights, ref lightData);
+                    if(m_RequireScreenSpaceShadows) 
+                        ShadowCollectPass(visibleLights, ref context, ref lightData);
                 }
 
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
@@ -409,6 +410,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
+        private void ShadowCollectPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        {
+            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
+
+                //Keywords and constants should be set up in advance for the collect pass.
+                SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]); 
+                SetShaderKeywords(cmd, ref lightData, visibleLights);
+
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+                cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+        }
+
         private void DepthPass(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
@@ -425,24 +444,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
 
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
-        }
-
-        private void ShadowCollectPass(ref ScriptableRenderContext context, List<VisibleLight> lights, ref LightData lightData)
-        {
-            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
-
-                //NOTE: We need to set up certain constants + keywords in case of collecting shadows. Ideally a cleaner way than this.
-                SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]); 
-                SetShaderKeywords(cmd, ref lightData, lights);
-
-                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-                cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-            }
         }
 
         private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
@@ -632,8 +633,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
 
-            bool requireScreenSpaceShadows = m_Asset.CascadeCount > 1;
-            if (requireScreenSpaceShadows)
+            m_RequireScreenSpaceShadows = m_Asset.CascadeCount > 1;
+            if (m_RequireScreenSpaceShadows)
             {
                 m_RequireDepthTexture = true;
 
@@ -651,7 +652,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
                 // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
-                if (!msaaEnabled && !requireScreenSpaceShadows)
+                // Screen space shadows require depth before opaque shading.
+                if (!msaaEnabled && !m_RequireScreenSpaceShadows)
                 {
                     bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
                     m_DepthRenderBuffer = true;
