@@ -224,7 +224,7 @@ namespace UnityEngine.Experimental.Rendering
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives( lightIndex, (int) cascadeIdx, cascadeCount, ratios, (int) width, nearPlaneOffset, out view, out proj, out splitData );
             // and the compound (deviceProj will potentially inverse-Z)
             Matrix4x4 deviceProj = GL.GetGPUProjectionMatrix( proj, false );
-            InvertPerspective( ref deviceProj, ref view, out vpinverse );
+            InvertOrthographic( ref deviceProj, ref view, out vpinverse );
             return deviceProj * view;
         }
 
