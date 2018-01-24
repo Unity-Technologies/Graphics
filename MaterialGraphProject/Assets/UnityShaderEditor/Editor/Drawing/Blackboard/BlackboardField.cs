@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using Debug = System.Diagnostics.Debug;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -53,6 +54,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardField()
             : this(null, "", "") { }
 
+        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
+
         public BlackboardField(Texture icon, string text, string typeText)
         {
             var tpl = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityShaderEditor/Editor/Resources/UXML/GraphView/BlackboardField.uxml");
@@ -86,23 +89,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.typeText = typeText;
 
             m_SelectionDropper = new SelectionDropper(Handler);
-            typeof(SelectionDropper).GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(f => f.Name == "m_Active").SetValue(m_SelectionDropper, false);
+            // Workaround bug causing SelectionDropper to not work (m_Active should be initialized to false rather than true)
+            var activeFieldInfo = typeof(SelectionDropper).GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(f => f.Name == "m_Active");
+            Debug.Assert(activeFieldInfo != null, "activeFieldInfo != null");
+            activeFieldInfo.SetValue(m_SelectionDropper, false);
             this.AddManipulator(m_SelectionDropper);
-            RegisterCallback<MouseUpEvent>(OnMouseUp);
+
+            var contextualMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+            this.AddManipulator(contextualMenuManipulator);
         }
 
-        void OnMouseUp(MouseUpEvent evt)
+        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            if (evt.button == 1)
-            {
-                var gm = new GenericMenu();
-
-                gm.AddItem(new GUIContent("Rename"), false, RenameGo);
-
-                gm.ShowAsContext();
-                evt.StopPropagation();
-                evt.PreventDefault();
-            }
+            evt.menu.AppendAction("Rename", e => RenameGo(), ContextualMenu.MenuAction.AlwaysEnabled);
         }
 
         void Handler(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)

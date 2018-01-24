@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
-        GraphInspectorView m_GraphInspectorView;
         private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
@@ -22,23 +21,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
 
-        public Action onUpdateAssetClick
-        {
-            get { return m_GraphInspectorView.onUpdateAssetClick; }
-            set { m_GraphInspectorView.onUpdateAssetClick = value; }
-        }
+        public Action saveRequested { get; set; }
 
-        public Action onConvertToSubgraphClick
+        public Action convertToSubgraphRequested
         {
             get { return m_GraphView.onConvertToSubgraphClick; }
             set { m_GraphView.onConvertToSubgraphClick = value; }
         }
 
-        public Action onShowInProjectClick
-        {
-            get { return m_GraphInspectorView.onShowInProjectClick; }
-            set { m_GraphInspectorView.onShowInProjectClick = value; }
-        }
+        public Action showInProjectRequested { get; set; }
 
         public MaterialGraphView graphView
         {
@@ -51,17 +42,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_PreviewManager = value; }
         }
 
-        GraphInspectorView inspectorView
-        {
-            get { return m_GraphInspectorView; }
-        }
-
         public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/MaterialGraph");
             m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
+
+            var toolbar = new IMGUIContainer(() =>
+            {
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
+                {
+                    if (saveRequested != null)
+                        saveRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
+                {
+                    if (showInProjectRequested != null)
+                        showInProjectRequested();
+                }
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            });
+            Add(toolbar);
 
             var content = new VisualElement { name = "content" };
             {
@@ -74,12 +79,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
-
-                m_GraphInspectorView = new GraphInspectorView(assetName, previewManager, graph) { name = "inspector" };
-                m_GraphInspectorView.AddManipulator(new Draggable(OnMouseDrag, true));
-                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-                m_GraphInspectorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
-                m_GraphView.Add(m_GraphInspectorView);
 
                 m_BlackboardProvider = new BlackboardProvider(assetName, graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
@@ -106,27 +105,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
-        void OnPostLayout(PostLayoutEvent evt)
-        {
-            const float minimumVisibility = 60f;
-
-            Rect inspectorViewRect = m_GraphInspectorView.layout;
-
-            float minimumXPosition = minimumVisibility - inspectorViewRect.width;
-            float maximumXPosition = m_GraphView.layout.width - minimumVisibility;
-
-            float minimumYPosition = minimumVisibility - inspectorViewRect.height;
-            float maximumYPosition = m_GraphView.layout.height - minimumVisibility;
-
-            inspectorViewRect.x = Mathf.Clamp(inspectorViewRect.x, minimumXPosition, maximumXPosition);
-            inspectorViewRect.y = Mathf.Clamp(inspectorViewRect.y, minimumYPosition, maximumYPosition);
-
-            inspectorViewRect.width = Mathf.Min(inspectorViewRect.width, layout.width);
-            inspectorViewRect.height = Mathf.Min(inspectorViewRect.height, layout.height);
-
-            m_GraphInspectorView.layout = inspectorViewRect;
-        }
-
         void OnSpaceDown(KeyDownEvent evt)
         {
             if( evt.keyCode == KeyCode.Space)
@@ -140,18 +118,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
             }
-        }
-
-        void OnMouseDrag(Vector2 mouseDelta)
-        {
-            Vector2 normalizedDelta = mouseDelta / 2f;
-
-            Rect inspectorWindowRect = m_GraphInspectorView.layout;
-
-            inspectorWindowRect.x += normalizedDelta.x;
-            inspectorWindowRect.y += normalizedDelta.y;
-
-            m_GraphInspectorView.layout = inspectorWindowRect;
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)
@@ -240,7 +206,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             previewManager.HandleGraphChanges();
             previewManager.RenderPreviews();
-            inspectorView.HandleGraphChanges();
             m_BlackboardProvider.HandleGraphChanges();
 
             foreach (var node in m_Graph.removedNodes)
@@ -430,16 +395,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void Dispose()
         {
-            onUpdateAssetClick = null;
-            onConvertToSubgraphClick = null;
-            onShowInProjectClick = null;
+            saveRequested = null;
+            convertToSubgraphRequested = null;
+            showInProjectRequested = null;
             if (m_GraphView != null)
             {
                 foreach (var node in m_GraphView.Children().OfType<MaterialNodeView>())
                     node.Dispose();
                 m_GraphView = null;
             }
-            if (m_GraphInspectorView != null) m_GraphInspectorView.Dispose();
             if (previewManager != null)
             {
                 previewManager.Dispose();
