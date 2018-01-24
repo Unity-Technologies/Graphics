@@ -21,6 +21,11 @@ namespace UnityEditor.VFX.UI
 
         void OnPostLayout(GeometryChangedEvent e)
         {
+            RefreshLayout();
+        }
+
+        public virtual void RefreshLayout()
+        {
             float settingsLabelWidth = 30;
             float settingsControlWidth = 50;
             GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);

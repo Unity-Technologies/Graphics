@@ -227,7 +227,7 @@ CurvePropertyRM
 	flex:0;
 }
 
-VFXEnumField Button, VFXStringFieldProvider Button
+.PopupButton
 {
 	text-alignment:middle-left;
 	height: 16;
@@ -251,4 +251,10 @@ VFXStringFieldPushButton
 VFXStringFieldPushButton Button
 {
 	height:16;
+}
+#DraggingHandle
+{
+    width:4;
+    height:6;
+    margin-left:4;
 }

@@ -7,6 +7,62 @@ VFXOperatorUI.VFXNodeUI.node #middle
 	
 }
 
+VFXOperatorUI #title #edit
+{
+   width:28;
+   flex-direction:column;
+   justify-content:center;
+}
+
+VFXOperatorUI #title #edit #icon
+{
+    background-image: resource("VFX/EditStolen");
+    width:15;
+    height:14;
+    align-self:center;
+}
+
+.VFXNodeUI.node #node-border > #title
+{
+    justify-content:flex-start;
+}
+
+.VFXNodeUI.node #node-border > #title > #title-label
+{
+    flex:1;
+}
+
+VFXOperatorUI MultiOperatorEdit
+{
+    position-type:Absolute;
+    position-left:0;
+    position-right:0;
+    position-top:0;
+    background-color:#383838;
+}
+VFXOperatorUI MultiOperatorEdit OperandInfo
+{
+    flex-direction:row;
+    align-items:center;
+}
+VFXOperatorUI MultiOperatorEdit OperandInfo *
+{
+    height:16;
+}
+VFXOperatorUI MultiOperatorEdit OperandInfo VFXStringField
+{
+    flex:1;
+}
+VFXOperatorUI MultiOperatorEdit OperandInfo VFXStringField .textfield
+{
+    flex:1;
+}
+VFXOperatorUI MultiOperatorEdit OperandInfo Button
+{
+    width:70;
+}
+
+
 VFXParameterUI #exposedContainer
 {
 	flex-direction:row;

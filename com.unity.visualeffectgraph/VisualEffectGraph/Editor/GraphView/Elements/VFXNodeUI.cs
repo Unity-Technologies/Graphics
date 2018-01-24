@@ -154,12 +154,14 @@ namespace UnityEditor.VFX.UI
                 container.Remove(existingAnchors[deletedController]);
             }
 
-            foreach (var newController in ports.Except(existingAnchors.Keys))
+            var order = ports.Select((t, i) => new KeyValuePair<VFXDataAnchorController, int>(t, i)).ToDictionary(t => t.Key, t => t.Value);
+
+            foreach (var newController in ports.Except(existingAnchors.Keys).OrderBy(t => order[t]))
             {
                 var newElement = InstantiateDataAnchor(newController, this);
                 (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
 
-                container.Add(newElement);
+                container.Insert(order[newController], newElement);
             }
         }
 

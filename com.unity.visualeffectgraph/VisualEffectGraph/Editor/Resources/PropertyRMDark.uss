@@ -8,16 +8,21 @@ VFXFloatField:focus {
 	background-image: resource("Builtin Skins/DarkSkin/Images/TextField focused.png");
 }
 
-VFXEnumField Button, VFXStringFieldProvider Button
+.PopupButton
 {
 	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup.png");
 }
-VFXEnumField Button:hover:active, VFXStringFieldProvider Button:hover:active
+.PopupButton:hover:active
 {
 	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup act.png");
 }
 
-VFXEnumField Button:focus, VFXStringFieldProvider Button:focus
+.PopupButton:hover
 {
 	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup focus.png");
+}
+
+#DraggingHandle
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/WindowBottomResize.png");
 }
