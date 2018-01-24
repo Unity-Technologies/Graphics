@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
             var channelCount = SlotValueHelper.GetChannelCount(concreteValueType);
-            var values = value.x.ToString();
+            string values = NodeUtils.FloatToShaderValue(value.x);
             if (channelCount == 1)
                 return values;
             for (var i = 1; i < channelCount; i++)

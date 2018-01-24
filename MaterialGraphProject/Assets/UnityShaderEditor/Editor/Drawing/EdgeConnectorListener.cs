@@ -5,7 +5,7 @@ using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class EdgeConnectorListener : IEdgeConnectorListener
+    class EdgeConnectorListener : IEdgeConnectorListener
     {
         readonly AbstractMaterialGraph m_Graph;
         readonly SearchWindowProvider m_SearchWindowProvider;
@@ -19,14 +19,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void OnDropOutsidePort(Edge edge, Vector2 position)
         {
             var draggedPort = (edge.output != null ? edge.output.edgeConnector.edgeDragHelper.draggedPort : null) ?? (edge.input != null ? edge.input.edgeConnector.edgeDragHelper.draggedPort : null);
-            m_SearchWindowProvider.connectedPort = draggedPort;
+            m_SearchWindowProvider.connectedPort = (ShaderPort) draggedPort;
             SearchWindow.Open(new SearchWindowContext(GUIUtility.GUIToScreenPoint(Event.current.mousePosition)), m_SearchWindowProvider);
         }
 
         public void OnDrop(GraphView graphView, Edge edge)
         {
-            var leftSlot = edge.output.userData as ISlot;
-            var rightSlot = edge.input.userData as ISlot;
+            var leftSlot = edge.output.GetSlot();
+            var rightSlot = edge.input.GetSlot();
             if (leftSlot != null && rightSlot != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Connect Edge");

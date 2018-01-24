@@ -52,10 +52,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             switch(colorMode)
             {
                 case ColorMode.HDR:
-                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), hdr = true };
+                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), hdr = true, showEyeDropper = false };
                     break;
                 default:
-                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null) };
+                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), showEyeDropper = false };
                     break;
             }
             colorField.OnValueChanged(OnChange);

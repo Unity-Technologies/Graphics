@@ -34,7 +34,16 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return string.Format("Unity_ChannelMask_{0}_{1}", channel, precision);
+            string channelSum = "None";
+            if (channelMask != 0)
+            {
+                bool red = (channelMask & 1) != 0;
+                bool green = (channelMask & 2) != 0;
+                bool blue = (channelMask & 4) != 0;
+                bool alpha = (channelMask & 8) != 0;
+                channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
+            }
+            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, precision);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -44,19 +53,21 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        [SerializeField]
-        private TextureChannel m_Channel = TextureChannel.Red;
+        public TextureChannel channel;
 
-        [ChannelEnumControl("Channel")]
-        public TextureChannel channel
+        [SerializeField]
+        private int m_ChannelMask = -1;
+
+        [ChannelEnumMaskControl("Channels")]
+        public int channelMask
         {
-            get { return m_Channel; }
+            get { return m_ChannelMask; }
             set
             {
-                if (m_Channel == value)
+                if (m_ChannelMask == value)
                     return;
 
-                m_Channel = value;
+                m_ChannelMask = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -64,8 +75,8 @@ namespace UnityEditor.ShaderGraph
         void ValidateChannelCount()
         {
             int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-            if ((int)channel >= channelCount)
-                channel = TextureChannel.Red;
+            if (channelMask >= 1 << channelCount)
+                channelMask = -1;
         }
 
         string GetFunctionPrototype(string argIn, string argOut)
@@ -89,27 +100,44 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
+            ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
             {
+                int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
                 s.AppendLine(GetFunctionPrototype("In", "Out"));
                 using (s.BlockScope())
                 {
-                    switch (channel)
+                    if(channelMask == 0)
+                        s.AppendLine("Out = 0;");
+                    else if(channelMask == -1)
+                        s.AppendLine("Out = In;");
+                    else
                     {
-                        case TextureChannel.Green:
-                            s.AppendLine("Out = In.yyyy;");
-                            break;
-                        case TextureChannel.Blue:
-                            s.AppendLine("Out = In.zzzz;");
-                            break;
-                        case TextureChannel.Alpha:
-                            s.AppendLine("Out = In.wwww;");
-                            break;
-                        case TextureChannel.Red:
-                            s.AppendLine("Out = In.xxxx;");
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
+                        bool red = (channelMask & 1) != 0;
+                        bool green = (channelMask & 2) != 0;
+                        bool blue = (channelMask & 4) != 0;
+                        bool alpha = (channelMask & 8) != 0;
+
+                        switch (channelCount)
+                        {
+                            case 1:
+                                s.AppendLine("Out = In.r;");
+                                break;
+                            case 2:
+                                s.AppendLine(string.Format("Out = {0}2({1}, {2});", precision, 
+                                    red ? "In.r": "0", green ? "In.g" : "0"));
+                                break;
+                            case 3:
+                                s.AppendLine(string.Format("Out = {0}3({1}, {2}, {3});", precision,
+                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
+                                break;
+                            case 4:
+                                s.AppendLine(string.Format("Out = {0}4({1}, {2}, {3}, {4});", precision,
+                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
                     }
                 }
             });

@@ -565,5 +565,11 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void UpdateNodeAfterDeserialization()
         {}
+
+        public bool IsSlotConnected(int slotId)
+        {
+            var slot = FindSlot<MaterialSlot>(slotId);
+            return slot != null && owner.GetEdges(slot.slotReference).Any();
+        }
     }
 }

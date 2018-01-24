@@ -11,13 +11,13 @@ using INode = UnityEditor.Graphing.INode;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class SearchWindowProvider : ScriptableObject, ISearchWindowProvider
+    class SearchWindowProvider : ScriptableObject, ISearchWindowProvider
     {
         EditorWindow m_EditorWindow;
         AbstractMaterialGraph m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
-        public Port connectedPort { get; set; }
+        public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; private set; }
         public Vector2 targetPosition { get; private set; }
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         int GetFirstCompatibleSlotId(AbstractMaterialNode node)
         {
-            var connectedSlot = (MaterialSlot)connectedPort.userData;
+            var connectedSlot = connectedPort.slot;
             m_Slots.Clear();
             node.GetSlots(m_Slots);
             foreach (var slot in m_Slots)
@@ -205,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (connectedPort != null)
             {
-                var connectedSlot = (MaterialSlot)connectedPort.userData;
+                var connectedSlot = connectedPort.slot;
                 var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
                 var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
 
