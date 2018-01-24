@@ -87,13 +87,13 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             float2 SampleMotionVectors(float2 coords)
             {
             #if UNITY_UV_STARTS_AT_TOP
-                coords.y = 1.0 - coords.y;
+            //    coords.y = 1.0 - coords.y;
             #endif
 
                 float2 mv = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coords).xy;
 
             #if UNITY_UV_STARTS_AT_TOP
-                mv.y *= -1.0;
+              //  mv.y *= -1.0;
             #endif
 
                 return mv;
@@ -109,10 +109,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
-                    #if UNITY_UV_STARTS_AT_TOP
-                    input.texcoord.y = 1.0 - input.texcoord.y;
-                    #endif
-
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
 
                     if (any(isnan(color)) || any(isinf(color)))
