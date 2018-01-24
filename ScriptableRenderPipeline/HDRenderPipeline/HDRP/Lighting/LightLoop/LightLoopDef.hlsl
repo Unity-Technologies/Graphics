@@ -106,6 +106,15 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
 
+#ifdef DEBUG_DISPLAY
+float4 ApplyDebugProjectionVolume(float4 color, float3 texCoord, float scale)
+{
+    float l = length(texCoord);
+    l = pow(l / (1 + l), scale);
+    return float4(l.xxx * 0.7 + color.rgb * 0.3, color.a);
+}
+#endif
+
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
@@ -122,11 +131,17 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             //_Env2DCaptureVP is in capture space
-            float2 ndc = ComputeNormalizedDeviceCoordinates(texCoord, _Env2DCaptureVP[index]);
-            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc, index, 0);
-            // Discard pixels out of oblique projection
-            // We only check RGB because the texture may have BC6H compression
-            color.a = any(ndc < 0) || any(ndc > 1) || all(color.rgb >= 1000) ? 0 : 1;
+            float4 ndc = ComputeClipSpaceCoordinates(texCoord, _Env2DCaptureVP[index]);
+            ndc *= rcp(ndc.w);
+            ndc.xy = ndc.xy * 0.5 + 0.5;
+
+            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
+            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
+            
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
+                return ApplyDebugProjectionVolume(color, texCoord, _DebugEnvironmentProxyDepthScale);
+#endif
             return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)

@@ -4,8 +4,6 @@
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 #include "../../Lighting/VolumeProjection.hlsl"
 
-//#define ENV_PROJECTION_USE_LIGHTSPACE
-
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
@@ -1776,16 +1774,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 positionLS = WorldToLightPosition(lightData, worldToLS, positionWS);
     float3 dirLS = mul(R, worldToLS);
 
-#if defined(ENV_PROJECTION_USE_LIGHTSPACE)
-    // Projection and influence share the space
-    float3x3 worldToPS = worldToLS; 
-    float3 positionPS = positionLS;
-    float3 dirPS = dirLS;
-#else
     float3x3 worldToPS = WorldToProxySpace(proxyData);
     float3 positionPS = WorldToProxyPosition(proxyData, worldToPS, positionWS);
     float3 dirPS = mul(R, worldToPS);
-#endif
 
     float projectionDistance = 0;
     // 1. First process the projection

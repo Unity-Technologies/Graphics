@@ -546,7 +546,7 @@ static const float4x4 k_identity4x4 = {1, 0, 0, 0,
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float4 ComputeClipSpaceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
     float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
 
@@ -556,7 +556,18 @@ float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTra
     positionCS.y = -positionCS.y;
 #endif
 
-return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+    return positionCS;
+}
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    float4 positionCS = ComputeClipSpaceCoordinates(position, clipSpaceTransform);
+
+    return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
 }
 
 float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)

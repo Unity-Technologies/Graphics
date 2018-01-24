@@ -79,22 +79,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 DebugItem lightingDebugModeItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLightingDebugMode);
                 lightingDebugModeItem.handler.OnEditorGUI();
-                if ((DebugLightingMode)lightingDebugModeItem.GetValue() == DebugLightingMode.SpecularLighting)
+                switch ((DebugLightingMode)lightingDebugModeItem.GetValue())
                 {
-                    EditorGUI.indentLevel++;
-                    DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
-                    overrideSmoothnessItem.handler.OnEditorGUI();
-                    if ((bool)overrideSmoothnessItem.GetValue())
-                    {
-                        m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessValueDebug).handler.OnEditorGUI();
-                    }
-                    EditorGUI.indentLevel--;
-                }
-                else if ((DebugLightingMode)lightingDebugModeItem.GetValue() == DebugLightingMode.DiffuseLighting)
-                {
-                    EditorGUI.indentLevel++;
-                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugLightingAlbedo).handler.OnEditorGUI();
-                    EditorGUI.indentLevel--;
+                    case DebugLightingMode.SpecularLighting:
+                        {
+                            EditorGUI.indentLevel++;
+                            DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
+                            overrideSmoothnessItem.handler.OnEditorGUI();
+                            if ((bool)overrideSmoothnessItem.GetValue())
+                            {
+                                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessValueDebug).handler.OnEditorGUI();
+                            }
+                            EditorGUI.indentLevel--;
+                            break;
+                        }
+                    case DebugLightingMode.DiffuseLighting:
+                        {
+                            EditorGUI.indentLevel++;
+                            m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugLightingAlbedo).handler.OnEditorGUI();
+                            EditorGUI.indentLevel--;
+                            break;
+                        }
+                    case DebugLightingMode.EnvironmentProxyVolume:
+                        {
+                            ++EditorGUI.indentLevel;
+                            m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugEnvironmentProxyDepthScale).handler.OnEditorGUI();
+                            --EditorGUI.indentLevel;
+                            break;
+                        }
                 }
 
                 var fullScreenDebugModeHandler = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode);
