@@ -8,6 +8,24 @@ using UnityEditor.ShaderGraph.Drawing;
 
 public class ResizeBorderFrame : VisualElement
 {
+    List<ResizeSideHandle> m_ResizeSideHandles;
+
+    bool m_StayWithinParentBounds;
+
+    public bool stayWithinParentBounds
+    {
+        get { return m_StayWithinParentBounds; }
+        set
+        {
+            m_StayWithinParentBounds = value;
+
+            foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
+            {
+                resizeHandle.stayWithinPanretBounds = value;
+            }
+        }
+    }
+
     public Action OnResizeFinished;
 
     public ResizeBorderFrame(VisualElement target)
@@ -16,32 +34,22 @@ public class ResizeBorderFrame : VisualElement
 
         AddToClassList("reszieBorderFrame");
 
-        ResizeSideHandle topLeft =  new ResizeSideHandle(target, ResizeHandleAnchor.TopLeft);
-        ResizeSideHandle top =  new ResizeSideHandle(target, ResizeHandleAnchor.Top);
-        ResizeSideHandle topRight =  new ResizeSideHandle(target, ResizeHandleAnchor.TopRight);
-        ResizeSideHandle right = new ResizeSideHandle(target, ResizeHandleAnchor.Right);
-        ResizeSideHandle bottomRight = new ResizeSideHandle(target, ResizeHandleAnchor.BottomRight);
-        ResizeSideHandle bottom = new ResizeSideHandle(target, ResizeHandleAnchor.Bottom);
-        ResizeSideHandle bottomLeft = new ResizeSideHandle(target, ResizeHandleAnchor.BottomLeft);
-        ResizeSideHandle left = new ResizeSideHandle(target, ResizeHandleAnchor.Left);
+        m_ResizeSideHandles = new List<ResizeSideHandle>();
 
-        topLeft.OnResizeFinished += HandleResizefinished;
-        top.OnResizeFinished += HandleResizefinished;
-        topRight.OnResizeFinished += HandleResizefinished;
-        right.OnResizeFinished += HandleResizefinished;
-        bottomRight.OnResizeFinished += HandleResizefinished;
-        bottom.OnResizeFinished += HandleResizefinished;
-        bottomLeft.OnResizeFinished += HandleResizefinished;
-        left.OnResizeFinished += HandleResizefinished;
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.TopLeft));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Top));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.TopRight));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Right));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.BottomRight));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Bottom));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.BottomLeft));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Left));
 
-        Add(topLeft);
-        Add(top);
-        Add(topRight);
-        Add(right);
-        Add(bottomRight);
-        Add(bottom);
-        Add(bottomLeft);
-        Add(left);
+        foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
+        {
+            resizeHandle.OnResizeFinished += HandleResizefinished;
+            Add(resizeHandle);
+        }
     }
 
     void HandleResizefinished()
