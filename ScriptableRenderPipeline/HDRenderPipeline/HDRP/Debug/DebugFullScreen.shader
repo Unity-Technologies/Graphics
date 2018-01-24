@@ -23,6 +23,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             TEXTURE2D(_DebugFullScreenTexture);
             SAMPLER(sampler_DebugFullScreenTexture);
             float _FullScreenDebugMode;
+            float _RequireToFlipInputTexture;
 
             struct Attributes
             {
@@ -91,6 +92,11 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                if (_RequireToFlipInputTexture > 0.0)
+                {
+                    input.texcoord.y = 1.0 - input.texcoord.y;
+                }
+
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
                 {
@@ -126,9 +132,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     float g = 2.0 - abs(hue * 6.0 - 2.0);
                     float b = 2.0 - abs(hue * 6.0 - 4.0);
 
-                    float3 color = saturate(normalize(float3(mv,0)));
-
-//                    float3 color = saturate(float3(r, g, b) * kIntensity);
+                    float3 color = saturate(float3(r, g, b) * kIntensity);
 
                     // Grid subdivisions - should be dynamic
                     const float kGrid = 64.0;
@@ -144,7 +148,18 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center / _ScreenParams.xy;
+
+                    if (_RequireToFlipInputTexture > 0.0)
+                    {
+                        arrow_coord.y = 1.0 - arrow_coord.y;
+                    }
+
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
+
+                    if (_RequireToFlipInputTexture == 0.0)
+                    {
+                        mv_arrow.y *= -1;
+                    }
 
                     // Skip empty motion
                     float d = 0.0;
