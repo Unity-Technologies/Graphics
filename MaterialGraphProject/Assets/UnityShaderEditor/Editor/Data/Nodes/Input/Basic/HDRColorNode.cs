@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        [ColorControl("", true)]
+        [ColorControl("", ColorMode.HDR)]
         public Color color
         {
             get { return m_Color; }
