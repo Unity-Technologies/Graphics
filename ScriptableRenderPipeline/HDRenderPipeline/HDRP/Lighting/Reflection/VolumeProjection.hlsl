@@ -5,7 +5,7 @@
 #define ENVMAP_FEATURE_PERFACEFADE
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 
-#include "LightDefinition.cs.hlsl"
+#include "../LightDefinition.cs.hlsl"
 
 float3x3 WorldToProxySpace(EnvProxyData proxyData)
 {

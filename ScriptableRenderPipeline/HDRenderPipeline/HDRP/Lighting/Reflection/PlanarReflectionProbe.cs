@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         [Range(0, 180)]
         float m_FieldOfViewOverride = 90;
-
+        
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
