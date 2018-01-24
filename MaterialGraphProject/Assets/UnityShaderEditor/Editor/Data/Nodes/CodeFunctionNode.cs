@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        protected struct Boolean
+        {}
+
         protected struct Vector1
         {}
 
@@ -118,6 +121,10 @@ namespace UnityEditor.ShaderGraph
             if (p.ParameterType.IsByRef)
                 t = p.ParameterType.GetElementType();
 
+            if (t == typeof(Boolean))
+            {
+                return SlotValueType.Boolean;
+            }
             if (t == typeof(Vector1))
             {
                 return SlotValueType.Vector1;

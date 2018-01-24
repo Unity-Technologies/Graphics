@@ -27,6 +27,8 @@ namespace UnityEditor.ShaderGraph
             public Vector4 vector4Value;
             [FieldOffset(0)]
             public float floatValue;
+            [FieldOffset(0)]
+            public bool booleanValue;
         }
 
         Data m_Data;
@@ -111,6 +113,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public bool booleanValue
+        {
+            get
+            {
+                if (propType != PropertyType.Boolean)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Boolean, propType));
+                return m_Data.booleanValue;
+            }
+            set
+            {
+                if (propType != PropertyType.Boolean)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Boolean, propType));
+                m_Data.booleanValue = value;
+            }
+        }
+
         const string k_SetErrorMessage = "Cannot set a {0} property on a PreviewProperty with type {1}.";
         const string k_GetErrorMessage = "Cannot get a {0} property on a PreviewProperty with type {1}.";
 
@@ -126,6 +144,8 @@ namespace UnityEditor.ShaderGraph
                 block.SetVector(name, m_Data.vector4Value);
             else if (propType == PropertyType.Float)
                 block.SetFloat(name, m_Data.floatValue);
+            else if (propType == PropertyType.Boolean)
+                block.SetFloat(name, m_Data.booleanValue ? 1 : 0);
         }
     }
 

@@ -49,6 +49,7 @@ Pass
 	#include "LWRP/ShaderLibrary/Core.hlsl"
 	#include "LWRP/ShaderLibrary/Lighting.hlsl"
 	#include "CoreRP/ShaderLibrary/Color.hlsl"
+	#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
 	#include "ShaderGraphLibrary/Functions.hlsl"
 
 	${Graph}
@@ -100,7 +101,6 @@ Pass
 
 	half4 frag (GraphVertexOutput IN) : SV_Target
     {
-
     	UNITY_SETUP_INSTANCE_ID(IN);
 
     	${LocalPixelShader}
@@ -160,12 +160,6 @@ Pass
 
 		// Computes fog factor per-vertex
     	ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
-
-#if _AlphaOut
-		color.a = Alpha;
-#else
-		color.a = 1;
-#endif
 
 #if _AlphaClip
 		clip(Alpha - AlphaClipThreshold);
