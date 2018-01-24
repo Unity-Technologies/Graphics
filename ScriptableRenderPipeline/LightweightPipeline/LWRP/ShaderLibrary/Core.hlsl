@@ -14,7 +14,7 @@
 // Lightweight pipeline doesn't support point light shadows so they can't be //
 // classified as main light.                                                 //
 ///////////////////////////////////////////////////////////////////////////////
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SCREEN_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SCREEN_SOFT)
+#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
 #define _MAIN_LIGHT_DIRECTIONAL
 #endif
 
