@@ -203,7 +203,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_DebugFullScreen;
         Material m_DebugColorPicker;
         Material m_Blit;
-        Material m_BlitFlipMip;
         Material m_ErrorMaterial;
 
         // Various buffer
@@ -428,7 +427,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugFullScreen = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
             m_DebugColorPicker = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugColorPickerShader);
             m_Blit = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.blit);
-            m_BlitFlipMip = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.blitFlipMip);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
 
@@ -475,7 +473,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_DebugColorPicker);
             CoreUtils.Destroy(m_Blit);
-            CoreUtils.Destroy(m_BlitFlipMip);
             CoreUtils.Destroy(m_ErrorMaterial);
 
             m_SSSBufferManager.Cleanup();
@@ -1653,17 +1650,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // allowFlip is false if we call the function after the FinalPass or cmd.Blit that flip the screen
-        public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera, bool allowFlip = true)
+        public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
                 cmd.ReleaseTemporaryRT(m_DebugColorPickerRT);
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugColorPickerRT, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
-                // Mean that when we push the buffer here, we need to flip it to display correctly.
-                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView && allowFlip;
-                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, 0);
-                cmd.Blit(textureID, m_DebugColorPickerRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flip
+                cmd.Blit(textureID, m_DebugColorPickerRT);
             }
         }
 
@@ -1674,11 +1667,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cmd.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
-                // Mean that when we push the buffer here, we need to flip it to display correctly.
-                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
-                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, 0);
-                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
+                cmd.Blit(textureID, m_DebugFullScreenTempRT);
             }
         }
 
@@ -1695,10 +1684,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 desc.height = desc.height >> mipIndex;
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, desc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 
-                // TODO: TexArray
-                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
-                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, mipIndex);
-                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
+                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
             }
         }
 
@@ -1715,10 +1701,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 desc.height = desc.height >> mipIndex;
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, desc, 0, FilterMode.Point, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
 
-                // TODO: TexArray
-                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
-                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, mipIndex);
-                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
+                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
             }
         }
 
@@ -1745,9 +1728,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._DebugFullScreenTexture, m_DebugFullScreenTempRT);
                     // TODO: Replace with command buffer call when available
                     m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_CurrentDebugDisplaySettings.fullScreenDebugMode);
+                    // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
+                    // (i.e. we have perform a flip, we need to flip the input texture)
+                    m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     CoreUtils.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
-                    PushColorPickerDebugTexture(cmd, m_DebugFullScreenTempRT, hdCamera, false); // We are in RenderDebug() here so we msut not flip the copy
+                    PushColorPickerDebugTexture(cmd, m_DebugFullScreenTempRT, hdCamera);
                 }
 
                 // Then overlays
@@ -1788,7 +1774,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // The material display debug perform sRGBToLinear conversion as the final blit currently hardcode a linearToSrgb conversion. As when we read with color picker this is not done,
                     // we perform it inside the color picker shader. But we shouldn't do it for HDR buffer.
                     m_DebugColorPicker.SetFloat(HDShaderIDs._ApplyLinearToSRGB, m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() ? 1.0f : 0.0f);
-
+                    // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
+                    // (i.e. we have perform a flip, we need to flip the input texture) + we need to handle the case were we debug a fullscreen pass that have already perform the flip
+                    m_DebugColorPicker.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
+                    //m_DebugFullScreen.SetFloat(HDShaderIDs._IsSceneView, (float)hdCamera.camera.cameraType == CameraType.SceneView ? 1.0f : 0.0f);
                     CoreUtils.DrawFullScreen(cmd, m_DebugColorPicker, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
             }

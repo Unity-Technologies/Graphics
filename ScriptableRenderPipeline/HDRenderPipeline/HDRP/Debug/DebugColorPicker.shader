@@ -29,6 +29,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             int _ColorPickerMode;
             float3 _ColorPickerFontColor;
             float _ApplyLinearToSRGB;
+            float _RequireToFlipInputTexture;
 
             struct Attributes
             {
@@ -130,11 +131,18 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                if (_RequireToFlipInputTexture > 0.0)
+                {
+                    input.texcoord.y = 1.0 - input.texcoord.y;
+                }
+
                 float4 result = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);
                 //result.rgb = GetColorCodeFunction(result.x, _ColorPickerParam);
+
                 float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, _MousePixelCoord.zw);
 
-                return DisplayPixelInformationAtMousePosition(input, result, mouseResult);
+                float4 finalResult = DisplayPixelInformationAtMousePosition(input, result, mouseResult);
+                return finalResult;
             }
 
             ENDHLSL
