@@ -689,66 +689,72 @@ MultiFloatControlView > FloatField {
     flex-grow: 1;
 }
 
-ChannelMixerControlView {
+IntegerControlView {
+    flex-direction: row;
     padding-left: 8;
     padding-right: 8;
     padding-top: 4;
     padding-bottom: 4;
 }
 
-ChannelMixerControlView > Label {
+IntegerControlView > IntegerField {
     margin-left: 0;
     margin-right: 0;
-    cursor: slide-arrow;
+    min-width: 30;
+    flex-grow: 1;
 }
 
-ChannelMixerControlView > #buttonPanel {
-    flex-direction: row;
-    flex-grow: 1;
-    margin-bottom: 6;
+SliderControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
 }
 
-ChannelMixerControlView > #buttonPanel > Button {
-    flex-grow: 1;
+SliderControlView > #SliderPanel {
     margin-left: 0;
     margin-right: 0;
-    align-items: center;
-}
-
-ChannelMixerControlView > #buttonPanel > Button > Label {
-    flex-grow: 1;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
     padding-left: 0;
     padding-right: 0;
     padding-top: 0;
-    padding-bottom: 0;
-}
-
-ChannelMixerControlView > #sliderPanel {
+    padding-bottom: 4;
     flex-direction: row;
     flex-grow: 1;
 }
 
-ChannelMixerControlView > #sliderPanel > Label {
+SliderControlView > #SliderPanel > Slider {
     margin-left: 0;
     margin-right: 0;
-    min-width: 20;
+    flex-direction: row;
+    flex-grow: 1;
+    min-width: 164;
 }
 
-ChannelMixerControlView > #sliderPanel > Slider {
+SliderControlView > #SliderPanel > FloatField {
+    margin-left: 4;
+    margin-right: 0;
+    flex-direction: row;
+    flex-grow: 1;
+    width: 30;
+}
+
+SliderControlView > #FieldsPanel {
+    flex-direction: row;
     flex-grow: 1;
     margin-left: 0;
     margin-right: 0;
 }
 
-ChannelMixerControlView > #sliderPanel > FloatField {
-    margin-left: 4;
-    margin-right: 2;
-    min-width: 30;
-    max-width: 30;
+SliderControlView > #FieldsPanel > Label {
+    margin-left: 0;
+    margin-right: 8;
+}
+
+SliderControlView > #FieldsPanel > FloatField {
+    margin-left: 0;
+    margin-right: 0;
+    flex-direction: row;
+    flex-grow: 1;
 }
 
 ToggleControlView > #togglePanel {
@@ -841,7 +847,67 @@ EnumConversionControlView > Label {
     padding-bottom: 0;
 }
 
+ChannelMixerControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
 
+ChannelMixerControlView > Label {
+    margin-left: 0;
+    margin-right: 0;
+    cursor: slide-arrow;
+}
+
+ChannelMixerControlView > #buttonPanel {
+    flex-direction: row;
+    flex-grow: 1;
+    margin-bottom: 6;
+}
+
+ChannelMixerControlView > #buttonPanel > Button {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+    align-items: center;
+}
+
+ChannelMixerControlView > #buttonPanel > Button > Label {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+ChannelMixerControlView > #sliderPanel {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+ChannelMixerControlView > #sliderPanel > Label {
+    margin-left: 0;
+    margin-right: 0;
+    min-width: 20;
+}
+
+ChannelMixerControlView > #sliderPanel > Slider {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+ChannelMixerControlView > #sliderPanel > FloatField {
+    margin-left: 4;
+    margin-right: 2;
+    min-width: 30;
+    max-width: 30;
+}
 
 /* TEMP STUFF THAT SHOULD ACTUALLY STAY IN GRAPHVIEW */
 

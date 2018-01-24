@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             if (propertyInfo.PropertyType == typeof(Color))
-                return new ColorControlView(null, node, propertyInfo);
+                return new ColorControlView(null, ColorMode.Default, node, propertyInfo);
             if (typeof(Enum).IsAssignableFrom(propertyInfo.PropertyType))
                 return new EnumControlView(null, node, propertyInfo);
             if (propertyInfo.PropertyType == typeof(Texture2D))
