@@ -15,19 +15,22 @@ namespace UnityEditor.VFX
 
         class Pending
         {
-            public Vector3 position; //hacky, should be directly the whole eventAttribute state => need a function to copy it
+            public VFXEventAttribute eventAttribute;
             public float delay;
             public uint count;
         }
         List<Pending> m_pending = new List<Pending>();
 
+        static private readonly int delayID = Shader.PropertyToID("delay");
+        static private readonly int countID = Shader.PropertyToID("count");
+
         public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
         {
             var pending = new Pending()
             {
-                position = state.vfxEventAttribute.GetVector3("position"), //hacky
-                delay = vfxValues.GetFloat("delay"),
-                count = vfxValues.GetUInt("count")
+                eventAttribute = new VFXEventAttribute(state.vfxEventAttribute),
+                delay = vfxValues.GetFloat(delayID),
+                count = vfxValues.GetUInt(countID)
             };
 
             m_pending.Add(pending);
@@ -46,7 +49,7 @@ namespace UnityEditor.VFX
                 {
                     var execute = m_pending[i];
                     m_pending.RemoveAt(i);
-                    state.vfxEventAttribute.SetVector3("position", execute.position);
+                    state.vfxEventAttribute.CopyValuesFrom(execute.eventAttribute);
                     state.spawnCount = (float)execute.count;
                     break;
                 }
