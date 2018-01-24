@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
-    public class MasterNodeView : VisualElement
+    public class MasterPreviewView : VisualElement
     {
         AbstractMaterialGraph m_Graph;
 
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         MasterNode m_MasterNode;
 
-        public MasterNodeView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
+        public MasterPreviewView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
 
