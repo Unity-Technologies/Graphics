@@ -99,62 +99,68 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             results.PrepareCull(cullingGroup, m_PlanarReflectionProbesArray);
         }
 
-        public void RenderAllRealtimeProbesFor(Camera viewerCamera)
+        public void RenderAllRealtimeProbesFor(ReflectionProbeType probeType, Camera viewerCamera)
         {
-            var length = Mathf.Min(m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.Count, m_PlanarReflectionProbe_RealtimeUpdate_WorkArray.Length);
-            m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.CopyTo(m_PlanarReflectionProbe_RealtimeUpdate_WorkArray);
-
-            // 1. Allocate if necessary target texture
-            var renderCamera = GetRenderCamera();
-            for (var i = 0; i < length; i++)
+            if ((probeType & ReflectionProbeType.PlanarReflection) != 0)
             {
-                var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                var hdCamera = HDCamera.Get(renderCamera, null, probe.frameSettings);
-                if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
+                var length = Mathf.Min(m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.Count, m_PlanarReflectionProbe_RealtimeUpdate_WorkArray.Length);
+                m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.CopyTo(m_PlanarReflectionProbe_RealtimeUpdate_WorkArray);
+
+                // 1. Allocate if necessary target texture
+                var renderCamera = GetRenderCamera();
+                for (var i = 0; i < length; i++)
                 {
-                    if (probe.realtimeTexture != null)
-                        probe.realtimeTexture.Release();
-                    probe.realtimeTexture = NewRenderTarget(probe);
+                    var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
+                    var hdCamera = HDCamera.Get(renderCamera, null, probe.frameSettings);
+                    if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
+                    {
+                        if (probe.realtimeTexture != null)
+                            probe.realtimeTexture.Release();
+                        probe.realtimeTexture = NewRenderTarget(probe);
+                    }
                 }
-            }
 
-            // 2. Render
-            for (var i = 0; i < length; i++)
-            {
-                var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                Render(probe, probe.realtimeTexture, viewerCamera);
+                // 2. Render
+                for (var i = 0; i < length; i++)
+                {
+                    var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
+                    Render(probe, probe.realtimeTexture, viewerCamera);
+                }
             }
         }
 
-        public void RenderAllRealtimeProbes()
+        public void RenderAllRealtimeProbes(ReflectionProbeType probeTypes)
         {
-            // Discard disabled probes in requested render probes
-            m_PlanarReflectionProbe_RequestRealtimeRender.IntersectWith(m_PlanarReflectionProbes);
-            // Include all realtime probe modes
-            m_PlanarReflectionProbe_RequestRealtimeRender.UnionWith(m_PlanarReflectionProbe_RealtimeUpdate);
-            var length = Mathf.Min(m_PlanarReflectionProbe_RequestRealtimeRender.Count, m_PlanarReflectionProbe_RealtimeUpdate_WorkArray.Length);
-            m_PlanarReflectionProbe_RequestRealtimeRender.CopyTo(m_PlanarReflectionProbe_RealtimeUpdate_WorkArray);
-            m_PlanarReflectionProbe_RequestRealtimeRender.Clear();
-
-            // 1. Allocate if necessary target texture
-            var camera = GetRenderCamera();
-            for (var i = 0; i < length; i++)
+            if ((probeTypes & ReflectionProbeType.PlanarReflection) != 0)
             {
-                var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                var hdCamera = HDCamera.Get(camera, null, probe.frameSettings);
-                if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
+                // Discard disabled probes in requested render probes
+                m_PlanarReflectionProbe_RequestRealtimeRender.IntersectWith(m_PlanarReflectionProbes);
+                // Include all realtime probe modes
+                m_PlanarReflectionProbe_RequestRealtimeRender.UnionWith(m_PlanarReflectionProbe_RealtimeUpdate);
+                var length = Mathf.Min(m_PlanarReflectionProbe_RequestRealtimeRender.Count, m_PlanarReflectionProbe_RealtimeUpdate_WorkArray.Length);
+                m_PlanarReflectionProbe_RequestRealtimeRender.CopyTo(m_PlanarReflectionProbe_RealtimeUpdate_WorkArray);
+                m_PlanarReflectionProbe_RequestRealtimeRender.Clear();
+
+                // 1. Allocate if necessary target texture
+                var camera = GetRenderCamera();
+                for (var i = 0; i < length; i++)
                 {
-                    if( probe.realtimeTexture != null)
-                        probe.realtimeTexture.Release();
-                    probe.realtimeTexture = NewRenderTarget(probe);
+                    var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
+                    var hdCamera = HDCamera.Get(camera, null, probe.frameSettings);
+                    if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
+                    {
+                        if (probe.realtimeTexture != null)
+                            probe.realtimeTexture.Release();
+                        probe.realtimeTexture = NewRenderTarget(probe);
+                    }
                 }
-            }
 
-            // 2. Render
-            for (var i = 0; i < length; i++)
-            {
-                var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                Render(probe, probe.realtimeTexture);
+                // 2. Render
+                for (var i = 0; i < length; i++)
+                {
+                    var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
+                    Render(probe, probe.realtimeTexture);
+                }
             }
         }
 
