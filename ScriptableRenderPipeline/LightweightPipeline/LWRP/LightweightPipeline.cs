@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // we need use copyColor RT as a work RT.
         public static int copyColor;
 
-        // Camera depth target. Only used when post processing or soft particles are enabled.
+        // Camera depth target. Only used when post processing, soft particles, or screen space shadows are enabled.
         public static int depth;
 
         // If soft particles are enabled and no depth prepass is performed we need to copy depth.
@@ -617,10 +617,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
-
-            //Assume screen space shadows when cascades enabled, which requires depth texture before forward pass.
-            m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled || m_Asset.CascadeCount > 1;
-
+            m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled;
             if (postProcessEnabled)
             {
                 m_RequireDepthTexture = true;
@@ -635,6 +632,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
 
+            bool requireScreenSpaceShadows = m_Asset.CascadeCount > 1;
+            if (requireScreenSpaceShadows)
+            {
+                m_RequireDepthTexture = true;
+
+                if(!msaaEnabled) 
+                    intermediateTexture = true;
+            }
+
             if (msaaEnabled)
             {
                 configuration |= FrameRenderingConfiguration.Msaa;
@@ -645,7 +651,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
                 // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
-                if (!msaaEnabled && m_Asset.CascadeCount <= 1)
+                if (!msaaEnabled && !requireScreenSpaceShadows)
                 {
                     bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
                     m_DepthRenderBuffer = true;
