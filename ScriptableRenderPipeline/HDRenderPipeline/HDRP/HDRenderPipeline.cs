@@ -74,6 +74,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_ColorMRTs;
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[k_MaxDbuffer];
 
+        RenderTexture m_HTile;
+        RenderTargetIdentifier m_HTileRT;
+
+
         public void InitDBuffers(RenderTextureDescriptor rtDesc,  CommandBuffer cmd)
         {
             dbufferCount = Decal.GetMaterialDBufferCount();
@@ -108,15 +112,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_ColorMRTs;
         }
 
-		public void ClearNormalTarget(Color clearColor, CommandBuffer cmd)
+		public void ClearNormalTargetAndHTile(Color clearColor, CommandBuffer cmd)
 		{
 			// index 1 is normals
 			CoreUtils.SetRenderTarget(cmd, m_ColorMRTs[1], ClearFlag.Color, clearColor);
+		    CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 		}
+
+        public void SetHTile(CommandBuffer cmd)
+        {
+            cmd.SetRandomWriteTarget(3, m_HTile);
+        }
 
         public void PushGlobalParams(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
+        }
+
+        public void Resize(HDCamera camera)
+        {
+            CoreUtils.ResizeHTile(m_HTile, ref m_HTileRT, camera.renderTextureDesc);
         }
     }
 
@@ -532,6 +547,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CreateDepthStencilBuffer(hdCamera);
                 m_SSSBufferManager.Resize(hdCamera);
+                m_DbufferManager.Resize(hdCamera);
             }
 
             if (resolutionChanged || m_LightLoop.NeedResize())
@@ -1224,10 +1240,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 				// we need to do a separate clear for normals, because they are cleared to a different color
 				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
-				m_DbufferManager.ClearNormalTarget(clearColorNormal, cmd);
+				m_DbufferManager.ClearNormalTargetAndHTile(clearColorNormal, cmd);
 
 				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT); // do not clear anymore
+                m_DbufferManager.SetHTile(cmd);
                 DecalSystem.instance.Render(renderContext, camera, cmd);
+                cmd.ClearRandomWriteTargets();
             }
         }
 

@@ -34,6 +34,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     DecalSurfaceData surfaceData;
 	float3x3 decalToWorld = (float3x3)UNITY_ACCESS_INSTANCED_PROP(matrix, normalToWorld);
     GetSurfaceData(positionDS.xz, decalToWorld, surfaceData);
-
+	_DecalHTile[posInput.positionSS / 8] = 1.0f;
 	ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }
