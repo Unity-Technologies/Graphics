@@ -77,6 +77,8 @@ namespace UnityEditor.ShaderGraph
                     return "(3)";
                 case ConcreteSlotValueType.Vector4:
                     return "(4)";
+                case ConcreteSlotValueType.Boolean:
+                    return "(B)";
                 case ConcreteSlotValueType.Matrix2:
                     return "(2x2)";
                 case ConcreteSlotValueType.Matrix3:
@@ -135,6 +137,8 @@ namespace UnityEditor.ShaderGraph
                     return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector1:
                     return new Vector1MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue.x, shaderStage, hidden);
+                case SlotValueType.Boolean:
+                    return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStage, hidden);
             }
 
             throw new ArgumentOutOfRangeException("type", type, null);
@@ -244,6 +248,8 @@ namespace UnityEditor.ShaderGraph
                         || inputType == SlotValueType.Vector2
                         || inputType == SlotValueType.Vector1
                         || inputType == SlotValueType.Dynamic;
+                case SlotValueType.Boolean:
+                    return inputType == SlotValueType.Boolean;
             }
             return false;
         }
@@ -285,6 +291,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.Texture;
                 case ConcreteSlotValueType.Cubemap:
                     return PropertyType.Cubemap;
+                case ConcreteSlotValueType.Boolean:
+                    return PropertyType.Boolean;
                 case ConcreteSlotValueType.Vector1:
                     return PropertyType.Float;
                 case ConcreteSlotValueType.Vector2:

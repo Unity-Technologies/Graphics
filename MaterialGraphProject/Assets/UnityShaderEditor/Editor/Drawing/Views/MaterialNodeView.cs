@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 name = "controls"
             };
             extensionContainer.Add(m_ControlsContainer);
-            m_ControlsDivider = new VisualElement {name = "divider"};
+            m_ControlsDivider = new VisualElement { name = "divider" };
             m_ControlsDivider.AddToClassList("horizontal");
 
             if (node.hasPreview)
@@ -57,23 +57,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
                     UpdatePreviewTexture();
 
-                    var collapsePreviewButton = new VisualElement { name = "collapse"};
+                    var collapsePreviewButton = new VisualElement { name = "collapse" };
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
-                        {
-                            node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
-                            UpdatePreviewExpandedState(false);
-                        }));
+                    {
+                        node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                        UpdatePreviewExpandedState(false);
+                    }));
                     UpdatePreviewExpandedState(node.previewExpanded);
                     m_PreviewTextureView.Add(collapsePreviewButton);
 
-                    var expandPreviewButton = new VisualElement { name = "expand"};
-                    expandPreviewButton.Add(new VisualElement { name = "icon"});
+                    var expandPreviewButton = new VisualElement { name = "expand" };
+                    expandPreviewButton.Add(new VisualElement { name = "icon" });
                     expandPreviewButton.AddManipulator(new Clickable(() =>
-                        {
-                            node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
-                            UpdatePreviewExpandedState(true);
-                        }));
+                    {
+                        node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
+                        UpdatePreviewExpandedState(true);
+                    }));
                     m_PreviewContainer.Add(expandPreviewButton);
                 }
 
@@ -82,8 +82,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ControlViews = new List<VisualElement>();
             foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
-                    m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
+            foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
+                m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
             m_Attachers = new List<Attacher>(node.GetInputSlots<MaterialSlot>().Count());
 
             AddSlots(node.GetSlots<MaterialSlot>());
@@ -196,40 +196,63 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdatePreviewExpandedState(node.previewExpanded);
 
             base.expanded = node.drawState.expanded;
+
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
-                var anchorsToRemove = inputContainer.Children().ToList();
-                foreach (var anchorElement in anchorsToRemove)
+                var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();
+                foreach (var port in inputPorts)
                 {
-                    inputContainer.Remove(anchorElement);
-                    var attacher = m_Attachers.FirstOrDefault(a => a.target == anchorElement);
-                    if (attacher != null)
+                    var currentSlot = port.slot;
+                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
+                    if (newSlot == null)
                     {
-                        attacher.Detach();
-                        attacher.element.parent.Remove(attacher.element);
-                        m_Attachers.Remove(attacher);
+                        // Slot doesn't exist anymore, remove it
+                        inputContainer.Remove(port);
+
+                        // We also need to remove the attacher along with the element it's attaching
+                        var attacher = m_Attachers.FirstOrDefault(a => a.target == port);
+                        if (attacher != null)
+                        {
+                            attacher.Detach();
+                            attacher.element.parent.Remove(attacher.element);
+                            m_Attachers.Remove(attacher);
+                        }
+                    }
+                    else
+                    {
+                        port.slot = newSlot;
+                        slots.Remove(newSlot);
                     }
                 }
 
-                anchorsToRemove = outputContainer.Children().ToList();
-                foreach (var ve in anchorsToRemove)
-                    outputContainer.Remove(ve);
-
-                foreach (var port in inputContainer.Union(outputContainer).OfType<Port>())
+                var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
+                foreach (var port in outputPorts)
                 {
-                    var slot = (MaterialSlot)port.userData;
-                    port.portName = slot.displayName;
+                    var currentSlot = port.slot;
+                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
+                    if (newSlot == null)
+                    {
+                        outputContainer.Remove(port);
+                    }
+                    else
+                    {
+                        port.slot = newSlot;
+                        slots.Remove(newSlot);
+                    }
                 }
 
                 AddSlots(slots);
 
+                slots.Clear();
+                slots.AddRange(node.GetSlots<MaterialSlot>());
+
                 if (inputContainer.childCount > 0)
-                    inputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));
+                    inputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
                 if (outputContainer.childCount > 0)
-                    outputContainer.Sort((x, y) => slots.IndexOf(x.userData as MaterialSlot) - slots.IndexOf(y.userData as MaterialSlot));
+                    outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
             }
 
             UpdateControls();
@@ -252,11 +275,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (slot.hidden)
                     continue;
 
-                var port = ShaderPort.Create(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, null, m_ConnectorListener);
-                port.portName = slot.displayName;
-                port.userData = slot;
-                port.visualClass = slot.concreteValueType.ToClassName();
-
+                var port = ShaderPort.Create(slot, m_ConnectorListener);
                 if (slot.isOutputSlot)
                     outputContainer.Add(port);
                 else
@@ -266,11 +285,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSlotAttachers()
         {
-            foreach (var port in inputContainer.OfType<Port>())
+            foreach (var port in inputContainer.OfType<ShaderPort>())
             {
                 if (!m_Attachers.Any(a => a.target == port))
                 {
-                    var portInputView = new PortInputView((MaterialSlot)port.userData);
+                    var portInputView = new PortInputView(port.slot);
                     Add(portInputView);
                     mainContainer.BringToFront();
                     m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = -8f });
@@ -282,16 +301,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var attacher in m_Attachers)
             {
-                var slot = (MaterialSlot)attacher.target.userData;
+                var slot = ((ShaderPort)attacher.target).slot;
                 attacher.element.visible = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any();
             }
         }
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Concat(outputContainer).OfType<Port>())
+            foreach (var anchor in inputContainer.Concat(outputContainer).OfType<ShaderPort>())
             {
-                var slot = (MaterialSlot)anchor.userData;
+                var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
             }

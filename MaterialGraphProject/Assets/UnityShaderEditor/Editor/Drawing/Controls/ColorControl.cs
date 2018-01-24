@@ -8,19 +8,27 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
+    public enum ColorMode
+    {
+        Default,
+        HDR
+    }
+
     [AttributeUsage(AttributeTargets.Property)]
     public class ColorControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
+        ColorMode m_ColorMode;
 
-        public ColorControlAttribute(string label = null)
+        public ColorControlAttribute(string label = null, ColorMode colorMode = ColorMode.Default)
         {
             m_Label = label;
+            m_ColorMode = colorMode;
         }
 
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            return new ColorControlView(m_Label, node, propertyInfo);
+            return new ColorControlView(m_Label, m_ColorMode, node, propertyInfo);
         }
     }
 
@@ -29,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
-        public ColorControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
+        public ColorControlView(string label, ColorMode colorMode, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
@@ -40,8 +48,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
 
-            var colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), 
-                showEyeDropper = false };
+            ColorField colorField;
+            switch(colorMode)
+            {
+                case ColorMode.HDR:
+                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), hdr = true, showEyeDropper = false };
+                    break;
+                default:
+                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), showEyeDropper = false };
+                    break;
+            }
             colorField.OnValueChanged(OnChange);
             Add(colorField);
         }

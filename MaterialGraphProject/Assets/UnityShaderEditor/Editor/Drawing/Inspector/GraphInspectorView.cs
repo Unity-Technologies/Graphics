@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using Object = UnityEngine.Object;
+using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -71,54 +70,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(topContainer);
 
-            var bottomContainer = new VisualElement {name = "bottom"};
-            {
-                m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
-                m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDrag, true));
-                bottomContainer.Add(m_PreviewTextureView);
-
-                m_PreviewScrollPosition = new Vector2(0f, 0f);
-
-                m_PreviewMeshPicker = new ObjectField { objectType = typeof(Mesh) };
-                m_PreviewMeshPicker.OnValueChanged(OnPreviewMeshChanged);
-
-                bottomContainer.Add(m_PreviewMeshPicker);
-            }
-            Add(bottomContainer);
-
-            m_PreviewRenderHandle = previewManager.masterRenderData;
-            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
-
-            m_PreviewMeshPicker.SetValueAndNotify(m_Graph.previewData.serializedMesh.mesh);
-
             foreach (var property in m_Graph.properties)
                 m_PropertyItems.Add(new ShaderPropertyView(m_Graph, property));
 
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.TopLeft, new string[] {"resize", "diagonal", "top-left"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Top, new string[] {"resize", "vertical", "top"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.TopRight, new string[] {"resize", "diagonal", "top-right"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Right, new string[] {"resize", "horizontal", "right"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.BottomRight, new string[] {"resize", "diagonal", "bottom-right"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Bottom, new string[] {"resize", "vertical", "bottom"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.BottomLeft, new string[] {"resize", "diagonal", "bottom-left"}));
-            Add(new ResizeSideHandle(this, ResizeHandleAnchor.Left, new string[] {"resize", "horizontal", "left"}));
-        }
+            Add(new ResizeBorderFrame(this) { name = "resizeBorderFrame" });
 
-        MasterNode masterNode
-        {
-            get { return m_PreviewRenderHandle.shaderData.node as MasterNode; }
-        }
-
-        void OnMouseDrag(Vector2 deltaMouse)
-        {
-            Vector2 previewSize = m_PreviewTextureView.contentRect.size;
-
-            m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
-            m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
-            Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
-            m_Graph.previewData.rotation = previewRotation;
-
-            masterNode.Dirty(ModificationScope.Node);
+            this.AddManipulator(new WindowDraggable());
         }
 
         void OnAddProperty()
@@ -129,6 +86,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             gm.AddItem(new GUIContent("Vector3"), false, () => AddProperty(new Vector3ShaderProperty()));
             gm.AddItem(new GUIContent("Vector4"), false, () => AddProperty(new Vector4ShaderProperty()));
             gm.AddItem(new GUIContent("Color"), false, () => AddProperty(new ColorShaderProperty()));
+            gm.AddItem(new GUIContent("HDR Color"), false, () => AddProperty(new ColorShaderProperty(true)));
+            gm.AddItem(new GUIContent("Integer"), false, () => AddProperty(new IntegerShaderProperty()));
+            gm.AddItem(new GUIContent("Slider"), false, () => AddProperty(new SliderShaderProperty()));
+            gm.AddItem(new GUIContent("Boolean"), false, () => AddProperty(new BooleanShaderProperty()));
             gm.AddItem(new GUIContent("Texture"), false, () => AddProperty(new TextureShaderProperty()));
             gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty()));
             gm.ShowAsContext();
@@ -144,20 +105,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
-        }
-
-        void OnPreviewMeshChanged(ChangeEvent<Object> changeEvent)
-        {
-            Mesh changedMesh = changeEvent.newValue as Mesh;
-
-            masterNode.Dirty(ModificationScope.Node);
-
-            if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
-            {
-                m_Graph.previewData.rotation = Quaternion.identity;
-            }
-
-            m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
         public void HandleGraphChanges()

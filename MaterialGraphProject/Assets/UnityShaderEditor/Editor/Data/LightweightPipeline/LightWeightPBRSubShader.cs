@@ -46,28 +46,6 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        private static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
-        {
-            vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
-            vertexInputs.AddShaderChunk("{", false);
-            vertexInputs.Indent();
-            vertexInputs.AddShaderChunk("float4 vertex : POSITION;", false);
-            vertexInputs.AddShaderChunk("float3 normal : NORMAL;", false);
-            vertexInputs.AddShaderChunk("float4 tangent : TANGENT;", false);
-
-            if (graphRequiements.requiresVertexColor)
-            {
-                vertexInputs.AddShaderChunk("float4 color : COLOR;", false);
-            }
-
-            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
-                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
-            
-            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", true);
-            vertexInputs.Deindent();
-            vertexInputs.AddShaderChunk("};", false);
-        }
-
         private static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
             var builder = new ShaderStringBuilder();
@@ -98,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             modelRequiements.requiresViewDir |= NeededCoordinateSpace.World;
             modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
 
-            GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
+            GraphUtil.GenerateApplicationVertexInputs(requirements.Union(modelRequiements), vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
@@ -190,16 +168,8 @@ namespace UnityEditor.ShaderGraph
             if (masterNode.model == PBRMasterNode.Model.Specular)
                 defines.AddShaderChunk("#define _SPECULAR_SETUP 1", true);
 
-            switch (masterNode.alphaMode)
-            {
-                case PBRMasterNode.AlphaMode.AlphaBlend:
-                case PBRMasterNode.AlphaMode.AdditiveBlend:
-                    defines.AddShaderChunk("#define _AlphaOut 1", true);
-                    break;
-            }
-
             if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
-                    defines.AddShaderChunk("#define _AlphaClip 1", true);
+                defines.AddShaderChunk("#define _AlphaClip 1", true);
 
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
@@ -220,7 +190,6 @@ namespace UnityEditor.ShaderGraph
             resultPass = resultPass.Replace("${SurfaceInputs}", localSurfaceInputs.GetShaderString(3));
             resultPass = resultPass.Replace("${SurfaceOutputRemap}", surfaceOutputRemap.GetShaderString(3));
 
-
             resultPass = resultPass.Replace("${Tags}", string.Empty);
             resultPass = resultPass.Replace("${Blending}", blendingVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${Culling}", cullingVisitor.GetShaderString(2));
@@ -237,38 +206,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = new SurfaceMaterialOptions();
-            switch (masterNode.alphaMode)
-            {
-                case PBRMasterNode.AlphaMode.Opaque:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
-                    break;
-                case PBRMasterNode.AlphaMode.AlphaBlend:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-                case PBRMasterNode.AlphaMode.AdditiveBlend:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-            }
-
+            var materialOptions = MasterNode.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
