@@ -36,6 +36,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ValueAction = IntegerField;
             else if (property is SliderShaderProperty)
                 m_ValueAction = SliderField;
+            else if (property is BooleanShaderProperty)
+                m_ValueAction = BooleanField;
 
             if (m_ValueAction != null)
             {
@@ -181,6 +183,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             EditorGUIUtility.labelWidth = previousLabelWidth;
             EditorGUILayout.EndHorizontal();
             fProp.value = value;
+        }
+
+        void BooleanField()
+        {
+            var fProp = (BooleanShaderProperty)property;
+            fProp.value = EditorGUILayout.Toggle(fProp.value);
         }
     }
 }
