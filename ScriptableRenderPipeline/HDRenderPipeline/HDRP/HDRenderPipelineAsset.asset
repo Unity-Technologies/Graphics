@@ -41,7 +41,7 @@ MonoBehaviour:
     enableMSAA: 0
     enableShadowMask: 0
     lightLoopSettings:
-      enableTileAndCluster: 1
+      enableTileAndCluster: 0
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1

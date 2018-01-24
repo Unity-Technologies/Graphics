@@ -66,6 +66,9 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support MSAA"));
             EditorGUILayout.PropertyField(d.supportSubsurfaceScattering, _.GetContent("Support Subsurface Scattering"));
             EditorGUILayout.PropertyField(d.supportAsyncCompute, _.GetContent("Support AsyncCompute"));
+            EditorGUILayout.PropertyField(d.supportsForwardOnly, _.GetContent("Support Forward Only"));
+            EditorGUILayout.PropertyField(d.supportsMotionVectors, _.GetContent("Support Motion Vectors"));
+            EditorGUILayout.PropertyField(d.supportsStereo, _.GetContent("Support Stereo Rendering"));
             --EditorGUI.indentLevel;
         }
     }

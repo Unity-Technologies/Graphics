@@ -9,10 +9,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // GBuffer management
         public virtual int GetMaterialGBufferCount() { return 0; }
-        public virtual void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
+        public virtual void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag)
         {
             RTFormat = null;
-            RTReadWrite = null;
+            sRGBFlag = null;
         }
 
         // Regular interface
