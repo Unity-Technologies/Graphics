@@ -80,6 +80,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TimeDependentPreviews.Add(node.tempId.index);
 
             var masterNode = node as IMasterNode;
+
             if (masterRenderData.shaderData == null && masterNode != null)
                 masterRenderData.shaderData = shaderData;
         }
@@ -492,8 +493,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var renderData = Get(m_RenderDatas, nodeId);
             if (renderData != null)
             {
-                if (masterRenderData != null && masterRenderData.shaderData != null && masterRenderData.shaderData.node == renderData.shaderData.node)
-                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode).Select(x => x.shaderData).FirstOrDefault();
+                // Check if we're destroying the shader data used by the master preview
+                if (masterRenderData != null && masterRenderData.shaderData != null && masterRenderData.shaderData == renderData.shaderData)
+                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode && x != renderData).Select(x => x.shaderData).FirstOrDefault();
 
                 DestroyRenderData(renderData);
 
