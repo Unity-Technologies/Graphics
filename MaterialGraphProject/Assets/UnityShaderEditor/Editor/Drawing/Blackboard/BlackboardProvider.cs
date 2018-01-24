@@ -15,7 +15,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
         readonly BlackboardSection m_Section;
         public Blackboard blackboard { get; private set; }
-        public Action updateAssetRequested { get; set; }
 
         public BlackboardProvider(string assetName, AbstractMaterialGraph graph)
         {
@@ -34,7 +33,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             m_Section = new BlackboardSection { headerVisible = false };
-            m_Section.Add(new Button(OnClickSave) { text = "Save" });
             foreach (var property in graph.properties)
                 AddProperty(property);
             blackboard.Add(m_Section);
@@ -70,12 +68,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnClickSave()
-        {
-            if (updateAssetRequested != null)
-                updateAssetRequested();
-        }
-
         public void HandleGraphChanges()
         {
             foreach (var propertyGuid in m_Graph.removedProperties)
@@ -92,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddProperty(property);
         }
 
-        void AddProperty(IShaderProperty property, bool focus = false)
+        void AddProperty(IShaderProperty property, bool create = false)
         {
             if (m_PropertyRows.ContainsKey(property.guid))
                 throw new ArgumentException("Property already exists");
@@ -101,8 +93,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Section.Add(row);
             m_PropertyRows[property.guid] = row;
 
-            if (focus)
+            if (create)
+            {
                 field.RenameGo();
+                row.expanded = true;
+            }
         }
 
         void DirtyNodes()

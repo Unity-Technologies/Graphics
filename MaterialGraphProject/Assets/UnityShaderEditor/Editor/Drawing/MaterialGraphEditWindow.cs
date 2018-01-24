@@ -42,9 +42,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphEditorView = value;
                 if (m_GraphEditorView != null)
                 {
-                    m_GraphEditorView.onUpdateAssetClick += UpdateAsset;
-                    m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
-                    m_GraphEditorView.onShowInProjectClick += PingAsset;
+                    m_GraphEditorView.saveRequested += UpdateAsset;
+                    m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
+                    m_GraphEditorView.showInProjectRequested += PingAsset;
                     this.GetRootVisualContainer().Add(graphEditorView);
                 }
             }
