@@ -40,6 +40,16 @@
             return SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, input.texcoord);
         }
 
+        float4 FragNearestFlipY(Varyings input) : SV_Target
+        {
+            return SAMPLE_TEXTURE2D(_BlitTexture, sampler_PointClamp, float2(input.texcoord.x, 1.0 - input.texcoord.y));
+        }
+
+        float4 FragBilinearFlipY(Varyings input) : SV_Target
+        {
+            return SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, float2(input.texcoord.x, 1.0 - input.texcoord.y));
+        }
+
     ENDHLSL
 
     SubShader
@@ -63,6 +73,28 @@
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragBilinear
+            ENDHLSL
+        }
+
+        // 2: Nearest + flipY
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragNearestFlipY
+            ENDHLSL
+        }
+
+        // 3: Bilinear + flipY
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragBilinearFlipY
             ENDHLSL
         }
     }

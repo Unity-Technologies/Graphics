@@ -915,14 +915,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
-                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.NanTracker);
-
                         RenderGaussianPyramidColor(camera, cmd, renderContext, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
 
+                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.NanTracker);
                         PushColorPickerDebugTexture(cmd, m_CameraColorBufferRT, hdCamera);
+
+                        // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
+                        // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
 
                         // Final blit
                         if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
@@ -933,12 +935,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.BlitToFinalRT.GetSampler()))
                             {
+                                // This Blit will flip the screen anything other than openGL
                                 // Simple blit
                                 cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                             }
                         }
                     }
 
+                    // Caution: RenderDebug need to take into account that we have flip the screen (so anything capture before the flip will be flipped)
                     RenderDebug(hdCamera, cmd);
 
                     // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
@@ -1216,10 +1220,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
 
-				// for alpha compositing, color is cleared to 0, alpha to 1 
+				// for alpha compositing, color is cleared to 0, alpha to 1
 				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 
-				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f); 
+				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
 				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
 
 				// we need to do a separate clear for normals, because they are cleared to a different color
@@ -1257,6 +1261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Blit DebugView Material Debug", CustomSamplerId.BlitDebugViewMaterialDebug.GetSampler()))
                 {
+                    // This Blit will flip the screen anything other than openGL
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 }
             }
@@ -1650,7 +1655,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.ReleaseTemporaryRT(m_DebugColorPickerRT);
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugColorPickerRT, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                cmd.Blit(textureID, m_DebugColorPickerRT);
+                // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
+                // Mean that when we push the buffer here, we need to flip it to display correctly.
+                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
+                cmd.Blit(textureID, m_DebugColorPickerRT, m_Blit, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flip
             }
         }
 
@@ -1661,7 +1669,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed, when we render the result in RenderDebug the temporary RT will not exist.
                 cmd.ReleaseTemporaryRT(m_DebugFullScreenTempRT);
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                cmd.Blit(textureID, m_DebugFullScreenTempRT);
+                // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
+                // Mean that when we push the buffer here, we need to flip it to display correctly.
+                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
+                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_Blit, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
             }
         }
 
