@@ -301,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_FullScreenDebugPushed;
 
         // temp hack
-        public const int kMsaaSamplesFixed = 1;
+        public const int kMsaaSamplesFixed = 4;
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
@@ -513,7 +513,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
             {
                 CreateDepthStencilBuffer(hdCamera);
-                m_SSSBufferManager.Resize(hdCamera);
+
+                if (m_FrameSettings.enableSubsurfaceScattering)
+                {
+                    // TODO: The R8 target doesn't allocate with MSAA support...
+                    m_SSSBufferManager.Resize(hdCamera);
+                }
             }
 
             if (resolutionChanged || m_LightLoop.NeedResize())
