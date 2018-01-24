@@ -177,8 +177,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             screenSize = new Vector4(m_ActualWidth, m_ActualHeight, 1.0f / m_ActualWidth, 1.0f / m_ActualHeight);
             RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA);
-            string toto = RTHandle.DumpRTInfo();
-
         }
 
         public void Reset()

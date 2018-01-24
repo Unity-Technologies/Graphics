@@ -71,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
         Material m_CopyStencilForNoLighting;
+        Material m_CopyDepth;
         GPUCopy m_GPUCopy;
 
         IBLFilterGGX m_IBLFilterGGX = null;
@@ -114,14 +115,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         List<RTHandle> m_GaussianPyramidColorMips = new List<RTHandle>();
         RTHandle m_DepthPyramidBuffer;
         List<RTHandle> m_DepthPyramidMips = new List<RTHandle>();
-
-
-
-
-
-
-
-
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
@@ -227,6 +220,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
 
+            m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyDepthBuffer);
+
             InitializeDebugMaterials();
 
             m_GaussianPyramidKernel = m_GaussianPyramidCS.FindKernel("KMain");
@@ -294,7 +289,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 for (int i = currentLodCount; i < lodCount; ++i)
                 {
-                    RTHandle newMip = RTHandle.Alloc(size => CalculatePyramidMipSize(CalculatePyramidSize(size), i + 1), colorFormat: format, sRGB: false, enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear);
+                    int localCopy = i; // Don't remove this copy! It's important for the value to be correctly captured by the lambda.
+                    RTHandle newMip = RTHandle.Alloc(size => CalculatePyramidMipSize(CalculatePyramidSize(size), localCopy + 1), colorFormat: format, sRGB: false, enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear);
                     mipList.Add(newMip);
                 }
             }
@@ -847,18 +843,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    RenderDebug(hdCamera, cmd);
-
-                    // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
-                    cmd.SetRenderTarget(new RenderTargetIdentifier(-1), new RenderTargetIdentifier(-1));
 
 #if UNITY_EDITOR
-                    // We still need to bind correctly default camera target with our depth buffer in case we are currently rendering scene view. It should be the last camera here
+                    // During rendering we use our own depth buffer instead of the one provided by the scene view (because we need to be able to control its life cycle)
+                    // In order for scene view gizmos/icons etc to be depth test correctly, we need to copy the content of our own depth buffer into the scene view depth buffer.
+                    // On subtlety here is that our buffer can be bigger than the camera one so we need to copy only the corresponding portion
+                    // (it's handled automatically by the copy shader because it uses a load in pxiel coordinates based on the target).
+                    // This copy will also have the effect of re-binding this depth buffer correctly for subsequent editor rendering.
 
-                    // bind depth surface for editor grid/gizmo/selection rendering
+                    // NOTE: This needs to be done before the call to RenderDebug because debug overlays need to update the depth for the scene view as well.
+                    // Make sure RenderDebug does not change the current Render Target
                     if (camera.cameraType == CameraType.SceneView)
-                        cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBuffer);
+                    {
+                        m_CopyDepth.SetTexture(HDShaderIDs._InputDepth, m_CameraDepthStencilBuffer);
+                        cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_CopyDepth);
+                    }
 #endif
+
+                    RenderDebug(hdCamera, cmd);
                 }
 
                 // Caution: ExecuteCommandBuffer must be outside of the profiling bracket
@@ -1550,9 +1552,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Render Debug", CustomSamplerId.RenderDebug.GetSampler()))
             {
-                // We make sure the depth buffer is bound because we need it to write depth at near plane for overlays otherwise the editor grid end up visible in them.
-                CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBuffer);
-
                 // First render full screen debug texture
                 if (m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None && m_FullScreenDebugPushed)
                 {
