@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum DielectricMaterial
+    public enum DielectricMaterialType
     {
         Common,
         RustedMetal,
@@ -26,53 +26,37 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private DielectricMaterial m_Material = DielectricMaterial.Common;
+        DielectricMaterial m_Material = new DielectricMaterial(DielectricMaterialType.Common, 0.5f, 1.0f);
 
-        [EnumControl("Material")]
+        [Serializable]
+        public struct DielectricMaterial
+        {
+            public DielectricMaterialType type;
+            public float range;
+            public float indexOfRefraction;
+
+            public DielectricMaterial(DielectricMaterialType type, float range, float indexOfRefraction)
+            {
+                this.type = type;
+                this.range = range;
+                this.indexOfRefraction = indexOfRefraction;
+            }
+        }
+
+        [DielectricSpecularControl()]
         public DielectricMaterial material
         {
             get { return m_Material; }
             set
             {
-                if (m_Material == value)
+                if ((value.type == m_Material.type) && (value.range == m_Material.range) && (value.indexOfRefraction == m_Material.indexOfRefraction))
                     return;
-
+                DielectricMaterialType previousType = m_Material.type;
                 m_Material = value;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        private float m_Range = 0.5f;
-        
-        [MultiFloatControl("Range")]
-        public float range
-        {
-            get { return m_Range; }
-            set
-            {
-                if (m_Range == value)
-                    return;
-
-                m_Range = value;
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        [SerializeField]
-        private float m_IndexOfRefraction = 1.0f;
-
-        [MultiFloatControl("IOR")]
-        public float indexOfRefraction
-        {
-            get { return m_IndexOfRefraction; }
-            set
-            {
-                if (m_IndexOfRefraction == value)
-                    return;
-
-                m_IndexOfRefraction = value;
-                Dirty(ModificationScope.Node);
+                if(value.type != previousType)
+                    Dirty(ModificationScope.Graph);
+                else
+                    Dirty(ModificationScope.Node);
             }
         }
 
@@ -94,21 +78,21 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            switch (m_Material)
+            switch (material.type)
             {
-                case DielectricMaterial.RustedMetal:
+                case DielectricMaterialType.RustedMetal:
                     visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.030, 0.030, 0.030);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
-                case DielectricMaterial.Water:
+                case DielectricMaterialType.Water:
                     visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.020, 0.020, 0.020);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
-                case DielectricMaterial.Ice:
+                case DielectricMaterialType.Ice:
                     visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.018, 0.018, 0.018);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
-                case DielectricMaterial.Glass:
+                case DielectricMaterialType.Glass:
                     visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.040, 0.040, 0.040);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
-                case DielectricMaterial.Custom:
+                case DielectricMaterialType.Custom:
                     visitor.AddShaderChunk(string.Format("{0}3 {1} = pow({2} - 1, 2) / pow({2} + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId),
                         string.Format("_{0}_IOR", GetVariableNameForNode())), true);
                     break;
@@ -123,20 +107,20 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            if(material == DielectricMaterial.Common)
+            if(material.type == DielectricMaterialType.Common)
             {
                 properties.Add(new PreviewProperty(PropertyType.Float)
                 {
                     name = string.Format("_{0}_Range", GetVariableNameForNode()),
-                    floatValue = range
+                    floatValue = material.range
                 });
             }
-            else if (material == DielectricMaterial.Custom)
+            else if (material.type == DielectricMaterialType.Custom)
             {
                 properties.Add(new PreviewProperty(PropertyType.Float)
                 {
                     name = string.Format("_{0}_IOR", GetVariableNameForNode()),
-                    floatValue = indexOfRefraction
+                    floatValue = material.indexOfRefraction
                 });
             }
         }
@@ -147,8 +131,8 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             base.CollectShaderProperties(properties, generationMode);
-
-            if (material == DielectricMaterial.Common)
+            
+            if (material.type == DielectricMaterialType.Common)
             {
                 properties.AddShaderProperty(new FloatShaderProperty()
                 {
@@ -156,7 +140,7 @@ namespace UnityEditor.ShaderGraph
                     generatePropertyBlock = false
                 });
             }
-            else if (material == DielectricMaterial.Custom)
+            else if (material.type == DielectricMaterialType.Custom)
             {
                 properties.AddShaderProperty(new FloatShaderProperty()
                 {
