@@ -203,6 +203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_DebugFullScreen;
         Material m_DebugColorPicker;
         Material m_Blit;
+        Material m_BlitFlipMip;
         Material m_ErrorMaterial;
 
         // Various buffer
@@ -427,6 +428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugFullScreen = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugFullScreenShader);
             m_DebugColorPicker = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.debugColorPickerShader);
             m_Blit = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.blit);
+            m_BlitFlipMip = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.blitFlipMip);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
 
@@ -473,6 +475,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_DebugColorPicker);
             CoreUtils.Destroy(m_Blit);
+            CoreUtils.Destroy(m_BlitFlipMip);
             CoreUtils.Destroy(m_ErrorMaterial);
 
             m_SSSBufferManager.Cleanup();
@@ -819,7 +822,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
 
-                    RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+                    RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
@@ -906,7 +909,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
                         RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
 
-                        RenderGaussianPyramidColor(camera, cmd, renderContext, true);
+                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, true);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -915,7 +918,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
-                        RenderGaussianPyramidColor(camera, cmd, renderContext, false);
+                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
@@ -1476,7 +1479,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderGaussianPyramidColor(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
+        void RenderGaussianPyramidColor(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
         {
             if (isPreRefraction)
             {
@@ -1506,7 +1509,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
 
-                cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, m_CameraColorBufferRT);
+                cmd.SetGlobalTexture(HDShaderIDs._MainTex, m_CameraColorBufferRT);
                 CoreUtils.DrawFullScreen(cmd, m_Blit, m_GaussianPyramidColorBufferRT, null, 1); // Bilinear filtering
 
                 var last = m_GaussianPyramidColorBuffer;
@@ -1533,7 +1536,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     last = HDShaderIDs._GaussianPyramidColorMips[i + 1];
                 }
 
-                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, m_GaussianPyramidColorBufferDesc, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, m_GaussianPyramidColorBufferDesc, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
 
                 cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
 
@@ -1544,7 +1547,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPyramidDepth(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
             {
@@ -1591,7 +1594,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
                 }
 
-                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, debugMode);
+                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, hdCamera, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
 
@@ -1658,7 +1661,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
                 // Mean that when we push the buffer here, we need to flip it to display correctly.
                 bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
-                cmd.Blit(textureID, m_DebugColorPickerRT, m_Blit, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flip
+                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, 0);
+                cmd.Blit(textureID, m_DebugColorPickerRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flip
             }
         }
 
@@ -1672,11 +1676,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // RenderDebug() is call after the final pass that flip the screen (if we are not SceneView).
                 // Mean that when we push the buffer here, we need to flip it to display correctly.
                 bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
-                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_Blit, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
+                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, 0);
+                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
             }
         }
 
-        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
@@ -1689,11 +1694,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 desc.height = desc.height >> mipIndex;
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, desc, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 
-                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
+                // TODO: TexArray
+                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
+                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, mipIndex);
+                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
             }
         }
 
-        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
@@ -1706,7 +1714,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 desc.height = desc.height >> mipIndex;
                 CoreUtils.CreateCmdTemporaryRT(cmd, m_DebugFullScreenTempRT, desc, 0, FilterMode.Point, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
 
-                cmd.CopyTexture(textureID, 0, mipIndex, m_DebugFullScreenTempRT, 0, 0); // TODO: Support tex arrays
+                // TODO: TexArray
+                bool flipY = hdCamera.camera.cameraType != CameraType.SceneView;
+                m_BlitFlipMip.SetFloat(HDShaderIDs._MipIndex, mipIndex);
+                cmd.Blit(textureID, m_DebugFullScreenTempRT, m_BlitFlipMip, flipY ? 2 : 0); // 2 is nearest filtering and flip the image on Y, 1 is without flipY
             }
         }
 

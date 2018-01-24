@@ -89,6 +89,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.cameraMotionVectors = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/CameraMotionVectors.shader");
                 newAsset.copyStencilBuffer = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/CopyStencilBuffer.shader");
                 newAsset.blit = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/Blit.shader");
+                newAsset.blitFlipMip = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/BlitFlipMip.shader");
 
                 // Sky
                 newAsset.blitCubemap = Load<Shader>(HDRenderPipelinePath + "Sky/BlitCubemap.shader");
