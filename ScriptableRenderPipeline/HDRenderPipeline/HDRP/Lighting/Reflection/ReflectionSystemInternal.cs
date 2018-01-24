@@ -225,11 +225,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 && renderTexture.useMipMap;
         }
 
-        public void RequestRealtimeRender(PlanarReflectionProbe probe)
-        {
-            m_PlanarReflectionProbe_RequestRealtimeRender.Add(probe);
-        }
-
         public void Render(PlanarReflectionProbe probe, RenderTexture target, Camera viewerCamera = null)
         {
             var renderCamera = GetRenderHDCamera(probe);

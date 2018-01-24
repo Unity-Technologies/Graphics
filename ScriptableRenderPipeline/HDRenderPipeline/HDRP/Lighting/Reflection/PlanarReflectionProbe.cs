@@ -151,12 +151,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         #endregion
 
-        public void RequestRealtimeRender()
-        {
-            if (isActiveAndEnabled)
-                ReflectionSystem.RequestRealtimeRender(this);
-        }
-
         void OnEnable()
         {
             ReflectionSystem.RegisterProbe(this);
