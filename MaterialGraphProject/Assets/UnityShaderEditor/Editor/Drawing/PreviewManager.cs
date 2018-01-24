@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Render 2D previews
             m_SceneResources.camera.transform.position = -Vector3.forward * 2;
             m_SceneResources.camera.transform.rotation = Quaternion.identity;
-            m_SceneResources.camera.orthographicSize = 1;
+            m_SceneResources.camera.orthographicSize = 0.5f;
             m_SceneResources.camera.orthographic = true;
 
             foreach (var renderData in m_RenderList2D)
