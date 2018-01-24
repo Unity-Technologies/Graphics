@@ -613,7 +613,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Cluster
             {
-                var kernelName = m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? (k_UseDepthBuffer ? "TileLightListGen_DepthRT_SrcBigTile" : "TileLightListGen_NoDepthRT_SrcBigTile") : (k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
+                //var kernelName = m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? (k_UseDepthBuffer ? "TileLightListGen_DepthRT_SrcBigTile" : "TileLightListGen_NoDepthRT_SrcBigTile") : (k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
+
+                var kernelName = "TileLightListGen";
+                if (k_UseDepthBuffer)
+                {
+                    kernelName += "_DepthRT";
+
+                    // if MSAA is actually active, use the MSAA path
+                    if (m_FrameSettings.enableMSAA && 
+                        (HDRenderPipeline.kMsaaSamplesFixed > 1))
+                        kernelName += "_MSAA";
+                }
+                else
+                {
+                    kernelName += "_NoDepthRT";
+                }
+                if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
+                    kernelName += "_SrcBigTile";
                 s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
             }
 
