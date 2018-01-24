@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph
 
         private const string kErrorString = @"ERROR!";
 
-        public static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
+        public static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
         {
             var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
 
