@@ -46,7 +46,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
     min: 0
-  useForBaking: 1
   skyHDRI:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 75f8ba90acb52d14d9ead53b2a9e4190, type: 3}

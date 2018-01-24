@@ -61,17 +61,39 @@ real HenyeyGreensteinPhasePartConstant(real asymmetry)
     return INV_FOUR_PI * (1 - g * g);
 }
 
-real HenyeyGreensteinPhasePartVarying(real asymmetry, real LdotD)
+real HenyeyGreensteinPhasePartVarying(real asymmetry, real cosTheta)
 {
     real g = asymmetry;
 
-    return pow(abs(1 + g * g - 2 * g * LdotD), -1.5);
+    return pow(abs(1 + g * g - 2 * g * cosTheta), -1.5);
 }
 
-real HenyeyGreensteinPhaseFunction(real asymmetry, real LdotD)
+real HenyeyGreensteinPhaseFunction(real asymmetry, real cosTheta)
 {
     return HenyeyGreensteinPhasePartConstant(asymmetry) *
-           HenyeyGreensteinPhasePartVarying(asymmetry, LdotD);
+           HenyeyGreensteinPhasePartVarying(asymmetry, cosTheta);
+}
+
+real CornetteShanksPhasePartConstant(real asymmetry)
+{
+    real g = asymmetry;
+
+    return INV_FOUR_PI * 1.5 * (1 - g * g) / (2 + g * g);
+}
+
+real CornetteShanksPhasePartVarying(real asymmetry, real cosTheta)
+{
+    real g = asymmetry;
+
+    return (1 + cosTheta * cosTheta) * pow(abs(1 + g * g - 2 * g * cosTheta), -1.5);
+}
+
+// A better approximation of the Mie phase function.
+// Ref: Henyey–Greenstein and Mie phase functions in Monte Carlo radiative transfer computations
+real CornetteShanksPhaseFunction(real asymmetry, real cosTheta)
+{
+    return CornetteShanksPhasePartConstant(asymmetry) *
+           CornetteShanksPhasePartVarying(asymmetry, cosTheta);
 }
 
 // Samples the interval of homogeneous participating medium using the closed-form tracking approach

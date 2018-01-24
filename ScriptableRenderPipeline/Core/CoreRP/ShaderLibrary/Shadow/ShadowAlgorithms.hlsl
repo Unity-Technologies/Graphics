@@ -31,9 +31,15 @@ uint2 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real2 closes
 	return uint2( (posTC * sd.scaleOffset.xy + sd.scaleOffset.zw) * sd.textureSize.xy );
 }
 
-int EvalShadow_GetCubeFaceID( real3 dir )
+int EvalShadow_GetCubeFaceID( real3 sampleToLight )
 {
-	// TODO: Use faceID intrinsic on console
+	real3 lightToSample = -sampleToLight; // TODO: pass the correct (flipped) direction
+
+#ifdef INTRINSIC_CUBEMAP_FACE_ID
+	return (int)CubeMapFaceID(lightToSample);
+#else
+	// TODO: use CubeMapFaceID() defined in Common.hlsl for all pipelines on all platforms.
+	real3 dir  = sampleToLight;
 	real3 adir = abs(dir);
 
 	// +Z -Z
@@ -50,6 +56,7 @@ int EvalShadow_GetCubeFaceID( real3 dir )
 		faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
 	}
 	return faceIndex;
+#endif
 }
 
 

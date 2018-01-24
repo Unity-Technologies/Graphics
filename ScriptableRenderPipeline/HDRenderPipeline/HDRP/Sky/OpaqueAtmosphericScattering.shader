@@ -45,6 +45,15 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
                 UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
+				if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+				{
+					// When a pixel is at far plane, the world space coordinate reconstruction is not reliable.
+					// So in order to have a valid position (for example for height fog) we just consider that the sky is a sphere centered on camera with a radius of 5km (arbitrarily chosen value!)
+					// And recompute the position on the sphere with the current camera direction.
+					float3 viewDirection = -GetWorldSpaceNormalizeViewDir(posInput.positionWS) * 5000.0f;
+					posInput.positionWS = GetPrimaryCameraPosition() + viewDirection;
+				}
+
                 return EvaluateAtmosphericScattering(posInput);
             }
             ENDHLSL

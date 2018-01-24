@@ -57,6 +57,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
+
+            public static GUIContent supportDBufferText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
         }
 
         public enum DoubleSidedNormalMode
@@ -164,6 +166,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty tessellationBackFaceCullEpsilon = null;
         protected const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
 
+        // Decal
+        protected MaterialProperty supportDBuffer = null;
+        protected const string kSupportDBuffer = "_SupportDBuffer";
+
+
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             base.FindBaseMaterialProperties(props);
@@ -204,6 +211,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windDrag = FindProperty(kWindDrag, props);
             windShiverDrag = FindProperty(kWindShiverDrag, props);
             windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
+
+            // Decal
+            supportDBuffer = FindProperty(kSupportDBuffer, props);
         }
 
         void TessellationModePopup()
@@ -239,6 +249,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
+
+            m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
 
             m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
 
@@ -387,6 +399,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
+
+            // Use negation so we don't create keyword by default
+            CoreUtils.SetKeyword(material, "_DISABLE_DBUFFER", material.GetFloat(kSupportDBuffer) == 0.0);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

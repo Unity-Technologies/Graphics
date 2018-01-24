@@ -60,7 +60,8 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
         GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
         GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
         GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
-        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB); // TODO: This required to initialize all field from BSDFData...
+        GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
+        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write

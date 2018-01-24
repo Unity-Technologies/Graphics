@@ -151,13 +151,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             EditorGUILayout.PropertyField(profile.lerpWeight, s_Styles.profileLerpWeight);
                         }
 
+                        EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
                         EditorGUILayout.PropertyField(profile.worldScale, s_Styles.profileWorldScale);
 
                         EditorGUILayout.Space();
                         EditorGUILayout.LabelField(s_Styles.SubsurfaceScatteringLabel, EditorStyles.boldLabel);
 
                         profile.texturingMode.intValue = EditorGUILayout.Popup(s_Styles.texturingMode, profile.texturingMode.intValue, s_Styles.texturingModeOptions);
-                        EditorGUILayout.Slider(profile.ior, 1.0f, 2.0f, s_Styles.profileIor);
 
                         EditorGUILayout.Space();
                         EditorGUILayout.LabelField(s_Styles.TransmissionLabel, EditorStyles.boldLabel);
