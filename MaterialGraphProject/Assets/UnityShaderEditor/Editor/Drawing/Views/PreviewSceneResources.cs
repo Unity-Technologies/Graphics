@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class PreviewSceneResources : IDisposable
     {
         readonly Scene m_Scene;
-        static Mesh s_Quad;
         Camera m_Camera;
         public Light light0 { get; private set; }
         public Light light1 { get; private set; }
@@ -117,36 +116,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Mesh quadMesh = Resources.GetBuiltinResource(typeof(Mesh), "Quad.fbx") as Mesh;
                 s_Meshes[4] = quadMesh;
             }
-
-            if (s_Quad == null)
-            {
-                var vertices = new[]
-                {
-                    new Vector3(-1f, -1f, 0f),
-                    new Vector3(1f, 1f, 0f),
-                    new Vector3(1f, -1f, 0f),
-                    new Vector3(-1f, 1f, 0f)
-                };
-
-                var uvs = new[]
-                {
-                    new Vector2(0f, 0f),
-                    new Vector2(1f, 1f),
-                    new Vector2(1f, 0f),
-                    new Vector2(0f, 1f)
-                };
-
-                var indices = new[] { 0, 1, 2, 1, 0, 3 };
-
-                s_Quad = new Mesh
-                {
-                    vertices = vertices,
-                    uv = uvs,
-                    triangles = indices
-                };
-                s_Quad.RecalculateNormals();
-                s_Quad.RecalculateBounds();
-            }
         }
 
         public Mesh sphere
@@ -156,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Mesh quad
         {
-            get { return s_Quad; }
+            get { return s_Meshes[4]; }
         }
 
         public Material checkerboardMaterial
