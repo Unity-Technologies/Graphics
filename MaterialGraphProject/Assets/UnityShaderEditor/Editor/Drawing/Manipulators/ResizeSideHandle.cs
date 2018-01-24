@@ -28,6 +28,14 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         VisualElement m_ResizeTarget;
 
+        bool m_StayWithinParentBounds;
+
+        public bool stayWithinPanretBounds
+        {
+            get { return m_StayWithinParentBounds; }
+            set { m_StayWithinParentBounds = value; }
+        }
+
         public Action OnResizeFinished;
 
         public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)
@@ -158,6 +166,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             newLayout.x = Mathf.Min(newLayout.x + normalizedResizeDelta.x, previousFarX - minSize.x);
             newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - minSize.y);
+
+            if (m_StayWithinParentBounds)
+            {
+                if (newLayout.x < 0f || (newLayout.x + newLayout.width) > m_ResizeTarget.parent.layout.width)
+                {
+                    newLayout.width = m_ResizeTarget.layout.width;
+                }
+
+                if (newLayout.y < 0f || (newLayout.y + newLayout.height) > m_ResizeTarget.parent.layout.height)
+                {
+                    newLayout.height = m_ResizeTarget.layout.height;
+                }
+            }
 
             m_ResizeTarget.layout = newLayout;
         }
