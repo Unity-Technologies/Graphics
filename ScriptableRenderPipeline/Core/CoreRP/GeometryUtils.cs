@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.Experimental.Rendering
+﻿using System;
+
+namespace UnityEngine.Experimental.Rendering
 {
     public static class GeometryUtils
     {
@@ -36,8 +38,8 @@
             var inversion = sourceProjection.inverse;
 
             var cps = new Vector4(
-                (clipPlane.x > 0 ? 1 : 0) - (clipPlane.x < 0 ? 1 : 0), 
-                (clipPlane.y > 0 ? 1 : 0) - (clipPlane.y < 0 ? 1 : 0), 
+                Mathf.Sign(clipPlane.x), 
+                Mathf.Sign(clipPlane.y), 
                 1.0f, 
                 1.0f);
             var q = inversion * cps;
@@ -53,7 +55,7 @@
 
         public static Matrix4x4 CalculateReflectionMatrix(Vector3 position, Vector3 normal)
         {
-            return CalculateReflectionMatrix(Plane(position, normal));
+            return CalculateReflectionMatrix(Plane(position, normal.normalized));
         }
 
         public static Matrix4x4 CalculateReflectionMatrix(Vector4 plane)

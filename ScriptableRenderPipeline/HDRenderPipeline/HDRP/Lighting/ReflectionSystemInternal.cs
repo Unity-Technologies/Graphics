@@ -5,9 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 {
     class ReflectionSystemInternal
     {
-        // -FLT_MAX in hlsl
-        static readonly Color k_DiscardedColor = new Color(1000, 1000, 1000, 1000);
-
         static Camera s_RenderCamera = null;
         static HDAdditionalCameraData s_RenderCameraData;
 
@@ -263,8 +260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             camera.fieldOfView = fov;
             camera.aspect = aspect;
             camera.clearFlags = clearFlags;
-            // TODO: Find a cleaner way to discard pixel out of frustrum
-            camera.backgroundColor = k_DiscardedColor;
+            camera.backgroundColor = camera.backgroundColor;
             camera.projectionMatrix = projection;
             camera.worldToCameraMatrix = worldToCamera;
 
