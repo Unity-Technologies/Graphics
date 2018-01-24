@@ -1,8 +1,15 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DeferredDirectionalShadow				DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
 #pragma kernel DeferredDirectionalShadow_Contact		DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact	ENABLE_CONTACT_SHADOWS
+#pragma kernel DeferredDirectionalShadow_Normals		DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Normals  ENABLE_NORMALS
 
-#define SHADOW_USE_ONLY_VIEW_BASED_BIASING      1   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
+#ifdef ENABLE_NORMALS
+#   define LIGHTLOOP_TILE_PASS 1
+#   define USE_FPTL_LIGHTLIST  1 // deferred opaque always use FPTL
+#   define UNITY_MATERIAL_LIT
+#else
+#   define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
+#endif
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../ShaderVariables.hlsl"
@@ -113,8 +120,17 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 
 	UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
 
+#ifdef ENABLE_NORMALS
+	BSDFData bsdfData;
+	BakeLightingData unused;
+	DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, unused.bakeDiffuseLighting);
+	float3 nrm = bsdfData.normalWS;
+#else
+	float3 nrm = 0.0.xxx;
+#endif
+
 	ShadowContext shadowContext = InitShadowContext();
-	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, float3(0.0, 0.0, 0.0), (uint)_DirectionalShadowIndex, _LightDirection);
+	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, nrm, (uint)_DirectionalShadowIndex, _LightDirection);
 
 #ifdef ENABLE_CONTACT_SHADOWS
 	float contactShadow = 1.0f;
