@@ -386,7 +386,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
 
-            if (m_AdditionalLightData.showAdditionalSettings.boolValue)
+            // There is currently no additional settings for shadow on directional light
+            if (m_AdditionalLightData.showAdditionalSettings.boolValue && settings.lightType.enumValueIndex != (int)LightType.Directional)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);

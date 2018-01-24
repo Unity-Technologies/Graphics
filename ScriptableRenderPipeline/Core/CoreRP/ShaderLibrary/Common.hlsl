@@ -237,47 +237,25 @@ TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
-// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
-/*
-float CubemapFaceID(float3 dir)
+float CubeMapFaceID(float3 dir)
 {
     float faceID;
+
     if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
     {
-        faceID = (dir.z < 0.0) ? 5.0 : 4.0;
+        faceID = (dir.z < 0.0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
     }
     else if (abs(dir.y) >= abs(dir.x))
     {
-        faceID = (dir.y < 0.0) ? 3.0 : 2.0;
+        faceID = (dir.y < 0.0) ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
     }
     else
     {
-        faceID = (dir.x < 0.0) ? 1.0 : 0.0;
+        faceID = (dir.x < 0.0) ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
     }
+
     return faceID;
 }
-*/
-
-void GetCubeFaceID(float3 dir, out int faceIndex)
-{
-    // TODO: Use faceID intrinsic on console
-    float3 adir = abs(dir);
-
-    // +Z -Z
-    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
-
-    // +X -X
-    if (adir.x > adir.y && adir.x > adir.z)
-    {
-        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
-    }
-    // +Y -Y
-    else if (adir.y > adir.x && adir.y > adir.z)
-    {
-        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
-    }
-}
-
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
 // ----------------------------------------------------------------------------
@@ -367,23 +345,23 @@ real FastATan(real x)
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
-// Computes (FastSign(s) * x) using 2x VALU.
+// Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
-float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
+float CopySign(float x, float s, bool ignoreNegZero = true)
 {
 #if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
-        return (s >= 0) ? x : -x;
+        return (s >= 0) ? abs(x) : -abs(x);
     }
     else
     {
         uint negZero = 0x80000000u;
         uint signBit = negZero & asuint(s);
-        return asfloat(signBit ^ asuint(x));
+        return asfloat(BitFieldInsert(negZero, signBit, asuint(x)));
     }
 #else
-    return (s >= 0) ? x : -x;
+    return (s >= 0) ? abs(x) : -abs(x);
 #endif
 }
 
@@ -396,7 +374,7 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 // Note that the sign() function in HLSL implements signum, which returns 0 for 0.
 float FastSign(float s, bool ignoreNegZero = true)
 {
-    return FastMulBySignOf(s, 1.0, ignoreNegZero);
+    return CopySign(1.0, s, ignoreNegZero);
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.

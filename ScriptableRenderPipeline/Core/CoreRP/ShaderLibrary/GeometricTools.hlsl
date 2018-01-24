@@ -8,7 +8,7 @@
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
     float d = b * b - 4 * a * c;
-    float q = -0.5 * (b + FastMulBySignOf(b, sqrt(d)));
+    float q = -0.5 * (b + CopySign(sqrt(d), b));
     roots   = float2(q / a, c / q);
 
     return (d >= 0);
