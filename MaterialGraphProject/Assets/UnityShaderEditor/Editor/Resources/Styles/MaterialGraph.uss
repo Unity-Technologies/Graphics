@@ -355,8 +355,8 @@ GraphInspectorView {
     position-type: absolute;
     position-right: 0;
     position-top: 0;
-    width: 600;
-    height: 800;
+    width: 400;
+    min-width: 300;
 }
 
 GraphInspectorView * {
@@ -438,12 +438,65 @@ GraphInspectorView > #top > #properties > #items {
     padding-bottom: 4;
 }
 
-GraphInspectorView > .resize {
+MasterPreviewView {
+    flex-direction: column;
+    position-type: absolute;
+    position-right: 0;
+    position-bottom: 0;
+    background-color: rgb(79, 79, 79);
+    justify-content: flex-start;
+    min-width: 200;
+    min-height: 200;
+}
+
+MasterPreviewView > #top {
+    background-color: rgb(64, 64, 64);
+}
+
+MasterPreviewView > #top > #title {
+    font-style: bold;
+    font-size: 11;
+}
+
+MasterPreviewView > #top {
+    padding-top: 8;
+    padding-bottom: 8;
+    padding-left: 8;
+    padding-right: 8;
+}
+
+MasterPreviewView > #middle {
+    flex-grow: 1;
+    flex-direction: row;
+    margin-bottom: 40;
+}
+
+MasterPreviewView > #middle > #preview {
+    flex-grow: 1;
+}
+
+MasterPreviewView > #bottom {
+    background-color: rgb(79, 79, 79);
+    position-type: absolute;
+    position-bottom: 0;
+    position-left: 0;
+    position-right: 0;
+    padding-left: 10;
+    padding-right: 10;
+    padding-top: 8;
+    padding-bottom: 12;
+}
+
+MasterPreviewView > #bottom > #picker > ObjectFieldDisplay > Label {
+    font-size: 11;
+}
+
+#resizeBorderFrame > .resize {
     background-color: rgba(0, 0, 0, 0);
     position-type: absolute;
 }
 
-GraphInspectorView > .resize.vertical {
+#resizeBorderFrame > .resize.vertical {
     cursor: resize-vertical;
     height: 10;
     position-left: 10;
@@ -454,7 +507,7 @@ GraphInspectorView > .resize.vertical {
     margin-bottom: 0;
 }
 
-GraphInspectorView > .resize.horizontal {
+#resizeBorderFrame > .resize.horizontal {
     cursor: resize-horizontal;
     width: 10;
     position-top: 10;
@@ -465,49 +518,57 @@ GraphInspectorView > .resize.horizontal {
     margin-right: 0;
 }
 
-GraphInspectorView > .resize.diagonal {
+#resizeBorderFrame > .resize.diagonal {
     width: 10;
     height: 10;
 }
 
-GraphInspectorView > .resize.diagonal.top-left {
+#resizeBorderFrame > .resize.diagonal.top-left {
     cursor: resize-up-left;
     position-top: 0;
     position-left: 0;
 }
 
-GraphInspectorView > .resize.diagonal.top-right {
+#resizeBorderFrame > .resize.diagonal.top-right {
     cursor: resize-up-right;
     position-top: 0;
     position-right: 0;
 }
 
-GraphInspectorView > .resize.diagonal.bottom-left {
+#resizeBorderFrame > .resize.diagonal.bottom-left {
     cursor: resize-up-right;
     position-bottom: 0;
     position-left: 0;
 }
 
-GraphInspectorView > .resize.diagonal.bottom-right {
+#resizeBorderFrame > .resize.diagonal.bottom-right {
     cursor: resize-up-left;
     position-bottom: 0;
     position-right: 0;
 }
 
-GraphInspectorView > .resize.vertical.top {
+#resizeBorderFrame > .resize.vertical.top {
     position-top: 0;
 }
 
-GraphInspectorView > .resize.vertical.bottom {
+#resizeBorderFrame > .resize.vertical.bottom {
     position-bottom: 0;
 }
 
-GraphInspectorView > .resize.horzontal.left {
+#resizeBorderFrame > .resize.horzontal.left {
     position-left: 0;
 }
 
-GraphInspectorView > .resize.horizontal.right {
+#resizeBorderFrame > .resize.horizontal.right {
     position-right: 0;
+}
+
+.reszieBorderFrame {
+    position-type: absolute;
+    position-top: 0;
+    position-right: 0;
+    position-bottom: 0;
+    position-left: 0;
 }
 
 ShaderPropertyView {
