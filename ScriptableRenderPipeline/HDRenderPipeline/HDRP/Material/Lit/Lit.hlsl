@@ -2,7 +2,7 @@
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
-#include "../../Lighting/VolumeProjection.hlsl"
+#include "../../Lighting/Reflection/VolumeProjection.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
