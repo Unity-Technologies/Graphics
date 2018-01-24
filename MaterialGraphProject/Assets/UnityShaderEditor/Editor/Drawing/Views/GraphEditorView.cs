@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.Add(m_GraphInspectorView);
 
-                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterNodePreview" };
+                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
 
                 WindowDraggable masterPreviewViewDraggable = new WindowDraggable();
                 masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
