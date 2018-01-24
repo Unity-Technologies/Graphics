@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         [NonSerialized]
         public bool forceRedrawPreviews = false;
 
-        ColorSpace m_ColorSpace = PlayerSettings.colorSpace;
+        ColorSpace m_ColorSpace;
 
         GraphEditorView m_GraphEditorView;
 
@@ -81,6 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (PlayerSettings.colorSpace != m_ColorSpace)
             {
                 graphEditorView = null;
+                m_ColorSpace = PlayerSettings.colorSpace;
             }
 
             try
