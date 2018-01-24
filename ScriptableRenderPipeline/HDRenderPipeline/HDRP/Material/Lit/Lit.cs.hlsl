@@ -89,7 +89,7 @@ struct SurfaceData
     float metallic;
     float coatMask;
     float3 specularColor;
-    int diffusionProfile;
+    uint diffusionProfile;
     float subsurfaceMask;
     float thickness;
     float3 tangentWS;
