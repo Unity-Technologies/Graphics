@@ -633,6 +633,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            // TODO: Render only visible probes
+            var isReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
+            if (!isReflection)
+                ReflectionSystem.RenderAllRealtimeProbes(ReflectionProbeType.PlanarReflection);
+
             // We first update the state of asset frame settings as they can be use by various camera
             // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
             bool assetFrameSettingsIsDirty = m_Asset.frameSettingsIsDirty;
@@ -642,6 +647,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (camera == null)
                     continue;
+
+                if (camera.cameraType != CameraType.Reflection)
+                    // TODO: Render only visible probes
+                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
@@ -753,9 +762,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_ReflectionProbeCullResults.Cull();
-
-                    if (camera.cameraType != CameraType.Reflection)
-                        ReflectionSystem.RenderVisiblePlanarProbes(m_ReflectionProbeCullResults, camera);
 
                     m_DbufferManager.vsibleDecalCount = 0;
                     if (m_FrameSettings.enableDBuffer)
