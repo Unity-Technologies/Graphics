@@ -21,11 +21,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Instance.UnregisterProbe(planarProbe);
         }
 
-        public static void RequestRealtimeRender(PlanarReflectionProbe probe)
-        {
-            s_Instance.RequestRealtimeRender(probe);
-        }
-
         public static void RenderVisiblePlanarProbes(ReflectionProbeCullResults cullResults, Camera viewer = null)
         {
             s_Instance.RenderVisiblePlanarProbes(cullResults, viewer);
