@@ -202,6 +202,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UnityEngine.Object.DestroyImmediate(checkerboardMaterial, true);
                 m_CheckerboardMaterial = null;
             }
+            if (blitNoAlphaMaterial != null)
+            {
+                UnityEngine.Object.DestroyImmediate(blitNoAlphaMaterial, true);
+                m_BlitNoAlphaMaterial = null;
+            }
 
             EditorSceneManager.ClosePreviewScene(m_Scene);
         }

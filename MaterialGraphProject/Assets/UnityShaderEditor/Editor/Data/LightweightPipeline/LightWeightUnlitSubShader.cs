@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = LightWeightPBRSubShader.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
+            var materialOptions = MasterNode.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
