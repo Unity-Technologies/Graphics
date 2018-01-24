@@ -451,10 +451,19 @@ namespace UnityEditor.ShaderGraph
                 var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
                 var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
 
+                MaterialSlot outputSlot = null;
+                MaterialSlot inputSlot = null;
+                if (outputNode != null && inputNode != null)
+                {
+                    outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
+                    inputSlot = inputNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
+                }
+                
                 if (outputNode == null
                     || inputNode == null
-                    || outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId) == null
-                    || inputNode.FindInputSlot<ISlot>(edge.inputSlot.slotId) == null)
+                    || outputSlot == null
+                    || inputSlot == null
+                    || !outputSlot.IsCompatibleWith(inputSlot))
                 {
                     //orphaned edge
                     RemoveEdgeNoValidate(edge);
