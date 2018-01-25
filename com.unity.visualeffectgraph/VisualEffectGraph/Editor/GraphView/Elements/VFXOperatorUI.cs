@@ -11,106 +11,10 @@ using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 
 using VFXEditableOperator = UnityEditor.VFX.VFXOperatorMultiplyNew;
-using ListView = UnityEditor.VFX.UI.MultiOperatorEdit;
 
 namespace UnityEditor.VFX.UI
 {
-    class LineDragger : Manipulator
-    {
-        ListView m_Root;
-        VisualElement m_Line;
-
-        public LineDragger(ListView root, VisualElement item)
-        {
-            m_Root = root;
-            m_Line = item;
-        }
-
-        protected override void RegisterCallbacksOnTarget()
-        {
-            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
-            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
-        }
-
-        protected override void UnregisterCallbacksFromTarget()
-        {
-            target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
-            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
-        }
-
-        bool m_Dragging;
-        Vector2 startPosition;
-
-
-        object m_Ctx;
-
-        void Release()
-        {
-            target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
-            target.ReleaseMouseCapture();
-            m_Dragging = false;
-            m_Ctx = null;
-        }
-
-        protected void OnMouseDown(MouseDownEvent evt)
-        {
-            if (evt.button == 0)
-            {
-                evt.StopPropagation();
-                target.TakeMouseCapture();
-                m_Dragging = true;
-                startPosition = m_Root.WorldToLocal(evt.mousePosition);
-                target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
-                m_Ctx = m_Root.StartDragging(m_Line);
-            }
-        }
-
-        protected void OnMouseUp(MouseUpEvent evt)
-        {
-            Vector2 listRelativeMouse = m_Root.WorldToLocal(evt.mousePosition);
-            m_Root.EndDragging(m_Ctx, m_Line, listRelativeMouse.y - startPosition.y, evt.mousePosition);
-            evt.StopPropagation();
-            Release();
-        }
-
-        protected void OnMouseMove(MouseMoveEvent evt)
-        {
-            evt.StopPropagation();
-
-            Vector2 listRelativeMouse = m_Root.WorldToLocal(evt.mousePosition);
-
-            m_Root.ItemDragging(m_Ctx, m_Line, listRelativeMouse.y - startPosition.y, evt.mousePosition);
-        }
-    }
-
-    class LineSelecter : Manipulator
-    {
-        ListView m_Root;
-        VisualElement m_Line;
-
-        public LineSelecter(ListView root, VisualElement item)
-        {
-            m_Root = root;
-            m_Line = item;
-        }
-
-        protected override void RegisterCallbacksOnTarget()
-        {
-            target.RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
-        }
-
-        protected override void UnregisterCallbacksFromTarget()
-        {
-            target.UnregisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
-        }
-
-        void OnMouseDown(MouseDownEvent e)
-        {
-            m_Root.Select(m_Line);
-        }
-    }
-
-    class MultiOperatorEdit : VisualElement, IControlledElement<VFXOperatorController>
+    class MultiOperatorEdit : VFXReorderableList, IControlledElement<VFXOperatorController>
     {
         VFXOperatorController m_Controller;
         Controller IControlledElement.controller
@@ -137,158 +41,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        int m_SelectedLine = -1;
-
-
-        class DraggingContext
-        {
-            public Rect[] originalPositions;
-            public VisualElement[] items;
-            public Rect myOriginalPosition;
-            public int draggedIndex;
-        }
-
-        public void Select(int index)
-        {
-            if (m_SelectedLine != -1 && m_SelectedLine < m_OperandContainer.childCount)
-            {
-                m_OperandContainer.ElementAt(m_SelectedLine).pseudoStates &= ~PseudoStates.Selected;
-            }
-
-            m_SelectedLine = index;
-
-            if (m_SelectedLine != -1 && m_SelectedLine < m_OperandContainer.childCount)
-            {
-                m_OperandContainer.ElementAt(m_SelectedLine).pseudoStates |= PseudoStates.Selected;
-            }
-        }
-
-        public void Select(VisualElement item)
-        {
-            Select(m_OperandContainer.IndexOf(item));
-        }
-
-        public object StartDragging(VisualElement item)
-        {
-            //Fix all item so that they can be animated and we can control their positions
-            DraggingContext context = new DraggingContext();
-
-
-            context.items = m_OperandContainer.Children().ToArray();
-            context.originalPositions = context.items.Select(t => t.layout).ToArray();
-            context.draggedIndex = m_OperandContainer.IndexOf(item);
-            context.myOriginalPosition = m_OperandContainer.layout;
-
-            Select(context.draggedIndex);
-
-            for (int i = 0; i < context.items.Length; ++i)
-            {
-                VisualElement child = context.items[i];
-                Rect rect = context.originalPositions[i];
-                child.style.positionType = PositionType.Absolute;
-                child.style.positionLeft = rect.x;
-                child.style.positionTop = rect.y;
-                child.style.width = rect.width;
-                child.style.height = rect.height;
-            }
-
-            item.BringToFront();
-
-            m_OperandContainer.style.width = context.myOriginalPosition.width;
-            m_OperandContainer.style.height = context.myOriginalPosition.height;
-
-            return context;
-        }
-
-        public void EndDragging(object ctx, VisualElement item, float offset, Vector2 mouseWorldPosition)
-        {
-            DraggingContext context = (DraggingContext)ctx;
-
-            foreach (var child in m_OperandContainer.Children())
-            {
-                child.ResetPositionProperties();
-            }
-            int hoveredIndex = GetHoveredIndex(context, mouseWorldPosition);
-
-            m_OperandContainer.Insert(hoveredIndex != -1 ? hoveredIndex : context.draggedIndex, item);
-            m_OperandContainer.ResetPositionProperties();
-
-            if (hoveredIndex != -1)
-            {
-                ElementMoved(context.draggedIndex, hoveredIndex);
-            }
-        }
-
-        public void ItemDragging(object ctx, VisualElement item, float offset, Vector2 mouseWorldPosition)
-        {
-            DraggingContext context = (DraggingContext)ctx;
-
-            item.style.positionTop = context.originalPositions[context.draggedIndex].y + offset;
-
-            int hoveredIndex = GetHoveredIndex(context, mouseWorldPosition);
-
-            if (hoveredIndex != -1)
-            {
-                float draggedHeight = context.originalPositions[context.draggedIndex].height;
-
-                if (hoveredIndex < context.draggedIndex)
-                {
-                    for (int i = 0; i < hoveredIndex; ++i)
-                    {
-                        context.items[i].style.positionTop = context.originalPositions[i].y;
-                    }
-                    for (int i = hoveredIndex; i < context.draggedIndex; ++i)
-                    {
-                        context.items[i].style.positionTop = context.originalPositions[i].y + draggedHeight;
-                    }
-                    for (int i = context.draggedIndex + 1; i < context.items.Length; ++i)
-                    {
-                        context.items[i].style.positionTop = context.originalPositions[i].y;
-                    }
-                }
-                else if (hoveredIndex > context.draggedIndex)
-                {
-                    for (int i = 0; i < context.draggedIndex; ++i)
-                    {
-                        context.items[i].style.positionTop = context.originalPositions[i].y;
-                    }
-                    for (int i = hoveredIndex; i > context.draggedIndex; --i)
-                    {
-                        context.items[i].style.positionTop = context.originalPositions[i].y - draggedHeight;
-                    }
-                    for (int i = hoveredIndex + 1; i < context.items.Length; ++i)
-                    {
-                        context.items[i].style.positionTop = context.originalPositions[i].y;
-                    }
-                }
-            }
-            else
-            {
-                for (int i = 0; i < context.items.Length; ++i)
-                {
-                    if (i != context.draggedIndex)
-                        context.items[i].style.positionTop = context.originalPositions[i].y;
-                }
-            }
-        }
-
-        int GetHoveredIndex(DraggingContext context, Vector2 mouseWorldPosition)
-        {
-            Vector2 mousePosition = m_OperandContainer.WorldToLocal(mouseWorldPosition);
-
-            int hoveredIndex = -1;
-
-            for (int i = 0; i < context.items.Length; ++i)
-            {
-                if (i != context.draggedIndex && context.originalPositions[i].Contains(mousePosition))
-                {
-                    hoveredIndex = i;
-                    break;
-                }
-            }
-            return hoveredIndex;
-        }
-
         VFXEditableOperator model
         {
             get
@@ -300,30 +52,19 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VisualElement m_OperandContainer;
 
-
-        void ElementMoved(int movedIndex, int targetIndex)
+        protected override void ElementMoved(int movedIndex, int targetIndex)
         {
-            if (m_SelectedLine == movedIndex)
-            {
-                m_SelectedLine = targetIndex;
-            }
+            base.ElementMoved(movedIndex, targetIndex);
             model.OperandMoved(movedIndex, targetIndex);
         }
 
         public MultiOperatorEdit()
         {
             RegisterCallback<ControllerChangedEvent>(OnChange);
-
-            m_OperandContainer = new VisualElement() {name = "OperandContainer"};
-
-            Add(m_OperandContainer);
-
-            Add(new Button(OnAdd) {text = "Add"});
         }
 
-        void OnAdd()
+        public override void OnAdd()
         {
             VFXEditableOperator op = model;
 
@@ -378,20 +119,20 @@ namespace UnityEditor.VFX.UI
 
             bool sizeChanged = false;
 
-            while (m_OperandContainer.childCount < count)
+            while (itemCount < count)
             {
-                m_OperandContainer.Add(new OperandInfo(this, op, m_OperandContainer.childCount));
+                AddItem(new OperandInfo(this, op, itemCount));
                 sizeChanged = true;
             }
-            while (m_OperandContainer.childCount > count)
+            while (itemCount > count)
             {
-                m_OperandContainer.ElementAt(m_OperandContainer.childCount - 1).RemoveFromHierarchy();
+                RemoveItemAt(itemCount - 1);
                 sizeChanged = true;
             }
 
             for (int i = 0; i < count; ++i)
             {
-                OperandInfo operand = (m_OperandContainer.ElementAt(i) as OperandInfo);
+                OperandInfo operand = ItemAt(i) as OperandInfo;
                 operand.index = i; // The operand might have been changed by the drag
                 operand.Set(op);
             }
@@ -405,10 +146,8 @@ namespace UnityEditor.VFX.UI
 
         class OperandInfo : VisualElement
         {
-            public VFXStringField field;
-            public Button type;
-            public VisualElement draggingHandle;
-
+            VFXStringField field;
+            Button type;
             MultiOperatorEdit m_Owner;
 
             public int index;
@@ -416,8 +155,6 @@ namespace UnityEditor.VFX.UI
             public OperandInfo(MultiOperatorEdit owner, VFXEditableOperator op, int index)
             {
                 m_Owner = owner;
-                draggingHandle = new VisualElement() { name = "DraggingHandle"};
-                draggingHandle.Add(new VisualElement() { name = "icon" });
                 field = new VFXStringField("name");
                 field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
                 type = new Button();
@@ -426,12 +163,8 @@ namespace UnityEditor.VFX.UI
                 type.AddManipulator(new DownClickable(() => owner.OnTypeMenu(type, index)));
                 Set(op);
 
-                Add(draggingHandle);
-                draggingHandle.AddManipulator(new LineDragger(m_Owner, this));
                 Add(field);
                 Add(type);
-
-                this.AddManipulator(new LineSelecter(owner, this));
             }
 
             public void Set(VFXEditableOperator op)
