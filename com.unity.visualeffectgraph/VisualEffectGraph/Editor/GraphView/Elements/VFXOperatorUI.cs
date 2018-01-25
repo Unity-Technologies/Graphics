@@ -101,10 +101,13 @@ namespace UnityEditor.VFX.UI
 
         void OnChangeLabel(string value, int index)
         {
-            VFXEditableOperator op = model;
+            if (!m_SelfChanging)
+            {
+                VFXEditableOperator op = model;
 
-            if (value != op.GetOperandName(index)) // test mandatory because TextField might send ChangeEvent anytime
-                op.SetOperandName(index, value);
+                if (value != op.GetOperandName(index)) // test mandatory because TextField might send ChangeEvent anytime
+                    op.SetOperandName(index, value);
+            }
         }
 
         void OnChange(ControllerChangedEvent e)
@@ -115,8 +118,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool m_SelfChanging;
+
         void SelfChange()
         {
+            m_SelfChanging = true;
             VFXEditableOperator op = model;
             int count = op.operandCount;
 
@@ -145,6 +151,7 @@ namespace UnityEditor.VFX.UI
             {
                 opUI.ForceRefreshLayout();
             }
+            m_SelfChanging = false;
         }
 
         class OperandInfo : VisualElement
