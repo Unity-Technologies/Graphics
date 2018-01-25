@@ -17,6 +17,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #pragma fragment Frag
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
 
@@ -108,12 +109,11 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                     if (any(isnan(color)) || any(isinf(color)))
                     {
-                        color = float4(1.0, 0.0, 1.0, 1.0);
+                        color = float4(1.0, 0.0, 0.0, 1.0);
                     }
                     else
                     {
-                        // Dim the color buffer so we can see NaNs & Infs better
-                        color.rgb *= 0.25;
+                        color.rgb = Luminance(color.rgb).xxx;
                     }
 
                     return color;
