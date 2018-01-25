@@ -1795,6 +1795,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
             coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
         }
+        weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
     else if (projectionShapeType == ENVSHAPETYPE_BOX)
     {
@@ -1812,13 +1813,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
             coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
         }
+        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
 
     // 2. Process the influence
-    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
-        weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
-    else if (influenceShapeType == ENVSHAPETYPE_BOX)
-        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
+    //if (influenceShapeType == ENVSHAPETYPE_SPHERE)
+    //    weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
+    //else if (influenceShapeType == ENVSHAPETYPE_BOX)
+    //    weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.

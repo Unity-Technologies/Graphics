@@ -127,26 +127,26 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        if (cacheType == ENVCACHETYPE_TEXTURE2D)
-        {
-            //_Env2DCaptureVP is in capture space
-            float4 ndc = ComputeClipSpaceCoordinates(texCoord, _Env2DCaptureVP[index]);
-            ndc *= rcp(ndc.w);
-            ndc.xy = ndc.xy * 0.5 + 0.5;
-
-            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
-            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
-            
-#ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
-                return ApplyDebugProjectionVolume(color, texCoord, _DebugEnvironmentProxyDepthScale);
-#endif
-            /*return float4(
-                (ndc.xyz > 0.5) * 0.5 + color.rgb * 0.5,
-                color.a);*/
-            return color;
-        }
-        else if (cacheType == ENVCACHETYPE_CUBEMAP)
+//        if (cacheType == ENVCACHETYPE_TEXTURE2D)
+//        {
+//            //_Env2DCaptureVP is in capture space
+//            float4 ndc = ComputeClipSpaceCoordinates(texCoord, _Env2DCaptureVP[index]);
+//            ndc *= rcp(ndc.w);
+//            ndc.xy = ndc.xy * 0.5 + 0.5;
+//
+//            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
+//            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
+//            
+//#ifdef DEBUG_DISPLAY
+//            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
+//                return ApplyDebugProjectionVolume(color, texCoord, _DebugEnvironmentProxyDepthScale);
+//#endif
+//            /*return float4(
+//                (ndc.xyz > 0.5) * 0.5 + color.rgb * 0.5,
+//                color.a);*/
+//            return color;
+//        }
+        //else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
             float4 color = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
             color.a = 1;
