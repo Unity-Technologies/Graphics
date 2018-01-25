@@ -301,9 +301,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugFullScreenTempRT;
         bool m_FullScreenDebugPushed;
 
-        // temp hack
-        public const int kMsaaSamplesFixed = 4;
-
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             SetRenderingFeatures();
