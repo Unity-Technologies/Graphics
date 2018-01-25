@@ -405,6 +405,10 @@ namespace UnityEditor.VFX.UI
             {
                 slot.UnlinkAll(true, false);
             }
+            foreach (var slot in container.outputSlots)
+            {
+                slot.UnlinkAll(true, false);
+            }
         }
 
         static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData, ScriptableObject[] allSerializedObjects)
