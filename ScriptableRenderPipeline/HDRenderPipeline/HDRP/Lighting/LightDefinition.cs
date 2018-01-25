@@ -113,51 +113,112 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct EnvLightData
     {
-        public Vector3 capturePositionWS;
+        // Packing order depends on chronological access to avoid cache misses
+        
+        // Proxy properties
+        public float capturePositionWSX;
+        public float capturePositionWSY;
+        public float capturePositionWSZ;
         public EnvShapeType influenceShapeType;
-
-        public Vector3 influencePositionWS;
-        public int envIndex;
-
-        public Vector3 influenceForward;
-        public float proxyForwardX;
-
-        public Vector3 influenceUp;
-        public float proxyForwardY;
-
-        public Vector3 influenceRight;
-        public float proxyForwardZ;
-
-        public Vector3 influenceExtents;   // extents of the env light
-        public float dimmer;
-
-        public Vector3 blendDistancePositive; //+X,+Y,+Z
-        public float proxyUpX;
-        public Vector3 blendDistanceNegative; //-X,-Y,-Z
-        public float proxyUpY;
-
-        public Vector3 blendNormalDistancePositive; //+X,+Y,+Z
-        public float proxyUpZ;
-        public Vector3 blendNormalDistanceNegative; //-X,-Y,-Z
-        public float proxyRightX;
-
-        public Vector3 boxSideFadePositive; //+X,+Y,+Z
-        public float proxyRightY;
-        public Vector3 boxSideFadeNegative; //-X,-Y,-Z
-        public float proxyRightZ;
-
-        public Vector3 sampleDirectionDiscardWS;
-        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
-        public float minProjectionDistance;
-
-        public Vector3 proxyPositionWS;
-        public EnvShapeType proxyShapeType;
 
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius
-        public Vector3 proxyExtents;
-        public int unused14;
+        public float proxyExtentsX;
+        public float proxyExtentsY;
+        public float proxyExtentsZ;
+        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
+        public float minProjectionDistance;
 
+        public float proxyPositionWSX;
+        public float proxyPositionWSY;
+        public float proxyPositionWSZ;
+        public float proxyForwardX;
+        public float proxyForwardY;
+        public float proxyForwardZ;
+        public float proxyUpX;
+        public float proxyUpY;
+        public float proxyUpZ;
+        public float proxyRightX;
+        public float proxyRightY;
+        public float proxyRightZ;
+
+        // Influence properties
+        public float influencePositionWSX;
+        public float influencePositionWSY;
+        public float influencePositionWSZ;
+        public float influenceForwardX;
+        public float influenceForwardY;
+        public float influenceForwardZ;
+        public float influenceUpX;
+        public float influenceUpY;
+        public float influenceUpZ;
+        public float influenceRightX;
+        public float influenceRightY;
+        public float influenceRightZ;
+
+        public float influenceExtentsX;
+        public float influenceExtentsY;
+        public float influenceExtentsZ;
+        public float unused00;
+
+        public float blendDistancePositiveX;
+        public float blendDistancePositiveY;
+        public float blendDistancePositiveZ;
+        public float blendDistanceNegativeX;
+        public float blendDistanceNegativeY;
+        public float blendDistanceNegativeZ;
+        public float blendNormalDistancePositiveX;
+        public float blendNormalDistancePositiveY;
+        public float blendNormalDistancePositiveZ;
+        public float blendNormalDistanceNegativeX;
+        public float blendNormalDistanceNegativeY;
+        public float blendNormalDistanceNegativeZ;
+
+        public float boxSideFadePositiveX;
+        public float boxSideFadePositiveY;
+        public float boxSideFadePositiveZ;
+        public float boxSideFadeNegativeX;
+        public float boxSideFadeNegativeY;
+        public float boxSideFadeNegativeZ;
+        public float dimmer;
+        public float unused01;
+
+        public float sampleDirectionDiscardWSX;
+        public float sampleDirectionDiscardWSY;
+        public float sampleDirectionDiscardWSZ;
+        // Sampling properties
+        public int envIndex;
+
+        public Vector3 capturePositionWS
+        {
+            get { return new Vector3(capturePositionWSX, capturePositionWSY, capturePositionWSZ); }
+            set
+            {
+                capturePositionWSX = value.x;
+                capturePositionWSY = value.y;
+                capturePositionWSZ = value.z;
+            }
+        }
+        public Vector3 proxyExtents
+        {
+            get { return new Vector3(proxyExtentsX, proxyExtentsY, proxyExtentsZ); }
+            set
+            {
+                proxyExtentsX = value.x;
+                proxyExtentsY = value.y;
+                proxyExtentsZ = value.z;
+            }
+        }
+        public Vector3 proxyPositionWS
+        {
+            get { return new Vector3(proxyPositionWSX, proxyPositionWSY, proxyPositionWSZ); }
+            set
+            {
+                proxyPositionWSX = value.x;
+                proxyPositionWSY = value.y;
+                proxyPositionWSZ = value.z;
+            }
+        }
         public Vector3 proxyForward
         {
             get { return new Vector3(proxyForwardX, proxyForwardY, proxyForwardZ); }
@@ -168,7 +229,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 proxyForwardZ = value.z;
             }
         }
-
         public Vector3 proxyUp
         {
             get { return new Vector3(proxyUpX, proxyUpY, proxyUpZ); }
@@ -179,7 +239,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 proxyUpZ = value.z;
             }
         }
-
         public Vector3 proxyRight
         {
             get { return new Vector3(proxyRightX, proxyRightY, proxyRightZ); }
@@ -188,6 +247,129 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 proxyRightX = value.x;
                 proxyRightY = value.y;
                 proxyRightZ = value.z;
+            }
+        }
+
+        public Vector3 influenceExtents
+        {
+            get { return new Vector3(influenceExtentsX, influenceExtentsY, influenceExtentsZ); }
+            set
+            {
+                influenceExtentsX = value.x;
+                influenceExtentsY = value.y;
+                influenceExtentsZ = value.z;
+            }
+        }
+        public Vector3 influencePositionWS
+        {
+            get { return new Vector3(influencePositionWSX, influencePositionWSY, influencePositionWSZ); }
+            set
+            {
+                influencePositionWSX = value.x;
+                influencePositionWSY = value.y;
+                influencePositionWSZ = value.z;
+            }
+        }
+        public Vector3 influenceForward
+        {
+            get { return new Vector3(influenceForwardX, influenceForwardY, influenceForwardZ); }
+            set
+            {
+                influenceForwardX = value.x;
+                influenceForwardY = value.y;
+                influenceForwardZ = value.z;
+            }
+        }
+        public Vector3 influenceUp
+        {
+            get { return new Vector3(influenceUpX, influenceUpY, influenceUpZ); }
+            set
+            {
+                influenceUpX = value.x;
+                influenceUpY = value.y;
+                influenceUpZ = value.z;
+            }
+        }
+        public Vector3 influenceRight
+        {
+            get { return new Vector3(influenceRightX, influenceRightY, influenceRightZ); }
+            set
+            {
+                influenceRightX = value.x;
+                influenceRightY = value.y;
+                influenceRightZ = value.z;
+            }
+        }
+
+        public Vector3 blendDistancePositive
+        {
+            get { return new Vector3(blendDistancePositiveX, blendDistancePositiveY, blendDistancePositiveZ); }
+            set
+            {
+                blendDistancePositiveX = value.x;
+                blendDistancePositiveY = value.y;
+                blendDistancePositiveZ = value.z;
+            }
+        }
+        public Vector3 blendDistanceNegative
+        {
+            get { return new Vector3(blendDistanceNegativeX, blendDistanceNegativeY, blendDistanceNegativeZ); }
+            set
+            {
+                blendDistanceNegativeX = value.x;
+                blendDistanceNegativeY = value.y;
+                blendDistanceNegativeZ = value.z;
+            }
+        }
+        public Vector3 blendNormalDistancePositive
+        {
+            get { return new Vector3(blendNormalDistancePositiveX, blendNormalDistancePositiveY, blendNormalDistancePositiveZ); }
+            set
+            {
+                blendNormalDistancePositiveX = value.x;
+                blendNormalDistancePositiveY = value.y;
+                blendNormalDistancePositiveZ = value.z;
+            }
+        }
+        public Vector3 blendNormalDistanceNegative
+        {
+            get { return new Vector3(blendNormalDistanceNegativeX, blendNormalDistanceNegativeY, blendNormalDistanceNegativeZ); }
+            set
+            {
+                blendNormalDistanceNegativeX = value.x;
+                blendNormalDistanceNegativeY = value.y;
+                blendNormalDistanceNegativeZ = value.z;
+            }
+        }
+        public Vector3 boxSideFadePositive
+        {
+            get { return new Vector3(boxSideFadePositiveX, boxSideFadePositiveY, boxSideFadePositiveZ); }
+            set
+            {
+                boxSideFadePositiveX = value.x;
+                boxSideFadePositiveY = value.y;
+                boxSideFadePositiveZ = value.z;
+            }
+        }
+        public Vector3 boxSideFadeNegative
+        {
+            get { return new Vector3(boxSideFadeNegativeX, boxSideFadeNegativeY, boxSideFadeNegativeZ); }
+            set
+            {
+                boxSideFadeNegativeX = value.x;
+                boxSideFadeNegativeY = value.y;
+                boxSideFadeNegativeZ = value.z;
+            }
+        }
+
+        public Vector3 sampleDirectionDiscardWS
+        {
+            get { return new Vector3(sampleDirectionDiscardWSX, sampleDirectionDiscardWSY, sampleDirectionDiscardWSZ); }
+            set
+            {
+                sampleDirectionDiscardWSX = value.x;
+                sampleDirectionDiscardWSY = value.y;
+                sampleDirectionDiscardWSZ = value.z;
             }
         }
     };

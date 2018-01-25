@@ -1222,7 +1222,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
             envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
             envLightData.proxyPositionWS = proxyToWorld.GetColumn(3);
-            envLightData.proxyShapeType = probe.proxyShapeType;
 
             m_lightList.envLights.Add(envLightData);
 
