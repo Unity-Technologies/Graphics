@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     class FloatingWindowsLayout
     {
         public Rect previewLayout;
+        public Rect blackboardLayout;
     }
 
     public class GraphEditorView : VisualElement, IDisposable
@@ -31,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         BlackboardProvider m_BlackboardProvider;
 
         string m_FloatingWindowsLayoutKey;
-        FloatingWindowsLayout m_FLoatingWindowsLayout;
+        FloatingWindowsLayout m_FloatingWindowsLayout;
 
         public Action saveRequested { get; set; }
 
@@ -99,13 +100,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
 
                 WindowDraggable masterPreviewViewDraggable = new WindowDraggable();
-                masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
                 m_GraphView.Add(m_MasterPreviewView);
 
                 ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
-                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
+
+                m_BlackboardProvider.onDragFinished += UpdateSerializedWindowLayout;
+                m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
+                masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
+                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
@@ -114,12 +118,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (!String.IsNullOrEmpty(serializedWindowLayout))
                 {
-                    m_FLoatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
-                    m_MasterPreviewView.layout = m_FLoatingWindowsLayout.previewLayout;
+                    m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+                    m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout;
+                    if (m_FloatingWindowsLayout.blackboardLayout.width > 0)
+                        m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout;
                 }
                 else
                 {
-                    m_FLoatingWindowsLayout = new FloatingWindowsLayout();
+                    m_FloatingWindowsLayout = new FloatingWindowsLayout();
                 }
             }
 
@@ -144,7 +150,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnSpaceDown(KeyDownEvent evt)
         {
-            if( evt.keyCode == KeyCode.Space)
+            if(evt.keyCode == KeyCode.Space && !evt.shiftKey && !evt.altKey && !evt.ctrlKey && !evt.commandKey)
             {
                 if (graphView.nodeCreationRequest == null)
                     return;
@@ -431,9 +437,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSerializedWindowLayout()
         {
-            m_FLoatingWindowsLayout.previewLayout = m_MasterPreviewView.layout;
+            m_FloatingWindowsLayout.previewLayout = m_MasterPreviewView.layout;
+            m_FloatingWindowsLayout.blackboardLayout = m_BlackboardProvider.blackboard.layout;
 
-            string serializedWindowLayout = JsonUtility.ToJson(m_FLoatingWindowsLayout);
+            string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
         }
 

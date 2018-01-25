@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -14,7 +13,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly Texture2D m_ExposedIcon;
         readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
         readonly BlackboardSection m_Section;
+        WindowDraggable m_WindowDraggable;
+        ResizeBorderFrame m_ResizeBorderFrame;
         public Blackboard blackboard { get; private set; }
+
+        public Action onDragFinished
+        {
+            get { return m_WindowDraggable.OnDragFinished; }
+            set { m_WindowDraggable.OnDragFinished = value; }
+        }
+
+        public Action onResizeFinished
+        {
+            get { return m_ResizeBorderFrame.OnResizeFinished; }
+            set { m_ResizeBorderFrame.OnResizeFinished = value; }
+        }
 
         public BlackboardProvider(string assetName, AbstractMaterialGraph graph)
         {
@@ -31,6 +44,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
+
+            m_WindowDraggable = new WindowDraggable();
+            blackboard.AddManipulator(m_WindowDraggable);
+
+            m_ResizeBorderFrame = new ResizeBorderFrame(blackboard) { name = "resizeBorderFrame" };
+            blackboard.shadow.Add(m_ResizeBorderFrame);
 
             m_Section = new BlackboardSection { headerVisible = false };
             foreach (var property in graph.properties)
