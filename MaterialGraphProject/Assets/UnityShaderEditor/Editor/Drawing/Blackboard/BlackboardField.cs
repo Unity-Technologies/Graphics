@@ -5,7 +5,6 @@ using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using Debug = System.Diagnostics.Debug;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -106,6 +105,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void Handler(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
         {
+            if (dropTarget == null || !dropTarget.CanAcceptDrop(selection))
+                return;
+
+            var propagation = EventPropagation.Continue;
+            if (evt.imguiEvent.type == EventType.DragUpdated)
+                propagation = dropTarget.DragUpdated(evt, selection, dropTarget);
+            else if (evt.imguiEvent.type == EventType.DragPerform)
+                propagation = dropTarget.DragPerform(evt, selection, dropTarget);
+            else if (evt.imguiEvent.type == EventType.DragExited)
+                propagation = dropTarget.DragExited();
+
+//            if (propagation == EventPropagation.Stop)
+//                evt.StopPropagation();
         }
 
         private void OnTextFieldKeyPressed(KeyDownEvent e)

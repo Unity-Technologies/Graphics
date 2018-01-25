@@ -1,5 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -7,6 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         AbstractMaterialGraph m_Graph;
         MaterialGraphView m_GraphView;
+        List<ISelectable> m_Selection;
 
         public GraphDropTarget(AbstractMaterialGraph graph)
         {
@@ -30,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset);
         }
 
-        void CreateNode(Object obj, Vector2 nodePosition)
+        void CreateNode(object obj, Vector2 nodePosition)
         {
             var texture2D = obj as Texture2D;
             if (texture2D != null)
@@ -86,36 +93,86 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.subGraphAsset = subGraphAsset;
                 m_Graph.AddNode(node);
             }
+
+            var blackboardField = obj as BlackboardField;
+            if (blackboardField != null)
+            {
+                var property = blackboardField.userData as IShaderProperty;
+                if (property != null)
+                {
+                    m_Graph.owner.RegisterCompleteObjectUndo("Drag Shader Property");
+                    var node = new PropertyNode();
+                    var drawState = node.drawState;
+                    drawState.position = new Rect(nodePosition, drawState.position.size);
+                    node.drawState = drawState;
+                    m_Graph.AddNode(node);
+                    node.propertyGuid = property.guid;
+                }
+            }
         }
 
         void OnIMGUIEvent(IMGUIEvent evt)
         {
             if (evt.imguiEvent.type == EventType.DragUpdated || evt.imguiEvent.type == EventType.DragPerform)
             {
-                var currentTarget = evt.currentTarget as VisualElement;
-                if (currentTarget == null)
-                    return;
-                var objects = DragAndDrop.objectReferences;
-                Object draggedObject = null;
-                foreach (var obj in objects)
+                try
                 {
-                    if (ValidateObject(obj))
+                    var currentTarget = evt.currentTarget as VisualElement;
+                    if (currentTarget == null)
+                        return;
+                    var pickElement = currentTarget.panel.Pick(target.LocalToWorld(evt.imguiEvent.mousePosition));
+                    if (m_Selection == null)
+                        m_Selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+                    if (!(pickElement is MaterialGraphView))
+                        return;
+                    var objects = DragAndDrop.objectReferences;
+
+                    if (m_Selection != null)
                     {
-                        draggedObject = obj;
-                        break;
+                        // Handle drop of UIElements
+                        if (m_Selection.OfType<BlackboardField>().Count() != 1)
+                        {
+                            m_Selection = null;
+                            return;
+                        }
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+                        if (evt.imguiEvent.type == EventType.DragPerform)
+                        {
+                            var nodePosition = m_GraphView.contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(m_GraphView.panel.visualTree.ChangeCoordinatesTo(m_GraphView, Event.current.mousePosition));
+                            CreateNode(m_Selection.First(), nodePosition);
+                            DragAndDrop.AcceptDrag();
+                        }
+                    }
+                    else
+                    {
+                        // Handle drop of Unity objects
+                        Object draggedObject = null;
+                        foreach (var obj in objects)
+                        {
+                            if (ValidateObject(obj))
+                            {
+                                draggedObject = obj;
+                                break;
+                            }
+                        }
+                        if (draggedObject != null)
+                        {
+                            DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+                            if (evt.imguiEvent.type == EventType.DragPerform)
+                            {
+                                var nodePosition = m_GraphView.contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(m_GraphView.panel.visualTree.ChangeCoordinatesTo(m_GraphView, Event.current.mousePosition));
+                                CreateNode(draggedObject, nodePosition);
+                                DragAndDrop.AcceptDrag();
+                            }
+                        }
                     }
                 }
-                if (draggedObject == null)
-                    return;
-
-//                Debug.LogFormat("{0}: {1}", draggedObject.GetType().Name, draggedObject.name);
-                DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
-                if (evt.imguiEvent.type == EventType.DragPerform)
+                finally
                 {
-                    var nodePosition = m_GraphView.contentViewContainer.transform.matrix.inverse.MultiplyPoint3x4(m_GraphView.panel.visualTree.ChangeCoordinatesTo(m_GraphView, Event.current.mousePosition));
-                    CreateNode(draggedObject, nodePosition);
-                    DragAndDrop.AcceptDrag();
+                    if (evt.imguiEvent.type == EventType.DragPerform || evt.imguiEvent.type == EventType.DragExited)
+                        m_Selection = null;
                 }
+
             }
         }
     }
