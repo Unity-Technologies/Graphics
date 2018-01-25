@@ -60,13 +60,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (property is ColorShaderProperty)
             {
                 var colorProperty = (ColorShaderProperty)property;
-                var field = new ColorField { value = property.defaultValue, hdr = colorProperty.HDR };
-                field.OnValueChanged(evt =>
+                var colorField = new ColorField { value = property.defaultValue, showEyeDropper = false, hdr = colorProperty.colorMode == ColorMode.HDR };
+                colorField.OnValueChanged(evt =>
                 {
                     colorProperty.value = evt.newValue;
                     DirtyNodes();
                 });
-                AddRow("Default", field);
+                AddRow("Default", colorField);
+                var colorModeField = new EnumField((Enum)colorProperty.colorMode);
+                colorModeField.OnValueChanged(evt =>
+                {
+                    colorProperty.colorMode = (ColorMode)evt.newValue;
+                    colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
+                    colorField.DoRepaint();
+                    DirtyNodes();
+                });
+                AddRow("Mode", colorModeField);
             }
             else if (property is TextureShaderProperty)
             {

@@ -5,6 +5,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    public enum ColorMode
+    {
+        Default,
+        HDR
+    }
+
     [Title("Input", "Basic", "Color")]
     public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
@@ -51,7 +57,7 @@ namespace UnityEditor.ShaderGraph
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
                 value = color,
-                HDR = false
+                colorMode = ColorMode.Default
             });
         }
 
