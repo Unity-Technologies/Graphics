@@ -84,6 +84,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
+        public void RefreshRenderTextureSize()
+        {
+            RenderTextureDescriptor descriptor = m_PreviewRenderHandle.renderTexture.descriptor;
+
+            descriptor.width = (int)m_PreviewTextureView.contentRect.width;
+            descriptor.height = (int)m_PreviewTextureView.contentRect.height;
+
+            m_PreviewRenderHandle.renderTexture.Release();
+            m_PreviewRenderHandle.renderTexture = new RenderTexture(descriptor);
+        }
+
         void OnMouseDragPreviwMesh(Vector2 deltaMouse)
         {
             Vector2 previewSize = m_PreviewTextureView.contentRect.size;
