@@ -104,6 +104,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.Add(m_MasterPreviewView);
 
                 ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
+                masterPreviewResizeBorderFrame.stayWithinParentBounds = true;
+                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
 
                 m_BlackboardProvider.onDragFinished += UpdateSerializedWindowLayout;

@@ -28,6 +28,14 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         VisualElement m_ResizeTarget;
 
+        bool m_StayWithinParentBounds;
+
+        public bool stayWithinPanretBounds
+        {
+            get { return m_StayWithinParentBounds; }
+            set { m_StayWithinParentBounds = value; }
+        }
+
         public Action OnResizeFinished;
 
         public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)
@@ -110,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<MouseUpEvent>(HandleDraggableMouseUp);
         }
 
-        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResizeHorizontal, bool moveWhileresizerVertical)
+        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResizeHorizontal, bool moveWhileresizeVertical)
         {
             Vector2 normalizedResizeDelta = resizeDelta / 2f;
 
@@ -137,14 +145,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Rect newLayout = m_ResizeTarget.layout;
 
-            // Resize form bottom/right
+            // Resize from bottom/right
             if (!moveWhileResizeHorizontal)
             {
                 newLayout.width = Mathf.Max(newLayout.width + normalizedResizeDelta.x, minSize.x);
                 normalizedResizeDelta.x = 0f;
             }
 
-            if (!moveWhileresizerVertical)
+            if (!moveWhileresizeVertical)
             {
                 newLayout.height = Mathf.Max(newLayout.height + normalizedResizeDelta.y, minSize.y);
                 normalizedResizeDelta.y = 0f;
@@ -158,6 +166,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             newLayout.x = Mathf.Min(newLayout.x + normalizedResizeDelta.x, previousFarX - minSize.x);
             newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - minSize.y);
+
+            if (m_StayWithinParentBounds)
+            {
+                float horizontalTranscendance = Mathf.Min(newLayout.x, 0f) + Mathf.Max(newLayout.xMax - m_ResizeTarget.parent.layout.width, 0f);
+                float verticalTranscendance = Mathf.Min(newLayout.y, 0f) + Mathf.Max(newLayout.yMax - m_ResizeTarget.parent.layout.height, 0f);
+
+                if (moveWhileResizeHorizontal)
+                {
+                    newLayout.x -= horizontalTranscendance;
+                }
+                newLayout.width -= Mathf.Abs(horizontalTranscendance);
+
+                if (moveWhileresizeVertical)
+                {
+                    newLayout.y -= verticalTranscendance;
+                }
+                newLayout.height -= Mathf.Abs(verticalTranscendance);
+            }
 
             m_ResizeTarget.layout = newLayout;
         }
