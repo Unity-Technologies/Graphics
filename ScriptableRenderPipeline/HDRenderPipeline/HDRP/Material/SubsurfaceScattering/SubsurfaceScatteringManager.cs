@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))
                     {
-                        CoreUtils.SetRenderTarget(cmd, m_CameraFilteringBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraFilteringBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                     }
                 }
 
@@ -168,12 +168,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
                         // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
-                        CoreUtils.SetRenderTarget(cmd, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 
                         cmd.SetRandomWriteTarget(1, m_HTile);
                         // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                         // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
-                        CoreUtils.SetRenderTarget(cmd, depthStencilBufferRT); // No need for color buffer here
+                        HDUtils.SetRenderTarget(cmd, hdCamera, depthStencilBufferRT); // No need for color buffer here
                         CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSplitLighting, null, 2);
                         cmd.ClearRandomWriteTargets();
                     }

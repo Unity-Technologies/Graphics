@@ -40,10 +40,15 @@ namespace UnityEngine.Experimental.Rendering
         private static int GetMaxWith(RTCategory category) { return s_MaxWidths[(int)category]; }
         private static int GetMaxHeight(RTCategory category) { return s_MaxHeights[(int)category]; }
 
-        static List<RTHandle> s_AutoSizedRTs;
+        static List<RTHandle>   s_AutoSizedRTs;
+        static RTCategory       s_CurrentCategory = RTCategory.Regular;
 
         static int[] s_MaxWidths = new int[(int)RTCategory.Count];
         static int[] s_MaxHeights = new int[(int)RTCategory.Count];
+
+        public static int maxWidth { get { return GetMaxWith(s_CurrentCategory); } }
+        public static int maxHeight { get { return GetMaxHeight(s_CurrentCategory); } }
+
         static RTHandle()
         {
             s_AutoSizedRTs = new List<RTHandle>();
@@ -56,7 +61,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void Release(RTHandle rth)
         {
-            rth.Release();
+            if(rth != null)
+                rth.Release();
         }
 
         public static void SetReferenceSize(int width, int height, bool msaa)
@@ -89,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering
             s_MaxHeights[(int)category] = height;
 
             var maxSize = new Vector2Int(width, height);
+            s_CurrentCategory = category;
 
             foreach (var rth in s_AutoSizedRTs)
             {
@@ -157,7 +164,9 @@ namespace UnityEngine.Experimental.Rendering
             };
             rt.Create();
 
-            return new RTHandle(rt, category);
+            var newRT = new RTHandle(rt, category);
+            newRT.useScaling = false;
+            return newRT;
         }
 
 
@@ -212,6 +221,7 @@ namespace UnityEngine.Experimental.Rendering
             );
 
             rth.scaleFactor = scaleFactor;
+            rth.useScaling = true;
             s_AutoSizedRTs.Add(rth);
             return rth;
         }
@@ -274,6 +284,7 @@ namespace UnityEngine.Experimental.Rendering
             );
 
             rth.scaleFunc = scaleFunc;
+            rth.useScaling = true;
             s_AutoSizedRTs.Add(rth);
             return rth;
         }
@@ -307,6 +318,8 @@ namespace UnityEngine.Experimental.Rendering
 
         Vector2 scaleFactor = Vector2.one;
         ScaleFunc scaleFunc;
+
+        public bool useScaling { get; private set; }
 
         public RenderTexture rt
         {
@@ -385,7 +398,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        Vector2Int GetScaledSize(Vector2Int refSize)
+        public Vector2Int GetScaledSize(Vector2Int refSize)
         {
             if (scaleFunc != null)
             {
