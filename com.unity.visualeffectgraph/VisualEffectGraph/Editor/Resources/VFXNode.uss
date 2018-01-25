@@ -44,7 +44,15 @@ VFXOperatorUI MultiOperatorEdit OperandInfo
 {
     flex-direction:row;
     align-items:center;
+    background-color:#383838;
 }
+
+VFXOperatorUI MultiOperatorEdit OperandInfo:selected
+{
+    background-color:#3d6091;
+}
+
+
 VFXOperatorUI MultiOperatorEdit OperandInfo *
 {
     height:16;

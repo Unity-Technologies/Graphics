@@ -221,6 +221,21 @@ namespace UnityEditor.VFX
             return changed;
         }
 
+        public void MoveSlots(VFXSlot.Direction direction, int movedIndex, int targetIndex)
+        {
+            VFXSlot movedSlot = m_InputSlots[movedIndex];
+            if (movedIndex < targetIndex)
+            {
+                m_InputSlots.Insert(targetIndex, movedSlot);
+                m_InputSlots.RemoveAt(movedIndex);
+            }
+            else
+            {
+                m_InputSlots.RemoveAt(movedIndex);
+                m_InputSlots.Insert(targetIndex, movedSlot);
+            }
+        }
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (model == this && cause == InvalidationCause.kSettingChanged)
@@ -245,8 +260,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        private static bool TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
+            bool oneLinkTransfered = false;
             var links = src.LinkedSlots.ToArray();
             int index = 0;
             while (index < links.Count())
@@ -256,6 +272,7 @@ namespace UnityEditor.VFX
                 {
                     dst.Link(link, notify);
                     src.Unlink(link, notify);
+                    oneLinkTransfered = true;
                 }
                 ++index;
             }
@@ -264,8 +281,10 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    TransferLinks(dst[i], src[i], notify);
+                    oneLinkTransfered |= TransferLinks(dst[i], src[i], notify);
             }
+
+            return oneLinkTransfered;
         }
 
         protected bool SyncSlots(VFXSlot.Direction direction, bool notify)
@@ -335,13 +354,20 @@ namespace UnityEditor.VFX
                 var currentSlot = isInput ? inputSlots : outputSlots;
 
                 // Try to keep links for slots of same name and compatible types
-                foreach (var slot in existingSlots)
+                for (int i = 0; i < existingSlots.Count; ++i)
                 {
+                    var slot = existingSlots[i];
                     if (slot.HasLink(true))
                     {
+                        //first check at the same index
+                        if (currentSlots[i].property.name == slot.property.name && TransferLinks(currentSlots[i], slot, notify))
+                        {
+                            break;
+                        }
                         var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
                         foreach (var candidate in candidates)
-                            TransferLinks(candidate, slot, notify);
+                            if (TransferLinks(candidate, slot, notify))
+                                break;
                     }
                 }
 

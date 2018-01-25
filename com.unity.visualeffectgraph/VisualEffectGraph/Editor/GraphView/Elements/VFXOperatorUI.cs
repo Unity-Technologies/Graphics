@@ -11,15 +11,16 @@ using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 
 using VFXEditableOperator = UnityEditor.VFX.VFXOperatorMultiplyNew;
+using ListView = UnityEditor.VFX.UI.MultiOperatorEdit;
 
 namespace UnityEditor.VFX.UI
 {
     class LineDragger : Manipulator
     {
-        MultiOperatorEdit m_Root;
+        ListView m_Root;
         VisualElement m_Line;
 
-        public LineDragger(MultiOperatorEdit root, VisualElement item)
+        public LineDragger(ListView root, VisualElement item)
         {
             m_Root = root;
             m_Line = item;
@@ -48,6 +49,7 @@ namespace UnityEditor.VFX.UI
             target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
             target.ReleaseMouseCapture();
             m_Dragging = false;
+            m_Ctx = null;
         }
 
         protected void OnMouseDown(MouseDownEvent evt)
@@ -57,7 +59,7 @@ namespace UnityEditor.VFX.UI
                 evt.StopPropagation();
                 target.TakeMouseCapture();
                 m_Dragging = true;
-                startPosition = evt.mousePosition;
+                startPosition = m_Root.WorldToLocal(evt.mousePosition);
                 target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
                 m_Ctx = m_Root.StartDragging(m_Line);
             }
@@ -65,7 +67,8 @@ namespace UnityEditor.VFX.UI
 
         protected void OnMouseUp(MouseUpEvent evt)
         {
-            m_Root.EndDragging(m_Ctx, m_Line, evt.mousePosition.y - startPosition.y);
+            Vector2 listRelativeMouse = m_Root.WorldToLocal(evt.mousePosition);
+            m_Root.EndDragging(m_Ctx, m_Line, listRelativeMouse.y - startPosition.y, evt.mousePosition);
             evt.StopPropagation();
             Release();
         }
@@ -74,7 +77,36 @@ namespace UnityEditor.VFX.UI
         {
             evt.StopPropagation();
 
-            m_Root.ItemDragging(m_Ctx, m_Line, evt.mousePosition.y - startPosition.y);
+            Vector2 listRelativeMouse = m_Root.WorldToLocal(evt.mousePosition);
+
+            m_Root.ItemDragging(m_Ctx, m_Line, listRelativeMouse.y - startPosition.y, evt.mousePosition);
+        }
+    }
+
+    class LineSelecter : Manipulator
+    {
+        ListView m_Root;
+        VisualElement m_Line;
+
+        public LineSelecter(ListView root, VisualElement item)
+        {
+            m_Root = root;
+            m_Line = item;
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+        }
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            m_Root.Select(m_Line);
         }
     }
 
@@ -105,12 +137,35 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        int m_SelectedLine = -1;
+
 
         class DraggingContext
         {
             public Rect[] originalPositions;
+            public VisualElement[] items;
             public Rect myOriginalPosition;
             public int draggedIndex;
+        }
+
+        public void Select(int index)
+        {
+            if (m_SelectedLine != -1 && m_SelectedLine < m_OperandContainer.childCount)
+            {
+                m_OperandContainer.ElementAt(m_SelectedLine).pseudoStates &= ~PseudoStates.Selected;
+            }
+
+            m_SelectedLine = index;
+
+            if (m_SelectedLine != -1 && m_SelectedLine < m_OperandContainer.childCount)
+            {
+                m_OperandContainer.ElementAt(m_SelectedLine).pseudoStates |= PseudoStates.Selected;
+            }
+        }
+
+        public void Select(VisualElement item)
+        {
+            Select(m_OperandContainer.IndexOf(item));
         }
 
         public object StartDragging(VisualElement item)
@@ -119,14 +174,16 @@ namespace UnityEditor.VFX.UI
             DraggingContext context = new DraggingContext();
 
 
-            var children = m_OperandContainer.Children().ToArray();
-            context.originalPositions = children.Select(t => t.layout).ToArray();
+            context.items = m_OperandContainer.Children().ToArray();
+            context.originalPositions = context.items.Select(t => t.layout).ToArray();
             context.draggedIndex = m_OperandContainer.IndexOf(item);
             context.myOriginalPosition = m_OperandContainer.layout;
 
-            for (int i = 0; i < children.Length; ++i)
+            Select(context.draggedIndex);
+
+            for (int i = 0; i < context.items.Length; ++i)
             {
-                VisualElement child = children[i];
+                VisualElement child = context.items[i];
                 Rect rect = context.originalPositions[i];
                 child.style.positionType = PositionType.Absolute;
                 child.style.positionLeft = rect.x;
@@ -143,7 +200,7 @@ namespace UnityEditor.VFX.UI
             return context;
         }
 
-        public void EndDragging(object ctx, VisualElement item, float offset)
+        public void EndDragging(object ctx, VisualElement item, float offset, Vector2 mouseWorldPosition)
         {
             DraggingContext context = (DraggingContext)ctx;
 
@@ -151,15 +208,85 @@ namespace UnityEditor.VFX.UI
             {
                 child.ResetPositionProperties();
             }
-            m_OperandContainer.Insert(context.draggedIndex, item);
+            int hoveredIndex = GetHoveredIndex(context, mouseWorldPosition);
+
+            m_OperandContainer.Insert(hoveredIndex != -1 ? hoveredIndex : context.draggedIndex, item);
             m_OperandContainer.ResetPositionProperties();
+
+            if (hoveredIndex != -1)
+            {
+                ElementMoved(context.draggedIndex, hoveredIndex);
+            }
         }
 
-        public void ItemDragging(object ctx, VisualElement item, float offset)
+        public void ItemDragging(object ctx, VisualElement item, float offset, Vector2 mouseWorldPosition)
         {
             DraggingContext context = (DraggingContext)ctx;
 
             item.style.positionTop = context.originalPositions[context.draggedIndex].y + offset;
+
+            int hoveredIndex = GetHoveredIndex(context, mouseWorldPosition);
+
+            if (hoveredIndex != -1)
+            {
+                float draggedHeight = context.originalPositions[context.draggedIndex].height;
+
+                if (hoveredIndex < context.draggedIndex)
+                {
+                    for (int i = 0; i < hoveredIndex; ++i)
+                    {
+                        context.items[i].style.positionTop = context.originalPositions[i].y;
+                    }
+                    for (int i = hoveredIndex; i < context.draggedIndex; ++i)
+                    {
+                        context.items[i].style.positionTop = context.originalPositions[i].y + draggedHeight;
+                    }
+                    for (int i = context.draggedIndex + 1; i < context.items.Length; ++i)
+                    {
+                        context.items[i].style.positionTop = context.originalPositions[i].y;
+                    }
+                }
+                else if (hoveredIndex > context.draggedIndex)
+                {
+                    for (int i = 0; i < context.draggedIndex; ++i)
+                    {
+                        context.items[i].style.positionTop = context.originalPositions[i].y;
+                    }
+                    for (int i = hoveredIndex; i > context.draggedIndex; --i)
+                    {
+                        context.items[i].style.positionTop = context.originalPositions[i].y - draggedHeight;
+                    }
+                    for (int i = hoveredIndex + 1; i < context.items.Length; ++i)
+                    {
+                        context.items[i].style.positionTop = context.originalPositions[i].y;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < context.items.Length; ++i)
+                {
+                    if (i != context.draggedIndex)
+                        context.items[i].style.positionTop = context.originalPositions[i].y;
+                }
+            }
+        }
+
+        int GetHoveredIndex(DraggingContext context, Vector2 mouseWorldPosition)
+        {
+            Vector2 mousePosition = m_OperandContainer.WorldToLocal(mouseWorldPosition);
+
+            int hoveredIndex = -1;
+
+            for (int i = 0; i < context.items.Length; ++i)
+            {
+                if (i != context.draggedIndex && context.originalPositions[i].Contains(mousePosition))
+                {
+                    hoveredIndex = i;
+                    break;
+                }
+            }
+            return hoveredIndex;
         }
 
         VFXEditableOperator model
@@ -174,6 +301,16 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_OperandContainer;
+
+
+        void ElementMoved(int movedIndex, int targetIndex)
+        {
+            if (m_SelectedLine == movedIndex)
+            {
+                m_SelectedLine = targetIndex;
+            }
+            model.OperandMoved(movedIndex, targetIndex);
+        }
 
         public MultiOperatorEdit()
         {
@@ -254,7 +391,9 @@ namespace UnityEditor.VFX.UI
 
             for (int i = 0; i < count; ++i)
             {
-                (m_OperandContainer.ElementAt(i) as OperandInfo).Set(op);
+                OperandInfo operand = (m_OperandContainer.ElementAt(i) as OperandInfo);
+                operand.index = i; // The operand might have been changed by the drag
+                operand.Set(op);
             }
 
             VFXOperatorUI opUI = GetFirstAncestorOfType<VFXOperatorUI>();
@@ -290,6 +429,8 @@ namespace UnityEditor.VFX.UI
                 draggingHandle.AddManipulator(new LineDragger(m_Owner, this));
                 Add(field);
                 Add(type);
+
+                this.AddManipulator(new LineSelecter(owner, this));
             }
 
             public void Set(VFXEditableOperator op)

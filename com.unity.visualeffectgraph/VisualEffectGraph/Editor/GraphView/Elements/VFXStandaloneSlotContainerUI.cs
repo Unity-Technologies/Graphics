@@ -24,8 +24,9 @@ namespace UnityEditor.VFX.UI
             RefreshLayout();
         }
 
-        public virtual void RefreshLayout()
+        public override void RefreshLayout()
         {
+            base.RefreshLayout();
             float settingsLabelWidth = 30;
             float settingsControlWidth = 50;
             GetPreferedSettingsWidths(ref  settingsLabelWidth, ref settingsControlWidth);
