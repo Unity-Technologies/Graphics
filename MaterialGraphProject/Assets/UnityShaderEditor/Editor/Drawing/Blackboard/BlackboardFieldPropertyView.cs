@@ -1,0 +1,125 @@
+using System;
+using UnityEditor.Experimental.UIElements;
+using UnityEditor.Graphing;
+using UnityEngine;
+using UnityEngine.Experimental.UIElements;
+
+namespace UnityEditor.ShaderGraph.Drawing
+{
+    class BlackboardFieldPropertyView : VisualElement
+    {
+        readonly AbstractMaterialGraph m_Graph;
+
+        public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
+        {
+            m_Graph = graph;
+            if (property is FloatShaderProperty)
+            {
+                var floatProperty = (FloatShaderProperty)property;
+                var field = new FloatField { value = floatProperty.value };
+                field.OnValueChanged(evt =>
+                {
+                    floatProperty.value = (float)evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+            else if (property is Vector2ShaderProperty)
+            {
+                var vectorProperty = (Vector2ShaderProperty)property;
+                var field = new Vector2Field { value = vectorProperty.value };
+                field.OnValueChanged(evt =>
+                {
+                    vectorProperty.value = evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+            else if (property is Vector3ShaderProperty)
+            {
+                var vectorProperty = (Vector3ShaderProperty)property;
+                var field = new Vector3Field { value = vectorProperty.value };
+                field.OnValueChanged(evt =>
+                {
+                    vectorProperty.value = evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+            else if (property is Vector4ShaderProperty)
+            {
+                var vectorProperty = (Vector4ShaderProperty)property;
+                var field = new Vector4Field { value = vectorProperty.value };
+                field.OnValueChanged(evt =>
+                {
+                    vectorProperty.value = evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+            else if (property is ColorShaderProperty)
+            {
+                var colorProperty = (ColorShaderProperty)property;
+                var field = new ColorField { value = property.defaultValue, hdr = colorProperty.HDR };
+                field.OnValueChanged(evt =>
+                {
+                    colorProperty.value = evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+            else if (property is TextureShaderProperty)
+            {
+                var textureProperty = (TextureShaderProperty)property;
+                var field = new ObjectField { value = textureProperty.value.texture, objectType = typeof(Texture) };
+                field.OnValueChanged(evt =>
+                {
+                    textureProperty.value.texture = (Texture)evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+            else if (property is CubemapShaderProperty)
+            {
+                var cubemapProperty = (CubemapShaderProperty)property;
+                var field = new ObjectField { value = cubemapProperty.value.cubemap, objectType = typeof(Cubemap) };
+                field.OnValueChanged(evt =>
+                {
+                    cubemapProperty.value.cubemap = (Cubemap)evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Default", field);
+            }
+//            AddRow("Type", new TextField());
+//            AddRow("Exposed", new Toggle(null));
+//            AddRow("Range", new Toggle(null));
+//            AddRow("Default", new TextField());
+//            AddRow("Tooltip", new TextField());
+
+            AddToClassList("sgblackboardFieldPropertyView");
+        }
+
+        void AddRow(string labelText, VisualElement control)
+        {
+            VisualElement rowView = new VisualElement();
+
+            rowView.AddToClassList("rowView");
+
+            Label label = new Label(labelText);
+
+            label.AddToClassList("rowViewLabel");
+            rowView.Add(label);
+
+            control.AddToClassList("rowViewControl");
+            rowView.Add(control);
+
+            Add(rowView);
+        }
+
+        void DirtyNodes()
+        {
+            foreach (var node in m_Graph.GetNodes<PropertyNode>())
+                node.Dirty(ModificationScope.Node);
+        }
+    }
+}

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.ShaderGraph;
 
@@ -15,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class PropertyControlView : VisualElement
+    public class PropertyControlView : VisualElement, INodeModificationListener
     {
         PropertyNode m_Node;
 
@@ -42,6 +43,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_Node.propertyGuid = propertiesGUID[value];
                 }
             }
+        }
+
+        public void OnNodeModified(ModificationScope scope)
+        {
+            Dirty(ChangeType.Repaint);
         }
     }
 }
