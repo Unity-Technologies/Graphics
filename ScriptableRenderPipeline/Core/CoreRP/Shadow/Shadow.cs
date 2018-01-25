@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering
                     // modify
                     Matrix4x4 vp, invvp;
                     if( sr.shadowType == GPUShadowType.Point )
-                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, 2.0f, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, 4.0f, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     else if( sr.shadowType == GPUShadowType.Spot )
                         vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     else if( sr.shadowType == GPUShadowType.Directional )
