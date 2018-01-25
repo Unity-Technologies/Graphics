@@ -1733,7 +1733,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     CoreUtils.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
-                    PushColorPickerDebugTexture(cmd, m_DebugFullScreenTempRT, hdCamera);
+                    PushColorPickerDebugTexture(cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget, hdCamera);
                 }
 
                 // Then overlays
