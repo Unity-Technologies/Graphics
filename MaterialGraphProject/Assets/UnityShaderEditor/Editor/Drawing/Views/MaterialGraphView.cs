@@ -13,7 +13,7 @@ using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class MaterialGraphView : GraphView
+    public sealed class MaterialGraphView : GraphView, IDropTarget
     {
         public AbstractMaterialGraph graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
@@ -207,6 +207,30 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graph.RemoveShaderProperty(property.guid);
                 }
             }
+        }
+
+        public bool CanAcceptDrop(List<ISelectable> selection)
+        {
+            Debug.Log("GraphView.CanAcceptDrop " + string.Join(", ", selection.Select(x => x.GetType().FullName).ToArray()));
+            return selection.OfType<BlackboardField>().Any();
+        }
+
+        public EventPropagation DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            Debug.Log("GraphView.DragUpdated");
+            return EventPropagation.Continue;
+        }
+
+        public EventPropagation DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            Debug.Log("GraphView.DragPerform");
+            return EventPropagation.Continue;
+        }
+
+        public EventPropagation DragExited()
+        {
+            Debug.Log("GraphView.DragExited");
+            return EventPropagation.Continue;
         }
     }
 

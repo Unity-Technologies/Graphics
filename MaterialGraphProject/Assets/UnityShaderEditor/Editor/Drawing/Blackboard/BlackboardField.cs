@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void Handler(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
         {
-            if (dropTarget == null)
+            if (dropTarget == null || !dropTarget.CanAcceptDrop(selection))
                 return;
 
             var propagation = EventPropagation.Continue;
@@ -116,8 +116,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (evt.imguiEvent.type == EventType.DragExited)
                 propagation = dropTarget.DragExited();
 
-            if (propagation == EventPropagation.Stop)
-                evt.StopPropagation();
+//            if (propagation == EventPropagation.Stop)
+//                evt.StopPropagation();
         }
 
         private void OnTextFieldKeyPressed(KeyDownEvent e)
