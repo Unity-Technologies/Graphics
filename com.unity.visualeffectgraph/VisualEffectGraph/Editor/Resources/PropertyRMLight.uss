@@ -1,0 +1,25 @@
+VFXFloatField 
+{
+	text-color: #111;
+	background-image: resource("Builtin Skins/LightSkin/Images/TextField.png");
+	cursor-color:#000;
+}
+
+VFXFloatField:focus
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/TextField focused.png");
+}
+
+VFXEnumField Button, VFXStringFieldProvider Button
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
+}
+VFXEnumField Button:hover:active, VFXStringFieldProvider Button:hover:active
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
+}
+
+VFXEnumField Button:focus, VFXStringFieldProvider Button:focus
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
+}

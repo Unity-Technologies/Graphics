@@ -9,7 +9,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using GradientField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.GradientField, UnityEngine.Gradient>;
+using GradientField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.GradientField, UnityEngine.Gradient>;
 
 namespace UnityEditor.VFX.UI
 {
