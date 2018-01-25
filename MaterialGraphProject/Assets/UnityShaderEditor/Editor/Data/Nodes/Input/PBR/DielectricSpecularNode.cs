@@ -78,29 +78,45 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
+            var sb = new ShaderStringBuilder();
+            if (!generationMode.IsPreview())
+            {
+                switch (material.type)
+                {
+                    case DielectricMaterialType.Custom:
+                        sb.AppendLine("{0} _{1}_IOR = {2};", precision, GetVariableNameForNode(), material.indexOfRefraction);
+                        break;
+                    case DielectricMaterialType.Common:
+                        sb.AppendLine("{0} _{1}_Range = {2};", precision, GetVariableNameForNode(), material.range);
+                        break;
+                    default:
+                        break;
+                }
+            }
             switch (material.type)
             {
                 case DielectricMaterialType.RustedMetal:
-                    visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.030, 0.030, 0.030);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
+                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.030, 0.030, 0.030);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
                 case DielectricMaterialType.Water:
-                    visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.020, 0.020, 0.020);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
+                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.020, 0.020, 0.020);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
                 case DielectricMaterialType.Ice:
-                    visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.018, 0.018, 0.018);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
+                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.018, 0.018, 0.018);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
                 case DielectricMaterialType.Glass:
-                    visitor.AddShaderChunk(string.Format("{0}3 {1} = {0}3(0.040, 0.040, 0.040);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
+                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.040, 0.040, 0.040);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
                     break;
                 case DielectricMaterialType.Custom:
-                    visitor.AddShaderChunk(string.Format("{0}3 {1} = pow({2} - 1, 2) / pow({2} + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId),
+                    sb.AppendLine(string.Format("{0}3 {1} = pow({2} - 1, 2) / pow({2} + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId),
                         string.Format("_{0}_IOR", GetVariableNameForNode())), true);
                     break;
                 default:
-                    visitor.AddShaderChunk(string.Format("{0}3 {1} = lerp(0.034, 0.048, {2});", precision, GetVariableNameForSlot(kOutputSlotId), 
+                    sb.AppendLine(string.Format("{0}3 {1} = lerp(0.034, 0.048, {2});", precision, GetVariableNameForSlot(kOutputSlotId), 
                         string.Format("_{0}_Range", GetVariableNameForNode())), true);
                     break;
             }
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
