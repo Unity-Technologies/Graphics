@@ -6,33 +6,40 @@
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 
 #include "../LightDefinition.cs.hlsl"
+#include "../LightDefinition.custom.hlsl"
 
-float3x3 WorldToProxySpace(EnvProxyData proxyData)
+float3x3 WorldToProxySpace(EnvLightData lightData)
 {
-    return transpose(float3x3(proxyData.right, proxyData.up, proxyData.forward)); // worldToLocal assume no scaling
+    return transpose(
+        float3x3(
+            EnvLightData_GetProxyRight(lightData),
+            EnvLightData_GetProxyUp(lightData),
+            EnvLightData_GetProxyForward(lightData)
+        )
+    ); // worldToLocal assume no scaling
 }
 
-float3 WorldToProxyPosition(EnvProxyData proxyData, float3x3 worldToPS, float3 positionWS)
+float3 WorldToProxyPosition(EnvLightData lightData, float3x3 worldToPS, float3 positionWS)
 {
-    float3 positionPS = positionWS - proxyData.positionWS;
+    float3 positionPS = positionWS - lightData.proxyPositionWS;
     positionPS = mul(positionPS, worldToPS).xyz;
     return positionPS;
 }
 
-float IntersectSphereProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)
+float IntersectSphereProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
 {
-    float sphereOuterDistance = proxyData.extents.x;
+    float sphereOuterDistance = lightData.proxyExtents.x;
     float projectionDistance = IntersectRaySphereSimple(positionPS, dirPS, sphereOuterDistance);
-    projectionDistance = max(projectionDistance, proxyData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;
 }
 
-float IntersectBoxProxy(EnvProxyData proxyData, float3 dirPS, float3 positionPS)
+float IntersectBoxProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
 {
-    float3 boxOuterDistance = proxyData.extents;
+    float3 boxOuterDistance = lightData.proxyExtents;
     float projectionDistance = IntersectRayAABBSimple(positionPS, dirPS, -boxOuterDistance, boxOuterDistance);
-    projectionDistance = max(projectionDistance, proxyData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
+    projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
 
     return projectionDistance;
 }
@@ -108,12 +115,12 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
 
 float3x3 WorldToInfluenceSpace(EnvLightData lightData)
 {
-    return transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
+    return transpose(float3x3(lightData.influenceRight, lightData.influenceUp, lightData.influenceForward)); // worldToLocal assume no scaling
 }
 
 float3 WorldToInfluencePosition(EnvLightData lightData, float3x3 worldToIS, float3 positionWS)
 {
-    float3 positionIS = positionWS - lightData.positionWS;
+    float3 positionIS = positionWS - lightData.influencePositionWS;
     positionIS = mul(positionIS, worldToIS).xyz;
     return positionIS;
 }

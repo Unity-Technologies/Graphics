@@ -175,8 +175,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #else
                 uint envLightIndex = i;
             #endif
-                IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], _EnvProxyDatas[envLightIndex], bsdfData,
-                                                                _EnvLightDatas[envLightIndex].envShapeType, _EnvProxyDatas[envLightIndex].envShapeType,
+                IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData,
+                                                                _EnvLightDatas[envLightIndex].influenceShapeType, _EnvLightDatas[envLightIndex].proxyShapeType,
                                                                 GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
                 AccumulateIndirectLighting(lighting, aggregateLighting);
             }
@@ -195,8 +195,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 #else
                     uint envLightIndex = i;
                 #endif
-                    IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], _EnvProxyDatas[envLightIndex], bsdfData,
-                                                                    _EnvLightDatas[envLightIndex].envShapeType, _EnvProxyDatas[envLightIndex].envShapeType,
+                    IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData,
+                                                                    _EnvLightDatas[envLightIndex].influenceShapeType, _EnvLightDatas[envLightIndex].proxyShapeType,
                                                                     GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
                     AccumulateIndirectLighting(lighting, aggregateLighting);
                 }
@@ -214,9 +214,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                 // The sky data are generated on the fly so the compiler can optimize the code
                 EnvLightData envLightSky = InitSkyEnvLightData(0);
-                EnvProxyData envProxySky = InitSkyEnvProxyData(0);
 
-                IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, envProxySky, bsdfData, 
+                IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, bsdfData, 
                                                                     ENVSHAPETYPE_SKY, ENVSHAPETYPE_SKY, 
                                                                     GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
                 AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -231,9 +230,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     
                     // The sky data are generated on the fly so the compiler can optimize the code
                     EnvLightData envLightSky = InitSkyEnvLightData(0);
-                    EnvProxyData envProxySky = InitSkyEnvProxyData(0);
 
-                    IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, envProxySky, bsdfData, 
+                    IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, bsdfData, 
                                                                         ENVSHAPETYPE_SKY, ENVSHAPETYPE_SKY, 
                                                                         GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
                     AccumulateIndirectLighting(lighting, aggregateLighting);

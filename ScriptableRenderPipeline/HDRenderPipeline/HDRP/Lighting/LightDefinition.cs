@@ -114,64 +114,83 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct EnvLightData
     {
         public Vector3 capturePositionWS;
-        public EnvShapeType envShapeType;
+        public EnvShapeType influenceShapeType;
 
-        public Vector3 positionWS;
-        public int unused8;
-
-        public Vector3 forward;
+        public Vector3 influencePositionWS;
         public int envIndex;
 
-        public Vector3 up;
-        public float dimmer;
+        public Vector3 influenceForward;
+        public float proxyForwardX;
 
-        public Vector3 right;
-        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
-        public float minProjectionDistance;
+        public Vector3 influenceUp;
+        public float proxyForwardY;
+
+        public Vector3 influenceRight;
+        public float proxyForwardZ;
 
         public Vector3 influenceExtents;   // extents of the env light
-        public float unused0;
+        public float dimmer;
 
         public Vector3 blendDistancePositive; //+X,+Y,+Z
-        public float unused2;
+        public float proxyUpX;
         public Vector3 blendDistanceNegative; //-X,-Y,-Z
-        public float unused3;
+        public float proxyUpY;
 
         public Vector3 blendNormalDistancePositive; //+X,+Y,+Z
-        public float unused4;
+        public float proxyUpZ;
         public Vector3 blendNormalDistanceNegative; //-X,-Y,-Z
-        public float unused5;
+        public float proxyRightX;
 
         public Vector3 boxSideFadePositive; //+X,+Y,+Z
-        public float unused6;
+        public float proxyRightY;
         public Vector3 boxSideFadeNegative; //-X,-Y,-Z
-        public float unused7;
+        public float proxyRightZ;
 
         public Vector3 sampleDirectionDiscardWS;
-        public float unused9;
-    };
-
-    [GenerateHLSL]
-    public struct EnvProxyData
-    {
-        public Vector3 positionWS;
-        public EnvShapeType envShapeType;
-
-        public Vector3 forward;
+        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         public float minProjectionDistance;
 
-        public Vector3 up;
-        public int unused00;
-
-        public Vector3 right;
-        // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
-        public int unused01;
+        public Vector3 proxyPositionWS;
+        public EnvShapeType proxyShapeType;
 
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius
-        public Vector3 extents;
-        public int unused02;
-    }
+        public Vector3 proxyExtents;
+        public int unused14;
+
+        public Vector3 proxyForward
+        {
+            get { return new Vector3(proxyForwardX, proxyForwardY, proxyForwardZ); }
+            set
+            {
+                proxyForwardX = value.x;
+                proxyForwardY = value.y;
+                proxyForwardZ = value.z;
+            }
+        }
+
+        public Vector3 proxyUp
+        {
+            get { return new Vector3(proxyUpX, proxyUpY, proxyUpZ); }
+            set
+            {
+                proxyUpX = value.x;
+                proxyUpY = value.y;
+                proxyUpZ = value.z;
+            }
+        }
+
+        public Vector3 proxyRight
+        {
+            get { return new Vector3(proxyRightX, proxyRightY, proxyRightZ); }
+            set
+            {
+                proxyRightX = value.x;
+                proxyRightY = value.y;
+                proxyRightZ = value.z;
+            }
+        }
+    };
 
     [GenerateHLSL]
     public enum EnvCacheType
