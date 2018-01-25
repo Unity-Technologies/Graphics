@@ -76,6 +76,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent("Color"), false, () => AddProperty(new ColorShaderProperty(), true));
             gm.AddItem(new GUIContent("Texture"), false, () => AddProperty(new TextureShaderProperty(), true));
             gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty(), true));
+            gm.AddItem(new GUIContent("Boolean"), false, () => AddProperty(new BooleanShaderProperty(), true));
             gm.ShowAsContext();
         }
 
