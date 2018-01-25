@@ -846,7 +846,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114626627553484938}
   m_Children:
   - {fileID: 114477733422961186}
-  m_UIPosition: {x: 6758.0073, y: -663.0444}
+  m_UIPosition: {x: 6764.0073, y: -675.0444}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6502,7 +6502,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114898222452423678}
-  m_exposedName: totalTimeMad
+  m_exposedName: 
   m_exposed: 1
   m_order: 0
   m_Min:
@@ -9641,7 +9641,7 @@ VFXAsset:
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions:
-  - name: totalTimeMad
+  - name: 
     expressionIndex: 0
   m_PropertySheet:
     m_Float:

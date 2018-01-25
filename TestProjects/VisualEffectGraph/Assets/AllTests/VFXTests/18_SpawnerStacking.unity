@@ -137,7 +137,7 @@ VFXComponent:
   m_GameObject: {fileID: 785520755}
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5988b7838aa53964b8c6adce66d85738, type: 2}
-  m_StartSeed: 1986
+  m_StartSeed: 248723
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
@@ -145,7 +145,7 @@ VFXComponent:
     m_Vector2f:
       m_Array:
       - m_Value: {x: 0.25, y: 0}
-        m_Name: totalTimeMad
+        m_Name: 
         m_Overridden: 0
     m_Vector3f:
       m_Array: []
@@ -348,16 +348,16 @@ VFXComponent:
   m_GameObject: {fileID: 1902854185}
   m_Enabled: 1
   m_Asset: {fileID: 8926484042661614526, guid: 5988b7838aa53964b8c6adce66d85738, type: 2}
-  m_StartSeed: 1987
+  m_StartSeed: 135483
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
     m_Float:
       m_Array: []
     m_Vector2f:
       m_Array:
-      - m_Value: {x: -0.5, y: 0.8}
-        m_Name: totalTimeMad
-        m_Overridden: 1
+      - m_Value: {x: 0.25, y: 0}
+        m_Name: 
+        m_Overridden: 0
     m_Vector3f:
       m_Array: []
     m_Vector4f:
