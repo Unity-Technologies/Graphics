@@ -2,7 +2,6 @@
 #define UNITY_LIGHT_UTILITIES_INCLUDED
 
 #include "LightDefinition.cs.hlsl"
-#include "LightDefinition.custom.hlsl"
 
 // The EnvLightData of the sky light contains a bunch of compile-time constants.
 // This function sets them directly to allow the compiler to propagate them and optimize the code.

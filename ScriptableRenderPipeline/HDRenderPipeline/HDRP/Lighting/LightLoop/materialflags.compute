@@ -11,7 +11,6 @@
 #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
 #include "../../Lighting/LightDefinition.cs.hlsl"
-#include "../../Lighting/LightDefinition.custom.hlsl"
 
 #define USE_MATERIAL_FEATURE_FLAGS
 #define NR_THREADS	64
