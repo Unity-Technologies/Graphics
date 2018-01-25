@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLine("Color = unity_FogColor;");
 
-                    s.AppendLine("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(UnityObjectToClipPos(ObjectSpacePosition).z);", precision);
+                    s.AppendLine("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), ObjectSpacePosition)).z);", precision);
                     s.AppendLine("#if defined(FOG_LINEAR)");
                     using (s.IndentScope())
                     {
