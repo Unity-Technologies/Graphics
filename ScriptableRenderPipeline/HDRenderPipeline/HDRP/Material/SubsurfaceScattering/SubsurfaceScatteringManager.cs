@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Resize(HDCamera hdCamera)
         {
-            CoreUtils.ResizeHTile(m_HTile, ref m_HTileRT, hdCamera.renderTextureDesc);
+            CoreUtils.ResizeHTile(ref m_HTile, ref m_HTileRT, hdCamera.renderTextureDesc);
         }
 
         public void PushGlobalParams(CommandBuffer cmd, DiffusionProfileSettings sssParameters, FrameSettings frameSettings)
