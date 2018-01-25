@@ -268,7 +268,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_DirectionalLightDatas = null;
         static ComputeBuffer s_LightDatas = null;
         static ComputeBuffer s_EnvLightDatas = null;
-        static ComputeBuffer s_EnvProxyDatas = null;
         static ComputeBuffer s_shadowDatas = null;
 
         static Texture2DArray s_DefaultTexture2DArray;
@@ -289,7 +288,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
             public List<EnvLightData> envLights;
-            public List<EnvProxyData> envProxies;
             public List<ShadowData> shadows;
 
             public List<SFiniteLightBound> bounds;
@@ -300,7 +298,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
-                envProxies.Clear();
                 shadows.Clear();
 
                 bounds.Clear();
@@ -312,7 +309,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
-                envProxies = new List<EnvProxyData>();
                 shadows = new List<ShadowData>();
 
                 bounds = new List<SFiniteLightBound>();
@@ -461,7 +457,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
             s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
-            s_EnvProxyDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvProxyData)));
             s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
@@ -564,7 +559,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.SafeRelease(s_DirectionalLightDatas);
             CoreUtils.SafeRelease(s_LightDatas);
             CoreUtils.SafeRelease(s_EnvLightDatas);
-            CoreUtils.SafeRelease(s_EnvProxyDatas);
             CoreUtils.SafeRelease(s_shadowDatas);
 
             if (m_ReflectionProbeCache != null)
@@ -1201,7 +1195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var envLightData = new EnvLightData();
 
 
-            envLightData.envShapeType = probe.influenceShapeType;
+            envLightData.influenceShapeType = probe.influenceShapeType;
             envLightData.dimmer = probe.dimmer;
             envLightData.influenceExtents = probe.influenceExtents;
             envLightData.blendNormalDistancePositive = probe.blendNormalDistancePositive;
@@ -1212,29 +1206,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.boxSideFadeNegative = probe.boxSideFadeNegative;
             envLightData.sampleDirectionDiscardWS = sampleDirectionDiscardWS;
 
-            envLightData.right = influenceToWorld.GetColumn(0).normalized;
-            envLightData.up = influenceToWorld.GetColumn(1).normalized;
-            envLightData.forward = influenceToWorld.GetColumn(2).normalized;
+            envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
+            envLightData.influenceUp = influenceToWorld.GetColumn(1).normalized;
+            envLightData.influenceForward = influenceToWorld.GetColumn(2).normalized;
             envLightData.capturePositionWS = capturePosition;
-            envLightData.positionWS = influenceToWorld.GetColumn(3);
+            envLightData.influencePositionWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;
 
-            m_lightList.envLights.Add(envLightData);
-
-            // Build projection data
+            // Proxy data
             var proxyToWorld = probe.proxyToWorld;
-            var envProxyData = new EnvProxyData();
-            envProxyData.envShapeType = probe.proxyShapeType;
-            envProxyData.extents = probe.proxyExtents;
-            envProxyData.minProjectionDistance = probe.infiniteProjection ? 65504f : 0;
+            envLightData.proxyExtents = probe.proxyExtents;
+            envLightData.minProjectionDistance = probe.infiniteProjection ? 65504f : 0;
+            envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
+            envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
+            envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
+            envLightData.proxyPositionWS = proxyToWorld.GetColumn(3);
+            envLightData.proxyShapeType = probe.proxyShapeType;
 
-            envProxyData.right = proxyToWorld.GetColumn(0).normalized;
-            envProxyData.up = proxyToWorld.GetColumn(1).normalized;
-            envProxyData.forward = proxyToWorld.GetColumn(2).normalized;
-            envProxyData.positionWS = proxyToWorld.GetColumn(3);
-
-            m_lightList.envProxies.Add(envProxyData);
+            m_lightList.envLights.Add(envLightData);
 
             return true;
         }
@@ -1664,12 +1654,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 int n = m_lightList.envLights.Count;
                                 EnvLightData envLightData = m_lightList.envLights[n - 1];
                                 envLightData.capturePositionWS -= camPosWS;
-                                envLightData.positionWS -= camPosWS;
+                                envLightData.influencePositionWS -= camPosWS;
+                                envLightData.proxyPositionWS -= camPosWS;
                                 m_lightList.envLights[n - 1] = envLightData;
-
-                                var envProjData = m_lightList.envProxies[n - 1];
-                                envProjData.positionWS -= camPosWS;
-                                m_lightList.envProxies[n - 1] = envProjData;
                             }
                         }
                     }
@@ -1678,7 +1665,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
-                Debug.Assert(m_lightList.envProxies.Count == m_lightList.envLights.Count);
 
                 UpdateDataBuffers();
 
@@ -1941,7 +1927,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DirectionalLightDatas.SetData(m_lightList.directionalLights);
             s_LightDatas.SetData(m_lightList.lights);
             s_EnvLightDatas.SetData(m_lightList.envLights);
-            s_EnvProxyDatas.SetData(m_lightList.envProxies);
             s_shadowDatas.SetData(m_lightList.shadows);
 
             // These two buffers have been set in Rebuild()
@@ -1993,9 +1978,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._PunctualLightCount, m_punctualLightCount);
                 cmd.SetGlobalInt(HDShaderIDs._AreaLightCount, m_areaLightCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
-                cmd.SetGlobalBuffer(HDShaderIDs._EnvProxyDatas, s_EnvProxyDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
-                cmd.SetGlobalInt(HDShaderIDs._EnvProxyCount, m_lightList.envProxies.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));

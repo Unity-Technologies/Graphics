@@ -1716,7 +1716,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, EnvProxyData proxyData, BSDFData bsdfData, 
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, 
                                     int influenceShapeType, int projectionShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
@@ -1774,8 +1774,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
     float3 dirIS = mul(R, worldToIS);
 
-    float3x3 worldToPS = WorldToProxySpace(proxyData);
-    float3 positionPS = WorldToProxyPosition(proxyData, worldToPS, positionWS);
+    float3x3 worldToPS = WorldToProxySpace(lightData);
+    float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
     float3 dirPS = mul(R, worldToPS);
 
     float projectionDistance = 0;
@@ -1783,7 +1783,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     if (projectionShapeType == ENVSHAPETYPE_SPHERE)
     {
-        projectionDistance = IntersectSphereProxy(proxyData, dirPS, positionPS);
+        projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
         R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
 
@@ -1791,13 +1791,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirPS = mul(coatR, worldToPS);
-            projectionDistance = IntersectSphereProxy(proxyData, dirPS, positionPS);
+            projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
             coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
         }
     }
     else if (projectionShapeType == ENVSHAPETYPE_BOX)
     {
-        projectionDistance = IntersectBoxProxy(proxyData, dirPS, positionPS);
+        projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
         R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
@@ -1808,7 +1808,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirPS = mul(coatR, worldToPS);
-            projectionDistance = IntersectBoxProxy(proxyData, dirPS, positionPS);
+            projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
             coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
         }
     }
