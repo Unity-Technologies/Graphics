@@ -448,6 +448,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
+
+            m_MasterPreviewView.RefreshRenderTextureSize();
         }
 
         public void Dispose()
