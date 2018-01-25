@@ -620,9 +620,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     kernelName += "_DepthRT";
 
-                    // if MSAA is actually active, use the MSAA path
-                    //if (m_FrameSettings.enableMSAA && 
-                    //    (HDRenderPipeline.kMsaaSamplesFixed > 1))
                     if (m_FrameSettings.enableMSAA)
                         kernelName += "_MSAA";
                 }

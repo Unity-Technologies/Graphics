@@ -169,6 +169,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
+            if (QualitySettings.antiAliasing < 1)
+                aggregate.enableMSAA = false;
             if (aggregate.enableMSAA)
             {
                 // Initially, MSAA will only support forward
