@@ -274,6 +274,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
+
+                    edgeView.output = null;
+                    edgeView.input = null;
+
                     m_GraphView.RemoveElement(edgeView);
                 }
             }
