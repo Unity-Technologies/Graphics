@@ -52,9 +52,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             base.BuildContextualMenu(evt);
-            evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
-            evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
-            evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+            if (evt.target is GraphView || evt.target is Node)
+            {
+                evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
+                evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
+                evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+            }
+            else if (evt.target is BlackboardField)
+            {
+                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
+            }
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
@@ -191,6 +198,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(selection.OfType<MaterialNodeView>().Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            foreach (var selectable in selection)
+            {
+                var field = selectable as BlackboardField;
+                if (field != null && field.userData != null)
+                {
+                    var property = (IShaderProperty)field.userData;
+                    graph.RemoveShaderProperty(property.guid);
+                }
+            }
         }
     }
 
