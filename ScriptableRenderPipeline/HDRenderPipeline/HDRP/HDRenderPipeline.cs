@@ -278,6 +278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Detect when windows size is changing
         int m_CurrentWidth;
         int m_CurrentHeight;
+        int m_CurrentMSAASampleCount;
 
         // Use to detect frame changes
         int m_FrameCount;
@@ -507,8 +508,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var desc = hdCamera.renderTextureDesc;
             var texWidth = desc.width;
             var texHeight = desc.height;
+            var sampleCount = desc.msaaSamples;
 
-            bool resolutionChanged = (texWidth != m_CurrentWidth) || (texHeight != m_CurrentHeight);
+            bool resolutionChanged = (texWidth != m_CurrentWidth) || 
+                                     (texHeight != m_CurrentHeight) || 
+                                     (sampleCount != m_CurrentMSAASampleCount);
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
             {
@@ -538,6 +542,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // update recorded window resolution
             m_CurrentWidth = texWidth;
             m_CurrentHeight = texHeight;
+            m_CurrentMSAASampleCount = sampleCount;
         }
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters)

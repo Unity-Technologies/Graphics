@@ -172,7 +172,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             if (frameSettings.enableMSAA)
-                tempDesc.msaaSamples = HDRenderPipeline.kMsaaSamplesFixed;
+            {
+                //tempDesc.msaaSamples = HDRenderPipeline.kMsaaSamplesFixed;
+                var sampleCount = QualitySettings.antiAliasing;
+                Debug.LogFormat("Quality Settings AA value: {0}", sampleCount);
+                if (sampleCount < 1)
+                {
+                    Debug.LogFormat("MSAA sample count clamped");
+                    sampleCount = 1;
+                }
+                tempDesc.msaaSamples = sampleCount;
+            }
             else
                 tempDesc.msaaSamples = 1;
 
