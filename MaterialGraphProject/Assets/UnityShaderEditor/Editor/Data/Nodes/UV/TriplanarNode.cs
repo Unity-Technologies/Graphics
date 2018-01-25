@@ -68,44 +68,44 @@ namespace UnityEditor.ShaderGraph
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
-            sb.AppendLine(string.Format("{0}3 {1}_UV = {2} * {3};", precision, GetVariableNameForNode(), 
-                GetSlotValue(PositionInputId, generationMode), GetSlotValue(TileInputId, generationMode)));
+            sb.AppendLine("{0}3 {1}_UV = {2} * {3};", precision, GetVariableNameForNode(), 
+                GetSlotValue(PositionInputId, generationMode), GetSlotValue(TileInputId, generationMode));
 
-            sb.AppendLine(string.Format("{0}3 {1}_Blend = pow(abs({2}), {3});", precision, GetVariableNameForNode(),
-                GetSlotValue(NormalInputId, generationMode), GetSlotValue(BlendInputId, generationMode)));
+            sb.AppendLine("{0}3 {1}_Blend = pow(abs({2}), {3});", precision, GetVariableNameForNode(),
+                GetSlotValue(NormalInputId, generationMode), GetSlotValue(BlendInputId, generationMode));
 
-            sb.AppendLine(string.Format("{0}_Blend /= dot({0}_Blend, 1.0);", GetVariableNameForNode()));
+            sb.AppendLine("{0}_Blend /= dot({0}_Blend, 1.0);", GetVariableNameForNode());
 
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            sb.AppendLine(string.Format("{0}4 {1}_X = SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.yz);"
+            sb.AppendLine("{0}4 {1}_X = SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.yz);"
                 , precision
                 , GetVariableNameForNode()
                 , id
-                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id));
+                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-            sb.AppendLine(string.Format("{0}4 {1}_Y = SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xz);"
+            sb.AppendLine("{0}4 {1}_Y = SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xz);"
                 , precision
                 , GetVariableNameForNode()
                 , id
-                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id));
+                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-            sb.AppendLine(string.Format("{0}4 {1}_Z = SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xy);"
+            sb.AppendLine("{0}4 {1}_Z = SAMPLE_TEXTURE2D({2}, {3}, {1}_UV.xy);"
                 , precision
                 , GetVariableNameForNode()
                 , id
-                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id));
+                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id);
 
-            sb.AppendLine(string.Format("{0}4 {1} = {2}_X * {2}_Blend.x + {2}_Y * {2}_Blend.y + {2}_Z * {2}_Blend.z;"
+            sb.AppendLine("{0}4 {1} = {2}_X * {2}_Blend.x + {2}_Y * {2}_Blend.y + {2}_Z * {2}_Blend.z;"
                 , precision
                 , GetVariableNameForSlot(OutputSlotId)
-                , GetVariableNameForNode()));
+                , GetVariableNameForNode());
 
             if (textureType == TextureType.Normal)
-                sb.AppendLine(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotId)), true);
+                sb.AppendLine("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotId));
 
             visitor.AddShaderChunk(sb.ToString(), false);
         }

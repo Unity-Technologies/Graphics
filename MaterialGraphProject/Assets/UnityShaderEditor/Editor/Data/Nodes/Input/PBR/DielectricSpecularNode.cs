@@ -60,6 +60,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        static Dictionary<DielectricMaterialType, string> m_MaterialList = new Dictionary<DielectricMaterialType, string>
+        {
+            {DielectricMaterialType.RustedMetal, "(0.030, 0.030, 0.030)"},
+            {DielectricMaterialType.Water, "(0.020, 0.020, 0.020)"},
+            {DielectricMaterialType.Ice, "(0.018, 0.018, 0.018)"},
+            {DielectricMaterialType.Glass, "(0.040, 0.040, 0.040)"}
+        };
+
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
@@ -95,25 +103,14 @@ namespace UnityEditor.ShaderGraph
             }
             switch (material.type)
             {
-                case DielectricMaterialType.RustedMetal:
-                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.030, 0.030, 0.030);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
-                    break;
-                case DielectricMaterialType.Water:
-                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.020, 0.020, 0.020);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
-                    break;
-                case DielectricMaterialType.Ice:
-                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.018, 0.018, 0.018);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
-                    break;
-                case DielectricMaterialType.Glass:
-                    sb.AppendLine(string.Format("{0}3 {1} = {0}3(0.040, 0.040, 0.040);", precision, GetVariableNameForSlot(kOutputSlotId)), true);
+                case DielectricMaterialType.Common:
+                    sb.AppendLine("{0}3 {1} = lerp(0.034, 0.048, _{2}_Range);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
                     break;
                 case DielectricMaterialType.Custom:
-                    sb.AppendLine(string.Format("{0}3 {1} = pow({2} - 1, 2) / pow({2} + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId),
-                        string.Format("_{0}_IOR", GetVariableNameForNode())), true);
+                    sb.AppendLine("{0}3 {1} = pow(_{2}_IOR - 1, 2) / pow(_{2}_IOR + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
                     break;
                 default:
-                    sb.AppendLine(string.Format("{0}3 {1} = lerp(0.034, 0.048, {2});", precision, GetVariableNameForSlot(kOutputSlotId), 
-                        string.Format("_{0}_Range", GetVariableNameForNode())), true);
+                    sb.AppendLine("{0}3 {1} = {0}3{2};", precision, GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material.type]);
                     break;
             }
             visitor.AddShaderChunk(sb.ToString(), false);
