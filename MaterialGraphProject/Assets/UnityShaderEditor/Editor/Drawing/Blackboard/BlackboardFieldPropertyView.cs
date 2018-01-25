@@ -90,6 +90,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
                 AddRow("Default", field);
             }
+            else if (property is BooleanShaderProperty)
+            {
+                var booleanProperty = (BooleanShaderProperty)property;
+                Action onBooleanChanged = () => 
+                { 
+                    booleanProperty.value = !booleanProperty.value;
+                    DirtyNodes();
+                };
+                var field = new Toggle(onBooleanChanged) { on = booleanProperty.value };
+                AddRow("Default", field);
+            }
 //            AddRow("Type", new TextField());
 //            AddRow("Exposed", new Toggle(null));
 //            AddRow("Range", new Toggle(null));
