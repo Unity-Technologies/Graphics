@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
                 value = color,
-                HDR = true
+                colorMode = ColorMode.HDR
             });
         }
 
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
 
         public IShaderProperty AsShaderProperty()
         {
-            return new ColorShaderProperty { value = color, HDR = true };
+            return new ColorShaderProperty { value = color, colorMode = ColorMode.HDR };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

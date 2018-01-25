@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 var fProp = (ColorShaderProperty)property;
                 ColorField colorField;
-                if(fProp.HDR)
+                if(fProp.colorMode == ColorMode.HDR)
                     colorField = new ColorField { name = "value", value = fProp.value, hdr = true };
                 else
                     colorField = new ColorField { name = "value", value = fProp.value };

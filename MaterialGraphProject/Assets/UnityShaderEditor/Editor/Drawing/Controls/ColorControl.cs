@@ -8,12 +8,6 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
-    public enum ColorMode
-    {
-        Default,
-        HDR
-    }
-
     [AttributeUsage(AttributeTargets.Property)]
     public class ColorControlAttribute : Attribute, IControlAttribute
     {
