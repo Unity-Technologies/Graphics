@@ -360,7 +360,7 @@ namespace UnityEditor.VFX
                     if (slot.HasLink(true))
                     {
                         //first check at the same index
-                        if (currentSlots[i].property.name == slot.property.name && TransferLinks(currentSlots[i], slot, notify))
+                        if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && TransferLinks(currentSlots[i], slot, notify))
                         {
                             break;
                         }
