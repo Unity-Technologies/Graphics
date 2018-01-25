@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     [Serializable]
     class FloatingWindowsLayout
     {
-        public Rect previewLayout;
-        public Rect blackboardLayout;
+        public WindowDockingLayout previewLayout = new WindowDockingLayout();
+        public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
     }
 
     public class GraphEditorView : VisualElement, IDisposable
@@ -115,20 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
-                m_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
-                string serializedWindowLayout = EditorUserSettings.GetConfigValue(m_FloatingWindowsLayoutKey);
-
-                if (!String.IsNullOrEmpty(serializedWindowLayout))
-                {
-                    m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
-                    m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout;
-                    if (m_FloatingWindowsLayout.blackboardLayout.width > 0)
-                        m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout;
-                }
-                else
-                {
-                    m_FloatingWindowsLayout = new FloatingWindowsLayout();
-                }
+                RegisterCallback<PostLayoutEvent>(ApplySerializewindowLayouts);
             }
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
@@ -437,10 +424,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void ApplySerializewindowLayouts(PostLayoutEvent evt)
+        {
+            UnregisterCallback<PostLayoutEvent>(ApplySerializewindowLayouts);
+
+            m_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
+            string serializedWindowLayout = EditorUserSettings.GetConfigValue(m_FloatingWindowsLayoutKey);
+
+            if (!String.IsNullOrEmpty(serializedWindowLayout))
+            {
+                m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+
+                m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout.GetLayout(layout);
+                m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(layout);
+            }
+            else
+            {
+                m_FloatingWindowsLayout = new FloatingWindowsLayout();
+            }
+        }
+
         void UpdateSerializedWindowLayout()
         {
-            m_FloatingWindowsLayout.previewLayout = m_MasterPreviewView.layout;
-            m_FloatingWindowsLayout.blackboardLayout = m_BlackboardProvider.blackboard.layout;
+            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
+            m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
