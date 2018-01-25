@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -57,9 +58,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.Add(m_Section);
         }
 
-        void MoveItemRequested(Blackboard blackboard, int i, VisualElement visualElement)
+        void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
         {
-            Debug.Log(i);
+            var property = visualElement.userData as IShaderProperty;
+            if (property == null)
+                return;
+            m_Graph.MoveShaderProperty(property, newIndex);
         }
 
         void AddItemRequested(Blackboard blackboard)
@@ -100,22 +104,38 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             foreach (var property in m_Graph.addedProperties)
-                AddProperty(property);
+                AddProperty(property, index: m_Graph.GetShaderPropertyIndex(property));
+
+            if (m_Graph.movedProperties.Any())
+            {
+                foreach (var row in m_PropertyRows.Values)
+                    row.RemoveFromHierarchy();
+
+                foreach (var property in m_Graph.properties)
+                    m_Section.Add(m_PropertyRows[property.guid]);
+            }
         }
 
-        void AddProperty(IShaderProperty property, bool create = false)
+        void AddProperty(IShaderProperty property, bool create = false, int index = -1)
         {
             if (m_PropertyRows.ContainsKey(property.guid))
-                throw new ArgumentException("Property already exists");
+                return;
             var field = new BlackboardField(m_ExposedIcon, property.displayName, property.propertyType.ToString()) { userData = property };
             var row = new BlackboardRow(field, new BlackboardFieldPropertyView(m_Graph, property));
-            m_Section.Add(row);
+            row.userData = property;
+            if (index < 0)
+                index = m_PropertyRows.Count;
+            if (index == m_PropertyRows.Count)
+                m_Section.Add(row);
+            else
+                m_Section.Insert(index, row);
             m_PropertyRows[property.guid] = row;
 
             if (create)
             {
                 field.RenameGo();
                 row.expanded = true;
+                m_Graph.AddShaderProperty(property);
             }
         }
 

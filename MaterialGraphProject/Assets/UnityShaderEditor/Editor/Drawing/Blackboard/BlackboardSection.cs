@@ -187,15 +187,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SetDragIndicatorVisible(true);
 
                 m_DragIndicator.layout = new Rect(0, indicatorY - m_DragIndicator.layout.height / 2, layout.width, m_DragIndicator.layout.height);
+
+                return EventPropagation.Stop;
             }
             else
             {
                 SetDragIndicatorVisible(false);
 
                 m_InsertIndex = -1;
+
+                return EventPropagation.Continue;
             }
 
-            return EventPropagation.Stop;
         }
 
         int IndexOf(VisualElement element)
@@ -291,7 +294,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         EventPropagation IDropTarget.DragExited()
         {
             SetDragIndicatorVisible(false);
-            return EventPropagation.Stop;
+            return EventPropagation.Continue;
         }
     }
 }
