@@ -66,9 +66,12 @@ namespace UnityEditor.VFX.UI
 
         public override void OnAdd()
         {
-            VFXEditableOperator op = model;
+            model.AddOperand();
+        }
 
-            op.AddOperand();
+        public override void OnRemove(int index)
+        {
+            model.RemoveOperand(index);
         }
 
         int m_CurrentIndex = -1;

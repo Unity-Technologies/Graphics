@@ -131,6 +131,11 @@ namespace UnityEditor.VFX.UI
             if (m_SelectedLine != -1 && m_SelectedLine < m_ListContainer.childCount)
             {
                 m_ListContainer.ElementAt(m_SelectedLine).pseudoStates |= PseudoStates.Selected;
+                m_Remove.SetEnabled(true);
+            }
+            else
+            {
+                m_Remove.SetEnabled(false);
             }
         }
 
@@ -272,13 +277,29 @@ namespace UnityEditor.VFX.UI
 
         public VFXReorderableList()
         {
-            m_ListContainer = new VisualElement() {name = "OperandContainer"};
+            m_ListContainer = new VisualElement() {name = "ListContainer"};
 
             Add(m_ListContainer);
 
-            Add(new Button(OnAdd) {text = "Add"});
+            var toolbar = new VisualElement() { name = "Toolbar"};
+
+            var add = new VisualElement() { name = "Add" };
+            add.Add(new VisualElement() { name = "icon" });
+            add.AddManipulator(new Clickable(OnAdd));
+            toolbar.Add(add);
+
+            m_Remove = new VisualElement() { name = "Remove" };
+            m_Remove.Add(new VisualElement() { name = "icon" });
+            m_Remove.AddManipulator(new Clickable(OnRemoveButton));
+            toolbar.Add(m_Remove);
+
+            m_Remove.SetEnabled(false);
+
+            Add(toolbar);
             AddToClassList("ReorderableList");
         }
+
+        VisualElement m_Remove;
 
         public void AddItem(VisualElement item)
         {
@@ -295,6 +316,11 @@ namespace UnityEditor.VFX.UI
         public void RemoveItemAt(int index)
         {
             m_ListContainer.RemoveAt(index);
+
+            if (m_SelectedLine >= m_ListContainer.childCount)
+            {
+                Select(m_ListContainer.childCount - 1);
+            }
         }
 
         public VisualElement ItemAt(int index)
@@ -308,6 +334,15 @@ namespace UnityEditor.VFX.UI
         }
 
         public virtual void OnAdd()
+        {
+        }
+
+        void OnRemoveButton()
+        {
+            OnRemove(m_SelectedLine);
+        }
+
+        public virtual void OnRemove(int index)
         {
         }
     }

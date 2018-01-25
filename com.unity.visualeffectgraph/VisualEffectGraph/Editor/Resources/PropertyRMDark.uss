@@ -26,3 +26,13 @@ VFXFloatField:focus {
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/WindowBottomResize.png");
 }
+
+
+.ReorderableList > #Toolbar > #Add > #icon
+{
+    background-image: resource("VFX/dark_StolenToolbarPlus");
+}
+.ReorderableList #Toolbar > #Remove > #icon
+{
+    background-image: resource("VFX/dark_StolenToolbarMinus");
+}

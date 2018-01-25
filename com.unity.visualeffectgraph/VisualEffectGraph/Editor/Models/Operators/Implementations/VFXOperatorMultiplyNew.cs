@@ -35,6 +35,19 @@ namespace UnityEditor.VFX
             Invalidate(VFXModel.InvalidationCause.kSettingChanged);
         }
 
+        public void RemoveOperand(int index)
+        {
+            int oldCount = m_Operands.Length;
+
+            OperandInfo[] infos = new OperandInfo[oldCount - 1];
+
+            Array.Copy(m_Operands, infos, index);
+            Array.Copy(m_Operands, index + 1, infos, index, oldCount - index - 1);
+            m_Operands = infos;
+
+            Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+        }
+
         public int operandCount
         {
             get { return m_Operands != null ? m_Operands.Length : 0; }
