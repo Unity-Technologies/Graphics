@@ -32,48 +32,22 @@ VFXOperatorUI #title #edit #icon
     flex:1;
 }
 
-VFXOperatorUI MultiOperatorEdit
-{
-    position-type:Absolute;
-    position-left:0;
-    position-right:0;
-    position-top:0;
-    background-color:#383838;
-}
-VFXOperatorUI MultiOperatorEdit OperandInfo
-{
-    flex-direction:row;
-    align-items:center;
-    background-color:#383838;
-}
 
-VFXOperatorUI MultiOperatorEdit OperandInfo:selected
-{
-    background-color:#3d6091;
-}
-
-
-VFXOperatorUI MultiOperatorEdit OperandInfo *
+OperandInfo *
 {
     height:16;
 }
-VFXOperatorUI MultiOperatorEdit OperandInfo VFXStringField
+OperandInfo VFXStringField
 {
     flex:1;
 }
-VFXOperatorUI MultiOperatorEdit OperandInfo VFXStringField .textfield
+OperandInfo VFXStringField .textfield
 {
     flex:1;
 }
-VFXOperatorUI MultiOperatorEdit OperandInfo Button
+OperandInfo Button
 {
     width:70;
-}
-VFXOperatorUI MultiOperatorEdit OperandInfo #DraggingHandle
-{
-    width: 16;
-    align-items:center;
-    justify-content:center;
 }
 
 

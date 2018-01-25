@@ -277,6 +277,7 @@ namespace UnityEditor.VFX.UI
             Add(m_ListContainer);
 
             Add(new Button(OnAdd) {text = "Add"});
+            AddToClassList("ReorderableList");
         }
 
         public void AddItem(VisualElement item)

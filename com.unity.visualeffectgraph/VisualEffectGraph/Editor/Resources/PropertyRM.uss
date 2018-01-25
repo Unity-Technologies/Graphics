@@ -252,8 +252,36 @@ VFXStringFieldPushButton Button
 {
 	height:16;
 }
+
 #DraggingHandle #icon
 {
     width:10;
     height:6
+}
+
+.ReorderableList
+{
+    position-type:Absolute;
+    position-left:0;
+    position-right:0;
+    position-top:0;
+    background-color:#383838;
+}
+.ReorderableList OperandInfo
+{
+    flex-direction:row;
+    align-items:center;
+    background-color:#383838;
+}
+
+.ReorderableList OperandInfo:selected
+{
+    background-color:#3d6091;
+}
+
+.ReorderableList > * > * > #DraggingHandle
+{
+    width: 16;
+    align-items:center;
+    justify-content:center;
 }
