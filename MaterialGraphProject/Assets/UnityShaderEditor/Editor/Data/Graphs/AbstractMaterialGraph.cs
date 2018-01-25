@@ -41,6 +41,14 @@ namespace UnityEditor.ShaderGraph
             get { return m_RemovedProperties; }
         }
 
+        [NonSerialized]
+        List<IShaderProperty> m_MovedProperties = new List<IShaderProperty>();
+
+        public IEnumerable<IShaderProperty> movedProperties
+        {
+            get { return m_MovedProperties; }
+        }
+
         [SerializeField]
         SerializableGuid m_GUID = new SerializableGuid();
 
@@ -139,6 +147,7 @@ namespace UnityEditor.ShaderGraph
             m_RemovedEdges.Clear();
             m_AddedProperties.Clear();
             m_RemovedProperties.Clear();
+            m_MovedProperties.Clear();
         }
 
         public virtual void AddNode(INode node)
@@ -397,10 +406,40 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
+        public void MoveShaderProperty(IShaderProperty property, int newIndex)
+        {
+            if (newIndex > m_Properties.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within properties list.");
+            var currentIndex = m_Properties.IndexOf(property);
+            if (currentIndex == -1)
+                throw new ArgumentException("Property is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_Properties.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_Properties.Count;
+            if (isLast)
+                m_Properties.Add(property);
+            else
+                m_Properties.Insert(newIndex, property);
+            if (!m_MovedProperties.Contains(property))
+                m_MovedProperties.Add(property);
+        }
+
+        public int GetShaderPropertyIndex(IShaderProperty property)
+        {
+            return m_Properties.IndexOf(property);
+        }
+
         void RemoveShaderPropertyNoValidate(Guid guid)
         {
             if (m_Properties.RemoveAll(x => x.guid == guid) > 0)
+            {
                 m_RemovedProperties.Add(guid);
+                m_AddedProperties.RemoveAll(x => x.guid == guid);
+                m_MovedProperties.RemoveAll(x => x.guid == guid);
+            }
         }
 
         static List<IEdge> s_TempEdges = new List<IEdge>();
