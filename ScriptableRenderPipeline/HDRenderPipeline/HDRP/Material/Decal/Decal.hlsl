@@ -89,6 +89,11 @@ CBUFFER_START(UnityDecalParameters)
 	uint _EnableDBuffer;
 CBUFFER_END
 
+UNITY_INSTANCING_BUFFER_START(Decal)      
+	UNITY_DEFINE_INSTANCED_PROP(float4x4, normalToWorld)
+UNITY_INSTANCING_BUFFER_END(matrix)       
+
+
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,
                         out DBufferType0 outDBuffer0,

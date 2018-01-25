@@ -109,6 +109,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_ColorMRTs;
         }
 
+		public void ClearNormalTarget(Color clearColor, CommandBuffer cmd)
+		{
+			// index 1 is normals
+			CoreUtils.SetRenderTarget(cmd, m_ColorMRTs[1], ClearFlag.Color, clearColor);
+		}
+
         public void PushGlobalParams(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
@@ -116,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
 
-    public partial class HDRenderPipeline : RenderPipeline
+    public class HDRenderPipeline : RenderPipeline
     {
         enum ForwardPass
         {
@@ -138,10 +144,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             "Forward PreRefraction",
             "Forward Transparent"
         };
-
-        static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Transparent - 1 };
-        static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { min = (int)HDRenderQueue.Transparent, max = (int)HDRenderQueue.Overlay - 1 };
-        static readonly RenderQueueRange k_RenderQueue_AllTransparent = new RenderQueueRange { min = (int)HDRenderQueue.PreRefraction, max = (int)HDRenderQueue.Overlay - 1 };
 
         readonly HDRenderPipelineAsset m_Asset;
 
@@ -291,6 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly LightLoop m_LightLoop = new LightLoop();
         readonly ShadowSettings m_ShadowSettings = new ShadowSettings();
+        readonly VolumetricLightingModule m_VolumetricLightingModule = new VolumetricLightingModule();
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -385,6 +388,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Build(asset, m_IBLFilterGGX);
 
+            m_VolumetricLightingModule.Build(asset);
+
             m_DebugDisplaySettings.RegisterDebug();
             FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
 
@@ -476,6 +481,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
+            m_VolumetricLightingModule.Cleanup();
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
         }
@@ -540,11 +546,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.AllocResolutionDependentBuffers(texWidth, texHeight);
             }
 
-            int viewId = hdCamera.camera.GetInstanceID(); // Warning: different views can use the same camera
-
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
-                ResizeVBuffer(viewId, texWidth, texHeight);
+            m_VolumetricLightingModule.ResizeVBuffer(hdCamera, texWidth, texHeight);
 
             // update recorded window resolution
             m_CurrentWidth = texWidth;
@@ -561,10 +564,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_DbufferManager.PushGlobalParams(cmd);
 
-                if (m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
-                {
-                    SetVolumetricLightingData(hdCamera, cmd);
-                }
+                m_VolumetricLightingModule.PushGlobalParams(hdCamera, cmd);
             }
         }
 
@@ -837,7 +837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
 
-                    RenderPyramidDepth(camera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+                    RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
@@ -907,7 +907,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
-                        VolumetricLightingPass(hdCamera, cmd);
+                        m_VolumetricLightingModule.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -924,7 +924,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
                         RenderForwardError(m_CullResults, camera, renderContext, cmd, ForwardPass.PreRefraction);
 
-                        RenderGaussianPyramidColor(camera, cmd, renderContext, true);
+                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, true);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -933,14 +933,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, camera, renderContext, cmd, ForwardPass.Transparent);
 
-                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.NanTracker);
-
-                        RenderGaussianPyramidColor(camera, cmd, renderContext, false);
+                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
 
+                        PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.NanTracker);
                         PushColorPickerDebugTexture(cmd, m_CameraColorBufferRT, hdCamera);
+
+                        // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
+                        // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
 
                         // Final blit
                         if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
@@ -951,12 +953,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.BlitToFinalRT.GetSampler()))
                             {
+                                // This Blit will flip the screen anything other than openGL
                                 // Simple blit
                                 cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                             }
                         }
                     }
 
+                    // Caution: RenderDebug need to take into account that we have flip the screen (so anything capture before the flip will be flipped)
                     RenderDebug(hdCamera, cmd);
 
                     // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
@@ -1026,7 +1030,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var filterSettings = new FilterRenderersSettings(true)
             {
-                renderQueueRange = inRenderQueueRange == null ? RenderQueueRange.opaque : inRenderQueueRange.Value
+                renderQueueRange = inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllOpaque : inRenderQueueRange.Value
             };
 
             if (stateBlock == null)
@@ -1084,7 +1088,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var filterSettings = new FilterRenderersSettings(true)
             {
-                renderQueueRange = inRenderQueueRange == null ? k_RenderQueue_AllTransparent : inRenderQueueRange.Value
+                renderQueueRange = inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllTransparent : inRenderQueueRange.Value
             };
 
             if (stateBlock == null)
@@ -1157,12 +1161,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
                     // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, RenderQueueRange.opaque, m_DepthStateOpaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
                 }
                 else // Deferred rendering with partial depth prepass
                 {
                     // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, RenderQueueRange.opaque, m_DepthStateOpaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
 
                     // Render Alpha test only if requested
                     if (addAlphaTestedOnly)
@@ -1201,24 +1205,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                 {
                     // When doing debug display, the shader has the clip instruction regardless of the depth prepass so we can use regular depth test.
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferDebugDisplayName, m_currentRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferDebugDisplayName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
                 }
                 else
                 {
                     if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
                     {
-                        var rangeOpaqueNoAlphaTest = new RenderQueueRange { min = (int)RenderQueue.Geometry, max = (int)RenderQueue.AlphaTest - 1 };
-                        var rangeOpaqueAlphaTest = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-
                         // When using depth prepass for opaque alpha test only we need to use regular depth test for normal opaque objects.
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, rangeOpaqueNoAlphaTest, m_FrameSettings.enableAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest, m_FrameSettings.enableAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
                         // but for opaque alpha tested object we use a depth equal and no depth write. And we rely on the shader pass GbufferWithDepthPrepass
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferWithPrepassName, m_currentRendererConfigurationBakedLighting, rangeOpaqueAlphaTest, m_DepthStateOpaqueWithPrepass);
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferWithPrepassName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueAlphaTest, m_DepthStateOpaqueWithPrepass);
                     }
                     else
                     {
                         // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, RenderQueueRange.opaque, m_DepthStateOpaque);
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
                     }
                 }
             }
@@ -1237,7 +1238,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
 
-                CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+				// for alpha compositing, color is cleared to 0, alpha to 1
+				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+
+				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT, ClearFlag.Color, clearColor);
+
+				// we need to do a separate clear for normals, because they are cleared to a different color
+				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+				m_DbufferManager.ClearNormalTarget(clearColorNormal, cmd);
+
+				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT); // do not clear anymore
                 DecalSystem.instance.Render(renderContext, camera, cmd);
             }
         }
@@ -1268,6 +1279,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Blit DebugView Material Debug", CustomSamplerId.BlitDebugViewMaterialDebug.GetSampler()))
                 {
+                    // This Blit will flip the screen anything other than openGL
                     cmd.Blit(m_CameraColorBufferRT, BuiltinRenderTextureType.CameraTarget);
                 }
             }
@@ -1336,7 +1348,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthStencilBufferRT, cmd);
 
-            if (visualEnv.fogType != FogType.None || m_VolumetricLightingPreset != VolumetricLightingPreset.Off)
+            if (visualEnv.fogType != FogType.None || m_VolumetricLightingModule.preset != VolumetricLightingModule.VolumetricLightingPreset.Off)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
@@ -1411,7 +1423,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBufferRT, m_CameraDepthStencilBufferRT);
 
                     var passNames = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? m_AllTransparentDebugDisplayPassNames : m_AllTransparentPassNames;
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? k_RenderQueue_PreRefraction : k_RenderQueue_Transparent);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
                 }
             }
         }
@@ -1430,7 +1442,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, pass == ForwardPass.PreRefraction ? k_RenderQueue_PreRefraction : k_RenderQueue_Transparent, null, m_ErrorMaterial);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_ForwardErrorPassNames, 0, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent, null, m_ErrorMaterial);
                 }
             }
         }
@@ -1482,7 +1494,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderGaussianPyramidColor(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
+        void RenderGaussianPyramidColor(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
         {
             if (isPreRefraction)
             {
@@ -1539,7 +1551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     last = HDShaderIDs._GaussianPyramidColorMips[i + 1];
                 }
 
-                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, m_GaussianPyramidColorBufferDesc, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, m_GaussianPyramidColorBufferDesc, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
 
                 cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
 
@@ -1550,7 +1562,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderPyramidDepth(Camera camera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
             {
@@ -1597,7 +1609,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
                 }
 
-                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, debugMode);
+                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, hdCamera, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
 
@@ -1655,6 +1667,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // allowFlip is false if we call the function after the FinalPass or cmd.Blit that flip the screen
         public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
@@ -1676,7 +1689,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
@@ -1693,7 +1706,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RenderTargetIdentifier textureID, int lodCount, RenderTextureDescriptor desc, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
@@ -1733,6 +1746,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._DebugFullScreenTexture, m_DebugFullScreenTempRT);
                     // TODO: Replace with command buffer call when available
                     m_DebugFullScreen.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)m_CurrentDebugDisplaySettings.fullScreenDebugMode);
+                    // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
+                    // (i.e. we have perform a flip, we need to flip the input texture)
+                    m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     CoreUtils.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(cmd, m_DebugFullScreenTempRT, hdCamera);
@@ -1776,7 +1792,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // The material display debug perform sRGBToLinear conversion as the final blit currently hardcode a linearToSrgb conversion. As when we read with color picker this is not done,
                     // we perform it inside the color picker shader. But we shouldn't do it for HDR buffer.
                     m_DebugColorPicker.SetFloat(HDShaderIDs._ApplyLinearToSRGB, m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() ? 1.0f : 0.0f);
-
+                    // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
+                    // (i.e. we have perform a flip, we need to flip the input texture) + we need to handle the case were we debug a fullscreen pass that have already perform the flip
+                    m_DebugColorPicker.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     CoreUtils.DrawFullScreen(cmd, m_DebugColorPicker, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
             }
