@@ -252,9 +252,8 @@ VFXStringFieldPushButton Button
 {
 	height:16;
 }
-#DraggingHandle
+#DraggingHandle #icon
 {
     width:4;
-    height:6;
-    margin-left:4;
+    height:6
 }

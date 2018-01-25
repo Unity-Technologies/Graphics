@@ -22,7 +22,7 @@ VFXFloatField:focus {
 	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup focus.png");
 }
 
-#DraggingHandle
+#DraggingHandle #icon
 {
     background-image: resource("Builtin Skins/DarkSkin/Images/WindowBottomResize.png");
 }

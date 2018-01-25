@@ -69,6 +69,12 @@ VFXOperatorUI MultiOperatorEdit OperandInfo Button
 {
     width:70;
 }
+VFXOperatorUI MultiOperatorEdit OperandInfo #DraggingHandle
+{
+    width: 16;
+    align-items:center;
+    justify-content:center;
+}
 
 
 VFXParameterUI #exposedContainer

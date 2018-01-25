@@ -417,6 +417,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_Owner = owner;
                 draggingHandle = new VisualElement() { name = "DraggingHandle"};
+                draggingHandle.Add(new VisualElement() { name = "icon" });
                 field = new VFXStringField("name");
                 field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
                 type = new Button();
