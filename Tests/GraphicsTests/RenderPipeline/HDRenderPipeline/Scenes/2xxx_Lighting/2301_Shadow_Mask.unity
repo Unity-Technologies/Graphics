@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.018302627, g: 0.019231804, b: 0.021260915, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -147,6 +147,12 @@ MonoBehaviour:
   shadowResolution: 256
   shadowDimmer: 0.5
   shadowFadeDistance: 20
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -742,11 +748,13 @@ MonoBehaviour:
   volumeLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  serializedFrameSettings:
+  m_FrameSettings:
     enableShadow: 1
+    enableContactShadows: 1
     enableSSR: 1
     enableSSAO: 1
-    enableSSSAndTransmission: 1
+    enableSubsurfaceScattering: 1
+    enableTransmission: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
@@ -1422,48 +1430,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 815655995}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &911408450
-Prefab:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-      propertyPath: m_RootOrder
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 100100000, guid: 7dde90a97c3ee4d4da77e66970eb07eb, type: 2}
-  m_IsPrefabParent: 0
 --- !u!1 &929288949
 GameObject:
   m_ObjectHideFlags: 0
@@ -1959,6 +1925,12 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 0.5
   shadowFadeDistance: 20
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -3183,6 +3155,69 @@ Transform:
   m_Father: {fileID: 522989562}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90.00001}
+--- !u!1 &1783632093
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 1673868521865844, guid: 7dde90a97c3ee4d4da77e66970eb07eb,
+    type: 2}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1783632096}
+  - component: {fileID: 1783632095}
+  - component: {fileID: 1783632094}
+  m_Layer: 0
+  m_Name: HDRP_Black_Sky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1783632094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 114663566010530930, guid: 7dde90a97c3ee4d4da77e66970eb07eb,
+    type: 2}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1783632093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 11400000, guid: 0d615c3f4f4e27d44af6c4fed3bb683c, type: 2}
+  m_BakingSkyUniqueID: 1
+--- !u!114 &1783632095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 114888363301181934, guid: 7dde90a97c3ee4d4da77e66970eb07eb,
+    type: 2}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1783632093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 3f489ba750e903447b0e64a9a0927b48, type: 2}
+--- !u!4 &1783632096
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 4295600896743834, guid: 7dde90a97c3ee4d4da77e66970eb07eb,
+    type: 2}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1783632093}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1838647969
 GameObject:
   m_ObjectHideFlags: 0
@@ -3357,6 +3392,93 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1894174326}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1978415242
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1978415246}
+  - component: {fileID: 1978415245}
+  - component: {fileID: 1978415244}
+  - component: {fileID: 1978415243}
+  m_Layer: 0
+  m_Name: Quad
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!64 &1978415243
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1978415242}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1978415244
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1978415242}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_Materials:
+  - {fileID: 2100000, guid: 3bcb0652d6d34764b958e6c0a44fb35b, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &1978415245
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1978415242}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1978415246
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1978415242}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.01, z: -7.76}
+  m_LocalScale: {x: 12.537164, y: 12.537165, z: 12.537165}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1998959825
 GameObject:
   m_ObjectHideFlags: 0
@@ -3708,6 +3830,12 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05

@@ -87,6 +87,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RenderPipelineResources.defaultDiffuseMaterial;
         }
 
+        // Note: This function is HD specific
+        public Material GetDefaultDecalMaterial()
+        {
+            return m_RenderPipelineResources.defaultDecalMaterial;
+        }
+
         public override Material GetDefaultParticleMaterial()
         {
             return null;

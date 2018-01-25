@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
@@ -65,13 +66,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        
+        [SerializeField]
+        private LightweightPipelineResources m_ResourcesAsset;
 
-        // Resources
-        [SerializeField] private Shader m_BlitShader;
-        [SerializeField] private Shader m_CopyDepthShader;
 
 #if UNITY_EDITOR
-        private LightweightPipelineResource m_ResourceAsset;
+        private LightweightPipelineEditorResources m_EditorResourcesAsset;
 
         [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
@@ -80,38 +81,76 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 "LightweightAsset.asset", null, null);
         }
 
+
+        //[MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateLightweightPipelineResources()
+        {
+            var instance = CreateInstance<LightweightPipelineResources>();
+            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightPipelineResources).Name));
+        }
+
+        //[MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateLightweightPipelineEditorResources()
+        {
+            var instance = CreateInstance<LightweightPipelineEditorResources>();
+            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightPipelineEditorResources).Name));
+        }
+
+
         class CreateLightweightPipelineAsset : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<LightweightPipelineAsset>();
-                instance.m_BlitShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_BLIT));
-                instance.m_CopyDepthShader = Shader.Find(LightweightShaderUtils.GetShaderPath(ShaderPathID.HIDDEN_DEPTH_COPY));
-
+                instance.m_EditorResourcesAsset = LoadResourceFile<LightweightPipelineEditorResources>();
+                instance.m_ResourcesAsset = LoadResourceFile<LightweightPipelineResources>();
                 AssetDatabase.CreateAsset(instance, pathName);
             }
         }
 
-        private void LoadResourceFile()
+        private static T LoadResourceFile<T>() where T : ScriptableObject
         {
-            string[] guids = AssetDatabase.FindAssets("LightweightPipelineResource t:scriptableobject", m_SearchPaths);
-            LightweightPipelineResource resourceAsset = null;
+            T resourceAsset = null;
+            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", m_SearchPaths);
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                m_ResourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
-                if (m_ResourceAsset != null)
+                resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
+                if (resourceAsset != null)
                     break;
             }
 
             // There's currently an issue that prevents FindAssets from find resources withing the package folder.
-            if (m_ResourceAsset == null)
+            if (resourceAsset == null)
             {
-                string path = m_SearchPaths[PACKAGE_MANAGER_PATH_INDEX] + "/LWRP/Data/LightweightPipelineResource.asset";
-                m_ResourceAsset = AssetDatabase.LoadAssetAtPath<LightweightPipelineResource>(path);
+                string path = m_SearchPaths[PACKAGE_MANAGER_PATH_INDEX] + "/LWRP/Data/" + typeof(T).Name + ".asset";
+                resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
+            }
+            return resourceAsset;
+        }
+
+        LightweightPipelineEditorResources editorResources
+        {
+            get
+            {
+                if (m_EditorResourcesAsset == null)
+                    m_EditorResourcesAsset = LoadResourceFile<LightweightPipelineEditorResources>();
+
+                return m_EditorResourcesAsset;
             }
         }
 #endif
+        LightweightPipelineResources resources
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (m_ResourcesAsset == null)
+                    m_ResourcesAsset = LoadResourceFile<LightweightPipelineResources>();
+#endif
+                return m_ResourcesAsset;
+            }
+        }
 
         protected override IRenderPipeline InternalCreatePipeline()
         {
@@ -126,19 +165,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
-            if (m_ResourceAsset == null)
-                LoadResourceFile();
-
+            
             switch (materialType)
             {
                 case DefaultMaterialType.Standard:
-                    return m_ResourceAsset.DefaultMaterial;
+                    return editorResources.DefaultMaterial;
 
                 case DefaultMaterialType.Particle:
-                    return m_ResourceAsset.DefaultParticleMaterial;
+                    return editorResources.DefaultParticleMaterial;
 
                 case DefaultMaterialType.Terrain:
-                    return m_ResourceAsset.DefaultTerrainMaterial;
+                    return editorResources.DefaultTerrainMaterial;
 
                 // Unity Builtin Default
                 default:
@@ -297,12 +334,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public Shader BlitShader
         {
-            get { return m_BlitShader; }
+            get { return resources != null ? resources.BlitShader : null; }
         }
 
         public Shader CopyDepthShader
         {
-            get { return m_CopyDepthShader; }
+            get { return resources != null ? resources.CopyDepthShader : null; }
         }
     }
 }
