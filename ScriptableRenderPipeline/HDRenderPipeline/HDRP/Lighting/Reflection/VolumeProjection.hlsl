@@ -53,15 +53,15 @@ float InfluenceSphereWeight(EnvLightData lightData, BSDFData bsdfData, float3 po
     return alpha;
 }
 
-float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 positionWS, float3 positionLS, float3 dirLS)
+float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 positionWS, float3 positionIS, float3 dirIS)
 {
     float3 boxOuterDistance = lightData.influenceExtents;
     // 2. Process the position influence
     // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
 #if defined(ENVMAP_FEATURE_PERFACEINFLUENCE) || defined(ENVMAP_FEATURE_INFLUENCENORMAL) || defined(ENVMAP_FEATURE_PERFACEFADE)
     // Distance to each cube face
-    float3 negativeDistance = boxOuterDistance + positionLS;
-    float3 positiveDistance = boxOuterDistance - positionLS;
+    float3 negativeDistance = boxOuterDistance + positionIS;
+    float3 positiveDistance = boxOuterDistance - positionIS;
 #endif
 
 #if defined(ENVMAP_FEATURE_PERFACEINFLUENCE)
@@ -76,7 +76,7 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
 
     float alpha = saturate(influenceFalloff);
 #else
-    float distFace = DistancePointBox(positionLS, -lightData.influenceExtents + lightData.blendDistancePositive.x, lightData.influenceExtents - lightData.blendDistancePositive.x);
+    float distFace = DistancePointBox(positionIS, -lightData.influenceExtents + lightData.blendDistancePositive.x, lightData.influenceExtents - lightData.blendDistancePositive.x);
     float alpha = saturate(1.0 - distFace / max(lightData.blendDistancePositive.x, 0.0001));
 #endif
 
@@ -97,7 +97,7 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
     // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
     // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
     // <=> axisFace = 4 * R - 1;
-    float3 faceFade = saturate((4 * dirLS - 1) * lightData.boxSideFadePositive) + saturate((-4 * dirLS - 1) * lightData.boxSideFadeNegative);
+    float3 faceFade = saturate((4 * dirIS - 1) * lightData.boxSideFadePositive) + saturate((-4 * dirIS - 1) * lightData.boxSideFadeNegative);
     alpha *= saturate(faceFade.x + faceFade.y + faceFade.z);
 #endif
 
@@ -106,16 +106,16 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
 
 
 
-float3x3 WorldToLightSpace(EnvLightData lightData)
+float3x3 WorldToInfluenceSpace(EnvLightData lightData)
 {
     return transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
 }
 
-float3 WorldToLightPosition(EnvLightData lightData, float3x3 worldToLS, float3 positionWS)
+float3 WorldToInfluencePosition(EnvLightData lightData, float3x3 worldToIS, float3 positionWS)
 {
-    float3 positionLS = positionWS - lightData.positionWS;
-    positionLS = mul(positionLS, worldToLS).xyz;
-    return positionLS;
+    float3 positionIS = positionWS - lightData.positionWS;
+    positionIS = mul(positionIS, worldToIS).xyz;
+    return positionIS;
 }
 
 #endif // UNITY_VOLUMEPROJECTION_INCLUDED
