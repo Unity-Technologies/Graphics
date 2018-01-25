@@ -3564,7 +3564,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 64
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &462050849
 Transform:
   m_ObjectHideFlags: 0
@@ -5811,7 +5811,7 @@ GameObject:
   - component: {fileID: 686488385}
   - component: {fileID: 686488384}
   m_Layer: 0
-  m_Name: Camera_All
+  m_Name: Camera_Probes_Boxes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15858,7 +15858,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!81 &2111085210
 AudioListener:
   m_ObjectHideFlags: 0
@@ -15962,6 +15962,7 @@ MonoBehaviour:
   - {fileID: 298751451}
   - {fileID: 255723402}
   - {fileID: 686488387}
+  - {fileID: 462050853}
 --- !u!114 &2111085216
 MonoBehaviour:
   m_ObjectHideFlags: 0
