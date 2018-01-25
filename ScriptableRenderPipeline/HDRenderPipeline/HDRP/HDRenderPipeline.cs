@@ -365,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             };
 
             m_DepthPyramidKernel = m_DepthPyramidCS.FindKernel("KMain");
-            m_DepthPyramidBuffer = HDShaderIDs._DepthPyramidTexture;
+            m_DepthPyramidBuffer = HDShaderIDs._PyramidDepthTexture;
             m_DepthPyramidBufferRT = new RenderTargetIdentifier(m_DepthPyramidBuffer);
             m_DepthPyramidBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.RFloat, 0)
             {
@@ -1593,7 +1593,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, hdCamera, debugMode);
 
-                cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
+                cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
 
                 for (int i = 0; i < lodCount + 1; i++)
                     cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i]);
