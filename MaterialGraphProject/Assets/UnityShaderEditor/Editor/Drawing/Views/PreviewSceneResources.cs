@@ -8,12 +8,12 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class PreviewSceneResources : IDisposable
     {
         readonly Scene m_Scene;
-        static Mesh s_Quad;
         Camera m_Camera;
         public Light light0 { get; private set; }
         public Light light1 { get; private set; }
 
         Material m_CheckerboardMaterial;
+        Material m_BlitNoAlphaMaterial;
 
         static readonly Mesh[] s_Meshes = { null, null, null, null, null };
         static readonly GUIContent[] s_MeshIcons = { null, null, null, null, null };
@@ -71,7 +71,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             light1.color = new Color(.4f, .4f, .45f, 0f) * .7f;
 
             m_CheckerboardMaterial = new Material(Shader.Find("Hidden/Checkerboard"));
+            m_BlitNoAlphaMaterial = new Material(Shader.Find("Hidden/BlitNoAlpha"));
             checkerboardMaterial.hideFlags = HideFlags.HideAndDontSave;
+            blitNoAlphaMaterial.hideFlags = HideFlags.HideAndDontSave;
 
             if (s_Meshes[0] == null)
             {
@@ -117,36 +119,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Mesh quadMesh = Resources.GetBuiltinResource(typeof(Mesh), "Quad.fbx") as Mesh;
                 s_Meshes[4] = quadMesh;
             }
-
-            if (s_Quad == null)
-            {
-                var vertices = new[]
-                {
-                    new Vector3(-1f, -1f, 0f),
-                    new Vector3(1f, 1f, 0f),
-                    new Vector3(1f, -1f, 0f),
-                    new Vector3(-1f, 1f, 0f)
-                };
-
-                var uvs = new[]
-                {
-                    new Vector2(0f, 0f),
-                    new Vector2(1f, 1f),
-                    new Vector2(1f, 0f),
-                    new Vector2(0f, 1f)
-                };
-
-                var indices = new[] { 0, 1, 2, 1, 0, 3 };
-
-                s_Quad = new Mesh
-                {
-                    vertices = vertices,
-                    uv = uvs,
-                    triangles = indices
-                };
-                s_Quad.RecalculateNormals();
-                s_Quad.RecalculateBounds();
-            }
         }
 
         public Mesh sphere
@@ -156,12 +128,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Mesh quad
         {
-            get { return s_Quad; }
+            get { return s_Meshes[4]; }
         }
 
         public Material checkerboardMaterial
         {
             get { return m_CheckerboardMaterial; }
+        }
+
+        public Material blitNoAlphaMaterial
+        {
+            get { return m_BlitNoAlphaMaterial; }
         }
 
         public Camera camera
@@ -193,6 +170,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 UnityEngine.Object.DestroyImmediate(checkerboardMaterial, true);
                 m_CheckerboardMaterial = null;
+            }
+            if (blitNoAlphaMaterial != null)
+            {
+                UnityEngine.Object.DestroyImmediate(blitNoAlphaMaterial, true);
+                m_BlitNoAlphaMaterial = null;
             }
 
             EditorSceneManager.ClosePreviewScene(m_Scene);
