@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
                     var execute = m_pending[i];
                     m_pending.RemoveAt(i);
                     state.vfxEventAttribute.CopyValuesFrom(execute.eventAttribute);
-                    state.spawnCount = (float)execute.count;
+                    state.spawnCount += (float)execute.count;
                     break;
                 }
             }
