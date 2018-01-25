@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ClearGBuffer,
         HDRenderPipelineRender,
         CullResultsCull,
+        CopyDepthForSceneView,
 
         // Profile sampler for tile pass
         TPPrepareLightsForGPU,

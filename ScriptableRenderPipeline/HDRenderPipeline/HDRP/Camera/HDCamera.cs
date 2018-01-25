@@ -27,9 +27,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is the size actually used for this camera (as it can be altered by VR for example)
         int m_ActualWidth;
         int m_ActualHeight;
+        // This is the scale and bias of the camera viewport compared to the reference size of our Render Targets (RHandle.maxSize)
+        Vector2 m_CameraScaleBias;
 
         public int actualWidth { get { return m_ActualWidth; } }
         public int actualHeight { get { return m_ActualHeight; } }
+        public Vector2 scaleBias { get { return m_CameraScaleBias; } }
 
         public Matrix4x4 viewProjMatrix
         {
@@ -175,8 +178,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ActualHeight = XRSettings.eyeTextureHeight;
             }
 
-            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, 1.0f / m_ActualWidth, 1.0f / m_ActualHeight);
             RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA);
+            int maxWidth = RTHandle.maxWidth;
+            int maxHeight = RTHandle.maxHeight;
+            m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
+            m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
+            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, m_CameraScaleBias.x / m_ActualWidth, m_CameraScaleBias.y / m_ActualHeight);
         }
 
         public void Reset()

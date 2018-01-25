@@ -1983,8 +1983,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
-                int numTilesX = (deferredShadowRT.rt.width + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
-                int numTilesY = (deferredShadowRT.rt.height + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                int numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
+                int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
                 hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
 
