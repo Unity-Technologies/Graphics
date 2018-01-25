@@ -80,6 +80,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TimeDependentPreviews.Add(node.tempId.index);
 
             var masterNode = node as IMasterNode;
+
             if (masterRenderData.shaderData == null && masterNode != null)
                 masterRenderData.shaderData = shaderData;
         }
@@ -259,7 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Render 2D previews
             m_SceneResources.camera.transform.position = -Vector3.forward * 2;
             m_SceneResources.camera.transform.rotation = Quaternion.identity;
-            m_SceneResources.camera.orthographicSize = 1;
+            m_SceneResources.camera.orthographicSize = 0.5f;
             m_SceneResources.camera.orthographic = true;
 
             foreach (var renderData in m_RenderList2D)
@@ -394,18 +395,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewPropertyBlock.SetFloat(m_OutputIdName, renderData.shaderData.node.tempId.index);
             if (m_PreviewMaterial.shader != renderData.shaderData.shader)
                 m_PreviewMaterial.shader = renderData.shaderData.shader;
-            m_SceneResources.camera.targetTexture = renderData.renderTexture;
             var previousRenderTexure = RenderTexture.active;
-            RenderTexture.active = renderData.renderTexture;
-            GL.Clear(true, true, Color.black);
-            Graphics.Blit(Texture2D.whiteTexture, renderData.renderTexture, m_SceneResources.checkerboardMaterial);
 
+
+            //Temp workaround for alpha previews...
+            var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
+            RenderTexture.active = temp;
+            GL.Clear(true, true, Color.black);
+            Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
+
+            m_SceneResources.camera.targetTexture = temp;
             Graphics.DrawMesh(mesh, transform, m_PreviewMaterial, 1, m_SceneResources.camera, 0, m_PreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
 
             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
             Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
             m_SceneResources.camera.Render();
             Unsupported.useScriptableRenderPipeline = previousUseSRP;
+
+            Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
+            RenderTexture.ReleaseTemporary(temp);
+
             RenderTexture.active = previousRenderTexure;
             renderData.texture = renderData.renderTexture;
         }
@@ -492,8 +501,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var renderData = Get(m_RenderDatas, nodeId);
             if (renderData != null)
             {
-                if (masterRenderData != null && masterRenderData.shaderData != null && masterRenderData.shaderData.node == renderData.shaderData.node)
-                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode).Select(x => x.shaderData).FirstOrDefault();
+                // Check if we're destroying the shader data used by the master preview
+                if (masterRenderData != null && masterRenderData.shaderData != null && masterRenderData.shaderData == renderData.shaderData)
+                    masterRenderData.shaderData = m_RenderDatas.Where(x => x != null && x.shaderData.node is IMasterNode && x != renderData).Select(x => x.shaderData).FirstOrDefault();
 
                 DestroyRenderData(renderData);
 

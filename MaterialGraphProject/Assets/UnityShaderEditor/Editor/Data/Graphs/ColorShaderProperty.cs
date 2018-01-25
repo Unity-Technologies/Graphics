@@ -28,6 +28,12 @@ namespace UnityEditor.ShaderGraph
             displayName = "Color";
         }
 
+        public ColorShaderProperty(bool hdr)
+        {
+            displayName = "HDR Color";
+            HDR = hdr;
+        }
+
         public override PropertyType propertyType
         {
             get { return PropertyType.Color; }

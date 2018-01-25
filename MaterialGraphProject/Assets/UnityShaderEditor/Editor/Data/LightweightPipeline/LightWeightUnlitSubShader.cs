@@ -13,7 +13,8 @@ namespace UnityEditor.ShaderGraph
             PixelShaderSlots = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
             }
         };
 
@@ -24,7 +25,12 @@ namespace UnityEditor.ShaderGraph
             public List<int> PixelShaderSlots;
         }
 
-        private static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
+        private static string GetShaderPassFromTemplate(
+            string template, 
+            UnlitMasterNode masterNode, 
+            Pass pass, 
+            GenerationMode mode,
+            SurfaceMaterialOptions materialOptions)
         {
             var builder = new ShaderStringBuilder();
             builder.IncreaseIndent();
@@ -107,14 +113,11 @@ namespace UnityEditor.ShaderGraph
             graph.AddShaderChunk(surfaceVertexShader.GetShaderString(2), false);
             graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
 
-            var tagsVisitor = new ShaderGenerator();
             var blendingVisitor = new ShaderGenerator();
             var cullingVisitor = new ShaderGenerator();
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
-
-            var materialOptions = new SurfaceMaterialOptions();
-            materialOptions.GetTags(tagsVisitor);
+            
             materialOptions.GetBlend(blendingVisitor);
             materialOptions.GetCull(cullingVisitor);
             materialOptions.GetDepthTest(zTestVisitor);
@@ -127,11 +130,6 @@ namespace UnityEditor.ShaderGraph
             var surfaceOutputRemap = new ShaderGenerator();
 
             var reqs = ShaderGraphRequirements.none;
-            reqs.requiresNormal |= NeededCoordinateSpace.World;
-            reqs.requiresTangent |= NeededCoordinateSpace.World;
-            reqs.requiresBitangent |= NeededCoordinateSpace.World;
-            reqs.requiresPosition |= NeededCoordinateSpace.World;
-            reqs.requiresViewDir |= NeededCoordinateSpace.World;
 
             ShaderGenerator.GenerateStandardTransforms(
                 3,
@@ -145,6 +143,10 @@ namespace UnityEditor.ShaderGraph
                 CoordinateSpace.World);
 
             ShaderGenerator defines = new ShaderGenerator();
+
+            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
+                defines.AddShaderChunk("#define _AlphaClip 1", true);
+
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
             foreach (var slot in usedSlots)
@@ -166,13 +168,11 @@ namespace UnityEditor.ShaderGraph
             resultPass = resultPass.Replace("${SurfaceInputs}", localSurfaceInputs.GetShaderString(3));
             resultPass = resultPass.Replace("${SurfaceOutputRemap}", surfaceOutputRemap.GetShaderString(3));
 
-
-            resultPass = resultPass.Replace("${Tags}", tagsVisitor.GetShaderString(2));
+            resultPass = resultPass.Replace("${Tags}", string.Empty);
             resultPass = resultPass.Replace("${Blending}", blendingVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${Culling}", cullingVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultPass = resultPass.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${LOD}", "" + materialOptions.lod);
             return resultPass;
         }
 
@@ -184,12 +184,18 @@ namespace UnityEditor.ShaderGraph
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
+            var materialOptions = MasterNode.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
+            var tagsVisitor = new ShaderGenerator();
+            materialOptions.GetTags(tagsVisitor);
+            subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
+
             subShader.AddShaderChunk(
                 GetShaderPassFromTemplate(
                     "lightweightUnlitPass.template",
                     masterNode,
                     m_UnlitPass,
-                    mode),
+                    mode,
+                    materialOptions),
                 true);
 
             subShader.Deindent();

@@ -7,6 +7,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    public enum AlphaMode
+    {
+        Opaque,
+        AlphaBlend,
+        AdditiveBlend
+    }
+
     [Serializable]
     [Title("Master", "PBR")]
     public class PBRMasterNode : MasterNode
@@ -36,13 +43,6 @@ namespace UnityEditor.ShaderGraph
         {
             Specular,
             Metallic
-        }
-
-        public enum AlphaMode
-        {
-            Opaque,
-            AlphaBlend,
-            AdditiveBlend
         }
 
         [SerializeField]
@@ -83,12 +83,6 @@ namespace UnityEditor.ShaderGraph
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
-        }
-
-        public bool IsSlotConnected(int slotId)
-        {
-            var slot = FindSlot<MaterialSlot>(slotId);
-            return slot != null && owner.GetEdges(slot.slotReference).Any();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
