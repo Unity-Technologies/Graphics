@@ -1770,9 +1770,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
 
-    float3x3 worldToLS = WorldToLightSpace(lightData);
-    float3 positionLS = WorldToLightPosition(lightData, worldToLS, positionWS);
-    float3 dirLS = mul(R, worldToLS);
+    float3x3 worldToIS = WorldToInfluenceSpace(lightData);
+    float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
+    float3 dirIS = mul(R, worldToIS);
 
     float3x3 worldToPS = WorldToProxySpace(proxyData);
     float3 positionPS = WorldToProxyPosition(proxyData, worldToPS, positionWS);
@@ -1815,9 +1815,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // 2. Process the influence
     if (influenceShapeType == ENVSHAPETYPE_SPHERE)
-        weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
+        weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     else if (influenceShapeType == ENVSHAPETYPE_BOX)
-        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionLS, dirLS);
+        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
