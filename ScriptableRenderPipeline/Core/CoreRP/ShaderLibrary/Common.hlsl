@@ -652,23 +652,39 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
-void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS, inout PositionInputs posInput)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
 {
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = linearDepth;
     posInput.positionWS  = positionWS;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS)
+{
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, linearDepth, positionWS, uint2(0, 0));
 }
 
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, uint2 tileCoord)
 {
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.deviceDepth = deviceDepth;
     posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
     posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix)
+{
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewProjMatrix, uint2(0, 0));
 }
 
 // The view direction 'V' points towards the camera.
