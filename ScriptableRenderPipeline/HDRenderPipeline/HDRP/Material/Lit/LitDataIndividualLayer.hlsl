@@ -347,7 +347,14 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.transmittanceMask = 0.0;
 #endif
 
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
     surfaceData.coatMask = _CoatMask;
+    // To shader feature for keyword to limit the variant
+    surfaceData.coatMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_coatMaskMap), ADD_ZERO_IDX(sampler_coatMaskMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.coatMask = 0.0;
+#endif
+
 
     surfaceData.thicknessIrid = 0.0;
 

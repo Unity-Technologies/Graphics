@@ -60,7 +60,8 @@ Shader "HDRenderPipeline/LitTessellation"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 1.0
+        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 0.0
+        _CoatMaskMap("CoatMaskMap", 2D) = "white" {}
 
         [ToggleUI] _EnergyConservingSpecularColor("_EnergyConservingSpecularColor", Float) = 1.0
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)

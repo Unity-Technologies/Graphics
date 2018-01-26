@@ -358,7 +358,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            DoLayerGUI(material, layerIndex);
+            DoLayerGUI(material, layerIndex, true);
 
             if (layerIndex == 0)
                 EditorGUILayout.Space();
