@@ -88,10 +88,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             RenderTextureDescriptor descriptor = m_PreviewRenderHandle.renderTexture.descriptor;
 
+            var targetWidth = m_PreviewTextureView.contentRect.width;
+            var targetHeight = m_PreviewTextureView.contentRect.height;
+
+            if (Mathf.Approximately(descriptor.width, targetHeight) && Mathf.Approximately(descriptor.height, targetWidth))
+            {
+                return;
+            }
+
             descriptor.width = (int)m_PreviewTextureView.contentRect.width;
             descriptor.height = (int)m_PreviewTextureView.contentRect.height;
 
             m_PreviewRenderHandle.renderTexture.Release();
+            Object.DestroyImmediate(m_PreviewRenderHandle.renderTexture);
             m_PreviewRenderHandle.renderTexture = new RenderTexture(descriptor);
         }
 
