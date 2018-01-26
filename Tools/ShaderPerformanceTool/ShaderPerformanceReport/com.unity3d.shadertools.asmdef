@@ -1,0 +1,9 @@
+{
+    "name": "com.unity3d.shadertools",
+    "references": [],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

@@ -1,0 +1,12 @@
+{
+    "name": "com.unity3d.shadertools.ps4",
+    "references": [
+        "com.unity3d.shadertools",
+        "com.unity.render-pipelines.high-defintion.Editor"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}
