@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var property = new FloatShaderProperty()
+            var property = new Vector1ShaderProperty()
             {
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
                 generatePropertyBlock = false,
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty(PropertyType.Float)
+            var pp = new PreviewProperty(PropertyType.Vector1)
             {
                 name = name,
                 floatValue = value

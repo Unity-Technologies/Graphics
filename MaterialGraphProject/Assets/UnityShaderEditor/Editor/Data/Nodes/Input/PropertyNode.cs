@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 return;
 
-            if (property is FloatShaderProperty)
+            if (property is Vector1ShaderProperty)
             {
                 AddSlot(new Vector1MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 return;
 
-            if (property is FloatShaderProperty)
+            if (property is Vector1ShaderProperty)
             {
                 var result = string.Format("{0} {1} = {2};"
                         , precision

@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnAddProperty()
         {
             var gm = new GenericMenu();
-            gm.AddItem(new GUIContent("Float"), false, () => AddProperty(new FloatShaderProperty()));
+            gm.AddItem(new GUIContent("Vector1"), false, () => AddProperty(new Vector1ShaderProperty()));
             gm.AddItem(new GUIContent("Vector2"), false, () => AddProperty(new Vector2ShaderProperty()));
             gm.AddItem(new GUIContent("Vector3"), false, () => AddProperty(new Vector3ShaderProperty()));
             gm.AddItem(new GUIContent("Vector4"), false, () => AddProperty(new Vector4ShaderProperty()));

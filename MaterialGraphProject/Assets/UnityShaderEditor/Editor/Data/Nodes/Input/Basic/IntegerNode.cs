@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new FloatShaderProperty()
+            properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Float)
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = GetVariableNameForNode(),
                 floatValue = m_Value
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
 
         public IShaderProperty AsShaderProperty()
         {
-            return new FloatShaderProperty { value = value, floatType = FloatType.Integer };
+            return new Vector1ShaderProperty { value = value, floatType = FloatType.Integer };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

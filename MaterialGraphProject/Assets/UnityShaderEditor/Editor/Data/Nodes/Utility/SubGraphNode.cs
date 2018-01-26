@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph
                     case PropertyType.Cubemap:
                         slotType = SlotValueType.Cubemap;
                         break;
-                    case PropertyType.Float:
+                    case PropertyType.Vector1:
                         slotType = SlotValueType.Vector1;
                         break;
                     case PropertyType.Vector2:
