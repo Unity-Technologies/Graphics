@@ -584,7 +584,7 @@ namespace UnityEditor.ShaderGraph
         public virtual void OnAfterDeserialize()
         {
             // have to deserialize 'globals' before nodes
-            m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, null);
+            m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes = new List<AbstractMaterialNode>(nodes.Count);
             m_NodeDictionary = new Dictionary<Guid, INode>(nodes.Count);
@@ -599,7 +599,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, null);
+            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);

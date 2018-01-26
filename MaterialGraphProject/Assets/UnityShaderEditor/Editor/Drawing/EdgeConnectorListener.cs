@@ -1,5 +1,4 @@
 ﻿using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.Graphing;
 using UnityEngine;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 

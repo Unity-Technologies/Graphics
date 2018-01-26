@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing.Util
 {
@@ -107,13 +108,13 @@ namespace UnityEditor.Graphing.Util
 
         public void OnAfterDeserialize()
         {
-            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, null);
+            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes.Clear();
             foreach (var node in nodes)
                 m_Nodes.Add(node);
             m_SerializableNodes = null;
 
-            var edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, null);
+            var edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_Edges.Clear();
             foreach (var edge in edges)
                 m_Edges.Add(edge);
