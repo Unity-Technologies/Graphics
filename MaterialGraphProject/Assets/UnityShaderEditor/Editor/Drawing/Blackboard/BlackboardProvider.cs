@@ -145,7 +145,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DirtyNodes()
         {
             foreach (var node in m_Graph.GetNodes<PropertyNode>())
+            {
+                node.OnEnable();
                 node.Dirty(ModificationScope.Node);
+            }
         }
     }
 }
