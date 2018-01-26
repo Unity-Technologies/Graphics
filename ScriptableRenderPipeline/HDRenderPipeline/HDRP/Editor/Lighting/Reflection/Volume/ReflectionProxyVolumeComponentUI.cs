@@ -28,7 +28,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void Reset(SerializedReflectionProxyVolumeComponent data, UnityAction repaint)
         {
-            proxyVolume.Reset(data.proxyVolume, repaint);
+            if (data != null)
+                proxyVolume.Reset(data.proxyVolume, repaint);
             base.Reset(data, repaint);
         }
 

@@ -106,9 +106,9 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
 
 #ifdef DEBUG_DISPLAY
-float4 ApplyDebugProjectionVolume(float4 color, float3 texCoord, float scale)
+float4 ApplyDebugProjectionVolume(float4 color, float3 radiusToProxy, float scale)
 {
-    float l = length(texCoord);
+    float l = length(radiusToProxy);
     l = pow(l / (1 + l), scale);
     return float4(l.xxx * 0.7 + color.rgb * 0.3, color.a);
 }
@@ -137,10 +137,6 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
             color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
             
-#ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
-                return ApplyDebugProjectionVolume(color, texCoord, _DebugEnvironmentProxyDepthScale);
-#endif
             return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
