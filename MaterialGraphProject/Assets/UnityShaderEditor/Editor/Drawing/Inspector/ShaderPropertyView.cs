@@ -32,10 +32,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ValueAction = Vector3Field;
             else if (property is Vector4ShaderProperty)
                 m_ValueAction = Vector4Field;
-            else if (property is IntegerShaderProperty)
-                m_ValueAction = IntegerField;
-            else if (property is SliderShaderProperty)
-                m_ValueAction = SliderField;
             else if (property is BooleanShaderProperty)
                 m_ValueAction = BooleanField;
 
@@ -158,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             fProp.value = EditorGUILayout.Vector4Field("", fProp.value);
         }
 
-        void IntegerField()
+        /*void IntegerField()
         {
             var fProp = (IntegerShaderProperty)property;
             fProp.value = EditorGUILayout.IntField(fProp.value);
@@ -183,7 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             EditorGUIUtility.labelWidth = previousLabelWidth;
             EditorGUILayout.EndHorizontal();
             fProp.value = value;
-        }
+        }*/
 
         void BooleanField()
         {

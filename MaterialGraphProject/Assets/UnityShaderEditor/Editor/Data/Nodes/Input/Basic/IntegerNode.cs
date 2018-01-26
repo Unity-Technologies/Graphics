@@ -46,11 +46,12 @@ namespace UnityEditor.ShaderGraph
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new IntegerShaderProperty()
+            properties.AddShaderProperty(new FloatShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
-                value = value
+                value = value,
+                floatType = FloatType.Integer
             });
         }
 
@@ -78,7 +79,7 @@ namespace UnityEditor.ShaderGraph
 
         public IShaderProperty AsShaderProperty()
         {
-            return new IntegerShaderProperty { value = value };
+            return new FloatShaderProperty { value = value, floatType = FloatType.Integer };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

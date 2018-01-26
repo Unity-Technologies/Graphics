@@ -23,6 +23,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     DirtyNodes();
                 });
                 AddRow("Default", field);
+                var floatModeField = new EnumField((Enum)floatProperty.floatType);
+                floatModeField.OnValueChanged(evt =>
+                {
+                    floatProperty.floatType = (FloatType)evt.newValue;
+                    DirtyNodes();
+                });
+                AddRow("Mode", floatModeField);
             }
             else if (property is Vector2ShaderProperty)
             {

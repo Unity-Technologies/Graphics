@@ -87,8 +87,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             gm.AddItem(new GUIContent("Vector4"), false, () => AddProperty(new Vector4ShaderProperty()));
             gm.AddItem(new GUIContent("Color"), false, () => AddProperty(new ColorShaderProperty()));
             gm.AddItem(new GUIContent("HDR Color"), false, () => AddProperty(new ColorShaderProperty() {colorMode = ColorMode.HDR}));
-            gm.AddItem(new GUIContent("Integer"), false, () => AddProperty(new IntegerShaderProperty()));
-            gm.AddItem(new GUIContent("Slider"), false, () => AddProperty(new SliderShaderProperty()));
             gm.AddItem(new GUIContent("Boolean"), false, () => AddProperty(new BooleanShaderProperty()));
             gm.AddItem(new GUIContent("Texture"), false, () => AddProperty(new TextureShaderProperty()));
             gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty()));
