@@ -185,6 +185,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Initially, MSAA will only support forward
                 enableForwardRenderingOnly = true;
 
+                // TODO: Should we disable enableFptlForForwardOpaque in here, instead of in InitializeLightLoopSettings?
+                // We'd have to move this method to after InitializeLightLoopSettings if we did.  It would be nice to centralize
+                // all MSAA-dependent settings in this method.
+
                 // Assuming MSAA is being used, TAA, and therefore, motion vectors are not needed
                 enableMotionVectors = false;
 
