@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
@@ -14,9 +15,6 @@ namespace UnityEditor.ShaderGraph
     [Title("Input", "Basic", "Color")]
     public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
-        [SerializeField]
-        private Color m_Color;
-
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
@@ -26,10 +24,20 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public sealed override void UpdateNodeAfterDeserialization()
+        [SerializeField]
+        Color m_Color = new Color(UnityEngine.Color.clear, ColorMode.Default);
+
+        [Serializable]
+        public struct Color
         {
-            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            public UnityEngine.Color color;
+            public ColorMode mode;
+
+            public Color(UnityEngine.Color color, ColorMode mode)
+            {
+                this.color = color;
+                this.mode = mode;
+            }
         }
 
         [ColorControl("")]
@@ -38,14 +46,18 @@ namespace UnityEditor.ShaderGraph
             get { return m_Color; }
             set
             {
-                if (m_Color == value)
+                if ((value.color == m_Color.color) && (value.mode == m_Color.mode))
                     return;
-
                 m_Color = value;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
+        public sealed override void UpdateNodeAfterDeserialization()
+        {
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+        }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
@@ -56,8 +68,8 @@ namespace UnityEditor.ShaderGraph
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
-                value = color,
-                colorMode = ColorMode.Default
+                value = color.color,
+                colorMode = color.mode
             });
         }
 
@@ -70,10 +82,10 @@ namespace UnityEditor.ShaderGraph
                 @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(SRGBToLinear({0}3({2}, {3}, {4})), {5});"
                 , precision
                 , GetVariableNameForNode()
-                , color.r
-                , color.g
-                , color.b
-                , color.a), true);
+                , color.color.r
+                , color.color.g
+                , color.color.b
+                , color.color.a), true);
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -86,13 +98,13 @@ namespace UnityEditor.ShaderGraph
             properties.Add(new PreviewProperty(PropertyType.Color)
             {
                 name = GetVariableNameForNode(),
-                colorValue = color
+                colorValue = color.color
             });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            return new ColorShaderProperty { value = color };
+            return new ColorShaderProperty { value = color.color, colorMode = color.mode };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }
