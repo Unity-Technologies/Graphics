@@ -9,20 +9,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     class ProxyVolumeEditor : Editor
     {
         ReflectionProxyVolumeComponent[] m_TypedTargets;
-        SerializedProxyVolumeComponent m_SerializedData;
-        ProxyVolumeComponentUI m_UIState = new ProxyVolumeComponentUI();
-        ProxyVolumeComponentUI[] m_UIHandlerState;
+        SerializedReflectionProxyVolumeComponent m_SerializedData;
+        ReflectionProxyVolumeComponentUI m_UIState = new ReflectionProxyVolumeComponentUI();
+        ReflectionProxyVolumeComponentUI[] m_UIHandlerState;
 
         void OnEnable()
         {
             m_TypedTargets = targets.Cast<ReflectionProxyVolumeComponent>().ToArray();
-            m_SerializedData = new SerializedProxyVolumeComponent(serializedObject);
+            m_SerializedData = new SerializedReflectionProxyVolumeComponent(serializedObject);
 
             m_UIState.Reset(m_SerializedData, Repaint);
 
-            m_UIHandlerState = new ProxyVolumeComponentUI[m_TypedTargets.Length];
+            m_UIHandlerState = new ReflectionProxyVolumeComponentUI[m_TypedTargets.Length];
             for (var i = 0; i < m_UIHandlerState.Length; i++)
-                m_UIHandlerState[i] = new ProxyVolumeComponentUI();
+                m_UIHandlerState[i] = new ReflectionProxyVolumeComponentUI();
         }
 
         public override void OnInspectorGUI()
@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             d.Update();
             s.Update();
 
-            ProxyVolumeComponentUI.Inspector.Draw(s, d, o);
+            ReflectionProxyVolumeComponentUI.Inspector.Draw(s, d, o);
 
             d.Apply();
         }
@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnSceneGUI()
         {
             for (var i = 0; i < m_TypedTargets.Length; i++)
-                ProxyVolumeComponentUI.DrawHandles_EditBase(m_UIHandlerState[i], m_TypedTargets[i]);
+                ReflectionProxyVolumeComponentUI.DrawHandles_EditBase(m_UIHandlerState[i], m_TypedTargets[i]);
         }
     }
 }

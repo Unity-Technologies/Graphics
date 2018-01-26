@@ -2,13 +2,13 @@
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class SerializedProxyVolumeComponent
+    public class SerializedReflectionProxyVolumeComponent
     {
         public SerializedObject serializedObject;
 
         public SerializedProxyVolume proxyVolume;
 
-        public SerializedProxyVolumeComponent(SerializedObject serializedObject)
+        public SerializedReflectionProxyVolumeComponent(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
 
