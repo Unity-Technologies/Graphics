@@ -821,7 +821,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             cmd.ReleaseTemporaryRT(m_DeferredShadowBuffer);
 
-                            // TODO: I'll leave this as 1x for easy sampling, but I need to make it MSAA
+                            // TODO: For MSAA, we are overriding to 1x, but we'll need to add a Draw path in order to support MSAA properly
                             CoreUtils.CreateCmdTemporaryRT(cmd, m_DeferredShadowBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear, 1, true);
                             m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBufferRT, GetDepthTexture(), cmd);
                             PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera, renderContext, FullScreenDebugMode.DeferredShadows);
