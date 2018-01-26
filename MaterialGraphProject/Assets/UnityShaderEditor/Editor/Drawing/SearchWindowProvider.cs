@@ -7,7 +7,6 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using INode = UnityEditor.Graphing.INode;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -50,6 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             public int compatibleSlotId;
         }
 
+        List<int> m_Ids;
         List<ISlot> m_Slots = new List<ISlot>();
 
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
@@ -64,14 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (attrs != null && attrs.Length > 0)
                     {
                         var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                        var compatibleSlotId = -1;
-                        if (connectedPort != null)
-                        {
-                            compatibleSlotId = GetFirstCompatibleSlotId(node);
-                            if (compatibleSlotId == -1)
-                                continue;
-                        }
-                        nodeEntries.Add(new NodeEntry { title = attrs[0].title, node = node, compatibleSlotId = compatibleSlotId});
+                        AddEntries(node, attrs[0].title, nodeEntries);
                     }
                 }
             }
@@ -79,21 +72,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                var node = Activator.CreateInstance<SubGraphNode>();
-                node.subGraphAsset = asset;
-                var compatibleSlotId = -1;
-                if (connectedPort != null)
-                {
-                    compatibleSlotId = GetFirstCompatibleSlotId(node);
-                    if (compatibleSlotId == -1)
-                        continue;
-                }
-                nodeEntries.Add(new NodeEntry
-                {
-                    title = new[] { "Sub-graph Assets", asset.name },
-                    node = node,
-                    compatibleSlotId = compatibleSlotId
-                });
+                var node = new SubGraphNode { subGraphAsset = asset };
+                AddEntries(node, new [] { "Sub-graph Assets", asset.name }, nodeEntries);
+            }
+
+            foreach (var property in m_Graph.properties)
+            {
+                var node = new PropertyNode();
+                var property1 = property;
+                node.owner = m_Graph;
+                node.propertyGuid = property1.guid;
+                node.owner = null;
+                AddEntries(node, new [] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }
 
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
@@ -173,20 +163,52 @@ namespace UnityEditor.ShaderGraph.Drawing
             return tree;
         }
 
-        int GetFirstCompatibleSlotId(AbstractMaterialNode node)
+        void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> nodeEntries)
         {
+            if (connectedPort == null)
+            {
+                nodeEntries.Add(new NodeEntry
+                {
+                    node = node,
+                    title = title,
+                    compatibleSlotId = -1
+                });
+                return;
+            }
+
             var connectedSlot = connectedPort.slot;
             m_Slots.Clear();
             node.GetSlots(m_Slots);
-            foreach (var slot in m_Slots)
+            var hasSingleSlot = m_Slots.Count(s => s.isOutputSlot != connectedSlot.isOutputSlot) == 1;
+            m_Slots.RemoveAll(slot =>
             {
                 var materialSlot = (MaterialSlot)slot;
-                if (materialSlot.IsCompatibleWith(connectedSlot))
+                return !materialSlot.IsCompatibleWith(connectedSlot);
+            });
+
+            if (hasSingleSlot && m_Slots.Count == 1)
+            {
+                nodeEntries.Add(new NodeEntry
                 {
-                    return materialSlot.id;
-                }
+                    node = node,
+                    title = title,
+                    compatibleSlotId = m_Slots.First().id
+                });
+                return;
             }
-            return -1;
+
+            foreach (var slot in m_Slots)
+            {
+                var entryTitle = new string[title.Length];
+                title.CopyTo(entryTitle, 0);
+                entryTitle[entryTitle.Length - 1] += ": " + slot.displayName;
+                nodeEntries.Add(new NodeEntry
+                {
+                    title = entryTitle,
+                    node = node,
+                    compatibleSlotId = slot.id
+                });
+            }
         }
 
         public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
