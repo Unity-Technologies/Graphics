@@ -1599,8 +1599,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            probeIndex = probeIndex - cullResults.visibleReflectionProbes.Count;
-                            var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[probeIndex];
+                            var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Count;
+                            var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[planarProbeIndex];
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
                             if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
@@ -1613,7 +1613,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, probeIndex); // Sort by volume
+                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
                         }
                     }
 
