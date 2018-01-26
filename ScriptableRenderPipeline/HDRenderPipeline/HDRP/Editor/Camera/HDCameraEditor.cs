@@ -25,9 +25,10 @@ namespace UnityEditor.Experimental.Rendering
             m_UIState.Reset(m_SerializedCamera, Repaint);
 
             m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
+            m_PreviewCamera.enabled = false;
+            m_PreviewCamera.cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
             m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
             m_PreviewPostProcessLayer = m_PreviewCamera.gameObject.AddComponent<PostProcessLayer>();
-            m_PreviewCamera.enabled = false;
             m_PreviewHDCamera = new HDCamera(m_PreviewCamera);
             m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
         }

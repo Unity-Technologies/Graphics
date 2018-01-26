@@ -25,6 +25,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TextureShaderIDs[dbufferIndex] = HDShaderIDs._DBufferTexture[dbufferIndex];
             }
         }
+		
+		public void ClearNormalTarget(CommandBuffer cmd, HDCamera camera, Color clearColor)
+		{
+			// index 1 is normals
+			HDUtils.SetRenderTarget(cmd, m_ColorMRTs[1], ClearFlag.Color, clearColor);
+		}
 
         public void PushGlobalParams(CommandBuffer cmd)
         {

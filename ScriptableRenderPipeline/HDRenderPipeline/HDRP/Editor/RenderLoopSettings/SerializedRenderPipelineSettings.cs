@@ -12,7 +12,6 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportDBuffer;
         public SerializedProperty supportMSAA;
         public SerializedProperty supportSubsurfaceScattering;
-        public SerializedProperty supportAsyncCompute;
         public SerializedProperty supportsForwardOnly;
         public SerializedProperty supportsMotionVectors;
         public SerializedProperty supportsStereo;
@@ -30,7 +29,6 @@ namespace UnityEditor.Experimental.Rendering
             supportDBuffer = root.Find((RenderPipelineSettings s) => s.supportDBuffer);
             supportMSAA = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
-            supportAsyncCompute = root.Find((RenderPipelineSettings s) => s.supportAsyncCompute);
             supportsForwardOnly = root.Find((RenderPipelineSettings s) => s.supportsForwardOnly);
             supportsMotionVectors = root.Find((RenderPipelineSettings s) => s.supportsMotionVectors);
             supportsStereo = root.Find((RenderPipelineSettings s) => s.supportsStereo);

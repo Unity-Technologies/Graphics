@@ -241,14 +241,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
-        public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_PyramidDepthTexture");
+        public static readonly int _PyramidDepthTexture = Shader.PropertyToID("_PyramidDepthTexture");
         public static readonly int _GaussianPyramidColorMipSize = Shader.PropertyToID("_GaussianPyramidColorMipSize");
         public static readonly int _DepthPyramidMipSize = Shader.PropertyToID("_PyramidDepthMipSize");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
         public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
         public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
+        public static readonly int _ApplyLinearToSRGB = Shader.PropertyToID("_ApplyLinearToSRGB");
         public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
+        public static readonly int _RequireToFlipInputTexture = Shader.PropertyToID("_RequireToFlipInputTexture");
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
@@ -286,6 +288,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
         public static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
+        public static readonly int _GlobalFog_Asymmetry        = Shader.PropertyToID("_GlobalFog_Asymmetry");
         public static readonly int _VBufferResolution          = Shader.PropertyToID("_VBufferResolution");
         public static readonly int _VBufferScaleAndSliceCount  = Shader.PropertyToID("_VBufferScaleAndSliceCount");
         public static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");

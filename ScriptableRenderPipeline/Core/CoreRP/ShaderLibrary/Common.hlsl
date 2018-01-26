@@ -237,48 +237,47 @@ TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
-// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
-/*
-float CubemapFaceID(float3 dir)
+float CubeMapFaceID(float3 dir)
 {
     float faceID;
+
     if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
     {
-        faceID = (dir.z < 0.0) ? 5.0 : 4.0;
+        faceID = (dir.z < 0.0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
     }
     else if (abs(dir.y) >= abs(dir.x))
     {
-        faceID = (dir.y < 0.0) ? 3.0 : 2.0;
+        faceID = (dir.y < 0.0) ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
     }
     else
     {
-        faceID = (dir.x < 0.0) ? 1.0 : 0.0;
+        faceID = (dir.x < 0.0) ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
     }
+
     return faceID;
 }
-*/
+#endif // INTRINSIC_CUBEMAP_FACE_ID
 
-void GetCubeFaceID(float3 dir, out int faceIndex)
+// Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use IsNAN instead
+bool IsNAN(float n)
 {
-    // TODO: Use faceID intrinsic on console
-    float3 adir = abs(dir);
-
-    // +Z -Z
-    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
-
-    // +X -X
-    if (adir.x > adir.y && adir.x > adir.z)
-    {
-        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
-    }
-    // +Y -Y
-    else if (adir.y > adir.x && adir.y > adir.z)
-    {
-        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
-    }
+    return (n < 0.0 || n > 0.0 || n == 0.0) ? false : true;
 }
 
-#endif // INTRINSIC_CUBEMAP_FACE_ID
+bool IsNAN(float2 v)
+{
+    return (IsNAN(v.x) || IsNAN(v.y)) ? true : false;
+}
+
+bool IsNAN(float3 v)
+{
+    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z)) ? true : false;
+}
+
+bool IsNAN(float4 v)
+{
+    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z) || IsNAN(v.w)) ? true : false;
+}
 
 // ----------------------------------------------------------------------------
 // Common math functions
@@ -367,23 +366,23 @@ real FastATan(real x)
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
-// Computes (FastSign(s) * x) using 2x VALU.
+// Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
-float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
+float CopySign(float x, float s, bool ignoreNegZero = true)
 {
 #if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
-        return (s >= 0) ? x : -x;
+        return (s >= 0) ? abs(x) : -abs(x);
     }
     else
     {
         uint negZero = 0x80000000u;
         uint signBit = negZero & asuint(s);
-        return asfloat(signBit ^ asuint(x));
+        return asfloat(BitFieldInsert(negZero, signBit, asuint(x)));
     }
 #else
-    return (s >= 0) ? x : -x;
+    return (s >= 0) ? abs(x) : -abs(x);
 #endif
 }
 
@@ -396,7 +395,7 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 // Note that the sign() function in HLSL implements signum, which returns 0 for 0.
 float FastSign(float s, bool ignoreNegZero = true)
 {
-    return FastMulBySignOf(s, 1.0, ignoreNegZero);
+    return CopySign(1.0, s, ignoreNegZero);
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
@@ -654,23 +653,39 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
-void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS, inout PositionInputs posInput)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
 {
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = linearDepth;
     posInput.positionWS  = positionWS;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS)
+{
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, linearDepth, positionWS, uint2(0, 0));
 }
 
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, uint2 tileCoord)
 {
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.deviceDepth = deviceDepth;
     posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
     posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix)
+{
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewProjMatrix, uint2(0, 0));
 }
 
 // The view direction 'V' points towards the camera.
