@@ -42,6 +42,8 @@ namespace UnityEditor.Experimental.Rendering
         internal SerializedProperty boxSideFadeNegative;
         internal SerializedProperty dimmer;
 
+        internal SerializedProperty proxyVolumeComponent;
+
         public SerializedHDReflectionProbe(SerializedObject so, SerializedObject addso)
         {
             this.so = so;
@@ -80,6 +82,8 @@ namespace UnityEditor.Experimental.Rendering
             blendNormalDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistanceNegative);
             boxSideFadePositive = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadePositive);
             boxSideFadeNegative = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadeNegative);
+
+            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolumeComponent);
         }
 
         public void Update()
