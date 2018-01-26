@@ -9,29 +9,23 @@ namespace UnityEditor.ShaderGraph
     public class ColorShaderProperty : AbstractShaderProperty<Color>
     {
         [SerializeField]
-        private bool m_HDR;
+        private ColorMode m_ColorMode;
 
-        public bool HDR
+        public ColorMode colorMode
         {
-            get { return m_HDR; }
+            get { return m_ColorMode; }
             set
             {
-                if (m_HDR == value)
+                if (m_ColorMode == value)
                     return;
 
-                m_HDR = value;
+                m_ColorMode = value;
             }
         }
 
         public ColorShaderProperty()
         {
             displayName = "Color";
-        }
-
-        public ColorShaderProperty(bool hdr)
-        {
-            displayName = "HDR Color";
-            HDR = hdr;
         }
 
         public override PropertyType propertyType
@@ -50,7 +44,7 @@ namespace UnityEditor.ShaderGraph
                 return string.Empty;
 
             var result = new StringBuilder();
-            if (HDR)
+            if (colorMode == ColorMode.HDR)
                 result.Append("[HDR]");
             result.Append(referenceName);
             result.Append("(\"");
@@ -83,7 +77,7 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            return new ColorNode { color = value };
+            return new ColorNode { color = new ColorNode.Color(value, colorMode) };
         }
     }
 }

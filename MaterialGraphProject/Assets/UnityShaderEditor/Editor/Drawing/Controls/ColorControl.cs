@@ -5,15 +5,10 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEditor.ShaderGraph;
+using Color = UnityEditor.ShaderGraph.ColorNode.Color;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
-    public enum ColorMode
-    {
-        Default,
-        HDR
-    }
-
     [AttributeUsage(AttributeTargets.Property)]
     public class ColorControlAttribute : Attribute, IControlAttribute
     {
@@ -37,6 +32,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
+        Color m_Color;
+        ColorField m_ColorField;
+
         public ColorControlView(string label, ColorMode colorMode, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
@@ -45,28 +43,40 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 throw new ArgumentException("Property must be of type Color.", "propertyInfo");
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
 
+            m_Color = (Color)m_PropertyInfo.GetValue(m_Node, null);
+
             if (!string.IsNullOrEmpty(label))
                 Add(new Label(label));
 
-            ColorField colorField;
-            switch(colorMode)
-            {
-                case ColorMode.HDR:
-                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), hdr = true, showEyeDropper = false };
-                    break;
-                default:
-                    colorField = new ColorField { value = (Color)m_PropertyInfo.GetValue(m_Node, null), showEyeDropper = false };
-                    break;
-            }
-            colorField.OnValueChanged(OnChange);
-            Add(colorField);
+            m_ColorField = new ColorField { value = m_Color.color, hdr = m_Color.mode == ColorMode.HDR, showEyeDropper = false };
+            m_ColorField.OnValueChanged(OnChange);
+            Add(m_ColorField);
+
+            VisualElement enumPanel = new VisualElement { name = "enumPanel" };
+            enumPanel.Add(new Label("Mode"));
+            var enumField = new EnumField(m_Color.mode);
+            enumField.OnValueChanged(OnModeChanged);
+            enumPanel.Add(enumField);
+            Add(enumPanel);
         }
 
-        void OnChange(ChangeEvent<Color> evt)
+        void OnChange(ChangeEvent<UnityEngine.Color> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Color Change");
-            m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
+            m_Color.color = evt.newValue;
+            m_PropertyInfo.SetValue(m_Node, m_Color, null);
             Dirty(ChangeType.Repaint);
+        }
+
+        void OnModeChanged(ChangeEvent<Enum> evt)
+        {
+            if (!evt.newValue.Equals(m_Color.mode))
+            {
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                m_Color.mode = (ColorMode)evt.newValue;
+                m_ColorField.hdr = m_Color.mode == ColorMode.HDR;
+                m_PropertyInfo.SetValue(m_Node, m_Color, null);
+            }
         }
     }
 }

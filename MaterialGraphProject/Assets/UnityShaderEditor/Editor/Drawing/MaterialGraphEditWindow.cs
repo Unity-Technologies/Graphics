@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         prop = new Vector2ShaderProperty();
                         break;
                     case ConcreteSlotValueType.Vector1:
-                        prop = new FloatShaderProperty();
+                        prop = new Vector1ShaderProperty();
                         break;
                     case ConcreteSlotValueType.Boolean:
                         prop = new BooleanShaderProperty();
