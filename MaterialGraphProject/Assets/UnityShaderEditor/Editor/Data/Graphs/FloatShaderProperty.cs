@@ -5,6 +5,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    public enum FloatType
+    {
+        Float,
+        Slider,
+        Integer
+    }
+
     [Serializable]
     public class FloatShaderProperty : AbstractShaderProperty<float>
     {
@@ -23,27 +30,52 @@ namespace UnityEditor.ShaderGraph
             get { return new Vector4(value, value, value, value); }
         }
 
+        private FloatType m_FloatType = FloatType.Float;
+
+        public FloatType floatType
+        {
+            get { return m_FloatType; }
+            set
+            {
+                if (m_FloatType == value)
+                    return;
+                m_FloatType = value;
+            }
+        }
+
+        private Vector2 m_RangeValues = new Vector2(0, 1);
+
+        public Vector2 rangeValues
+        {
+            get { return m_RangeValues; }
+            set
+            {
+                if (m_RangeValues == value)
+                    return;
+                m_RangeValues = value;
+            }
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
-            //  if (m_FloatType == FloatPropertyChunk.FloatType.Toggle)
-            //     result.Append("[Toggle]");
-            //  else if (m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
-            //      result.Append("[PowerSlider(" + m_rangeValues.z + ")]");
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
-
-            //if (m_FloatType == FloatPropertyChunk.FloatType.Float || m_FloatType == FloatPropertyChunk.FloatType.Toggle)
-            //{
-            result.Append("\", Float) = ");
-            /* }
-             else if (m_FloatType == FloatPropertyChunk.FloatType.Range || m_FloatType == FloatPropertyChunk.FloatType.PowerSlider)
-             {
-                 result.Append("\", Range(");
-                 result.Append(m_rangeValues.x + ", " + m_rangeValues.y);
-                 result.Append(")) = ");
-             }*/
+            switch(m_FloatType)
+            {
+                case FloatType.Slider:
+                    result.Append("\", Range(");
+                    result.Append(m_RangeValues.x + ", " + m_RangeValues.y);
+                    result.Append(")) = ");
+                    break;
+                case FloatType.Integer:
+                    result.Append("\", Int) = ");
+                    break;
+                default:
+                    result.Append("\", Float) = ");
+                    break;
+            }
             result.Append(value);
             return result.ToString();
         }
@@ -64,7 +96,15 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            return new Vector1Node { value = value };
+            switch(m_FloatType)
+            {
+                case FloatType.Slider:
+                    return new SliderNode { value = new Vector3(value, m_RangeValues.x, m_RangeValues.y) };
+                case FloatType.Integer:
+                    return new IntegerNode { value = (int)value };
+                default:
+                    return new Vector1Node { value = value };
+            }
         }
     }
 }
