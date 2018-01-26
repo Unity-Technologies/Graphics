@@ -3,13 +3,13 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using CED = CoreEditorDrawer<ProxyVolumeComponentUI, SerializedProxyVolumeComponent>;
+    using CED = CoreEditorDrawer<ReflectionProxyVolumeComponentUI, SerializedReflectionProxyVolumeComponent>;
 
-    class ProxyVolumeComponentUI : BaseUI<SerializedProxyVolumeComponent>
+    class ReflectionProxyVolumeComponentUI : BaseUI<SerializedReflectionProxyVolumeComponent>
     {
         public static readonly CED.IDrawer Inspector;
 
-        static ProxyVolumeComponentUI()
+        static ReflectionProxyVolumeComponentUI()
         {
             Inspector = CED.Select(
                 (s, d, o) => s.proxyVolume,
@@ -20,13 +20,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public ProxyVolumeUI proxyVolume = new ProxyVolumeUI();
 
-        public ProxyVolumeComponentUI()
+        public ReflectionProxyVolumeComponentUI()
             : base(0)
         {
             
         }
 
-        public override void Reset(SerializedProxyVolumeComponent data, UnityAction repaint)
+        public override void Reset(SerializedReflectionProxyVolumeComponent data, UnityAction repaint)
         {
             proxyVolume.Reset(data.proxyVolume, repaint);
             base.Reset(data, repaint);
@@ -38,17 +38,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.Update();
         }
 
-        public static void DrawHandles_EditBase(ProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
+        public static void DrawHandles_EditBase(ReflectionProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
         {
             ProxyVolumeUI.DrawHandles_EditBase(target.transform, target.proxyVolume, ui.proxyVolume, target);
         }
 
-        public static void DrawHandles_EditNone(ProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
+        public static void DrawHandles_EditNone(ReflectionProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
         {
             ProxyVolumeUI.DrawHandles_EditNone(target.transform, target.proxyVolume, ui.proxyVolume, target);
         }
 
-        public static void DrawGizmos_EditNone(ProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
+        public static void DrawGizmos_EditNone(ReflectionProxyVolumeComponentUI ui, ReflectionProxyVolumeComponent target)
         {
             ProxyVolumeUI.DrawGizmos_EditNone(target.transform, target.proxyVolume, ui.proxyVolume, target);
         }

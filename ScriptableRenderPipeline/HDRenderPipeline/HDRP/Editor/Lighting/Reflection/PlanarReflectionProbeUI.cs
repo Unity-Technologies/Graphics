@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
         public FrameSettingsUI frameSettings = new FrameSettingsUI();
-        public ProxyVolumeComponentUI proxyVolume = new ProxyVolumeComponentUI();
+        public ReflectionProxyVolumeComponentUI reflectionProxyVolume = new ReflectionProxyVolumeComponentUI();
 
         public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 1]; } }
@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void Reset(SerializedPlanarReflectionProbe data, UnityAction repaint)
         {
-            proxyVolume.Reset(data.proxyVolume, repaint);
+            reflectionProxyVolume.Reset(data.reflectionProxyVolume, repaint);
             frameSettings.Reset(data.frameSettings, repaint);
             influenceVolume.Reset(data.influenceVolume, repaint);
             base.Reset(data, repaint);
@@ -51,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             isSectionExpandedCaptureMirrorSettings.target = data.isMirrored;
             isSectionExpandedCaptureStaticSettings.target = !data.isMirrored;
 
-            proxyVolume.Update();
+            reflectionProxyVolume.Update();
             frameSettings.Update();
             influenceVolume.Update();
             base.Update();
