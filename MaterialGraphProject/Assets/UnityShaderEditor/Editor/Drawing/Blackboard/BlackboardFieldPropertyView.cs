@@ -20,15 +20,31 @@ namespace UnityEditor.ShaderGraph.Drawing
                 VisualElement modeRow = new VisualElement();
                 VisualElement minRow = new VisualElement();
                 VisualElement maxRow = new VisualElement();
+                FloatField floatField = null;
 
                 var floatProperty = (Vector1ShaderProperty)property;
-                var field = new FloatField { value = floatProperty.value };
-                field.OnValueChanged(evt =>
+
+                if(floatProperty.floatType == FloatType.Integer)
                 {
-                    floatProperty.value = (float)evt.newValue;
-                    DirtyNodes();
-                });
-                floatRow = AddRow("Default", field);
+                    var field = new IntegerField { value = (int)floatProperty.value };
+                    field.OnValueChanged(intEvt =>
+                    {
+                        floatProperty.value = (float)intEvt.newValue;
+                        DirtyNodes();
+                    });
+                    intRow = AddRow("Default", field);
+                }
+                else
+                {
+                    floatField = new FloatField { value = floatProperty.value };
+                    floatField.OnValueChanged(evt =>
+                    {
+                        floatProperty.value = (float)evt.newValue;
+                        DirtyNodes();
+                    });
+                    floatRow = AddRow("Default", floatField);
+                }
+
                 var floatModeField = new EnumField((Enum)floatProperty.floatType);
                 floatModeField.value = floatProperty.floatType;
                 floatModeField.OnValueChanged(evt =>
@@ -41,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         case FloatType.Slider:
                             RemoveElements(new VisualElement[]{floatRow, intRow, modeRow, minRow, maxRow});
-                            field = new FloatField { value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x) };
+                            var field = new FloatField { value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x) };
                             floatProperty.value = (float)field.value;
                             field.OnValueChanged(defaultEvt =>
                             {
@@ -97,6 +113,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                     DirtyNodes();
                 });
                 modeRow = AddRow("Mode", floatModeField);
+
+                if(floatProperty.floatType == FloatType.Slider)
+                {
+                    var minField = new FloatField { value = floatProperty.rangeValues.x };
+                    minField.OnValueChanged(minEvt =>
+                    {
+                        floatProperty.rangeValues = new Vector2((float)minEvt.newValue, floatProperty.rangeValues.y);
+                        floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
+                        floatField.value = floatProperty.value;
+                        DirtyNodes();
+                    });
+                    minRow = AddRow("Min", minField);
+                    var maxField = new FloatField { value = floatProperty.rangeValues.y };
+                    maxField.OnValueChanged(maxEvt =>
+                    {
+                        floatProperty.rangeValues = new Vector2(floatProperty.rangeValues.x, (float)maxEvt.newValue);
+                        floatProperty.value = Mathf.Max(Mathf.Min(floatProperty.value, floatProperty.rangeValues.y), floatProperty.rangeValues.x);
+                        floatField.value = floatProperty.value;
+                        DirtyNodes();
+                    });
+                    maxRow = AddRow("Max", maxField);
+                }
             }
             else if (property is Vector2ShaderProperty)
             {
