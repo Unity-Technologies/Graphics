@@ -5,79 +5,71 @@
 // Packing accessors
 //-----------------------------------------------------------------------------
 
-float3 EnvLightData_GetCapturePositionWS(EnvLightData lightData)
-{
-    return float3(lightData.capturePositionWSX, lightData.capturePositionWSY, lightData.capturePositionWSZ);
+#define GETTER_FLOAT3(Type, field)\
+float3 Type##_##Get##_##field(Type data)\
+{\
+    return float3(data.##field##X, data.##field##Y, data.##field##Z);\
 }
 
-float3 EnvLightData_GetProxyPositionWS(EnvLightData lightData)
-{
-    return float3(lightData.proxyPositionWSX, lightData.proxyPositionWSY, lightData.proxyPositionWSZ);
-}
+#define SETTER_FLOAT3(data, field, value)\
+ data.##field##X = value.x;\
+ data.##field##Y = value.y;\
+ data.##field##Z = value.z
 
-float3 EnvLightData_GetProxyForward(EnvLightData lightData)
-{
-    return float3(lightData.proxyForwardX, lightData.proxyForwardY, lightData.proxyForwardZ);
-}
+GETTER_FLOAT3(EnvLightData, capturePositionWS);
+#define EnvLightData_Set_capturePositionWS(data, value) SETTER_FLOAT3(data, capturePositionWS, value)
 
-float3 EnvLightData_GetProxyUp(EnvLightData lightData)
-{
-    return float3(lightData.proxyUpX, lightData.proxyUpY, lightData.proxyUpZ);
-}
+GETTER_FLOAT3(EnvLightData, proxyPositionWS);
+#define EnvLightData_Set_proxyPositionWS(data, value) SETTER_FLOAT3(data, proxyPositionWS, value)
 
-float3 EnvLightData_GetProxyRight(EnvLightData lightData)
-{
-    return float3(lightData.proxyRightX, lightData.proxyRightY, lightData.proxyRightZ);
-}
+GETTER_FLOAT3(EnvLightData, proxyForward);
+#define EnvLightData_Set_proxyForward(data, value) SETTER_FLOAT3(data, proxyForward, value)
 
-float3 EnvLightData_GetProxyExtents(EnvLightData lightData)
-{
-    return float3(lightData.proxyExtentsX, lightData.proxyExtentsY, lightData.proxyExtentsZ);
-}
+GETTER_FLOAT3(EnvLightData, proxyUp);
+#define EnvLightData_Set_proxyUp(data, value) SETTER_FLOAT3(data, proxyUp, value)
 
-float3 EnvLightData_GetInfluencePositionWS(EnvLightData lightData)
-{
-    return float3(lightData.influencePositionWSX, lightData.influencePositionWSY, lightData.influencePositionWSZ);
-}
+GETTER_FLOAT3(EnvLightData, proxyRight);
+#define EnvLightData_Set_proxyRight(data, value) SETTER_FLOAT3(data, proxyRight, value)
 
-float3 EnvLightData_GetInfluenceForward(EnvLightData lightData)
-{
-    return float3(lightData.influenceForwardX, lightData.influenceForwardY, lightData.influenceForwardZ);
-}
+GETTER_FLOAT3(EnvLightData, proxyExtents);
+#define EnvLightData_Set_proxyExtents(data, value) SETTER_FLOAT3(data, proxyExtents, value)
 
-float3 EnvLightData_GetInfluenceUp(EnvLightData lightData)
-{
-    return float3(lightData.influenceUpX, lightData.influenceUpY, lightData.influenceUpZ);
-}
+GETTER_FLOAT3(EnvLightData, influencePositionWS);
+#define EnvLightData_Set_influencePositionWS(data, value) SETTER_FLOAT3(data, influencePositionWS, value)
 
-float3 EnvLightData_GetInfluenceRight(EnvLightData lightData)
-{
-    return float3(lightData.influenceRightX, lightData.influenceRightY, lightData.influenceRightZ);
-}
+GETTER_FLOAT3(EnvLightData, influenceForward);
+#define EnvLightData_Set_influenceForward(data, value) SETTER_FLOAT3(data, influenceForward, value)
 
-float3 EnvLightData_GetInfluenceExtents(EnvLightData lightData)
-{
-    return float3(lightData.influenceExtentsX, lightData.influenceExtentsY, lightData.influenceExtentsZ);
-}
+GETTER_FLOAT3(EnvLightData, influenceUp);
+#define EnvLightData_Set_influenceUp(data, value) SETTER_FLOAT3(data, influenceUp, value)
 
-float3 EnvLightData_GetBlendDistancePositive(EnvLightData lightData)
-{
-    return float3(lightData.influenceExtentsX, lightData.blendDistancePositiveY, lightData.blendDistancePositiveZ);
-}
+GETTER_FLOAT3(EnvLightData, influenceRight);
+#define EnvLightData_Set_influenceRight(data, value) SETTER_FLOAT3(data, influenceRight, value)
 
-float3 EnvLightData_GetBlendDistanceNegative(EnvLightData lightData)
-{
-    return float3(lightData.influenceExtentsX, lightData.blendDistanceNegativeY, lightData.blendDistanceNegativeZ);
-}
+GETTER_FLOAT3(EnvLightData, influenceExtents);
+#define EnvLightData_Set_influenceExtents(data, value) SETTER_FLOAT3(data, influenceExtents, value)
 
-float3 EnvLightData_GetBlendNormalDistancePositive(EnvLightData lightData)
-{
-    return float3(lightData.influenceExtentsX, lightData.blendNormalDistancePositiveY, lightData.blendNormalDistancePositiveZ);
-}
+GETTER_FLOAT3(EnvLightData, blendDistancePositive);
+#define EnvLightData_Set_blendDistancePositive(data, value) SETTER_FLOAT3(data, blendDistancePositive, value)
 
-float3 EnvLightData_GetBlendNormalDistanceNegative(EnvLightData lightData)
-{
-    return float3(lightData.influenceExtentsX, lightData.blendNormalDistanceNegativeY, lightData.blendNormalDistanceNegativeZ);
-}
+GETTER_FLOAT3(EnvLightData, blendDistanceNegative);
+#define EnvLightData_Set_blendDistanceNegative(data, value) SETTER_FLOAT3(data, blendDistanceNegative, value)
+
+GETTER_FLOAT3(EnvLightData, blendNormalDistancePositive);
+#define EnvLightData_Set_blendNormalDistancePositive(data, value) SETTER_FLOAT3(data, blendNormalDistancePositive, value)
+
+GETTER_FLOAT3(EnvLightData, blendNormalDistanceNegative);
+#define EnvLightData_Set_blendNormalDistanceNegative(data, value) SETTER_FLOAT3(data, blendNormalDistanceNegative, value)
+
+GETTER_FLOAT3(EnvLightData, boxSideFadePositive);
+#define EnvLightData_Set_boxSideFadePositive(data, value) SETTER_FLOAT3(data, boxSideFadePositive, value)
+
+GETTER_FLOAT3(EnvLightData, boxSideFadeNegative);
+#define EnvLightData_Set_boxSideFadeNegative(data, value) SETTER_FLOAT3(data, boxSideFadeNegative, value)
+
+GETTER_FLOAT3(EnvLightData, sampleDirectionDiscardWS);
+#define EnvLightData_Set_sampleDirectionDiscardWS(data, value) SETTER_FLOAT3(data, sampleDirectionDiscardWS, value)
+
+#undef GETTER_FLOAT3
 
 #endif

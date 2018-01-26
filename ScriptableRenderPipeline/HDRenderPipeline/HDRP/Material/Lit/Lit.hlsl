@@ -1718,7 +1718,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, 
-                                    int influenceShapeType, int projectionShapeType, int GPUImageBasedLightingType,
+                                    int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1782,27 +1782,29 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float projectionDistance = 0;
     // 1. First process the projection
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
-    if (projectionShapeType == ENVSHAPETYPE_SPHERE)
+    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
     {
         projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
+        float3 capturePositionWS = EnvLightData_Get_capturePositionWS(lightData);
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
             dirPS = mul(coatR, worldToPS);
             projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
-            coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
+            coatR = (positionWS + projectionDistance * coatR) - capturePositionWS;
         }
         weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
-    else if (projectionShapeType == ENVSHAPETYPE_BOX)
+    else if (influenceShapeType == ENVSHAPETYPE_BOX)
     {
         projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        R = (positionWS + projectionDistance * R) - lightData.capturePositionWS;
+        float3 capturePositionWS = EnvLightData_Get_capturePositionWS(lightData);
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // TODO: add distance based roughness
 
@@ -1811,7 +1813,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         {
             dirPS = mul(coatR, worldToPS);
             projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
-            coatR = (positionWS + projectionDistance * coatR) - lightData.capturePositionWS;
+            coatR = (positionWS + projectionDistance * coatR) - capturePositionWS;
         }
         weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
@@ -1828,7 +1830,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
-    if (dot(lightData.sampleDirectionDiscardWS, R) < 0)
+    float3 sampleDirectionDiscardWS = EnvLightData_Get_sampleDirectionDiscardWS(lightData);
+    if (dot(sampleDirectionDiscardWS, R) < 0)
         return lighting;
 
     float3 F = preLightData.specularFGD;
