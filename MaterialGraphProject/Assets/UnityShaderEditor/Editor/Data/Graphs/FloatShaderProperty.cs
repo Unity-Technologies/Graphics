@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
+    [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
     public class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         public Vector1ShaderProperty()
