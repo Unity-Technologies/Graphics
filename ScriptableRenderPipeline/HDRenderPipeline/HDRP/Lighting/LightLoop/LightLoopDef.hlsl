@@ -4,6 +4,7 @@
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
+#define MAX_ENV2D_LIGHT 32
 
 CBUFFER_START(UnityTilePass)
 uint _NumTileFtplX;
@@ -48,7 +49,9 @@ TEXTURE2D_ARRAY(_CookieTextures);
 TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
-TEXTURECUBE_ARRAY_ABSTRACT(_EnvTextures);
+TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
+TEXTURE2D_ARRAY(_Env2DTextures);
+float4x4 _Env2DCaptureVP[MAX_ENV2D_LIGHT];
 
 TEXTURE2D(_DeferredShadowTexture);
 
@@ -57,6 +60,7 @@ uint _DirectionalLightCount;
 uint _PunctualLightCount;
 uint _AreaLightCount;
 uint _EnvLightCount;
+uint _EnvProxyCount;
 int  _EnvLightSkyEnabled;         // TODO: make it a bool
 CBUFFER_END
 
@@ -101,14 +105,51 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
 
+#ifdef DEBUG_DISPLAY
+float4 ApplyDebugProjectionVolume(float4 color, float3 texCoord, float scale)
+{
+    float l = length(texCoord);
+    l = pow(l / (1 + l), scale);
+    return float4(l.xxx * 0.7 + color.rgb * 0.3, color.a);
+}
+#endif
+
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
+// Cubemap      : texCoord = direction vector
+// Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
 float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
 {
+    // 31 bit index, 1 bit cache type
+    uint cacheType = index & 1;
+    index = index >> 1;
+
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+        if (cacheType == ENVCACHETYPE_TEXTURE2D)
+        {
+            //_Env2DCaptureVP is in capture space
+            float4 ndc = ComputeClipSpaceCoordinates(texCoord, _Env2DCaptureVP[index]);
+            ndc *= rcp(ndc.w);
+            ndc.xy = ndc.xy * 0.5 + 0.5;
+
+            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
+            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
+            
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
+                return ApplyDebugProjectionVolume(color, texCoord, _DebugEnvironmentProxyDepthScale);
+#endif
+            return color;
+        }
+        else if (cacheType == ENVCACHETYPE_CUBEMAP)
+        {
+            float4 color = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
+            color.a = 1;
+            return color;
+        }
+        return float4(0, 0, 0, 0);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {

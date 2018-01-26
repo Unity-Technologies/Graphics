@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SpecularColor fold into fresnel0
 
             // SSS
-            public int diffusionProfile;
+            public uint diffusionProfile;
             public float subsurfaceMask;
 
             // Transmission
