@@ -6,6 +6,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        // The light culling use standard projection matrices (non-oblique)
+        // If the user overrides the projection matrix with an oblique one
+        // He must also provide a callback to get the equivalent non oblique for the culling
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
 #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used

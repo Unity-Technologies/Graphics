@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.Experimental.Rendering
+﻿using UnityEngine;
+
+namespace UnityEditor.Experimental.Rendering
 {
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<GlobalLightLoopSettingsUI, SerializedGlobalLightLoopSettings>;
@@ -47,9 +49,13 @@
             EditorGUILayout.PropertyField(d.reflectionCubemapSize, _.GetContent("Reflection Cubemap Size"));
             EditorGUILayout.PropertyField(d.reflectionProbeCacheSize, _.GetContent("Probe Cache Size"));
 
+            EditorGUILayout.Space();
+
             EditorGUILayout.PropertyField(d.planarReflectionCacheCompressed, _.GetContent("Compress Planar Reflection Probe Cache"));
             EditorGUILayout.PropertyField(d.planarReflectionCubemapSize, _.GetContent("Planar Reflection Texture Size"));
             EditorGUILayout.PropertyField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
+            EditorGUILayout.PropertyField(d.maxPlanarReflectionProbes, _.GetContent("Max Planar Probe Per Frame"));
+            d.maxPlanarReflectionProbes.intValue = Mathf.Max(1, d.maxPlanarReflectionProbes.intValue);
             --EditorGUI.indentLevel;
         }
 
