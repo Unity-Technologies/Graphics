@@ -1786,7 +1786,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = EnvLightData_Get_capturePositionWS(lightData);
+        float3 capturePositionWS = GetCapturePositionWS(lightData);
         R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // Test again for clear coat
@@ -1803,7 +1803,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = EnvLightData_Get_capturePositionWS(lightData);
+        float3 capturePositionWS = GetCapturePositionWS(lightData);
         R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // TODO: add distance based roughness
@@ -1830,7 +1830,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
-    float3 sampleDirectionDiscardWS = EnvLightData_Get_sampleDirectionDiscardWS(lightData);
+    float3 sampleDirectionDiscardWS = GetSampleDirectionDiscardWS(lightData);
     if (dot(sampleDirectionDiscardWS, R) < 0)
         return lighting;
 
