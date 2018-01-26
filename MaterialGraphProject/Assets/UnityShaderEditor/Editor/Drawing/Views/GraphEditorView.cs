@@ -105,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
                 masterPreviewResizeBorderFrame.stayWithinParentBounds = true;
+                masterPreviewResizeBorderFrame.maintainAspectRatio = true;
                 masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
 
@@ -441,6 +442,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout.GetLayout(layout);
                 m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(layout);
+
+                m_MasterPreviewView.UpdateRenderTextureOnNextLayoutChange();
             }
             else
             {
@@ -455,6 +458,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
+
+            m_MasterPreviewView.RefreshRenderTextureSize();
         }
 
         public void Dispose()
