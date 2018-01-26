@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph
             GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, !isUber);
 
             var shaderProperties = new PropertyCollector();
-            results.outputIdProperty = new FloatShaderProperty
+            results.outputIdProperty = new Vector1ShaderProperty
             {
                 displayName = "OutputId",
                 generatePropertyBlock = false,
@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph
             GenerationMode mode,
             string functionName = "PopulateSurfaceData",
             string surfaceDescriptionName = "SurfaceDescription",
-            FloatShaderProperty outputIdProperty = null,
+            Vector1ShaderProperty outputIdProperty = null,
             IEnumerable<MaterialSlot> slots = null)
         {
             if (graph == null)

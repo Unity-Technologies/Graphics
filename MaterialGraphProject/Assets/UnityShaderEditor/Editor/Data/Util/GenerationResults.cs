@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
         public string shader { get; set; }
         public List<PropertyCollector.TextureInfo> configuredTextures;
         public PreviewMode previewMode { get; set; }
-        public FloatShaderProperty outputIdProperty { get; set; }
+        public Vector1ShaderProperty outputIdProperty { get; set; }
         public ShaderSourceMap sourceMap { get; set; }
 
         public GenerationResults()

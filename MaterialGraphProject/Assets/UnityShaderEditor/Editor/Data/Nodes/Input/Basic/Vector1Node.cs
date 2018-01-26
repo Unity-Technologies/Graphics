@@ -14,12 +14,6 @@ namespace UnityEditor.ShaderGraph
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
-        /*[SerializeField]
-        private FloatPropertyChunk.FloatType m_floatType;*/
-
-        // [SerializeField]
-        //private Vector3 m_rangeValues = new Vector3(0f, 1f, 2f);
-
         public Vector1Node()
         {
             name = "Vector 1";
@@ -47,40 +41,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        /* public FloatPropertyChunk.FloatType floatType
-         {
-             get { return m_floatType; }
-             set
-             {
-                 if (m_floatType == value)
-                     return;
-
-                 m_floatType = value;
-
-                 Dirty(ModificationScope.Node);
-             }
-         }*/
-
-        /*  public Vector3 rangeValues
-          {
-              get { return m_rangeValues; }
-              set
-              {
-                  if (m_rangeValues == value)
-                      return;
-
-                  m_rangeValues = value;
-
-                  Dirty(ModificationScope.Node);
-              }
-          }
-  */
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            properties.AddShaderProperty(new FloatShaderProperty()
+            properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false,
@@ -103,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Float)
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = GetVariableNameForNode(),
                 floatValue = m_Value
@@ -112,7 +78,7 @@ namespace UnityEditor.ShaderGraph
 
         public IShaderProperty AsShaderProperty()
         {
-            return new FloatShaderProperty { value = value };
+            return new Vector1ShaderProperty { value = value };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

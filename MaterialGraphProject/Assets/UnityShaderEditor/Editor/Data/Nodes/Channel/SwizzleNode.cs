@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph
             base.CollectShaderProperties(properties, generationMode);
             if (generationMode != GenerationMode.Preview)
                 return;
-            properties.AddShaderProperty(new FloatShaderProperty
+            properties.AddShaderProperty(new Vector1ShaderProperty
             {
                 overrideReferenceName = GetVariableNameForNode(),
                 generatePropertyBlock = false
@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
             base.CollectPreviewMaterialProperties(properties);
             // Encode swizzle values into an integer
             var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
-            properties.Add(new PreviewProperty(PropertyType.Float)
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = GetVariableNameForNode(),
                 floatValue = value

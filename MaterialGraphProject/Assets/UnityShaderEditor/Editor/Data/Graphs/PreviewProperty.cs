@@ -101,14 +101,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (propType != PropertyType.Float)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Float, propType));
+                if (propType != PropertyType.Vector1)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Vector1, propType));
                 return m_Data.floatValue;
             }
             set
             {
-                if (propType != PropertyType.Float)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Float, propType));
+                if (propType != PropertyType.Vector1)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector1, propType));
                 m_Data.floatValue = value;
             }
         }
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph
                 block.SetColor(name, m_Data.colorValue);
             else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
                 block.SetVector(name, m_Data.vector4Value);
-            else if (propType == PropertyType.Float)
+            else if (propType == PropertyType.Vector1)
                 block.SetFloat(name, m_Data.floatValue);
             else if (propType == PropertyType.Boolean)
                 block.SetFloat(name, m_Data.booleanValue ? 1 : 0);

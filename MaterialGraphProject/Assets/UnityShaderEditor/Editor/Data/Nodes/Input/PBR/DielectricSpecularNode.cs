@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
 
             if(material.type == DielectricMaterialType.Common)
             {
-                properties.Add(new PreviewProperty(PropertyType.Float)
+                properties.Add(new PreviewProperty(PropertyType.Vector1)
                 {
                     name = string.Format("_{0}_Range", GetVariableNameForNode()),
                     floatValue = material.range
@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph
             }
             else if (material.type == DielectricMaterialType.Custom)
             {
-                properties.Add(new PreviewProperty(PropertyType.Float)
+                properties.Add(new PreviewProperty(PropertyType.Vector1)
                 {
                     name = string.Format("_{0}_IOR", GetVariableNameForNode()),
                     floatValue = material.indexOfRefraction
@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph
             
             if (material.type == DielectricMaterialType.Common)
             {
-                properties.AddShaderProperty(new FloatShaderProperty()
+                properties.AddShaderProperty(new Vector1ShaderProperty()
                 {
                     overrideReferenceName = string.Format("_{0}_Range", GetVariableNameForNode()),
                     generatePropertyBlock = false
@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph
             }
             else if (material.type == DielectricMaterialType.Custom)
             {
-                properties.AddShaderProperty(new FloatShaderProperty()
+                properties.AddShaderProperty(new Vector1ShaderProperty()
                 {
                     overrideReferenceName = string.Format("_{0}_IOR", GetVariableNameForNode()),
                     generatePropertyBlock = false
