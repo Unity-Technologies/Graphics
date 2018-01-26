@@ -104,6 +104,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle.renderTexture = new RenderTexture(descriptor);
         }
 
+        public void UpdateRenderTextureOnNextLayoutChange()
+        {
+            RegisterCallback<PostLayoutEvent>(AdaptRenderTextureOnLayoutChange);
+        }
+
+        void AdaptRenderTextureOnLayoutChange(PostLayoutEvent evt)
+        {
+            UnregisterCallback<PostLayoutEvent>(AdaptRenderTextureOnLayoutChange);
+            RefreshRenderTextureSize();
+        }
+
         void OnMouseDragPreviwMesh(Vector2 deltaMouse)
         {
             Vector2 previewSize = m_PreviewTextureView.contentRect.size;
