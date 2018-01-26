@@ -37,13 +37,13 @@
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 #include "CoreRP/ShaderLibrary/SpaceFillingCurves.hlsl"
 
-#include "../VolumetricLighting.cs.hlsl"
 #include "../../../ShaderVariables.hlsl"
+#include "../VolumetricLighting.cs.hlsl"
+#include "../VBuffer.hlsl"
 
 #define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
-#include "../../../Lighting/Lighting.hlsl" // Includes Material.hlsl
-#include "../../../Lighting/LightEvaluation.hlsl"
-#include "../../../Lighting/VBuffer.hlsl"
+#include "../../Lighting.hlsl" // Includes Material.hlsl
+#include "../../LightEvaluation.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
