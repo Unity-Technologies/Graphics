@@ -15,7 +15,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IndirectDiffuseOcclusionFromSsao,
         IndirectDiffuseGtaoFromSsao,
         IndirectSpecularOcclusionFromSsao,
-        IndirectSpecularGtaoFromSsao
+        IndirectSpecularGtaoFromSsao,
+        EnvironmentProxyVolume,
     }
 
     public enum ShadowMapDebugMode
@@ -47,6 +48,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
+
+        public float                environmentProxyDepthScale = 20;
 
         public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
         public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;
