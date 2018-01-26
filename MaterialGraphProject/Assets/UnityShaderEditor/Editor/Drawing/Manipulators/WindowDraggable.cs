@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,10 +19,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         Vector2 m_LocalMosueOffset;
         Rect m_PreviousParentRect;
 
+        VisualElement m_Handle;
+
         public Action OnDragFinished;
 
-        public WindowDraggable(bool resizeWithParentwindow = false)
+        public WindowDraggable(VisualElement handle = null, bool resizeWithParentwindow = false)
         {
+            m_Handle = handle;
             m_ResizeWithParentWindow = resizeWithParentwindow;
             m_Active = false;
             m_PreviousParentRect = new Rect(0f, 0f, 0f, 0f);
@@ -30,26 +33,28 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
-            target.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
-            target.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
+            if (m_Handle == null)
+                m_Handle = target;
+            m_Handle.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
+            m_Handle.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
+            m_Handle.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
             target.RegisterCallback<PostLayoutEvent>(InitialLayoutSetup);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            target.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
-            target.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
-            target.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
+            m_Handle.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
+            m_Handle.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
+            m_Handle.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
         }
 
         void OnMouseDown(MouseDownEvent evt)
         {
             m_Active = true;
-            m_LocalMosueOffset = target.WorldToLocal(evt.mousePosition);
+            m_LocalMosueOffset = m_Handle.WorldToLocal(evt.mousePosition);
 
-            target.TakeMouseCapture();
-            evt.StopPropagation();
+            m_Handle.TakeMouseCapture();
+            evt.StopImmediatePropagation();
         }
 
         void OnMouseMove(MouseMoveEvent evt)
@@ -68,12 +73,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Active = false;
 
-            if (target.HasMouseCapture())
+            if (m_Handle.HasMouseCapture())
             {
-                target.ReleaseMouseCapture();
+                m_Handle.ReleaseMouseCapture();
             }
 
-            evt.StopPropagation();
+            evt.StopImmediatePropagation();
 
             RefreshDocking();
 
