@@ -83,12 +83,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum MaterialId
         {
-            LitSSS = 0,
+            LitSSSAndTransmission = 0,
             LitStandard = 1,
             LitAniso = 2,
-            LitClearCoat = 3,
-            LitSpecular = 4,
-            LitIridescence = 5,
+            LitIridescence = 3,
+            LitSpecular = 4
         };
 
         public enum HeightmapParametrization
@@ -358,7 +357,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
+            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSSAndTransmission)
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
