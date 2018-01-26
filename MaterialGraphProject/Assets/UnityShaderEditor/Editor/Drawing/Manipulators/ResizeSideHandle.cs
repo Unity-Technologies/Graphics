@@ -36,6 +36,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_StayWithinParentBounds = value; }
         }
 
+        bool m_MaintainAspectRatio;
+
+        public bool maintainAspectRatio
+        {
+            get { return m_MaintainAspectRatio; }
+            set { m_MaintainAspectRatio = value; }
+        }
+
         public Action OnResizeFinished;
 
         public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)

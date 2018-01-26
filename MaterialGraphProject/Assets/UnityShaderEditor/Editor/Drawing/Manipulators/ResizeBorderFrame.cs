@@ -18,10 +18,24 @@ public class ResizeBorderFrame : VisualElement
         set
         {
             m_StayWithinParentBounds = value;
-
             foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
             {
                 resizeHandle.stayWithinPanretBounds = value;
+            }
+        }
+    }
+
+    bool m_MaintainApsectRatio;
+
+    public bool maintainAspectRatio
+    {
+        get { return m_MaintainApsectRatio; }
+        set
+        {
+            m_MaintainApsectRatio = value;
+            foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
+            {
+                resizeHandle.maintainAspectRatio = value;
             }
         }
     }
