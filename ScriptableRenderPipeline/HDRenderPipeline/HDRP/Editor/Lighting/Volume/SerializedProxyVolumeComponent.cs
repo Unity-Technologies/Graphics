@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             this.serializedObject = serializedObject;
 
-            proxyVolume = new SerializedProxyVolume(serializedObject.Find((ProxyVolumeComponent c) => c.proxyVolume));
+            proxyVolume = new SerializedProxyVolume(serializedObject.Find((ReflectionProxyVolumeComponent c) => c.proxyVolume));
         }
 
         public void Update()

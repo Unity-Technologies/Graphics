@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        ProxyVolumeComponent m_ProxyVolumeReference;
+        ReflectionProxyVolumeComponent m_ProxyVolumeReference;
         [SerializeField]
         InfluenceVolume m_InfluenceVolume;
         [SerializeField]
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
-        public ProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
+        public ReflectionProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
         public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
 
