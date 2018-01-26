@@ -77,9 +77,7 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            if(colorMode == ColorMode.HDR)
-                return new HDRColorNode { color = value };
-            return new ColorNode { color = value };
+            return new ColorNode { color = new ColorNode.Color(value, colorMode) };
         }
     }
 }
