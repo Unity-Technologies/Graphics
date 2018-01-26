@@ -10,6 +10,4 @@ SAMPLER(sampler_MaskMap);
 
 float _DecalBlend;
 
-RW_TEXTURE2D(float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
-
 #endif 
