@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 moveItemRequested = MoveItemRequested
             };
 
-            m_WindowDraggable = new WindowDraggable();
+            m_WindowDraggable = new WindowDraggable(blackboard.shadow.Children().First().Q("header"));
             blackboard.AddManipulator(m_WindowDraggable);
 
             m_ResizeBorderFrame = new ResizeBorderFrame(blackboard) { name = "resizeBorderFrame" };
