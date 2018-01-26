@@ -61,6 +61,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        protected override void MaterialPropertiesAdvanceGUI(Material material)
+        {
+        }
+
         protected override void VertexAnimationPropertiesGUI()
         {
 
