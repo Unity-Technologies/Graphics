@@ -119,9 +119,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		    CoreUtils.SetRenderTarget(cmd, m_HTileRT, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 		}
 
-        public void SetHTile(CommandBuffer cmd)
+        public void SetHTile(int bindSlot, CommandBuffer cmd)
         {
-            cmd.SetRandomWriteTarget(3, m_HTile);
+            cmd.SetRandomWriteTarget(bindSlot, m_HTile);
         }
 
         public void PushGlobalParams(CommandBuffer cmd)
@@ -1194,6 +1194,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
+                if (m_FrameSettings.enableDBuffer)
+                {
+                    m_DbufferManager.SetHTile(m_GbufferManager.gbufferCount, cmd); 
+                }
 
                 // Render opaque objects into GBuffer
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
@@ -1243,7 +1247,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				m_DbufferManager.ClearNormalTargetAndHTile(clearColorNormal, cmd);
 
 				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT); // do not clear anymore
-                m_DbufferManager.SetHTile(cmd);
+                m_DbufferManager.SetHTile(m_DbufferManager.dbufferCount, cmd);
                 DecalSystem.instance.Render(renderContext, camera, cmd);
                 cmd.ClearRandomWriteTargets();
             }
