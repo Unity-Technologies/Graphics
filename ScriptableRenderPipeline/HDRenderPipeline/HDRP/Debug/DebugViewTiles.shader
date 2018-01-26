@@ -139,9 +139,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
             float4 Frag(Varyings input) : SV_Target
             {
                 // positionCS is SV_Position
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, uint2(input.positionCS.xy) / GetTileSize());
-                float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
-                UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
+                float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionCS.xy).x;
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, uint2(input.positionCS.xy) / GetTileSize());
 
                 int2 pixelCoord = posInput.positionSS.xy;
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
@@ -188,9 +187,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, mouseTileCoord);
-                    float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, mousePosInput.positionSS).x;
-                    UpdatePositionInput(depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, mousePosInput);
+                    float depthMouse = LOAD_TEXTURE2D(_MainDepthTexture, _MousePixelCoord.xy).x;
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, mouseTileCoord);
 
                     uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
                     uint start;
