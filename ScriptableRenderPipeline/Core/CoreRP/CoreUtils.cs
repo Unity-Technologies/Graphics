@@ -158,9 +158,9 @@ namespace UnityEngine.Experimental.Rendering
             baseDesc.depthBufferBits = depthBufferBits;
             baseDesc.colorFormat = format;
             baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
-            // TODO: Explicit MSAA support will come in later
 
-            if ((format == RenderTextureFormat.Depth) && baseDesc.msaaSamples > 1)
+            // Depth-only needs bindMS in order to use with CopyTexture
+            if ((format == RenderTextureFormat.Depth) && (baseDesc.msaaSamples > 1))
                 baseDesc.bindMS = true;
 
             return new RenderTexture(baseDesc);
@@ -184,9 +184,9 @@ namespace UnityEngine.Experimental.Rendering
             baseDesc.depthBufferBits = depthBufferBits;
             baseDesc.colorFormat = format;
             baseDesc.sRGB = (readWrite != RenderTextureReadWrite.Linear);
+
+            Debug.Assert(!enableRandomWrite || (msaaSamples == 1));
             baseDesc.msaaSamples = msaaSamples;
-            if (msaaSamples > 1)
-                enableRandomWrite = false;
             baseDesc.enableRandomWrite = enableRandomWrite;
         }
 

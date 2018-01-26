@@ -175,12 +175,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // this is already pre-validated to be a valid sample count by InitializeFrameSettings
                 var sampleCount = QualitySettings.antiAliasing;
-                Debug.LogFormat("Quality Settings AA value: {0}", sampleCount);
                 tempDesc.msaaSamples = sampleCount;
             }
             else
             {
-                Debug.Log("No MSAA enabled");
                 tempDesc.msaaSamples = 1;
             }
             tempDesc.depthBufferBits = 0;
