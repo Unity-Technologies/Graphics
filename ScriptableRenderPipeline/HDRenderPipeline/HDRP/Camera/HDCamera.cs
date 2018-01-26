@@ -25,7 +25,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public PostProcessRenderContext postprocessRenderContext;
 
         // Non oblique projection matrix (RHS)
-        public Matrix4x4 nonObliqueProjMatrix { get { return m_AdditionalCameraData.GetNonObliqueProjection(camera); } }
+        public Matrix4x4 nonObliqueProjMatrix
+        {
+            get
+            {
+                return m_AdditionalCameraData != null
+                    ? m_AdditionalCameraData.GetNonObliqueProjection(camera)
+                    : GeometryUtils.CalculateProjectionMatrix(camera);
+            }
+        }
 
         public Matrix4x4 viewProjMatrix
         {
@@ -83,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
             postprocessRenderContext = new PostProcessRenderContext();
-            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>() ?? ComponentSingleton<HDAdditionalCameraData>.instance;
+            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
         }
 

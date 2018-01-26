@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty planarReflectionProbeCacheSize;
         public SerializedProperty planarReflectionCubemapSize;
         public SerializedProperty planarReflectionCacheCompressed;
+        public SerializedProperty maxPlanarReflectionProbes;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
 
@@ -35,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering
             planarReflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionProbeCacheSize);
             planarReflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionTextureSize);
             planarReflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.planarReflectionCacheCompressed);
+            maxPlanarReflectionProbes = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionProbes);
 
             skyReflectionSize = root.Find((GlobalLightLoopSettings s) => s.skyReflectionSize);
             skyLightingOverrideLayerMask = root.Find((GlobalLightLoopSettings s) => s.skyLightingOverrideLayerMask);

@@ -1152,40 +1152,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
-            switch (probe.texture.dimension)
+            if (probe.planarReflectionProbe != null)
             {
-                case TextureDimension.Tex2D:
-                {
-                    envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                    envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
+                envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
 
-                    float nearClipPlane, farClipPlane, aspect, fov;
-                    Color backgroundColor;
-                    CameraClearFlags clearFlags;
-                    Quaternion captureRotation;
-                    Matrix4x4 worldToCamera, projection;
+                float nearClipPlane, farClipPlane, aspect, fov;
+                Color backgroundColor;
+                CameraClearFlags clearFlags;
+                Quaternion captureRotation;
+                Matrix4x4 worldToCamera, projection;
 
-                    ReflectionSystem.CalculateCaptureCameraProperties(
-                        probe.planarReflectionProbe,
-                        out nearClipPlane, out farClipPlane,
-                        out aspect, out fov, out clearFlags, out backgroundColor,
-                        out worldToCamera, out projection, out capturePosition, out captureRotation,
-                        camera);
+                ReflectionSystem.CalculateCaptureCameraProperties(
+                    probe.planarReflectionProbe,
+                    out nearClipPlane, out farClipPlane,
+                    out aspect, out fov, out clearFlags, out backgroundColor,
+                    out worldToCamera, out projection, out capturePosition, out captureRotation,
+                    camera);
 
-                    var gpuProj = GL.GetGPUProjectionMatrix(projection, true); // Had to change this from 'false'
-                    var gpuView = worldToCamera;
+                var gpuProj = GL.GetGPUProjectionMatrix(projection, true); // Had to change this from 'false'
+                var gpuView = worldToCamera;
 
-                    // We transform it to object space by translating the capturePosition
-                    var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
-                    m_Env2DCaptureVP.Add(vp);
-                    sampleDirectionDiscardWS = captureRotation * Vector3.forward;
-                    break;
-                }
-                case TextureDimension.Cube:
-                    envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
-                    envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
-                    capturePosition = (Vector3)influenceToWorld.GetColumn(3) - probe.reflectionProbe.center;
-                    break;
+                // We transform it to object space by translating the capturePosition
+                var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
+                m_Env2DCaptureVP.Add(vp);
+                sampleDirectionDiscardWS = captureRotation * Vector3.forward;
+            }
+            else if (probe.reflectionProbe != null)
+            {
+                envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
+                envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
+                capturePosition = (Vector3)influenceToWorld.GetColumn(3) - probe.reflectionProbe.center;
             }
             // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
             if (envIndex == -1)
@@ -1592,7 +1589,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         LightVolumeType lightVolumeType = LightVolumeType.Box;
-                            if (additional != null && additional.influenceShape == ShapeType.Sphere)
+                        if (additional != null && additional.influenceShape == ShapeType.Sphere)
                             lightVolumeType = LightVolumeType.Sphere;
                         ++envLightCount;
 
