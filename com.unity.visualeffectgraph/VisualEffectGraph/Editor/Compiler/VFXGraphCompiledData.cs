@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
                         case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
                         case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
-                        case VFXValueType.kTransform: value = CreateValueDesc<Matrix4x4>(exp, i); break;
+                        case VFXValueType.kMatrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
                         case VFXValueType.kMesh: value = CreateValueDesc<Mesh>(exp, i); break;
@@ -654,7 +654,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.kTexture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
                         case VFXValueType.kTextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
                         case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
-                        case VFXValueType.kTransform: SetValueDesc<Matrix4x4>(desc, exp); break;
+                        case VFXValueType.kMatrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.kCurve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.kColorGradient: SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.kMesh: SetValueDesc<Mesh>(desc, exp); break;

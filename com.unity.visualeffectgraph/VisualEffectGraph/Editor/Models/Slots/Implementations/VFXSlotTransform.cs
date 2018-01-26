@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.valueType == VFXValueType.kTransform)
+            if (expression.valueType == VFXValueType.kMatrix4x4)
                 return expression;
 
             throw new Exception("Unexpected type of expression " + expression);
