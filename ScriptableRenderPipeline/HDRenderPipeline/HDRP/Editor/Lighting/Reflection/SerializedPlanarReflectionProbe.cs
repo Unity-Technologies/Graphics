@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedObject serializedObject;
 
         public SerializedProperty proxyVolumeReference;
-        public SerializedProxyVolumeComponent proxyVolume;
+        public SerializedReflectionProxyVolumeComponent reflectionProxyVolume;
 
         public SerializedInfluenceVolume influenceVolume;
 
@@ -73,17 +73,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var objs = new List<Object>();
             for (var i = 0; i < serializedObject.targetObjects.Length; i++)
                 objs.Add(((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference);
-            proxyVolume = new SerializedProxyVolumeComponent(new SerializedObject(objs.ToArray()));
+            reflectionProxyVolume = new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()));
         }
 
         public void Update()
         {
             serializedObject.Update();
 
-            var updateProxyVolume = serializedObject.targetObjects.Length != proxyVolume.serializedObject.targetObjects.Length;
+            var updateProxyVolume = serializedObject.targetObjects.Length != reflectionProxyVolume.serializedObject.targetObjects.Length;
             if (!updateProxyVolume)
             {
-                var proxyVolumeTargets = proxyVolume.serializedObject.targetObjects;
+                var proxyVolumeTargets = reflectionProxyVolume.serializedObject.targetObjects;
                 for (var i = 0; i < serializedObject.targetObjects.Length; i++)
                 {
                     if (proxyVolumeTargets[i] != ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference)
@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public void Apply()
         {
             serializedObject.ApplyModifiedProperties();
-            proxyVolume.Apply();
+            reflectionProxyVolume.Apply();
         }
     }
 }
