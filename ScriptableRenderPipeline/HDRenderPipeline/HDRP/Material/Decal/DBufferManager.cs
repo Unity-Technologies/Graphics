@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		public void ClearNormalTarget(CommandBuffer cmd, HDCamera camera, Color clearColor)
 		{
 			// index 1 is normals
-			HDUtils.SetRenderTarget(cmd, m_ColorMRTs[1], ClearFlag.Color, clearColor);
+			HDUtils.SetRenderTarget(cmd, camera, m_RTs[1], ClearFlag.Color, clearColor);
 		}
 
         public void PushGlobalParams(CommandBuffer cmd)

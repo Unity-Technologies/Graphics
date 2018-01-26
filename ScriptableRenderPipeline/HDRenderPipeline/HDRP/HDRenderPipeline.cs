@@ -856,7 +856,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.CopyDepthForSceneView.GetSampler()))
                             {
                                 // This Blit will flip the screen anything other than openGL
-                                // Simple blit
                                 HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
                             }
                         }
@@ -1158,7 +1157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
 				m_DbufferManager.ClearNormalTarget(cmd, camera, clearColorNormal);
 
-				HDUtils.SetRenderTarget(cmd, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
+				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 DecalSystem.instance.Render(renderContext, camera, cmd);
             }
         }
@@ -1352,7 +1351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, 0, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent, null, m_ErrorMaterial);
+                    RenderTransparentRenderList(cullResults, hdCamera.camera, renderContext, cmd, m_ForwardErrorPassNames, 0, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent, null, m_ErrorMaterial);
                 }
             }
         }
@@ -1444,7 +1443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     last = dest;
                 }
 
-                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBuffer, lodCount, m_GaussianPyramidColorBufferDesc, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBuffer, lodCount, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
 
                 cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
             }
@@ -1478,7 +1477,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.CopyTexture(dest, 0, 0, m_DepthPyramidBuffer, 0, i + 1);
                 }
 
-                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBuffer, lodCount, m_DepthPyramidBufferDesc, hdCamera, debugMode);
+                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBuffer, lodCount, hdCamera, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
             }
@@ -1539,6 +1538,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
                 HDUtils.BlitCameraTexture(cmd, hdCamera, textureID, m_DebugColorPickerBuffer);
+            }
+        }
+
+        // TODO TEMP: Not sure I want to keep this special. Gotta see how to get rid of it (not sure it will work correctly for non-full viewports.
+        public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera)
+        {
+            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
+            {
+                cmd.Blit(textureID, m_DebugColorPickerBuffer);
             }
         }
 
