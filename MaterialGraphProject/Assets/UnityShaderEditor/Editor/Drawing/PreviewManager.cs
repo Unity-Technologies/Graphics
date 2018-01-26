@@ -487,13 +487,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyRenderData(PreviewRenderData renderData)
         {
-            if (renderData.shaderData.shader != null && renderData.shaderData.shader != m_UberShader)
+            if (renderData.shaderData != null
+                && renderData.shaderData.shader != null 
+                && renderData.shaderData.shader != m_UberShader)
                 Object.DestroyImmediate(renderData.shaderData.shader, true);
             if (renderData.renderTexture != null)
                 Object.DestroyImmediate(renderData.renderTexture, true);
-            var node = renderData.shaderData.node;
-            if (node != null)
-                node.onModified -= OnNodeModified;
+            
+            if (renderData.shaderData != null && renderData.shaderData.node != null)
+                renderData.shaderData.node.onModified -= OnNodeModified;
         }
 
         void DestroyPreview(Identifier nodeId)
