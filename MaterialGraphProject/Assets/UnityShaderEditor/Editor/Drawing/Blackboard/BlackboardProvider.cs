@@ -63,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var property = visualElement.userData as IShaderProperty;
             if (property == null)
                 return;
+            m_Graph.owner.RegisterCompleteObjectUndo("Move Property");
             m_Graph.MoveShaderProperty(property, newIndex);
         }
 
@@ -85,6 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var property = (IShaderProperty)field.userData;
             if (newText != property.displayName)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Edit Property Name");
                 property.displayName = newText;
                 field.text = newText;
                 DirtyNodes();
@@ -135,6 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 field.RenameGo();
                 row.expanded = true;
+                m_Graph.owner.RegisterCompleteObjectUndo("Create Property");
                 m_Graph.AddShaderProperty(property);
             }
         }

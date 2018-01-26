@@ -94,8 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             activeFieldInfo.SetValue(m_SelectionDropper, false);
             this.AddManipulator(m_SelectionDropper);
 
-            var contextualMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
-            this.AddManipulator(contextualMenuManipulator);
+            this.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
