@@ -6,7 +6,6 @@
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 
 #include "../LightDefinition.cs.hlsl"
-#include "../LightDefinition.custom.hlsl"
 
 float3x3 WorldToProxySpace(EnvLightData lightData)
 {

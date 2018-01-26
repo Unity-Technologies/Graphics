@@ -539,3 +539,4 @@ int GetEnvIndex(EnvLightData value)
 
 
 #endif
+#include "LightDefinition.cs.custom.hlsl"
