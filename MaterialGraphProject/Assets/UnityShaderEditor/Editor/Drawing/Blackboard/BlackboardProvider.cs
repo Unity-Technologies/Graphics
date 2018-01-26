@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 moveItemRequested = MoveItemRequested
             };
 
-            m_WindowDraggable = new WindowDraggable();
+            m_WindowDraggable = new WindowDraggable(blackboard.shadow.Children().First().Q("header"));
             blackboard.AddManipulator(m_WindowDraggable);
 
             m_ResizeBorderFrame = new ResizeBorderFrame(blackboard) { name = "resizeBorderFrame" };
@@ -63,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var property = visualElement.userData as IShaderProperty;
             if (property == null)
                 return;
+            m_Graph.owner.RegisterCompleteObjectUndo("Move Property");
             m_Graph.MoveShaderProperty(property, newIndex);
         }
 
@@ -86,6 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var property = (IShaderProperty)field.userData;
             if (newText != property.displayName)
             {
+                m_Graph.owner.RegisterCompleteObjectUndo("Edit Property Name");
                 property.displayName = newText;
                 field.text = newText;
                 DirtyNodes();
@@ -136,6 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 field.RenameGo();
                 row.expanded = true;
+                m_Graph.owner.RegisterCompleteObjectUndo("Create Property");
                 m_Graph.AddShaderProperty(property);
             }
         }
@@ -143,7 +146,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DirtyNodes()
         {
             foreach (var node in m_Graph.GetNodes<PropertyNode>())
+            {
+                node.OnEnable();
                 node.Dirty(ModificationScope.Node);
+            }
         }
     }
 }
