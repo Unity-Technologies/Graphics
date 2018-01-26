@@ -1,6 +1,6 @@
 ﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class ProxyVolumeComponent : MonoBehaviour
+    public class ReflectionProxyVolumeComponent : MonoBehaviour
     {
         [SerializeField]
         ProxyVolume m_ProxyVolume = new ProxyVolume();

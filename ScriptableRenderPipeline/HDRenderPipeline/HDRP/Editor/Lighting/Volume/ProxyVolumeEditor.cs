@@ -4,18 +4,18 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    [CustomEditor(typeof(ProxyVolumeComponent))]
+    [CustomEditor(typeof(ReflectionProxyVolumeComponent))]
     [CanEditMultipleObjects]
     class ProxyVolumeEditor : Editor
     {
-        ProxyVolumeComponent[] m_TypedTargets;
+        ReflectionProxyVolumeComponent[] m_TypedTargets;
         SerializedProxyVolumeComponent m_SerializedData;
         ProxyVolumeComponentUI m_UIState = new ProxyVolumeComponentUI();
         ProxyVolumeComponentUI[] m_UIHandlerState;
 
         void OnEnable()
         {
-            m_TypedTargets = targets.Cast<ProxyVolumeComponent>().ToArray();
+            m_TypedTargets = targets.Cast<ReflectionProxyVolumeComponent>().ToArray();
             m_SerializedData = new SerializedProxyVolumeComponent(serializedObject);
 
             m_UIState.Reset(m_SerializedData, Repaint);
