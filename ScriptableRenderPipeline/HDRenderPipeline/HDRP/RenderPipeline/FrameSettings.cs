@@ -171,30 +171,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
             if (QualitySettings.antiAliasing < 1)
                 aggregate.enableMSAA = false;
-            if (aggregate.enableMSAA)
-            {
-                // Initially, MSAA will only support forward
-                aggregate.enableForwardRenderingOnly = true;
-
-                // Assuming MSAA is being used, TAA, and therefore, motion vectors are not needed
-                aggregate.enableMotionVectors = false;
-
-                // The work will be implemented piecemeal to support all passes
-                aggregate.enableDBuffer = false; // no decals
-                aggregate.enableDistortion = false; // no gaussian final color
-                aggregate.enablePostprocess = false; 
-                aggregate.enableRoughRefraction = false; // no gaussian pre-refraction
-                aggregate.enableSSAO = false;
-                aggregate.enableSSR = false;
-                aggregate.enableSubsurfaceScattering = false;
-                aggregate.enableTransparentObjects = false; // trying to skip the depth pyramid
-
-                // I also want to disable the deferred directional shadow to start
-            }
+            aggregate.ConfigureMSAADependentSettings();
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
+        }
+
+        public void ConfigureMSAADependentSettings()
+        {
+            if (enableMSAA)
+            {
+                // Initially, MSAA will only support forward
+                enableForwardRenderingOnly = true;
+
+                // Assuming MSAA is being used, TAA, and therefore, motion vectors are not needed
+                enableMotionVectors = false;
+
+                // TODO: The work will be implemented piecemeal to support all passes
+                enableDBuffer = false; // no decals
+                enableDistortion = false; // no gaussian final color
+                enablePostprocess = false;
+                enableRoughRefraction = false; // no gaussian pre-refraction
+                enableSSAO = false;
+                enableSSR = false;
+                enableSubsurfaceScattering = false;
+                enableTransparentObjects = false; // waiting on depth pyramid generation
+            }
         }
 
         static public void RegisterDebug(String menuName, FrameSettings frameSettings)
