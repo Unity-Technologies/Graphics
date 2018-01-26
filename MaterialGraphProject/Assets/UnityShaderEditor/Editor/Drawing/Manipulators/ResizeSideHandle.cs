@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_StayWithinParentBounds;
 
-        public bool stayWithinPanretBounds
+        public bool stayWithinParentBounds
         {
             get { return m_StayWithinParentBounds; }
             set { m_StayWithinParentBounds = value; }
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 newLayout.yMax = Mathf.Max(newLayout.yMax + normalizedResizeDelta.y, newLayout.yMin + minSize.y);
             }
 
-            if (stayWithinPanretBounds)
+            if (stayWithinParentBounds)
             {
                 newLayout.xMin = Mathf.Max(newLayout.xMin, 0f);
                 newLayout.yMin = Mathf.Max(newLayout.yMin, 0f);
