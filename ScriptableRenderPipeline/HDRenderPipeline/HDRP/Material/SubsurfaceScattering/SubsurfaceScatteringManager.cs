@@ -111,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var desc = hdCamera.renderTextureDesc;
             desc.width = (desc.width + 7) / 8;
             desc.height = (desc.height + 7) / 8;
+            // TODO: This fails allocation with MSAA enabled?
             m_HTile = CoreUtils.CreateRenderTexture(desc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
             m_HTile.filterMode = FilterMode.Point;
             m_HTile.enableRandomWrite = true;
@@ -157,6 +158,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (sssParameters == null || !frameSettings.enableSubsurfaceScattering)
                 return;
 
+            // TODO: For MSAA, at least initially, we can only support Jimenez, because we can't
+            // create MSAA + UAV render targets.
+
             using (new ProfilingSample(cmd, "Subsurface Scattering", CustomSamplerId.SubsurfaceScattering.GetSampler()))
             {
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
@@ -164,7 +168,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+
+                    if (frameSettings.enableMSAA)
+                        CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear); // no UAV
+                    else
+                        CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
                     // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))
