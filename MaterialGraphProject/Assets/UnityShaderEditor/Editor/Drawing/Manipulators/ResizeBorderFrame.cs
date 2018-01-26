@@ -20,7 +20,7 @@ public class ResizeBorderFrame : VisualElement
             m_StayWithinParentBounds = value;
             foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
             {
-                resizeHandle.stayWithinPanretBounds = value;
+                resizeHandle.stayWithinParentBounds = value;
             }
         }
     }
