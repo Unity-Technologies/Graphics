@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering.HDPipeline.Internal;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
@@ -277,9 +277,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static HDAdditionalLightData defaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
+        PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
+        List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         public class LightList
         {
@@ -466,6 +468,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
 
+            TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
+
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
             s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnScreen, 3 * sizeof(float));
@@ -561,6 +566,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ReflectionProbeCache.Release();
                 m_ReflectionProbeCache = null;
             }
+            if (m_ReflectionPlanarProbeCache != null)
+            {
+                m_ReflectionPlanarProbeCache.Release();
+                m_ReflectionPlanarProbeCache = null;
+            }
             if (m_CookieTexArray != null)
             {
                 m_CookieTexArray.Release();
@@ -622,6 +632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CookieTexArray.NewFrame();
             m_CubeCookieTexArray.NewFrame();
             m_ReflectionProbeCache.NewFrame();
+            m_ReflectionPlanarProbeCache.NewFrame();
         }
 
         public bool NeedResize()
@@ -688,22 +699,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        static Matrix4x4 GetFlipMatrix()
-        {
-            Matrix4x4 flip = Matrix4x4.identity;
-            bool isLeftHand = ((int)LightDefinitions.s_UseLeftHandCameraSpace) != 0;
-            if (isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
-            return flip;
-        }
-
         static Matrix4x4 WorldToCamera(Camera camera)
         {
-            return GetFlipMatrix() * camera.worldToCameraMatrix;
+            // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS
+            // We need to flip it to work with transforms
+            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.worldToCameraMatrix;
         }
 
-        static Matrix4x4 CameraProjection(Camera camera)
+        // For light culling system, we need non oblique projection matrices
+        static Matrix4x4 CameraProjectionNonObliqueLHS(HDCamera camera)
         {
-            return camera.projectionMatrix * GetFlipMatrix();
+            // camera.projectionMatrix expect RHS data and Unity's transforms are LHS
+            // We need to flip it to work with transforms
+            return camera.nonObliqueProjMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
         }
 
         public Vector3 GetLightColor(VisibleLight light)
@@ -1128,109 +1136,110 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_lightList.lightVolumes.Add(lightVolumeData);
         }
 
-        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, VisibleReflectionProbe probe)
-        {
-            var additionalData = GetHDAdditionalReflectionData(probe);
-            var extents = probe.bounds.extents;
-            var influenceBlendDistancePositive = Vector3.one * probe.blendDistance;
-            var influenceBlendDistanceNegative = Vector3.one * probe.blendDistance;
 
+        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, ProbeWrapper probe)
+        {
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
             // Unfortunately we don't have this information at the moment.
-            if (probe.probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
+            if (probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
                 return false;
 
-            int envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
+            var capturePosition = Vector3.zero;
+            var influenceToWorld = probe.influenceToWorld;
+
+            var sampleDirectionDiscardWS = Vector3.zero;
+
+            // 31 bits index, 1 bit cache type
+            var envIndex = -1;
+            if (probe.planarReflectionProbe != null)
+            {
+                envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
+
+                float nearClipPlane, farClipPlane, aspect, fov;
+                Color backgroundColor;
+                CameraClearFlags clearFlags;
+                Quaternion captureRotation;
+                Matrix4x4 worldToCamera, projection;
+
+                ReflectionSystem.CalculateCaptureCameraProperties(
+                    probe.planarReflectionProbe,
+                    out nearClipPlane, out farClipPlane,
+                    out aspect, out fov, out clearFlags, out backgroundColor,
+                    out worldToCamera, out projection, out capturePosition, out captureRotation,
+                    camera);
+
+                var gpuProj = GL.GetGPUProjectionMatrix(projection, true); // Had to change this from 'false'
+                var gpuView = worldToCamera;
+
+                // We transform it to object space by translating the capturePosition
+                var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
+                m_Env2DCaptureVP.Add(vp);
+                sampleDirectionDiscardWS = captureRotation * Vector3.forward;
+            }
+            else if (probe.reflectionProbe != null)
+            {
+                envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
+                envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
+                capturePosition = (Vector3)influenceToWorld.GetColumn(3) - probe.reflectionProbe.center;
+            }
             // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
             if (envIndex == -1)
                 return false;
 
+            // Build light data
             var envLightData = new EnvLightData();
 
-            // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
-            envLightData.positionWS = probe.localToWorld.GetColumn(3);
-            envLightData.boxSideFadePositive = Vector3.one;
-            envLightData.boxSideFadeNegative = Vector3.one;
 
-            envLightData.minProjectionDistance = 0;
-            switch (additionalData.influenceShape)
-            {
-                case ReflectionInfluenceShape.Box:
-                {
-                    envLightData.envShapeType = EnvShapeType.Box;
-                    envLightData.boxSideFadePositive = additionalData.boxSideFadePositive;
-                    envLightData.boxSideFadeNegative = additionalData.boxSideFadeNegative;
-                    break;
-                }
-                case ReflectionInfluenceShape.Sphere:
-                    envLightData.envShapeType = EnvShapeType.Sphere;
-                    extents = Vector3.one * additionalData.influenceSphereRadius;
-                    break;
-            }
+            envLightData.influenceShapeType = probe.influenceShapeType;
+            envLightData.dimmer = probe.dimmer;
+            envLightData.influenceExtents = probe.influenceExtents;
+            envLightData.blendNormalDistancePositive = probe.blendNormalDistancePositive;
+            envLightData.blendNormalDistanceNegative = probe.blendNormalDistanceNegative;
+            envLightData.blendDistancePositive = probe.blendDistancePositive;
+            envLightData.blendDistanceNegative = probe.blendDistanceNegative;
+            envLightData.boxSideFadePositive = probe.boxSideFadePositive;
+            envLightData.boxSideFadeNegative = probe.boxSideFadeNegative;
+            envLightData.sampleDirectionDiscardWS = sampleDirectionDiscardWS;
 
-            if (probe.boxProjection == 0)
-                envLightData.minProjectionDistance = 65504.0f;
+            envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
+            envLightData.influenceUp = influenceToWorld.GetColumn(1).normalized;
+            envLightData.influenceForward = influenceToWorld.GetColumn(2).normalized;
+            envLightData.capturePositionWS = capturePosition;
+            envLightData.influencePositionWS = influenceToWorld.GetColumn(3);
 
-            envLightData.dimmer = additionalData.dimmer;
-            envLightData.blendNormalDistancePositive = additionalData.blendNormalDistancePositive;
-            envLightData.blendNormalDistanceNegative = additionalData.blendNormalDistanceNegative;
-            influenceBlendDistancePositive = additionalData.blendDistancePositive;
-            influenceBlendDistanceNegative = additionalData.blendDistanceNegative;
-
-            // remove scale from the matrix (Scale in this matrix is use to scale the widget)
-            envLightData.right = probe.localToWorld.GetColumn(0);
-            envLightData.right.Normalize();
-            envLightData.up = probe.localToWorld.GetColumn(1);
-            envLightData.up.Normalize();
-            envLightData.forward = probe.localToWorld.GetColumn(2);
-            envLightData.forward.Normalize();
-
-            // Artists prefer to have blend distance inside the volume!
-            // So we let the current UI but we assume blendDistance is an inside factor instead
-            // Blend distance can't be larger than the max radius
-            // probe.bounds.extents is BoxSize / 2
-            var blendDistancePositive = Vector3.Min(probe.bounds.extents, influenceBlendDistancePositive);
-            var blendDistanceNegative = Vector3.Min(probe.bounds.extents, influenceBlendDistanceNegative);
-            envLightData.influenceExtents = extents;
             envLightData.envIndex = envIndex;
-            envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
-            envLightData.blendDistancePositive = blendDistancePositive;
-            envLightData.blendDistanceNegative = blendDistanceNegative;
+
+            // Proxy data
+            var proxyToWorld = probe.proxyToWorld;
+            envLightData.proxyExtents = probe.proxyExtents;
+            envLightData.minProjectionDistance = probe.infiniteProjection ? 65504f : 0;
+            envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
+            envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
+            envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
+            envLightData.proxyPositionWS = proxyToWorld.GetColumn(3);
 
             m_lightList.envLights.Add(envLightData);
 
             return true;
         }
 
-        public void GetEnvLightVolumeDataAndBound(VisibleReflectionProbe probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
+        public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
         {
-            var add = GetHDAdditionalReflectionData(probe);
-
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
 
-            var centerOffset = probe.center;                  // reflection volume offset relative to cube map capture point
-            var mat = probe.localToWorld;
-
-            Vector3 vx = mat.GetColumn(0);
-            Vector3 vy = mat.GetColumn(1);
-            Vector3 vz = mat.GetColumn(2);
-            Vector3 vw = mat.GetColumn(3);
-            vx.Normalize(); // Scale shouldn't affect the probe or its bounds
-            vy.Normalize();
-            vz.Normalize();
-
             // C is reflection volume center in world space (NOT same as cube map capture point)
-            var influenceExtents = probe.bounds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-            var centerWS = vx * centerOffset.x + vy * centerOffset.y + vz * centerOffset.z + vw;
+            var influenceExtents = probe.influenceExtents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+
+            var influenceToWorld = probe.influenceToWorld;
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-            vx = worldToView.MultiplyVector(vx);
-            vy = worldToView.MultiplyVector(vy);
-            vz = worldToView.MultiplyVector(vz);
-
-            var centerVS = worldToView.MultiplyPoint(centerWS);
+            var influenceRightVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(0).normalized);
+            var influenceUpVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(1).normalized);
+            var influenceForwardVS = worldToView.MultiplyVector(influenceToWorld.GetColumn(2).normalized);
+            var influencePositionVS = worldToView.MultiplyPoint(influenceToWorld.GetColumn(3));
 
             lightVolumeData.lightCategory = (uint)LightCategory.Env;
             lightVolumeData.lightVolume = (uint)lightVolumeType;
@@ -1240,36 +1249,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case LightVolumeType.Sphere:
                 {
-                    lightVolumeData.lightPos = centerVS;
-                    lightVolumeData.radiusSq = add.influenceSphereRadius * add.influenceSphereRadius;
-                    lightVolumeData.lightAxisX = vx;
-                    lightVolumeData.lightAxisY = vy;
-                    lightVolumeData.lightAxisZ = vz;
+                    lightVolumeData.lightPos = influencePositionVS;
+                    lightVolumeData.radiusSq = influenceExtents.x * influenceExtents.x;
+                    lightVolumeData.lightAxisX = influenceRightVS;
+                    lightVolumeData.lightAxisY = influenceUpVS;
+                    lightVolumeData.lightAxisZ = influenceForwardVS;
 
-                    bound.center = centerVS;
-                    bound.boxAxisX = vx * add.influenceSphereRadius;
-                    bound.boxAxisY = vy * add.influenceSphereRadius;
-                    bound.boxAxisZ = vz * add.influenceSphereRadius;
+                    bound.center = influencePositionVS;
+                    bound.boxAxisX = influenceRightVS * influenceExtents.x;
+                    bound.boxAxisY = influenceUpVS * influenceExtents.x;
+                    bound.boxAxisZ = influenceForwardVS * influenceExtents.x;
                     bound.scaleXY.Set(1.0f, 1.0f);
-                    bound.radius = add.influenceSphereRadius;
+                    bound.radius = influenceExtents.x;
                     break;
                 }
                 case LightVolumeType.Box:
                 {
-                    bound.center = centerVS;
-                    bound.boxAxisX = influenceExtents.x * vx;
-                    bound.boxAxisY = influenceExtents.y * vy;
-                    bound.boxAxisZ = influenceExtents.z * vz;
+                    bound.center = influencePositionVS;
+                    bound.boxAxisX = influenceExtents.x * influenceRightVS;
+                    bound.boxAxisY = influenceExtents.y * influenceUpVS;
+                    bound.boxAxisZ = influenceExtents.z * influenceForwardVS;
                     bound.scaleXY.Set(1.0f, 1.0f);
                     bound.radius = influenceExtents.magnitude;
 
                     // The culling system culls pixels that are further
                     //   than a threshold to the box influence extents.
                     // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
-                    lightVolumeData.lightPos = centerVS;
-                    lightVolumeData.lightAxisX = vx;
-                    lightVolumeData.lightAxisY = vy;
-                    lightVolumeData.lightAxisZ = vz;
+                    lightVolumeData.lightPos = influencePositionVS;
+                    lightVolumeData.lightAxisX = influenceRightVS;
+                    lightVolumeData.lightAxisY = influenceUpVS;
+                    lightVolumeData.lightAxisZ = influenceForwardVS;
                     lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
                     lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
                     break;
@@ -1303,13 +1312,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, Camera camera)
+        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, ReflectionProbeCullResults reflectionProbeCullResults, Camera camera)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
 
+                m_Env2DCaptureVP.Clear();
                 m_lightList.Clear();
 
                 Vector3 camPosWS = camera.transform.position;
@@ -1551,11 +1561,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Redo everything but this time with envLights
                     int envLightCount = 0;
 
-                    int probeCount = Math.Min(cullResults.visibleReflectionProbes.Count, k_MaxEnvLightsOnScreen);
+                    var totalProbes = cullResults.visibleReflectionProbes.Count + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
+                    int probeCount = Math.Min(totalProbes, k_MaxEnvLightsOnScreen);
                     sortKeys = new uint[probeCount];
                     sortCount = 0;
 
-                    for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Count; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
+                    for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
+                    {
+                        if (probeIndex < cullResults.visibleReflectionProbes.Count)
                     {
                         VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
                         HDAdditionalReflectionData additional = probe.probe.GetComponent<HDAdditionalReflectionData>();
@@ -1576,15 +1589,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         LightVolumeType lightVolumeType = LightVolumeType.Box;
-                        if (additional != null && additional.influenceShape == ReflectionInfluenceShape.Sphere)
+                        if (additional != null && additional.influenceShape == ShapeType.Sphere)
                             lightVolumeType = LightVolumeType.Sphere;
                         ++envLightCount;
 
-                        float boxVolume = 8 * probe.bounds.extents.x * probe.bounds.extents.y * probe.bounds.extents.z;
-                        float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.05f), 0, 8191); // Allow for negative exponents
+                            var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                        // 13 bit volume, 3 bit LightVolumeType, 16 bit index
-                        sortKeys[sortCount++] = (uint)logVolume << 19 | (uint)lightVolumeType << 16 | ((uint)probeIndex & 0xFFFF); // Sort by volume
+                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
+                        }
+                        else
+                        {
+                            var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Count;
+                            var probe = reflectionProbeCullResults.visiblePlanarReflectionProbes[planarProbeIndex];
+
+                            // probe.texture can be null when we are adding a reflection probe in the editor
+                            if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
+                                continue;
+
+                            var lightVolumeType = LightVolumeType.Box;
+                            if (probe.influenceVolume.shapeType == ShapeType.Sphere)
+                                lightVolumeType = LightVolumeType.Sphere;
+                            ++envLightCount;
+
+                            var logVolume = CalculateProbeLogVolume(probe.bounds);
+
+                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
+                        }
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
@@ -1594,14 +1624,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
                         uint sortKey = sortKeys[sortIndex];
-                        LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 16) & 0x3);
-                        int probeIndex = (int)(sortKey & 0xFFFF);
+                        LightVolumeType lightVolumeType;
+                        int probeIndex;
+                        int listType;
+                        UnpackProbeSortKey(sortKey, out lightVolumeType, out probeIndex, out listType);
 
-                        VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[probeIndex];
+                        PlanarReflectionProbe planarProbe = null;
+                        VisibleReflectionProbe probe = default(VisibleReflectionProbe);
+                        if (listType == 0)
+                            probe = cullResults.visibleReflectionProbes[probeIndex];
+                        else
+                            planarProbe = reflectionProbeCullResults.visiblePlanarReflectionProbes[probeIndex];
 
-                        if (GetEnvLightData(cmd, camera, probe))
+                        var probeWrapper = ProbeWrapper.Wrap(probe, planarProbe);
+
+                        if (GetEnvLightData(cmd, camera, probeWrapper))
                         {
-                            GetEnvLightVolumeDataAndBound(probe, lightVolumeType, worldToView);
+                            GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -1610,7 +1649,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
                                 int n = m_lightList.envLights.Count;
                                 EnvLightData envLightData = m_lightList.envLights[n - 1];
-                                envLightData.positionWS -= camPosWS;
+                                envLightData.capturePositionWS -= camPosWS;
+                                envLightData.influencePositionWS -= camPosWS;
+                                envLightData.proxyPositionWS -= camPosWS;
                                 m_lightList.envLights[n - 1] = envLightData;
                             }
                         }
@@ -1627,6 +1668,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return m_enableBakeShadowMask;
             }
+        }
+
+        static float CalculateProbeLogVolume(Bounds bounds)
+        {
+            float boxVolume = 8 * bounds.extents.x * bounds.extents.y * bounds.extents.z;
+            float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.05f), 0, 4095); // Allow for negative exponents
+            return logVolume;
+        }
+
+        static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
+        {
+            lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x3);
+            probeIndex = (int)(sortKey & 0xFFFF);
+            listType = (int)((sortKey >> 16) & 1);
+        }
+
+        static uint PackProbeKey(float logVolume, LightVolumeType lightVolumeType, uint listType, int probeIndex)
+        {
+            // 12 bit volume, 3 bit LightVolumeType, 1 bit list type, 16 bit index
+            return (uint)logVolume << 20 | (uint)lightVolumeType << 17 | listType << 16 | ((uint)probeIndex & 0xFFFF);
         }
 
         void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
@@ -1681,8 +1742,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightListsCommon(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
+            var camera = hdCamera.camera;
             cmd.BeginSample("Build Light List");
 
             var w = camera.pixelWidth;
@@ -1693,7 +1755,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var numBigTilesY = (h + 63) / 64;
 
             // camera to screen matrix (and it's inverse)
-            var proj = CameraProjection(camera);
+            var proj = CameraProjectionNonObliqueLHS(hdCamera);
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
@@ -1829,20 +1891,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.EndSample("Build Light List");
         }
 
-        public void BuildGPULightLists(Camera camera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
-            PushGlobalParams(camera, cmd);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            PushGlobalParams(hdCamera.camera, cmd);
         }
 
-        public GPUFence BuildGPULightListsAsyncBegin(Camera camera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
+        public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
         {
             var cmd = CommandBufferPool.Get("Build light list");
             cmd.WaitOnGPUFence(startFence);
 
-            BuildGPULightListsCommon(camera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             GPUFence completeFence = cmd.CreateGPUFence();
             renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
             CommandBufferPool.Release(cmd);
@@ -1876,7 +1938,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 add = defaultHDAdditionalReflectionData;
                 add.blendDistancePositive = Vector3.one * probe.blendDistance;
                 add.blendDistanceNegative = add.blendDistancePositive;
-                add.influenceShape = ReflectionInfluenceShape.Box;
+                add.influenceShape = ShapeType.Box;
             }
             return add;
         }
@@ -1901,7 +1963,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
-                cmd.SetGlobalTexture(HDShaderIDs._EnvTextures, m_ReflectionProbeCache.GetTexCache());
+                cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
+                cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
+                if (m_Env2DCaptureVP.Count > 0)
+                    cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
@@ -2148,6 +2213,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
         {
             LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
+
+            if (lightingDebug.debugLightingMode == DebugLightingMode.EnvironmentProxyVolume)
+                cmd.SetGlobalFloat(HDShaderIDs._DebugEnvironmentProxyDepthScale, lightingDebug.environmentProxyDepthScale);
 
             using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", CustomSamplerId.TPTiledLightingDebug.GetSampler()))
             {

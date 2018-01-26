@@ -1,8 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -316,6 +317,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
+            m_ReflectionProbeCullResults = new ReflectionProbeCullResults(asset.reflectionSystemParameters);
+            ReflectionSystem.SetParameters(asset.reflectionSystemParameters);
+
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
             // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
@@ -618,6 +622,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         CullResults m_CullResults;
+        ReflectionProbeCullResults m_ReflectionProbeCullResults;
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             base.Render(renderContext, cameras);
@@ -628,6 +633,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameCount = Time.frameCount;
             }
 
+            // TODO: Render only visible probes
+            var isReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
+            if (!isReflection)
+                ReflectionSystem.RenderAllRealtimeProbes(ReflectionProbeType.PlanarReflection);
+
             // We first update the state of asset frame settings as they can be use by various camera
             // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
             bool assetFrameSettingsIsDirty = m_Asset.frameSettingsIsDirty;
@@ -637,6 +647,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (camera == null)
                     continue;
+
+                if (camera.cameraType != CameraType.Reflection)
+                    // TODO: Render only visible probes
+                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
@@ -740,10 +754,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_FrameSettings.enableDBuffer)
                         DecalSystem.instance.BeginCull(camera);
 
+                    ReflectionSystem.PrepareCull(camera, m_ReflectionProbeCullResults);
+
                     using (new ProfilingSample(cmd, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
                     {
                         CullResults.Cull(ref cullingParams, renderContext, ref m_CullResults);
                     }
+
+                    m_ReflectionProbeCullResults.Cull();
 
                     m_DbufferManager.vsibleDecalCount = 0;
                     if (m_FrameSettings.enableDBuffer)
@@ -792,7 +810,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, camera) && m_FrameSettings.enableShadowMask;
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, camera) && m_FrameSettings.enableShadowMask;
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
@@ -843,7 +861,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             renderContext.ExecuteCommandBuffer(cmd);
                             cmd.Clear();
 
-                            buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(camera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence, m_SkyManager.IsSkyValid());
+                            buildGPULightListsCompleteFence = m_LightLoop.BuildGPULightListsAsyncBegin(hdCamera, renderContext, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, startFence, m_SkyManager.IsSkyValid());
                         }
 
                         using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
@@ -883,7 +901,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             using (new ProfilingSample(cmd, "Build Light list", CustomSamplerId.BuildLightList.GetSampler()))
                             {
-                                m_LightLoop.BuildGPULightLists(camera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
+                                m_LightLoop.BuildGPULightLists(hdCamera, cmd, m_CameraDepthStencilBufferRT, m_CameraStencilBufferCopyRT, m_SkyManager.IsSkyValid());
                             }
                         }
 
