@@ -95,36 +95,66 @@ struct LightData
 // PackingRules = Exact
 struct EnvLightData
 {
-    float3 capturePositionWS;
+    float capturePositionWSX;
+    float capturePositionWSY;
+    float capturePositionWSZ;
     int influenceShapeType;
-    float3 influencePositionWS;
-    int envIndex;
-    float3 influenceForward;
-    float proxyForwardX;
-    float3 influenceUp;
-    float proxyForwardY;
-    float3 influenceRight;
-    float proxyForwardZ;
-    float3 influenceExtents;
-    float dimmer;
-    float3 blendDistancePositive;
-    float proxyUpX;
-    float3 blendDistanceNegative;
-    float proxyUpY;
-    float3 blendNormalDistancePositive;
-    float proxyUpZ;
-    float3 blendNormalDistanceNegative;
-    float proxyRightX;
-    float3 boxSideFadePositive;
-    float proxyRightY;
-    float3 boxSideFadeNegative;
-    float proxyRightZ;
-    float3 sampleDirectionDiscardWS;
+    float proxyExtentsX;
+    float proxyExtentsY;
+    float proxyExtentsZ;
     float minProjectionDistance;
-    float3 proxyPositionWS;
-    int proxyShapeType;
-    float3 proxyExtents;
-    int unused14;
+    float proxyPositionWSX;
+    float proxyPositionWSY;
+    float proxyPositionWSZ;
+    float proxyForwardX;
+    float proxyForwardY;
+    float proxyForwardZ;
+    float proxyUpX;
+    float proxyUpY;
+    float proxyUpZ;
+    float proxyRightX;
+    float proxyRightY;
+    float proxyRightZ;
+    float influencePositionWSX;
+    float influencePositionWSY;
+    float influencePositionWSZ;
+    float influenceForwardX;
+    float influenceForwardY;
+    float influenceForwardZ;
+    float influenceUpX;
+    float influenceUpY;
+    float influenceUpZ;
+    float influenceRightX;
+    float influenceRightY;
+    float influenceRightZ;
+    float influenceExtentsX;
+    float influenceExtentsY;
+    float influenceExtentsZ;
+    float unused00;
+    float blendDistancePositiveX;
+    float blendDistancePositiveY;
+    float blendDistancePositiveZ;
+    float blendDistanceNegativeX;
+    float blendDistanceNegativeY;
+    float blendDistanceNegativeZ;
+    float blendNormalDistancePositiveX;
+    float blendNormalDistancePositiveY;
+    float blendNormalDistancePositiveZ;
+    float blendNormalDistanceNegativeX;
+    float blendNormalDistanceNegativeY;
+    float blendNormalDistanceNegativeZ;
+    float boxSideFadePositiveX;
+    float boxSideFadePositiveY;
+    float boxSideFadePositiveZ;
+    float boxSideFadeNegativeX;
+    float boxSideFadeNegativeY;
+    float boxSideFadeNegativeZ;
+    float dimmer;
+    float unused01;
+    float sampleDirectionDiscardWSX;
+    float sampleDirectionDiscardWSY;
+    float sampleDirectionDiscardWSZ;
+    int envIndex;
 };
 
 //
@@ -266,125 +296,245 @@ float GetMinRoughness(LightData value)
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
 //
-float3 GetCapturePositionWS(EnvLightData value)
+float GetCapturePositionWSX(EnvLightData value)
 {
-	return value.capturePositionWS;
+	return value.capturePositionWSX;
+}
+float GetCapturePositionWSY(EnvLightData value)
+{
+	return value.capturePositionWSY;
+}
+float GetCapturePositionWSZ(EnvLightData value)
+{
+	return value.capturePositionWSZ;
 }
 int GetInfluenceShapeType(EnvLightData value)
 {
 	return value.influenceShapeType;
 }
-float3 GetInfluencePositionWS(EnvLightData value)
+float GetProxyExtentsX(EnvLightData value)
 {
-	return value.influencePositionWS;
+	return value.proxyExtentsX;
 }
-int GetEnvIndex(EnvLightData value)
+float GetProxyExtentsY(EnvLightData value)
 {
-	return value.envIndex;
+	return value.proxyExtentsY;
 }
-float3 GetInfluenceForward(EnvLightData value)
+float GetProxyExtentsZ(EnvLightData value)
 {
-	return value.influenceForward;
-}
-float GetProxyForwardX(EnvLightData value)
-{
-	return value.proxyForwardX;
-}
-float3 GetInfluenceUp(EnvLightData value)
-{
-	return value.influenceUp;
-}
-float GetProxyForwardY(EnvLightData value)
-{
-	return value.proxyForwardY;
-}
-float3 GetInfluenceRight(EnvLightData value)
-{
-	return value.influenceRight;
-}
-float GetProxyForwardZ(EnvLightData value)
-{
-	return value.proxyForwardZ;
-}
-float3 GetInfluenceExtents(EnvLightData value)
-{
-	return value.influenceExtents;
-}
-float GetDimmer(EnvLightData value)
-{
-	return value.dimmer;
-}
-float3 GetBlendDistancePositive(EnvLightData value)
-{
-	return value.blendDistancePositive;
-}
-float GetProxyUpX(EnvLightData value)
-{
-	return value.proxyUpX;
-}
-float3 GetBlendDistanceNegative(EnvLightData value)
-{
-	return value.blendDistanceNegative;
-}
-float GetProxyUpY(EnvLightData value)
-{
-	return value.proxyUpY;
-}
-float3 GetBlendNormalDistancePositive(EnvLightData value)
-{
-	return value.blendNormalDistancePositive;
-}
-float GetProxyUpZ(EnvLightData value)
-{
-	return value.proxyUpZ;
-}
-float3 GetBlendNormalDistanceNegative(EnvLightData value)
-{
-	return value.blendNormalDistanceNegative;
-}
-float GetProxyRightX(EnvLightData value)
-{
-	return value.proxyRightX;
-}
-float3 GetBoxSideFadePositive(EnvLightData value)
-{
-	return value.boxSideFadePositive;
-}
-float GetProxyRightY(EnvLightData value)
-{
-	return value.proxyRightY;
-}
-float3 GetBoxSideFadeNegative(EnvLightData value)
-{
-	return value.boxSideFadeNegative;
-}
-float GetProxyRightZ(EnvLightData value)
-{
-	return value.proxyRightZ;
-}
-float3 GetSampleDirectionDiscardWS(EnvLightData value)
-{
-	return value.sampleDirectionDiscardWS;
+	return value.proxyExtentsZ;
 }
 float GetMinProjectionDistance(EnvLightData value)
 {
 	return value.minProjectionDistance;
 }
-float3 GetProxyPositionWS(EnvLightData value)
+float GetProxyPositionWSX(EnvLightData value)
 {
-	return value.proxyPositionWS;
+	return value.proxyPositionWSX;
 }
-int GetProxyShapeType(EnvLightData value)
+float GetProxyPositionWSY(EnvLightData value)
 {
-	return value.proxyShapeType;
+	return value.proxyPositionWSY;
 }
-float3 GetProxyExtents(EnvLightData value)
+float GetProxyPositionWSZ(EnvLightData value)
 {
-	return value.proxyExtents;
+	return value.proxyPositionWSZ;
 }
-int GetUnused14(EnvLightData value)
+float GetProxyForwardX(EnvLightData value)
 {
-	return value.unused14;
+	return value.proxyForwardX;
+}
+float GetProxyForwardY(EnvLightData value)
+{
+	return value.proxyForwardY;
+}
+float GetProxyForwardZ(EnvLightData value)
+{
+	return value.proxyForwardZ;
+}
+float GetProxyUpX(EnvLightData value)
+{
+	return value.proxyUpX;
+}
+float GetProxyUpY(EnvLightData value)
+{
+	return value.proxyUpY;
+}
+float GetProxyUpZ(EnvLightData value)
+{
+	return value.proxyUpZ;
+}
+float GetProxyRightX(EnvLightData value)
+{
+	return value.proxyRightX;
+}
+float GetProxyRightY(EnvLightData value)
+{
+	return value.proxyRightY;
+}
+float GetProxyRightZ(EnvLightData value)
+{
+	return value.proxyRightZ;
+}
+float GetInfluencePositionWSX(EnvLightData value)
+{
+	return value.influencePositionWSX;
+}
+float GetInfluencePositionWSY(EnvLightData value)
+{
+	return value.influencePositionWSY;
+}
+float GetInfluencePositionWSZ(EnvLightData value)
+{
+	return value.influencePositionWSZ;
+}
+float GetInfluenceForwardX(EnvLightData value)
+{
+	return value.influenceForwardX;
+}
+float GetInfluenceForwardY(EnvLightData value)
+{
+	return value.influenceForwardY;
+}
+float GetInfluenceForwardZ(EnvLightData value)
+{
+	return value.influenceForwardZ;
+}
+float GetInfluenceUpX(EnvLightData value)
+{
+	return value.influenceUpX;
+}
+float GetInfluenceUpY(EnvLightData value)
+{
+	return value.influenceUpY;
+}
+float GetInfluenceUpZ(EnvLightData value)
+{
+	return value.influenceUpZ;
+}
+float GetInfluenceRightX(EnvLightData value)
+{
+	return value.influenceRightX;
+}
+float GetInfluenceRightY(EnvLightData value)
+{
+	return value.influenceRightY;
+}
+float GetInfluenceRightZ(EnvLightData value)
+{
+	return value.influenceRightZ;
+}
+float GetInfluenceExtentsX(EnvLightData value)
+{
+	return value.influenceExtentsX;
+}
+float GetInfluenceExtentsY(EnvLightData value)
+{
+	return value.influenceExtentsY;
+}
+float GetInfluenceExtentsZ(EnvLightData value)
+{
+	return value.influenceExtentsZ;
+}
+float GetUnused00(EnvLightData value)
+{
+	return value.unused00;
+}
+float GetBlendDistancePositiveX(EnvLightData value)
+{
+	return value.blendDistancePositiveX;
+}
+float GetBlendDistancePositiveY(EnvLightData value)
+{
+	return value.blendDistancePositiveY;
+}
+float GetBlendDistancePositiveZ(EnvLightData value)
+{
+	return value.blendDistancePositiveZ;
+}
+float GetBlendDistanceNegativeX(EnvLightData value)
+{
+	return value.blendDistanceNegativeX;
+}
+float GetBlendDistanceNegativeY(EnvLightData value)
+{
+	return value.blendDistanceNegativeY;
+}
+float GetBlendDistanceNegativeZ(EnvLightData value)
+{
+	return value.blendDistanceNegativeZ;
+}
+float GetBlendNormalDistancePositiveX(EnvLightData value)
+{
+	return value.blendNormalDistancePositiveX;
+}
+float GetBlendNormalDistancePositiveY(EnvLightData value)
+{
+	return value.blendNormalDistancePositiveY;
+}
+float GetBlendNormalDistancePositiveZ(EnvLightData value)
+{
+	return value.blendNormalDistancePositiveZ;
+}
+float GetBlendNormalDistanceNegativeX(EnvLightData value)
+{
+	return value.blendNormalDistanceNegativeX;
+}
+float GetBlendNormalDistanceNegativeY(EnvLightData value)
+{
+	return value.blendNormalDistanceNegativeY;
+}
+float GetBlendNormalDistanceNegativeZ(EnvLightData value)
+{
+	return value.blendNormalDistanceNegativeZ;
+}
+float GetBoxSideFadePositiveX(EnvLightData value)
+{
+	return value.boxSideFadePositiveX;
+}
+float GetBoxSideFadePositiveY(EnvLightData value)
+{
+	return value.boxSideFadePositiveY;
+}
+float GetBoxSideFadePositiveZ(EnvLightData value)
+{
+	return value.boxSideFadePositiveZ;
+}
+float GetBoxSideFadeNegativeX(EnvLightData value)
+{
+	return value.boxSideFadeNegativeX;
+}
+float GetBoxSideFadeNegativeY(EnvLightData value)
+{
+	return value.boxSideFadeNegativeY;
+}
+float GetBoxSideFadeNegativeZ(EnvLightData value)
+{
+	return value.boxSideFadeNegativeZ;
+}
+float GetDimmer(EnvLightData value)
+{
+	return value.dimmer;
+}
+float GetUnused01(EnvLightData value)
+{
+	return value.unused01;
+}
+float GetSampleDirectionDiscardWSX(EnvLightData value)
+{
+	return value.sampleDirectionDiscardWSX;
+}
+float GetSampleDirectionDiscardWSY(EnvLightData value)
+{
+	return value.sampleDirectionDiscardWSY;
+}
+float GetSampleDirectionDiscardWSZ(EnvLightData value)
+{
+	return value.sampleDirectionDiscardWSZ;
+}
+int GetEnvIndex(EnvLightData value)
+{
+	return value.envIndex;
 }
 
 

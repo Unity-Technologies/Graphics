@@ -10,30 +10,30 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     EnvLightData output;
     output.influenceShapeType = ENVSHAPETYPE_SKY;
     output.envIndex = envIndex;
-    output.capturePositionWS = float3(0.0, 0.0, 0.0);
+    EnvLightData_Set_capturePositionWS(output, float3(0.0, 0.0, 0.0));
 
-    output.influenceForward = float3(0.0, 0.0, 1.0);
-    output.influenceUp = float3(0.0, 1.0, 0.0);
-    output.influenceRight = float3(1.0, 0.0, 0.0);
-    output.influencePositionWS = float3(0.0, 0.0, 0.0);
-    output.influenceExtents = float3(0.0, 0.0, 0.0);
+    EnvLightData_Set_influenceForward(output, float3(0.0, 0.0, 1.0));
+    EnvLightData_Set_influenceUp(output, float3(0.0, 1.0, 0.0));
+    EnvLightData_Set_influenceRight(output, float3(1.0, 0.0, 0.0));
+    EnvLightData_Set_influencePositionWS(output, float3(0.0, 0.0, 0.0));
+    EnvLightData_Set_influenceExtents(output, float3(0.0, 0.0, 0.0));
 
-    output.blendDistancePositive = float3(0.0, 0.0, 0.0);
-    output.blendDistanceNegative = float3(0.0, 0.0, 0.0);
-    output.blendNormalDistancePositive = float3(0.0, 0.0, 0.0);
-    output.blendNormalDistanceNegative = float3(0.0, 0.0, 0.0);
-    output.boxSideFadePositive = float3(0.0, 0.0, 0.0);
-    output.boxSideFadeNegative = float3(0.0, 0.0, 0.0);
+    EnvLightData_Set_blendDistancePositive(output, float3(0.0, 0.0, 0.0));
+    EnvLightData_Set_blendDistanceNegative(output, float3(0.0, 0.0, 0.0));
+    EnvLightData_Set_blendNormalDistancePositive(output, float3(0.0, 0.0, 0.0));
+    EnvLightData_Set_blendNormalDistanceNegative(output, float3(0.0, 0.0, 0.0));
+    EnvLightData_Set_boxSideFadePositive(output, float3(0.0, 0.0, 0.0));
+    EnvLightData_Set_boxSideFadeNegative(output, float3(0.0, 0.0, 0.0));
     output.dimmer = 1.0;
-    output.sampleDirectionDiscardWS = float3(0.0, 0.0, 0.0);
+    EnvLightData_Set_sampleDirectionDiscardWS(output, float3(0.0, 0.0, 0.0));
 
     // proxy
-    output.proxyForwardX = 0;   output.proxyForwardY = 0;   output.proxyForwardZ = 1;
-    output.proxyUpX = 0;        output.proxyUpY = 1;        output.proxyUpZ = 0;
-    output.proxyRightX = 1;     output.proxyRightY = 0;     output.proxyRightZ = 0;
-    output.proxyPositionWS = float3(0.0, 0.0, 0.0);
+    EnvLightData_Set_proxyForward(output, float3(0.0, 0.0, 1.0));
+    EnvLightData_Set_proxyUp(output, float3(0.0, 1.0, 0.0));
+    EnvLightData_Set_proxyRight(output, float3(1.0, 0.0, 0.0));
+    EnvLightData_Set_proxyPositionWS(output, float3(0.0, 0.0, 0.0));
     output.minProjectionDistance = 65504.0f;
-    output.proxyExtents = float3(0.0, 0.0, 0.0);
+    EnvLightData_Set_proxyExtents(output, float3(0.0, 0.0, 0.0));
 
     return output;
 }
