@@ -556,7 +556,7 @@ namespace UnityEditor.ShaderGraph
             else
                 m_Guid = Guid.NewGuid();
 
-            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, null);
+            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableSlots = null;
             foreach (var s in m_Slots)
                 s.owner = this;
