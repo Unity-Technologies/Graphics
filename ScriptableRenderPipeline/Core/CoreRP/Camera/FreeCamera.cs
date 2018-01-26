@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering
         public float m_LookSpeedController = 120f;
         public float m_LookSpeedMouse = 10.0f;
         public float m_MoveSpeed = 10.0f;
+        public float m_MoveSpeedIncrement = 2.5f;
         public float m_Turbo = 10.0f;
 
         private static string kMouseX = "Mouse X";
@@ -18,6 +19,9 @@ namespace UnityEngine.Experimental.Rendering
         private static string kVertical = "Vertical";
         private static string kHorizontal = "Horizontal";
 
+        private static string kYAxis = "YAxis";
+        private static string kSpeedAxis = "Speed Axis";
+
         void OnEnable()
         {
             RegisterInputs();
@@ -26,11 +30,16 @@ namespace UnityEngine.Experimental.Rendering
         void RegisterInputs()
         {
 #if UNITY_EDITOR
-            List <InputManagerEntry> inputEntries = new List<InputManagerEntry>();
+            List<InputManagerEntry> inputEntries = new List<InputManagerEntry>();
 
             // Add new bindings
             inputEntries.Add(new InputManagerEntry { name = kRightStickX, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Fourth, sensitivity = 1.0f, gravity = 1.0f, deadZone = 0.2f });
             inputEntries.Add(new InputManagerEntry { name = kRightStickY, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Fifth, sensitivity = 1.0f, gravity = 1.0f, deadZone = 0.2f, invert = true });
+
+            inputEntries.Add(new InputManagerEntry { name = kYAxis, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page up", altBtnPositive = "joystick button 5", btnNegative = "page down", altBtnNegative = "joystick button 4", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+
+            inputEntries.Add(new InputManagerEntry { name = kSpeedAxis, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "home", btnNegative = "end", gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+            inputEntries.Add(new InputManagerEntry { name = kSpeedAxis, kind = InputManagerEntry.Kind.Axis, axis = InputManagerEntry.Axis.Seventh, gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
 
             InputRegistering.RegisterInputs(inputEntries);
 #endif
@@ -39,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering
         void Update()
         {
             // If the debug menu is running, we don't want to conflict with its inputs.
-            if(DebugMenuManager.instance.menuUI.isEnabled)
+            if (DebugMenuManager.instance.menuUI.isEnabled)
                 return;
 
             float inputRotateAxisX = 0.0f;
@@ -52,10 +61,18 @@ namespace UnityEngine.Experimental.Rendering
             inputRotateAxisX += (Input.GetAxis(kRightStickX) * m_LookSpeedController * Time.deltaTime);
             inputRotateAxisY += (Input.GetAxis(kRightStickY) * m_LookSpeedController * Time.deltaTime);
 
+            float inputChangeSpeed = Input.GetAxis(kSpeedAxis);
+            if (inputChangeSpeed != 0.0f)
+            {
+                m_MoveSpeed += inputChangeSpeed * m_MoveSpeedIncrement;
+                if (m_MoveSpeed < m_MoveSpeedIncrement) m_MoveSpeed = m_MoveSpeedIncrement;
+            }
+
             float inputVertical = Input.GetAxis(kVertical);
             float inputHorizontal = Input.GetAxis(kHorizontal);
+            float inputYAxis = Input.GetAxis(kYAxis);
 
-            bool moved = inputRotateAxisX != 0.0f || inputRotateAxisY != 0.0f || inputVertical != 0.0f || inputHorizontal != 0.0f;
+            bool moved = inputRotateAxisX != 0.0f || inputRotateAxisY != 0.0f || inputVertical != 0.0f || inputHorizontal != 0.0f || inputYAxis != 0.0f;
             if (moved)
             {
                 float rotationX = transform.localEulerAngles.x;
@@ -77,6 +94,7 @@ namespace UnityEngine.Experimental.Rendering
                     moveSpeed *= Input.GetAxis("Fire1") > 0.0f ? m_Turbo : 1.0f;
                 transform.position += transform.forward * moveSpeed * inputVertical;
                 transform.position += transform.right * moveSpeed * inputHorizontal;
+                transform.position += Vector3.up * moveSpeed * inputYAxis;
             }
         }
     }
