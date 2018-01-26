@@ -187,11 +187,20 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
 
 void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
 {
-    int intValue = int(floatValue);
-    DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
-    DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
-    int fracValue = int(frac(floatValue) * 1e6); // 6 digit
-    DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+    if (IsNAN(floatValue))
+    {
+        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+    }
+    else
+    {
+        int intValue = int(floatValue);
+        DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        int fracValue = int(frac(floatValue) * 1e6); // 6 digit
+        DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+    }
 }
 
 #endif
