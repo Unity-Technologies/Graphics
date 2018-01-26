@@ -7,22 +7,22 @@ namespace UnityEditor.ShaderGraph
 {
     public enum FloatType
     {
-        Float,
+        Default,
         Slider,
         Integer
     }
 
     [Serializable]
-    public class FloatShaderProperty : AbstractShaderProperty<float>
+    public class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
-        public FloatShaderProperty()
+        public Vector1ShaderProperty()
         {
-            displayName = "Float";
+            displayName = "Vector1";
         }
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.Float; }
+            get { return PropertyType.Vector1; }
         }
 
         public override Vector4 defaultValue
@@ -30,7 +30,8 @@ namespace UnityEditor.ShaderGraph
             get { return new Vector4(value, value, value, value); }
         }
 
-        private FloatType m_FloatType = FloatType.Float;
+        [SerializeField]
+        private FloatType m_FloatType = FloatType.Default;
 
         public FloatType floatType
         {
@@ -43,6 +44,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
         private Vector2 m_RangeValues = new Vector2(0, 1);
 
         public Vector2 rangeValues
@@ -62,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
-            switch(m_FloatType)
+            switch(floatType)
             {
                 case FloatType.Slider:
                     result.Append("\", Range(");
@@ -87,7 +89,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.Float)
+            return new PreviewProperty(PropertyType.Vector1)
             {
                 name = referenceName,
                 floatValue = value

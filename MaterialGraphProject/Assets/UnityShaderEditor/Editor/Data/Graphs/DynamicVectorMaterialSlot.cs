@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         {
             var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
             var pp = new PreviewProperty(propType) { name = name };
-            if (propType == PropertyType.Float)
+            if (propType == PropertyType.Vector1)
                 pp.floatValue = value.x;
             else
                 pp.vector4Value = new Vector4(value.x, value.y, value.z, value.w);
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
                     property = new Vector2ShaderProperty();
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    property = new FloatShaderProperty();
+                    property = new Vector1ShaderProperty();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

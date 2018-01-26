@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(displayNameField);
 
             m_ValueAction = null;
-            if (property is FloatShaderProperty)
+            if (property is Vector1ShaderProperty)
                 m_ValueAction = FloatField;
             else if (property is Vector2ShaderProperty)
                 m_ValueAction = Vector2Field;
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void FloatField()
         {
-            var fProp = (FloatShaderProperty)property;
+            var fProp = (Vector1ShaderProperty)property;
             fProp.value = EditorGUILayout.FloatField(fProp.value);
         }
 
