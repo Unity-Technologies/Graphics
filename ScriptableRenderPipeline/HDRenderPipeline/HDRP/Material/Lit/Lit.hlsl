@@ -1,8 +1,4 @@
-﻿#define ENVMAP_FEATURE_PERFACEINFLUENCE
-#define ENVMAP_FEATURE_INFLUENCENORMAL
-#define ENVMAP_FEATURE_PERFACEFADE
-
-// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
+﻿// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
@@ -1063,6 +1059,7 @@ bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 #endif
 
 #include "../../Lighting/LightEvaluation.hlsl"
+#include "../../Lighting/Reflection/VolumeProjection.hlsl"
 
 //-----------------------------------------------------------------------------
 // Lighting structure for light accumulation
@@ -1720,7 +1717,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, 
+                                    int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1773,124 +1771,56 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
 
-    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
-    // the center of the bounding box is thus in locals space: positionLS - offsetLS
-    // We use this formulation as it is the one of legacy unity that was using only AABB box.
-    float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
-    float3 positionLS = positionWS - lightData.positionWS;
-    positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
+    float3x3 worldToIS = WorldToInfluenceSpace(lightData);
+    float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
+    float3 dirIS = mul(R, worldToIS);
 
-    // Note: using envShapeType instead of lightData.envShapeType allow to make compiler optimization in case the type is know (like for sky)
-    if (envShapeType == ENVSHAPETYPE_SPHERE)
+    float3x3 worldToPS = WorldToProxySpace(lightData);
+    float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
+    float3 dirPS = mul(R, worldToPS);
+
+    float projectionDistance = 0;
+    // 1. First process the projection
+    // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
+    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
     {
-        // 1. First process the projection
-        float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.influenceExtents.x;
-
-        float projectionDistance = IntersectRaySphereSimple(positionLS, dirLS, sphereOuterDistance);
-        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDistance * R) - lightData.positionWS;
+        projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            dirLS = mul(coatR, worldToLocal);
-            projectionDistance = IntersectRaySphereSimple(positionLS, dirLS, sphereOuterDistance);
-            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
+            dirPS = mul(coatR, worldToPS);
+            projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
+            coatR = (positionWS + projectionDistance * coatR) - capturePositionWS;
         }
-
-        // 2. Process the position influence
-        float lengthPositionLS = length(positionLS);
-        float sphereInfluenceDistance = lightData.influenceExtents.x - lightData.blendDistancePositive.x;
-        float distFade = max(lengthPositionLS - sphereInfluenceDistance, 0.0);
-        float alpha = saturate(1.0 - distFade / max(lightData.blendDistancePositive.x, 0.0001)); // avoid divide by zero
-
-#if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
-        // 3. Process the normal influence
-        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
-        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
-        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
-#endif
-
-        weight = alpha;
+        weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
-    else if (envShapeType == ENVSHAPETYPE_BOX)
+    else if (influenceShapeType == ENVSHAPETYPE_BOX)
     {
-        // 1. First process the projection
-        float3 dirLS = mul(R, worldToLocal);
-        float3 boxOuterDistance = lightData.influenceExtents;
-        float projectionDistance = IntersectRayAABBSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-
+        projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDistance * R) - lightData.positionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // TODO: add distance based roughness
 
         // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            dirLS = mul(coatR, worldToLocal);
-            projectionDistance = IntersectRayAABBSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
+            dirPS = mul(coatR, worldToPS);
+            projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
+            coatR = (positionWS + projectionDistance * coatR) - capturePositionWS;
         }
-
-        // 2. Process the position influence
-        // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
-
-#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE) || defined(ENVMAP_FEATURE_INFLUENCENORMAL) || defined(ENVMAP_FEATURE_PERFACEFADE)
-        // Distance to each cube face
-        float3 negativeDistance = boxOuterDistance + positionLS;
-        float3 positiveDistance = boxOuterDistance - positionLS;
-#endif
-
-#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE)
-        // Influence falloff for each face
-        float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistanceNegative);
-        float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistancePositive);
-
-        // Fallof is the min for all faces
-        float influenceFalloff = min(
-            min(min(negativeFalloff.x, negativeFalloff.y), negativeFalloff.z),
-            min(min(positiveFalloff.x, positiveFalloff.y), positiveFalloff.z));
-
-        float alpha = saturate(influenceFalloff);
-#else
-        float distFace = DistancePointBox(positionLS, -lightData.influenceExtents + lightData.blendDistancePositive.x, lightData.influenceExtents - lightData.blendDistancePositive.x);
-        float alpha = saturate(1.0 - distFace / max(lightData.blendDistancePositive.x, 0.0001));
-#endif
-
-#if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
-        // 3. Process the normal influence
-        // Calculate a falloff value to discard normals pointing outward the center of the environment light
-        float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
-        float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
-        float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
-        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
-#endif
-
-#if defined(ENVMAP_FEATURE_PERFACEFADE)
-        // 4. Fade specific cubemap faces
-        // For each axes (both positive and negative ones), we want to fade from the center of one face to another
-        // So we normalized the sample direction (R) and use its component to fade for each axis
-        // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
-        // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
-        // <=> axisFace = 4 * R - 1;
-        R = normalize(R);
-        float3 faceFade = saturate((4 * R - 1) * lightData.boxSideFadePositive) + saturate((-4 * R - 1) * lightData.boxSideFadeNegative);
-        alpha *= saturate(faceFade.x + faceFade.y + faceFade.z);
-#endif
-
-        weight = alpha;
+        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
 
-    // Smooth weighting
-    weight = Smoothstep01(weight);
+#ifdef DEBUG_DISPLAY
+    float3 radiusToProxy = R;
+#endif
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
@@ -1898,9 +1828,24 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
+    float3 sampleDirectionDiscardWS = GetSampleDirectionDiscardWS(lightData);
+    if (dot(sampleDirectionDiscardWS, R) < 0)
+        return lighting;
+
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
+
+
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    weight *= preLD.a;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
+        preLD = ApplyDebugProjectionVolume(preLD, radiusToProxy, _DebugEnvironmentProxyDepthScale);
+#endif
+
+    // Smooth weighting
+    weight = Smoothstep01(weight);
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
     {

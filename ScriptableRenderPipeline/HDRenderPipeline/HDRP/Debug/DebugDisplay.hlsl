@@ -16,6 +16,7 @@ int _DebugMipMapMode; // Match enum DebugMipMapMode
 float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 float4 _MousePixelCoord;  // xy unorm, zw norm
+float _DebugEnvironmentProxyDepthScale;
 CBUFFER_END
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
