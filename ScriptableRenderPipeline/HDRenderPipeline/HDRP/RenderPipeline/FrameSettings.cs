@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enablePostprocess = true;
 
         public bool enableStereo = true;
-        public bool enableAsyncCompute = false;
+        public bool enableAsyncCompute = true;
 
         public bool enableOpaqueObjects = true;
         public bool enableTransparentObjects = true;
@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
             aggregate.enableForwardRenderingOnly = aggregate.enableForwardRenderingOnly || aggregate.enableStereo;
 
-            aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && renderPipelineSettings.supportAsyncCompute;
+            aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;

@@ -119,6 +119,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private bool m_IsOffscreenCamera;
 
+        private Vector4 kDefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+        private Vector4 kDefaultLightColor = Color.black;
+        private Vector4 kDefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+        private Vector4 kDefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+        private Vector4 kDefaultLightSpotAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+
         private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLights];
         private Vector4[] m_LightColors = new Vector4[kMaxVisibleLights];
         private Vector4[] m_LightDistanceAttenuations = new Vector4[kMaxVisibleLights];
@@ -214,6 +220,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightDistanceAttenuation = Shader.PropertyToID("_AdditionalLightDistanceAttenuation");
             PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
+
+            ShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_WorldToShadow");
+            ShadowConstantBuffer._ShadowData = Shader.PropertyToID("_ShadowData");
+            ShadowConstantBuffer._DirShadowSplitSpheres = Shader.PropertyToID("_DirShadowSplitSpheres");
+            ShadowConstantBuffer._DirShadowSplitSphereRadii = Shader.PropertyToID("_DirShadowSplitSphereRadii");
+            ShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_ShadowOffset0");
+            ShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_ShadowOffset1");
+            ShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_ShadowOffset2");
+            ShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_ShadowOffset3");
+            ShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
 
             m_ShadowMapRTID = Shader.PropertyToID("_ShadowMap");
 
@@ -709,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
             int mainLightPresent = (lightData.mainLightIndex >= 0) ? 1 : 0;
             int additionalPixelLightsCount = visibleLightsCount - mainLightPresent;
-            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, kMaxPerObjectLights) - additionalPixelLightsCount : 0;
+            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, kMaxPerObjectLights) - additionalPixelLightsCount - mainLightPresent : 0;
             vertexLightCount = Math.Min(vertexLightCount, kMaxVertexLights);
 
             lightData.pixelAdditionalLightsCount = additionalPixelLightsCount;
@@ -776,12 +792,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
             out Vector4 lightSpotAttenuation)
         {
-            float directContributionNotBaked = 1.0f;
-            lightPos = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-            lightColor = Color.black;
-            lightDistanceAttenuation = new Vector4(0.0f, 1.0f, 0.0f, directContributionNotBaked);
-            lightSpotDir = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-            lightSpotAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+            lightPos = kDefaultLightPosition;
+            lightColor = kDefaultLightColor;
+            lightDistanceAttenuation = kDefaultLightSpotAttenuation;
+            lightSpotDir = kDefaultLightSpotDirection;
+            lightSpotAttenuation = kDefaultLightAttenuation;
 
             // When no lights are visible, main light will be set to -1.
             // In this case we initialize it to default values and return
@@ -821,7 +836,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 float oneOverFadeRangeSqr = 1.0f / fadeRangeSqr;
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float quadAtten = 25.0f / lightRangeSqr;
-                lightDistanceAttenuation = new Vector4(quadAtten, oneOverFadeRangeSqr, lightRangeSqrOverFadeRangeSqr, directContributionNotBaked);
+                lightDistanceAttenuation = new Vector4(quadAtten, oneOverFadeRangeSqr, lightRangeSqrOverFadeRangeSqr, 1.0f);
             }
 
             if (lightData.lightType == LightType.Spot)
@@ -876,8 +891,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (lightData.shadowMapSampleType != LightShadows.None)
                 SetupShadowReceiverConstants(cmd, lights[lightData.mainLightIndex]);
 
-            if (lightData.totalAdditionalLightsCount > 0)
-                SetupAdditionalListConstants(cmd, lights, ref lightData);
+            SetupAdditionalListConstants(cmd, lights, ref lightData);
         }
 
         private void SetupMainLightConstants(CommandBuffer cmd, List<VisibleLight> lights, int lightIndex)
@@ -910,36 +924,52 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int additionalLightIndex = 0;
 
-            // We need to update per-object light list with the proper map to our global additional light buffer
-            // First we initialize all lights in the map to -1 to tell the system to discard main light index and
-            // remaining lights in the scene that don't fit the max additional light buffer (kMaxVisibileAdditionalLights)
-            int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
-            for (int i = 0; i < lights.Count; ++i)
-                perObjectLightIndexMap[i] = -1;
-
-            for (int i = 0; i < lights.Count && additionalLightIndex < kMaxVisibleLights; ++i)
+            if (lightData.totalAdditionalLightsCount > 0)
             {
-                if (i != lightData.mainLightIndex)
+                // We need to update per-object light list with the proper map to our global additional light buffer
+                // First we initialize all lights in the map to -1 to tell the system to discard main light index and
+                // remaining lights in the scene that don't fit the max additional light buffer (kMaxVisibileAdditionalLights)
+                int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
+                for (int i = 0; i < lights.Count; ++i)
+                    perObjectLightIndexMap[i] = -1;
+
+                for (int i = 0; i < lights.Count && additionalLightIndex < kMaxVisibleLights; ++i)
                 {
-                    // The engine performs per-object light culling and initialize 8 light indices into two vec4 constants unity_4LightIndices0 and unity_4LightIndices1.
-                    // In the shader we iterate over each visible light using the indices provided in these constants to index our global light buffer
-                    // ex: first light position would be m_LightPosisitions[unity_4LightIndices[0]];
+                    if (i != lightData.mainLightIndex)
+                    {
+                        // The engine performs per-object light culling and initialize 8 light indices into two vec4 constants unity_4LightIndices0 and unity_4LightIndices1.
+                        // In the shader we iterate over each visible light using the indices provided in these constants to index our global light buffer
+                        // ex: first light position would be m_LightPosisitions[unity_4LightIndices[0]];
 
-                    // However since we sorted the lights we need to tell the engine how to map the original/unsorted indices to our global buffer
-                    // We do it by settings the perObjectLightIndexMap to the appropriate additionalLightIndex.
-                    perObjectLightIndexMap[GetLightUnsortedIndex(i)] = additionalLightIndex;
-                    InitializeLightConstants(lights, i, out m_LightPositions[additionalLightIndex],
-                        out m_LightColors[additionalLightIndex],
-                        out m_LightDistanceAttenuations[additionalLightIndex],
-                        out m_LightSpotDirections[additionalLightIndex],
-                        out m_LightSpotAttenuations[additionalLightIndex]);
-                    additionalLightIndex++;
+                        // However since we sorted the lights we need to tell the engine how to map the original/unsorted indices to our global buffer
+                        // We do it by settings the perObjectLightIndexMap to the appropriate additionalLightIndex.
+                        perObjectLightIndexMap[GetLightUnsortedIndex(i)] = additionalLightIndex;
+                        InitializeLightConstants(lights, i, out m_LightPositions[additionalLightIndex],
+                            out m_LightColors[additionalLightIndex],
+                            out m_LightDistanceAttenuations[additionalLightIndex],
+                            out m_LightSpotDirections[additionalLightIndex],
+                            out m_LightSpotAttenuations[additionalLightIndex]);
+                        additionalLightIndex++;
+                    }
                 }
-            }
-            m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
+                m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
 
-            cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
-                    lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
+                cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
+                        lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
+            }
+            else
+            {
+                cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, Vector4.zero);
+
+                // Clear to default all light cosntant data
+                for (int i = 0; i < kMaxVisibleLights; ++i)
+                    InitializeLightConstants(lights, -1, out m_LightPositions[additionalLightIndex],
+                            out m_LightColors[additionalLightIndex],
+                            out m_LightDistanceAttenuations[additionalLightIndex],
+                            out m_LightSpotDirections[additionalLightIndex],
+                            out m_LightSpotAttenuations[additionalLightIndex]);
+            }
+
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightColor, m_LightColors);
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightDistanceAttenuation, m_LightDistanceAttenuations);
@@ -962,10 +992,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Scale bias by cascade's world space depth range.
                 // Directional shadow lights have orthogonal projection.
                 // proj.m22 = -2 / (far - near) since the projection's depth range is [-1.0, 1.0]
-                // Therefore we scale it by 0.5. We keep the negative sign and only flip it in case z is
-                // reversed.
+                // In order to be correct we should multiply bias by 0.5 but this introducing aliasing along cascades more visible.
                 float sign = (SystemInfo.usesReversedZBuffer) ? 1.0f : -1.0f;
-                bias = light.shadowBias * proj.m22 * 0.5f * sign;
+                bias = light.shadowBias * proj.m22 * sign;
 
                 // Currently only square POT cascades resolutions are used.
                 // We scale normalBias
@@ -998,7 +1027,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight)
         {
             Light light = shadowLight.light;
-            float shadowResolution = m_ShadowSlices[0].shadowResolution;
 
             int cascadeCount = m_ShadowCasterCascadesCount;
             for (int i = 0; i < kMaxCascades; ++i)
@@ -1011,15 +1039,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             noOpShadowMatrix.m33 = (SystemInfo.usesReversedZBuffer) ? 1.0f : 0.0f;
             m_ShadowMatrices[kMaxCascades] = noOpShadowMatrix;
 
-            float invShadowResolution = 0.5f / shadowResolution;
-            cmd.SetGlobalMatrixArray("_WorldToShadow", m_ShadowMatrices);
-            cmd.SetGlobalVector("_ShadowData", new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
-            cmd.SetGlobalVectorArray("_DirShadowSplitSpheres", m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector("_DirShadowSplitSphereRadii", m_DirectionalShadowSplitRadii);
-            cmd.SetGlobalVector("_ShadowOffset0", new Vector4(-invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset1", new Vector4(invShadowResolution, -invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset2", new Vector4(-invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector("_ShadowOffset3", new Vector4(invShadowResolution,  invShadowResolution, 0.0f, 0.0f));
+            float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
+            float invHalfShadowResolution = 0.5f * invShadowResolution;
+            cmd.SetGlobalMatrixArray(ShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVectorArray(ShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
+            cmd.SetGlobalVector(ShadowConstantBuffer._DirShadowSplitSphereRadii, m_DirectionalShadowSplitRadii);
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset0, new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset1, new Vector4( invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset3, new Vector4( invHalfShadowResolution,  invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)

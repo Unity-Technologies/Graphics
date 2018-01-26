@@ -8,6 +8,7 @@
 #include "MipMapDebug.cs.hlsl"
 #include "ColorPickerDebug.cs.hlsl"
 
+CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
@@ -15,6 +16,7 @@ int _DebugMipMapMode; // Match enum DebugMipMapMode
 float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 float4 _MousePixelCoord;  // xy unorm, zw norm
+CBUFFER_END
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
 
@@ -70,6 +72,13 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 #endif
             break;
 
+        case DEBUGVIEWPROPERTIES_INSTANCING:
+#if defined(UNITY_INSTANCING_ENABLED)
+            result = float3(1.0, 0.0, 0.0);
+#else
+            result = float3(0.0, 0.0, 0.0);
+#endif
+            break;
     }
 }
 
@@ -108,15 +117,14 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 // color is current screen color
 // color of the font to use
 // direction is 1 or -1 and indicate fixedUnormCoord block shift
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color, int direction)
 {
     // Are we inside a font display block on the screen ?
     uint2 localCharCoord = currentUnormCoord - fixedUnormCoord;
     if (localCharCoord.x >= 0 && localCharCoord.x < DEBUG_FONT_TEXT_WIDTH && localCharCoord.y >= 0 && localCharCoord.y < DEBUG_FONT_TEXT_HEIGHT)
     {
-        #if UNITY_UV_STARTS_AT_TOP
-        localCharCoord.y = DEBUG_FONT_TEXT_HEIGHT - localCharCoord.y;
-        #endif
+        if (!flipY)
+            localCharCoord.y = DEBUG_FONT_TEXT_HEIGHT - localCharCoord.y;
 
         asciiValue -= DEBUG_FONT_TEXT_ASCII_START; // Our font start at ASCII table 32;
         uint2 asciiCoord = uint2(asciiValue % DEBUG_FONT_TEXT_COUNT_X, asciiValue / DEBUG_FONT_TEXT_COUNT_X);
@@ -137,14 +145,14 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
 }
 
 // Shortcut to not have to file direction
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
 {
-    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 1);
+    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, 1);
 }
 
 // Draw a signed integer
 // Can't display more than 16 digit
-void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
 {
     const uint maxStringSize = 16;
 
@@ -160,7 +168,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     for (uint i = 0; i < maxStringSize; ++i)
     {
         // Numeric value incurrent font start on the second row at 0
-        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
         if (absIntValue  < 10)
             break;
         absIntValue /= 10;
@@ -169,20 +177,29 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     // 4. Display sign
     if (intValue < 0)
     {
-        DrawCharacter('-', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
+        DrawCharacter('-', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
     }
 
     // 5. Reset cursor at end location
     fixedUnormCoord.x += (numEntries + 2) * DEBUG_FONT_TEXT_SCALE_WIDTH;
 }
 
-void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
 {
-    int intValue = int(floatValue);
-    DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color);
-    DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, color);
-    int fracValue = int(frac(floatValue) * 1e6); // 6 digit
-    DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, color);
+    if (IsNAN(floatValue))
+    {
+        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+    }
+    else
+    {
+        int intValue = int(floatValue);
+        DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        int fracValue = int(frac(floatValue) * 1e6); // 6 digit
+        DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+    }
 }
 
 #endif

@@ -59,7 +59,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.5
-  far clip plane: 12
+  far clip plane: 20
   field of view: 60
   orthographic: 0
   orthographic size: 1.2
@@ -96,6 +96,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   m_FrameSettings:
     enableShadow: 1
+    enableContactShadows: 1
     enableSSR: 1
     enableSSAO: 1
     enableSubsurfaceScattering: 1

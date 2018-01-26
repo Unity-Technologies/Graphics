@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
-            // Warning: near and far planes appear to be broken.
+            // Warning: near and far planes appear to be broken (or rather far plane seems broken)
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
             for (int i = 0; i < 4; i++)
@@ -163,8 +163,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Near, far.
+            Vector4 forward = (camera.cameraType == CameraType.Reflection) ? camera.worldToCameraMatrix.GetRow(2) : new Vector4(camera.transform.forward.x, camera.transform.forward.y, camera.transform.forward.z, 0.0f);
             // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
-            Vector3 forward = viewParam.x < 0.0f ? camera.transform.forward : -camera.transform.forward;
+            forward = viewParam.x < 0.0f ? forward : -forward;
             frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
             frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
@@ -184,6 +185,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
             screenSize = new Vector4(m_ActualWidth, m_ActualHeight, m_CameraScaleBias.x / m_ActualWidth, m_CameraScaleBias.y / m_ActualHeight);
+        }
+
+        // Warning: different views can use the same camera!
+        public int GetViewID()
+        {
+            if (camera.cameraType == CameraType.Game)
+            {
+                int viewID = camera.GetInstanceID();
+                Debug.Assert(viewID > 0);
+                return viewID;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public void Reset()

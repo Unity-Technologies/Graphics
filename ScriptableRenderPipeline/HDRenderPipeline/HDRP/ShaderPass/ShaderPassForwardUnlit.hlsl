@@ -29,8 +29,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
-    UpdatePositionInput(input.positionSS.z, input.positionSS.w, input.positionWS, posInput);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
@@ -60,7 +59,8 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
         GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
         GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
         GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
-        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB); // TODO: This required to initialize all field from BSDFData...
+        GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
+        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write

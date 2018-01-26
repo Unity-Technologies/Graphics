@@ -108,7 +108,7 @@ real4 FastSRGBToLinear(real4 c)
 
 real3 FastLinearToSRGB(real3 c)
 {
-    return max(1.055 * pow(c, 0.416666667) - 0.055, 0.0);
+    return saturate(1.055 * pow(abs(c), 0.416666667) - 0.055);
 }
 
 real4 FastLinearToSRGB(real4 c)
