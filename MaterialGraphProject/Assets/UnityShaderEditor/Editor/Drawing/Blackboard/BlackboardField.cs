@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public BlackboardField(Texture icon, string text, string typeText)
         {
-            var tpl = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityShaderEditor/Editor/Resources/UXML/GraphView/BlackboardField.uxml");
+            var tpl = Resources.Load<VisualTreeAsset>("UXML/GraphView/BlackboardField");
             VisualElement mainContainer = tpl.CloneTree(null);
 
             mainContainer.AddToClassList("mainContainer");
