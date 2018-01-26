@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Test
@@ -64,7 +66,9 @@ namespace UnityEditor.VFX.Test
                 init(vfxGraph);
 
             var expressionGraph = new VFXExpressionGraph();
-            expressionGraph.CompileExpressions(vfxGraph, option);
+            var models = new HashSet<ScriptableObject>();
+            vfxGraph.CollectDependencies(models);
+            expressionGraph.CompileExpressions(models.OfType<VFXContext>(), option);
 
             var graphs = new Graphs();
             graphs.vfx = vfxGraph;
