@@ -371,6 +371,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_PerVoxelOffset = null;
         static ComputeBuffer s_PerTileLogBaseTweak = null;
         static ComputeBuffer s_GlobalLightListAtomic = null;
+
+        public enum ClusterPrepassSource : int
+        {
+            None = 0,
+            BigTile = 1,
+            Count = 2,
+        }
+
+        public enum ClusterDepthSource : int
+        {
+            NoDepth = 0,
+            Depth = 1,
+            MSAA_Depth = 2,
+            Count = 3,
+        }
+
+        static string[,] s_ClusterKernelNames = new string[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count]
+        {
+            { "TileLightListGen_NoDepthRT", "TileLightListGen_DepthRT", "TileLightListGen_DepthRT_MSAA" },
+            { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile", "TileLightListGen_DepthRT_MSAA_SrcBigTile" }
+        };
         // clustered light list specific buffers and data end
 
         static int[] s_TempIntArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
@@ -612,19 +633,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Cluster
             {
-                var kernelName = "TileLightListGen";
+                var clustPrepassSourceIdx = m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
+                var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
                 if (k_UseDepthBuffer)
                 {
-                    kernelName += "_DepthRT";
                     if (m_FrameSettings.enableMSAA)
-                        kernelName += "_MSAA";
+                        clustDepthSourceIdx = ClusterDepthSource.MSAA_Depth;
+                    else
+                        clustDepthSourceIdx = ClusterDepthSource.Depth;
                 }
-                else
-                {
-                    kernelName += "_NoDepthRT";
-                }
-                if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
-                    kernelName += "_SrcBigTile";
+                var kernelName = s_ClusterKernelNames[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
 
                 s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
             }
