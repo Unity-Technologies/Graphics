@@ -127,9 +127,8 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // This need to stay in sync with deferred.shader
 
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
-
-    float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
+    float depth = LOAD_TEXTURE2D(_MainDepthTexture, pixelCoord.xy).x;
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, tileCoord);
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
@@ -139,7 +138,6 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
         return;
     }
 
-    UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     BSDFData bsdfData;

@@ -7,7 +7,7 @@
 #include "AtmosphericScattering.cs.hlsl"
 #include "../SkyVariables.hlsl"
 #include "../../ShaderVariables.hlsl"
-#include "../../Lighting/VBuffer.hlsl"
+#include "../../Lighting/Volumetrics/VBuffer.hlsl"
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
 TEXTURE3D(_VBufferLighting);
