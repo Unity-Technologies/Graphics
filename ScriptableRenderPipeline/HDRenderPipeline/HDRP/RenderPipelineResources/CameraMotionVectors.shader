@@ -29,9 +29,10 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
         float4 Frag(Varyings input) : SV_Target
         {
-            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-            float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
-            UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
+            float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionCS.xy).x;
+        
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+
             float4 worldPos = float4(posInput.positionWS, 1.0);
             float4 prevPos = worldPos;
 
@@ -43,7 +44,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
             float2 previousPositionCS = (prevHPos + 1.0) / 2.0;
             float2 positionCS = (curHPos + 1.0) / 2.0;
 
-        #if !UNITY_UV_STARTS_AT_TOP
+        #if UNITY_UV_STARTS_AT_TOP
             previousPositionCS.y = 1.0 - previousPositionCS.y;
             positionCS.y = 1.0 - positionCS.y;
         #endif

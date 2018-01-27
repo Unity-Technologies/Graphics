@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CachedTransforms[decal.CullIndex] = decal.transform.localToWorldMatrix;
 
                 Matrix4x4 decalRotation = Matrix4x4.Rotate(decal.transform.rotation);
-                // z/y axis swap for normal to decal space
+                // z/y axis swap for normal to decal space, Unity is column major
 				float y0 = decalRotation.m01;
 				float y1 = decalRotation.m11;
 				float y2 = decalRotation.m21;

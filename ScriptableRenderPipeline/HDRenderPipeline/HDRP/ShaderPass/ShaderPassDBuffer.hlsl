@@ -17,10 +17,9 @@ void Frag(  PackedVaryingsToPS packedInput,
             )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw);
 
-	float depth = LOAD_TEXTURE2D(_MainDepthTexture, posInput.positionSS).x;
-	UpdatePositionInput(depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP, posInput);
+    float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionSS.xy).x;
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
 
     // Transform from world space to decal space (DS) to clip the decal.
     // For this we must use absolute position.

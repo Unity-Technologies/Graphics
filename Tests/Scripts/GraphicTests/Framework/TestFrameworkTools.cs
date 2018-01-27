@@ -24,8 +24,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Dictionary<string, string> renderPipelineAssets = new Dictionary<string, string>()
         {
-            { "HDRP", "Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
-            { "LWRP", "Tests/GraphicsTests/RenderPipeline/LightweightPipeline/LightweightPipelineAsset.asset" }
+            { "HDRP", "HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
+            { "LWRP", "LightweightPipeline/LightweightPipelineAsset.asset" }
         };
 
         // Renderpipeline assets used for the tests
