@@ -182,7 +182,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, int>(kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kFullScreenDebugMip, () => fullscreenDebugMip, value => fullscreenDebugMip = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0f, 1f));
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(
+                kFullScreenDebugMip,
+                () =>
+                {
+                    var depthSize = Shader.GetGlobalVector(HDShaderIDs._DepthPyramidMipSize);
+                    var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(depthSize.x, depthSize.y), 2f));
+                    return (uint)(fullscreenDebugMip * lodCount);
+                },
+                value =>
+                {
+                    var depthSize = Shader.GetGlobalVector(HDShaderIDs._DepthPyramidMipSize);
+                    var lodCount = Mathf.Floor(Mathf.Log(Mathf.Min(depthSize.x, depthSize.y), 2f));
+                    fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(Single)) / lodCount;
+                }, 
+                DebugItemFlag.None, 
+                new DebugItemHandlerUIntMinMax(() => 0,
+                    () =>
+                    {
+                        var depthSize = Shader.GetGlobalVector(HDShaderIDs._DepthPyramidMipSize);
+                        var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(depthSize.x, depthSize.y), 2f));
+                        return (uint)lodCount;
+                    })
+                );
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));

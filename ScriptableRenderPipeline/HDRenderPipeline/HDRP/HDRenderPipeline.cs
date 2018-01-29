@@ -1583,18 +1583,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
             {
                 var depthPyramidDesc = m_DepthPyramidBufferDesc;
-                var pyramidSideSize = GetPyramidSize(depthPyramidDesc);
+                var minSize = Mathf.Min(depthPyramidDesc.width, depthPyramidDesc.height);
 
-                // The gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
-                // minimum size of 8x8
-                int lodCount = Mathf.FloorToInt(Mathf.Log(pyramidSideSize, 2f) - 3f);
+                var lodCount = Mathf.FloorToInt(Mathf.Log(minSize, 2f));
                 if (lodCount > HDShaderIDs._DepthPyramidMips.Length)
                 {
                     Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << HDShaderIDs._DepthPyramidMips.Length).ToString());
                     lodCount = HDShaderIDs._DepthPyramidMips.Length;
                 }
 
-                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
+                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(depthPyramidDesc.width, depthPyramidDesc.height, lodCount, 0));
 
                 cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[0]);
 
@@ -1606,8 +1604,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
                 cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBufferRT, 0, 0);
 
-                for (int i = 0; i < lodCount; i++)
+                for (var i = 0; i < lodCount; i++)
                 {
+                    //var sourceTarget = i == 0
+                    //    ? m_DepthPyramidBufferRT
+                    //    : HDShaderIDs._DepthPyramidMips[i];
+
                     var srcMipWidth = depthPyramidDesc.width;
                     var srcMipHeight = depthPyramidDesc.height;
                     depthPyramidDesc.width = srcMipWidth >> 1;
@@ -1620,7 +1622,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", HDShaderIDs._DepthPyramidMips[i + 1]);
                     cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipWidth, srcMipHeight, 1f / srcMipWidth, 1f / srcMipHeight));
 
-                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, depthPyramidDesc.width / 8, depthPyramidDesc.height / 8, 1);
+                    cmd.DispatchCompute(
+                        m_DepthPyramidCS, 
+                        m_DepthPyramidKernel, 
+                        Mathf.CeilToInt(depthPyramidDesc.width / 8f),
+                        Mathf.CeilToInt(depthPyramidDesc.height / 8f), 
+                        1);
 
                     cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
                 }
@@ -1936,16 +1943,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             desc.msaaSamples = 1; // These are approximation textures, they don't need MSAA
 
-            var pyramidSize = CalculatePyramidSize((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
-
             // for stereo double-wide, each half of the texture will represent a single eye's pyramid
             //var widthModifier = 1;
             //if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
             //    widthModifier = 2; // double-wide
 
             //desc.width = pyramidSize * widthModifier;
-            desc.width = pyramidSize;
-            desc.height = pyramidSize;
+            desc.width = (int)hdCamera.screenSize.x;
+            desc.height = (int)hdCamera.screenSize.y;
 
             return desc;
         }
