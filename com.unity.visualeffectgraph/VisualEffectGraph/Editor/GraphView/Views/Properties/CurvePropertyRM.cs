@@ -9,7 +9,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using CurveField = UnityEditor.VFX.UIElements.LabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
+using MyCurveField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX.UI
 {
@@ -17,7 +17,8 @@ namespace UnityEditor.VFX.UI
     {
         public CurvePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_CurveField = new CurveField(m_Label);
+            m_CurveField = new MyCurveField(m_Label);
+            m_CurveField.control.renderMode = CurveField.RenderMode.mesh;
             m_CurveField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
 
             m_CurveField.style.flexDirection = FlexDirection.Column;
@@ -39,7 +40,7 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
-        CurveField m_CurveField;
+        MyCurveField m_CurveField;
 
         protected override void UpdateEnabled()
         {

@@ -10,17 +10,17 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using Vector3Field = UnityEditor.VFX.UIElements.Vector3Field;
-using FloatField = UnityEditor.Experimental.UIElements.FloatField;
-using ColorField = UnityEditor.VFX.UIElements.ColorField;
+using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
+using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
+using VFXColorField = UnityEditor.VFX.UIElements.VFXColorField;
 
 namespace UnityEditor.VFX.UI
 {
     class Vector3PropertyRM : PropertyRM<Vector3>
     {
-        ColorField m_ColorField;
+        VFXColorField m_ColorField;
 
-        Vector3Field m_VectorField;
+        VFXVector3Field m_VectorField;
 
         public Vector3PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -28,12 +28,11 @@ namespace UnityEditor.VFX.UI
 
             if (isColor)
             {
-                m_ColorField = new ColorField(m_Label);
+                m_ColorField = new VFXColorField(m_Label);
                 m_ColorField.OnValueChanged = OnColorValueChanged;
                 m_ColorField.showAlpha = false;
-                m_VectorField = new Vector3Field();
+                m_VectorField = new VFXVector3Field();
                 m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
-                m_VectorField.dynamicUpdate = true;
                 var mainContainer = new VisualElement() { name = "mainContainer" };
                 mainContainer.AddToClassList("maincontainer");
 
@@ -44,9 +43,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var labeledField = new LabeledField<Vector3Field, Vector3>(m_Label);
+                var labeledField = new VFXLabeledField<VFXVector3Field, Vector3>(m_Label);
                 m_VectorField = labeledField.control;
-                m_VectorField.dynamicUpdate = true;
                 labeledField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
                 Add(labeledField);
                 labeledField.AddToClassList("fieldContainer");
@@ -84,7 +82,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 195;
+            return 140;
         }
 
         public override bool IsCompatible(IPropertyRMProvider provider)

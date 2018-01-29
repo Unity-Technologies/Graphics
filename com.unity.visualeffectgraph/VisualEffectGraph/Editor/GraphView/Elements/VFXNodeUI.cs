@@ -73,6 +73,9 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
+        VisualElement m_SettingsDivider;
+        VisualElement m_Content;
+
         protected void SyncSettings()
         {
             if (settingsContainer == null && controller.settings != null)
@@ -80,12 +83,13 @@ namespace UnityEditor.VFX.UI
                 object settings = controller.settings;
 
                 settingsContainer = new VisualElement { name = "settings" };
-                var divider = new VisualElement() {name = "divider"};
-                divider.AddToClassList("vertical");
+                m_SettingsDivider = new VisualElement() {name = "divider"};
+                m_SettingsDivider.AddToClassList("horizontal");
 
-                mainContainer.Q("contents").Insert(0, divider);
+                m_Content = mainContainer.Q("contents");
+                m_Content.Insert(0, m_SettingsDivider);
 
-                mainContainer.Q("contents").Insert(1, settingsContainer);
+                m_Content.Insert(1, settingsContainer);
 
                 foreach (var setting in controller.settings)
                 {
@@ -98,13 +102,30 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
+                bool hasSettings = false;
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
                     if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
                     {
+                        hasSettings = true;
                         settingsContainer.Add(prop);
                         prop.Update();
+                    }
+                }
+
+                if (hasSettings)
+                {
+                    if (m_SettingsDivider.parent == null)
+                    {
+                        m_Content.Insert(0, m_SettingsDivider);
+                    }
+                }
+                else
+                {
+                    if (m_SettingsDivider.parent != null)
+                    {
+                        m_SettingsDivider.RemoveFromHierarchy();
                     }
                 }
             }

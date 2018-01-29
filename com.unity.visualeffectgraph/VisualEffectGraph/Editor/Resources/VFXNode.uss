@@ -39,6 +39,12 @@ width:-1;
     max-height:10000;
 }
 
+
+.VFXNodeUI.node #contents > #top > #input
+{
+	padding-bottom:8;
+}
+
 .VFXNodeUI.node.superCollapsed #settings
 {
     max-height:0;
@@ -170,10 +176,10 @@ VFXParameterUI .value
 {
 	flex:1;
 }
-VFXParameterUI .label
+
+VFXParameterUI .propertyrm
 {
-	text-color:#c4c4c4;
-	width : 69;
+	margin-right:6;
 }
 
 VFXParameterUI #IconContainer

@@ -6,7 +6,7 @@ using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class StringField : ValueControl<string>
+    class VFXStringField : ValueControl<string>
     {
         protected TextField m_TextField;
 
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UIElements
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
         }
 
-        public StringField(string label) : base(label)
+        public VFXStringField(string label) : base(label)
         {
             CreateTextField();
 
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_TextField);
         }
 
-        public StringField(Label existingLabel) : base(existingLabel)
+        public VFXStringField(Label existingLabel) : base(existingLabel)
         {
             CreateTextField();
             Add(m_TextField);

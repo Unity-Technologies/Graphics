@@ -5255,7 +5255,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 76
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: c489cd0e8022b9048995744d023d4169, type: 3}
+      processor: {fileID: 7200000, guid: 64eac8b05b38b224db85598529f51206, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5270,7 +5270,7 @@ VFXAsset:
       - index: 18
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: ffd61caa998f3264490eedcad7ca8da1, type: 3}
+      processor: {fileID: 7200000, guid: fc5ec742dfd3d8846b6d90eca37e8bd3, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -5293,7 +5293,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 4e8c3c53fb9c5e445af335b7cde9c9cd, type: 3}
+      processor: {fileID: 4800000, guid: 44f10ac290b9a23439e7846b49cc76af, type: 3}
   - type: 2
     flags: 0
     capacity: 0

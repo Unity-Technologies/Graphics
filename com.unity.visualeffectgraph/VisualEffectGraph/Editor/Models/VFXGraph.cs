@@ -124,6 +124,20 @@ namespace UnityEditor.VFX
                 }
             }
         }
+        [SerializeField]
+        VFXUI m_UIInfos;
+
+        public VFXUI UIInfos
+        {
+            get
+            {
+                if (m_UIInfos == null)
+                {
+                    m_UIInfos = ScriptableObject.CreateInstance<VFXUI>();
+                }
+                return m_UIInfos;
+            }
+        }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
         {
@@ -155,6 +169,8 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CollectDependencies");
             try
             {
+                if (m_UIInfos != null)
+                    objs.Add(m_UIInfos);
                 base.CollectDependencies(objs);
             }
             finally
@@ -203,7 +219,7 @@ namespace UnityEditor.VFX
 #endif
 
                 // hide all sub assets
-                var assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+                var assets = allAssets;
                 foreach (var asset in assets)
                 {
                     asset.hideFlags |= HideFlags.HideInHierarchy;
@@ -233,12 +249,17 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
         }
 
+        IEnumerable<Object> allAssets
+        {
+            get {return AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader || o is VFXUI); }
+        }
+
         public  bool displaySubAssets
         {
             get {return (hideFlags & HideFlags.HideInHierarchy) == 0; }
             set
             {
-                var persistentAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader);
+                var persistentAssets = allAssets;
 
                 if (value)
                 {
@@ -290,7 +311,7 @@ namespace UnityEditor.VFX
 
                 try
                 {
-                    var persistentObjects = new HashSet<Object>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader));
+                    var persistentObjects = new HashSet<Object>(allAssets);
                     persistentObjects.Remove(this);
 
                     var currentObjects = new HashSet<ScriptableObject>();
@@ -314,6 +335,8 @@ namespace UnityEditor.VFX
                     }
 #endif
 
+                    if (m_UIInfos != null)
+                        currentObjects.Add(m_UIInfos);
                     // Add sub assets that are not already present
                     foreach (var obj in currentObjects)
                         if (!persistentObjects.Contains(obj))

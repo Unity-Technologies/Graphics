@@ -1,3 +1,21 @@
+VFXFloatField {
+	min-height: 15;
+	margin-left: 4;
+	margin-top: 2;
+	margin-right: 4;
+	margin-bottom: 2;
+	padding-left: 3;
+	padding-top: 1;
+	padding-right: 3;
+	padding-bottom: 2;
+	slice-left: 3;
+	slice-top: 3;
+	slice-right: 3;
+	slice-bottom: 3;
+	selection-color: rgba(61,128,223,166);
+	cursor: text;
+}
+
 .propertyrm
 {
     flex-direction: row;
@@ -16,6 +34,8 @@
     -flex:1;
     width:16;
 	height:16;
+	margin-left:4;
+	margin-right:8;
 }
 .propertyrm Button
 {
@@ -29,11 +49,18 @@
 {
     text-color: rgb(153,153,153);
 	height:16;
+	margin-left:0;
+	padding-left:1;
 }
 
-.spaceablepropertyrm.propertyrm #label
+.propertyrm VFXMatrix4x4Field.fieldContainer
 {
-	-margin-right:12px;
+    flex:1;
+    height:-1;
+}
+Matrix4x4PropertyRM.propertyrm > .fieldContainer
+{
+    height:-1;
 }
 
 .spaceCamera
@@ -49,7 +76,7 @@
 	background-image:resource("vfx/spaceglobal");
 }
 
-.propertyrm > FloatField
+.propertyrm > VFXFloatField
 {
 	margin-bottom:3;
 }
@@ -57,8 +84,6 @@
 .propertyrm .fieldContainer > *
 {
     flex:1;
-	margin-bottom:3;
-	margin-left:2;
 }
 
 #line
@@ -70,27 +95,36 @@
     text-color:#666;
 }
 
-.propertyrm .fieldContainer * .label
+.propertyrm .label
 {
     text-color:#888;
-    width:12;
 	flex:0;
     padding-left:2;
     text-alignment:middle-center;
+	margin-left:0;
+	padding-left:4;
+	margin-right:2;
+	padding-right:0;
 }
 
-.propertyrm .fieldContainer TextField
+.propertyrm .label.first
 {
-	margin-top:0;
-	margin-bottom:0;
-	margin-left:2;
-	margin-right:2;
+	padding-left:0;
 }
-.propertyrm .fieldContainer
+
+.propertyrm .fieldContainer, .propertyrm VFXFloatField
 {
     -align-items: center;
     flex-direction:row;
     flex:1;
+
+	margin-left:0;
+	margin-right:0;
+	margin-top:0;
+	margin-bottom:0;
+	margin-left:0;
+	margin-right:0;
+	height:16;
 }
 
 BoolPropertyRM Toogle
@@ -122,7 +156,7 @@ ColorPropertyRM
 {
 	flex:1;
 }
-ColorPropertyRM .colorcontainer
+ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
 {
 	flex:1;
 	border-left-width:1;
@@ -137,23 +171,25 @@ ColorPropertyRM .colorcontainer
     margin-top:2;
     margin-bottom:2;
 }
+ColorPropertyRM VFXFloatField
+{
+	flex:1;
+}
 
-ColorField
+VFXColorField
 {
     flex:1;
     flex-direction:row;
+	margin-left:0;
+	margin-right:0;
 }
-ColorPropertyRM OldFloatField TextField
+
+VFXFloatField TextField
 {
 	flex:1;
 }
 
-FloatField TextField
-{
-	flex:1;
-}
-
-FloatPropertyRM FloatField
+FloatPropertyRM VFXFloatField
 {
     align-self:flex-end;
     flex:1;
@@ -170,56 +206,6 @@ CurveField
 {
 	height:16;
 	background-color:rgb(86, 86, 86);
-	border-left-width:1;
-	border-right-width:1;
-	border-top-width:1;
-	border-bottom-width:1;
-    border-color:#000;
-}
-/*
-ObjectField
-{
-	flex-direction:row;
-	slice-left:4;
-	slice-right:23;
-	slice-top:12;
-	slice-bottom:4;
-	background-image:resource("dropwell nothumb");
-}
-
-
-ObjectField #select
-{
-	width:23;
-}
-
-ObjectField #name
-{
-	flex:1;
-}
-
-ObjectField:focus
-{
-	background-image:resource("dropwell nothumb focus");
-}
-
-ObjectField * 
-{
-	text-color: #BBB;
-}
-
-ObjectField #icon
-{
-	width:12;
-	margin-bottom:1;
-	margin-top:1;
-	margin-left:1;
-}
-*/
-GradientField
-{
-    flex:1;
-    height:13;
 	border-left-width:1;
 	border-right-width:1;
 	border-top-width:1;
@@ -251,15 +237,15 @@ CurvePropertyRM
 	flex:0;
 }
 
-VFXEnumField Button
+VFXEnumField Button, VFXStringFieldProvider Button
 {
+	text-alignment:middle-left;
 	height: 16;
 	slice-left: 6;
 	slice-top: 4;
 	slice-right: 14;
 	slice-bottom: 4;
 	text-color: #B4B4B4;
-	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup.png");
 }
 
 VFXEnumField Button:hover
@@ -267,21 +253,12 @@ VFXEnumField Button:hover
 	text-color: #FFF;
 }
 
-VFXEnumField Button:hover:active
-{
-	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup act.png");
-}
-
-VFXEnumField Button:focus
-{
-	background-image: resource("Builtin Skins/DarkSkin/Images/mini popup focus.png");
-}
-
-StringFieldPushButton
+VFXStringFieldPushButton
 {
 	height:16;
 }
-StringFieldPushButton Button
+
+VFXStringFieldPushButton Button
 {
 	height:16;
 }

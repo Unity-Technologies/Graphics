@@ -6,7 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class ColorField : ValueControl<Color>
+    class VFXColorField : ValueControl<Color>
     {
         VisualElement m_ColorDisplay;
 
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UIElements
         void OnColorClick()
         {
             if (enabledInHierarchy)
-                ColorPicker.Show(OnColorChanged, m_Value.gamma, m_ShowAlpha, true);
+                ColorPicker.Show(OnColorChanged, m_Value, m_ShowAlpha, true);
         }
 
         VisualElement CreateEyeDropper()
@@ -121,7 +121,7 @@ namespace UnityEditor.VFX.UIElements
         IScheduledItem m_EyeDroppperScheduler;
         void OnEyeDropperStart(MouseDownEvent e)
         {
-            EyeDropper.Start(OnColorChanged);
+            EyeDropper.Start(OnGammaColorChanged);
             m_EyeDroppperScheduler = (panel as BaseVisualElementPanel).scheduler.ScheduleUntil(OnEyeDropperMove, 10, 10, () => false);
             m_EyeDropper.UnregisterCallback<MouseDownEvent>(OnEyeDropperStart);
         }
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UIElements
 
         VisualElement m_EyeDropper;
 
-        public ColorField(string label) : base(label)
+        public VFXColorField(string label) : base(label)
         {
             VisualElement container = CreateColorContainer();
             Add(container);
@@ -146,18 +146,23 @@ namespace UnityEditor.VFX.UIElements
             Add(m_EyeDropper);
         }
 
-        public ColorField(Label existingLabel) : base(existingLabel)
+        public VFXColorField(Label existingLabel) : base(existingLabel)
         {
             VisualElement container = CreateColorContainer();
             Add(container);
 
             m_EyeDropper = CreateEyeDropper();
             Add(m_EyeDropper);
+        }
+
+        void OnGammaColorChanged(Color color)
+        {
+            OnColorChanged(color.linear);
         }
 
         void OnColorChanged(Color color)
         {
-            SetValue(color.linear);
+            SetValue(color);
 
             if (m_EyeDroppperScheduler != null)
             {

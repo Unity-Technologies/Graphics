@@ -7,27 +7,15 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UIElements
 {
-    class FlipBookField : VFXControl<FlipBook>
+    class VFXFlipBookField : VFXControl<FlipBook>
     {
-        LabeledField<IntegerField, long> m_X;
-        LabeledField<IntegerField, long> m_Y;
+        VFXLabeledField<IntegerField, long> m_X;
+        VFXLabeledField<IntegerField, long> m_Y;
 
-        public bool dynamicUpdate
-        {
-            get
-            {
-                return m_X.control.dynamicUpdate;
-            }
-            set
-            {
-                m_X.control.dynamicUpdate = value;
-                m_Y.control.dynamicUpdate = value;
-            }
-        }
         void CreateTextField()
         {
-            m_X = new LabeledField<IntegerField, long>("X");
-            m_Y = new LabeledField<IntegerField, long>("Y");
+            m_X = new VFXLabeledField<IntegerField, long>("X");
+            m_Y = new VFXLabeledField<IntegerField, long>("Y");
 
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
@@ -52,7 +40,7 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(newValue);
         }
 
-        public FlipBookField()
+        public VFXFlipBookField()
         {
             CreateTextField();
 
