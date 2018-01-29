@@ -64,7 +64,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnMouseUp(MouseUpEvent evt)
         {
             m_Active = false;
-            target.ReleaseMouseCapture();
+
+            if (target.HasMouseCapture())
+            {
+                target.ReleaseMouseCapture();
+            }
+
             evt.StopPropagation();
         }
     }

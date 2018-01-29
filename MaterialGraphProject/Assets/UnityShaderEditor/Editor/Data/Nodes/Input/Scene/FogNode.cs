@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph
 
         const int OutputSlotId = 0;
         const int OutputSlot1Id = 1;
-        const string kOutputSlotName = "Color";
-        const string kOutputSlot1Name = "Density";
+        const string k_OutputSlotName = "Color";
+        const string k_OutputSlot1Name = "Density";
 
         public override bool hasPreview
         {
@@ -29,68 +29,60 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            AddSlot(new Vector1MaterialSlot(OutputSlot1Id, kOutputSlot1Name, kOutputSlot1Name, SlotType.Output, 0));
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector4.zero));
+            AddSlot(new Vector1MaterialSlot(OutputSlot1Id, k_OutputSlot1Name, k_OutputSlot1Name, SlotType.Output, 0));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, OutputSlot1Id });
-        }
-
-        string GetFunctionPrototype(string argIn, string argOut, string argOut2)
-        {
-            return string.Format("void {0} ({1}3 {2}, out {3} {4}, out {5} {6})", GetFunctionName(), precision, argIn,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType), argOut2);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string colorValue = GetSlotValue(OutputSlotId, generationMode);
-            string densityValue = GetSlotValue(OutputSlot1Id, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType), GetVariableNameForSlot(OutputSlot1Id)), true);
-            string objectSpacePosition = string.Format("IN.{0}", CoordinateSpace.Object.ToVariableName(InterpolatorType.Position));
-            visitor.AddShaderChunk(GetFunctionCallBody(objectSpacePosition, colorValue, densityValue), true);
+            visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId)), false);
+            visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlot1Id)), false);
+            visitor.AddShaderChunk(string.Format("{0}(IN.{1}, {2}, {3});", GetFunctionName(), 
+                CoordinateSpace.Object.ToVariableName(InterpolatorType.Position), 
+                GetVariableNameForSlot(OutputSlotId), GetVariableNameForSlot(OutputSlot1Id)), false);
         }
 
-        string GetFunctionCallBody(string objectSpaceValue, string outputValue, string output1Value)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            return GetFunctionName() + " (" + objectSpaceValue + ", " + outputValue + ", " + output1Value + ");";
-        }
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}({1}3 ObjectSpacePosition, out {2} Color, out {3} Density)",
+                    GetFunctionName(),
+                    precision,
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision),
+                    FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType.ToString(precision));
+                using (s.BlockScope())
+                {
+                    s.AppendLine("Color = unity_FogColor;");
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var sg = new ShaderGenerator();
-            sg.AddShaderChunk(GetFunctionPrototype("ObjectSpacePosition", "Color", "Density"), false);
-            sg.AddShaderChunk("{", false);
-            sg.Indent();
-
-            sg.AddShaderChunk("Color = unity_FogColor;", false);
-
-            sg.AddShaderChunk(string.Format("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(UnityObjectToClipPos(ObjectSpacePosition).z);", precision), false);
-            sg.AddShaderChunk("#if defined(FOG_LINEAR)", false);
-            sg.Indent();
-            sg.AddShaderChunk(string.Format("{0} fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);", precision), false);
-            sg.AddShaderChunk("Density = fogFactor;", false);
-            sg.Deindent();
-            sg.AddShaderChunk("#elif defined(FOG_EXP)", false);
-            sg.Indent();
-            sg.AddShaderChunk(string.Format("{0} fogFactor = unity_FogParams.y * clipZ_01;", precision), false);
-            sg.AddShaderChunk("Density = {2}(saturate(exp2(-fogFactor)));", false);
-            sg.Deindent();
-            sg.AddShaderChunk("#elif defined(FOG_EXP2)", false);
-            sg.Indent();
-            sg.AddShaderChunk(string.Format("{0} fogFactor = unity_FogParams.x * clipZ_01;", precision), false);
-            sg.AddShaderChunk("Density = {2}(saturate(exp2(-fogFactor*fogFactor)));", false);
-            sg.Deindent();
-            sg.AddShaderChunk("#else", false);
-            sg.Indent();
-            sg.AddShaderChunk("Density = 0.0h;", false);
-            sg.Deindent();
-            sg.AddShaderChunk("#endif", false);
-
-            sg.Deindent();
-            sg.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(sg.GetShaderString(0), true);
+                    s.AppendLine("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), ObjectSpacePosition)).z);", precision);
+                    s.AppendLine("#if defined(FOG_LINEAR)");
+                    using (s.IndentScope())
+                    {
+                        s.AppendLine("{0} fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);", precision);
+                        s.AppendLine("Density = fogFactor;");
+                    }
+                    s.AppendLine("#elif defined(FOG_EXP)");
+                    using (s.IndentScope())
+                    {
+                        s.AppendLine("{0} fogFactor = unity_FogParams.y * clipZ_01;", precision);
+                        s.AppendLine("Density = saturate(exp2(-fogFactor));");
+                    }
+                    s.AppendLine("#elif defined(FOG_EXP2)");
+                    using (s.IndentScope())
+                    {
+                        s.AppendLine("{0} fogFactor = unity_FogParams.x * clipZ_01;", precision);
+                        s.AppendLine("Density = saturate(exp2(-fogFactor*fogFactor));");
+                    }
+                    s.AppendLine("#else");
+                    using (s.IndentScope())
+                    {
+                        s.AppendLine("Density = 0.0h;");
+                    }
+                    s.AppendLine("#endif");
+                }
+            });
         }
 
         public NeededCoordinateSpace RequiresPosition()

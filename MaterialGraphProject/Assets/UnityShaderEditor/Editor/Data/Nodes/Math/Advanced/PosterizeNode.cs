@@ -16,8 +16,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Posterize(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] DynamicDimensionVector Steps,
+            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector In,
+            [Slot(1, Binding.None, 4, 4, 4, 4)] DynamicDimensionVector Steps,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return

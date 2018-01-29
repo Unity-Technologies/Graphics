@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [FormerName("UnityEngine.MaterialGraph.WorldPosNode")]
     [Title("Input", "Geometry", "Position")]
     public class PositionNode : GeometryNode, IMayRequirePosition
     {
@@ -29,7 +30,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return space.ToVariableName(InterpolatorType.Position);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
         }
 
         public NeededCoordinateSpace RequiresPosition()

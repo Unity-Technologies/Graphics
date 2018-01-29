@@ -7,8 +7,9 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.ShaderGraph.Drawing;
 
-[ScriptedImporter(1, ShaderGraphImporter.ShaderGraphExtension)]
+[ScriptedImporter(11, ShaderGraphImporter.ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
 {
     public const string ShaderGraphExtension = "shadergraph";
@@ -66,6 +67,10 @@ Shader ""Hidden/GraphErrorShader2""
         var text = GetShaderText<MaterialGraph>(ctx.assetPath, out configuredTextures);
         if (text == null)
             text = errorShader;
+
+        var name = Path.GetFileNameWithoutExtension(ctx.assetPath);
+        string shaderName = string.Format("graphs/{0}", name);
+        text = text.Replace("Hidden/GraphErrorShader2", shaderName);
 
         var shader = ShaderUtil.CreateShaderAsset(text);
 
@@ -128,6 +133,11 @@ class ShaderGraphAssetPostProcessor : AssetPostprocessor
 
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
+        MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+        foreach (var matGraphEditWindow in windows)
+        {
+            matGraphEditWindow.forceRedrawPreviews = true;
+        }
         RegisterShaders(importedAssets);
     }
 }

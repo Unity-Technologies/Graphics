@@ -120,9 +120,9 @@ namespace UnityEditor.ShaderGraph
         protected string GetFunctionPrototype(string argIn1, string argIn2, string argOut)
         {
             return string.Format("inline void {0} ({1} {2}, {3} {4}, out {5} {6})", GetFunctionName(), 
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType), argIn1, 
-                ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType), argIn2,
-                ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut);
+                NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType), argIn1, 
+                NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType), argIn2,
+                NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph
             string input1Value = GetSlotValue(InputSlot1Id, generationMode);
             string input2Value = GetSlotValue(InputSlot2Id, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
+            visitor.AddShaderChunk(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
             visitor.AddShaderChunk(GetFunctionCallBody(input1Value, input2Value, outputValue), true);
         }
 
@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("{0} ({1}, {2}, {3});", GetFunctionName(), input1Value, input2Value, outputValue);
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             string vectorString = "Vector";
             int inputChannelCount = (int)SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlot1Id).concreteValueType);
@@ -152,15 +152,18 @@ namespace UnityEditor.ShaderGraph
                     vectorString += "x";
             }
 
-            var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk(GetFunctionPrototype("Vector", "Matrix", "Out"), false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk(string.Format("Out = mul({0}, Matrix);", vectorString), false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0} ({1} Vector, {2} Matrix, out {3} Out)",
+                    GetFunctionName(),
+                    NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType), 
+                    NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType),
+                    NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType));
+                using (s.BlockScope())
+                {
+                    s.AppendLine("Out = mul({0}, Matrix);", vectorString);
+                }
+            });
         }
     }
 }

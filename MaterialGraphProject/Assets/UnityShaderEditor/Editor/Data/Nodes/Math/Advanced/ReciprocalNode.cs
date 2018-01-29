@@ -32,10 +32,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_ReciprocalMethod = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -51,7 +48,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Reciprocal(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
@@ -63,7 +60,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_Reciprocal_Fast(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(0, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector In,
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return

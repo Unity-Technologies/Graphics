@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        protected struct Boolean
+        {}
+
         protected struct Vector1
         {}
 
@@ -130,6 +133,10 @@ namespace UnityEditor.ShaderGraph
             if (p.ParameterType.IsByRef)
                 t = p.ParameterType.GetElementType();
 
+            if (t == typeof(Boolean))
+            {
+                return SlotValueType.Boolean;
+            }
             if (t == typeof(Vector1))
             {
                 return SlotValueType.Vector1;
@@ -215,25 +222,26 @@ namespace UnityEditor.ShaderGraph
             foreach (var par in method.GetParameters())
             {
                 var attribute = GetSlotAttribute(par);
+                var name = GraphUtil.ConvertCamelCase(par.Name, true);
 
                 MaterialSlot s;
                 if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
-                    s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
-                    s = new ColorRGBAMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
-                    s = new ColorRGBMaterialSlot(attribute.slotId, par.Name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
+                    s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
                             ConvertTypeToSlotValueType(par),
                             attribute.slotId,
-                            par.Name,
+                            name,
                             par.Name,
                             par.IsOut ? SlotType.Output : SlotType.Input,
                             attribute.defaultValue ?? Vector4.zero,
                             hidden: attribute.hidden);
                 else
-                    s = CreateBoundSlot(attribute.binding, attribute.slotId, par.Name, par.Name, attribute.hidden);
+                    s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.hidden);
                 slots.Add(s);
 
                 m_Slots.Add(attribute);
@@ -282,13 +290,13 @@ namespace UnityEditor.ShaderGraph
                 case Binding.TangentSpacePosition:
                     return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent);
                 case Binding.MeshUV0:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv0);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV0);
                 case Binding.MeshUV1:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv1);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV1);
                 case Binding.MeshUV2:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv2);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV2);
                 case Binding.MeshUV3:
-                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.uv3);
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV3);
                 case Binding.ScreenPosition:
                     return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName);
                 case Binding.ObjectSpaceViewDirection:
@@ -340,13 +348,13 @@ namespace UnityEditor.ShaderGraph
 
         private string GetParamTypeName(MaterialSlot slot)
         {
-            return ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+            return NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
         }
 
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision;
+            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
 
         private string GetFunctionHeader()
@@ -396,16 +404,21 @@ namespace UnityEditor.ShaderGraph
             foreach (var slot in s_TempSlots)
             {
                 var toReplace = string.Format("{{slot{0}dimension}}", slot.id);
-                var replacement = GetSlotDimension(slot.concreteValueType);
+                var replacement = NodeUtils.GetSlotDimension(slot.concreteValueType);
                 result = result.Replace(toReplace, replacement);
             }
             return result;
         }
 
-        public virtual void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            string function = GetFunctionHeader() + GetFunctionBody(GetFunctionToConvert());
-            visitor.AddShaderChunk(function, true);
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine(GetFunctionHeader());
+                var functionBody = GetFunctionBody(GetFunctionToConvert());
+                var lines = functionBody.Trim('\r', '\n', '\t', ' ');
+                s.AppendLines(lines);
+            });
         }
 
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)

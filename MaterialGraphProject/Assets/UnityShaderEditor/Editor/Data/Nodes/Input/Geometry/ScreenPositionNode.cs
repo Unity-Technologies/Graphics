@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private ScreenSpaceType m_ScreenSpaceType = ScreenSpaceType.Default;
 
-        [EnumControl("")]
+        [EnumControl("Mode")]
         public ScreenSpaceType screenSpaceType
         {
             get { return m_ScreenSpaceType; }
@@ -35,10 +35,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_ScreenSpaceType = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -63,22 +60,22 @@ namespace UnityEditor.ShaderGraph
             switch (m_ScreenSpaceType)
             {
                 case ScreenSpaceType.Raw:
-                    visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
+                    visitor.AddShaderChunk(string.Format("{0}4 {1} = IN.{2};", precision, GetVariableNameForSlot(kOutputSlotId),
                         ShaderGeneratorNames.ScreenPosition), true);
                     break;
                 case ScreenSpaceType.Center:
                     visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
-                        "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), true);
+                        string.Format("float4((IN.{0}.xy / IN.{0}.w) * 2 - 1, 0, 0)", ShaderGeneratorNames.ScreenPosition)), true);
                     break;
                 case ScreenSpaceType.Tiled:
                     visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
-                        "float4((" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w) * 2 - 1, 0, 0)"), true);
+                        string.Format("float4((IN.{0}.xy / IN.{0}.w) * 2 - 1, 0, 0)", ShaderGeneratorNames.ScreenPosition)), true);
                     visitor.AddShaderChunk(string.Format("{0} = {1};", GetVariableNameForSlot(kOutputSlotId),
-                        "float4(" + ShaderGeneratorNames.ScreenPosition + ".x * _ScreenParams.x / _ScreenParams.y, " + ShaderGeneratorNames.ScreenPosition + ".y, 0, 0)"), true);
+                        string.Format("frac(float4({0}.x * _ScreenParams.x / _ScreenParams.y, {0}.y, 0, 0))", GetVariableNameForSlot(kOutputSlotId))), true);
                     break;
                 default:
                     visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId),
-                        "float4(" + ShaderGeneratorNames.ScreenPosition + ".xy / " + ShaderGeneratorNames.ScreenPosition + ".w, 0, 0)"), true);
+                        string.Format("float4(IN.{0}.xy / IN.{0}.w, 0, 0)", ShaderGeneratorNames.ScreenPosition)), true);
                     break;
             }
         }

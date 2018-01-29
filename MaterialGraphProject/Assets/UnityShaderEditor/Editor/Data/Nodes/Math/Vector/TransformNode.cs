@@ -56,8 +56,7 @@ namespace UnityEditor.ShaderGraph
                 if (Equals(m_Conversion, value))
                     return;
                 m_Conversion = value;
-                if (onModified != null)
-                    onModified(this, ModificationScope.Graph);
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -92,23 +91,23 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = "mul(unity_WorldToObject, float4(" + inputValue + ", 0)).xyz";
+                    transformString = string.Format("TransformWorldToObject({0})", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul(" + inputValue + ", " + targetTransformString + ").xyz";
+                    transformString = string.Format("TransformWorldToTangent({0}, {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
-                    transformString = "mul( UNITY_MATRIX_V, float4(" + inputValue + ", 0)).xyz";
+                    transformString = string.Format("TransformWorldToView({0})", inputValue);
                 }
             }
             else if (conversion.from == CoordinateSpace.Object)
             {
                 if (conversion.to == CoordinateSpace.World)
                 {
-                    transformString = "mul(unity_ObjectToWorld, float4(" + inputValue + ", 0)).xyz";
+                    transformString = string.Format("TransformObjectToWorld({0})", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
@@ -117,11 +116,11 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = "mul(float4(" + inputValue + ", 0).xyz, " + targetTransformString + ").xyz";
+                    transformString = string.Format("TransformWorldToTangent(TransformObjectToWorld({0}), {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
-                    transformString = "mul( UNITY_MATRIX_MV, float4(" + inputValue + ", 0)).xyz";
+                    transformString = string.Format("TransformWorldToView(TransformObjectToWorld({0}))", inputValue);
                 }
             }
             else if (conversion.from == CoordinateSpace.Tangent)
@@ -129,12 +128,12 @@ namespace UnityEditor.ShaderGraph
                 if (conversion.to == CoordinateSpace.World)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = "mul( " + inputValue + ", " + transposeTargetTransformString + " ).xyz";
+                    transformString = string.Format("mul({0}, {1}).xyz", inputValue, transposeTargetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = "mul( unity_WorldToObject, float4(mul(" + inputValue + ", " + transposeTargetTransformString + " ),0) ).xyz";
+                    transformString = string.Format("TransformWorldToObject(mul({0}, {1}).xyz)", inputValue, transposeTargetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
@@ -143,38 +142,35 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.View)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = "mul( UNITY_MATRIX_V, float4(mul(" + inputValue + ", " + transposeTargetTransformString + " ),0) ).xyz";
+                    transformString = string.Format("TransformWorldToView(mul({0}, {1}).xyz)", inputValue, transposeTargetTransformString);
                 }
             }
             else if (conversion.from == CoordinateSpace.View)
             {
                 if (conversion.to == CoordinateSpace.World)
                 {
-                    transformString = "mul( float4(" + inputValue + ", 0), UNITY_MATRIX_V ).xyz";
+                    transformString = string.Format("mul(UNITY_MATRIX_I_V, float4({0}, 1)).xyz", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = "mul( float4(" + inputValue + ", 0), UNITY_MATRIX_MV ).xyz";
+                    transformString = string.Format("TransformWorldToObject(mul(UNITY_MATRIX_I_V, float4({0}, 1) ).xyz)", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
                     tangentTransformSpace = CoordinateSpace.World.ToString();
-                    transformString = "mul( mul( float4(" + inputValue + ", 0), UNITY_MATRIX_V ).xyz, " + targetTransformString + ").xyz";
+                    transformString = string.Format("TransformWorldToTangent(mul(UNITY_MATRIX_I_V, float4({0}, 1) ).xyz, {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
                     transformString = inputValue;
                 }
             }
-
             if (requiresTransposeTangentTransform)
-                visitor.AddShaderChunk("float3x3 " + transposeTargetTransformString + " = transpose(float3x3(" + CoordinateSpace.World.ToString() + "SpaceTangent, " + CoordinateSpace.World.ToString() + "SpaceBiTangent, " + CoordinateSpace.World.ToString() + "SpaceNormal));", true);
+                visitor.AddShaderChunk(string.Format("float3x3 {0} = transpose(float3x3(IN.{1}SpaceTangent, IN.{1}SpaceBiTangent, IN.{1}SpaceNormal));", transposeTargetTransformString, CoordinateSpace.World.ToString()), true);
             else if (requiresTangentTransform)
-                visitor.AddShaderChunk("float3x3 " + targetTransformString + " = float3x3(" + tangentTransformSpace + "SpaceTangent, " + tangentTransformSpace + "SpaceBiTangent, " + tangentTransformSpace + "SpaceNormal);", true);
-
-            visitor.AddShaderChunk(string.Format("{0} {1} = {2};",
-                    ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
+                visitor.AddShaderChunk(string.Format("float3x3 {0} = CreateWorldToTangent(IN.{1}SpaceNormal, IN.{1}SpaceTangent, 1);", targetTransformString, tangentTransformSpace), true);
+            visitor.AddShaderChunk(string.Format("{0} {1} = {2};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType),
                     GetVariableNameForSlot(OutputSlotId),
                     transformString), true);
         }

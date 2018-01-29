@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [FormerName("UnityEngine.MaterialGraph.NormalNode")]
     [Title("Input", "Geometry", "Normal Vector")]
     public class NormalVectorNode : GeometryNode, IMayRequireNormal
     {
@@ -23,7 +24,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return space.ToVariableName(InterpolatorType.Normal);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Normal));
         }
 
         public NeededCoordinateSpace RequiresNormal()

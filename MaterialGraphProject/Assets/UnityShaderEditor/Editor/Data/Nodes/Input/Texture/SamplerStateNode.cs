@@ -21,10 +21,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_filter = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -41,10 +38,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_wrap = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -87,7 +81,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForNode()
         {
-            string ss = GetHLSLSafeName(name) + "_"
+            string ss = NodeUtils.GetHLSLSafeName(name) + "_"
                 + Enum.GetName(typeof(TextureSamplerState.FilterMode), filter) + "_"
                 + Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap) + "_sampler";
             return ss;

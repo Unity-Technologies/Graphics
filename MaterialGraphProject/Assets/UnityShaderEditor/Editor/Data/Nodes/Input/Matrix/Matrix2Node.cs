@@ -35,8 +35,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
-            if (onModified != null)
-                onModified(this, ModificationScope.Graph);
+            Dirty(ModificationScope.Graph);
         }
 
         public Matrix2Node()

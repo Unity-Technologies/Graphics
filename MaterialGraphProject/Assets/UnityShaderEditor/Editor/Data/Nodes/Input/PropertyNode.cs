@@ -29,39 +29,44 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 return;
 
-            if (property is FloatShaderProperty)
+            if (property is Vector1ShaderProperty)
             {
-                AddSlot(new Vector1MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, 0));
+                AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector2ShaderProperty)
             {
-                AddSlot(new Vector2MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector3ShaderProperty)
             {
-                AddSlot(new Vector3MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is Vector4ShaderProperty)
             {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is ColorShaderProperty)
             {
-                AddSlot(new Vector4MaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is TextureShaderProperty)
             {
-                AddSlot(new Texture2DMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output));
+                AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                 RemoveSlotsNameNotMatching(new[] {OutputSlotId});
             }
             else if (property is CubemapShaderProperty)
             {
-                AddSlot(new CubemapMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output));
+                AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is BooleanShaderProperty)
+            {
+                AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
         }
@@ -73,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             if (property == null)
                 return;
 
-            if (property is FloatShaderProperty)
+            if (property is Vector1ShaderProperty)
             {
                 var result = string.Format("{0} {1} = {2};"
                         , precision
@@ -113,9 +118,16 @@ namespace UnityEditor.ShaderGraph
                         , property.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
+            else if (property is BooleanShaderProperty)
+            {
+                var result = string.Format("{0} {1} = {2};"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                visitor.AddShaderChunk(result, true);
+            }
         }
 
-        [PropertyControl]
         public Guid propertyGuid
         {
             get { return m_PropertyGuid; }
@@ -132,10 +144,7 @@ namespace UnityEditor.ShaderGraph
 
                 UpdateNode();
 
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Topological);
-                }
+                Dirty(ModificationScope.Topological);
             }
         }
 

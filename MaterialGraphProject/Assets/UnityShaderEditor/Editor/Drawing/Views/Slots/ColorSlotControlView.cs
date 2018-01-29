@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         public ColorRGBASlotControlView(ColorRGBAMaterialSlot slot)
         {
             m_Slot = slot;
-            var colorField = new ColorField { value = slot.value };
+            var colorField = new ColorField { value = slot.value, showEyeDropper = false };
             colorField.OnValueChanged(OnValueChanged);
             Add(colorField);
         }
@@ -21,8 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         {
             m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Color Change");
             m_Slot.value = evt.newValue;
-            if (m_Slot.owner.onModified != null)
-                m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Node);
+            m_Slot.owner.Dirty(ModificationScope.Node);
         }
     }
 }

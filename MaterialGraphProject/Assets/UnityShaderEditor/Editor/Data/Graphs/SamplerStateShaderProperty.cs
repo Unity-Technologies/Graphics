@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -20,17 +21,19 @@ namespace UnityEditor.ShaderGraph
             return string.Empty;
         }
 
-        public override string GetPropertyDeclarationString()
+        public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format(@"
-#ifdef UNITY_COMPILER_HLSL
-SamplerState {0};
-#endif", referenceName);
+            return string.Format(@"SAMPLER({0}){1}", referenceName, delimiter);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return default(PreviewProperty);
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new SamplerStateNode();
         }
     }
 }

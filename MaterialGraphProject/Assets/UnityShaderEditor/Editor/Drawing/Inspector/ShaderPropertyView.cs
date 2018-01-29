@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(displayNameField);
 
             m_ValueAction = null;
-            if (property is FloatShaderProperty)
+            if (property is Vector1ShaderProperty)
                 m_ValueAction = FloatField;
             else if (property is Vector2ShaderProperty)
                 m_ValueAction = Vector2Field;
@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_ValueAction = Vector3Field;
             else if (property is Vector4ShaderProperty)
                 m_ValueAction = Vector4Field;
+            else if (property is BooleanShaderProperty)
+                m_ValueAction = BooleanField;
 
             if (m_ValueAction != null)
             {
@@ -40,7 +42,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             else if (property is ColorShaderProperty)
             {
                 var fProp = (ColorShaderProperty)property;
-                var colorField = new ColorField { name = "value", value = fProp.value };
+                ColorField colorField;
+                if(fProp.colorMode == ColorMode.HDR)
+                    colorField = new ColorField { name = "value", value = fProp.value, hdr = true };
+                else
+                    colorField = new ColorField { name = "value", value = fProp.value };
                 colorField.OnValueChanged(OnColorChanged);
                 Add(colorField);
             }
@@ -121,12 +127,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void NotifyNodes()
         {
             foreach (var node in graph.GetNodes<PropertyNode>())
-                node.onModified(node, ModificationScope.Node);
+                node.Dirty(ModificationScope.Node);
         }
 
         void FloatField()
         {
-            var fProp = (FloatShaderProperty)property;
+            var fProp = (Vector1ShaderProperty)property;
             fProp.value = EditorGUILayout.FloatField(fProp.value);
         }
 
@@ -146,6 +152,39 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             var fProp = (Vector4ShaderProperty)property;
             fProp.value = EditorGUILayout.Vector4Field("", fProp.value);
+        }
+
+        /*void IntegerField()
+        {
+            var fProp = (IntegerShaderProperty)property;
+            fProp.value = EditorGUILayout.IntField(fProp.value);
+        }
+
+        void SliderField()
+        {
+            var fProp = (SliderShaderProperty)property;
+            var value = fProp.value;
+            
+            GUILayoutOption[] sliderOptions = { GUILayout.ExpandWidth(true) };
+            GUILayoutOption[] options = { GUILayout.MaxWidth(30.0f) };
+            value.x = EditorGUILayout.Slider(fProp.value.x, fProp.value.y, fProp.value.z, sliderOptions);
+            EditorGUILayout.BeginHorizontal();
+            float previousLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 30f;
+            Rect minMaxRect = EditorGUILayout.GetControlRect(new GUILayoutOption[]{ GUILayout.ExpandWidth(true) } );
+            Rect minRect = new Rect(minMaxRect.x, minMaxRect.y, minMaxRect.width / 2, minMaxRect.height);
+            Rect maxRect = new Rect(minMaxRect.x + minMaxRect.width / 2, minMaxRect.y, minMaxRect.width / 2, minMaxRect.height);
+            value.y = EditorGUI.FloatField(minRect, "Min", fProp.value.y);
+            value.z = EditorGUI.FloatField(maxRect, "Max", fProp.value.z);
+            EditorGUIUtility.labelWidth = previousLabelWidth;
+            EditorGUILayout.EndHorizontal();
+            fProp.value = value;
+        }*/
+
+        void BooleanField()
+        {
+            var fProp = (BooleanShaderProperty)property;
+            fProp.value = EditorGUILayout.Toggle(fProp.value);
         }
     }
 }

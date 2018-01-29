@@ -24,8 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             {
                 m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change UV Channel");
                 m_Slot.channel = channel;
-                if (m_Slot.owner.onModified != null)
-                    m_Slot.owner.onModified(m_Slot.owner, ModificationScope.Graph);
+                m_Slot.owner.Dirty(ModificationScope.Graph);
             }
         }
     }

@@ -13,7 +13,7 @@ using MouseButton = UnityEngine.Experimental.UIElements.MouseButton;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class MaterialGraphView : GraphView
+    public sealed class MaterialGraphView : GraphView, IDropTarget
     {
         public AbstractMaterialGraph graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             var compatibleAnchors = new List<Port>();
-            var startSlot = startAnchor.userData as MaterialSlot;
+            var startSlot = startAnchor.GetSlot();
             if (startSlot == null)
                 return compatibleAnchors;
 
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var candidateAnchor in ports.ToList())
             {
-                var candidateSlot = candidateAnchor.userData as MaterialSlot;
+                var candidateSlot = candidateAnchor.GetSlot();
                 if (!startSlot.IsCompatibleWith(candidateSlot))
                     continue;
 
@@ -52,9 +52,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             base.BuildContextualMenu(evt);
-            evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
-            evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
-            evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+            if (evt.target is GraphView || evt.target is Node)
+            {
+                evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
+                evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
+                evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+            }
+            else if (evt.target is BlackboardField)
+            {
+                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
+            }
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
@@ -191,6 +198,35 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(selection.OfType<MaterialNodeView>().Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            foreach (var selectable in selection)
+            {
+                var field = selectable as BlackboardField;
+                if (field != null && field.userData != null)
+                {
+                    var property = (IShaderProperty)field.userData;
+                    graph.RemoveShaderProperty(property.guid);
+                }
+            }
+        }
+
+        public bool CanAcceptDrop(List<ISelectable> selection)
+        {
+            return selection.OfType<BlackboardField>().Any();
+        }
+
+        public EventPropagation DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            return EventPropagation.Continue;
+        }
+
+        public EventPropagation DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            return EventPropagation.Continue;
+        }
+
+        public EventPropagation DragExited()
+        {
+            return EventPropagation.Continue;
         }
     }
 

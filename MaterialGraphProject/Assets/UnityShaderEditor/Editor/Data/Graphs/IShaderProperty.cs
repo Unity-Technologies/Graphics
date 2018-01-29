@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -16,8 +17,11 @@ namespace UnityEditor.ShaderGraph
         string overrideReferenceName { get; set; }
 
         string GetPropertyBlockString();
-        string GetPropertyDeclarationString();
-        string GetInlinePropertyDeclarationString();
+        string GetPropertyDeclarationString(string delimiter = ";");
+
+        string GetPropertyAsArgumentString();
+
         PreviewProperty GetPreviewMaterialProperty();
+        INode ToConcreteNode();
     }
 }

@@ -4,11 +4,12 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing.UnitTests
 {
     [TestFixture]
-    public class SerializableGraphTests
+    public class BaseMaterialGraphTests
     {
         [OneTimeSetUp]
         public void RunBeforeAnyTests()
@@ -17,19 +18,19 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanCreateSerializableGraph()
+        public void TestCanCreateBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(0, graph.GetNodes<INode>().Count());
         }
 
         [Test]
-        public void TestCanAddNodeToSerializableGraph()
+        public void TestCanAddNodeToBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -39,10 +40,10 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanRemoveNodeFromSerializableGraph()
+        public void TestCanRemoveNodeFromBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
             node.name = "Test Node";
             graph.AddNode(node);
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
@@ -54,7 +55,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanModifyNodeDrawState()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.name = "Test Node";
 
             var drawState = node.drawState;
@@ -68,7 +69,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.IsFalse(node.drawState.expanded);
         }
 
-        private class SetErrorNode : SerializableNode
+        private class SetErrorNode : TestNode
         {
             public void SetError()
             {
@@ -94,13 +95,13 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestNodeGUIDCanBeRewritten()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             var guid = node.guid;
             var newGuid = node.RewriteGuid();
             Assert.AreNotEqual(guid, newGuid);
         }
 
-        public class TestableNode : SerializableNode
+        public class TestableNode : TestNode
         {
             public const int Input0 = 0;
             public const int Input1 = 1;
@@ -112,20 +113,20 @@ namespace UnityEditor.Graphing.UnitTests
 
             public TestableNode()
             {
-                AddSlot(new SerializableSlot(Input0, "Input", SlotType.Input));
-                AddSlot(new SerializableSlot(Input1, "Input", SlotType.Input));
-                AddSlot(new SerializableSlot(Input2, "Input", SlotType.Input));
+                AddSlot(new TestSlot(Input0, "Input", SlotType.Input));
+                AddSlot(new TestSlot(Input1, "Input", SlotType.Input));
+                AddSlot(new TestSlot(Input2, "Input", SlotType.Input));
 
-                AddSlot(new SerializableSlot(Output0, "Output", SlotType.Output));
-                AddSlot(new SerializableSlot(Output1, "Output", SlotType.Output));
-                AddSlot(new SerializableSlot(Output2, "Output", SlotType.Output));
+                AddSlot(new TestSlot(Output0, "Output", SlotType.Output));
+                AddSlot(new TestSlot(Output1, "Output", SlotType.Output));
+                AddSlot(new TestSlot(Output2, "Output", SlotType.Output));
             }
         }
 
         [Test]
-        public void TestRemoveNodeFromSerializableGraphCleansEdges()
+        public void TestRemoveNodeFromBaseMaterialGraphCleansEdges()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
@@ -147,15 +148,15 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(inputNode, graph.GetNodes<INode>().FirstOrDefault());
         }
 
-        private class NoDeleteNode : SerializableNode
+        private class NoDeleteNode : TestNode
         {
             public override bool canDeleteNode { get { return false; } }
         }
 
         [Test]
-        public void TestCanNotRemoveNoDeleteNodeFromSerializableGraph()
+        public void TestCanNotRemoveNoDeleteNodeFromBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var node = new NoDeleteNode();
             node.name = "Test Node";
             graph.AddNode(node);
@@ -165,7 +166,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
         }
 
-        private class OnEnableNode : SerializableNode, IOnAssetEnabled
+        private class OnEnableNode : TestNode, IOnAssetEnabled
         {
             public bool called = false;
             public void OnEnable()
@@ -177,7 +178,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestSerializedGraphDelegatesOnEnableCalls()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var node = new OnEnableNode();
             node.name = "Test Node";
             graph.AddNode(node);
@@ -188,10 +189,10 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanFindNodeInSerializableGraph()
+        public void TestCanFindNodeInBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
             graph.AddNode(node);
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
@@ -200,12 +201,12 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanAddSlotToSerializableNode()
+        public void TestCanAddSlotToTestNode()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(1, "input", SlotType.Input));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -219,21 +220,21 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanNotAddNullSlotToSerializableNode()
+        public void TestCanNotAddNullSlotToTestNode()
         {
-            var node = new SerializableNode();
+            var node = new TestNode();
             node.AddSlot(null);
             node.name = "Test Node";
             Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
         }
 
         [Test]
-        public void TestCanRemoveSlotFromSerializableNode()
+        public void TestCanRemoveSlotFromTestNode()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(1, "input", SlotType.Input));
             graph.AddNode(node);
 
             Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
@@ -248,9 +249,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanRemoveSlotsWithNonMathingNameFromSerializableNode()
+        public void TestCanRemoveSlotsWithNonMathingNameFromTestNode()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var node = new TestableNode();
             graph.AddNode(node);
 
@@ -270,12 +271,12 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanNotAddDuplicateSlotToSerializableNode()
+        public void TestCanNotAddDuplicateSlotToTestNode()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -287,12 +288,12 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanUpdateDisplaynameByReaddingSlotToSerializableNode()
+        public void TestCanUpdateDisplaynameByReaddingSlotToTestNode()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
-            node.AddSlot(new SerializableSlot(0, "output_updated", SlotType.Output));
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
+            node.AddSlot(new TestSlot(0, "output_updated", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -309,9 +310,9 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanUpdateSlotPriority()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -328,12 +329,12 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanUpdateSlotPriorityByReaddingSlotToSerializableNode()
+        public void TestCanUpdateSlotPriorityByReaddingSlotToTestNode()
         {
-            var graph = new SerializableGraph();
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 5));
+            var graph = new TestMaterialGraph();
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 5));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -350,8 +351,8 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanUpdateSlotDisplayName()
         {
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            var node = new TestNode();
+            node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
 
             Assert.AreEqual(0, node.GetInputSlots<ISlot>().Count());
@@ -366,7 +367,7 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanFindSlotOnSerializableNode()
+        public void TestCanFindSlotOnTestNode()
         {
             var node = new TestableNode();
 
@@ -382,7 +383,7 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanFindSlotReferenceOnSerializableNode()
+        public void TestCanFindSlotReferenceOnTestNode()
         {
             var node = new TestableNode();
 
@@ -393,9 +394,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanConnectAndTraverseTwoNodesOnSerializableGraph()
+        public void TestCanConnectAndTraverseTwoNodesOnBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -425,9 +426,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanConnectAndTraverseThreeNodesOnSerializableGraph()
+        public void TestCanConnectAndTraverseThreeNodesOnBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -503,7 +504,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestConectionToSameInputReplacesOldInput()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -527,7 +528,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestRemovingSlotRemovesConnectedEdges()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -547,12 +548,12 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanNotConnectToNullSlot()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
+            var inputNode = new TestNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
@@ -563,9 +564,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanNotConnectTwoOuputSlotsOnSerializableGraph()
+        public void TestCanNotConnectTwoOuputSlotsOnBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -581,9 +582,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanNotConnectTwoInputSlotsOnSerializableGraph()
+        public void TestCanNotConnectTwoInputSlotsOnBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
@@ -599,9 +600,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestRemovingNodeRemovesConectedEdgesOnSerializableGraph()
+        public void TestRemovingNodeRemovesConectedEdgesOnBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
@@ -618,9 +619,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestRemovingEdgeOnSerializableGraph()
+        public void TestRemovingEdgeOnBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
@@ -637,9 +638,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestRemovingElementsFromSerializableGraph()
+        public void TestRemovingElementsFromBaseMaterialGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
@@ -656,9 +657,9 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanGetEdgesOnSerializableGraphFromSlotReference()
+        public void TestCanGetEdgesOnBaseMaterialGraphFromSlotReference()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
@@ -677,7 +678,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestGetInputsWithNoConnection()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -697,7 +698,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCyclicConnectionsAreNotAllowedOnGraph()
         {
-            var graph = new SerializableGraph();
+            var graph = new TestMaterialGraph();
 
             var nodeA = new TestableNode();
 
