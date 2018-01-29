@@ -25,10 +25,22 @@ namespace  UnityEditor.VFX.UI
         }
 
 
+        public int m_CurrentOrder;
+        public bool m_CurrentExposed;
+
+
         void OnControllerChanged(ControllerChangedEvent e)
         {
             m_Field.text = controller.exposedName;
             m_Field.typeText = controller.portType.UserFriendlyName();
+
+            // if the order or exposed change, let the event be caught by the VFXBlackboard
+            if (controller.order == m_CurrentOrder && controller.exposed == m_CurrentExposed)
+            {
+                m_CurrentOrder = controller.order;
+                m_CurrentExposed = controller.exposed;
+                e.StopPropagation();
+            }
         }
 
         VFXParametersController m_Controller;
@@ -51,6 +63,8 @@ namespace  UnityEditor.VFX.UI
 
                     if (m_Controller != null)
                     {
+                        m_CurrentOrder = m_Controller.order;
+                        m_CurrentExposed = m_Controller.exposed;
                         m_Controller.RegisterHandler(this);
                     }
                 }
@@ -165,7 +179,7 @@ namespace  UnityEditor.VFX.UI
 
         void OnControllerChanged(ControllerChangedEvent e)
         {
-            if (e.controller == controller)
+            if (e.controller == controller || e.controller is VFXParametersController) //optim : reorder only is only the order has changed
             {
                 HashSet<VFXParametersController> actualControllers = new HashSet<VFXParametersController>(controller.parametersController.Where(t => t.exposed));
                 SyncParameters(m_ExposedSection, actualControllers, m_ExposedParameters);
