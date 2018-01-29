@@ -53,6 +53,16 @@ VFXFloatField {
 	padding-left:1;
 }
 
+.propertyrm VFXMatrix4x4Field.fieldContainer
+{
+    flex:1;
+    height:-1;
+}
+Matrix4x4PropertyRM.propertyrm > .fieldContainer
+{
+    height:-1;
+}
+
 .spaceCamera
 {
 	background-image:resource("vfx/spacecamera");
