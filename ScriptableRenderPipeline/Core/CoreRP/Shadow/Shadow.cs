@@ -266,16 +266,16 @@ namespace UnityEngine.Experimental.Rendering
             float   nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
             GPUShadowAlgorithm sanitizedAlgo = ShadowUtils.ClearPrecision( sr.shadowAlgorithm );
+            AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
+            if( !asd )
+                return false;
 
-            int     cascadeCnt = 0;
+
+            int cascadeCnt = 0;
             float[] cascadeRatios = null;
             float[] cascadeBorders = null;
             if( sr.shadowType == GPUShadowType.Directional )
             {
-                AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
-                if( !asd )
-                    return false;
-
                 asd.GetShadowCascades( out cascadeCnt, out cascadeRatios, out cascadeBorders );
             }
 
@@ -317,12 +317,21 @@ namespace UnityEngine.Experimental.Rendering
                     CachedEntry ce = m_EntryCache[ceIdx];
                     ce.zclip = sr.shadowType != GPUShadowType.Directional;
 
+
                     // modify
                     Matrix4x4 vp, invvp;
                     if( sr.shadowType == GPUShadowType.Point )
-                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, 4.0f, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    {
+                        // calculate the fov bias
+                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( 90.0f, ce.current.viewport.width, GetFilterWidthInTexels( sr, asd ), asd.nrmlBiasMax, 79.0f );
+                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, guardAngle, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    }
                     else if( sr.shadowType == GPUShadowType.Spot )
-                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    {
+                        float spotAngle = lights[sr.index].spotAngle;
+                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( spotAngle, ce.current.viewport.width,  GetFilterWidthInTexels( sr, asd ), asd.nrmlBiasMax, 180.0f - spotAngle );
+                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], guardAngle, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    }
                     else if( sr.shadowType == GPUShadowType.Directional )
                     {
                         vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
@@ -355,7 +364,6 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     // extract texel size in world space
-                    AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
                     int flags = 0;
                     flags |= asd.sampleBiasScale ? (1 << 0) : 0;
                     flags |= asd.edgeLeakFixup   ? (1 << 1) : 0;
@@ -400,6 +408,32 @@ namespace UnityEngine.Experimental.Rendering
             uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? (k_MaxCascadesInShader + ((uint)m_TmpScales.Length / 4) + ((uint)m_TmpBorders.Length / 4)) : 0;
                  payloadSize += ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) == ShadowAlgorithm.PCF ? 1u : 0;
             return payloadSize;
+        }
+
+        virtual protected float GetFilterWidthInTexels( ShadowRequest sr, AdditionalShadowData asd )
+        {
+            ShadowAlgorithm algo;
+            ShadowVariant   vari;
+            ShadowPrecision prec;
+            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
+
+            if( algo != ShadowAlgorithm.PCF )
+                return 1.0f;
+
+            switch( vari )
+            {
+                case ShadowVariant.V0: return 1;
+                case ShadowVariant.V1:
+                    {
+                        int shadowDataFormat;
+                        int[] shadowData = asd.GetShadowData( out shadowDataFormat );
+                        return ShadowUtils.Asfloat( shadowData[1] );
+                    }
+                case ShadowVariant.V2: return 3;
+                case ShadowVariant.V3: return 5;
+                case ShadowVariant.V4: return 7;
+                default: return 1.0f;
+            }
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
@@ -953,6 +987,11 @@ namespace UnityEngine.Experimental.Rendering
             case ShadowAlgorithm.MSM : return cnt + 1;
             default: return cnt;
             }
+        }
+
+        override protected float GetFilterWidthInTexels( ShadowRequest sr, AdditionalShadowData asd )
+        {
+            return 1.0f;
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.

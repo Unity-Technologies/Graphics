@@ -153,12 +153,12 @@ real EvalShadow_SampleBiasFlag( float flag )
 float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 normalWS, float3 tcs )
 {
 	float3 e1, e2;
-	if( abs( normalWS.z ) > 0.05 )
+	if( abs( normalWS.z ) > 0.65 )
 	{
 		e1 = float3( 1.0, 0.0, -normalWS.x / normalWS.z );
 		e2 = float3( 0.0, 1.0, -normalWS.y / normalWS.z );
 	}
-	else if( abs( normalWS.y ) > 0.05 )
+	else if( abs( normalWS.y ) > 0.65 )
 	{
 		e1 = float3( 1.0, -normalWS.x / normalWS.y, 0.0 );
 		e2 = float3( 0.0, -normalWS.z / normalWS.y, 1.0 );
@@ -184,7 +184,7 @@ float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 nor
 	float3 nrm     = cross( p1.xyz - tcs, p2.xyz - tcs );
 		   nrm.xy /= -nrm.z;
 
-	return all( isfinite( nrm.xy ) ) ? (EvalShadow_SampleBiasFlag( sd.nrmlBias.w ) * nrm.xy) : 0.0.xx;
+	return isfinite( nrm.xy ) ? (EvalShadow_SampleBiasFlag( sd.nrmlBias.w ) * nrm.xy) : 0.0.xx;
 }
 
 float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )
@@ -197,7 +197,7 @@ float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )
 
 	nrm.xy /= -nrm.z;
 
-	return all( isfinite( nrm.xy ) ) ? (EvalShadow_SampleBiasFlag( sd.nrmlBias.w ) * nrm.xy) : 0.0.xx;
+	return isfinite( nrm.xy ) ? (EvalShadow_SampleBiasFlag( sd.nrmlBias.w ) * nrm.xy) : 0.0.xx;
 }
 #else // SHADOW_USE_SAMPLE_BIASING != 0
 float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 normalWS, float3 tcs ) { return 0.0.xx; }
