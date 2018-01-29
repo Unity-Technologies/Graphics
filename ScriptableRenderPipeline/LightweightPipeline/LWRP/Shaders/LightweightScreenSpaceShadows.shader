@@ -44,7 +44,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float zDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
             float depth  = Linear01Depth(zDepth, _ZBufferParams);
 
-        #ifdef UNITY_REVERSED_Z
+        #if UNITY_REVERSED_Z
             zDepth = 1 - zDepth;
         #endif
 
