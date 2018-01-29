@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
         // Model / Controller synchronization
-        private Dictionary<VFXModel, VFXNodeController> m_SyncedModels = new Dictionary<VFXModel, VFXNodeController>();
+        private Dictionary<VFXModel, List<VFXNodeController>> m_SyncedModels = new Dictionary<VFXModel, List<VFXNodeController>>();
 
         List<VFXDataEdgeController> m_DataEdges = new List<VFXDataEdgeController>();
         List<VFXFlowEdgeController> m_FlowEdges = new List<VFXFlowEdgeController>();
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()); }
         }
 
         public override void ApplyChanges()
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                var operatorControllers = m_SyncedModels.Values.OfType<VFXSlotContainerController>();
+                var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXSlotContainerController>();
                 var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXSlotContainerController>();
                 var contextSlotContainers = contexts.Select(t => t.slotContainerController).Where(t => t != null).Cast<VFXSlotContainerController>();
 
@@ -182,11 +182,11 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXContextController> contexts
         {
-            get { return m_SyncedModels.Values.OfType<VFXContextController>(); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).OfType<VFXContextController>(); }
         }
         public IEnumerable<VFXNodeController> nodes
         {
-            get { return m_SyncedModels.Values; }
+            get { return m_SyncedModels.Values.SelectMany(t => t); }
         }
 
         public void FlowEdgesMightHaveChanged()
@@ -508,6 +508,11 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
+        public void NotifyParameterControllerChange()
+        {
+            NotifyChange(AnyThing);
+        }
+
         public void RegisterFlowAnchorController(VFXFlowAnchorController controller)
         {
             if (!m_FlowAnchorController.Contains(controller))
@@ -826,45 +831,80 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
+        Dictionary<VFXParameter, VFXParametersController> m_ParametersController = new Dictionary<VFXParameter, VFXParametersController>();
+
+        public IEnumerable<VFXParametersController> parametersController
+        {
+            get { return m_ParametersController.Values; }
+        }
+
         private void AddControllersFromModel(VFXModel model)
         {
-            VFXNodeController newController = null;
+            List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                newController = new VFXOperatorController(model, this);
+                newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {
-                newController = new VFXContextController(model, this);
+                newControllers.Add(new VFXContextController(model, this));
             }
             else if (model is VFXParameter)
             {
-                newController = new VFXParameterController(model, this);
+                VFXParameter parameter = model as VFXParameter;
+                parameter.ValidateParamInfos();
+
+                var newController = m_ParametersController[parameter] = new VFXParametersController(parameter, this);
+
+                m_SyncedModels[model] = new List<VFXNodeController>();
+
+                newController.UpdateControllers();
             }
 
-            if (newController != null)
+            if (newControllers.Count > 0)
             {
-                m_SyncedModels[model] = newController;
-                newController.ForceUpdate();
+                List<VFXNodeController> existingControllers;
+                if (m_SyncedModels.TryGetValue(model, out existingControllers))
+                {
+                    Debug.LogError("adding a model to controllers twice");
+                }
+                m_SyncedModels[model] = newControllers;
+                foreach (var controller in newControllers)
+                {
+                    controller.ForceUpdate();
+                }
             }
+        }
+
+        public void AddControllerToModel(VFXModel model, VFXNodeController controller)
+        {
+            m_SyncedModels[model].Add(controller);
+        }
+
+        public void RemoveControllerFromModel(VFXModel model, VFXNodeController controller)
+        {
+            m_SyncedModels[model].Remove(controller);
         }
 
         private void RemoveControllersFromModel(VFXModel model)
         {
-            VFXNodeController controller = null;
-            if (m_SyncedModels.TryGetValue(model, out controller))
+            List<VFXNodeController> controllers = null;
+            if (m_SyncedModels.TryGetValue(model, out controllers))
             {
-                controller.OnDisable();
+                foreach (var controller in controllers)
+                {
+                    controller.OnDisable();
+                }
                 m_SyncedModels.Remove(model);
             }
         }
 
-        public VFXNodeController GetControllerFromModel(VFXModel model)
+        public VFXNodeController GetControllerFromModel(VFXModel model, int id)
         {
-            VFXNodeController controller = null;
+            List<VFXNodeController> controller = null;
             m_SyncedModels.TryGetValue(model, out controller);
 
-            return controller;
+            return controller.First(t => t.id == id);
         }
 
         private VFXGraph m_Graph;

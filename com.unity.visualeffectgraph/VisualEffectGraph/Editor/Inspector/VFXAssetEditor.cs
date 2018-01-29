@@ -42,9 +42,9 @@ public class VFXAssetEditor : Editor
     {
     }
 
-    VFXParameterController[] m_ExposedList;
+    VFXParametersController[] m_ExposedList;
 
-    bool ArraysEquals(VFXParameterController[] a, VFXParameterController[] b)
+    bool ArraysEquals(VFXParametersController[] a, VFXParametersController[] b)
     {
         if (b.Length != a.Length)
             return false;
@@ -68,7 +68,7 @@ public class VFXAssetEditor : Editor
             return;
 
 
-        var newList = m_Controller.allChildren.OfType<VFXParameterController>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = m_Controller.parametersController.Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;
@@ -136,9 +136,9 @@ public class VFXAssetEditor : Editor
 
 
     ReorderableList list;
-    Dictionary<VFXParameterController, ParamInfo> m_AdvDictionary = new Dictionary<VFXParameterController, ParamInfo>();
+    Dictionary<VFXParametersController, ParamInfo> m_AdvDictionary = new Dictionary<VFXParametersController, ParamInfo>();
 
-    void OnParamGUI(Rect rect, VFXParameterController parameter, int order)
+    void OnParamGUI(Rect rect, VFXParametersController parameter, int order)
     {
         GUILayout.BeginVertical();
 

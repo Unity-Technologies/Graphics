@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
 
         void CreateSubProperties(List<int> fieldPath)
         {
-            var subControllers = controller.GetSubControllers(fieldPath);
+            var subControllers = controller.parentController.GetSubControllers(fieldPath);
 
             var subFieldPath = new List<int>();
             int cpt = 0;

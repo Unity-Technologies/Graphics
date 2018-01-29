@@ -9,6 +9,18 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    [Serializable]
+    struct VFXNodeID
+    {
+        public VFXNodeID(VFXModel model, int id)
+        {
+            this.model = model;
+            this.id = id;
+        }
+
+        public VFXModel model;
+        public int id;
+    }
     class VFXUI : ScriptableObject
     {
         [System.Serializable]
@@ -16,22 +28,9 @@ namespace UnityEditor.VFX
         {
             public string title;
             public Rect position;
-            public VFXModel[] content;
+            public VFXNodeID[] content;
         }
 
         public GroupInfo[] groupInfos;
-
-
-        public VFXUI Clone(Dictionary<VFXModel, VFXModel> oldNewMap)
-        {
-            VFXUI clone = Instantiate(this);
-
-            foreach (var groupInfo in clone.groupInfos)
-            {
-                groupInfo.content = groupInfo.content.Where(t => oldNewMap.ContainsKey(t)).Select(t => oldNewMap[t]).ToArray();
-            }
-
-            return clone;
-        }
     }
 }

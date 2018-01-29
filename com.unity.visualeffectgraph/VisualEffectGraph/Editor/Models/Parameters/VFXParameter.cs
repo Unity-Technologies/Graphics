@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Graphing;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -25,6 +26,26 @@ namespace UnityEditor.VFX
         public VFXSerializableObject m_Min;
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Max;
+
+
+        [System.Serializable]
+        public class ParamInfo
+        {
+            public ParamInfo(int id)
+            {
+                this.id = id;
+            }
+
+            public readonly int id;
+            public List<VFXSlot> linkedSlots;
+            public Vector2 position;
+        }
+
+        [SerializeField]
+        protected List<ParamInfo> m_ParamInfos;
+
+        [NonSerialized]
+        int m_IDCounter = 0;
 
         public string exposedName
         {
@@ -66,6 +87,19 @@ namespace UnityEditor.VFX
         {
             get { return outputSlots[0].value; }
             set { outputSlots[0].value = value; }
+        }
+
+
+        public ReadOnlyCollection<ParamInfo> paramInfos
+        {
+            get
+            {
+                if (m_ParamInfos == null)
+                {
+                    m_ParamInfos = new List<ParamInfo>();
+                }
+                return m_ParamInfos.AsReadOnly();
+            }
         }
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -120,6 +154,59 @@ namespace UnityEditor.VFX
                 m_ExprSlots = new VFXSlot[0];
                 m_ValueExpr = new VFXValue[0];
             }
+
+            if (m_ParamInfos != null)
+            {
+                foreach (var param in paramInfos)
+                {
+                    if (m_IDCounter < param.id + 1)
+                    {
+                        m_IDCounter = param.id + 1;
+                    }
+                }
+            }
+        }
+
+        ParamInfo CreateParamInfo()
+        {
+            return new ParamInfo(m_IDCounter++);
+        }
+
+        public void ValidateParamInfos()
+        {
+            // Case of the old VFXParameter we create a new one on the same place with all the Links
+            if (position != Vector2.zero && paramInfos.Count == 0)
+            {
+                var newInfos = CreateParamInfo();
+                newInfos.position = position;
+                newInfos.linkedSlots = new List<VFXSlot>(outputSlots[0].LinkedSlots);
+                m_ParamInfos.Add(newInfos);
+            }
+            else
+            {
+                // the linked slot of the outSlot decides so make sure that all appear once and only once in all the paramInfos
+                HashSet<VFXSlot> links = new HashSet<VFXSlot>(outputSlots[0].LinkedSlots);
+
+                foreach (var info in paramInfos)
+                {
+                    // first remove linkedSlots that are not existing
+                    info.linkedSlots = info.linkedSlots.Intersect(links).ToList();
+
+                    foreach (var slot in info.linkedSlots)
+                    {
+                        links.Remove(slot);
+                    }
+                }
+                // if there are some links n the output slots that are in none of the infos, create a default param with them
+                if (links.Count > 0)
+                {
+                    var newInfos = CreateParamInfo();
+                    newInfos.position = Vector2.zero;
+                    newInfos.linkedSlots = new List<VFXSlot>(links);
+                    m_ParamInfos.Add(newInfos);
+                }
+            }
+            position = Vector2.zero; // Set that as a marker that the parameter has been touched by the new code.
         }
 
         public override void UpdateOutputExpressions()

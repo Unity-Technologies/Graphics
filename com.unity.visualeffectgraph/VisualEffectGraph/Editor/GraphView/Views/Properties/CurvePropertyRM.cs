@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
         public CurvePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_CurveField = new MyCurveField(m_Label);
-            m_CurveField.control.renderMode = CurveField.RenderMode.mesh;
+            m_CurveField.control.renderMode = CurveField.RenderMode.Mesh;
             m_CurveField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
 
             m_CurveField.style.flexDirection = FlexDirection.Column;

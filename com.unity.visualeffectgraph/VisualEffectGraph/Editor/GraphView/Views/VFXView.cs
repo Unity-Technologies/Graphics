@@ -163,8 +163,6 @@ namespace UnityEditor.VFX.UI
                 return descs.Where(t => m_Filter(t));
         }
     }
-
-    //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
     class VFXView : GraphView, IParameterDropTarget, IControlledElement<VFXViewController>
     {
         VisualElement m_NoAssetLabel;
@@ -423,6 +421,10 @@ namespace UnityEditor.VFX.UI
 
             vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+
+            m_Blackboard = new VFXBlackboard();
+
+            Add(m_Blackboard.blackboard);
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -488,11 +490,6 @@ namespace UnityEditor.VFX.UI
                 m_ToggleMotionVectors.SetEnabled(false);
             }
 
-            //Update groupnode content after all the view has been updated.
-            /*foreach (VFXGroupNode node in this.Query().Children<VisualElement>().Children<VFXGroupNode>().ToList())
-            {
-                node.OnViewDataChanged();
-            }*/
             // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
             SelectionUpdated();
         }
@@ -1174,6 +1171,8 @@ namespace UnityEditor.VFX.UI
             if (!selectionEmpty)
                 SelectionUpdated();
         }
+
+        VFXBlackboard m_Blackboard;
 
         private Button m_DropDownButtonCullingMode;
         private Toggle m_ToggleCastShadows;

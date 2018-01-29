@@ -156,7 +156,7 @@ namespace UnityEditor.VFX.UI
 
                     // only keep nodes that are copied because a node can not be in two groups at the same time.
                     if (info.content != null)
-                        copiedGroupUI.groupInfos[i].content =  info.content.Where(t => copiedContexts.Contains(t) || copiedSlotContainers.Contains(t)).ToArray();
+                        copiedGroupUI.groupInfos[i].content =  info.content.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model)).ToArray();
                 }
             }
 
