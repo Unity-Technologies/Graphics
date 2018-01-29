@@ -1125,13 +1125,23 @@ namespace UnityEditor.VFX.UI
 
             if (!VFXComponentEditor.s_IsEditingAsset)
             {
-                var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null);
+                var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
 
-                if (objectSelected.Count() > 0)
+                if (objectSelected.Length > 0)
                 {
-                    Selection.objects = objectSelected.ToArray();
+                    Selection.objects = objectSelected;
+                    return;
                 }
-                else if (Selection.activeObject != controller.model)
+
+                var blackBoardSelected = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model).ToArray();
+
+                if (blackBoardSelected.Length > 0)
+                {
+                    Selection.objects = blackBoardSelected;
+                    return;
+                }
+
+                if (Selection.activeObject != controller.model)
                 {
                     Selection.activeObject = controller.model;
                 }
