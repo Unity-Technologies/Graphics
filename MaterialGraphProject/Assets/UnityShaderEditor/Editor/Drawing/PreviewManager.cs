@@ -189,9 +189,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             PropagateNodeSet(m_DirtyPreviews);
 
             m_NodesWith3DPreview.Clear();
-            foreach (var index in m_DirtyPreviews)
+            foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
             {
-                var node = (AbstractMaterialNode)m_Graph.GetNodeFromTempId(m_Identifiers[index]);
                 if (node.previewMode == PreviewMode.Preview3D)
                     m_NodesWith3DPreview.Add(node.tempId.index);
             }
@@ -488,12 +487,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DestroyRenderData(PreviewRenderData renderData)
         {
             if (renderData.shaderData != null
-                && renderData.shaderData.shader != null 
+                && renderData.shaderData.shader != null
                 && renderData.shaderData.shader != m_UberShader)
                 Object.DestroyImmediate(renderData.shaderData.shader, true);
             if (renderData.renderTexture != null)
                 Object.DestroyImmediate(renderData.renderTexture, true);
-            
+
             if (renderData.shaderData != null && renderData.shaderData.node != null)
                 renderData.shaderData.node.onModified -= OnNodeModified;
         }
