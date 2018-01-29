@@ -564,14 +564,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
 
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
-                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
                 {
                     needUV2 = true;
                 }
 
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
                 {
                     needUV3 = true;
                     break; // If we find it UV3 let's early out
@@ -756,6 +754,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
             EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)
