@@ -37,8 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DepthPyramidMips = mipIds;
         }
 
-        public void RenderPyramidDepth
-            (HDCamera hdCamera,
+        public void RenderPyramidDepth(
+            HDCamera hdCamera,
             CommandBuffer cmd, 
             ScriptableRenderContext renderContext,
             RenderTargetIdentifier depthTexture,
