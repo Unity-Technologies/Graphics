@@ -534,19 +534,47 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
     return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
 }
 
+// 'z' is the view space Z position (linear depth).
+// saturate(z) the output of the function to clamp them to the [0, 1] range.
+// d = log2(c * (z - n) + 1) / log2(c * (f - n) + 1)
+//   = log2(c * (z - n + 1/c)) / log2(c * (f - n) + 1)
+//   = log2(c) / log2(c * (f - n) + 1) + log2(z - (n - 1/c)) / log2(c * (f - n) + 1)
+//   = E + F * log2(z - G)
+// encodingParams = { E, F, G, 0 }
+float EncodeLogarithmicDepthGeneralized(float z, float4 encodingParams)
+{
+    // Use max() to avoid NaNs.
+    return encodingParams.x + encodingParams.y * log2(max(0, z - encodingParams.z));
+}
+
+// 'd' is the logarithmically encoded depth value.
+// saturate(d) to clamp the output of the function to the [n, f] range.
+// z = 1/c * (pow(c * (f - n) + 1, d) - 1) + n
+//   = 1/c * pow(c * (f - n) + 1, d) + n - 1/c
+//   = L * pow(M, d) + N
+// decodingParams = { L, M, N, 0 }
+// Graph: https://www.desmos.com/calculator/qrtatrlrba
+float DecodeLogarithmicDepthGeneralized(float d, float4 decodingParams)
+{
+    // Use abs() to avoid the compiler warning.
+    return decodingParams.x * pow(abs(decodingParams.y), d) + decodingParams.z;
+}
+
 // 'z' is the view-space Z position (linear depth).
-// saturate() the output of the function to clamp them to the [0, 1] range.
+// saturate(z) the output of the function to clamp them to the [0, 1] range.
 // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
-// TODO: plot and modify the distribution to be a little more linear.
+// This is an optimized version of EncodeLogarithmicDepthGeneralized() for (c = 2).
 float EncodeLogarithmicDepth(float z, float4 encodingParams)
 {
+    // Use max() to avoid NaNs.
     return log2(max(0, z * encodingParams.z)) * encodingParams.w;
 }
 
 // 'd' is the logarithmically encoded depth value.
 // saturate(d) to clamp the output of the function to the [n, f] range.
 // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
-// TODO: plot and modify the distribution to be a little more linear.
+// This is an optimized version of DecodeLogarithmicDepthGeneralized() for (c = 2).
+// Graph: https://www.desmos.com/calculator/qrtatrlrba
 float DecodeLogarithmicDepth(float d, float4 encodingParams)
 {
     return encodingParams.x * exp2(d * encodingParams.y);
