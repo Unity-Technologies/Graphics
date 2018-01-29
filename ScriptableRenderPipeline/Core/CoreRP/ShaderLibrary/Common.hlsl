@@ -207,7 +207,7 @@ void ToggleBit(inout uint data, uint offset)
 
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
-    // Warning: for correctness, the argument must have the same value across the wave!
+    // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
     TEMPLATE_1_REAL(WaveReadFirstLane, scalarValue, return scalarValue)
     TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
@@ -237,48 +237,47 @@ TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
-// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
-/*
-float CubemapFaceID(float3 dir)
+float CubeMapFaceID(float3 dir)
 {
     float faceID;
+
     if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
     {
-        faceID = (dir.z < 0.0) ? 5.0 : 4.0;
+        faceID = (dir.z < 0.0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
     }
     else if (abs(dir.y) >= abs(dir.x))
     {
-        faceID = (dir.y < 0.0) ? 3.0 : 2.0;
+        faceID = (dir.y < 0.0) ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
     }
     else
     {
-        faceID = (dir.x < 0.0) ? 1.0 : 0.0;
+        faceID = (dir.x < 0.0) ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
     }
+
     return faceID;
 }
-*/
+#endif // INTRINSIC_CUBEMAP_FACE_ID
 
-void GetCubeFaceID(float3 dir, out int faceIndex)
+// Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use IsNAN instead
+bool IsNAN(float n)
 {
-    // TODO: Use faceID intrinsic on console
-    float3 adir = abs(dir);
-
-    // +Z -Z
-    faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
-
-    // +X -X
-    if (adir.x > adir.y && adir.x > adir.z)
-    {
-        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
-    }
-    // +Y -Y
-    else if (adir.y > adir.x && adir.y > adir.z)
-    {
-        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
-    }
+    return (n < 0.0 || n > 0.0 || n == 0.0) ? false : true;
 }
 
-#endif // INTRINSIC_CUBEMAP_FACE_ID
+bool IsNAN(float2 v)
+{
+    return (IsNAN(v.x) || IsNAN(v.y)) ? true : false;
+}
+
+bool IsNAN(float3 v)
+{
+    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z)) ? true : false;
+}
+
+bool IsNAN(float4 v)
+{
+    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z) || IsNAN(v.w)) ? true : false;
+}
 
 // ----------------------------------------------------------------------------
 // Common math functions
@@ -367,23 +366,23 @@ real FastATan(real x)
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
 
-// Computes (FastSign(s) * x) using 2x VALU.
+// Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
-float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
+float CopySign(float x, float s, bool ignoreNegZero = true)
 {
 #if !defined(SHADER_API_GLES)
     if (ignoreNegZero)
     {
-        return (s >= 0) ? x : -x;
+        return (s >= 0) ? abs(x) : -abs(x);
     }
     else
     {
         uint negZero = 0x80000000u;
         uint signBit = negZero & asuint(s);
-        return asfloat(signBit ^ asuint(x));
+        return asfloat(BitFieldInsert(negZero, signBit, asuint(x)));
     }
 #else
-    return (s >= 0) ? x : -x;
+    return (s >= 0) ? abs(x) : -abs(x);
 #endif
 }
 
@@ -396,7 +395,7 @@ float FastMulBySignOf(float s, float x, bool ignoreNegZero = true)
 // Note that the sign() function in HLSL implements signum, which returns 0 for 0.
 float FastSign(float s, bool ignoreNegZero = true)
 {
-    return FastMulBySignOf(s, 1.0, ignoreNegZero);
+    return CopySign(1.0, s, ignoreNegZero);
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
@@ -411,6 +410,11 @@ real3 Orthonormalize(real3 tangent, real3 normal)
 real Smoothstep01(real x)
 {
     return x * x * (3.0 - (2.0 * x));
+}
+
+real Pow4(real x)
+{
+    return (x * x) * (x * x);
 }
 
 // ----------------------------------------------------------------------------
@@ -432,6 +436,29 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     uv *= texelSize;
 
     return ComputeTextureLOD(uv);
+}
+
+uint GetMipCount(Texture2D tex)
+{
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+    #define MIP_COUNT_SUPPORTED 1
+#endif
+#if (defined(SHADER_API_OPENGL) || defined(SHADER_API_VULKAN)) && !defined(SHADER_STAGE_COMPUTE)
+    // OpenGL only supports textureSize for width, height, depth
+    // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
+    // tex.GetDimensions converted to textureQueryLevels
+    #define MIP_COUNT_SUPPORTED 1
+#endif
+    // Metal doesn't support high enough OpenGL version
+
+#if defined(MIP_COUNT_SUPPORTED)
+    uint width, height, depth, mipCount;
+    width = height = depth = mipCount = 0;
+    tex.GetDimensions(width, height, depth, mipCount);
+    return mipCount;
+#else
+    return 0;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -510,6 +537,7 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 // 'z' is the view-space Z position (linear depth).
 // saturate() the output of the function to clamp them to the [0, 1] range.
 // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+// TODO: plot and modify the distribution to be a little more linear.
 float EncodeLogarithmicDepth(float z, float4 encodingParams)
 {
     return log2(max(0, z * encodingParams.z)) * encodingParams.w;
@@ -518,6 +546,7 @@ float EncodeLogarithmicDepth(float z, float4 encodingParams)
 // 'd' is the logarithmically encoded depth value.
 // saturate(d) to clamp the output of the function to the [n, f] range.
 // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+// TODO: plot and modify the distribution to be a little more linear.
 float DecodeLogarithmicDepth(float d, float4 encodingParams)
 {
     return encodingParams.x * exp2(d * encodingParams.y);
@@ -540,7 +569,7 @@ static const float4x4 k_identity4x4 = {1, 0, 0, 0,
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float4 ComputeClipSpaceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
     float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
 
@@ -550,7 +579,18 @@ float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTra
     positionCS.y = -positionCS.y;
 #endif
 
-return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+    return positionCS;
+}
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    float4 positionCS = ComputeClipSpaceCoordinates(position, clipSpaceTransform);
+
+    return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
 }
 
 float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
@@ -625,23 +665,39 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
-void UpdatePositionInput(float deviceDepth, float linearDepth, float3 positionWS, inout PositionInputs posInput)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
 {
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = linearDepth;
     posInput.positionWS  = positionWS;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS)
+{
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, linearDepth, positionWS, uint2(0, 0));
 }
 
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, inout PositionInputs posInput)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, uint2 tileCoord)
 {
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.deviceDepth = deviceDepth;
     posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
     posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+
+    return posInput;
+}
+
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix)
+{
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewProjMatrix, uint2(0, 0));
 }
 
 // The view direction 'V' points towards the camera.

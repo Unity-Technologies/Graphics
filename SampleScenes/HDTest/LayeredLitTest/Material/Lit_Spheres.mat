@@ -351,16 +351,21 @@ Material:
     - _HeightFactor2: 1
     - _HeightFactor3: 1
     - _HeightMapMode: 0
+    - _HeightMapParametrization: 1
     - _HeightMax: 1
     - _HeightMin: -1
+    - _HeightOffset: 0
     - _HeightOffset1: 0
     - _HeightOffset2: 0
     - _HeightOffset3: 0
+    - _HeightPoMAmplitude: 2
     - _HeightScale: 0.127
     - _HeightScale0: 1
     - _HeightScale1: 1
     - _HeightScale2: 1
     - _HeightScale3: 1
+    - _HeightTessAmplitude: 2
+    - _HeightTessCenter: 0.5
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1
@@ -411,6 +416,7 @@ Material:
     - _TexWorldScale1: 1
     - _TexWorldScale2: 1
     - _TexWorldScale3: 1
+    - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
@@ -426,6 +432,7 @@ Material:
     - _UVDetail1: 0
     - _UVDetail2: 0
     - _UVDetail3: 0
+    - _UVEmissive: 0
     - _UVMappingPlanar: 0
     - _UVMappingPlanar0: 0
     - _UVMappingPlanar1: 0
@@ -461,3 +468,4 @@ Material:
     - _UVMappingMask1: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask2: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask3: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}

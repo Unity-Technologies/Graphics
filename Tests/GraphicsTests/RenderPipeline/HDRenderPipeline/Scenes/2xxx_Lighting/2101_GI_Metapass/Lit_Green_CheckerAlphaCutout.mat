@@ -153,8 +153,13 @@ Material:
     - _EnableWind: 0
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
+    - _HeightMapParametrization: 1
     - _HeightMax: 1
     - _HeightMin: -1
+    - _HeightOffset: 0
+    - _HeightPoMAmplitude: 2
+    - _HeightTessAmplitude: 2
+    - _HeightTessCenter: 0.5
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1.3333334
@@ -186,6 +191,7 @@ Material:
     - _SubsurfaceRadius: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
+    - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _TransparentBackfaceEnable: 0
@@ -193,6 +199,7 @@ Material:
     - _TransparentDepthPrepassEnable: 0
     - _UVBase: 0
     - _UVDetail: 0
+    - _UVEmissive: 0
     - _ZTestMode: 4
     - _ZWrite: 1
     m_Colors:
@@ -207,3 +214,4 @@ Material:
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
+    - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}

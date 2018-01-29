@@ -10,10 +10,11 @@ void AddDecalContribution(uint2 unPositionSS, inout SurfaceData surfaceData)
 		DecalSurfaceData decalSurfaceData;
 		DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
-		surfaceData.baseColor.xyz = lerp(surfaceData.baseColor.xyz, decalSurfaceData.baseColor.xyz, decalSurfaceData.baseColor.w);
-		surfaceData.normalWS.xyz = normalize(lerp(surfaceData.normalWS.xyz, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w));
-		surfaceData.metallic = lerp(surfaceData.metallic, decalSurfaceData.mask.x, decalSurfaceData.mask.z);
-		surfaceData.ambientOcclusion = lerp(surfaceData.ambientOcclusion, decalSurfaceData.mask.y, decalSurfaceData.mask.z);
-		surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, decalSurfaceData.mask.w, decalSurfaceData.mask.z);
+		// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+		surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+		surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+		surfaceData.metallic = surfaceData.metallic * decalSurfaceData.mask.w + decalSurfaceData.mask.x;
+		surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.mask.w + decalSurfaceData.mask.y;
+		surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
 	}
 }

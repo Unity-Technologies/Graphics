@@ -4,13 +4,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // Default Material / Shader
         public Material defaultDiffuseMaterial;
+        public Material defaultDecalMaterial;
         public Shader defaultShader;
 
         // Debug
+        public Texture2D debugFontTexture;
         public Shader debugDisplayLatlongShader;
         public Shader debugViewMaterialGBufferShader;
         public Shader debugViewTilesShader;
         public Shader debugFullScreenShader;
+        public Shader debugColorPickerShader;
 
         // Lighting resources
         public Shader deferredShader;

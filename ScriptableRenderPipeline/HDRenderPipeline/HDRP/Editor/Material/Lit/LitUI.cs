@@ -27,10 +27,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent bentNormalMapText = new GUIContent("Bent normal map", "Use only with indirect diffuse lighting (Lightmap/lightprobe) - Cosine weighted Bent Normal Map (average unoccluded direction) (BC7/BC5/DXT5(nm))");
             public static GUIContent bentNormalMapOSText = new GUIContent("Bent normal map OS", "Use only with indirect diffuse lighting (Lightmap/lightprobe) - Bent Normal Map (BC7/DXT1/RGB)");
 
+            // Height
             public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map.\nFor floating point textures, min, max and base value should be 0, 1 and 0.");
-            public static GUIContent heightMapCenterText = new GUIContent("Height Map Base", "Base of the heightmap in the texture (between 0 and 1)");
-            public static GUIContent heightMapMinText = new GUIContent("Height Min (cm)", "Minimum value in the heightmap (in centimeters)");
-            public static GUIContent heightMapMaxText = new GUIContent("Height Max (cm)", "Maximum value in the heightmap (in centimeters)");
+            public static GUIContent heightMapCenterText = new GUIContent("Base", "Base of the heightmap in the texture (between 0 and 1)");
+            public static GUIContent heightMapMinText = new GUIContent("Min (cm)", "Minimum value in the heightmap (in centimeters)");
+            public static GUIContent heightMapMaxText = new GUIContent("Max (cm)", "Maximum value in the heightmap (in centimeters)");
+            public static GUIContent heightMapAmplitudeText = new GUIContent("Amplitude (cm)", "Amplitude of the heightmap (in centimeters)");
+            public static GUIContent heightMapOffsetText = new GUIContent("Offset (cm)", "Offset applied to the heightmap (in centimeters)");
+            public static GUIContent heightMapParametrization = new GUIContent("Parametrization", "Parametrization of the heightmap");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
             public static GUIContent tangentMapOSText = new GUIContent("Tangent Map OS", "Tangent Map (BC7/DXT1/RGB)");
@@ -61,6 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect (similar to change to IOR of 1");
 
             // Specular color
+            public static GUIContent energyConservingSpecularColorText = new GUIContent("Energy Conserving Specular Color", "Enable energy conservation when using Specular Color mode (i.e high Specular Color mean lower Diffuse Color");
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specular color (RGB)");
 
             // Specular occlusion
@@ -68,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularOcclusionWarning = new GUIContent("Require a cosine weighted bent normal and ambient occlusion maps");
 
             // Emissive
-            public static string lightingText = "Lighting Inputs";
+            public static string emissiveLabelText = "Emissive Inputs";
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.");
@@ -163,16 +168,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kBentNormalMapOS = "_BentNormalMapOS";
         protected MaterialProperty[] normalMapSpace = new MaterialProperty[kMaxLayerCount];
         protected const string kNormalMapSpace = "_NormalMapSpace";
+
         protected MaterialProperty[] heightMap = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightMap = "_HeightMap";
         protected MaterialProperty[] heightAmplitude = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightAmplitude = "_HeightAmplitude";
         protected MaterialProperty[] heightCenter = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightCenter = "_HeightCenter";
+        protected MaterialProperty[] heightPoMAmplitude = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightPoMAmplitude = "_HeightPoMAmplitude";
+        protected MaterialProperty[] heightTessCenter = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightTessCenter = "_HeightTessCenter";
+        protected MaterialProperty[] heightTessAmplitude = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightTessAmplitude = "_HeightTessAmplitude";
         protected MaterialProperty[] heightMin = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightMin = "_HeightMin";
         protected MaterialProperty[] heightMax = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightMax = "_HeightMax";
+        protected MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightOffset = "_HeightOffset";
+        protected MaterialProperty[] heightParametrization = new MaterialProperty[kMaxLayerCount];
+        protected const string kHeightParametrization = "_HeightMapParametrization";
 
         protected MaterialProperty[] diffusionProfileID = new MaterialProperty[kMaxLayerCount];
         protected const string kDiffusionProfileID = "_DiffusionProfile";
@@ -202,6 +218,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty[] detailSmoothnessScale = new MaterialProperty[kMaxLayerCount];
         protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
 
+        protected MaterialProperty energyConservingSpecularColor = null;
+        protected const string kEnergyConservingSpecularColor = "_EnergyConservingSpecularColor";
         protected MaterialProperty specularColor = null;
         protected const string kSpecularColor = "_SpecularColor";
         protected MaterialProperty specularColorMap = null;
@@ -229,6 +247,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
         protected MaterialProperty albedoAffectEmissive = null;
         protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
+        protected MaterialProperty UVEmissive = null;
+        protected const string kUVEmissive = "_UVEmissive";
+        protected MaterialProperty TexWorldScaleEmissive = null;
+        protected const string kTexWorldScaleEmissive = "_TexWorldScaleEmissive";
+        protected MaterialProperty UVMappingMaskEmissive = null;
+        protected const string kUVMappingMaskEmissive = "_UVMappingMaskEmissive";
+
         protected MaterialProperty enableSpecularOcclusion = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
 
@@ -275,11 +300,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bentNormalMap[i] = FindProperty(string.Format("{0}{1}", kBentNormalMap, m_PropertySuffixes[i]), props);
                 bentNormalMapOS[i] = FindProperty(string.Format("{0}{1}", kBentNormalMapOS, m_PropertySuffixes[i]), props);
                 normalMapSpace[i] = FindProperty(string.Format("{0}{1}", kNormalMapSpace, m_PropertySuffixes[i]), props);
+
+                // Height
                 heightMap[i] = FindProperty(string.Format("{0}{1}", kHeightMap, m_PropertySuffixes[i]), props);
                 heightAmplitude[i] = FindProperty(string.Format("{0}{1}", kHeightAmplitude, m_PropertySuffixes[i]), props);
+                heightCenter[i] = FindProperty(string.Format("{0}{1}", kHeightCenter, m_PropertySuffixes[i]), props);
+                heightPoMAmplitude[i] = FindProperty(string.Format("{0}{1}", kHeightPoMAmplitude, m_PropertySuffixes[i]), props);
                 heightMin[i] = FindProperty(string.Format("{0}{1}", kHeightMin, m_PropertySuffixes[i]), props);
                 heightMax[i] = FindProperty(string.Format("{0}{1}", kHeightMax, m_PropertySuffixes[i]), props);
-                heightCenter[i] = FindProperty(string.Format("{0}{1}", kHeightCenter, m_PropertySuffixes[i]), props);
+                heightTessCenter[i] = FindProperty(string.Format("{0}{1}", kHeightTessCenter, m_PropertySuffixes[i]), props);
+                heightTessAmplitude[i] = FindProperty(string.Format("{0}{1}", kHeightTessAmplitude, m_PropertySuffixes[i]), props);
+                heightOffset[i] = FindProperty(string.Format("{0}{1}", kHeightOffset, m_PropertySuffixes[i]), props);
+                heightParametrization[i] = FindProperty(string.Format("{0}{1}", kHeightParametrization, m_PropertySuffixes[i]), props);
 
                 // Sub surface
                 diffusionProfileID[i] = FindProperty(string.Format("{0}{1}", kDiffusionProfileID, m_PropertySuffixes[i]), props);
@@ -307,6 +339,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
             albedoAffectEmissive = FindProperty(kAlbedoAffectEmissive, props);
+
+            UVEmissive = FindProperty(kUVEmissive, props);
+            TexWorldScaleEmissive = FindProperty(kTexWorldScaleEmissive, props);
+            UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive, props);
+
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion, props);
         }
 
@@ -318,6 +355,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // The next properties are only supported for regular Lit shader (not layered ones) because it's complicated to blend those parameters if they are different on a per layer basis.
 
             // Specular Color
+            energyConservingSpecularColor = FindProperty(kEnergyConservingSpecularColor, props);
             specularColor = FindProperty(kSpecularColor, props);
             specularColorMap = FindProperty(kSpecularColorMap, props);
 
@@ -338,6 +376,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             thicknessMultiplier = FindProperty(kThicknessMultiplier, props, false);
             ior = FindProperty(kIOR, props, false);
             // We reuse thickness from SSS
+        }
+
+        protected void ShaderSpecularColorInputGUI(Material material)
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(energyConservingSpecularColor, Styles.energyConservingSpecularColorText);
+            EditorGUI.indentLevel--;
         }
 
         protected void ShaderSSSInputGUI(Material material, int layerIndex)
@@ -426,6 +472,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
         }
 
+        protected override void UpdateDisplacement()
+        {
+            for(int i = 0; i < m_LayerCount; ++i)
+            {
+                UpdateDisplacement(i);
+            }
+        }
+
+        protected void UpdateDisplacement(int layerIndex)
+        {
+            DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
+            if (displaceMode == DisplacementMode.Pixel)
+            {
+                heightAmplitude[layerIndex].floatValue = heightPoMAmplitude[layerIndex].floatValue * 0.01f; // Conversion centimeters to meters.
+                heightCenter[layerIndex].floatValue = 1.0f; // PoM is always inward so base (0 height) is mapped to 1 in the texture
+            }
+            else
+            {
+                HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
+                if(parametrization == HeightmapParametrization.MinMax)
+                {
+                    float offset = heightOffset[layerIndex].floatValue;
+                    float amplitude = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue);
+
+                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f; // Conversion centimeters to meters.
+                    heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / amplitude;
+                }
+                else
+                {
+                    float amplitude = heightTessAmplitude[layerIndex].floatValue;
+                    heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
+                    heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / amplitude + heightTessCenter[layerIndex].floatValue;
+                }
+            }
+        }
+
         protected void DoLayerGUI(Material material, int layerIndex)
         {
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
@@ -442,7 +524,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if(maskMap[layerIndex].textureValue == null)
             {
                 m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
-
             }
             else
             {
@@ -492,22 +573,45 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[layerIndex]);
             }
 
-            EditorGUI.BeginChangeCheck();
-            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
-            if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null)
+            DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
+            if(displaceMode != DisplacementMode.None)
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
-                m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
-                m_MaterialEditor.ShaderProperty(heightCenter[layerIndex], Styles.heightMapCenterText);
-                EditorGUI.showMixedValue = false;
-                EditorGUI.indentLevel--;
-            }
-            // Note: We should only enclose min/max property here for change detection. However heightAmplitude may not be correctly initialize if default value was not correct
-            // force a refresh when the user setup a heightmap, so we are sure it is correct
-            if (EditorGUI.EndChangeCheck())
-            {
-                heightAmplitude[layerIndex].floatValue = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue) * 0.01f; // Conversion centimeters to meters.
+                EditorGUI.BeginChangeCheck();
+                m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
+                if (!heightMap[layerIndex].hasMixedValue && heightMap[layerIndex].textureValue != null && !displacementMode.hasMixedValue)
+                {
+                    EditorGUI.indentLevel++;
+                    if (displaceMode == DisplacementMode.Pixel)
+                    {
+                        m_MaterialEditor.ShaderProperty(heightPoMAmplitude[layerIndex], Styles.heightMapAmplitudeText);
+                    }
+                    else
+                    {
+                        m_MaterialEditor.ShaderProperty(heightParametrization[layerIndex], Styles.heightMapParametrization);
+                        if(!heightParametrization[layerIndex].hasMixedValue)
+                        {
+                            HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
+                            if (parametrization == HeightmapParametrization.MinMax)
+                            {
+                                m_MaterialEditor.ShaderProperty(heightMin[layerIndex], Styles.heightMapMinText);
+                                m_MaterialEditor.ShaderProperty(heightMax[layerIndex], Styles.heightMapMaxText);
+                            }
+                            else
+                            {
+                                m_MaterialEditor.ShaderProperty(heightTessAmplitude[layerIndex], Styles.heightMapAmplitudeText);
+                                m_MaterialEditor.ShaderProperty(heightTessCenter[layerIndex], Styles.heightMapCenterText);
+                            }
+
+                            m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], Styles.heightMapOffsetText);
+                        }
+                    }
+                    EditorGUI.indentLevel--;
+                }
+                // UI only updates intermediate values, this will update the values actually used by the shader.
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateDisplacement(layerIndex);
+                }
             }
 
             switch ((BaseLitGUI.MaterialId)materialID.floatValue)
@@ -525,7 +629,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     ShaderAnisoInputGUI();
                     break;
                 case BaseLitGUI.MaterialId.LitSpecular:
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.specularColorText, specularColorMap, specularColor);
+                    ShaderSpecularColorInputGUI(material);
                     break;
                 case BaseLitGUI.MaterialId.LitClearCoat:
                     ShaderClearCoatInputGUI();
@@ -652,19 +756,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void DoEmissiveGUI(Material material)
+        protected void DoEmissiveGUI(Material material)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            EditorGUILayout.LabelField(Styles.emissiveLabelText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
             //if (enableSpecularOcclusion.floatValue > 0.0f)
             {
                 //EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
             }
-            EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+
+            m_MaterialEditor.ShaderProperty(UVEmissive, Styles.UVBaseMappingText);
+            UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+
+            float X, Y, Z, W;
+            X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
+            Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
+            Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
+            W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+
+            UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
+
+            if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+            {
+                m_MaterialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
+            }
+
             m_MaterialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
             EditorGUI.indentLevel--;
@@ -675,6 +796,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             DoLayerGUI(material, 0);
             DoEmissiveGUI(material);
             // The parent Base.ShaderPropertiesGUI will call DoEmissionArea
+        }
+
+        protected override void MaterialPropertiesAdvanceGUI(Material material)
+        {
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
         }
 
         protected override bool ShouldEmissionBeEnabled(Material mat)
@@ -699,6 +825,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // (MaterialProperty value might come from renderer material property block)
             CoreUtils.SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             CoreUtils.SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
+
             CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (normalMapSpace == NormalMapSpace.TangentSpace));
 
             if (normalMapSpace == NormalMapSpace.TangentSpace)
@@ -716,7 +843,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
             }
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
             CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
@@ -725,8 +856,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
-            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
-            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;
+            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3;
 
             if (needUV3)
             {

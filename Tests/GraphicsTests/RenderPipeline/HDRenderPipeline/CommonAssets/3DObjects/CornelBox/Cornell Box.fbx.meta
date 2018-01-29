@@ -19,6 +19,13 @@ ModelImporter:
     2186277476908879418: ImportLogs
     2186277476908879420: ImportLogs
     2186277476908879422: ImportLogs
+    2186277476908879424: ImportLogs
+    2186277476908879426: ImportLogs
+    2186277476908879428: ImportLogs
+    2186277476908879430: ImportLogs
+    2186277476908879432: ImportLogs
+    2186277476908879434: ImportLogs
+    2186277476908879436: ImportLogs
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -36,7 +43,7 @@ ModelImporter:
       name: Cornell Box_red
     second: {fileID: 2100000, guid: 9e230cd3dd687c74f9fd71088a260bb3, type: 2}
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
     materialLocation: 0

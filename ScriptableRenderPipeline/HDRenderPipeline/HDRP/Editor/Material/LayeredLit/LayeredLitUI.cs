@@ -139,8 +139,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kInheritBaseColor = "_InheritBaseColor";
 
         // Height blend
-        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount];
-        const string kHeightOffset = "_HeightOffset";
+        MaterialProperty[] heightBlendOffset = new MaterialProperty[kMaxLayerCount];
+        const string kHeightBlendOffset = "_HeightOffset";
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
@@ -174,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
-                heightOffset[i] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
+                heightBlendOffset[i] = FindProperty(string.Format("{0}{1}", kHeightBlendOffset, i), props);
                 showLayer[i] = FindProperty(string.Format("{0}{1}", kShowLayer, i), props);
 
                 if (i != 0)
@@ -352,7 +352,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (heightBasedBlend)
             {
-                m_MaterialEditor.ShaderProperty(heightOffset[layerIndex], styles.heightOffset);
+                m_MaterialEditor.ShaderProperty(heightBlendOffset[layerIndex], styles.heightOffset);
             }
 
             EditorGUI.indentLevel--;
@@ -564,14 +564,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
 
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
-                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
                 {
                     needUV2 = true;
                 }
 
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
                 {
                     needUV3 = true;
                     break; // If we find it UV3 let's early out
@@ -631,6 +629,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
@@ -667,22 +667,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSS);
-        }
-        private void DoEmissiveGUI(Material material)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
-            // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
-            //if (enableSpecularOcclusion.floatValue > 0.0f)
-            {
-                // EditorGUILayout.HelpBox(Styles.specularOcclusionWarning.text, MessageType.Error);
-            }
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
-            EditorGUI.indentLevel--;
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -754,10 +738,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 
             bool layerChanged = DoLayersGUI(materialImporter);
-            DoEmissiveGUI(material);
+            EditorGUI.BeginChangeCheck();
+            {
+                DoEmissiveGUI(material);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                optionsChanged = true;
+            }
+
             DoEmissionArea(material);
-            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
+            // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
+            EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)
             {

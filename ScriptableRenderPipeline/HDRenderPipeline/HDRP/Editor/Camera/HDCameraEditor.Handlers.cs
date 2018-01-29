@@ -33,10 +33,17 @@ namespace UnityEditor.Experimental.Rendering
         {
             m_PreviewCamera.CopyFrom(c);
             EditorUtility.CopySerialized(c, m_PreviewCamera);
-            EditorUtility.CopySerialized(c.GetComponent<HDAdditionalCameraData>(), m_PreviewAdditionalCameraData);
+            var cameraData = c.GetComponent<HDAdditionalCameraData>();
+            EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
             var layer = c.GetComponent<PostProcessLayer>() ?? ComponentSingleton<PostProcessLayer>.instance;
             EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
-            m_PreviewCamera.cameraType = CameraType.SceneView;
+            m_PreviewCamera.cameraType = CameraType.SceneView; // This is required else if we use Preview the image is flipped... (Unity...)
+
+            // We need to call UpdateDirtyFrameSettings to update the dirty flags that was set in the CopySerialized call
+            m_PreviewAdditionalCameraData.UpdateDirtyFrameSettings(true, cameraData.GetFrameSettings());
+            // And then to copy the runtime frame settings
+            // So this includes the runtime frame settings properly
+            cameraData.GetFrameSettings().CopyTo(m_PreviewAdditionalCameraData.GetFrameSettings());
             m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);

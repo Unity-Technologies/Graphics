@@ -7,9 +7,7 @@
 #pragma kernel VolumetricLightingClustered       VolumetricLighting=VolumetricLightingClustered       ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 #pragma kernel VolumetricLightingClusteredReproj VolumetricLighting=VolumetricLightingClusteredReproj ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
-#pragma enable_d3d11_debug_symbols
-
-#define DEBUG_REPROJECTION 0
+// #pragma enable_d3d11_debug_symbols
 
 #include "../../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
@@ -25,6 +23,8 @@
     #define VBUFFER_SLICE_COUNT 256
 #endif
 
+#define SUPPORT_ASYMMETRY 1 // Support asymmetric phase functions
+
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
 
@@ -37,13 +37,13 @@
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 #include "CoreRP/ShaderLibrary/SpaceFillingCurves.hlsl"
 
-#include "../VolumetricLighting.cs.hlsl"
 #include "../../../ShaderVariables.hlsl"
+#include "../VolumetricLighting.cs.hlsl"
+#include "../VBuffer.hlsl"
 
 #define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
-#include "../../../Lighting/Lighting.hlsl" // Includes Material.hlsl
-#include "../../../Lighting/LightEvaluation.hlsl"
-#include "../../../Lighting/VBuffer.hlsl"
+#include "../../Lighting.hlsl" // Includes Material.hlsl
+#include "../../LightEvaluation.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -63,35 +63,48 @@ CBUFFER_END
 // Implementation
 //--------------------------------------------------------------------------------------------------
 
-struct Ray
+struct DualRay
 {
     float3 originWS;
-    float3 directionWS; // Normalized, stratified
-    float  ratioLenToZ; // 1 / ViewSpaceZ
-    float3 centerDirWS; // Not normalized, centered
+    float3 strataDirWS;       // Normalized, tile-stratified
+    float3 centerDirWS;       // Normalized, tile-centered
+    float  strataDirInvViewZ; // 1 / ViewSpace(strataDirWS).z
+    float  twoDirRatioViewZ;  // ViewSpace(strataDirWS).z / ViewSpace(centerDirWS).z
 };
 
-float3 GetPointAtDistance(Ray ray, float t)
+// Returns a point along the stratified direction.
+float3 GetPointAtDistance(DualRay ray, float t)
 {
-    return ray.originWS + t * ray.directionWS;
+    return ray.originWS + t * ray.strataDirWS;
 }
 
-float3 GetCenterAtDistance(Ray ray, float t)
+// Returns a point along the centered direction. It has a special property:
+// ViewSpace(GetPointAtDistance(ray, t)).z = ViewSpace(GetCenterAtDistance(ray, t)).z,
+// e.i. both points computed from the same value of 't' reside on the same Z-plane in the view space.
+float3 GetCenterAtDistance(DualRay ray, float t)
 {
+    t *= ray.twoDirRatioViewZ; // Perform the Z-coordinate conversion
     return ray.originWS + t * ray.centerDirWS;
 }
 
+struct VoxelLighting
+{
+    float3 radianceComplete;
+    float3 radianceNoPhase;
+};
+
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
-float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput,
-                             Ray ray, float t0, float t1, float dt, float rndVal, float extinction
-                         #ifdef LIGHTLOOP_TILE_PASS
-                           , uint clusterIndices[2], float clusterDepths[2])
-                         #else
-                             )
-                         #endif
+VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
+                                    DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float asymmetry
+                                #ifdef LIGHTLOOP_TILE_PASS
+                                    , uint clusterIndices[2], float clusterDepths[2])
+                                #else
+                                    )
+                                #endif
 {
-    float3 voxelRadiance = 0;
+    VoxelLighting lighting;
+    ZERO_INITIALIZE(VoxelLighting, lighting);
 
     BakeLightingData unused; // Unused for now, so define once
 
@@ -113,11 +126,26 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
             EvaluateLight_Directional(context, posInput, light, unused, 0, L,
                                       color, attenuation);
 
+            // Important:
+            // Ideally, all scattering calculations should use the stratified versions
+            // of the sample position and the ray direction. However, correct reprojection
+            // of asymmetrically scattered lighting (affected by an anisotropic phase
+            // function) is not possible. We work around this issue by reprojecting
+            // lighting not affected by the phase function. This basically removes
+            // the phase function from the temporal integration process. It is a hack.
+            // The downside is that asymmetry no longer benefits from temporal averaging,
+            // and any temporal instability of asymmetry causes causes visible jitter.
+            // In order to stabilize the image, we use the voxel center for all
+            // asymmetry-related calculations.
+            float cosTheta = dot(L, ray.centerDirWS);
+            float phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+
             // Note: the 'weight' accounts for transmittance from 't0' to 't'.
             float intensity = attenuation * weight;
 
             // Compute the amount of in-scattered radiance.
-            voxelRadiance += intensity * color;
+            lighting.radianceNoPhase  += intensity * color;
+            lighting.radianceComplete += phase * intensity * color;
         }
     }
 
@@ -126,12 +154,12 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
     int cluster = 0;
     do
     {
-        float tMin = max(t0, ray.ratioLenToZ * clusterDepths[cluster]);
+        float tMin = max(t0, ray.strataDirInvViewZ * clusterDepths[cluster]);
         float tMax = t1;
 
         if (cluster == 0 && (clusterIndices[0] != clusterIndices[1]))
         {
-            tMax = min(t1, ray.ratioLenToZ * clusterDepths[1]);
+            tMax = min(t1, ray.strataDirInvViewZ * clusterDepths[1]);
         }
 #else
         float tMin = t0;
@@ -185,7 +213,7 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         float3 coneAxisX = lenMul * light.right;
                         float3 coneAxisY = lenMul * light.up;
 
-                        sampleLight = IntersectRayCone(ray.originWS, ray.directionWS,
+                        sampleLight = IntersectRayCone(ray.originWS, ray.strataDirWS,
                                                        light.positionWS, light.forward,
                                                        coneAxisX, coneAxisY,
                                                        tMin, tMax, tEntr, tExit);
@@ -201,19 +229,37 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
 
                         float t, distSq, rcpPdf;
                         ImportanceSamplePunctualLight(rndVal, light.positionWS,
-                                                      ray.originWS, ray.directionWS,
+                                                      ray.originWS, ray.strataDirWS,
                                                       tEntr, tExit, t, distSq, rcpPdf,
                                                       hackMinDistSq);
 
                         posInput.positionWS = GetPointAtDistance(ray, t);
 
                         float3 lightToSample = posInput.positionWS - light.positionWS;
-                        float  dist          = sqrt(distSq);
-                        float3 L             = -lightToSample * rsqrt(distSq);
+                        float  distRcp       = rsqrt(distSq);
+                        float  dist          = distSq * distRcp;
+                        float  distProj      = dot(lightToSample, light.forward);
+                        float4 distances     = float4(dist, distSq, distRcp, distProj);
+                        float3 L             = -lightToSample * distRcp;
 
                         float3 color; float attenuation;
-                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, dist, distSq,
-                                               color, attenuation);
+                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
+                                               distances, color, attenuation);
+
+                        // Important:
+                        // Ideally, all scattering calculations should use the stratified versions
+                        // of the sample position and the ray direction. However, correct reprojection
+                        // of asymmetrically scattered lighting (affected by an anisotropic phase
+                        // function) is not possible. We work around this issue by reprojecting
+                        // lighting not affected by the phase function. This basically removes
+                        // the phase function from the temporal integration process. It is a hack.
+                        // The downside is that asymmetry no longer benefits from temporal averaging,
+                        // and any temporal instability of asymmetry causes causes visible jitter.
+                        // In order to stabilize the image, we use the voxel center for all
+                        // asymmetry-related calculations.
+                        float3 centerL = light.positionWS - centerWS;
+                        float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
+                        float  phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
 
                         float intensity = attenuation * rcpPdf;
 
@@ -221,7 +267,8 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
 
                         // Compute the amount of in-scattered radiance.
-                        voxelRadiance += color * intensity;
+                        lighting.radianceNoPhase  += intensity * color;
+                        lighting.radianceComplete += phase * intensity * color;
                     }
 
                     light = FetchLight(lightStart, min(++i, last));
@@ -237,7 +284,7 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                     float3x3 rotMat = float3x3(light.right, light.up, light.forward);
 
                     float3 o = mul(rotMat, ray.originWS - light.positionWS);
-                    float3 d = mul(rotMat, ray.directionWS);
+                    float3 d = mul(rotMat, ray.strataDirWS);
 
                     float  range  = light.size.x;
                     float3 boxPt0 = float3(-1, -1, 0);
@@ -253,11 +300,29 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         float t = tEntr + tOffset;
                         posInput.positionWS = GetPointAtDistance(ray, t);
 
-                        float3 L = -light.forward;
+                        float3 L             = -light.forward;
+                        float3 lightToSample = posInput.positionWS - light.positionWS;
+                        float  distProj      = dot(lightToSample, light.forward);
+                        float4 distances     = float4(1, 1, 1, distProj);
 
                         float3 color; float attenuation;
-                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, 1, 1,
-                                               color, attenuation);
+                        EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
+                                               distances, color, attenuation);
+
+                        // Important:
+                        // Ideally, all scattering calculations should use the stratified versions
+                        // of the sample position and the ray direction. However, correct reprojection
+                        // of asymmetrically scattered lighting (affected by an anisotropic phase
+                        // function) is not possible. We work around this issue by reprojecting
+                        // lighting not affected by the phase function. This basically removes
+                        // the phase function from the temporal integration process. It is a hack.
+                        // The downside is that asymmetry no longer benefits from temporal averaging,
+                        // and any temporal instability of asymmetry causes causes visible jitter.
+                        // In order to stabilize the image, we use the voxel center for all
+                        // asymmetry-related calculations.
+                        float3 centerL = light.positionWS - centerWS;
+                        float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
+                        float  phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
 
                         // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
                         float intensity = attenuation * weight;
@@ -266,7 +331,8 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
                         intensity *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
 
                         // Compute the amount of in-scattered radiance.
-                        voxelRadiance += intensity * color;
+                        lighting.radianceNoPhase  += intensity * color;
+                        lighting.radianceComplete += phase * intensity * color;
                     }
                 }
             }
@@ -277,16 +343,16 @@ float3 EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, Positi
     } while ((cluster < 2) && (clusterIndices[0] != clusterIndices[1]));
 #endif // LIGHTLOOP_TILE_PASS
 
-    return voxelRadiance;
+    return lighting;
 }
 
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
-                                  PositionInputs posInput, Ray ray)
+                                  PositionInputs posInput, DualRay ray)
 {
-    float z0 = _VBufferDepthEncodingParams.x;   // Start integration from the near plane
-    float t0 = ray.ratioLenToZ * z0;
-    float de = rcp(VBUFFER_SLICE_COUNT);        // Log-encoded distance between slices
+    float z0 = _VBufferDepthEncodingParams.x; // Start integration from the near plane
+    float t0 = ray.strataDirInvViewZ * z0;    // Convert view space Z to distance along the stratified ray
+    float de = rcp(VBUFFER_SLICE_COUNT);      // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
@@ -308,7 +374,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     {
         float e1 = slice * de + de; // (slice + 1) / sliceCount
         float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthEncodingParams);
-        float t1 = ray.ratioLenToZ * z1;
+        float t1 = ray.strataDirInvViewZ * z1; // Convert view space Z to distance along the stratified ray
         float dt = t1 - t0;
 
     #ifdef LIGHTLOOP_TILE_PASS
@@ -318,7 +384,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         // Compute the -exact- position of the center of the voxel.
         // It's important since the accumulated value of the integral is stored at the center.
-        // We will use it for participating media sampling and reprojection.
+        // We will use it for participating media sampling, asymmetric scattering and reprojection.
         float  tc       = t0 + 0.5 * dt;
         float3 centerWS = GetCenterAtDistance(ray, tc);
 
@@ -327,6 +393,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: piecewise linear.
         float3 scattering = _GlobalFog_Scattering;
         float  extinction = _GlobalFog_Extinction;
+        float  asymmetry  = _GlobalFog_Asymmetry;
+        
+        // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
+        // which allows procedural definition of extinction and scattering.
 
     #if ENABLE_REPROJECTION
         // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
@@ -336,13 +406,17 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float rndVal = 0.5;
     #endif
 
-        float3 voxelRadiance = EvaluateVoxelLighting(context, featureFlags, posInput,
-                                                     ray, t0, t1, dt, rndVal, extinction
-                                                #ifdef LIGHTLOOP_TILE_PASS
-                                                   , clusterIndices, clusterDepths);
-                                                #else
-                                                     );
-                                                #endif
+        VoxelLighting lighting = EvaluateVoxelLighting(context, featureFlags, posInput, centerWS,
+                                                       ray, t0, t1, dt, rndVal, extinction, asymmetry
+                                                   #ifdef LIGHTLOOP_TILE_PASS
+                                                       , clusterIndices, clusterDepths);
+                                                   #else
+                                                       );
+                                                   #endif
+
+    #if (SUPPORT_ASYMMETRY == 0)
+        lighting.radianceComplete = lighting.radianceNoPhase;
+    #endif
 
     #if ENABLE_REPROJECTION
         // Reproject the history at 'centerWS'.
@@ -379,12 +453,14 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Both radiance values are obtained by integrating over line segments of different length.
         // Blending only makes sense if the length of both intervals is the same.
         // Therefore, the reprojected radiance needs to be rescaled by (frame_dt / reproj_dt).
+        // Important: reprojection must be performed without the phase function! Otherwise,
+        // some kind of per-light angle correction is required, which is intractable in practice.
         bool   reprojSuccess   = reprojValue.a != 0;
         float  blendFactor     = reprojSuccess ? historyWeight : 0;
         float  reprojRcpLen    = reprojSuccess ? rcp(reprojValue.a) : 0;
         float  lengthScale     = dt * reprojRcpLen;
         float3 reprojRadiance  = reprojValue.rgb;
-        float3 blendedRadiance = (1 - blendFactor) * voxelRadiance + blendFactor * lengthScale * reprojRadiance;
+        float3 blendedRadiance = (1 - blendFactor) * lighting.radianceNoPhase + blendFactor * lengthScale * reprojRadiance;
 
         // Store the feedback for the voxel.
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)
@@ -392,19 +468,26 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // to the history buffer. This will cause them to alias, but it is the only way
         // to prevent ghosting.
         _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, dt);
-    #else
-        float3 blendedRadiance = voxelRadiance;
-    #endif
 
-    #if DEBUG_REPROJECTION
-        if (distance(voxelRadiance, reprojValue.rgb) > 0.1) blendedRadiance = float3(1000, 0, 0);
-    #endif
+        // Extrapolate the influence of the phase function on the results of the current frame.
+        // TODO: how to ensure we do not divide by 0?
+        float3 phaseCurrFrame = lighting.radianceComplete / lighting.radianceNoPhase;
+        blendedRadiance *= phaseCurrFrame;
+    #else
+        float3 blendedRadiance = lighting.radianceComplete;
+    #endif // ENABLE_REPROJECTION
 
         // Compute the transmittance from the camera to 't0'.
         float transmittance = Transmittance(opticalDepth);
 
+    #if SUPPORT_ASYMMETRY
+        float phase = CornetteShanksPhasePartConstant(asymmetry);
+    #else
+        float phase = IsotropicPhaseFunction();
+    #endif
+
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        totalRadiance += (transmittance * IsotropicPhaseFunction()) * scattering * blendedRadiance;
+        totalRadiance += (transmittance * phase) * scattering * blendedRadiance;
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
@@ -458,29 +541,30 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     float2 centerCoord = voxelCoord + 0.5;
 #if ENABLE_REPROJECTION
-    float2 sampleCoord = centerCoord + _VBufferSampleOffset.xy;
+    float2 strataCoord = centerCoord + _VBufferSampleOffset.xy;
 #else
-    float2 sampleCoord = centerCoord;
+    float2 strataCoord = centerCoord;
 #endif
 
-    // Compute the (stratified) ray direction s.t. its ViewSpaceZ = 1.
-    float3 rayDir = mul(-float3(sampleCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
-    float  lenSq  = dot(rayDir, rayDir);
-    float  lenRcp = rsqrt(lenSq);
-    float  len    = lenSq * lenRcp;
+    // Compute the (tile-stratified) ray direction s.t. its ViewSpace(rayDirWS).z = 1.
+    float3 strataDirWS     = mul(-float3(strataCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float  strataDirLenSq  = dot(strataDirWS, strataDirWS);
+    float  strataDirLenRcp = rsqrt(strataDirLenSq);
+    float  strataDirLen    = strataDirLenSq * strataDirLenRcp;
 
-#if ENABLE_REPROJECTION
-    // Compute the ray direction which passes through the center of the voxel s.t. its ViewSpaceZ = 1.
-    float3 rayCenterDir = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
-#else
-    float3 rayCenterDir = rayDir;
-#endif
+    // Compute the (tile-centered) ray direction s.t. its ViewSpace(rayDirWS).z = 1.
+    float3 centerDirWS     = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float  centerDirLenSq  = dot(centerDirWS, centerDirWS);
+    float  centerDirLenRcp = rsqrt(centerDirLenSq);
+    float  centerDirLen    = centerDirLenSq * centerDirLenRcp;
 
-    Ray ray;
-    ray.originWS    = GetCurrentViewPosition();
-    ray.ratioLenToZ = len;
-    ray.directionWS = rayDir * lenRcp;
-    ray.centerDirWS = rayCenterDir * lenRcp;
+    DualRay ray;
+
+    ray.originWS          = GetCurrentViewPosition();
+    ray.strataDirWS       = strataDirWS * strataDirLenRcp;  // Normalize
+    ray.centerDirWS       = centerDirWS * centerDirLenRcp;  // Normalize
+    ray.strataDirInvViewZ = strataDirLen;                   // View space Z
+    ray.twoDirRatioViewZ  = centerDirLen * strataDirLenRcp; // View space Z ratio
 
     // TODO
     LightLoopContext context;
