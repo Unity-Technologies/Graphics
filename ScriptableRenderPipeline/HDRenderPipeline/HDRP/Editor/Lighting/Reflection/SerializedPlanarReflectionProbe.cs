@@ -72,16 +72,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var objs = new List<Object>();
             for (var i = 0; i < serializedObject.targetObjects.Length; i++)
-                objs.Add(((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference);
-            reflectionProxyVolume = new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()));
+            {
+                var p = ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference;
+                if (p != null)
+                    objs.Add(p);
+            }
+
+            reflectionProxyVolume = objs.Count > 0
+                    ? new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()))
+                    : null;
         }
 
         public void Update()
         {
             serializedObject.Update();
 
-            var updateProxyVolume = serializedObject.targetObjects.Length != reflectionProxyVolume.serializedObject.targetObjects.Length;
-            if (!updateProxyVolume)
+            var updateProxyVolume = reflectionProxyVolume != null
+                && serializedObject.targetObjects.Length != reflectionProxyVolume.serializedObject.targetObjects.Length;
+            if (!updateProxyVolume && reflectionProxyVolume != null)
             {
                 var proxyVolumeTargets = reflectionProxyVolume.serializedObject.targetObjects;
                 for (var i = 0; i < serializedObject.targetObjects.Length; i++)
@@ -101,7 +109,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public void Apply()
         {
             serializedObject.ApplyModifiedProperties();
-            reflectionProxyVolume.Apply();
+            if (reflectionProxyVolume != null)
+                reflectionProxyVolume.Apply();
         }
     }
 }

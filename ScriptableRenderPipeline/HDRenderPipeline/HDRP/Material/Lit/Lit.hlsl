@@ -1818,11 +1818,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
 
-    // 2. Process the influence
-    //if (influenceShapeType == ENVSHAPETYPE_SPHERE)
-    //    weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
-    //else if (influenceShapeType == ENVSHAPETYPE_BOX)
-    //    weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
+#ifdef DEBUG_DISPLAY
+    float3 radiusToProxy = R;
+#endif
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
@@ -1837,8 +1835,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
+
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
+        preLD = ApplyDebugProjectionVolume(preLD, radiusToProxy, _DebugEnvironmentProxyDepthScale);
+#endif
 
     // Smooth weighting
     weight = Smoothstep01(weight);

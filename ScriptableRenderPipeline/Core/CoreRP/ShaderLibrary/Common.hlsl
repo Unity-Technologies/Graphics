@@ -207,7 +207,7 @@ void ToggleBit(inout uint data, uint offset)
 
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
-    // Warning: for correctness, the argument must have the same value across the wave!
+    // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
     TEMPLATE_1_REAL(WaveReadFirstLane, scalarValue, return scalarValue)
     TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
 #endif
@@ -537,6 +537,7 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
 // 'z' is the view-space Z position (linear depth).
 // saturate() the output of the function to clamp them to the [0, 1] range.
 // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+// TODO: plot and modify the distribution to be a little more linear.
 float EncodeLogarithmicDepth(float z, float4 encodingParams)
 {
     return log2(max(0, z * encodingParams.z)) * encodingParams.w;
@@ -545,6 +546,7 @@ float EncodeLogarithmicDepth(float z, float4 encodingParams)
 // 'd' is the logarithmically encoded depth value.
 // saturate(d) to clamp the output of the function to the [n, f] range.
 // encodingParams = { n, log2(f/n), 1/n, 1/log2(f/n) }
+// TODO: plot and modify the distribution to be a little more linear.
 float DecodeLogarithmicDepth(float d, float4 encodingParams)
 {
     return encodingParams.x * exp2(d * encodingParams.y);
