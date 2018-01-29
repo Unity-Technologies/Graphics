@@ -173,10 +173,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
+            if (QualitySettings.antiAliasing < 1)
+                aggregate.enableMSAA = false;
+            aggregate.ConfigureMSAADependentSettings();
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
+        }
+
+        public void ConfigureMSAADependentSettings()
+        {
+            if (enableMSAA)
+            {
+                // Initially, MSAA will only support forward
+                enableForwardRenderingOnly = true;
+
+                // TODO: Should we disable enableFptlForForwardOpaque in here, instead of in InitializeLightLoopSettings?
+                // We'd have to move this method to after InitializeLightLoopSettings if we did.  It would be nice to centralize
+                // all MSAA-dependent settings in this method.
+
+                // Assuming MSAA is being used, TAA, and therefore, motion vectors are not needed
+                enableMotionVectors = false;
+
+                // TODO: The work will be implemented piecemeal to support all passes
+                enableDBuffer = false; // no decals
+                enableDistortion = false; // no gaussian final color
+                enablePostprocess = false;
+                enableRoughRefraction = false; // no gaussian pre-refraction
+                enableSSAO = false;
+                enableSSR = false;
+                enableSubsurfaceScattering = false;
+                enableTransparentObjects = false; // waiting on depth pyramid generation
+            }
         }
 
         static public void RegisterDebug(String menuName, FrameSettings frameSettings)
