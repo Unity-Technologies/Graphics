@@ -196,7 +196,8 @@ CBUFFER_START(UnityPerFrame)
     float  _GlobalFog_Extinction;
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     float4 _VBufferScaleAndSliceCount;  // { fracVisW, fracVisH, count, 1/count }
-    float4 _VBufferDepthEncodingParams; // { n, log2(f/n), 1/n, 1/log2(f/n) }
+    float4 _VBufferDepthEncodingParams; // See the call site for description
+    float4 _VBufferDepthDecodingParams; // See the call site for description
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
