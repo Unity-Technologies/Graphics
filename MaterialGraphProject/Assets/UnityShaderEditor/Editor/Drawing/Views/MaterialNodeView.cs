@@ -388,6 +388,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var height = previewNode.height;
 
             m_PreviewTextureView.style.height = height;
+            m_PreviewTextureView.style.width = width;
         }
 
         public void Dispose()
