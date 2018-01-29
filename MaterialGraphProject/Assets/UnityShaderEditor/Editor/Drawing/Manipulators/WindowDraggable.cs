@@ -67,7 +67,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-
         void OnMouseUp(MouseUpEvent evt)
         {
             bool emitDragFinishedEvent = m_Active;
@@ -156,11 +155,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                windowRect.y = (1f - normalizedDistanceFromEdge.y) * target.parent.layout.height- windowRect.height;
+                windowRect.y = (1f - normalizedDistanceFromEdge.y) * target.parent.layout.height - windowRect.height;
             }
 
-            windowRect.width = Mathf.Max(Mathf.Min(windowRect.width, target.parent.layout.width), minSize.x);
-            windowRect.height = Mathf.Max(Mathf.Min(windowRect.height, target.parent.layout.height), minSize.y);
+            windowRect.width = Mathf.Max(windowRect.width, minSize.x);
+            windowRect.height = Mathf.Max(windowRect.height, minSize.y);
 
             float maximumXPosition = Mathf.Max(target.parent.layout.width - windowRect.width, 0f);
             float maximumYPosition = Mathf.Max(target.parent.layout.height - windowRect.height, 0f);
