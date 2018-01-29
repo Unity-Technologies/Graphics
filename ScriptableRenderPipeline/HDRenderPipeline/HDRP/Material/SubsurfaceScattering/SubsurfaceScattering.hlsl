@@ -11,7 +11,7 @@ CBUFFER_START(UnitySSSAndTransmissionParameters)
 // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
 uint   _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
 float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+float  _TransmissionFlags;        // 1 bit/profile; 0 = regular, 1 = thin
 // Old SSS Model >>>
 float4 _HalfRcpVariancesAndWeights[DIFFUSION_PROFILE_COUNT][2]; // 2x Gaussians in RGB, A is interpolation weights
 // <<< Old SSS Model

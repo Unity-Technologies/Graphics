@@ -143,8 +143,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Update/Update SSS profile indices")]
-        static void UpdateSSSProfileIndices()
+        [MenuItem("Internal/HDRenderPipeline/Update/Update diffusion profile")]
+        static void UpdateDiffusionProfile()
+        {
+            var matIds = AssetDatabase.FindAssets("t:DiffusionProfileSettings");
+
+            for (int i = 0, length = matIds.Length; i < length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                var diffusionProfileSettings = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(path);
+
+                bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+                CheckOutFile(VSCEnabled, diffusionProfileSettings);
+
+                var profiles = diffusionProfileSettings.profiles;
+
+                for (int j = 0; j < profiles.Length; j++)
+                {
+                    if ((uint)profiles[j].transmissionMode == 2)
+                    {
+                        profiles[j].transmissionMode = (DiffusionProfile.TransmissionMode)0;
+                    }
+                }
+
+                EditorUtility.SetDirty(diffusionProfileSettings);
+            }
+        }
+
+        [MenuItem("Internal/HDRenderPipeline/Update/Update material for clear coat")]
+        static void UpdateMaterialForClearCoat()
         {
             try
             {
@@ -157,7 +184,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     EditorUtility.DisplayProgressBar(
                         "Setup materials Keywords...",
-                        string.Format("{0} / {1} materials SSS updated.", i, length),
+                        string.Format("{0} / {1} materials clearcoat updated.", i, length),
                         i / (float)(length - 1));
 
                     bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
@@ -165,11 +192,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/Lit")
                     {
-                        if (mat.HasProperty("_SubsurfaceProfile"))
+                        if (mat.HasProperty("_CoatMask"))
                         {
+                            // 3 is Old value for clear coat
+                            float materialID = mat.GetInt("_MaterialID");
+                            if (materialID == 3.0)
+                                continue;
+
                             CheckOutFile(VSCEnabled, mat);
-                            //float value = mat.GetInt("_DiffusionProfile");
-                            //mat.SetInt("_DiffusionProfile", 0);
+                            mat.SetInt("_CoatMask", 0);
 
                             EditorUtility.SetDirty(mat);
                         }
@@ -177,6 +208,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     else if (mat.shader.name == "HDRenderPipeline/LayeredLit" ||
                                 mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                     {
+                        /*
                         bool hasSubsurfaceProfile = false;
 
                         int numLayer = (int)mat.GetFloat("_LayerCount");
@@ -207,6 +239,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             EditorUtility.SetDirty(mat);
                         }
+                        */
                     }
                 }
             }

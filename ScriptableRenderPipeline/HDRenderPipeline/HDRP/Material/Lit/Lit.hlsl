@@ -239,8 +239,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
-
+ 
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
                                                             _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
@@ -254,8 +253,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
                                                             bsdfData.thickness);
 #endif
 
-    // Apply the transmission mode. Only the thick object mode performs the thickness displacement.
-    bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
+    bsdfData.useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
     if (bsdfData.useThickObjectMode)
     {
@@ -300,7 +298,7 @@ void FillMaterialClearCoatData(float coatMask, inout BSDFData bsdfData)
     // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
     // but here we go from clear coat (1.5) to material, we need to update fresnel0
     // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
-    bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0);
+    bsdfData.fresnel0 = lerp(bsdfData.fresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0), coatMask);
 }
 
 void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
@@ -637,7 +635,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_TRANSMISSION;
     bool pixelHasAnisotropy   = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
     bool pixelHasIridescence  = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
-    bool pixelHasClearCoat    = coatMask > 0;
+    bool pixelHasClearCoat    = coatMask > 0.0;
 
     // Disable pixel features disabled by the tile.
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
@@ -1044,7 +1042,9 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 {
-    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID &&  bsdfData.subsurfaceMask != 0 &&  HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
+    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
+    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID && bsdfData.subsurfaceMask != 0 && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
 }
 
 //-----------------------------------------------------------------------------
@@ -1178,7 +1178,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Note: The modification of the base roughness and fresnel0 by the clear coat is already handled in FillMaterialClearCoatData
 
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
-        diffuseLighting *= lerp(1, F_Schlick(CLEAR_COAT_F0, NdotL), bsdfData.coatMask);
+        diffuseLighting *= lerp(1, 1.0 - coatF, bsdfData.coatMask);
     }
 }
 
@@ -1940,7 +1940,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #endif
 
     float3 modifiedDiffuseColor;
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
+    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
+    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING) && bsdfData.subsurfaceMask != 0)
         modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     else
         modifiedDiffuseColor = bsdfData.diffuseColor;
