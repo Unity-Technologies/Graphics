@@ -32,6 +32,11 @@ MaterialNodeView.graphElement.node.MaterialNode {
     margin-right: 0;
 }
 
+MaterialNodeView #previewContainer.expanded {
+    width: 200;
+    height: 200;
+}
+
 MaterialNodeView #previewContainer,
 MaterialNodeView #controls {
     background-color: rgba(63, 63, 63, 0.8);
@@ -42,13 +47,21 @@ MaterialNodeView #controls.notEmpty {
     padding-bottom: 4;
 }
 
-MaterialNodeView #previewContainer > #preview  {
+MaterialNodeView > #previewElement {
+    position-type: absolute;
+    position-bottom: 4;
+    position-left: 4;
+    border-radius: 6;
+    padding-top: 6;
+}
+
+MaterialNodeView > #previewElement > #preview  {
     width: 200;
     height: 200;
     align-items:center;
 }
 
-MaterialNodeView #previewContainer > #preview > #collapse {
+MaterialNodeView > #previewElement > #preview > #collapse {
     background-color: #000;
     border-color: #F0F0F0;
     width: 0;
@@ -65,24 +78,20 @@ MaterialNodeView #previewContainer > #preview > #collapse {
 }
 
 
-MaterialNodeView #previewContainer:hover > #preview > #collapse {
+MaterialNodeView:hover > #previewElement > #preview > #collapse {
     width: 20;
     height: 20;
     opacity: 0.6;
 }
 
-MaterialNodeView #previewContainer > #preview > #collapse > #icon
-{
+MaterialNodeView > #previewElement > #preview > #collapse > #icon  {
     background-image : resource("GraphView/Nodes/PreviewCollapse.png");
     width: 16;
     height: 16;
 }
-MaterialNodeView #previewContainer > #preview > #collapse:hover {
-    opacity: 1.0;
-}
 
-MaterialNodeView #previewContainer.collapsed > #preview > #collapse {
-    height: 0;
+MaterialNodeView > #previewElement > #preview > #collapse:hover {
+    opacity: 1.0;
 }
 
 MaterialNodeView #previewContainer > #expand {
