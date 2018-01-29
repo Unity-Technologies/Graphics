@@ -840,11 +840,25 @@ namespace UnityEditor.VFX.UI
 
         public void SetParametersOrder(VFXParametersController controller, int index)
         {
-            int oldOrder = controller.order;
+            var orderedParameters = m_ParametersController.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
-            var orderedParameters = m_ParametersController.Where(t => t.Value != controller && t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            int oldIndex = orderedParameters.IndexOf(controller);
 
-            orderedParameters.Insert(index, controller);
+            orderedParameters.RemoveAt(oldIndex);
+
+            if (oldIndex < index)
+            {
+                --index;
+            }
+
+            if (index < orderedParameters.Count)
+            {
+                orderedParameters.Insert(index, controller);
+            }
+            else
+            {
+                orderedParameters.Add(controller);
+            }
 
             for (int i = 0; i < orderedParameters.Count; ++i)
             {
