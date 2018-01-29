@@ -73,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularOcclusionWarning = new GUIContent("Require a cosine weighted bent normal and ambient occlusion maps");
 
             // Emissive
-            public static string lightingText = "Lighting Inputs";
+            public static string emissiveLabelText = "Emissive Inputs";
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.");
@@ -759,9 +759,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void DoEmissiveGUI(Material material)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.lightingText, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(Styles.emissiveLabelText, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             // TODO: display warning if we don't have bent normal (either OS or TS) and ambient occlusion
             //if (enableSpecularOcclusion.floatValue > 0.0f)
             {
@@ -797,6 +796,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             DoLayerGUI(material, 0);
             DoEmissiveGUI(material);
             // The parent Base.ShaderPropertiesGUI will call DoEmissionArea
+        }
+
+        protected override void MaterialPropertiesAdvanceGUI(Material material)
+        {
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
         }
 
         protected override bool ShouldEmissionBeEnabled(Material mat)
@@ -852,8 +856,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
-            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
-            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0;
+            bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;
+            bool needUV3 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3;
 
             if (needUV3)
             {
