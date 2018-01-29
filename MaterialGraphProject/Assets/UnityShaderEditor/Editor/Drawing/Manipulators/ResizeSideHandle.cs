@@ -30,10 +30,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_StayWithinParentBounds;
 
-        public bool stayWithinPanretBounds
+        public bool stayWithinParentBounds
         {
             get { return m_StayWithinParentBounds; }
             set { m_StayWithinParentBounds = value; }
+        }
+
+        bool m_MaintainAspectRatio;
+
+        public bool maintainAspectRatio
+        {
+            get { return m_MaintainAspectRatio; }
+            set { m_MaintainAspectRatio = value; }
         }
 
         public Action OnResizeFinished;
@@ -114,11 +122,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             bool moveWhileResizeHorizontal = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft || anchor == ResizeHandleAnchor.Left;
             bool moveWhileResizeVertical = anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight || anchor == ResizeHandleAnchor.Top;
 
-            this.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, resizeDirection, moveWhileResizeHorizontal, moveWhileResizeVertical)));
+            this.AddManipulator(new Draggable(mouseDelta => OnResize(mouseDelta, resizeDirection, moveWhileResizeHorizontal, moveWhileResizeVertical, anchor)));
             RegisterCallback<MouseUpEvent>(HandleDraggableMouseUp);
         }
 
-        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResizeHorizontal, bool moveWhileresizeVertical)
+        void OnResize(Vector2 resizeDelta, ResizeDirection direction, bool moveWhileResizeHorizontal, bool moveWhileresizeVertical, ResizeHandleAnchor anchor)
         {
             Vector2 normalizedResizeDelta = resizeDelta / 2f;
 
@@ -145,44 +153,30 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Rect newLayout = m_ResizeTarget.layout;
 
-            // Resize from bottom/right
-            if (!moveWhileResizeHorizontal)
+            if (anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft)
             {
-                newLayout.width = Mathf.Max(newLayout.width + normalizedResizeDelta.x, minSize.x);
-                normalizedResizeDelta.x = 0f;
+                newLayout.xMin = Mathf.Min(newLayout.xMin + normalizedResizeDelta.x, newLayout.xMax - minSize.x);
+            }
+            else
+            {
+                newLayout.xMax = Mathf.Max(newLayout.xMax + normalizedResizeDelta.x, newLayout.xMin + minSize.x);
             }
 
-            if (!moveWhileresizeVertical)
+            if (anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight)
             {
-                newLayout.height = Mathf.Max(newLayout.height + normalizedResizeDelta.y, minSize.y);
-                normalizedResizeDelta.y = 0f;
+                newLayout.yMin = Mathf.Min(newLayout.yMin + normalizedResizeDelta.y, newLayout.yMax - minSize.y);
+            }
+            else
+            {
+                newLayout.yMax = Mathf.Max(newLayout.yMax + normalizedResizeDelta.y, newLayout.yMin + minSize.y);
             }
 
-            float previousFarX = m_ResizeTarget.layout.x + m_ResizeTarget.layout.width;
-            float previousFarY = m_ResizeTarget.layout.y + m_ResizeTarget.layout.height;
-
-            newLayout.width = Mathf.Max(newLayout.width - normalizedResizeDelta.x, minSize.x);
-            newLayout.height = Mathf.Max(newLayout.height - normalizedResizeDelta.y, minSize.y);
-
-            newLayout.x = Mathf.Min(newLayout.x + normalizedResizeDelta.x, previousFarX - minSize.x);
-            newLayout.y = Mathf.Min(newLayout.y + normalizedResizeDelta.y, previousFarY - minSize.y);
-
-            if (m_StayWithinParentBounds)
+            if (stayWithinParentBounds)
             {
-                float horizontalTranscendance = Mathf.Min(newLayout.x, 0f) + Mathf.Max(newLayout.xMax - m_ResizeTarget.parent.layout.width, 0f);
-                float verticalTranscendance = Mathf.Min(newLayout.y, 0f) + Mathf.Max(newLayout.yMax - m_ResizeTarget.parent.layout.height, 0f);
-
-                if (moveWhileResizeHorizontal)
-                {
-                    newLayout.x -= horizontalTranscendance;
-                }
-                newLayout.width -= Mathf.Abs(horizontalTranscendance);
-
-                if (moveWhileresizeVertical)
-                {
-                    newLayout.y -= verticalTranscendance;
-                }
-                newLayout.height -= Mathf.Abs(verticalTranscendance);
+                newLayout.xMin = Mathf.Max(newLayout.xMin, 0f);
+                newLayout.yMin = Mathf.Max(newLayout.yMin, 0f);
+                newLayout.xMax = Mathf.Min(newLayout.xMax, m_ResizeTarget.parent.layout.width);
+                newLayout.yMax = Mathf.Min(newLayout.yMax, m_ResizeTarget.parent.layout.height);
             }
 
             m_ResizeTarget.layout = newLayout;

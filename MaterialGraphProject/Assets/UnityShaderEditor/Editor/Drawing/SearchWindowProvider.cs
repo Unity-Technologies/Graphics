@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeEntries = new List<NodeEntry>();
             foreach (var type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
             {
-                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
+                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))) && type != typeof(PropertyNode))
                 {
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0)

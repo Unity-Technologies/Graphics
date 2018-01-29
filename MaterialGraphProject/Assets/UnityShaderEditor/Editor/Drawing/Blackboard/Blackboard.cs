@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -93,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Blackboard()
         {
             AddStyleSheetPath("Styles/Blackboard");
-            var tpl = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityShaderEditor/Editor/Resources/UXML/GraphView/Blackboard.uxml");
+            var tpl = Resources.Load<VisualTreeAsset>("UXML/GraphView/Blackboard");
 
             m_MainContainer = tpl.CloneTree(null);
             m_MainContainer.AddToClassList("mainContainer");
