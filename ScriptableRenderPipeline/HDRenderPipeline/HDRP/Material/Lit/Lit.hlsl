@@ -298,7 +298,7 @@ void FillMaterialClearCoatData(float coatMask, inout BSDFData bsdfData)
     // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
     // but here we go from clear coat (1.5) to material, we need to update fresnel0
     // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
-    bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0);
+    bsdfData.fresnel0 = lerp(bsdfData.fresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0), coatMask);
 }
 
 void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
