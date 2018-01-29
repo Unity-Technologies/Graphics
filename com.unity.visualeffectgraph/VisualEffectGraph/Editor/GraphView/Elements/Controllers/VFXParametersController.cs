@@ -148,11 +148,6 @@ namespace UnityEditor.VFX.UI
             m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
         }
 
-        void OnSlotChanged(UnityEngine.Object obj)
-        {
-            NotifyChange(AnyThing);
-        }
-
         public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
         {
             FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -296,12 +291,15 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            UpdateControllers();
-            m_ViewController.NotifyParameterControllerChange();
+            bool controllerListChanged = UpdateControllers();
+            if (controllerListChanged)
+                m_ViewController.NotifyParameterControllerChange();
+            NotifyChange(AnyThing);
         }
 
-        public void UpdateControllers()
+        public bool UpdateControllers()
         {
+            bool changed = false;
             var paramInfos = model.paramInfos.ToDictionary(t => t.id, t => t);
 
             foreach (var removedController in m_Controllers.Where(t => !paramInfos.ContainsKey(t.Key)).ToArray())
@@ -309,6 +307,7 @@ namespace UnityEditor.VFX.UI
                 removedController.Value.OnDisable();
                 m_Controllers.Remove(removedController.Key);
                 m_ViewController.RemoveControllerFromModel(parameter, removedController.Value);
+                changed = true;
             }
 
             foreach (var addedController in paramInfos.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
@@ -317,7 +316,10 @@ namespace UnityEditor.VFX.UI
 
                 m_Controllers[addedController.Key] = controller;
                 m_ViewController.AddControllerToModel(parameter, controller);
+                changed = true;
             }
+
+            return changed;
         }
     }
 }

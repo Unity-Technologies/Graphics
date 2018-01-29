@@ -424,7 +424,7 @@ namespace UnityEditor.VFX.UI
 
             m_Blackboard = new VFXBlackboard();
 
-            Add(m_Blackboard.blackboard);
+            Add(m_Blackboard);
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -501,6 +501,7 @@ namespace UnityEditor.VFX.UI
 
         void NewControllerSet()
         {
+            m_Blackboard.controller = controller;
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
