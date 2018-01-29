@@ -189,7 +189,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
 
-            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
+            if (frameSettings.enableMSAA)
+            {
+                // this is already pre-validated to be a valid sample count by InitializeFrameSettings
+                var sampleCount = QualitySettings.antiAliasing;
+                tempDesc.msaaSamples = sampleCount;
+            }
+            else
+            {
+                tempDesc.msaaSamples = 1;
+            }
             tempDesc.depthBufferBits = 0;
             tempDesc.autoGenerateMips = false;
             tempDesc.useMipMap = false;
