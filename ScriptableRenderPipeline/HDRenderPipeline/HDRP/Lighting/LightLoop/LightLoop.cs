@@ -1155,7 +1155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (probe.planarReflectionProbe != null)
             {
                 envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
+                envIndex = (envIndex << 1) | (int)EnvCacheType.Texture2D;
 
                 float nearClipPlane, farClipPlane, aspect, fov;
                 Color backgroundColor;
