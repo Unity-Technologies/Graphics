@@ -137,12 +137,21 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
             color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
             
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
+                return float4(ndc.xy, 0, color.a);
+#endif
             return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
             float4 color = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
             color.a = 1;
+
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
+                return float4(texCoord.xyz * 0.5 + 0.5, color.a);
+#endif
             return color;
         }
         return float4(0, 0, 0, 0);
