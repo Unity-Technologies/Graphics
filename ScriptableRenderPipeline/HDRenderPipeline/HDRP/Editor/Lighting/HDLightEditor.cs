@@ -39,6 +39,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty cascadeRatios;
             public SerializedProperty cascadeBorders;
             public SerializedProperty resolution;
+
+            public SerializedProperty enableContactShadows;
+            public SerializedProperty contactShadowLength;
+            public SerializedProperty contactShadowDistanceScaleFactor;
+            public SerializedProperty contactShadowMaxDistance;
+            public SerializedProperty contactShadowFadeDistance;
+            public SerializedProperty contactShadowSampleCount;
         }
 
         SerializedObject m_SerializedAdditionalLightData;
@@ -105,7 +112,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 cascadeCount = o.Find("shadowCascadeCount"),
                 cascadeRatios = o.Find("shadowCascadeRatios"),
                 cascadeBorders = o.Find("shadowCascadeBorders"),
-                resolution = o.Find(x => x.shadowResolution)
+                resolution = o.Find(x => x.shadowResolution),
+                enableContactShadows = o.Find(x => x.enableContactShadows),
+                contactShadowLength = o.Find(x => x.contactShadowLength),
+                contactShadowDistanceScaleFactor = o.Find(x => x.contactShadowDistanceScaleFactor),
+                contactShadowMaxDistance = o.Find(x => x.contactShadowMaxDistance),
+                contactShadowFadeDistance = o.Find(x => x.contactShadowFadeDistance),
+                contactShadowSampleCount = o.Find(x => x.contactShadowSampleCount),
             };
         }
 
@@ -182,6 +195,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 bool shadowsEnabled = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("Enable Shadows"), settings.shadowsType.enumValueIndex != 0);
                 settings.shadowsType.enumValueIndex = shadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
+                if (settings.lightType.enumValueIndex == (int)LightType.Directional)
+                {
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.enableContactShadows, CoreEditorUtils.GetContent("Enable Contact Shadows"));
+                }
             }
 
             EditorGUILayout.PropertyField(m_AdditionalLightData.showAdditionalSettings);
@@ -350,12 +367,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 for (int i = 0; i < arraySize; i++)
                     EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
                 EditorGUI.indentLevel--;
+
+                if(!m_AdditionalShadowData.enableContactShadows.hasMultipleDifferentValues && m_AdditionalShadowData.enableContactShadows.boolValue)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField(s_Styles.contactShadow, EditorStyles.boldLabel);
+
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowLength, s_Styles.contactShadowLength);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowDistanceScaleFactor, s_Styles.contactShadowDistanceScaleFactor);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowMaxDistance, s_Styles.contactShadowMaxDistance);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowFadeDistance, s_Styles.contactShadowFadeDistance);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowSampleCount, s_Styles.contactShadowSampleCount);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
 
-            if (m_AdditionalLightData.showAdditionalSettings.boolValue)
+            // There is currently no additional settings for shadow on directional light
+            if (m_AdditionalLightData.showAdditionalSettings.boolValue && settings.lightType.enumValueIndex != (int)LightType.Directional)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);

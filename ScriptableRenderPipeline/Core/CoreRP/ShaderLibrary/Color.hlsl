@@ -108,7 +108,7 @@ real4 FastSRGBToLinear(real4 c)
 
 real3 FastLinearToSRGB(real3 c)
 {
-    return max(1.055 * pow(c, 0.416666667) - 0.055, 0.0);
+    return saturate(1.055 * pow(abs(c), 0.416666667) - 0.055);
 }
 
 real4 FastLinearToSRGB(real4 c)
@@ -124,7 +124,7 @@ real4 FastLinearToSRGB(real4 c)
 // with rgb in linear space with sRGB primaries and D65 white point
 real Luminance(real3 linearRgb)
 {
-    return dot(linearRgb, real3(0.2126729f, 0.7151522f, 0.0721750f));
+    return dot(linearRgb, real3(0.2126729, 0.7151522, 0.0721750));
 }
 
 real Luminance(real4 linearRgba)

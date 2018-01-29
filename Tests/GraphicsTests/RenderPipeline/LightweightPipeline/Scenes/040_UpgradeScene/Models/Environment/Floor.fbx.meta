@@ -215,6 +215,12 @@ ModelImporter:
     4300026: SmallPlank
     7400000: Take 001
     9500000: //RootNode
+    2186277476908879412: ImportLogs
+    2186277476908879414: ImportLogs
+    2186277476908879416: ImportLogs
+    2186277476908879418: ImportLogs
+    2186277476908879420: ImportLogs
+    2186277476908879422: ImportLogs
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -239,6 +245,7 @@ ModelImporter:
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
@@ -291,10 +298,10 @@ ModelImporter:
     rootMotionBoneName: 
     rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
-    hasExtraRoot: 0
+    hasExtraRoot: 1
     skeletonHasParents: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
   additionalBone: 0
   userData: 

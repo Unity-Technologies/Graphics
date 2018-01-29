@@ -81,6 +81,13 @@ namespace UnityEditor
             EditorGUILayout.HelpBox(s_Styles.renderingPathInfo.text, MessageType.Info);
         }
 
+        private void DrawHDR()
+        {
+            settings.DrawHDR();
+            if (settings.HDR.boolValue && !lightweightPipeline.SupportsHDR)
+                EditorGUILayout.HelpBox("HDR rendering is disabled in Lightweight Pipeline asset.", MessageType.Warning);
+        }
+
         private void DrawTargetTexture()
         {
             EditorGUILayout.PropertyField(settings.targetTexture);
@@ -141,7 +148,7 @@ namespace UnityEditor
             DrawRenderingPath();
             DrawTargetTexture();
             settings.DrawOcclusionCulling();
-            settings.DrawHDR();
+            DrawHDR();
             DrawMSAA();
             settings.DrawVR();
             settings.DrawMultiDisplay();

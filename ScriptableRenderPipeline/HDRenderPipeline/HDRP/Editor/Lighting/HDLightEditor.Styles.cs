@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         sealed class Styles
         {
-            // Base
+            // Base (copy from LightEditor.cs)
             public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Controls the size of the cookie mask currently assigned to the light.");
             public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Controls the size of the cookie mask currently assigned to the light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
@@ -17,8 +17,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
             public readonly GUIContent bakedShadowRadius = new GUIContent("Baked Shadow Radius", "Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
             public readonly GUIContent bakedShadowAngle = new GUIContent("Baked Shadow Angle", "Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
+            public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
+            public readonly GUIContent indirectBounceShadowWarning = new GUIContent("Realtime indirect bounce shadowing is not supported for Spot and Point lights.");
 
             // Additional light data
+
             public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Very low cost way of faking spherical area lighting. This will modify the roughness of the material lit. This is useful when the specular highlight is too small or too sharp.");
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "This will disable diffuse lighting for this light. Doesn't save performance, diffuse lighting is still computed.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "This will disable specular lighting for this light. Doesn't save performance, specular lighting is still computed.");
@@ -38,11 +41,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent[] shapeNames;
 
             // Additional shadow data
+            public readonly GUIContent shadowCascades = new GUIContent("Cascades", "");
             public readonly GUIContent shadowCascadeCount = new GUIContent("Cascade Count", "");
             public readonly GUIContent[] shadowCascadeRatios = { new GUIContent("Cascade 1"), new GUIContent("Cascade 2"), new GUIContent("Cascade 3") };
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
+            public readonly GUIContent contactShadow = new GUIContent("Contact Shadows");
+            public readonly GUIContent contactShadowLength = new GUIContent("Length", "Length of rays used to gather contact shadows in world units.\nZero will disable the feature.");
+            public readonly GUIContent contactShadowDistanceScaleFactor = new GUIContent("Distance Scale Factor", "Contact Shadows are scaled up with distance. Use this parameter to dampen this effect.");
+            public readonly GUIContent contactShadowMaxDistance = new GUIContent("Max Distance", "Distance from the camera in world units at which contact shadows are faded out to zero.");
+            public readonly GUIContent contactShadowFadeDistance = new GUIContent("Fade Distance", "Distance in world units over which the contact shadows are faded out (see Max Distance).");
+            public readonly GUIContent contactShadowSampleCount = new GUIContent("Sample Count", "Number of samples when ray casting.");
 
             public Styles()
             {

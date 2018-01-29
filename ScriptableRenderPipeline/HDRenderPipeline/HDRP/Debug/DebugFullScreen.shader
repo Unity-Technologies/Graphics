@@ -17,12 +17,14 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #pragma fragment Frag
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
-            #include "../Debug/DebugDisplay.cs.hlsl"
+            #include "CoreRP/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
+            #include "../Debug/DebugDisplay.cs.hlsl"
 
             TEXTURE2D(_DebugFullScreenTexture);
             SAMPLER(sampler_DebugFullScreenTexture);
             float _FullScreenDebugMode;
+            float _RequireToFlipInputTexture;
 
             struct Attributes
             {
@@ -39,13 +41,12 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
             }
 
             // Motion vector debug utilities
-            // >>>
             float DistanceToLine(float2 p, float2 p1, float2 p2)
             {
                 float2 center = (p1 + p2) * 0.5;
@@ -86,22 +87,17 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             float2 SampleMotionVectors(float2 coords)
             {
-            #if UNITY_UV_STARTS_AT_TOP
-                coords.y = 1.0 - coords.y;
-            #endif
-
-                float2 mv = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coords).xy;
-
-            #if UNITY_UV_STARTS_AT_TOP
-                mv.y *= -1.0;
-            #endif
-
-                return mv;
+                return SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coords).xy;
             }
-            // <<<
+            // end motion vector utilties
 
             float4 Frag(Varyings input) : SV_Target
             {
+                if (_RequireToFlipInputTexture > 0.0)
+                {
+                    input.texcoord.y = 1.0 - input.texcoord.y;
+                }
+
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
                 {
@@ -109,20 +105,15 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
-                #if UNITY_UV_STARTS_AT_TOP
-                    input.texcoord.y = 1.0 - input.texcoord.y;
-                #endif
-
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
-
-                    if (any(isnan(color)) || any(isinf(color)))
+                    
+                    if (IsNAN(color) || any(isinf(color)))
                     {
-                        color = float4(1.0, 0.0, 1.0, 1.0);
+                        color = float4(1.0, 0.0, 0.0, 1.0);
                     }
                     else
                     {
-                        // Dim the color buffer so we can see NaNs & Infs better
-                        color.rgb *= 0.25;
+                        color.rgb = Luminance(color.rgb).xxx;
                     }
 
                     return color;
@@ -150,14 +141,25 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     float rows = floor(kGrid * _ScreenParams.y / _ScreenParams.x);
                     float cols = kGrid;
                     float2 size = _ScreenParams.xy / float2(cols, rows);
-                    float body = min(size.x, size.y) / 1.4142135623730951; // sqrt(2)
+                    float body = min(size.x, size.y) / sqrt(2.0);
                     float2 texcoord = input.positionCS.xy;
                     float2 center = (floor(texcoord / size) + 0.5) * size;
                     texcoord -= center;
 
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center / _ScreenParams.xy;
+
+                    if (_RequireToFlipInputTexture > 0.0)
+                    {
+                        arrow_coord.y = 1.0 - arrow_coord.y;
+                    }
+
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
+
+                    if (_RequireToFlipInputTexture == 0.0)
+                    {
+                        mv_arrow.y *= -1;
+                    }
 
                     // Skip empty motion
                     float d = 0.0;

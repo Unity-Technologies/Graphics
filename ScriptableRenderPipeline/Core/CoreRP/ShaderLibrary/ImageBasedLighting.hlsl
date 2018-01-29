@@ -83,17 +83,18 @@ real3 GetAnisotropicModifiedNormal(real3 grainDir, real3 N, real3 V, real anisot
 }
 
 // Ref: "Moving Frostbite to PBR", p. 69.
-real3 GetSpecularDominantDir(real3 N, real3 R, real roughness, real NdotV)
+real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real NdotV)
 {
-    real a = 1.0 - roughness;
+    real p = perceptualRoughness;
+    real a = 1.0 - p * p;
     real s = sqrt(a);
 
 #ifdef USE_FB_DSD
     // This is the original formulation.
-    real lerpFactor = (s + roughness) * a;
+    real lerpFactor = (s + p * p) * a;
 #else
     // TODO: tweak this further to achieve a closer match to the reference.
-    real lerpFactor = (s + roughness) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
+    real lerpFactor = (s + p * p) * saturate(a * a + lerp(0.0, a, NdotV * NdotV));
 #endif
 
     // The result is not normalized as we fetch in a cubemap
@@ -103,9 +104,10 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real roughness, real NdotV)
 // To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
 // which allow to fake an anisotropic specular lobe.
 // Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
-real AnisotropicStrechAtGrazingAngle(real roughness, real perceptualRoughness, real NdotV)
+real AnisotropicStrechAtGrazingAngle(real perceptualRoughness, real NdotV)
 {
-    return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
+    real p = perceptualRoughness;
+    return p * lerp(saturate(NdotV * 2.0) * p, p, p);
 }
 
 // ----------------------------------------------------------------------------
@@ -315,6 +317,7 @@ void ImportanceSampleAnisoGGX(real2   u,
 // Pre-integration
 // ----------------------------------------------------------------------------
 
+#if !defined SHADER_API_GLES
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
 {
@@ -367,6 +370,10 @@ real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCoun
 
     return acc;
 }
+#else
+// Not supported due to lack of random library in GLES 2
+#define IntegrateGGXAndDisneyFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateGGXAndDisneyFGD)
+#endif
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 {
@@ -532,6 +539,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
     return i;
 }
 
+#if !defined SHADER_API_GLES
 real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
@@ -616,6 +624,10 @@ real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
 
     return real4(lightInt / cbsdfInt, 1.0);
 }
+#else
+// Not supported due to lack of random library in GLES 2
+#define IntegrateLD_MIS ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateLD_MIS)
+#endif
 
 // Little helper to share code between sphere and box reflection probe.
 // This function will fade the mask of a reflection volume based on normal orientation compare to direction define by the center of the reflection volume.

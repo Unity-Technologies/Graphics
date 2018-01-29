@@ -80,9 +80,9 @@ Shader "Experim/StdShader"
             #pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _PARALLAXMAP
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile TILED_FORWARD REGULAR_FORWARD
 
@@ -121,9 +121,9 @@ Shader "Experim/StdShader"
             #pragma shader_feature _ _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _PARALLAXMAP
 
-            #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-            #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
-            #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
 
             #pragma vertex vertForward

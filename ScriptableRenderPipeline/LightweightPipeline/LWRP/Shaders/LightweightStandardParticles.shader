@@ -69,8 +69,8 @@ Shader "LightweightPipeline/Particles/Standard"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
-            #include "LightweightShaderLibrary/Particles.hlsl"
-            #include "LightweightShaderLibrary/Lighting.hlsl"
+            #include "LWRP/ShaderLibrary/Particles.hlsl"
+            #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {
@@ -94,20 +94,12 @@ Shader "LightweightPipeline/Particles/Standard"
                 SurfaceData surfaceData;
                 InitializeSurfaceData(IN, surfaceData);
 
-                float3 positionWS = IN.posWS.xyz;
-                half3 viewDirWS = SafeNormalize(_WorldSpaceCameraPos - positionWS);
-                half fogFactor = IN.posWS.w;
+                InputData inputData;
+                InitializeInputData(IN, surfaceData.normalTS, inputData);
 
-#if _NORMALMAP
-                half3 normalWS = TangentToWorldNormal(surfaceData.normal, IN.tangent, IN.binormal, IN.normal);
-#else
-                half3 normalWS = normalize(IN.normal);
-#endif
-
-                half3 zero = half3(0.0, 0.0, 0.0);
-                half4 color = LightweightFragmentPBR(positionWS, normalWS, viewDirWS, /*indirectDiffuse*/ zero, /*vertex lighting*/ zero, surfaceData.albedo,
-                    surfaceData.metallic, /* specularColor */ zero, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-                ApplyFog(color.rgb, fogFactor);
+                half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo,
+                    surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+                ApplyFog(color.rgb, inputData.fogCoord);
                 return color;
             }
 

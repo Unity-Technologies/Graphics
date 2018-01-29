@@ -13,13 +13,14 @@
 #define INTRINSIC_MINMAX3
 #define Min3 min3
 #define Max3 max3
-//#define INTRINSIC_CUBEMAP_FACE_ID // Must investigate why AMD reference implementation is different than ours
+#define INTRINSIC_CUBEMAP_FACE_ID
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
 #define UNITY_NEAR_CLIP_VALUE (1.0)
 // This value will not go through any matrix projection convertion
 #define UNITY_RAW_FAR_CLIP_VALUE (0.0)
+#define VERTEXID_SEMANTIC SV_VertexID
 #define FRONT_FACE_SEMANTIC SV_IsFrontFace
 #define FRONT_FACE_TYPE bool
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))

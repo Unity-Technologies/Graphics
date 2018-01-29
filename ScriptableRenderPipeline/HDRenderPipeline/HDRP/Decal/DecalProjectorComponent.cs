@@ -1,25 +1,17 @@
 ﻿using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     public class DecalProjectorComponent : MonoBehaviour
     {
-        private static readonly int m_WorldToDecal = Shader.PropertyToID("_WorldToDecal");
-        private static readonly int m_DecalToWorldR = Shader.PropertyToID("_DecalToWorldR");
-
-        public Material m_Material;
-        private MaterialPropertyBlock m_PropertyBlock;
-        public const int kInvalidIndex = -1;
+        public Material m_Material = null;
+        private Material m_OldMaterial = null;
+        public const int kInvalidIndex = -1;  
         private int m_CullIndex = kInvalidIndex;
-
-        // normal space  __x  to decal space __x 
-        //              |\                  |\      
-        //              y z                 z y        
-        //                                    
-        private static Matrix4x4 m_NormalToDecal = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * Matrix4x4.Rotate(Quaternion.AngleAxis(-90.0f, new Vector3(1, 0, 0))); 
 
         public int CullIndex
         {
@@ -33,14 +25,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public Material Mat
+        {
+            get { return this.m_Material; }
+        }
+
         public void OnEnable()
         {
+            if (m_Material == null)
+            {
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
+            }
+
             DecalSystem.instance.AddDecal(this);
         }
 
         public void Start()
         {
-            m_PropertyBlock = new MaterialPropertyBlock();
             DecalSystem.instance.AddDecal(this);
         }
 
@@ -51,7 +53,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnValidate()
         {
-            BoundingSphere sphere = DecalSystem.instance.GetDecalProjectBoundingSphere(transform.localToWorldMatrix);
+            // handle material changes
+            if (m_OldMaterial != m_Material)
+            {
+                Material tempMaterial = m_Material;
+                m_Material = m_OldMaterial;
+                if(m_Material != null)
+                    DecalSystem.instance.RemoveDecal(this);
+                m_Material = tempMaterial;
+                DecalSystem.instance.AddDecal(this);
+                m_OldMaterial = m_Material;
+            }
+
             if (m_Material != null)
             {
                 Shader shader = m_Material.shader;
@@ -82,32 +95,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DecalSystem.instance.UpdateBoundingSphere(this);
         }
 
-		public void UpdatePropertyBlock(Vector3 cameraPos)
+        public void OnDrawGizmos()
         {
-            Matrix4x4 CRWStoAWS = new Matrix4x4();
-            if (ShaderConfig.s_CameraRelativeRendering == 1)
-            {
-				CRWStoAWS = Matrix4x4.Translate(cameraPos);
-            }
-            else
-            {
-                CRWStoAWS = Matrix4x4.identity;
-            }
-
-            Matrix4x4 final = transform.localToWorldMatrix;
-            Matrix4x4 decalToWorldR = Matrix4x4.Rotate(transform.rotation) * m_NormalToDecal;
-            Matrix4x4 worldToDecal = Matrix4x4.Translate(new Vector3(0.5f, 0.0f, 0.5f)) * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f)) * final.inverse;
-            if (m_PropertyBlock == null)
-            {
-                m_PropertyBlock = new MaterialPropertyBlock();
-            }
-            m_PropertyBlock.SetMatrix(m_DecalToWorldR, decalToWorldR);
-            m_PropertyBlock.SetMatrix(m_WorldToDecal, worldToDecal * CRWStoAWS);
+            DrawGizmo(false);
         }
 
-        public MaterialPropertyBlock GetPropertyBlock()
+        public bool IsValid()
         {
-            return m_PropertyBlock;
+            if (m_Material == null)
+                return false;
+            return true;
         }
     }
 }

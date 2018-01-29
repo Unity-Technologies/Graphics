@@ -1,6 +1,4 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Security.Principal;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
@@ -26,6 +24,19 @@ namespace UnityEditor.Experimental.Rendering
         public static IDrawer Group(params IDrawer[] drawers)
         {
             return new GroupDrawerInternal(drawers);
+        }
+
+        public static IDrawer LabelWidth(float width, params IDrawer[] drawers)
+        {
+            return Action((s, d, o) =>
+                {
+                    var l = EditorGUIUtility.labelWidth;
+                    EditorGUIUtility.labelWidth = width;
+                    for (var i = 0; i < drawers.Length; ++i)
+                        drawers[i].Draw(s, d, o);
+                    EditorGUIUtility.labelWidth = l;
+                }
+            );
         }
 
         public static IDrawer Action(params ActionDrawer[] drawers)

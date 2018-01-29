@@ -13,6 +13,12 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
     {
         diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
     }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        // Take the luminance
+        diffuseLighting = Luminance(diffuseLighting).xxx;
+    }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
         specularLighting = float3(0.0, 0.0, 0.0);
@@ -169,7 +175,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #else
                 uint envLightIndex = i;
             #endif
-                IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType,
+                IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData,
+                                                                _EnvLightDatas[envLightIndex].influenceShapeType,
                                                                 GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
                 AccumulateIndirectLighting(lighting, aggregateLighting);
             }
@@ -188,7 +195,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 #else
                     uint envLightIndex = i;
                 #endif
-                    IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData, _EnvLightDatas[envLightIndex].envShapeType,
+                    IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData,
+                                                                    _EnvLightDatas[envLightIndex].influenceShapeType,
                                                                     GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
                     AccumulateIndirectLighting(lighting, aggregateLighting);
                 }
@@ -203,8 +211,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
                 context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-                EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-                IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+
+                // The sky data are generated on the fly so the compiler can optimize the code
+                EnvLightData envLightSky = InitSkyEnvLightData(0);
+
+                IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, bsdfData, 
+                                                                    ENVSHAPETYPE_SKY, 
+                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
                 AccumulateIndirectLighting(lighting, aggregateLighting);
             }
 
@@ -214,8 +227,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 {
                     // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
                     context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-                    EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
-                    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, ENVSHAPETYPE_SKY, GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
+                    
+                    // The sky data are generated on the fly so the compiler can optimize the code
+                    EnvLightData envLightSky = InitSkyEnvLightData(0);
+
+                    IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, bsdfData, 
+                                                                        ENVSHAPETYPE_SKY, 
+                                                                        GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
                     AccumulateIndirectLighting(lighting, aggregateLighting);
                 }
             }

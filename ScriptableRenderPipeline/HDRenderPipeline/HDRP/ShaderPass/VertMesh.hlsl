@@ -97,6 +97,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 {
     VaryingsMeshType output;
 
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+
     float3 positionWS = TransformObjectToWorld(input.positionOS);
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -105,7 +108,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #endif
 
 #ifdef ATTRIBUTES_NEED_TANGENT
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
     // TODO: deal with camera center rendering and instancing (This is the reason why we always perform two  steps transform to clip space + instancing matrix)
@@ -157,6 +160,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
     VaryingsMeshToPS output;
+
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionWS);
 

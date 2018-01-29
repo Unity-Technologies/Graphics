@@ -20,8 +20,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
         public uint taaFrameIndex;
+        public Vector2 taaFrameRotation;
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
+
+        // Non oblique projection matrix (RHS)
+        public Matrix4x4 nonObliqueProjMatrix
+        {
+            get
+            {
+                return m_AdditionalCameraData != null
+                    ? m_AdditionalCameraData.GetNonObliqueProjection(camera)
+                    : GeometryUtils.CalculateProjectionMatrix(camera);
+            }
+        }
 
         public Matrix4x4 viewProjMatrix
         {
@@ -71,12 +83,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
+        HDAdditionalCameraData m_AdditionalCameraData;
+
         public HDCamera(Camera cam)
         {
             camera = cam;
             frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
             postprocessRenderContext = new PostProcessRenderContext();
+            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
         }
 
@@ -129,6 +144,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             const uint taaFrameCount = 8;
             taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
+            taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
+                                           Mathf.Cos(taaFrameIndex * (0.5f * Mathf.PI)));
 
             viewMatrix = gpuView;
             projMatrix = gpuProj;
@@ -142,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
-            // Warning: near and far planes appear to be broken.
+            // Warning: near and far planes appear to be broken (or rather far plane seems broken)
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
             for (int i = 0; i < 4; i++)
@@ -152,8 +169,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Near, far.
+            Vector4 forward = (camera.cameraType == CameraType.Reflection) ? camera.worldToCameraMatrix.GetRow(2) : new Vector4(camera.transform.forward.x, camera.transform.forward.y, camera.transform.forward.z, 0.0f);
             // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
-            Vector3 forward = viewParam.x < 0.0f ? camera.transform.forward : -camera.transform.forward;
+            forward = viewParam.x < 0.0f ? forward : -forward;
             frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
             frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
@@ -188,6 +206,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             tempDesc.memoryless = RenderTextureMemoryless.None;
 
             renderTextureDesc = tempDesc;
+        }
+
+        // Warning: different views can use the same camera!
+        public int GetViewID()
+        {
+            if (camera.cameraType == CameraType.Game)
+            {
+                int viewID = camera.GetInstanceID();
+                Debug.Assert(viewID > 0);
+                return viewID;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public void Reset()
@@ -243,6 +276,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
+            cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation, taaFrameRotation);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,

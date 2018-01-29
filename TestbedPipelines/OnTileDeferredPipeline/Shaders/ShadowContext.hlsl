@@ -1,15 +1,15 @@
-
-// This can be custom for each project and needs to be in sync with the ShadowMgr
+#ifndef ONTILE_SHADOW_CONTEXT_HLSL
+#define ONTILE_SHADOW_CONTEXT_HLSL
 
 #define SHADOWCONTEXT_MAX_TEX2DARRAY   1
 #define SHADOWCONTEXT_MAX_TEXCUBEARRAY 0
 #define SHADOWCONTEXT_MAX_SAMPLER      0
 #define SHADOWCONTEXT_MAX_COMPSAMPLER  1
 
-SHADOWCONTEXT_DECLARE( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER );
+#include "CoreRP/ShaderLibrary/Shadow/Shadow.hlsl"
 
 TEXTURE2D_ARRAY(_ShadowmapExp_PCF);
-SAMPLER2D_SHADOW(sampler_ShadowmapExp_PCF);
+SAMPLER_CMP(sampler_ShadowmapExp_PCF);
 
 StructuredBuffer<ShadowData>	_ShadowDatasExp;
 StructuredBuffer<int4>			_ShadowPayloads;
@@ -24,3 +24,4 @@ ShadowContext InitShadowContext()
 	return sc;
 }
 
+#endif // ONTILE_SHADOW_CONTEXT_HLSL

@@ -16,10 +16,42 @@ real3 UnpackNormalMaxComponent(real3 n)
     return normalize(n * 2.0 - 1.0);
 }
 
+// Ref: http://www.vis.uni-stuttgart.de/~engelhts/paper/vmvOctaMaps.pdf
+// Encode with Oct, this function work with any size of output
+// return real between [-1, 1]
+real2 PackNormalOctRectEncode(real3 n)
+{
+    // Perform planar projection.
+    real3 p = n * rcp(dot(abs(n), 1.0));
+    real  x = p.x, y = p.y, z = p.z;
+
+    // Unfold the octahedron.
+    // Also correct the aspect ratio from 2:1 to 1:1.
+    real r = saturate(0.5 - 0.5 * x + 0.5 * y);
+    real g = x + y;
+
+    // Negative hemisphere on the left, positive on the right.
+    return real2(CopySign(r, z), g);
+}
+
+real3 UnpackNormalOctRectEncode(real2 f)
+{
+    real r = f.r, g = f.g;
+
+    // Solve for {x, y, z} given {r, g}.
+    real x = 0.5 + 0.5 * g - abs(r);
+    real y = g - x;
+    real z = max(1.0 - abs(x) - abs(y), FLT_EPS); // EPS is absolutely crucial for anisotropy
+
+    real3 p = real3(x, y, CopySign(z, r));
+
+    return normalize(p);
+}
+
 // Ref: http://jcgt.org/published/0003/02/01/paper.pdf
 // Encode with Oct, this function work with any size of output
 // return real between [-1, 1]
-real2 PackNormalOctEncode(real3 n)
+real2 PackNormalOctQuadEncode(real3 n)
 {
     //real l1norm    = dot(abs(n), 1.0);
     //real2 res0     = n.xy * (1.0 / l1norm);
@@ -33,7 +65,7 @@ real2 PackNormalOctEncode(real3 n)
     return n.xy + (n.xy >= 0.0 ? t : -t);
 }
 
-real3 UnpackNormalOctEncode(real2 f)
+real3 UnpackNormalOctQuadEncode(real2 f)
 {
     real3 n = real3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
 
@@ -352,7 +384,7 @@ real2 Unpack2Byte(real inputs)
 // ...
 // Example: precision is 1024.0, maxi is 8, i is [0..7] encode on 3 bit. f is [0..1] encode on 7 bit.
 //...
-real PackFloatInt(real f, int i, real maxi, real precision)
+real PackFloatInt(real f, uint i, real maxi, real precision)
 {
     // Constant
     real precisionMinusOne = precision - 1.0;
@@ -362,7 +394,7 @@ real PackFloatInt(real f, int i, real maxi, real precision)
     return t1 * f + t2 * real(i);
 }
 
-void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
+void UnpackFloatInt(real val, real maxi, real precision, out real f, out uint i)
 {
     // Constant
     real precisionMinusOne = precision - 1.0;
@@ -377,32 +409,32 @@ void UnpackFloatInt(real val, real maxi, real precision, out real f, out int i)
 }
 
 // Define various variante for ease of read
-real PackFloatInt8bit(real f, int i, real maxi)
+real PackFloatInt8bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 256.0);
 }
 
-void UnpackFloatInt8bit(real val, real maxi, out real f, out int i)
+void UnpackFloatInt8bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 256.0, f, i);
 }
 
-real PackFloatInt10bit(real f, int i, real maxi)
+real PackFloatInt10bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 1024.0);
 }
 
-void UnpackFloatInt10bit(real val, real maxi, out real f, out int i)
+void UnpackFloatInt10bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 1024.0, f, i);
 }
 
-real PackFloatInt16bit(real f, int i, real maxi)
+real PackFloatInt16bit(real f, uint i, real maxi)
 {
     return PackFloatInt(f, i, maxi, 65536.0);
 }
 
-void UnpackFloatInt16bit(real val, real maxi, out real f, out int i)
+void UnpackFloatInt16bit(real val, real maxi, out real f, out uint i)
 {
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }
@@ -433,12 +465,12 @@ uint PackToR10G10B10A2(real4 rgba)
 
 real4 UnpackFromR10G10B10A2(uint rgba)
 {
-    real4 ouput;
-    ouput.x = UnpackUIntToFloat(rgba, 0,  10);
-    ouput.y = UnpackUIntToFloat(rgba, 10, 10);
-    ouput.z = UnpackUIntToFloat(rgba, 20, 10);
-    ouput.w = UnpackUIntToFloat(rgba, 30, 2);
-    return ouput;
+    real4 output;
+    output.x = UnpackUIntToFloat(rgba, 0,  10);
+    output.y = UnpackUIntToFloat(rgba, 10, 10);
+    output.z = UnpackUIntToFloat(rgba, 20, 10);
+    output.w = UnpackUIntToFloat(rgba, 30, 2);
+    return output;
 }
 
 // Both the input and the output are in the [0, 1] range.

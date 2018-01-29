@@ -6,9 +6,7 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
 
         Pass
         {
-            ColorMask 0
-            ZTest Always
-            ZWrite On
+            ZTest Always ZWrite Off ColorMask 0
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -16,7 +14,7 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LightweightShaderLibrary/Core.hlsl"
+            #include "LWRP/ShaderLibrary/Core.hlsl"
 
             TEXTURE2D(_CameraDepthTexture);
             SAMPLER(sampler_CameraDepthTexture);

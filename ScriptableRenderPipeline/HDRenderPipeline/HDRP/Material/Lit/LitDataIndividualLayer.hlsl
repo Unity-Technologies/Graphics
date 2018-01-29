@@ -268,13 +268,21 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #if !defined(LAYERED_LIT_SHADER)
 
     // These static material feature allow compile time optimization
-    surfaceData.materialFeatures = 0;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    // TEMP: The UI must control if we have transmission or not.
+    // Currently until we update the UI, this is control in the diffusion profile
+    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
+    // Caution: Because of this dynamic test we don't know anymore statically if we have transmission, which mess with performance.
+    // in deferred case as we still have both sss and transmission until we update the UI it should be the same perf
+    if (transmissionMode != TRANSMISSION_MODE_NONE)
+    {
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+    }
 #endif
 #ifdef _MATERIAL_FEATURE_ANISOTROPY
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
@@ -312,6 +320,11 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.specularColor = _SpecularColor.rgb;
 #ifdef _SPECULARCOLORMAP
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
+#endif
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+    // Require to have setup baseColor
+    // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
+    surfaceData.baseColor *= _EnergyConservingSpecularColor > 0.0 ? (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b)) : 1.0;
 #endif
 
 #if HAS_REFRACTION

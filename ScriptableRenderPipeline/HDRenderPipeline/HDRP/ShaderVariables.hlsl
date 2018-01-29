@@ -187,10 +187,11 @@ CBUFFER_START(UnityPerFrame)
     int unity_StereoEyeIndex;
 #endif
 
-    float3 unity_ShadowColor;
-    uint _TaaFrameIndex;      // [0, 7]
-    // Volumetric lighting. Should be a struct in 'UnityPerFrame'.
-    // Unfortunately, structures inside constant buffers are not supported by Unity.
+    float4 unity_ShadowColor;
+    float2 _TaaFrameRotation; // {x = sin(_TaaFrameIndex * PI/2), y = cos(_TaaFrameIndex * PI/2), z = unused}
+    uint   _TaaFrameIndex;    // [0, 7]
+    // Volumetric lighting.
+    float  _GlobalFog_Asymmetry;
     float3 _GlobalFog_Scattering;
     float  _GlobalFog_Extinction;
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
@@ -202,7 +203,9 @@ CBUFFER_END
 
 // These are the samplers available in the HDRenderPipeline.
 // Avoid declaring extra samplers as they are 4x SGPR each on GCN.
+SAMPLER(s_point_clamp_sampler);
 SAMPLER(s_linear_clamp_sampler);
+SAMPLER(s_linear_repeat_sampler);
 SAMPLER(s_trilinear_clamp_sampler);
 
 // ----------------------------------------------------------------------------
@@ -270,6 +273,7 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     #include "ShaderVariablesMatrixDefsHDCamera.hlsl"
 #endif
 
+#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
 #include "ShaderVariablesFunctions.hlsl"
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
