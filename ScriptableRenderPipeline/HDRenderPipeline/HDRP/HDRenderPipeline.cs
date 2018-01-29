@@ -1574,7 +1574,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableRoughRefraction)
                 return;
 
-            m_DepthPyramid.RenderPyramidDepth(hdCamera, cmd, renderContext, GetDepthTexture(), m_DepthPyramidBufferRT);
+            using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
+                m_DepthPyramid.RenderPyramidDepth(hdCamera, cmd, renderContext, GetDepthTexture(), m_DepthPyramidBufferRT);
+
             var depthSize = new Vector4(m_DepthPyramid.renderTextureDescriptor.width, m_DepthPyramid.renderTextureDescriptor.height, m_DepthPyramid.usedMipMapCount, 0);
             cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, depthSize);
             PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, m_DepthPyramid.usedMipMapCount, m_DepthPyramid.renderTextureDescriptor, hdCamera, debugMode);

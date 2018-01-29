@@ -44,63 +44,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTargetIdentifier depthTexture,
             RenderTargetIdentifier targetTexture)
         {
-            using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
+            var depthPyramidDesc = m_RenderTextureDescriptor;
+
+            var lodCount = bufferMipMapCount;
+            if (lodCount > m_DepthPyramidMips.Length)
             {
-                var depthPyramidDesc = m_RenderTextureDescriptor;
-
-                var lodCount = bufferMipMapCount;
-                if (lodCount > m_DepthPyramidMips.Length)
-                {
-                    Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << m_DepthPyramidMips.Length).ToString());
-                    lodCount = m_DepthPyramidMips.Length;
-                }
-
-                cmd.ReleaseTemporaryRT(m_DepthPyramidMips[0]);
-
-                depthPyramidDesc.sRGB = false;
-                depthPyramidDesc.enableRandomWrite = true;
-                depthPyramidDesc.useMipMap = false;
-
-                cmd.GetTemporaryRT(m_DepthPyramidMips[0], depthPyramidDesc, FilterMode.Bilinear);
-                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
-                cmd.CopyTexture(m_DepthPyramidMips[0], 0, 0, targetTexture, 0, 0);
-
-                for (var i = 0; i < lodCount; i++)
-                {
-                    var srcMipWidth = depthPyramidDesc.width;
-                    var srcMipHeight = depthPyramidDesc.height;
-                    depthPyramidDesc.width = srcMipWidth >> 1;
-                    depthPyramidDesc.height = srcMipHeight >> 1;
-
-                    var kernel = m_DepthPyramidKernel_8;
-                    var kernelBlockSize = 8f;
-                    if (depthPyramidDesc.width < 4 * k_DepthBlockSize
-                        || depthPyramidDesc.height < 4 * k_DepthBlockSize)
-                    {
-                        kernel = m_DepthPyramidKernel_1;
-                        kernelBlockSize = 1;
-                    }
-
-                    cmd.ReleaseTemporaryRT(m_DepthPyramidMips[i + 1]);
-                    cmd.GetTemporaryRT(m_DepthPyramidMips[i + 1], depthPyramidDesc, FilterMode.Bilinear);
-
-                    cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, "_Source", m_DepthPyramidMips[i]);
-                    cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, "_Result", m_DepthPyramidMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipWidth, srcMipHeight, 1f / srcMipWidth, 1f / srcMipHeight));
-
-                    cmd.DispatchCompute(
-                        m_DepthPyramidCS,
-                        kernel,
-                        Mathf.CeilToInt(depthPyramidDesc.width / kernelBlockSize),
-                        Mathf.CeilToInt(depthPyramidDesc.height / kernelBlockSize),
-                        1);
-
-                    cmd.CopyTexture(m_DepthPyramidMips[i + 1], 0, 0, targetTexture, 0, i + 1);
-                }
-
-                for (int i = 0; i < lodCount + 1; i++)
-                    cmd.ReleaseTemporaryRT(m_DepthPyramidMips[i]);
+                Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << m_DepthPyramidMips.Length).ToString());
+                lodCount = m_DepthPyramidMips.Length;
             }
+
+            cmd.ReleaseTemporaryRT(m_DepthPyramidMips[0]);
+
+            depthPyramidDesc.sRGB = false;
+            depthPyramidDesc.enableRandomWrite = true;
+            depthPyramidDesc.useMipMap = false;
+
+            cmd.GetTemporaryRT(m_DepthPyramidMips[0], depthPyramidDesc, FilterMode.Bilinear);
+            m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
+            cmd.CopyTexture(m_DepthPyramidMips[0], 0, 0, targetTexture, 0, 0);
+
+            for (var i = 0; i < lodCount; i++)
+            {
+                var srcMipWidth = depthPyramidDesc.width;
+                var srcMipHeight = depthPyramidDesc.height;
+                depthPyramidDesc.width = srcMipWidth >> 1;
+                depthPyramidDesc.height = srcMipHeight >> 1;
+
+                var kernel = m_DepthPyramidKernel_8;
+                var kernelBlockSize = 8f;
+                if (depthPyramidDesc.width < 4 * k_DepthBlockSize
+                    || depthPyramidDesc.height < 4 * k_DepthBlockSize)
+                {
+                    kernel = m_DepthPyramidKernel_1;
+                    kernelBlockSize = 1;
+                }
+
+                cmd.ReleaseTemporaryRT(m_DepthPyramidMips[i + 1]);
+                cmd.GetTemporaryRT(m_DepthPyramidMips[i + 1], depthPyramidDesc, FilterMode.Bilinear);
+
+                cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, "_Source", m_DepthPyramidMips[i]);
+                cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, "_Result", m_DepthPyramidMips[i + 1]);
+                cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipWidth, srcMipHeight, 1f / srcMipWidth, 1f / srcMipHeight));
+
+                cmd.DispatchCompute(
+                    m_DepthPyramidCS,
+                    kernel,
+                    Mathf.CeilToInt(depthPyramidDesc.width / kernelBlockSize),
+                    Mathf.CeilToInt(depthPyramidDesc.height / kernelBlockSize),
+                    1);
+
+                cmd.CopyTexture(m_DepthPyramidMips[i + 1], 0, 0, targetTexture, 0, i + 1);
+            }
+
+            for (int i = 0; i < lodCount + 1; i++)
+                cmd.ReleaseTemporaryRT(m_DepthPyramidMips[i]);
         }
 
         public void Initialize(HDCamera hdCamera, bool enableStereo)
