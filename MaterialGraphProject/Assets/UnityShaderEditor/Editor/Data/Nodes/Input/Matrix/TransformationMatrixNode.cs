@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using UnityEditor.Graphing;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -29,8 +28,8 @@ namespace UnityEditor.ShaderGraph
             {TransformationMatrixType.ViewProjection, "UNITY_MATRIX_VP"},
             {TransformationMatrixType.TransposeModelView, "UNITY_MATRIX_T_MV"},
             {TransformationMatrixType.InverseTransposeModelView, "UNITY_MATRIX_IT_MV"},
-            {TransformationMatrixType.ObjectToWorld, "unity_ObjectToWorld"},
-            {TransformationMatrixType.WorldToObject, "unity_WorldToObject"},
+            {TransformationMatrixType.ObjectToWorld, "UNITY_MATRIX_M"},
+            {TransformationMatrixType.WorldToObject, "UNITY_MATRIX_I_M"},
         };
 
         [SerializeField]
@@ -51,10 +50,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_matrix = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 

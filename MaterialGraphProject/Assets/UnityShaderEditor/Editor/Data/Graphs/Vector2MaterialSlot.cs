@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector2MaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector2>
+    public class Vector2MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector2>
     {
         [SerializeField]
         private Vector2 m_Value;
@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "2 (" + value.x + "," + value.y + ")";
+            return precision + "2 (" + NodeUtils.FloatToShaderValue(value.x) + "," + NodeUtils.FloatToShaderValue(value.y) + ")";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -69,20 +69,16 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
+            var pp = new PreviewProperty(PropertyType.Vector2)
             {
                 name = name,
-                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
-                vector4Value = new Vector4(value.x, value.y, 0, 0),
-                floatValue = value.x,
-                colorValue = new Vector4(value.x, value.x, 0, 0),
+                vector4Value = new Vector4(value.x, value.y, 0, 0)
             };
             return pp;
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Vector2; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector2; } }
-
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {

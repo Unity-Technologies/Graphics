@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
             var numInputChannels = 0;
             if (inputSlot != null)
             {
-                numInputChannels = (int)SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
+                numInputChannels = SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
                 if (numInputChannels > 4)
                     numInputChannels = 0;
 

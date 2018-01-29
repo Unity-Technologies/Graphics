@@ -3,6 +3,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [FormerName("UnityEngine.MaterialGraph.ViewDirectionNode")]
     [Title("Input", "Geometry", "View Direction")]
     public class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
     {
@@ -28,7 +29,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return space.ToVariableName(InterpolatorType.ViewDirection);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.ViewDirection));
         }
 
         public NeededCoordinateSpace RequiresViewDirection()

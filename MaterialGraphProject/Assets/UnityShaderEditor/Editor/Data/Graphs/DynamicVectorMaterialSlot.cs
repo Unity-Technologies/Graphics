@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class DynamicVectorMaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector4>
+    public class DynamicVectorMaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector4>
     {
         [SerializeField]
         private Vector4 m_Value;
@@ -66,21 +66,19 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
-            {
-                name = name,
-                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
-                vector4Value = new Vector4(value.x, value.y, value.z, value.w),
-                floatValue = value.x,
-                colorValue = new Vector4(value.x, value.x, value.z, value.w),
-            };
+            var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
+            var pp = new PreviewProperty(propType) { name = name };
+            if (propType == PropertyType.Vector1)
+                pp.floatValue = value.x;
+            else
+                pp.vector4Value = new Vector4(value.x, value.y, value.z, value.w);
             return pp;
         }
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            var channelCount = (int)SlotValueHelper.GetChannelCount(concreteValueType);
-            var values = value.x.ToString();
+            var channelCount = SlotValueHelper.GetChannelCount(concreteValueType);
+            string values = NodeUtils.FloatToShaderValue(value.x);
             if (channelCount == 1)
                 return values;
             for (var i = 1; i < channelCount; i++)
@@ -110,7 +108,7 @@ namespace UnityEditor.ShaderGraph
                     property = new Vector2ShaderProperty();
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    property = new FloatShaderProperty();
+                    property = new Vector1ShaderProperty();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

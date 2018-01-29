@@ -37,8 +37,7 @@ namespace UnityEditor.ShaderGraph
 
                 m_Value = value;
 
-                if (onModified != null)
-                    onModified(this, ModificationScope.Node);
+                Dirty(ModificationScope.Node);
             }
         }
 
@@ -60,7 +59,14 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + precision + "4" + m_Value + ";", true);
+            var s = string.Format("{0}4 {1} = {0}4({2},{3},{4},{5});",
+                precision,
+                GetVariableNameForNode(),
+                NodeUtils.FloatToShaderValue(m_Value.x),
+                NodeUtils.FloatToShaderValue(m_Value.y),
+                NodeUtils.FloatToShaderValue(m_Value.z),
+                NodeUtils.FloatToShaderValue(m_Value.w));
+            visitor.AddShaderChunk(s, true);
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -70,19 +76,16 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty()
+            properties.Add(new PreviewProperty(PropertyType.Vector4)
             {
                 name = GetVariableNameForNode(),
-                propType = PropertyType.Vector4,
                 vector4Value = m_Value
             });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            var prop = new Vector4ShaderProperty();
-            prop.value = value;
-            return prop;
+            return new Vector4ShaderProperty { value = value };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

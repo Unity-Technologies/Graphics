@@ -41,11 +41,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void TestCanNotAddSerializableNodeToMaterialGraph()
+        public void TestCanNotAddTestNodeToMaterialGraph()
         {
             TestableMGraph graph = new TestableMGraph();
 
-            var node = new SerializableNode();
+            var node = new TestNode();
             graph.AddNode(node);
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());

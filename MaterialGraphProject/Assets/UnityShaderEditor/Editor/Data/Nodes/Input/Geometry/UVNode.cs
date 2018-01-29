@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private UVChannel m_OutputChannel;
 
-        [EnumControl("")]
+        [EnumControl("Channel")]
         public UVChannel uvChannel
         {
             get { return m_OutputChannel; }
@@ -23,10 +23,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_OutputChannel = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -46,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + m_OutputChannel.GetUVName() + ";", true);
+            visitor.AddShaderChunk(string.Format("{0}4 {1} = IN.{2};", precision, GetVariableNameForSlot(OutputSlotId), m_OutputChannel.GetUVName()), true);
         }
 
         public bool RequiresMeshUV(UVChannel channel)

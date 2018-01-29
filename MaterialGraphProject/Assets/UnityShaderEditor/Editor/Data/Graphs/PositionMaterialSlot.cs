@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return space.ToVariableName(InterpolatorType.Position);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
         }
 
         public NeededCoordinateSpace RequiresPosition()

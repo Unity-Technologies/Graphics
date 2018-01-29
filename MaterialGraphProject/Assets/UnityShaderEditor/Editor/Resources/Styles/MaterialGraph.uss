@@ -22,7 +22,7 @@ GraphEditorView > #content > #inspector {
 }
 
 MaterialGraphView {
-    background-color: rgb(20, 21, 21);
+    background-color: #202020;
 }
 
 MaterialNodeView.graphElement.node.MaterialNode {
@@ -109,20 +109,13 @@ MaterialNodeView #previewContainer.expanded > #expand {
 }
 
 MaterialNodeView > #resize {
-    background-color: rgb(0, 0, 255);
+    background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
     position-type: absolute;
     position-right: 5;
     position-bottom: 5;
     width: 10;
     height: 10;
-}
-
-MaterialNodeView > #resize:hover {
-    background-color: rgb(0, 127, 127);
-}
-
-MaterialNodeView > #resize:active {
-    background-color: rgb(0, 225, 25);
+    cursor: resize-up-left;
 }
 
 PortInputView {
@@ -244,6 +237,19 @@ TextureSlotControlView > ObjectField {
     width: 100;
 }
 
+CubemapSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+CubemapSlotControlView > ObjectField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100;
+}
+
 MultiFloatSlotControlView {
     flex-direction: row;
     align-items: center;
@@ -275,7 +281,9 @@ ColorRGBASlotControlView {
 }
 
 ColorRGBASlotControlView > ColorField {
-    width: 50;
+    width: 41;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 ColorRGBSlotControlView {
@@ -284,7 +292,18 @@ ColorRGBSlotControlView {
 }
 
 ColorRGBSlotControlView > ColorField {
-    width: 50;
+    width: 41;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+BooleanSlotControlView {
+    flex-direction: row;
+    align-items: center;
+}
+
+BooleanSlotControlView > Toggle {
+    width: 20;
 }
 
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
@@ -333,6 +352,15 @@ GraphInspectorView {
     background-color: rgb(56, 56, 56);
     flex-direction: column;
     justify-content: space-between;
+    position-type: absolute;
+    position-right: 0;
+    position-top: 0;
+    width: 400;
+    min-width: 300;
+}
+
+GraphInspectorView * {
+    font-size: 11;
 }
 
 GraphInspectorView > #top > #header {
@@ -360,12 +388,16 @@ GraphInspectorView > #top > #content > #selectionCount {
     padding-bottom: 10;
 }
 
+GraphInspectorView > #bottom {
+    margin-bottom: 20;
+}
+
 GraphInspectorView > #bottom > #preview {
-    height: 400;
+    max-height: 400;
     background-color: rgb(79, 79, 79);
 }
 
-GraphInspectorView > #bottom > #properties {
+GraphInspectorView > #top > #properties {
     border-color: rgb(41, 41, 41);
     border-top-width: 1;
     border-bottom-width: 1;
@@ -377,7 +409,7 @@ GraphInspectorView > #bottom > #properties {
     margin-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #header {
+GraphInspectorView > #top > #properties > #header {
     border-color: rgb(41, 41, 41);
     border-bottom-width: 1;
     flex-direction: row;
@@ -385,7 +417,7 @@ GraphInspectorView > #bottom > #properties > #header {
     align-items: center;
 }
 
-GraphInspectorView > #bottom > #properties > #header > #title {
+GraphInspectorView > #top > #properties > #header > #title {
     text-color: rgb(180, 180, 180);
     font-style: bold;
     padding-top: 8;
@@ -394,7 +426,7 @@ GraphInspectorView > #bottom > #properties > #header > #title {
     padding-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #header > #addButton {
+GraphInspectorView > #top > #properties > #header > #addButton {
     height: 24;
     margin-top: 0;
     margin-bottom: 0;
@@ -402,8 +434,138 @@ GraphInspectorView > #bottom > #properties > #header > #addButton {
     margin-right: 8;
 }
 
-GraphInspectorView > #bottom > #properties > #items {
+GraphInspectorView > #top > #properties > #items {
     padding-bottom: 4;
+}
+
+MasterPreviewView {
+    flex-direction: column;
+    position-type: absolute;
+    position-right: 0;
+    position-bottom: 0;
+    background-color: rgb(79, 79, 79);
+    justify-content: flex-start;
+    min-width: 200;
+    min-height: 200;
+    border-radius: 6;
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    border-color: rgb(25,25,25);
+
+}
+
+MasterPreviewView > #top {
+    background-color: rgb(64, 64, 64);
+    padding-top: 8;
+    padding-bottom: 8;
+    padding-left: 8;
+    padding-right: 8;
+    border-top-left-radius: 6;
+    border-top-right-radius: 6;
+}
+
+MasterPreviewView > #top > #title {
+    font-size: 12;
+    text-color: rgb(180, 180, 180);
+    padding-top: 1;
+    padding-bottom: 2;
+    padding-left: 2;
+    padding-right: 2;
+}
+
+MasterPreviewView > #middle {
+    flex-grow: 1;
+    border-width: 10;
+    flex-direction: row;
+    border-color: rgb(0,10,190);
+}
+
+MasterPreviewView > #middle > #preview {
+    flex-grow: 1;
+    border-width: 10;
+    border-color: rgb(200,10,190);
+}
+
+#resizeBorderFrame > .resize {
+    background-color: rgba(0, 0, 0, 0);
+    position-type: absolute;
+}
+
+#resizeBorderFrame > .resize.vertical {
+    cursor: resize-vertical;
+    height: 10;
+    position-left: 10;
+    position-right: 10;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#resizeBorderFrame > .resize.horizontal {
+    cursor: resize-horizontal;
+    width: 10;
+    position-top: 10;
+    position-bottom: 10;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#resizeBorderFrame > .resize.diagonal {
+    width: 10;
+    height: 10;
+}
+
+#resizeBorderFrame > .resize.diagonal.top-left {
+    cursor: resize-up-left;
+    position-top: 0;
+    position-left: 0;
+}
+
+#resizeBorderFrame > .resize.diagonal.top-right {
+    cursor: resize-up-right;
+    position-top: 0;
+    position-right: 0;
+}
+
+#resizeBorderFrame > .resize.diagonal.bottom-left {
+    cursor: resize-up-right;
+    position-bottom: 0;
+    position-left: 0;
+}
+
+#resizeBorderFrame > .resize.diagonal.bottom-right {
+    cursor: resize-up-left;
+    position-bottom: 0;
+    position-right: 0;
+}
+
+#resizeBorderFrame > .resize.vertical.top {
+    position-top: 0;
+}
+
+#resizeBorderFrame > .resize.vertical.bottom {
+    position-bottom: 0;
+}
+
+#resizeBorderFrame > .resize.horzontal.left {
+    position-left: 0;
+}
+
+#resizeBorderFrame > .resize.horizontal.right {
+    position-right: 0;
+}
+
+.reszieBorderFrame {
+    position-type: absolute;
+    position-top: 0;
+    position-right: 0;
+    position-bottom: 0;
+    position-left: 0;
 }
 
 ShaderPropertyView {
@@ -499,8 +661,31 @@ IMGUISlotEditorView {
     padding-bottom: 2;
 }
 
-ColorControlView {
+ColorControlView > ColorField {
     flex-direction: row;
+}
+
+ColorControlView > #enumPanel {
+    flex-direction: row;
+}
+
+ColorControlView > #enumPanel > EnumField {
+    flex: 1;
+    margin-left: 0;
+    margin-right: 8;
+    margin-top: 4;
+    margin-bottom: 4;
+}
+
+ColorControlView > #enumPanel > Label {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 8;
+    margin-right: 8;
+    margin-top: 4;
+    margin-bottom: 4;
 }
 
 MultiFloatControlView {
@@ -522,6 +707,99 @@ MultiFloatControlView > FloatField {
     margin-right: 0;
     min-width: 30;
     flex-grow: 1;
+}
+
+IntegerControlView {
+    flex-direction: row;
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
+
+IntegerControlView > IntegerField {
+    margin-left: 0;
+    margin-right: 0;
+    min-width: 30;
+    flex-grow: 1;
+}
+
+SliderControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
+
+SliderControlView > #SliderPanel {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 4;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+SliderControlView > #SliderPanel > Slider {
+    margin-left: 0;
+    margin-right: 0;
+    flex-direction: row;
+    flex-grow: 1;
+    min-width: 164;
+}
+
+SliderControlView > #SliderPanel > FloatField {
+    margin-left: 4;
+    margin-right: 0;
+    flex-direction: row;
+    flex-grow: 1;
+    width: 30;
+}
+
+SliderControlView > #FieldsPanel {
+    flex-direction: row;
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+SliderControlView > #FieldsPanel > Label {
+    margin-left: 0;
+    margin-right: 8;
+}
+
+SliderControlView > #FieldsPanel > FloatField {
+    margin-left: 0;
+    margin-right: 0;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+ToggleControlView > #togglePanel {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+ToggleControlView > #togglePanel > Label {
+    flex-grow: 1;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: 8;
+    margin-right: 8;
+    margin-top: 4;
+    margin-bottom: 4;
+}
+
+ToggleControlView > #togglePanel > Toggle {
+    margin-left: 8;
+    margin-right: 8;
+    margin-top: 4;
+    margin-bottom: 4;
+    align-self: center;
 }
 
 ObjectControlView {
@@ -589,7 +867,122 @@ EnumConversionControlView > Label {
     padding-bottom: 0;
 }
 
+ChannelMixerControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
 
+ChannelMixerControlView > Label {
+    margin-left: 0;
+    margin-right: 0;
+    cursor: slide-arrow;
+}
+
+ChannelMixerControlView > #buttonPanel {
+    flex-direction: row;
+    flex-grow: 1;
+    margin-bottom: 6;
+}
+
+ChannelMixerControlView > #buttonPanel > Button {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+    align-items: center;
+}
+
+ChannelMixerControlView > #buttonPanel > Button > Label {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+ChannelMixerControlView > #sliderPanel {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+ChannelMixerControlView > #sliderPanel > Label {
+    margin-left: 0;
+    margin-right: 0;
+    min-width: 20;
+}
+
+ChannelMixerControlView > #sliderPanel > Slider {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+ChannelMixerControlView > #sliderPanel > FloatField {
+    margin-left: 4;
+    margin-right: 2;
+    min-width: 30;
+    max-width: 30;
+}
+
+DielectricSpecularControlView {
+    padding-left: 8;
+    padding-right: 8;
+    padding-top: 4;
+    padding-bottom: 4;
+}
+
+DielectricSpecularControlView > #enumPanel {
+    flex-direction: row;
+    flex-grow: 1;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+DielectricSpecularControlView > #enumPanel > Label {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    width: 60;
+}
+
+DielectricSpecularControlView > #enumPanel > EnumField {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+DielectricSpecularControlView > #sliderPanel {
+    flex-direction: row;
+    flex-grow: 1;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+DielectricSpecularControlView > #sliderPanel > Label {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    width: 60;
+}
+
+DielectricSpecularControlView > #sliderPanel > Slider {
+    flex-grow: 1;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+DielectricSpecularControlView > #sliderPanel > FloatField {
+    width: 30;
+    margin-left: 4;
+    margin-right: 0;
+}
 
 /* TEMP STUFF THAT SHOULD ACTUALLY STAY IN GRAPHVIEW */
 

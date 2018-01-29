@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -23,12 +24,16 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty()
+            return new PreviewProperty(PropertyType.Vector4)
             {
                 name = referenceName,
-                propType = PropertyType.Vector4,
                 vector4Value = value
             };
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new Vector4Node { value = value };
         }
     }
 }

@@ -22,10 +22,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_Selected;
 
         [SerializeField]
-        SerializableGraphObject m_GraphObject;
+        GraphObject m_GraphObject;
 
         [NonSerialized]
         bool m_HasError;
+
+        [NonSerialized]
+        public bool forceRedrawPreviews = false;
+
+        ColorSpace m_ColorSpace;
 
         GraphEditorView m_GraphEditorView;
 
@@ -39,18 +44,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.RemoveFromHierarchy();
                     m_GraphEditorView.Dispose();
                 }
+
                 m_GraphEditorView = value;
                 if (m_GraphEditorView != null)
                 {
-                    m_GraphEditorView.onUpdateAssetClick += UpdateAsset;
-                    m_GraphEditorView.onConvertToSubgraphClick += ToSubGraph;
-                    m_GraphEditorView.onShowInProjectClick += PingAsset;
+                    m_GraphEditorView.saveRequested += UpdateAsset;
+                    m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
+                    m_GraphEditorView.showInProjectRequested += PingAsset;
                     this.GetRootVisualContainer().Add(graphEditorView);
                 }
             }
         }
 
-        SerializableGraphObject graphObject
+        GraphObject graphObject
         {
             get { return m_GraphObject; }
             set
@@ -71,6 +77,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_HasError)
                 return;
+
+            if (PlayerSettings.colorSpace != m_ColorSpace)
+            {
+                graphEditorView = null;
+                m_ColorSpace = PlayerSettings.colorSpace;
+            }
 
             try
             {
@@ -94,16 +106,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
                     graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
+                    m_ColorSpace = PlayerSettings.colorSpace;
                 }
 
+                if (forceRedrawPreviews)
+                {
+                    // Redraw all previews
+                    foreach (INode node in m_GraphObject.graph.GetNodes<INode>())
+                        node.Dirty(ModificationScope.Node);
+                    forceRedrawPreviews = false;
+                }
+                    
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 m_HasError = true;
                 m_GraphEditorView = null;
                 graphObject = null;
+                Debug.LogException(e);
                 throw;
             }
         }
@@ -122,6 +144,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Undo.ClearUndo(graphObject);
                 DestroyImmediate(graphObject);
             }
+
             graphEditorView = null;
         }
 
@@ -231,6 +254,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     subGraph.Connect(outputSlotRef, inputSlotRef);
                 }
+
                 // one edge needs to go to outside world
                 else if (outputSlotExistsInSubgraph)
                 {
@@ -274,7 +298,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         prop = new Vector2ShaderProperty();
                         break;
                     case ConcreteSlotValueType.Vector1:
-                        prop = new FloatShaderProperty();
+                        prop = new Vector1ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Boolean:
+                        prop = new BooleanShaderProperty();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -356,7 +383,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphObject.graph.ValidateGraph();
         }
 
-        void UpdateAbstractSubgraphOnDisk<T>(string path) where T : AbstractSubGraph
+        void UpdateAbstractSubgraphOnDisk<T>(string path) where T : SubGraph
         {
             var graph = graphObject.graph as T;
             if (graph == null)
@@ -372,9 +399,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graph == null)
                 return;
 
-            List<PropertyCollector.TextureInfo> configuredTextures;
-            graph.GetShader(Path.GetFileNameWithoutExtension(path), GenerationMode.ForReals, out configuredTextures);
-
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
             if (shaderImporter == null)
                 return;
@@ -388,7 +412,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (graphObject != null && graphObject.graph != null)
             {
-                var subNodes = graphObject.graph.GetNodes<AbstractSubGraphNode>();
+                var subNodes = graphObject.graph.GetNodes<SubGraphNode>();
                 foreach (var node in subNodes)
                     node.UpdateSlots();
             }
@@ -426,7 +450,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = newSelectionGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<SerializableGraphObject>();
+                graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson(textGraph, graphType) as IGraph;
                 graphObject.graph.OnEnable();

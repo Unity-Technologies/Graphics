@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
             return string.Empty;
         }
 
-        public override string GetPropertyDeclarationString()
+        public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return "float4x4 " + referenceName + ";";
         }

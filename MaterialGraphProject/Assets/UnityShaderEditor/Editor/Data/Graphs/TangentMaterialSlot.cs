@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return space.ToVariableName(InterpolatorType.Tangent);
+            return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Tangent));
         }
 
         public NeededCoordinateSpace RequiresTangent()

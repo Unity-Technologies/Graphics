@@ -1,8 +1,11 @@
 using System;
 using System.Reflection;
-using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Experimental.UIElements;
+using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -43,10 +46,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
     public class ToggleControlView : VisualElement, INodeModificationListener
     {
-        GUIContent m_Label;
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
-        IMGUIContainer m_Container;
+
+        UnityEngine.Experimental.UIElements.Toggle m_Toggle;
 
         public ToggleControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -54,33 +57,39 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo = propertyInfo;
             if (propertyInfo.PropertyType != typeof(Toggle))
                 throw new ArgumentException("Property must be a Toggle.", "propertyInfo");
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
-            m_Container = new IMGUIContainer(OnGUIHandler);
-            Add(m_Container);
+            
+            label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
+
+            var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
+            var panel = new VisualElement { name = "togglePanel" };
+            if (!string.IsNullOrEmpty(label))
+                panel.Add(new Label(label));
+            Action changedToggle = () => { OnChangeToggle(); };
+            m_Toggle = new UnityEngine.Experimental.UIElements.Toggle(changedToggle);
+            m_Toggle.SetEnabled(value.isEnabled);
+            m_Toggle.on = value.isOn;
+            panel.Add(m_Toggle);
+            Add(panel);
         }
 
         public void OnNodeModified(ModificationScope scope)
         {
+            var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
+            m_Toggle.SetEnabled(value.isEnabled);
+ 
             if (scope == ModificationScope.Graph)
-                m_Container.Dirty(ChangeType.Repaint);
+            {
+                Dirty(ChangeType.Repaint);
+            } 
         }
 
-        void OnGUIHandler()
+        void OnChangeToggle()
         {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Toggle Change");
             var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
-
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
-            {
-                m_Container.SetEnabled(value.isEnabled);
-
-                bool isOn = EditorGUILayout.Toggle(m_Label, value.isOn);
-                value = new Toggle(isOn, value.isEnabled);
-                if (changeCheckScope.changed)
-                {
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                }
-            }
+            value.isOn = !value.isOn;
+            m_PropertyInfo.SetValue(m_Node, value, null);
+            Dirty(ChangeType.Repaint);
         }
     }
 }

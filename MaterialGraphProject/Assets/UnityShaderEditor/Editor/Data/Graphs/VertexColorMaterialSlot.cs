@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            return ShaderGeneratorNames.VertexColor;
+            return string.Format("IN.{0}", ShaderGeneratorNames.VertexColor);
         }
 
         public bool RequiresScreenPosition()

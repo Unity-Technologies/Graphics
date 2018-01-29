@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasVaule<float>
+    public class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasValue<float>
     {
         [SerializeField]
         private float m_Value;
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return value.ToString();
+            return NodeUtils.FloatToShaderValue(value);
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var property = new FloatShaderProperty()
+            var property = new Vector1ShaderProperty()
             {
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
                 generatePropertyBlock = false,
@@ -73,13 +73,10 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
+            var pp = new PreviewProperty(PropertyType.Vector1)
             {
                 name = name,
-                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
-                vector4Value = new Vector4(value, value, value, value),
-                floatValue = value,
-                colorValue = new Vector4(value, value, value, value),
+                floatValue = value
             };
             return pp;
         }

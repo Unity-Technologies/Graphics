@@ -7,7 +7,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasVaule<Vector3>
+    public class Vector3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Vector3>
     {
         [SerializeField]
         private Vector3 m_Value;
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            return precision + "3 (" + value.x + "," + value.y + "," + value.z + ")";
+            return precision + "3 (" + NodeUtils.FloatToShaderValue(value.x) + "," + NodeUtils.FloatToShaderValue(value.y) + "," + NodeUtils.FloatToShaderValue(value.z) + ")";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -70,13 +70,10 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewProperty(string name)
         {
-            var pp = new PreviewProperty
+            var pp = new PreviewProperty(PropertyType.Vector3)
             {
                 name = name,
-                propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType),
-                vector4Value = new Vector4(value.x, value.y, value.z, 0),
-                floatValue = value.x,
-                colorValue = new Vector4(value.x, value.x, value.z, 0),
+                vector4Value = new Vector4(value.x, value.y, value.z, 0)
             };
             return pp;
         }

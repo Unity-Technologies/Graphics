@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -20,20 +21,20 @@ namespace UnityEditor.ShaderGraph
         {
             get { return new Vector4(value.x, value.y, 0, 0); }
         }
-
-        public override string GetInlinePropertyDeclarationString()
-        {
-            return "float2 " + referenceName + ";";
-        }
+       
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty()
+            return new PreviewProperty(PropertyType.Vector2)
             {
                 name = referenceName,
-                propType = PropertyType.Vector2,
                 vector4Value = value
             };
+        }
+
+        public override INode ToConcreteNode()
+        {
+            return new Vector2Node { value = value };
         }
     }
 }
