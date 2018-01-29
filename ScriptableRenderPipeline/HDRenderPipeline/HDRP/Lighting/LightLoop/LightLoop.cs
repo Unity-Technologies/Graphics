@@ -475,6 +475,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_lightList = new LightList();
             m_lightList.Allocate();
+            m_Env2DCaptureVP.Clear();
+            for (int i = 0, c = Mathf.Max(1, hdAsset.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionProbes); i < c; ++i)
+                m_Env2DCaptureVP.Add(Matrix4x4.identity);
 
             s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
             s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
@@ -1187,8 +1190,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var envIndex = -1;
             if (probe.planarReflectionProbe != null)
             {
-                envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                envIndex = (envIndex << 1) | (int)EnvCacheType.Texture2D;
+                var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                envIndex = (fetchIndex << 1) | (int)EnvCacheType.Texture2D;
 
                 float nearClipPlane, farClipPlane, aspect, fov;
                 Color backgroundColor;
@@ -1208,7 +1211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // We transform it to object space by translating the capturePosition
                 var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
-                m_Env2DCaptureVP.Add(vp);
+                m_Env2DCaptureVP[fetchIndex] = vp;
                 sampleDirectionDiscardWS = captureRotation * Vector3.forward;
             }
             else if (probe.reflectionProbe != null)
@@ -1352,7 +1355,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
 
-                m_Env2DCaptureVP.Clear();
                 m_lightList.Clear();
 
                 Vector3 camPosWS = camera.transform.position;
@@ -1998,8 +2000,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
-                if (m_Env2DCaptureVP.Count > 0)
-                    cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
