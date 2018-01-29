@@ -18,21 +18,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Create an instance of the MaterialEditor
             m_DecalProjectorComponent = (DecalProjectorComponent)target;
             m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
-			m_DecalProjectorComponent.OnMaterialChange += new DecalProjectorComponent.OnMaterialChangeDelegate(this.OnMaterialChange);
+			m_DecalProjectorComponent.OnMaterialChange += OnMaterialChange;
         }
 
 		private void OnDisable()
 		{
-			m_DecalProjectorComponent.OnMaterialChange -= new DecalProjectorComponent.OnMaterialChangeDelegate(this.OnMaterialChange);
+			m_DecalProjectorComponent.OnMaterialChange -= OnMaterialChange;
 		}
 
 		public void OnMaterialChange()
 		{
-			if (m_MaterialEditor != null)
-			{
-				// Draw the material's foldout and the material shader field
-				m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
-			}
+			// Update material editor with the new material
+			m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
 		}
 
         public override void OnInspectorGUI()

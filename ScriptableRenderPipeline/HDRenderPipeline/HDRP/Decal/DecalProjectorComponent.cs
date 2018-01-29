@@ -70,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DecalSystem.instance.AddDecal(this);
                 m_OldMaterial = m_Material;
 
+                // notify the editor that material has changed so it can update the shader foldout
 				if (OnMaterialChange != null)
 				{
 					OnMaterialChange();
@@ -113,8 +114,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsValid()
         {
+            // don't draw if no material or if material is the default decal material (empty)
             if (m_Material == null)
                 return false;
+
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
+                return false;
+
             return true;
         }
     }
