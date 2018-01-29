@@ -183,13 +183,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
         Material m_CopyStencilForNoLighting;
         GPUCopy m_GPUCopy;
+        DepthPyramid m_DepthPyramid;
 
         IBLFilterGGX m_IBLFilterGGX = null;
 
         ComputeShader m_GaussianPyramidCS { get { return m_Asset.renderPipelineResources.gaussianPyramidCS; } }
         int m_GaussianPyramidKernel;
-        ComputeShader m_DepthPyramidCS { get { return m_Asset.renderPipelineResources.depthPyramidCS; } }
-        int m_DepthPyramidKernel;
 
         ComputeShader m_applyDistortionCS { get { return m_Asset.renderPipelineResources.applyDistortionCS; } }
         int m_applyDistortionKernel;
@@ -225,7 +224,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly RenderTargetIdentifier m_GaussianPyramidColorBufferRT;
         readonly RenderTargetIdentifier m_DepthPyramidBufferRT;
         RenderTextureDescriptor m_GaussianPyramidColorBufferDesc;
-        RenderTextureDescriptor m_DepthPyramidBufferDesc;
 
         readonly RenderTargetIdentifier m_DeferredShadowBufferRT;
 
@@ -316,6 +314,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
+            m_DepthPyramid = new DepthPyramid(asset.renderPipelineResources.depthPyramidCS, m_GPUCopy, HDShaderIDs._DepthPyramidMips);
+
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
             m_ReflectionProbeCullResults = new ReflectionProbeCullResults(asset.reflectionSystemParameters);
@@ -369,14 +369,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 autoGenerateMips = false
             };
 
-            m_DepthPyramidKernel = m_DepthPyramidCS.FindKernel("KMain");
             m_DepthPyramidBuffer = HDShaderIDs._PyramidDepthTexture;
             m_DepthPyramidBufferRT = new RenderTargetIdentifier(m_DepthPyramidBuffer);
-            m_DepthPyramidBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.RFloat, 0)
-            {
-                useMipMap = true,
-                autoGenerateMips = false
-            };
 
             m_DeferredShadowBuffer = HDShaderIDs._DeferredShadowTexture;
             m_DeferredShadowBufferRT = new RenderTargetIdentifier(m_DeferredShadowBuffer);
@@ -1580,65 +1574,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableRoughRefraction)
                 return;
 
-            using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
-            {
-                var depthPyramidDesc = m_DepthPyramidBufferDesc;
-                var minSize = Mathf.Min(depthPyramidDesc.width, depthPyramidDesc.height);
+            m_DepthPyramid.RenderPyramidDepth(hdCamera, cmd, renderContext, GetDepthTexture(), m_DepthPyramidBufferRT);
+            var depthSize = new Vector4(m_DepthPyramid.renderTextureDescriptor.width, m_DepthPyramid.renderTextureDescriptor.height, m_DepthPyramid.usedMipMapCount, 0);
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, depthSize);
+            PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, m_DepthPyramid.usedMipMapCount, m_DepthPyramid.renderTextureDescriptor, hdCamera, debugMode);
 
-                var lodCount = Mathf.FloorToInt(Mathf.Log(minSize, 2f));
-                if (lodCount > HDShaderIDs._DepthPyramidMips.Length)
-                {
-                    Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << HDShaderIDs._DepthPyramidMips.Length).ToString());
-                    lodCount = HDShaderIDs._DepthPyramidMips.Length;
-                }
-
-                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(depthPyramidDesc.width, depthPyramidDesc.height, lodCount, 0));
-
-                cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[0]);
-
-                depthPyramidDesc.sRGB = false;
-                depthPyramidDesc.enableRandomWrite = true;
-                depthPyramidDesc.useMipMap = false;
-
-                cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[0], depthPyramidDesc, FilterMode.Bilinear);
-                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), HDShaderIDs._DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
-                cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[0], 0, 0, m_DepthPyramidBufferRT, 0, 0);
-
-                for (var i = 0; i < lodCount; i++)
-                {
-                    //var sourceTarget = i == 0
-                    //    ? m_DepthPyramidBufferRT
-                    //    : HDShaderIDs._DepthPyramidMips[i];
-
-                    var srcMipWidth = depthPyramidDesc.width;
-                    var srcMipHeight = depthPyramidDesc.height;
-                    depthPyramidDesc.width = srcMipWidth >> 1;
-                    depthPyramidDesc.height = srcMipHeight >> 1;
-
-                    cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1]);
-                    cmd.GetTemporaryRT(HDShaderIDs._DepthPyramidMips[i + 1], depthPyramidDesc, FilterMode.Bilinear);
-
-                    cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Source", HDShaderIDs._DepthPyramidMips[i]);
-                    cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", HDShaderIDs._DepthPyramidMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(srcMipWidth, srcMipHeight, 1f / srcMipWidth, 1f / srcMipHeight));
-
-                    cmd.DispatchCompute(
-                        m_DepthPyramidCS, 
-                        m_DepthPyramidKernel, 
-                        Mathf.CeilToInt(depthPyramidDesc.width / 8f),
-                        Mathf.CeilToInt(depthPyramidDesc.height / 8f), 
-                        1);
-
-                    cmd.CopyTexture(HDShaderIDs._DepthPyramidMips[i + 1], 0, 0, m_DepthPyramidBufferRT, 0, i + 1);
-                }
-
-                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, lodCount, m_DepthPyramidBufferDesc, hdCamera, debugMode);
-
-                cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
-
-                for (int i = 0; i < lodCount + 1; i++)
-                    cmd.ReleaseTemporaryRT(HDShaderIDs._DepthPyramidMips[i]);
-            }
+            cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
         }
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
@@ -1855,10 +1796,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.ReleaseTemporaryRT(m_GaussianPyramidColorBuffer);
                     cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
 
-                    m_DepthPyramidBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Depth, m_FrameSettings.enableStereo);
+                    m_DepthPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
 
                     cmd.ReleaseTemporaryRT(m_DepthPyramidBuffer);
-                    cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramidBufferDesc, FilterMode.Trilinear);
+                    cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramid.renderTextureDescriptor, FilterMode.Trilinear);
                     // End
 
                     if (!m_FrameSettings.enableForwardRenderingOnly)
