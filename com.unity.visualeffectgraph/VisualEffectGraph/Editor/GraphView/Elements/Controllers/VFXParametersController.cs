@@ -305,6 +305,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            model.ValidateParamInfos();
             bool controllerListChanged = UpdateControllers();
             if (controllerListChanged)
                 m_ViewController.NotifyParameterControllerChange();

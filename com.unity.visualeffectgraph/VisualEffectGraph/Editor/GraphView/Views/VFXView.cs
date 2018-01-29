@@ -163,7 +163,7 @@ namespace UnityEditor.VFX.UI
                 return descs.Where(t => m_Filter(t));
         }
     }
-    class VFXView : GraphView, IParameterDropTarget, IControlledElement<VFXViewController>
+    class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>
     {
         VisualElement m_NoAssetLabel;
 
@@ -889,6 +889,13 @@ namespace UnityEditor.VFX.UI
             return controller.AddVFXParameter(pos, desc);
         }
 
+        void AddVFXParameter(Vector2 pos, VFXParametersController parametersController)
+        {
+            if (controller == null || parametersController == null) return;
+
+            controller.AddVFXParameter(pos, parametersController);
+        }
+
         public EventPropagation Resync()
         {
             if (controller != null)
@@ -1105,18 +1112,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-        }
-
-        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterController parameter)
-        {
-            //TODO : show that we accept the drag
-            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-        }
-
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterController parameter)
-        {
-            if (controller == null) return;
-            controller.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
@@ -1340,6 +1335,36 @@ namespace UnityEditor.VFX.UI
         private string CullingMaskToString(VFXCullingFlags flags)
         {
             return k_CullingOptions.First(o => o.Value == flags).Key;
+        }
+
+        bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
+        {
+            return selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null);
+        }
+
+        bool IDropTarget.DragExited()
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
+
+            Vector2 mousePosition = contentViewContainer.WorldToLocal(evt.mousePosition);
+            foreach (var row in rows)
+            {
+                AddVFXParameter(mousePosition, row.controller);
+            }
+
+            return true;
+        }
+
+        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        {
+            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+
+            return true;
         }
     }
 }

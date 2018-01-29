@@ -666,6 +666,11 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
+        public void AddVFXParameter(Vector2 pos, VFXParametersController parametersController)
+        {
+            parametersController.model.AddParamsInfo(pos);
+        }
+
         public void Clear()
         {
             foreach (var element in allChildren)

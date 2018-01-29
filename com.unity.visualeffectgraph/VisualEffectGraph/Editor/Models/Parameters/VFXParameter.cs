@@ -33,12 +33,23 @@ namespace UnityEditor.VFX
         {
             public ParamInfo(int id)
             {
-                this.id = id;
+                m_Id = id;
             }
 
-            public readonly int id;
+            [SerializeField]
+            private int m_Id;
+
+            public int id { get { return m_Id; } }
+
             public List<VFXSlot> linkedSlots;
             public Vector2 position;
+
+
+            //Should only be called by ValidateParamInfos if something very wrong happened with serialization
+            internal void ChangeId(int newId)
+            {
+                m_Id = newId;
+            }
         }
 
         [SerializeField]
@@ -172,6 +183,17 @@ namespace UnityEditor.VFX
             return new ParamInfo(m_IDCounter++);
         }
 
+        public void AddParamsInfo(Vector2 pos)
+        {
+            ParamInfo info = CreateParamInfo();
+
+            info.position = pos;
+
+            m_ParamInfos.Add(info);
+
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
         public void ValidateParamInfos()
         {
             // Case of the old VFXParameter we create a new one on the same place with all the Links
@@ -186,18 +208,33 @@ namespace UnityEditor.VFX
             {
                 // the linked slot of the outSlot decides so make sure that all appear once and only once in all the paramInfos
                 HashSet<VFXSlot> links = new HashSet<VFXSlot>(outputSlots[0].LinkedSlots);
-
+                HashSet<int> usedIds = new HashSet<int>();
                 foreach (var info in paramInfos)
                 {
-                    // first remove linkedSlots that are not existing
-                    info.linkedSlots = info.linkedSlots.Intersect(links).ToList();
+                    if (info.linkedSlots == null)
+                    {
+                        info.linkedSlots = new List<VFXSlot>();
+                    }
+                    else
+                    {
+                        // first remove linkedSlots that are not existing
+                        var intersect = info.linkedSlots.Intersect(links);
+                        if (intersect.Count() != info.linkedSlots.Count())
+                            info.linkedSlots = info.linkedSlots.Intersect(links).ToList();
+                    }
+
+                    if (usedIds.Contains(info.id))
+                    {
+                        info.ChangeId(m_IDCounter++);
+                    }
+                    usedIds.Add(info.id);
 
                     foreach (var slot in info.linkedSlots)
                     {
                         links.Remove(slot);
                     }
                 }
-                // if there are some links n the output slots that are in none of the infos, create a default param with them
+                // if there are some links in the output slots that are in none of the infos, create a default param with them
                 if (links.Count > 0)
                 {
                     var newInfos = CreateParamInfo();
