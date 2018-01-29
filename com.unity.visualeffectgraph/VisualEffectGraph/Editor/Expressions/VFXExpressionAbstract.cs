@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kTexture3D: return "Texture3D";
                 case VFXValueType.kTextureCube: return "TextureCube";
                 case VFXValueType.kTextureCubeArray: return "TextureCubeArray";
-                case VFXValueType.kTransform: return "float4x4";
+                case VFXValueType.kMatrix4x4: return "float4x4";
                 case VFXValueType.kBool: return "bool";
             }
             throw new NotImplementedException(type.ToString());
@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4: return "float4";
                 case VFXValueType.kInt: return "float";
                 case VFXValueType.kUint: return "float";
-                case VFXValueType.kTransform: return "float4x4";
+                case VFXValueType.kMatrix4x4: return "float4x4";
                 case VFXValueType.kBool: return "float";
             }
             throw new NotImplementedException(type.ToString());
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kTexture3D: return typeof(Texture3D);
                 case VFXValueType.kTextureCube: return typeof(Cubemap);
                 case VFXValueType.kTextureCubeArray: return typeof(CubemapArray);
-                case VFXValueType.kTransform: return typeof(Matrix4x4);
+                case VFXValueType.kMatrix4x4: return typeof(Matrix4x4);
                 case VFXValueType.kMesh: return typeof(Mesh);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
                 case VFXValueType.kColorGradient: return typeof(Gradient);
@@ -177,7 +177,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kTexture3D:
                 case VFXValueType.kTextureCube:
                 case VFXValueType.kTextureCubeArray:
-                case VFXValueType.kTransform:
+                case VFXValueType.kMatrix4x4:
                 case VFXValueType.kBool:
                     return true;
             }
@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4:
                 case VFXValueType.kInt:
                 case VFXValueType.kUint:
-                case VFXValueType.kTransform:
+                case VFXValueType.kMatrix4x4:
                 case VFXValueType.kBool:
                     return true;
             }
@@ -230,7 +230,7 @@ namespace UnityEditor.VFX
             if (type == typeof(Texture3D)) return VFXValueType.kTexture3D;
             if (type == typeof(Cubemap)) return VFXValueType.kTextureCube;
             if (type == typeof(CubemapArray)) return VFXValueType.kTextureCubeArray;
-            if (type == typeof(Matrix4x4)) return VFXValueType.kTransform;
+            if (type == typeof(Matrix4x4)) return VFXValueType.kMatrix4x4;
             if (type == typeof(AnimationCurve)) return VFXValueType.kCurve;
             if (type == typeof(Gradient)) return VFXValueType.kColorGradient;
             if (type == typeof(Mesh)) return VFXValueType.kMesh;
