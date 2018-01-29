@@ -125,6 +125,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRandomWriteTarget(bindSlot, m_HTile);
         }
 
+        public void UnSetHTile(CommandBuffer cmd)
+        {
+            cmd.ClearRandomWriteTargets();
+        }
+
         public void PushGlobalParams(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
@@ -1242,6 +1247,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
                     }
                 }
+
+                if (m_FrameSettings.enableDBuffer)
+                {
+                    m_DbufferManager.UnSetHTile(cmd);
+                }
             }
         }
 
@@ -1271,7 +1281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.dbufferCount, cmd);
                 DecalSystem.instance.Render(renderContext, camera, cmd);
-                cmd.ClearRandomWriteTargets();
+                m_DbufferManager.UnSetHTile(cmd);
             }
         }
 

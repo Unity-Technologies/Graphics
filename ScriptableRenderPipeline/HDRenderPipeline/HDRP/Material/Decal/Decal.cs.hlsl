@@ -16,6 +16,13 @@
 //
 #define DBUFFERMATERIAL_COUNT (3)
 
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferHTileBit:  static fields
+//
+#define DBUFFERHTILEBIT_DIFFUSE (1)
+#define DBUFFERHTILEBIT_NORMAL (2)
+#define DBUFFERHTILEBIT_MASK (4)
+
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData
 // PackingRules = Exact
 struct DecalSurfaceData
