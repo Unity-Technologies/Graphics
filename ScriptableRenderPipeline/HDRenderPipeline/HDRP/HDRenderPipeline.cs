@@ -184,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_CopyStencilForNoLighting;
         GPUCopy m_GPUCopy;
         DepthPyramid m_DepthPyramid;
+        ColorPyramid m_ColorPyramid;
 
         IBLFilterGGX m_IBLFilterGGX = null;
 
@@ -353,6 +354,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
 
             InitializeDebugMaterials();
+
+            // Require m_Blit in InitializeDebugMaterials();
+            m_ColorPyramid = new ColorPyramid(
+                asset.renderPipelineResources.gaussianPyramidCS,
+                m_GPUCopy,
+                m_Blit,
+                HDShaderIDs._BlitTexture,
+                HDShaderIDs._GaussianPyramidColorMips);
 
             m_VelocityBuffer = HDShaderIDs._VelocityTexture;
             m_VelocityBufferRT = new RenderTargetIdentifier(m_VelocityBuffer);
@@ -1516,57 +1525,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
-            {
-                var colorPyramidDesc = m_GaussianPyramidColorBufferDesc;
-                var pyramidSideSize = GetPyramidSize(colorPyramidDesc);
+                m_ColorPyramid.RenderPyramidColor(hdCamera, cmd, renderContext, m_CameraColorBufferRT, m_GaussianPyramidColorBufferRT);
 
-                // The Gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
-                // minimum size of 8x8
-                int lodCount = Mathf.FloorToInt(Mathf.Log(pyramidSideSize, 2f) - 3f);
-                if (lodCount > HDShaderIDs._GaussianPyramidColorMips.Length)
-                {
-                    Debug.LogWarningFormat("Cannot compute all mipmaps of the color pyramid, max texture size supported: {0}", (2 << HDShaderIDs._GaussianPyramidColorMips.Length).ToString());
-                    lodCount = HDShaderIDs._GaussianPyramidColorMips.Length;
-                }
-
-                cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
-
-                cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, m_CameraColorBufferRT);
-                CoreUtils.DrawFullScreen(cmd, m_Blit, m_GaussianPyramidColorBufferRT, null, 1); // Bilinear filtering
-
-                var last = m_GaussianPyramidColorBuffer;
-
-                colorPyramidDesc.sRGB = false;
-                colorPyramidDesc.enableRandomWrite = true;
-                colorPyramidDesc.useMipMap = false;
-
-                for (int i = 0; i < lodCount; i++)
-                {
-                    colorPyramidDesc.width = colorPyramidDesc.width >> 1;
-                    colorPyramidDesc.height = colorPyramidDesc.height >> 1;
-
-                    // TODO: Add proper stereo support to the compute job
-
-                    cmd.ReleaseTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-                    cmd.GetTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1], colorPyramidDesc, FilterMode.Bilinear);
-                    cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Source", last);
-                    cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Result", HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-                    cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(colorPyramidDesc.width, colorPyramidDesc.height, 1f / colorPyramidDesc.width, 1f / colorPyramidDesc.height));
-                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, colorPyramidDesc.width / 8, colorPyramidDesc.height / 8, 1);
-                    cmd.CopyTexture(HDShaderIDs._GaussianPyramidColorMips[i + 1], 0, 0, m_GaussianPyramidColorBufferRT, 0, i + 1);
-
-                    last = HDShaderIDs._GaussianPyramidColorMips[i + 1];
-                }
-
-                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, lodCount, m_GaussianPyramidColorBufferDesc, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
-
-                cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
-
-                for (int i = 0; i < lodCount; i++)
-                    cmd.ReleaseTemporaryRT(HDShaderIDs._GaussianPyramidColorMips[i + 1]);
-
-                // TODO: Why don't we use _GaussianPyramidColorMips[0]?
-            }
+            var size = new Vector4(m_ColorPyramid.renderTextureDescriptor.width, m_ColorPyramid.renderTextureDescriptor.height, m_ColorPyramid.usedMipMapCount, 0);
+            cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, size);
+            PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, m_ColorPyramid.usedMipMapCount, m_GaussianPyramidColorBufferDesc, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
