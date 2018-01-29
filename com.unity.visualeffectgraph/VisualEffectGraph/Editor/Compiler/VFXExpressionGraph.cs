@@ -72,6 +72,16 @@ namespace UnityEditor.VFX
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
         }
 
+        public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
+        {
+            var models = new HashSet<ScriptableObject>();
+            graph.CollectDependencies(models);
+            var contexts = models.OfType<VFXContext>();
+            if (filterOutInvalidContexts)
+                contexts = contexts.Where(c => c.CanBeCompiled());
+
+            CompileExpressions(contexts, options);
+        }
 
         public void CompileExpressions(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options)
         {

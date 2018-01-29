@@ -68,7 +68,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             // type must not be a combination of flags so test if it's a power of two
-            if (m_ContextType == VFXContextType.kNone || (m_ContextType & (m_ContextType - 1)) != 0)
+            if ((m_ContextType & (m_ContextType - 1)) != 0)
             {
                 var invalidContext = m_ContextType;
                 m_ContextType = VFXContextType.kNone;

@@ -66,9 +66,7 @@ namespace UnityEditor.VFX.Test
                 init(vfxGraph);
 
             var expressionGraph = new VFXExpressionGraph();
-            var models = new HashSet<ScriptableObject>();
-            vfxGraph.CollectDependencies(models);
-            expressionGraph.CompileExpressions(models.OfType<VFXContext>(), option);
+            expressionGraph.CompileExpressions(vfxGraph, option, true);
 
             var graphs = new Graphs();
             graphs.vfx = vfxGraph;

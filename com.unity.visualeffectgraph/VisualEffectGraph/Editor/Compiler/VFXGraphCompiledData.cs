@@ -514,22 +514,17 @@ namespace UnityEditor.VFX
         {
             private VFXExpressionMapper mapper;
 
-            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.kSpawner, VFXDataType.kNone, VFXDataType.kNone) { }
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.kNone, VFXDataType.kNone, VFXDataType.kNone) { }
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
-                //TODOPAUL factorize this loop
                 var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
                 if (expression != null)
-                {
                     expressions.Add(expression);
-                }
                 else
                 {
                     foreach (var child in slot.children)
-                    {
                         CollectExposedExpression(expressions, child);
-                    }
                 }
             }
 
@@ -580,7 +575,7 @@ namespace UnityEditor.VFX
                 m_ExpressionGraph = new VFXExpressionGraph();
                 var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();
                 exposedExpressionContext.FillExpression(m_Graph); //Force all exposed expression to be visible, only for registering in CompileExpressions
-                m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new[] { exposedExpressionContext as VFXContext }), VFXExpressionContextOption.Reduction);
+                m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] { exposedExpressionContext }), VFXExpressionContextOption.Reduction);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 3 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
