@@ -149,6 +149,10 @@ namespace UnityEditor.VFX.Test
         public struct SceneTest
         {
             public string path;
+            public override string ToString()
+            {
+                return Path.GetFileName(path);
+            }
         }
 
         static class CollectScene

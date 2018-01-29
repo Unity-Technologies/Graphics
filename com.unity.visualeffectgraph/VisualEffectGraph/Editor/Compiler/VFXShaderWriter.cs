@@ -40,6 +40,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2:
                 case VFXValueType.kFloat3:
                 case VFXValueType.kFloat4:
+                case VFXValueType.kMatrix4x4:
                     format = "{0}{1}";
                     break;
                 default: throw new Exception("GetValueString missing type: " + type);
@@ -58,6 +59,15 @@ namespace UnityEditor.VFX
                     break;
                 case VFXValueType.kFloat4:
                     value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2},{3})", ((Vector4)value).x, ((Vector4)value).y, ((Vector4)value).z, ((Vector4)value).w);
+                    break;
+                case VFXValueType.kMatrix4x4:
+                    {
+                        var matrix = (Matrix4x4)value;
+                        value = "(";
+                        for (int i = 0; i<16; ++i)
+                            value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i]);
+                        value += ")";
+                    }
                     break;
             }
             return string.Format(CultureInfo.InvariantCulture, format, VFXExpression.TypeToCode(type), value);

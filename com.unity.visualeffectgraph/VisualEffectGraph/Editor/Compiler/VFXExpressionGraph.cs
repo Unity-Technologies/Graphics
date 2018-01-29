@@ -74,6 +74,17 @@ namespace UnityEditor.VFX
 
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
         {
+            var models = new HashSet<ScriptableObject>();
+            graph.CollectDependencies(models);
+            var contexts = models.OfType<VFXContext>();
+            if (filterOutInvalidContexts)
+                contexts = contexts.Where(c => c.CanBeCompiled());
+
+            CompileExpressions(contexts, options);
+        }
+
+        public void CompileExpressions(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options)
+        {
             Profiler.BeginSample("VFXEditor.CompileExpressionGraph");
 
             try
@@ -81,12 +92,6 @@ namespace UnityEditor.VFX
                 m_Expressions.Clear();
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
-
-                var models = new HashSet<ScriptableObject>();
-                graph.CollectDependencies(models);
-                var contexts = models.OfType<VFXContext>();
-                if (filterOutInvalidContexts)
-                    contexts = contexts.Where(c => c.CanBeCompiled());
 
                 CompileExpressionContext(contexts, options, VFXDeviceTarget.CPU);
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
