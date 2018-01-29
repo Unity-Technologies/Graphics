@@ -664,9 +664,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
             BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
+            BaseLitGUI.SSSAndTransmissionType sssAndTransmissionType = (BaseLitGUI.SSSAndTransmissionType)material.GetFloat(kSSSAndTransmissionType);
 
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission);
+            if (materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission)
+            {
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSOnly);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitTransmissionOnly);
+            }
+            else
+            {
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", false);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", false);
+            }
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
