@@ -62,6 +62,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
             }
+            if (evt.target is MaterialGraphView)
+            {
+                evt.menu.AppendAction("Collapse Previews", CollapsePreviews, ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Expand Previews", ExpandPreviews, ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendSeparator();
+            }
+        }
+
+        void CollapsePreviews(EventBase evt)
+        {
+            foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.previewExpanded = false;
+            }
+        }
+
+        void ExpandPreviews(EventBase evt)
+        {
+            foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.previewExpanded = true;
+            }
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
