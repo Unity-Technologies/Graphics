@@ -1042,7 +1042,9 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 {
-    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID &&  bsdfData.subsurfaceMask != 0 &&  HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
+    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
+    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID && bsdfData.subsurfaceMask != 0 && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
 }
 
 //-----------------------------------------------------------------------------
@@ -1938,7 +1940,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #endif
 
     float3 modifiedDiffuseColor;
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
+    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
+    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING) && bsdfData.subsurfaceMask != 0)
         modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     else
         modifiedDiffuseColor = bsdfData.diffuseColor;
