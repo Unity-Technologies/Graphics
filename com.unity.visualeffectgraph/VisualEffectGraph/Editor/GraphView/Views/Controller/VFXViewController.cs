@@ -838,6 +838,21 @@ namespace UnityEditor.VFX.UI
             get { return m_ParametersController.Values; }
         }
 
+        public void SetParametersOrder(VFXParametersController controller, int index)
+        {
+            int oldOrder = controller.order;
+
+            var orderedParameters = m_ParametersController.Where(t => t.Value != controller && t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+
+            orderedParameters.Insert(index, controller);
+
+            for (int i = 0; i < orderedParameters.Count; ++i)
+            {
+                orderedParameters[i].order = i;
+            }
+            NotifyChange(AnyThing);
+        }
+
         private void AddControllersFromModel(VFXModel model)
         {
             List<VFXNodeController> newControllers = new List<VFXNodeController>();

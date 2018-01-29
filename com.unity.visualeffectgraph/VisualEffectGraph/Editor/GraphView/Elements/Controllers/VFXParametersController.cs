@@ -198,15 +198,29 @@ namespace UnityEditor.VFX.UI
         public string exposedName
         {
             get { return parameter.exposedName; }
+
+            set
+            {
+                parameter.SetSettingValue("m_exposedName", value);
+            }
         }
         public bool exposed
         {
-            get { return parameter.exposed; }
+            get {return parameter.exposed; }
+            set
+            {
+                parameter.SetSettingValue("m_exposed", value);
+            }
         }
 
         public int order
         {
             get { return parameter.order; }
+
+            set
+            {
+                parameter.SetSettingValue("m_order", value);
+            }
         }
 
         public VFXParameter parameter { get { return model as VFXParameter; } }

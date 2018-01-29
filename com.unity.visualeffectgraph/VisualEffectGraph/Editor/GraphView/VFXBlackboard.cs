@@ -91,55 +91,86 @@ namespace  UnityEditor.VFX.UI
 
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
+            moveItemRequested = OnMoveItem;
+
+            m_ExposedSection = new BlackboardSection() { title = "exposed"};
+            Add(m_ExposedSection);
+            m_PrivateSection = new BlackboardSection() { title = "private" };
+            Add(m_PrivateSection);
         }
+
+        BlackboardSection m_ExposedSection;
+        BlackboardSection m_PrivateSection;
 
         void OnEditName(Blackboard bb, VisualElement element, string value)
         {
             if (element is BlackboardField)
             {
                 VFXBlackboardRow row = element.GetFirstAncestorOfType<VFXBlackboardRow>();
-                row.controller.model.SetSettingValue("m_exposedName", value);
+                row.controller.exposedName = value;
             }
         }
 
-        Dictionary<VFXParametersController, VFXBlackboardRow> m_Parameters = new Dictionary<VFXParametersController, VFXBlackboardRow>();
-
-        void OnControllerChanged(ControllerChangedEvent e)
+        void OnMoveItem(Blackboard bb, int index, VisualElement element)
         {
-            if (e.controller == controller)
+            if (element is BlackboardField)
             {
-                HashSet<VFXParametersController> actualControllers = new HashSet<VFXParametersController>(controller.parametersController);
-                foreach (var removedControllers in m_Parameters.Where(t => !actualControllers.Contains(t.Key)).ToArray())
-                {
-                    removedControllers.Value.RemoveFromHierarchy();
-                    m_Parameters.Remove(removedControllers.Key);
-                }
+                VFXBlackboardRow row = element.GetFirstAncestorOfType<VFXBlackboardRow>();
+                if (row != null)
+                    controller.SetParametersOrder(row.controller, index);
+            }
+        }
 
-                foreach (var addedController in actualControllers.Where(t => !m_Parameters.ContainsKey(t)).ToArray())
-                {
-                    VFXBlackboardRow row = new VFXBlackboardRow();
+        Dictionary<VFXParametersController, VFXBlackboardRow> m_ExposedParameters = new Dictionary<VFXParametersController, VFXBlackboardRow>();
+        Dictionary<VFXParametersController, VFXBlackboardRow> m_PrivateParameters = new Dictionary<VFXParametersController, VFXBlackboardRow>();
 
-                    contentContainer.Add(row);
 
-                    row.controller = addedController;
+        void SyncParameters(BlackboardSection section, HashSet<VFXParametersController> actualControllers , Dictionary<VFXParametersController, VFXBlackboardRow> parameters)
+        {
+            foreach (var removedControllers in parameters.Where(t => !actualControllers.Contains(t.Key)).ToArray())
+            {
+                removedControllers.Value.RemoveFromHierarchy();
+                parameters.Remove(removedControllers.Key);
+            }
 
-                    m_Parameters[addedController] = row;
-                }
+            foreach (var addedController in actualControllers.Where(t => !parameters.ContainsKey(t)).ToArray())
+            {
+                VFXBlackboardRow row = new VFXBlackboardRow();
 
-                var orderedParameters = m_Parameters.OrderBy(t => t.Key.order).Select(t => t.Value).ToArray();
+                section.Add(row);
 
-                if (contentContainer.ElementAt(0) != orderedParameters[0])
+                row.controller = addedController;
+
+                parameters[addedController] = row;
+            }
+
+            if (parameters.Count > 0)
+            {
+                var orderedParameters = parameters.OrderBy(t => t.Key.order).Select(t => t.Value).ToArray();
+
+                if (section.ElementAt(0) != orderedParameters[0])
                 {
                     orderedParameters[0].SendToBack();
                 }
 
                 for (int i = 1; i < orderedParameters.Length; ++i)
                 {
-                    if (contentContainer.ElementAt(i) != orderedParameters[i])
+                    if (section.ElementAt(i) != orderedParameters[i])
                     {
                         orderedParameters[i].PlaceInFront(orderedParameters[i - 1]);
                     }
                 }
+            }
+        }
+
+        void OnControllerChanged(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                HashSet<VFXParametersController> actualControllers = new HashSet<VFXParametersController>(controller.parametersController.Where(t => t.exposed));
+                SyncParameters(m_ExposedSection, actualControllers, m_ExposedParameters);
+                actualControllers = new HashSet<VFXParametersController>(controller.parametersController.Where(t => !t.exposed));
+                SyncParameters(m_PrivateSection, actualControllers, m_PrivateParameters);
             }
         }
 
