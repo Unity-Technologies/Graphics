@@ -188,6 +188,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!node.canDeleteNode)
                 return;
+            RemoveNodeNoValidate(node);
             ValidateGraph();
         }
 
