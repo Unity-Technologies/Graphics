@@ -9,7 +9,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class UVMaterialSlot : Vector2MaterialSlot, IMayRequireMeshUV
     {
-        private UVChannel m_Channel = UVChannel.UV0;
+        [SerializeField]
+        UVChannel m_Channel = UVChannel.UV0;
 
         public UVChannel channel
         {
