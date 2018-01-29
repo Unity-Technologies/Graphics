@@ -389,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        protected void ShaderSSSInputGUI(Material material, int layerIndex)
+        protected void ShaderSSSAndTransmissionInputGUI(Material material, int layerIndex)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
@@ -435,24 +435,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     diffusionProfileID[layerIndex].floatValue = profileID;
             }
 
-            m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
-            if (thicknessMap[layerIndex].textureValue != null)
+            if ((int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || (int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSOnly)
             {
-                // Display the remap of texture values.
-                Vector2 remap = thicknessRemap[layerIndex].vectorValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    thicknessRemap[layerIndex].vectorValue = remap;
-                }
+                m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             }
-            else
+
+            if ((int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || (int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitTransmissionOnly)
             {
-                // Allow the user to set the constant value of thickness if no thickness map is provided.
-                m_MaterialEditor.ShaderProperty(thickness[layerIndex], Styles.thicknessText);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
+                if (thicknessMap[layerIndex].textureValue != null)
+                {
+                    // Display the remap of texture values.
+                    Vector2 remap = thicknessRemap[layerIndex].vectorValue;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        thicknessRemap[layerIndex].vectorValue = remap;
+                    }
+                }
+                else
+                {
+                    // Allow the user to set the constant value of thickness if no thickness map is provided.
+                    m_MaterialEditor.ShaderProperty(thickness[layerIndex], Styles.thicknessText);
+                }
             }
         }
 
@@ -620,7 +627,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch ((BaseLitGUI.MaterialId)materialID.floatValue)
             {
                 case BaseLitGUI.MaterialId.LitSSSAndTransmission:
-                    ShaderSSSInputGUI(material, layerIndex);
+                    ShaderSSSAndTransmissionInputGUI(material, layerIndex);
                     break;
                 case BaseLitGUI.MaterialId.LitStandard:
                     // Nothing
@@ -882,9 +889,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
+            BaseLitGUI.SSSAndTransmissionType sssAndTransmissionType = (BaseLitGUI.SSSAndTransmissionType)material.GetFloat(kSSSAndTransmissionType);
 
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission);
+            if (materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission)
+            {
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSOnly);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitTransmissionOnly);
+            }
+            else
+            {
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", false);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", false);
+            }
+
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == BaseLitGUI.MaterialId.LitAniso);
             // No material Id for clear coat, just test the attribute
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", material.GetFloat(kCoatMask) > 0.0 || material.GetTexture(kCoatMaskMap));

@@ -239,8 +239,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
-
+ 
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
                                                             _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
@@ -254,8 +253,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
                                                             bsdfData.thickness);
 #endif
 
-    // Apply the transmission mode. Only the thick object mode performs the thickness displacement.
-    bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
+    bsdfData.useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
     if (bsdfData.useThickObjectMode)
     {

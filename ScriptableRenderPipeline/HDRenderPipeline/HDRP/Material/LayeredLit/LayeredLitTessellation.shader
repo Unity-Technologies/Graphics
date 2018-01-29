@@ -265,6 +265,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         // For layering, due to combinatorial explosion, we only support SSS/Transmission and Standard. We let other case for the shader graph
         [Enum(Subsurface Scattering and Transmissison, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
+        [Enum(Both, 0, SSS only, 1, Transmission only, 2)] _SSSAndTransmissionType("SSSandTransmissionType", Int) = 0 // SSSandTransmissionType.Both
 
         [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
