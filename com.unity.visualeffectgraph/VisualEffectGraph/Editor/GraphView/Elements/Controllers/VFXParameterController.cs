@@ -31,6 +31,11 @@ namespace UnityEditor.VFX.UI
                 return base.name;
             }
         }
+
+        public new VFXParameterController sourceNode
+        {
+            get { return base.sourceNode as VFXParameterController; }
+        }
     }
 
     class VFXParameterController : VFXSlotContainerController, IPropertyRMProvider, IValueController
@@ -52,6 +57,11 @@ namespace UnityEditor.VFX.UI
         void OnSlotChanged(UnityEngine.Object obj)
         {
             NotifyChange(AnyThing);
+        }
+
+        public VFXParameter.ParamInfo infos
+        {
+            get { return m_Infos; }
         }
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)

@@ -108,13 +108,14 @@ namespace UnityEditor.VFX.UI
                 unusedEdges.Add(e);
             }
 
-            var allLinkables = AllSlotContainerControllers.ToArray();
-            foreach (var operatorController in allLinkables)
+            foreach (var operatorControllers in m_SyncedModels.Values)
             {
-                var slotContainer = operatorController.slotContainer;
-                foreach (var input in slotContainer.inputSlots)
+                foreach (var nodeController in operatorControllers)
                 {
-                    changed |= RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input);
+                    foreach (var input in nodeController.inputPorts)
+                    {
+                        changed |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
+                    }
                 }
             }
 
@@ -140,19 +141,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXSlotContainerController[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input)
+        public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
             bool changed = false;
-            input.CleanupLinkedSlots();
+            input.model.CleanupLinkedSlots();
+
+            VFXSlot inputSlot = input.model;
             if (input.HasLink())
             {
-                var operatorControllerFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
-                var operatorControllerTo = allLinkables.FirstOrDefault(t => slotContainer == t.slotContainer);
+                VFXNodeController operatorControllerFrom = null;
+
+                IVFXSlotContainer targetSlotContainer = inputSlot.refSlot.owner;
+                if (targetSlotContainer is VFXParameter)
+                {
+                    VFXParametersController controller = m_ParametersController[targetSlotContainer as VFXParameter];
+                    operatorControllerFrom = controller.GetParameterForLink(inputSlot);
+                }
+                else
+                {
+                    operatorControllerFrom = m_SyncedModels[targetSlotContainer as VFXModel][0];
+                }
+                var operatorControllerTo = slotContainer;
 
                 if (operatorControllerFrom != null && operatorControllerTo != null)
                 {
-                    var anchorFrom = operatorControllerFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorController).model == input.refSlot);
-                    var anchorTo = operatorControllerTo.inputPorts.FirstOrDefault(o => (o as VFXDataAnchorController).model == input);
+                    var anchorFrom = operatorControllerFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorController).model == inputSlot.refSlot);
+                    var anchorTo = input;
 
                     var edgController = m_DataEdges.FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
 
@@ -170,11 +184,16 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
+                else
+                {
+                    Debug.LogError("Trying to make dataedge from not yet created nodes");
+                }
             }
 
-            foreach (VFXSlot subSlot in input.children)
+            foreach (VFXSlot subSlot in inputSlot.children)
             {
-                changed |= RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, subSlot);
+                VFXDataAnchorController subAnchor = slotContainer.inputPorts.FirstOrDefault(t => t.model == subSlot);
+                changed |= RecreateInputSlotEdge(unusedEdges, slotContainer, subAnchor);
             }
 
             return changed;
@@ -279,12 +298,20 @@ namespace UnityEditor.VFX.UI
 
             //Update connection
             var slotInput = toAnchor != null ? toAnchor.model : null;
-            var slotOuput = fromAnchor != null ? fromAnchor.model : null;
-            if (slotInput && slotOuput)
+            var slotOutput = fromAnchor != null ? fromAnchor.model : null;
+            if (slotInput && slotOutput)
             {
                 //Save concerned object
-                slotInput.Link(slotOuput);
-                DataEdgesMightHaveChanged();
+                if (slotInput.Link(slotOutput))
+                {
+                    VFXParameterController fromController = fromAnchor.sourceNode as VFXParameterController;
+
+                    if (fromController != null)
+                    {
+                        fromController.infos.linkedSlots.Add(slotInput);
+                    }
+                    DataEdgesMightHaveChanged();
+                }
             }
             edge.OnDisable();
         }

@@ -195,6 +195,11 @@ namespace UnityEditor.VFX.UI
             return m_SubControllers[i];
         }
 
+        public VFXParameterController GetParameterForLink(VFXSlot slot)
+        {
+            return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Contains(slot)).Value;
+        }
+
         public string exposedName
         {
             get { return parameter.exposedName; }
@@ -331,6 +336,8 @@ namespace UnityEditor.VFX.UI
 
                 m_Controllers[addedController.Key] = controller;
                 m_ViewController.AddControllerToModel(parameter, controller);
+
+                controller.ForceUpdate();
                 changed = true;
             }
 

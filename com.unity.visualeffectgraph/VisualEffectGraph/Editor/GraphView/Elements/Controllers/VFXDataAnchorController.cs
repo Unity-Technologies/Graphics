@@ -84,6 +84,11 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
+        public bool HasLink()
+        {
+            return model.HasLink();
+        }
+
         public class Change
         {
             public const int hidden = 1;
