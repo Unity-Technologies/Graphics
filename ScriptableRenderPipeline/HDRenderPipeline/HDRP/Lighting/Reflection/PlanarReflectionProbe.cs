@@ -29,8 +29,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Texture m_BakedTexture;
         [SerializeField]
-        RenderTexture m_RealtimeTexture;
-        [SerializeField]
         FrameSettings m_FrameSettings;
         [SerializeField]
         float m_CaptureNearPlane = 1;
@@ -47,7 +45,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         [Range(0, 180)]
         float m_FieldOfViewOverride = 90;
-        
+
+        RenderTexture m_RealtimeTexture;
+
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 

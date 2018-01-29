@@ -49,7 +49,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Update()
         {
             base.Update();
-            SetIsSectionExpanded_Shape((ShapeType)data.shapeType.intValue);
+            if (data != null)
+                SetIsSectionExpanded_Shape((ShapeType)data.shapeType.intValue);
         }
 
         void SetIsSectionExpanded_Shape(ShapeType shape)
