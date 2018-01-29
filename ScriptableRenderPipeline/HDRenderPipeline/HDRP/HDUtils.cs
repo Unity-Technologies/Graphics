@@ -156,13 +156,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
         }
 
+        // Scaling viewport is done for auto-scaling render targets.
+        // In the context of HDRP, every auto-scaled RT is scaled against the maximum RTHandles reference size (that can only grow).
+        // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
+        // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
+        // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
         public static void SetViewport(CommandBuffer cmd, HDCamera camera, RTHandle target)
         {
-            // Scaling viewport is done for auto-scaling render targets.
-            // In the context of HDRP, every auto-scaled RT is scaled against the maximum RTHandles reference size (that can only grow).
-            // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
-            // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
-            // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
             if (target.useScaling)
             {
                 Debug.Assert(camera != null, "Missing HDCamera when setting up Render Target with auto-scale and Viewport.");

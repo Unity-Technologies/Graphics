@@ -184,7 +184,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int maxHeight = RTHandle.maxHeight;
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
-            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, m_CameraScaleBias.x / m_ActualWidth, m_CameraScaleBias.y / m_ActualHeight);
+
+            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, 1.0f / m_ActualWidth, 1.0f / m_ActualHeight);
         }
 
         // Warning: different views can use the same camera!
