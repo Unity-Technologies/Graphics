@@ -186,22 +186,59 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 kFullScreenDebugMip,
                 () =>
                 {
-                    var depthSize = Shader.GetGlobalVector(HDShaderIDs._DepthPyramidMipSize);
-                    var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(depthSize.x, depthSize.y), 2f));
+                    var id = 0;
+                    switch (fullScreenDebugMode)
+                    {
+                        default:
+                        case FullScreenDebugMode.DepthPyramid:
+                            id = HDShaderIDs._DepthPyramidMipSize;
+                            break;
+                        case FullScreenDebugMode.FinalColorPyramid:
+                        case FullScreenDebugMode.PreRefractionColorPyramid:
+                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                            break;
+                    }
+                    var size = Shader.GetGlobalVector(id);
+                    var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(size.x, size.y), 2f));
                     return (uint)(fullscreenDebugMip * lodCount);
+
                 },
                 value =>
                 {
-                    var depthSize = Shader.GetGlobalVector(HDShaderIDs._DepthPyramidMipSize);
-                    var lodCount = Mathf.Floor(Mathf.Log(Mathf.Min(depthSize.x, depthSize.y), 2f));
+                    var id = 0;
+                    switch (fullScreenDebugMode)
+                    {
+                        default:
+                        case FullScreenDebugMode.DepthPyramid:
+                            id = HDShaderIDs._DepthPyramidMipSize;
+                            break;
+                        case FullScreenDebugMode.FinalColorPyramid:
+                        case FullScreenDebugMode.PreRefractionColorPyramid:
+                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                            break;
+                    }
+                    var size = Shader.GetGlobalVector(id);
+                    var lodCount = Mathf.Floor(Mathf.Log(Mathf.Min(size.x, size.y), 2f));
                     fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(Single)) / lodCount;
                 }, 
                 DebugItemFlag.None, 
                 new DebugItemHandlerUIntMinMax(() => 0,
                     () =>
                     {
-                        var depthSize = Shader.GetGlobalVector(HDShaderIDs._DepthPyramidMipSize);
-                        var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(depthSize.x, depthSize.y), 2f));
+                        var id = 0;
+                        switch (fullScreenDebugMode)
+                        {
+                            default:
+                            case FullScreenDebugMode.DepthPyramid:
+                                id = HDShaderIDs._DepthPyramidMipSize;
+                                break;
+                            case FullScreenDebugMode.FinalColorPyramid:
+                            case FullScreenDebugMode.PreRefractionColorPyramid:
+                                id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                break;
+                        }
+                        var size = Shader.GetGlobalVector(id);
+                        var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(size.x, size.y), 2f));
                         return (uint)lodCount;
                     })
                 );
