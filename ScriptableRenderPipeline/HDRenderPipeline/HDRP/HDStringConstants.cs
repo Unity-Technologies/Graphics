@@ -330,6 +330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferResolution          = Shader.PropertyToID("_VBufferResolution");
         public static readonly int _VBufferScaleAndSliceCount  = Shader.PropertyToID("_VBufferScaleAndSliceCount");
         public static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
+        public static readonly int _VBufferDepthDecodingParams = Shader.PropertyToID("_VBufferDepthDecodingParams");
         public static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
         public static readonly int _VBufferDensity             = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting            = Shader.PropertyToID("_VBufferLighting");

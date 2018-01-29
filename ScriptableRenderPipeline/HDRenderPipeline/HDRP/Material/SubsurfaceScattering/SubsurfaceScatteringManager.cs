@@ -150,6 +150,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (sssParameters == null || !frameSettings.enableSubsurfaceScattering)
                 return;
 
+            // TODO: For MSAA, at least initially, we can only support Jimenez, because we can't
+            // create MSAA + UAV render targets.
+
             using (new ProfilingSample(cmd, "Subsurface Scattering", CustomSamplerId.SubsurfaceScattering.GetSampler()))
             {
                 // For Jimenez we always need an extra buffer, for Disney it depends on platform
@@ -157,7 +160,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Caution: must be same format as m_CameraSssDiffuseLightingBuffer
                     cmd.ReleaseTemporaryRT(m_CameraFilteringBuffer);
-                    CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
+
+                    if (frameSettings.enableMSAA)
+                        CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear); // no UAV
+                    else
+                        CoreUtils.CreateCmdTemporaryRT(cmd, m_CameraFilteringBuffer, hdCamera.renderTextureDesc, 0, FilterMode.Point, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear, 1, true); // Enable UAV
 
                     // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))

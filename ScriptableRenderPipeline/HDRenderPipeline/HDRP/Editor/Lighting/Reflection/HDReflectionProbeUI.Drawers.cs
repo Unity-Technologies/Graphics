@@ -184,6 +184,8 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
+            EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Sphere Offset|The center of the sphere in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
+
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Sphere Projection|Sphere projection causes reflections to appear to change based on the object's position within the probe's sphere, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting sphere projection to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
         }
         #endregion
