@@ -99,13 +99,44 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
+
+        const string blackBoardPositionPref = "VFXBlackboardRect";
+
+
+        Rect LoadBlackBoardPosition()
+        {
+            string str = EditorPrefs.GetString(blackBoardPositionPref);
+            Rect blackBoardPosition = new Rect(100, 100, 300, 500);
+            if (!string.IsNullOrEmpty(str))
+            {
+                var rectValues = str.Split(',');
+
+                if (rectValues.Length == 4)
+                {
+                    float x, y, width, height;
+                    if (float.TryParse(rectValues[0], out x) && float.TryParse(rectValues[1], out y) && float.TryParse(rectValues[2], out width) && float.TryParse(rectValues[3], out height))
+                    {
+                        blackBoardPosition = new Rect(x, y, width, height);
+                    }
+                }
+            }
+
+            return blackBoardPosition;
+        }
+
+        void SaveBlackboardPosition(Rect r)
+        {
+            EditorPrefs.SetString(blackBoardPositionPref, string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
+        }
+
         public VFXBlackboard()
         {
-            SetPosition(s_BlackBoardPosition);
-
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
             moveItemRequested = OnMoveItem;
+
+
+            SetPosition(LoadBlackBoardPosition());
 
             m_ExposedSection = new BlackboardSection() { title = "exposed"};
             Add(m_ExposedSection);
@@ -192,9 +223,7 @@ namespace  UnityEditor.VFX.UI
         {
             base.UpdatePresenterPosition();
 
-            s_BlackBoardPosition = GetPosition();
+            SaveBlackboardPosition(GetPosition());
         }
-
-        static Rect s_BlackBoardPosition = new Rect(100, 100, 100, 100);
     }
 }
