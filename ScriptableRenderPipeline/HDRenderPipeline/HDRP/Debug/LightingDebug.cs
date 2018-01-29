@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IndirectSpecularOcclusionFromSsao,
         IndirectSpecularGtaoFromSsao,
         EnvironmentProxyVolume,
+        EnvironmentSampleCoordinates,
     }
 
     public enum ShadowMapDebugMode
