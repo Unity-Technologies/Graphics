@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParametersControllers.Values.Cast<Controller>()); }
         }
 
         public override void ApplyChanges()
@@ -116,6 +116,16 @@ namespace UnityEditor.VFX.UI
                     {
                         changed |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
                     }
+                    if (nodeController is VFXContextController)
+                    {
+                        foreach (var block in (nodeController as VFXContextController).blockControllers)
+                        {
+                            foreach (var input in block.inputPorts)
+                            {
+                                changed |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -154,8 +164,13 @@ namespace UnityEditor.VFX.UI
                 IVFXSlotContainer targetSlotContainer = inputSlot.refSlot.owner;
                 if (targetSlotContainer is VFXParameter)
                 {
-                    VFXParametersController controller = m_ParametersController[targetSlotContainer as VFXParameter];
+                    VFXParametersController controller = m_ParametersControllers[targetSlotContainer as VFXParameter];
                     operatorControllerFrom = controller.GetParameterForLink(inputSlot);
+                }
+                else if (targetSlotContainer is VFXBlock)
+                {
+                    VFXBlock block = targetSlotContainer as VFXBlock;
+                    operatorControllerFrom = (m_SyncedModels[block.GetParent()][0] as VFXContextController).blockControllers.First(t => t.model == block);
                 }
                 else
                 {
@@ -193,7 +208,10 @@ namespace UnityEditor.VFX.UI
             foreach (VFXSlot subSlot in inputSlot.children)
             {
                 VFXDataAnchorController subAnchor = slotContainer.inputPorts.FirstOrDefault(t => t.model == subSlot);
-                changed |= RecreateInputSlotEdge(unusedEdges, slotContainer, subAnchor);
+                if (subAnchor != null) // Can be null for example for hidden values from Vector3Spaceables
+                {
+                    changed |= RecreateInputSlotEdge(unusedEdges, slotContainer, subAnchor);
+                }
             }
 
             return changed;
@@ -707,6 +725,7 @@ namespace UnityEditor.VFX.UI
 
             m_FlowAnchorController.Clear();
             m_SyncedModels.Clear();
+            m_ParametersControllers.Clear();
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
             m_GroupNodeControllers.Clear();
@@ -863,16 +882,16 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        Dictionary<VFXParameter, VFXParametersController> m_ParametersController = new Dictionary<VFXParameter, VFXParametersController>();
+        Dictionary<VFXParameter, VFXParametersController> m_ParametersControllers = new Dictionary<VFXParameter, VFXParametersController>();
 
         public IEnumerable<VFXParametersController> parametersController
         {
-            get { return m_ParametersController.Values; }
+            get { return m_ParametersControllers.Values; }
         }
 
         public void SetParametersOrder(VFXParametersController controller, int index)
         {
-            var orderedParameters = m_ParametersController.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            var orderedParameters = m_ParametersControllers.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
             int oldIndex = orderedParameters.IndexOf(controller);
 
@@ -915,7 +934,7 @@ namespace UnityEditor.VFX.UI
                 VFXParameter parameter = model as VFXParameter;
                 parameter.ValidateParamInfos();
 
-                var newController = m_ParametersController[parameter] = new VFXParametersController(parameter, this);
+                var newController = m_ParametersControllers[parameter] = new VFXParametersController(parameter, this);
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
 

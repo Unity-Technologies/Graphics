@@ -83,7 +83,14 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+            try
+            {
+                DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+            }
+            catch (ArgumentException e)
+            {
+                Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
+            }
             base.OnDisable();
         }
 

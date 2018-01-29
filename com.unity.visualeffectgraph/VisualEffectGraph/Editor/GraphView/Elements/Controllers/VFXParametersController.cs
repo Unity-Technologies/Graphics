@@ -137,8 +137,6 @@ namespace UnityEditor.VFX.UI
     {
         VFXSubParameterController[] m_SubControllers;
 
-        IDataWatchHandle m_SlotHandle;
-
         VFXViewController m_ViewController;
 
         public VFXParametersController(VFXParameter model, VFXViewController viewController) : base(model)
