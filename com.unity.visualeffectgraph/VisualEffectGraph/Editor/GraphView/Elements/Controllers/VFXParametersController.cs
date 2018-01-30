@@ -133,17 +133,114 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
+
+    class VFXMinMaxParametersController : IPropertyRMProvider
+    {
+        public VFXMinMaxParametersController(VFXParametersController owner, bool min)
+        {
+            m_Owner = owner;
+            m_Min = min;
+        }
+
+        VFXParametersController m_Owner;
+        bool m_Min;
+        public bool expanded
+        {
+            get { return m_Owner.expanded; }
+            set { throw new NotImplementedException(); }
+        }
+
+        public bool expandable
+        {
+            get { return m_Owner.expandable; }
+        }
+        public object value
+        {
+            get { return m_Min ? m_Owner.minValue : m_Owner.maxValue; }
+            set
+            {
+                if (m_Min)
+                    m_Owner.minValue = value;
+                else
+                    m_Owner.maxValue = value;
+            }
+        }
+
+        public string name
+        {
+            get { return m_Min ? "Min" : "Max"; }
+        }
+
+        public VFXPropertyAttribute[] attributes
+        {
+            get { return new VFXPropertyAttribute[] {}; }
+        }
+
+        public object[] customAttributes
+        {
+            get { return null; }
+        }
+
+        public Type portType
+        {
+            get { return m_Owner.portType; }
+        }
+
+        public int depth
+        {
+            get { return m_Owner.depth; }
+        }
+
+        public bool editable
+        {
+            get { return true; }
+        }
+
+        public void ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+    }
     class VFXParametersController : VFXController<VFXParameter>, IPropertyRMProvider
     {
         VFXSubParameterController[] m_SubControllers;
 
         VFXViewController m_ViewController;
 
+
+        VFXMinMaxParametersController m_MinController;
+        public VFXMinMaxParametersController minController
+        {
+            get
+            {
+                if (m_MinController == null)
+                {
+                    m_MinController = new VFXMinMaxParametersController(this, true);
+                }
+                return m_MinController;
+            }
+        }
+        VFXMinMaxParametersController m_MaxController;
+        public VFXMinMaxParametersController maxController
+        {
+            get
+            {
+                if (m_MaxController == null)
+                {
+                    m_MaxController = new VFXMinMaxParametersController(this, false);
+                }
+                return m_MaxController;
+            }
+        }
+
         public VFXParametersController(VFXParameter model, VFXViewController viewController) : base(model)
         {
             m_ViewController = viewController;
-            m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
-            m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
         }
 
         public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
@@ -228,18 +325,47 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameter parameter { get { return model as VFXParameter; } }
 
+
+        public bool canHaveMinMax
+        {
+            get
+            {
+                return portType == typeof(float) || portType == typeof(int) || portType == typeof(uint);
+            }
+        }
+
+        static float RangeToFloat(object value)
+        {
+            if (value != null)
+            {
+                if (value.GetType() == typeof(float))
+                {
+                    return (float)value;
+                }
+                else if (value.GetType() == typeof(int))
+                {
+                    return (float)(int)value;
+                }
+                else if (value.GetType() == typeof(uint))
+                {
+                    return (float)(uint)value;
+                }
+            }
+            return 0.0f;
+        }
+
         public object minValue
         {
-            get { return m_CachedMinValue; }
+            get { return parameter.m_Min.Get(); }
             set
             {
-                m_CachedMinValue = value;
                 if (value != null)
                 {
-                    if (parameter.m_Min == null)
+                    if (parameter.m_Min == null || parameter.m_Min.type != portType)
                         parameter.m_Min = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Min.Set(value);
+                    parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
                 else
                     parameter.m_Min = null;
@@ -247,16 +373,16 @@ namespace UnityEditor.VFX.UI
         }
         public object maxValue
         {
-            get { return m_CachedMaxValue; }
+            get { return parameter.m_Max.Get(); }
             set
             {
-                m_CachedMaxValue = value;
                 if (value != null)
                 {
-                    if (parameter.m_Max == null)
+                    if (parameter.m_Max == null || parameter.m_Max.type != portType)
                         parameter.m_Max = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Max.Set(value);
+                    parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
                 else
                     parameter.m_Max = null;
@@ -342,34 +468,44 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        bool IPropertyRMProvider.expanded
+        public bool expanded
         {
             get
             {
                 return false;
             }
         }
-        bool IPropertyRMProvider.editable
+        public bool editable
         {
             get { return true; }
         }
 
-        bool IPropertyRMProvider.expandable { get { return false; } }
+        public bool expandable { get { return false; } }
 
-        string IPropertyRMProvider.name { get { return "Value"; } }
+        public string name { get { return "Value"; } }
 
-        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+        public object[] customAttributes { get { return new object[] {}; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+        public VFXPropertyAttribute[] attributes
+        {
+            get
+            {
+                if (canHaveMinMax)
+                {
+                    return VFXPropertyAttribute.Create(new object[] { new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)) });
+                }
+                return new VFXPropertyAttribute[] {};
+            }
+        }
 
-        int IPropertyRMProvider.depth { get { return 0; } }
+        public int depth { get { return 0; } }
 
-        void IPropertyRMProvider.ExpandPath()
+        public void ExpandPath()
         {
             throw new NotImplementedException();
         }
 
-        void IPropertyRMProvider.RetractPath()
+        public void RetractPath()
         {
             throw new NotImplementedException();
         }

@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<long> CreateField()
         {
-            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.attributes));
             if (range == Vector2.zero || range.y == Mathf.Infinity || (uint)range.x >= (uint)range.y)
             {
                 var field = new VFXLabeledField<IntegerField, long>(m_Label);
@@ -126,7 +126,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<long> CreateField()
         {
-            Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
             if (range == Vector2.zero || range.y == Mathf.Infinity || (int)range.x >= (int)range.y)
             {
                 var field = new VFXLabeledField<IntegerField, long>(m_Label);
@@ -201,6 +201,8 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        VFXDoubleSliderField m_SliderField;
+
         public override INotifyValueChanged<float> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
@@ -214,8 +216,30 @@ namespace UnityEditor.VFX.UI
             {
                 var field = new VFXLabeledField<VFXDoubleSliderField, float>(m_Label);
                 field.control.range = range;
+                m_SliderField = field.control;
                 return field;
             }
+        }
+
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+
+            return (range == Vector2.zero || range.y == Mathf.Infinity) == (m_SliderField == null);
+        }
+
+        public override void UpdateGUI()
+        {
+            if (m_SliderField != null)
+            {
+                Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+
+                m_SliderField.range = range;
+            }
+            base.UpdateGUI();
         }
 
         protected override bool HasFocus()

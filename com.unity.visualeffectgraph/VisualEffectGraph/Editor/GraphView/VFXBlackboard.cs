@@ -28,14 +28,33 @@ namespace  UnityEditor.VFX.UI
         }
 
         PropertyRM m_Property;
+        PropertyRM m_MinProperty;
+        PropertyRM m_MaxProperty;
         List<PropertyRM> m_SubProperties;
+
+        IEnumerable<PropertyRM> allProperties
+        {
+            get
+            {
+                var result = Enumerable.Empty<PropertyRM>();
+
+                if (m_Property != null)
+                    result = result.Concat(Enumerable.Repeat(m_Property, 1));
+                if (m_SubProperties != null)
+                    result = result.Concat(m_SubProperties);
+                if (m_MinProperty != null)
+                    result = result.Concat(Enumerable.Repeat(m_MinProperty, 1));
+                if (m_MaxProperty != null)
+                    result = result.Concat(Enumerable.Repeat(m_MaxProperty, 1));
+
+                return result;
+            }
+        }
 
 
         void GetPreferedWidths(ref float labelWidth)
         {
-            var properties = m_SubProperties.Concat(Enumerable.Repeat(m_Property, 1));
-
-            foreach (var port in properties)
+            foreach (var port in allProperties)
             {
                 float portLabelWidth = port.GetPreferredLabelWidth();
 
@@ -48,8 +67,7 @@ namespace  UnityEditor.VFX.UI
 
         void ApplyWidths(float labelWidth)
         {
-            var properties = m_SubProperties.Concat(Enumerable.Repeat(m_Property, 1));
-            foreach (var port in properties)
+            foreach (var port in allProperties)
             {
                 port.SetLabelWidth(labelWidth);
             }
@@ -82,7 +100,7 @@ namespace  UnityEditor.VFX.UI
 
         public void SelfChange()
         {
-            if (m_Property == null)
+            if (m_Property == null || !m_Property.IsCompatible(controller))
             {
                 m_Property = PropertyRM.Create(controller, 55);
                 if (m_Property != null)
@@ -94,16 +112,19 @@ namespace  UnityEditor.VFX.UI
                     {
                         CreateSubProperties(fieldpath);
                     }
+                    else if (controller.canHaveMinMax)
+                    {
+                        m_MinProperty = PropertyRM.Create(controller.minController, 55);
+                        m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
+
+                        Add(m_MinProperty);
+                        Add(m_MaxProperty);
+                    }
                 }
             }
-            if (m_Property != null)
-                m_Property.Update();
-            if (m_SubProperties != null)
+            foreach (var subProp in allProperties)
             {
-                foreach (var subProp in m_SubProperties)
-                {
-                    subProp.Update();
-                }
+                subProp.Update();
             }
             float labelWidth = 70;
             GetPreferedWidths(ref labelWidth);
