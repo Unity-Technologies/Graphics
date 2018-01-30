@@ -191,6 +191,7 @@ CBUFFER_START(UnityPerFrame)
     float2 _TaaFrameRotation; // {x = sin(_TaaFrameIndex * PI/2), y = cos(_TaaFrameIndex * PI/2), z = unused}
     uint   _TaaFrameIndex;    // [0, 7]
     // Volumetric lighting.
+    float4 _AmbientProbe;
     float  _GlobalFog_Asymmetry;
     float3 _GlobalFog_Scattering;
     float  _GlobalFog_Extinction;
