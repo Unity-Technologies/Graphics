@@ -29,7 +29,6 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ENABLE STEREO_MULTIVIEW_ENABLE
             #pragma multi_compile_fog
             #pragma shader_feature _SAMPLE_GI
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
