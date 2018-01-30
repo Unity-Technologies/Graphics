@@ -249,8 +249,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
+            m_ScreenSpaceShadowsMaterial = CoreUtils.CreateEngineMaterial(m_Asset.ScreenSpaceShadowShader);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
-            m_ScreenSpaceShadowsMaterial = CoreUtils.CreateEngineMaterial("Hidden/LightweightPipeline/ScreenSpaceShadows");
         }
 
         public override void Dispose()
