@@ -47,6 +47,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: b55abc69a7d3d6c419b629449ff20c03, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -153,7 +157,7 @@ Material:
     - _BumpScale: 1
     - _CoatCoverage: 1
     - _CoatIOR: 0.5
-    - _CoatMask: 1
+    - _CoatMask: 0
     - _CullMode: 0
     - _CullModeForward: 0
     - _Cutoff: 0.5
@@ -194,6 +198,7 @@ Material:
     - _EnablePerPixelDisplacement: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 1
+    - _EnergyConservingSpecularColor: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -225,6 +230,7 @@ Material:
     - _Parallax: 0.02
     - _PreRefractionPass: 0
     - _RefractionMode: 0
+    - _SSSAndTransmissionType: 0
     - _ShiverDirectionality: 1
     - _ShiverDrag: 0.03
     - _Smoothness: 1
@@ -241,6 +247,7 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 7
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 0
     - _TessellationBackFaceCullEpsilon: -0.25
     - _TessellationFactor: 15
@@ -258,6 +265,7 @@ Material:
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
