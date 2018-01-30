@@ -375,6 +375,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_PerVoxelOffset = null;
         static ComputeBuffer s_PerTileLogBaseTweak = null;
         static ComputeBuffer s_GlobalLightListAtomic = null;
+
+        public enum ClusterPrepassSource : int
+        {
+            None = 0,
+            BigTile = 1,
+            Count = 2,
+        }
+
+        public enum ClusterDepthSource : int
+        {
+            NoDepth = 0,
+            Depth = 1,
+            MSAA_Depth = 2,
+            Count = 3,
+        }
+
+        static string[,] s_ClusterKernelNames = new string[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count]
+        {
+            { "TileLightListGen_NoDepthRT", "TileLightListGen_DepthRT", "TileLightListGen_DepthRT_MSAA" },
+            { "TileLightListGen_NoDepthRT_SrcBigTile", "TileLightListGen_DepthRT_SrcBigTile", "TileLightListGen_DepthRT_MSAA_SrcBigTile" }
+        };
         // clustered light list specific buffers and data end
 
         static int[] s_TempIntArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
@@ -453,6 +474,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_lightList = new LightList();
             m_lightList.Allocate();
+            m_Env2DCaptureVP.Clear();
+            for (int i = 0, c = Mathf.Max(1, hdAsset.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionProbes); i < c; ++i)
+                m_Env2DCaptureVP.Add(Matrix4x4.identity);
 
             s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
             s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
@@ -616,7 +640,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Cluster
             {
-                var kernelName = m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? (k_UseDepthBuffer ? "TileLightListGen_DepthRT_SrcBigTile" : "TileLightListGen_NoDepthRT_SrcBigTile") : (k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
+                var clustPrepassSourceIdx = m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
+                var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
+                if (k_UseDepthBuffer)
+                {
+                    if (m_FrameSettings.enableMSAA)
+                        clustDepthSourceIdx = ClusterDepthSource.MSAA_Depth;
+                    else
+                        clustDepthSourceIdx = ClusterDepthSource.Depth;
+                }
+                var kernelName = s_ClusterKernelNames[(int)clustPrepassSourceIdx, (int)clustDepthSourceIdx];
+
                 s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
             }
 
@@ -1154,8 +1188,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var envIndex = -1;
             if (probe.planarReflectionProbe != null)
             {
-                envIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                envIndex = envIndex << 1 | (int)EnvCacheType.Texture2D;
+                var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
+                envIndex = (fetchIndex << 1) | (int)EnvCacheType.Texture2D;
 
                 float nearClipPlane, farClipPlane, aspect, fov;
                 Color backgroundColor;
@@ -1175,7 +1209,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // We transform it to object space by translating the capturePosition
                 var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
-                m_Env2DCaptureVP.Add(vp);
+                m_Env2DCaptureVP[fetchIndex] = vp;
                 sampleDirectionDiscardWS = captureRotation * Vector3.forward;
             }
             else if (probe.reflectionProbe != null)
@@ -1319,7 +1353,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
 
-                m_Env2DCaptureVP.Clear();
                 m_lightList.Clear();
 
                 Vector3 camPosWS = camera.transform.position;
@@ -1965,8 +1998,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
-                if (m_Env2DCaptureVP.Count > 0)
-                    cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, s_DirectionalLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);

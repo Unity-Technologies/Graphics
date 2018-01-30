@@ -350,14 +350,15 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, DualRay ray)
 {
-    float z0 = _VBufferDepthEncodingParams.x; // Start integration from the near plane
-    float t0 = ray.strataDirInvViewZ * z0;    // Convert view space Z to distance along the stratified ray
-    float de = rcp(VBUFFER_SLICE_COUNT);      // Log-encoded distance between slices
+    float n  = _VBufferDepthDecodingParams.x + _VBufferDepthDecodingParams.z;
+    float z0 = n;                          // Start integration from the near plane
+    float t0 = ray.strataDirInvViewZ * z0; // Convert view space Z to distance along the stratified ray
+    float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
 
-    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.x); // Prevent unrolling...
+    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.w); // Prevent unrolling...
 
 #ifdef LIGHTLOOP_TILE_PASS
     // Our voxel is not necessarily completely inside a single light cluster.
@@ -373,7 +374,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     for (uint slice = 0; slice < sliceCountHack; slice++)
     {
         float e1 = slice * de + de; // (slice + 1) / sliceCount
-        float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthEncodingParams);
+        float z1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDepthDecodingParams);
         float t1 = ray.strataDirInvViewZ * z1; // Convert view space Z to distance along the stratified ray
         float dt = t1 - t0;
 
@@ -425,7 +426,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 reprojValue  = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_trilinear_clamp_sampler),
                                             false, reprojPosNDC, reprojZ,
                                             _VBufferScaleAndSliceCount,
-                                            _VBufferDepthEncodingParams);
+                                            _VBufferDepthEncodingParams,
+                                            _VBufferDepthDecodingParams);
 
         // Compute the exponential moving average over 'n' frames:
         // X = (1 - a) * ValueAtFrame[n] + a * AverageOverPreviousFrames.
