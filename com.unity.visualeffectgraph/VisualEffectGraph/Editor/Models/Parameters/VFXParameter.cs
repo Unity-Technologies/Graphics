@@ -27,6 +27,12 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Max;
 
+        [System.Serializable]
+        public struct ParamLinkedSlot
+        {
+            public VFXSlot outputSlot; // some slot from the parameter
+            public VFXSlot inputSlot;
+        }
 
         [System.Serializable]
         public class ParamInfo
@@ -41,7 +47,7 @@ namespace UnityEditor.VFX
 
             public int id { get { return m_Id; } }
 
-            public List<VFXSlot> linkedSlots;
+            public List<ParamLinkedSlot> linkedSlots;
             public Vector2 position;
 
 
@@ -194,6 +200,20 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kUIChanged);
         }
 
+        public void RemoveParamInfo(ParamInfo info)
+        {
+            if (m_ParamInfos.Contains(info))
+            {
+                foreach (var slots in info.linkedSlots)
+                {
+                    slots.outputSlot.Unlink(slots.inputSlot);
+                }
+                m_ParamInfos.Remove(info);
+
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+        }
+
         public void ConcatInfos(IEnumerable<ParamInfo> infos)
         {
             foreach (var info in infos)
@@ -204,6 +224,27 @@ namespace UnityEditor.VFX
                 }
                 m_ParamInfos.Add(info);
             }
+
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
+        public void SetParamInfos(IEnumerable<ParamInfo> infos)
+        {
+            m_ParamInfos = infos.ToList();
+
+            ValidateParamInfos();
+
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
+        void GetAllLinks(List<ParamLinkedSlot> list, VFXSlot slot)
+        {
+            list.AddRange(slot.LinkedSlots.Select(t => new ParamLinkedSlot() { outputSlot = slot, inputSlot = t}));
+
+            foreach (var child in slot.children)
+            {
+                GetAllLinks(list, child);
+            }
         }
 
         public void ValidateParamInfos()
@@ -213,19 +254,23 @@ namespace UnityEditor.VFX
             {
                 var newInfos = CreateParamInfo();
                 newInfos.position = position;
-                newInfos.linkedSlots = new List<VFXSlot>(outputSlots[0].LinkedSlots);
+
+
+                newInfos.linkedSlots = new List<ParamLinkedSlot>();
+                GetAllLinks(newInfos.linkedSlots, outputSlots[0]);
                 m_ParamInfos.Add(newInfos);
             }
             else
             {
                 // the linked slot of the outSlot decides so make sure that all appear once and only once in all the paramInfos
-                HashSet<VFXSlot> links = new HashSet<VFXSlot>(outputSlots[0].LinkedSlots);
+                List<ParamLinkedSlot> links = new List<ParamLinkedSlot>();
+                GetAllLinks(links, outputSlots[0]);
                 HashSet<int> usedIds = new HashSet<int>();
                 foreach (var info in paramInfos)
                 {
                     if (info.linkedSlots == null)
                     {
-                        info.linkedSlots = new List<VFXSlot>();
+                        info.linkedSlots = new List<ParamLinkedSlot>();
                     }
                     else
                     {
@@ -251,7 +296,7 @@ namespace UnityEditor.VFX
                 {
                     var newInfos = CreateParamInfo();
                     newInfos.position = Vector2.zero;
-                    newInfos.linkedSlots = new List<VFXSlot>(links);
+                    newInfos.linkedSlots = links;
                     m_ParamInfos.Add(newInfos);
                 }
             }

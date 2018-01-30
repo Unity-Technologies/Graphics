@@ -199,10 +199,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else
-                {
-                    Debug.LogError("Trying to make dataedge from not yet created nodes");
-                }
             }
 
             foreach (VFXSlot subSlot in inputSlot.children)
@@ -326,7 +322,7 @@ namespace UnityEditor.VFX.UI
 
                     if (fromController != null)
                     {
-                        fromController.infos.linkedSlots.Add(slotInput);
+                        fromController.infos.linkedSlots.Add(new VFXParameter.ParamLinkedSlot() { inputSlot = slotInput , outputSlot = slotOutput});
                     }
                     DataEdgesMightHaveChanged();
                 }
@@ -388,6 +384,12 @@ namespace UnityEditor.VFX.UI
             {
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
+            }
+            else if (element is VFXParameterController)
+            {
+                var parameter = element as VFXParameterController;
+
+                parameter.parentController.model.RemoveParamInfo(parameter.infos);
             }
             else if (element is VFXSlotContainerController)
             {

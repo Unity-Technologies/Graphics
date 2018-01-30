@@ -195,7 +195,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterController GetParameterForLink(VFXSlot slot)
         {
-            return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Contains(slot)).Value;
+            return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Any(u => u.inputSlot == slot)).Value;
         }
 
         public string exposedName
