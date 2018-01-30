@@ -255,10 +255,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             Quaternion captureRotation;
             Matrix4x4 worldToCamera, projection;
 
-            CalculateCaptureCameraProperties(probe, 
-                out nearClipPlane, out farClipPlane, 
-                out aspect, out fov, out clearFlags, out backgroundColor, 
-                out worldToCamera, out projection, 
+            CalculateCaptureCameraProperties(probe,
+                out nearClipPlane, out farClipPlane,
+                out aspect, out fov, out clearFlags, out backgroundColor,
+                out worldToCamera, out projection,
                 out capturePosition, out captureRotation, viewerCamera);
 
             camera.farClipPlane = farClipPlane;
@@ -332,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             nearClipPlane = viewerCamera.nearClipPlane;
             farClipPlane = viewerCamera.farClipPlane;
             aspect = 1;
-            fov = probe.overrideFieldOfView 
+            fov = probe.overrideFieldOfView
                 ? probe.fieldOfViewOverride
                 : Mathf.Max(viewerCamera.fieldOfView, viewerCamera.fieldOfView * viewerCamera.aspect);
             clearFlags = viewerCamera.clearFlags;
@@ -373,13 +373,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 if (s_RenderCamera == null || s_RenderCamera.Equals(null))
                     s_RenderCamera = go.AddComponent<Camera>();
 
+                // We need to setup cameraType before adding additional camera
+                s_RenderCamera.cameraType = CameraType.Reflection;
+
                 s_RenderCameraData = go.GetComponent<HDAdditionalCameraData>();
                 if (s_RenderCameraData == null || s_RenderCameraData.Equals(null))
                     s_RenderCameraData = go.AddComponent<HDAdditionalCameraData>();
 
                 go.SetActive(false);
-
-                s_RenderCamera.cameraType = CameraType.Reflection;
             }
 
             return s_RenderCamera;
