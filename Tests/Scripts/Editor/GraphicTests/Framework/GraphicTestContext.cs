@@ -12,12 +12,14 @@ namespace UnityEngine.Experimental.Rendering
         [MenuItem("Assets/Open Graphic Test Result")]
         private static void OpenGraphicTestResult()
         {
-
+            TestResultWindow.OpenWindow((SceneAsset) Selection.activeObject);
         }
 
         [MenuItem("Assets/Open Graphic Test Result", true)]
         private static bool OpenGraphicTestResultValidation()
         {
+            if (((SceneAsset) Selection.activeObject) == null) return false;
+
             List<string> scenes = new List<string>();
 
             foreach (TestFrameworkTools.TestInfo testInfo in TestFrameworkTools.CollectScenes.HDRP)
