@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public bool IsDebugDisplayEnabled()
         {
-            return debugLightingMode != DebugLightingMode.None;
+            return debugLightingMode != DebugLightingMode.None || overrideSmoothness || overrideAlbedo || overrideNormal;
         }
 
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;

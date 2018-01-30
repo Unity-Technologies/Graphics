@@ -77,6 +77,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DebugItem shadowMaxValue = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMaxValueDebug);
                 shadowMaxValue.handler.OnEditorGUI();
 
+                DebugItem lightingDebugModeItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLightingDebugMode);
+                lightingDebugModeItem.handler.OnEditorGUI();
+                switch ((DebugLightingMode)lightingDebugModeItem.GetValue())
+                {
+                    case DebugLightingMode.EnvironmentProxyVolume:
+                        {
+                            ++EditorGUI.indentLevel;
+                            m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugEnvironmentProxyDepthScale).handler.OnEditorGUI();
+                            --EditorGUI.indentLevel;
+                            break;
+                        }
+                }
+
                 DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
                 overrideSmoothnessItem.handler.OnEditorGUI();
                 if ((bool)overrideSmoothnessItem.GetValue())
@@ -93,24 +106,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 DebugItem overrideNormalItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideNormalDebug);
                 overrideNormalItem.handler.OnEditorGUI();
-
-                DebugItem lightingDebugModeItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLightingDebugMode);
-                lightingDebugModeItem.handler.OnEditorGUI();
-                switch ((DebugLightingMode)lightingDebugModeItem.GetValue())
-                {
-                    case DebugLightingMode.DiffuseLighting:
-                        {
-                            overrideAlbedoItem.SetValue(true); // Force to be true for diffuse lighting mode
-                            break;
-                        }
-                    case DebugLightingMode.EnvironmentProxyVolume:
-                        {
-                            ++EditorGUI.indentLevel;
-                            m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugEnvironmentProxyDepthScale).handler.OnEditorGUI();
-                            --EditorGUI.indentLevel;
-                            break;
-                        }
-                }
 
                 var fullScreenDebugModeHandler = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode);
                 fullScreenDebugModeHandler.handler.OnEditorGUI();
