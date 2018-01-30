@@ -339,7 +339,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     reflectivity = preFGD.y;
 }
 
-void ApplyDebugToSurfaceData(FragInputs input, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
@@ -363,7 +363,7 @@ void ApplyDebugToSurfaceData(FragInputs input, inout SurfaceData surfaceData)
     if (overrideNormal)
     {
         float overrideNormalValue = _DebugLightingNormal.yzw;
-        surfaceData.normalWS = input.worldToTangent[2];
+        surfaceData.normalWS = worldToTangent[2];
     }
 #endif
 }
