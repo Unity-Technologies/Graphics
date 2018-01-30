@@ -48,7 +48,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
 #ifdef DEBUG_DISPLAY
-    ApplyDebugToSurfaceData(input, surfaceData);
+    ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
 #endif
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
