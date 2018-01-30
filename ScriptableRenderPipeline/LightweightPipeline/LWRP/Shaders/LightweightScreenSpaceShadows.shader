@@ -18,44 +18,17 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         struct VertexInput
         {
-            float4 vertex : POSITION;
-            float2 uv     : TEXCOORD0;
-            uint   id     : SV_VertexID;
+            float4 vertex   : POSITION;
+            float2 texcoord : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Interpolators
         {
-            half4  pos          : SV_POSITION;
-            half2  uv           : TEXCOORD0;
-            
-            //Perspective Case
-            float3 ray          : TEXCOORD1;
-
-            //Orthographic Case
-            float3 orthoPosNear : TEXCOORD2;
-            float3 orthoPosFar  : TEXCOORD3;
-            
+            half4  pos      : SV_POSITION;
+            half4  texcoord : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
-
-        float3 ComputeViewSpacePositionGeometric(Interpolators i)
-        {
-            float zDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
-            float depth  = Linear01Depth(zDepth, _ZBufferParams);
-
-        #if UNITY_REVERSED_Z
-            zDepth = 1 - zDepth;
-        #endif
-
-            //Perspective Case
-            float3 vposPersp = i.ray * depth;
-
-            //Orthographics Case
-            float3 vposOrtho = lerp(i.orthoPosNear, i.orthoPosFar, zDepth);
-
-            return lerp(vposPersp, vposOrtho, unity_OrthoParams.w);
-        }
 
         Interpolators Vertex(VertexInput i)
         {
@@ -64,33 +37,31 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             UNITY_TRANSFER_INSTANCE_ID(i, o);
 
             o.pos = TransformObjectToHClip(i.vertex.xyz);
-            o.uv  = i.uv;
 
-            //Perspective Case
-            o.ray = _FrustumCorners[i.id].xyz; 
+            float4 projPos = o.pos * 0.5;
+            projPos.xy = projPos.xy + projPos.w;
 
-            //Orthographic Case
-            float4 clipPos = o.pos;
-            clipPos.y *= _ProjectionParams.x;
-            float3 orthoPosNear = mul(unity_CameraInvProjection, float4(clipPos.x, clipPos.y, -1, 1)).xyz;
-            float3 orthoPosFar  = mul(unity_CameraInvProjection, float4(clipPos.x, clipPos.y,  1, 1)).xyz;
-            orthoPosNear.z *= -1;
-            orthoPosFar.z  *= -1;
-            o.orthoPosNear = orthoPosNear;
-            o.orthoPosFar  = orthoPosFar;
+            o.texcoord.xy = i.texcoord;
+            o.texcoord.zw = projPos.xy;
 
             return o;
         }
 
-        half Fragment(Interpolators i) : SV_Target
+        half4 Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
 
-            //Reconstruct the world position.
-            float3 vpos = ComputeViewSpacePositionGeometric(i); //TODO: Profile against unprojection method in core library.
+            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy);
+
+#if UNITY_REVERSED_Z
+            deviceDepth = 1 - deviceDepth;
+#endif
+            deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position. 
+
+            float3 vpos = ComputeViewSpacePosition(i.texcoord.zw, deviceDepth, unity_CameraInvProjection);
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
             
-            //Fetch shadow coordinates.
+            //Fetch shadow coordinates for cascade.
             float4 coords  = ComputeShadowCoord(wpos);
 
             return SampleShadowmap(coords);
