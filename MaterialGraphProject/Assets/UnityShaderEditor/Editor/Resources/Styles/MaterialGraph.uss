@@ -32,23 +32,41 @@ MaterialNodeView.graphElement.node.MaterialNode {
     margin-right: 0;
 }
 
-MaterialNodeView #previewContainer,
+MaterialNodeView #collapsible-area {
+    width: 0;
+    height: 0;
+}
+
+MaterialNodeView #previewFiller.expanded {
+    width: 200;
+    padding-bottom: 200;
+}
+
+MaterialNodeView #previewFiller,
 MaterialNodeView #controls {
     background-color: rgba(63, 63, 63, 0.8);
 }
 
-MaterialNodeView #controls.notEmpty {
+MaterialNodeView #controls > #items {
     padding-top: 4;
     padding-bottom: 4;
 }
 
-MaterialNodeView #previewContainer > #preview  {
+MaterialNodeView > #previewContainer {
+    position-type: absolute;
+    position-bottom: 4;
+    position-left: 4;
+    border-radius: 6;
+    padding-top: 6;
+}
+
+MaterialNodeView > #previewContainer > #preview  {
     width: 200;
     height: 200;
     align-items:center;
 }
 
-MaterialNodeView #previewContainer > #preview > #collapse {
+MaterialNodeView > #previewContainer > #preview > #collapse {
     background-color: #000;
     border-color: #F0F0F0;
     width: 0;
@@ -65,27 +83,23 @@ MaterialNodeView #previewContainer > #preview > #collapse {
 }
 
 
-MaterialNodeView #previewContainer:hover > #preview > #collapse {
+MaterialNodeView:hover > #previewContainer > #preview > #collapse {
     width: 20;
     height: 20;
     opacity: 0.6;
 }
 
-MaterialNodeView #previewContainer > #preview > #collapse > #icon
-{
+MaterialNodeView > #previewContainer > #preview > #collapse > #icon  {
     background-image : resource("GraphView/Nodes/PreviewCollapse.png");
     width: 16;
     height: 16;
 }
-MaterialNodeView #previewContainer > #preview > #collapse:hover {
+
+MaterialNodeView > #previewContainer > #preview > #collapse:hover {
     opacity: 1.0;
 }
 
-MaterialNodeView #previewContainer.collapsed > #preview > #collapse {
-    height: 0;
-}
-
-MaterialNodeView #previewContainer > #expand {
+MaterialNodeView #previewFiller > #expand {
     align-self: center;
     width: 56;
     height: 16;
@@ -93,18 +107,18 @@ MaterialNodeView #previewContainer > #expand {
     justify-content:center;
 }
 
-MaterialNodeView #previewContainer > #expand > #icon {
+MaterialNodeView #previewFiller > #expand > #icon {
     align-self: center;
     background-image : resource("GraphView/Nodes/PreviewExpand.png");
     width: 16;
     height: 16;
 }
 
-MaterialNodeView #previewContainer.collapsed > #expand:hover {
+MaterialNodeView #previewFiller.collapsed > #expand:hover {
     background-color: #2B2B2B;
 }
 
-MaterialNodeView #previewContainer.expanded > #expand {
+MaterialNodeView #previewFiller.expanded > #expand {
     height: 0;
 }
 
@@ -116,6 +130,13 @@ MaterialNodeView > #resize {
     width: 10;
     height: 10;
     cursor: resize-up-left;
+}
+
+MaterialNodeView > #portInputContainer {
+    position-type: absolute;
+    width: 212;
+    position-left: -200;
+    position-top: 46;
 }
 
 PortInputView {
