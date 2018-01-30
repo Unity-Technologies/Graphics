@@ -414,11 +414,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                    #else
                                                        );
                                                    #endif
-
-    #if (SUPPORT_ASYMMETRY == 0)
-        lighting.radianceComplete = lighting.radianceNoPhase;
-    #endif
-
     #if ENABLE_REPROJECTION
         // Reproject the history at 'centerWS'.
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
@@ -471,12 +466,21 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // to prevent ghosting.
         _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, dt);
 
+    #if SUPPORT_ASYMMETRY
         // Extrapolate the influence of the phase function on the results of the current frame.
-        // TODO: how to ensure we do not divide by 0?
-        float3 phaseCurrFrame = lighting.radianceComplete / lighting.radianceNoPhase;
+        // Use max() to prevent division by 0.
+        float3 phaseCurrFrame = lighting.radianceComplete * rcp(max(lighting.radianceNoPhase, FLT_MIN));
         blendedRadiance *= phaseCurrFrame;
-    #else
+    #endif // SUPPORT_ASYMMETRY
+
+    #else  // ENABLE_REPROJECTION
+
+    #if SUPPORT_ASYMMETRY
         float3 blendedRadiance = lighting.radianceComplete;
+    #else  // SUPPORT_ASYMMETRY
+        float3 blendedRadiance = lighting.radianceNoPhase;
+    #endif // SUPPORT_ASYMMETRY
+
     #endif // ENABLE_REPROJECTION
 
         // Compute the transmittance from the camera to 't0'.
