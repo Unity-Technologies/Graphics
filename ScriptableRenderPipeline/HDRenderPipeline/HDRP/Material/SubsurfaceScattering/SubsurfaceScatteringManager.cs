@@ -108,17 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Resize(HDCamera hdCamera)
         {
-            // We must use a RenderTexture and not GetTemporaryRT() as currently Unity only aloow to bind a RenderTexture for a UAV in a pixel shader
-            // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            var desc = hdCamera.renderTextureDesc;
-            desc.width = (desc.width + 7) / 8;
-            desc.height = (desc.height + 7) / 8;
-            // TODO: This fails allocation with MSAA enabled?
-            m_HTile = CoreUtils.CreateRenderTexture(desc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
-            m_HTile.filterMode = FilterMode.Point;
-            m_HTile.enableRandomWrite = true;
-            m_HTile.Create();
-            m_HTileRT = new RenderTargetIdentifier(m_HTile);
+            CoreUtils.ResizeHTile(ref m_HTile, ref m_HTileRT, hdCamera.renderTextureDesc);
         }
 
         public void PushGlobalParams(CommandBuffer cmd, DiffusionProfileSettings sssParameters, FrameSettings frameSettings)
