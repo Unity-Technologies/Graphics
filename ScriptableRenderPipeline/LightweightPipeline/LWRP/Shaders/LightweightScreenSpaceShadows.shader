@@ -47,7 +47,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             return o;
         }
 
-        half4 Fragment(Interpolators i) : SV_Target
+        half Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
 

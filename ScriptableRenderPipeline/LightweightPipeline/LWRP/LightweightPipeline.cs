@@ -403,7 +403,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]);
             SetShadowCollectPassKeywords(cmd, ref lightData);
 
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf);
+            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
             cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
             context.ExecuteCommandBuffer(cmd);
