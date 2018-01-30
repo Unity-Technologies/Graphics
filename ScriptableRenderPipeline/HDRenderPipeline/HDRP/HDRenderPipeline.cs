@@ -412,7 +412,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_VolumetricLightingModule.Build(asset);
 
             m_DebugDisplaySettings.RegisterDebug();
+#if UNITY_EDITOR
+            // We don't need the debug of Default camera at runtime (each camera have its own debug settings)
             FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
+#endif
 
             m_DebugColorPickerRT = HDShaderIDs._DebugColorPickerTexture;
             m_DebugFullScreenTempRT = HDShaderIDs._DebugFullScreenTexture;
@@ -553,8 +556,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var texHeight = desc.height;
             var sampleCount = desc.msaaSamples;
 
-            bool resolutionChanged = (texWidth != m_CurrentWidth) || 
-                                     (texHeight != m_CurrentHeight) || 
+            bool resolutionChanged = (texWidth != m_CurrentWidth) ||
+                                     (texHeight != m_CurrentHeight) ||
                                      (sampleCount != m_CurrentMSAASampleCount);
 
             if (resolutionChanged || m_CameraDepthStencilBuffer == null)
@@ -562,7 +565,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CreateDepthStencilBuffer(hdCamera);
                 if (m_FrameSettings.enableDBuffer)
                 {
-                    m_DbufferManager.Resize(hdCamera);                    
+                    m_DbufferManager.Resize(hdCamera);
                 }
 
                 if (m_FrameSettings.enableSubsurfaceScattering)
@@ -1241,7 +1244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
                 if (m_FrameSettings.enableDBuffer)
                 {
-                    m_DbufferManager.SetHTile(m_GbufferManager.gbufferCount, cmd); 
+                    m_DbufferManager.SetHTile(m_GbufferManager.gbufferCount, cmd);
                 }
 
                 // Render opaque objects into GBuffer
