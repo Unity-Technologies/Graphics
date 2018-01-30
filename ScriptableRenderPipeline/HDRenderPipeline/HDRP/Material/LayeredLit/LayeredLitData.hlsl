@@ -723,15 +723,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    // TEMP: The UI must control if we have transmission or not.
-    // Currently until we update the UI, this is control in the diffusion profile
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
-    // Caution: Because of this dynamic test we don't know anymore statically if we have transmission, which mess with performance.
-    // in deferred case as we still have both sss and transmission until we update the UI it should be the same perf
-    if (transmissionMode != TRANSMISSION_MODE_NONE)
-    {
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
-    }
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 
     // Init other parameters

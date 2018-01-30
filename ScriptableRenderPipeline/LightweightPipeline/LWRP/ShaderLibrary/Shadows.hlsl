@@ -6,28 +6,6 @@
 
 #define MAX_SHADOW_CASCADES 4
 
-///////////////////////////////////////////////////////////////////////////////
-// Light Classification shadow defines                                       //
-//                                                                           //
-// In order to reduce shader variations main light keywords were combined    //
-// here we define shadow keywords.                                           //
-///////////////////////////////////////////////////////////////////////////////
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
-    #define _SHADOWS_ENABLED
-#endif
-
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
-    #define _SHADOWS_SOFT
-#endif
-
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
-    #define _SHADOWS_CASCADE
-#endif
-
-#if defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
-    #define _SHADOWS_PERSPECTIVE
-#endif
-
 TEXTURE2D(_ScreenSpaceShadowMap);
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
@@ -50,24 +28,38 @@ float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 float4      _FrustumCorners[4];
 CBUFFER_END
 
-inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
-{
-    shadowCoord.xyz = shadowCoord.xyz / shadowCoord.w;
-    return SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
-}
-
-inline half SampleShadowmap(float4 shadowCoord)
-{
-#if defined(_SHADOWS_PERSPECTIVE)
-    shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
+#if UNITY_REVERSED_Z
+#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= UNITY_RAW_FAR_CLIP_VALUE
+#else
+#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z >= UNITY_RAW_FAR_CLIP_VALUE
 #endif
 
-    half attenuation;
+#define OUTSIDE_SHADOW_BOUNDS(shadowCoord) shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || BEYOND_SHADOW_FAR(shadowCoord)
+
+half GetShadowStrength()
+{
+    return _ShadowData.x;
+}
+
+inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
+{
+    shadowCoord.xy = shadowCoord.xy / shadowCoord.w;
+    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
+
+    // Apply shadow strength
+    return LerpWhiteTo(attenuation, GetShadowStrength());
+}
+
+inline real SampleShadowmap(float4 shadowCoord)
+{
+    shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
+
+    real attenuation;
 
 #ifdef _SHADOWS_SOFT
     #ifdef SHADER_API_MOBILE
         // 4-tap hardware comparison
-        half4 attenuation4;
+        real4 attenuation4;
         attenuation4.x = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset0.xyz);
         attenuation4.y = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset1.xyz);
         attenuation4.z = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz + _ShadowOffset2.xyz);
@@ -116,12 +108,8 @@ inline half SampleShadowmap(float4 shadowCoord)
     attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
 
-    // Apply shadow strength
-    attenuation = LerpWhiteTo(attenuation, _ShadowData.x);
-
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
-    // TODO: We can set shadowmap sampler to clamptoborder when we don't have a shadow atlas and avoid xy coord bounds check
-    return (shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || shadowCoord.z >= 1) ? 1.0 : attenuation;
+    return (OUTSIDE_SHADOW_BOUNDS(shadowCoord)) ? 1.0 : attenuation;
 }
 
 inline half ComputeCascadeIndex(float3 positionWS)
@@ -149,32 +137,9 @@ float4 ComputeShadowCoord(float3 positionWS)
     return mul(_WorldToShadow[0], float4(positionWS, 1.0));
 }
 
-half GetShadowStrength()
+half RealtimeShadowAttenuation(float4 shadowCoord)
 {
-    return _ShadowData.x;
-}
-
-half RealtimeShadowAttenuation(float3 positionWS)
-{
-#if !defined(_SHADOWS_ENABLED)
-    return 1.0;
-#endif
-
-    float4 shadowCoord = ComputeShadowCoord(positionWS);
-    return SampleShadowmap(shadowCoord);
-}
-
-half RealtimeShadowAttenuation(float3 positionWS, float4 shadowCoord)
-{
-#if !defined(_SHADOWS_ENABLED)
-    return 1.0;
-#endif
-
-#ifdef _SHADOWS_CASCADE //Assume screen space shadows when cascades are enabled
     return SampleScreenSpaceShadowMap(shadowCoord);
-#else
-    return SampleShadowmap(shadowCoord);
-#endif
 }
 
 #endif

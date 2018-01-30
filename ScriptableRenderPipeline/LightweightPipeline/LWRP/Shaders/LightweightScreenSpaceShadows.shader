@@ -2,7 +2,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 {
     SubShader
     {
-        Tags {}
+        Tags{ "RenderPipeline" = "LightweightPipeline" }
 
         HLSLINCLUDE
 
@@ -44,7 +44,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float zDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
             float depth  = Linear01Depth(zDepth, _ZBufferParams);
 
-        #ifdef UNITY_REVERSED_Z
+        #if UNITY_REVERSED_Z
             zDepth = 1 - zDepth;
         #endif
 
@@ -103,14 +103,8 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             ZTest Always ZWrite Off
 
             HLSLPROGRAM
-
-            // -------------------------------------
-            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
-            // Lightweight combines light classification and shadows keywords to reduce shader variants.
-            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
-            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
-            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
-            #pragma multi_compile _ _MAIN_LIGHT_DIRECTIONAL_SHADOW _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE _MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT _MAIN_LIGHT_SPOT_SHADOW _MAIN_LIGHT_SPOT_SHADOW_SOFT
+            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ _SHADOWS_CASCADE
             
             #pragma vertex   Vertex
             #pragma fragment Fragment

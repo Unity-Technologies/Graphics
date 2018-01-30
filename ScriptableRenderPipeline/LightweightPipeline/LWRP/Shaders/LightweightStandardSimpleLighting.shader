@@ -74,12 +74,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
-            // Lightweight combines light classification and shadows keywords to reduce shader variants.
-            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
-            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
-            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
-            #pragma multi_compile _ _MAIN_LIGHT_DIRECTIONAL_SHADOW _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE _MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT _MAIN_LIGHT_SPOT_SHADOW _MAIN_LIGHT_SPOT_SHADOW_SOFT
+            #pragma multi_compile _MAIN_LIGHT_DIRECTIONAL _MAIN_LIGHT_SPOT
+            #pragma multi_compile _ _SHADOWS_ENABLED
             #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
@@ -88,7 +84,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
 
             //--------------------------------------

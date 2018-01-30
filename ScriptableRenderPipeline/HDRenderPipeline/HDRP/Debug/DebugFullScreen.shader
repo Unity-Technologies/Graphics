@@ -17,6 +17,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #pragma fragment Frag
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
 
@@ -105,15 +106,14 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
-
-                    if (any(isnan(color)) || any(isinf(color)))
+                    
+                    if (IsNAN(color) || any(isinf(color)))
                     {
-                        color = float4(1.0, 0.0, 1.0, 1.0);
+                        color = float4(1.0, 0.0, 0.0, 1.0);
                     }
                     else
                     {
-                        // Dim the color buffer so we can see NaNs & Infs better
-                        color.rgb *= 0.25;
+                        color.rgb = Luminance(color.rgb).xxx;
                     }
 
                     return color;

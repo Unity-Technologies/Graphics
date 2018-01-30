@@ -173,6 +173,7 @@ public class VolumetricLightingModule
     List<VBuffer> m_VBuffers         = null;
     float         m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
     float         m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
+    const float   k_LogScale         = 0.5f;
 
     public void Build(HDRenderPipelineAsset asset)
     {
@@ -305,20 +306,34 @@ public class VolumetricLightingModule
         return new Vector2((float)screenWidth / (float)(w * t), (float)screenHeight / (float)(h * t));
     }
 
-    // Uses a logarithmic depth encoding.
-    // Near plane: depth = 0; far plane: depth = 1.
-    // x = n, y = log2(f/n), z = 1/n, w = 1/log2(f/n).
-    static Vector4 ComputeLogarithmicDepthEncodingParams(float nearPlane, float farPlane)
+    // See EncodeLogarithmicDepthGeneralized().
+    static Vector4 ComputeLogarithmicDepthEncodingParams(float nearPlane, float farPlane, float c)
     {
         Vector4 depthParams = new Vector4();
 
         float n = nearPlane;
         float f = farPlane;
 
-        depthParams.x = n;
-        depthParams.y = Mathf.Log(f / n, 2);
-        depthParams.z = 1.0f / depthParams.x;
-        depthParams.w = 1.0f / depthParams.y;
+        depthParams.x = Mathf.Log(c, 2) * (1.0f / Mathf.Log(c * (f - n) + 1, 2));
+        depthParams.y = 1.0f / Mathf.Log(c * (f - n) + 1, 2);
+        depthParams.z = n - 1.0f / c; // Same
+        depthParams.w = 0.0f;
+
+        return depthParams;
+    }
+
+    // See DecodeLogarithmicDepthGeneralized().
+    static Vector4 ComputeLogarithmicDepthDecodingParams(float nearPlane, float farPlane, float c)
+    {
+        Vector4 depthParams = new Vector4();
+
+        float n = nearPlane;
+        float f = farPlane;
+
+        depthParams.x = 1.0f / c;
+        depthParams.y = c * (f - n) + 1;
+        depthParams.z = n - 1.0f / c; // Same
+        depthParams.w = 0.0f;
 
         return depthParams;
     }
@@ -345,7 +360,8 @@ public class VolumetricLightingModule
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
-        cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams, ComputeLogarithmicDepthDecodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
     }
 

@@ -358,7 +358,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            DoLayerGUI(material, layerIndex);
+            DoLayerGUI(material, layerIndex, true);
 
             if (layerIndex == 0)
                 EditorGUILayout.Space();
@@ -564,14 +564,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string uvBase = string.Format("{0}{1}", kUVBase, i);
                 string uvDetail = string.Format("{0}{1}", kUVDetail, i);
 
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
-                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
                 {
                     needUV2 = true;
                 }
 
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-                    ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
+                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
                 {
                     needUV3 = true;
                     break; // If we find it UV3 let's early out
@@ -666,9 +664,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
             BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
+            BaseLitGUI.SSSAndTransmissionType sssAndTransmissionType = (BaseLitGUI.SSSAndTransmissionType)material.GetFloat(kSSSAndTransmissionType);
 
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitSSS);
+            if (materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission)
+            {
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSOnly);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitTransmissionOnly);
+            }
+            else
+            {
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", false);
+                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", false);
+            }
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -756,6 +763,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
             EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
+            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)

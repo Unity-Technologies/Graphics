@@ -32,10 +32,10 @@ float4 ShadowPassVertex(VertexInput v) : SV_POSITION
     // _ShadowBias.x sign depens on if platform has reversed z buffer
     clipPos.z += _ShadowBias.x;
 
-#if defined(UNITY_REVERSED_Z)
-    clipPos.z = min(clipPos.z, 1.0);
+#if UNITY_REVERSED_Z
+    clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
 #else
-    clipPos.z = max(clipPos.z, 0.0);
+    clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
 #endif
     return clipPos;
 }
