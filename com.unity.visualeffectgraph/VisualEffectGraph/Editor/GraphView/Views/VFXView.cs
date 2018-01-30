@@ -1354,7 +1354,7 @@ namespace UnityEditor.VFX.UI
             Vector2 mousePosition = contentViewContainer.WorldToLocal(evt.mousePosition);
             foreach (var row in rows)
             {
-                AddVFXParameter(mousePosition, row.controller);
+                AddVFXParameter(mousePosition - new Vector2(100, 75), row.controller);
             }
 
             return true;
