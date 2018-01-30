@@ -390,14 +390,25 @@ namespace UnityEditor.VFX.UI
                 var parameter = element as VFXParameterController;
 
                 parameter.parentController.model.RemoveParamInfo(parameter.infos);
+                DataEdgesMightHaveChanged();
             }
-            else if (element is VFXSlotContainerController)
+            else if (element is VFXSlotContainerController || element is VFXParametersController)
             {
-                var operatorController = element as VFXSlotContainerController;
+                IVFXSlotContainer container = null;
+
+                if (element is VFXSlotContainerController)
+                {
+                    container = (element as VFXSlotContainerController).slotContainer;
+                }
+                else
+                {
+                    container = (element as VFXParametersController).model;
+                }
+
                 VFXSlot slotToClean = null;
                 do
                 {
-                    slotToClean = operatorController.slotContainer.inputSlots.Concat(operatorController.slotContainer.outputSlots)
+                    slotToClean = container.inputSlots.Concat(container.outputSlots)
                         .FirstOrDefault(o => o.HasLink(true));
                     if (slotToClean)
                     {
@@ -406,7 +417,7 @@ namespace UnityEditor.VFX.UI
                 }
                 while (slotToClean != null);
 
-                graph.RemoveChild(operatorController.model);
+                graph.RemoveChild(container as VFXModel);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -978,6 +989,11 @@ namespace UnityEditor.VFX.UI
                     controller.OnDisable();
                 }
                 m_SyncedModels.Remove(model);
+            }
+            if (model is VFXParameter)
+            {
+                m_ParametersControllers[model as VFXParameter].OnDisable();
+                m_ParametersControllers.Remove(model as VFXParameter);
             }
         }
 

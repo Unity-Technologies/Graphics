@@ -10,20 +10,17 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, IControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, ISettableControlledElement<VFXNodeController>
     {
         VFXSlotContainerController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        VFXNodeController IControlledElement<VFXNodeController>.controller
+        VFXNodeController ISettableControlledElement<VFXNodeController>.controller
         {
             get { return m_Controller; }
-            set
-            {
-                controller = value as VFXSlotContainerController;
-            }
+            set { controller = value as VFXSlotContainerController; }
         }
         public override void UpdatePresenterPosition()
         {
@@ -157,7 +154,7 @@ namespace UnityEditor.VFX.UI
             foreach (var newController in ports.Except(existingAnchors.Keys))
             {
                 var newElement = InstantiateDataAnchor(newController, this);
-                (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
+                (newElement as VFXDataAnchor).controller = newController;
 
                 container.Add(newElement);
             }

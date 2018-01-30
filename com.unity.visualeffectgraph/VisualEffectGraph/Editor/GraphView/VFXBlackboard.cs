@@ -11,14 +11,30 @@ using System.Linq;
 
 namespace  UnityEditor.VFX.UI
 {
+    class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParametersController>
+    {
+        public VFXBlackboardField(Texture icon, string text, string typeText) : base(icon, text, typeText)
+        {
+        }
+
+        Controller IControlledElement.controller
+        {
+            get { return GetFirstAncestorOfType<VFXBlackboardRow>().controller; }
+        }
+        public VFXParametersController controller
+        {
+            get { return GetFirstAncestorOfType<VFXBlackboardRow>().controller; }
+        }
+    }
+
     class VFXBlackboardRow : BlackboardRow, IControlledElement<VFXParametersController>
     {
-        BlackboardField m_Field;
+        VFXBlackboardField m_Field;
 
         VisualElement m_Properties;
-        public VFXBlackboardRow() : base(new BlackboardField(null, "", "") { name = "vfx-field" }, new VisualElement() { name = "vfx-properties"})
+        public VFXBlackboardRow() : base(new VFXBlackboardField(null, "", "") { name = "vfx-field" }, new VisualElement() { name = "vfx-properties"})
         {
-            m_Field = this.Q<BlackboardField>("vfx-field");
+            m_Field = this.Q<VFXBlackboardField>("vfx-field");
             m_Properties = this.Q("vfx-properties");
 
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
@@ -149,10 +165,9 @@ namespace  UnityEditor.VFX.UI
 
         void OnEditName(Blackboard bb, VisualElement element, string value)
         {
-            if (element is BlackboardField)
+            if (element is VFXBlackboardField)
             {
-                VFXBlackboardRow row = element.GetFirstAncestorOfType<VFXBlackboardRow>();
-                row.controller.exposedName = value;
+                (element as VFXBlackboardField).controller.exposedName = value;
             }
         }
 
@@ -160,9 +175,7 @@ namespace  UnityEditor.VFX.UI
         {
             if (element is BlackboardField)
             {
-                VFXBlackboardRow row = element.GetFirstAncestorOfType<VFXBlackboardRow>();
-                if (row != null)
-                    controller.SetParametersOrder(row.controller, index);
+                controller.SetParametersOrder((element as VFXBlackboardField).controller, index);
             }
         }
 

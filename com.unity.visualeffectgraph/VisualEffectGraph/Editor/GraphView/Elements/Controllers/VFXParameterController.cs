@@ -164,6 +164,7 @@ namespace UnityEditor.VFX.UI
             set
             {
                 m_Infos.position = value;
+                model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
 

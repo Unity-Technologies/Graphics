@@ -628,7 +628,7 @@ namespace UnityEditor.VFX.UI
                 {
                     var newElement = m_SlotContainerFactory.Create(newController);
                     AddElement(newElement);
-                    (newElement as IControlledElement<VFXNodeController>).controller = newController;
+                    (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
                 }
 
 
