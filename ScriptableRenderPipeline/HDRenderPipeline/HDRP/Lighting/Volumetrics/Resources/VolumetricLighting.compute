@@ -492,8 +492,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float phase = IsotropicPhaseFunction();
     #endif
 
+        // Sample the light probe.
+        float3 probeRadiance = _AmbientProbe.rgb * (4 * PI) * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        totalRadiance += (transmittance * phase) * scattering * blendedRadiance;
+        totalRadiance += (transmittance * phase) * scattering * (blendedRadiance + probeRadiance);
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;

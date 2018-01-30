@@ -338,6 +338,18 @@ public class VolumetricLightingModule
         return depthParams;
     }
 
+    Vector4 GetAmbientLightProbe()
+    {
+        Vector4 probe = new Vector4();
+
+        SphericalHarmonicsL2 probeSH = RenderSettings.ambientProbe;
+        probe.x = probeSH[0, 0];
+        probe.y = probeSH[1, 0];
+        probe.z = probeSH[2, 0];
+
+        return probe;
+    }
+
     public void PushGlobalParams(HDCamera camera, CommandBuffer cmd)
     {
         if (preset == VolumetricLightingPreset.Off) return;
@@ -363,6 +375,7 @@ public class VolumetricLightingModule
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams, ComputeLogarithmicDepthDecodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
+        cmd.SetGlobalVector( HDShaderIDs._AmbientProbe,               GetAmbientLightProbe());
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres

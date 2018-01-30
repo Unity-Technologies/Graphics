@@ -324,6 +324,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Source4 = Shader.PropertyToID("_Source4");
         public static readonly int _Result1 = Shader.PropertyToID("_Result1");
 
+        public static readonly int _AmbientProbe               = Shader.PropertyToID("_AmbientProbe");
         public static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
         public static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
         public static readonly int _GlobalFog_Asymmetry        = Shader.PropertyToID("_GlobalFog_Asymmetry");
