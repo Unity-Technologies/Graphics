@@ -62,7 +62,6 @@ CGPROGRAM
 #pragma target 3.0
 #pragma vertex vert
 #pragma fragment frag
-#pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
 #pragma shader_feature _METALLICGLOSSMAP
 #include "UnityCG.cginc"
 #include "UnityStandardBRDF.cginc"

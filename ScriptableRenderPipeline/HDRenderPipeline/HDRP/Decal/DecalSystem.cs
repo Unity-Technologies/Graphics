@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				decalRotation.m02 = y0;
 				decalRotation.m12 = y1;
 				decalRotation.m22 = y2;
+
                 m_CachedNormalToWorld[decal.CullIndex] = decalRotation;
 
                 m_BoundingSpheres[decal.CullIndex] = GetDecalProjectBoundingSphere(m_CachedTransforms[decal.CullIndex]);
