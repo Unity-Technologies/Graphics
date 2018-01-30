@@ -80,6 +80,7 @@ namespace UnityEditor.VFX
             InvalidOnGPU =  1 << 3, // Expression can be evaluated on GPU
             InvalidOnCPU =  1 << 4, // Expression can be evaluated on CPU
             PerElement =    1 << 5, // Expression is per element
+            NotCompilabeOnCPU = InvalidOnCPU | PerElement //Helper to filter out invalid expression on CPU
         }
 
         public static bool IsFloatValueType(VFXValueType valueType)

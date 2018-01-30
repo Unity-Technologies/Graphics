@@ -16,11 +16,8 @@ namespace UnityEditor.VFX
 
         private void CollectAndAddUniforms(VFXExpression exp, string name)
         {
-            if (!exp.Is(VFXExpression.Flags.PerElement))
+            if (!exp.IsAny(VFXExpression.Flags.NotCompilabeOnCPU))
             {
-                if (exp.Is(VFXExpression.Flags.InvalidOnCPU))
-                    throw new InvalidOperationException(string.Format("Collected uniform expression is invalid on CPU: {0}", exp));
-
                 string prefix;
                 Dictionary<VFXExpression, string> expressions;
 
