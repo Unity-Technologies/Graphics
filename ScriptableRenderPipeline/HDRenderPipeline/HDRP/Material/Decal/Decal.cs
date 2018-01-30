@@ -23,6 +23,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Count = 3
         };
 
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum DBufferHTileBit
+        {            
+            Diffuse = 1,
+            Normal = 2,
+            Mask = 4
+        };
+
         //-----------------------------------------------------------------------------
         // DBuffer management
         //-----------------------------------------------------------------------------
