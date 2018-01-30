@@ -339,6 +339,9 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     reflectivity = preFGD.y;
 }
 
+// This function is use to help with debugging and must be implemented by any lit material
+// Implementer must take into account what are the current override component and 
+// adjust SurfaceData properties accordingdly
 void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
