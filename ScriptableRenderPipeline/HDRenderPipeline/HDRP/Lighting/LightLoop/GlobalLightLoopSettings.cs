@@ -17,8 +17,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int cubeCookieTexArraySize = 16;
 
         public int reflectionProbeCacheSize = 128;
+        public int planarReflectionProbeCacheSize = 128;
         public int reflectionCubemapSize = 128;
+        public int planarReflectionTextureSize = 128;
         public bool reflectionCacheCompressed = false;
+        public bool planarReflectionCacheCompressed = false;
+        public int maxPlanarReflectionProbes = 128;
         public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
         public LayerMask skyLightingOverrideLayerMask = 0;
     }
