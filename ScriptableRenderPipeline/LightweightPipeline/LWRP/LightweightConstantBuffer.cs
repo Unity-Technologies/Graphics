@@ -37,6 +37,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int _ShadowOffset2;
         public static int _ShadowOffset3;
         public static int _ShadowmapSize;
-        public static int _FrustumCorners;
     }
 }
