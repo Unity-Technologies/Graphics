@@ -492,7 +492,7 @@ real UnpackFloatFromR8G8(real2 f)
 // Pack float2 (each of 12 bit) in 888
 real3 PackFloat2To888(real2 f)
 {
-    uint2 i = (uint2)(f * 4095.0);
+    uint2 i = (uint2)(f * 4095.5);
     uint2 hi = i >> 8;
     uint2 lo = i & 255;
     // 8 bit in lo, 4 bit in hi
