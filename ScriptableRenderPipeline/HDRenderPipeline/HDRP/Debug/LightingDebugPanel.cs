@@ -77,27 +77,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DebugItem shadowMaxValue = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kShadowMaxValueDebug);
                 shadowMaxValue.handler.OnEditorGUI();
 
+                DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
+                overrideSmoothnessItem.handler.OnEditorGUI();
+                if ((bool)overrideSmoothnessItem.GetValue())
+                {
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessValueDebug).handler.OnEditorGUI();
+                }
+
+                DebugItem overrideAlbedoItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideAlbedoDebug);
+                overrideAlbedoItem.handler.OnEditorGUI();
+                if ((bool)overrideAlbedoItem.GetValue())
+                {
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideAlbedoValueDebug).handler.OnEditorGUI();
+                }
+
+                DebugItem overrideNormalItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideNormalDebug);
+                overrideNormalItem.handler.OnEditorGUI();
+
                 DebugItem lightingDebugModeItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kLightingDebugMode);
                 lightingDebugModeItem.handler.OnEditorGUI();
                 switch ((DebugLightingMode)lightingDebugModeItem.GetValue())
                 {
-                    case DebugLightingMode.SpecularLighting:
-                        {
-                            EditorGUI.indentLevel++;
-                            DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
-                            overrideSmoothnessItem.handler.OnEditorGUI();
-                            if ((bool)overrideSmoothnessItem.GetValue())
-                            {
-                                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessValueDebug).handler.OnEditorGUI();
-                            }
-                            EditorGUI.indentLevel--;
-                            break;
-                        }
                     case DebugLightingMode.DiffuseLighting:
                         {
-                            EditorGUI.indentLevel++;
-                            m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugLightingAlbedo).handler.OnEditorGUI();
-                            EditorGUI.indentLevel--;
+                            overrideAlbedoItem.SetValue(true); // Force to be true for diffuse lighting mode
                             break;
                         }
                     case DebugLightingMode.EnvironmentProxyVolume:
