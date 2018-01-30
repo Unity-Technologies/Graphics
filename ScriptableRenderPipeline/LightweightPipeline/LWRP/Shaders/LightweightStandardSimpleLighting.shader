@@ -88,7 +88,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
 
             //--------------------------------------
