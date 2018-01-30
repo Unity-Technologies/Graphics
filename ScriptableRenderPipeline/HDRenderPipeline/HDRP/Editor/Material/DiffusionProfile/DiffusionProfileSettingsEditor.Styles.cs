@@ -23,11 +23,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GUIContent("Post-scatter",          "Texturing is performed only during the SSS pass. Effectively preserves the sharpness of the diffuse texture. Choose this mode if your diffuse texture already contains SSS lighting (e.g. a photo of skin).")
             };
             public readonly GUIContent   profileTransmissionMode = new GUIContent("Transmission Mode", "Configures the simulation of light passing through thin objects. Depends on the thickness value (which is applied in the normal direction).");
-            public readonly GUIContent[] transmissionModeOptions = new GUIContent[3]
+            public readonly GUIContent[] transmissionModeOptions = new GUIContent[2]
             {
-                new GUIContent("None",         "Disables transmission. Choose this mode for completely opaque, or very thick translucent objects."),
-                new GUIContent("Thin Object",  "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface."),
-                new GUIContent("Regular",      "Choose this mode for moderately thick objects. For performance reasons, transmitted light ignores occlusion (shadows).")
+                new GUIContent("Regular",      "Choose this mode for moderately thick objects. For performance reasons, transmitted light ignores occlusion (shadows)."),
+                new GUIContent("Thin Object",  "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface.")
             };
             public readonly GUIContent   profileMinMaxThickness = new GUIContent("Min-Max Thickness (mm)", "Shows the values of the thickness remap below (in millimeters).");
             public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (mm)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");

@@ -698,6 +698,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             RenderTextureDescriptor colorRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, m_ColorFormat, kDepthStencilBufferBits);
+            colorRTDesc.sRGB = true;
             colorRTDesc.msaaSamples = msaaSamples;
             colorRTDesc.enableRandomWrite = false;
 

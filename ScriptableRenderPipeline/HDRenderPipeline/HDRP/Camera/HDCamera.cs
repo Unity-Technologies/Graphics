@@ -24,6 +24,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
+        // Non oblique projection matrix (RHS)
+        public Matrix4x4 nonObliqueProjMatrix
+        {
+            get
+            {
+                return m_AdditionalCameraData != null
+                    ? m_AdditionalCameraData.GetNonObliqueProjection(camera)
+                    : GeometryUtils.CalculateProjectionMatrix(camera);
+            }
+        }
+
         public Matrix4x4 viewProjMatrix
         {
             get { return projMatrix * viewMatrix; }
@@ -72,12 +83,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
+        HDAdditionalCameraData m_AdditionalCameraData;
+
         public HDCamera(Camera cam)
         {
             camera = cam;
             frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
             postprocessRenderContext = new PostProcessRenderContext();
+            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
         }
 
@@ -145,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
-            // Warning: near and far planes appear to be broken.
+            // Warning: near and far planes appear to be broken (or rather far plane seems broken)
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
             for (int i = 0; i < 4; i++)
@@ -155,8 +169,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Near, far.
+            Vector4 forward = (camera.cameraType == CameraType.Reflection) ? camera.worldToCameraMatrix.GetRow(2) : new Vector4(camera.transform.forward.x, camera.transform.forward.y, camera.transform.forward.z, 0.0f);
             // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
-            Vector3 forward = viewParam.x < 0.0f ? camera.transform.forward : -camera.transform.forward;
+            forward = viewParam.x < 0.0f ? forward : -forward;
             frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
             frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
@@ -174,7 +189,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
 
-            tempDesc.msaaSamples = 1; // will be updated later, deferred will always set to 1
+            if (frameSettings.enableMSAA)
+            {
+                // this is already pre-validated to be a valid sample count by InitializeFrameSettings
+                var sampleCount = QualitySettings.antiAliasing;
+                tempDesc.msaaSamples = sampleCount;
+            }
+            else
+            {
+                tempDesc.msaaSamples = 1;
+            }
             tempDesc.depthBufferBits = 0;
             tempDesc.autoGenerateMips = false;
             tempDesc.useMipMap = false;

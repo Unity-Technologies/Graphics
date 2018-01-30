@@ -60,7 +60,8 @@ Shader "HDRenderPipeline/LitTessellation"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 1.0
+        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 0.0
+        _CoatMaskMap("CoatMaskMap", 2D) = "white" {}
 
         [ToggleUI] _EnergyConservingSpecularColor("_EnergyConservingSpecularColor", Float) = 1.0
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
@@ -133,13 +134,17 @@ Shader "HDRenderPipeline/LitTessellation"
         [Enum(Flip, 0, Mirror, 1)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVBase("UV Set for base", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _InvTilingScale("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, ClearCoat, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        // Following enum should be material feature flags (i.e bitfield), however due to Gbuffer encoding constrain many combination exclude each other
+        // so we use this enum as "material ID" which can be interpreted as preset of bitfield of material feature
+        // The only material feature flag that can be added in all cases is clear coat
+        [Enum(Subsurface Scattering and Transmissison, 0, Standard, 1, Anisotropy, 2, Iridescence, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
+        [Enum(Both, 0, SSS only, 1, Transmission only, 2)] _SSSAndTransmissionType("SSSandTransmissionType", Int) = 0 // SSSandTransmissionType.Both
 
         [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0

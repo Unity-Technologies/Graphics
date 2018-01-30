@@ -18,7 +18,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Create an instance of the MaterialEditor
             m_DecalProjectorComponent = (DecalProjectorComponent)target;
             m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
+			m_DecalProjectorComponent.OnMaterialChange += OnMaterialChange;
         }
+
+		private void OnDisable()
+		{
+			m_DecalProjectorComponent.OnMaterialChange -= OnMaterialChange;
+		}
+
+		public void OnMaterialChange()
+		{
+			// Update material editor with the new material
+			m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
+		}
 
         public override void OnInspectorGUI()
         {
