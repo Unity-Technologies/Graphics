@@ -188,9 +188,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         IBLFilterGGX m_IBLFilterGGX = null;
 
-        ComputeShader m_GaussianPyramidCS { get { return m_Asset.renderPipelineResources.gaussianPyramidCS; } }
-        int m_GaussianPyramidKernel;
-
         ComputeShader m_applyDistortionCS { get { return m_Asset.renderPipelineResources.applyDistortionCS; } }
         int m_applyDistortionKernel;
 
@@ -224,7 +221,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly RenderTargetIdentifier m_DistortionBufferRT;
         readonly RenderTargetIdentifier m_GaussianPyramidColorBufferRT;
         readonly RenderTargetIdentifier m_DepthPyramidBufferRT;
-        RenderTextureDescriptor m_GaussianPyramidColorBufferDesc;
 
         readonly RenderTargetIdentifier m_DeferredShadowBufferRT;
 
@@ -315,7 +311,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
-            m_DepthPyramid = new DepthPyramid(asset.renderPipelineResources.depthPyramidCS, m_GPUCopy, HDShaderIDs._DepthPyramidMips);
+            m_DepthPyramid = new DepthPyramid(
+                asset.renderPipelineResources.depthPyramidCS,
+                m_GPUCopy,
+                HDShaderIDs._DepthPyramidMips);
+            m_ColorPyramid = new ColorPyramid(
+                asset.renderPipelineResources.gaussianPyramidCS,
+                HDShaderIDs._GaussianPyramidColorMips);
 
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
@@ -355,28 +357,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             InitializeDebugMaterials();
 
-            // Require m_Blit in InitializeDebugMaterials();
-            m_ColorPyramid = new ColorPyramid(
-                asset.renderPipelineResources.gaussianPyramidCS,
-                m_GPUCopy,
-                m_Blit,
-                HDShaderIDs._BlitTexture,
-                HDShaderIDs._GaussianPyramidColorMips);
-
             m_VelocityBuffer = HDShaderIDs._VelocityTexture;
             m_VelocityBufferRT = new RenderTargetIdentifier(m_VelocityBuffer);
 
             m_DistortionBuffer = HDShaderIDs._DistortionTexture;
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
-            m_GaussianPyramidKernel = m_GaussianPyramidCS.FindKernel("KMain");
             m_GaussianPyramidColorBuffer = HDShaderIDs._GaussianPyramidColorTexture;
             m_GaussianPyramidColorBufferRT = new RenderTargetIdentifier(m_GaussianPyramidColorBuffer);
-            m_GaussianPyramidColorBufferDesc = new RenderTextureDescriptor(2, 2, RenderTextureFormat.ARGBHalf, 0)
-            {
-                useMipMap = true,
-                autoGenerateMips = false
-            };
 
             m_DepthPyramidBuffer = HDShaderIDs._PyramidDepthTexture;
             m_DepthPyramidBufferRT = new RenderTargetIdentifier(m_DepthPyramidBuffer);
@@ -1529,7 +1517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var size = new Vector4(m_ColorPyramid.renderTextureDescriptor.width, m_ColorPyramid.renderTextureDescriptor.height, m_ColorPyramid.usedMipMapCount, 0);
             cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, size);
-            PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, m_ColorPyramid.usedMipMapCount, m_GaussianPyramidColorBufferDesc, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, m_ColorPyramid.usedMipMapCount, m_ColorPyramid.renderTextureDescriptor, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
@@ -1757,12 +1745,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Color and depth pyramids
-                    m_GaussianPyramidColorBufferDesc = BuildPyramidDescriptor(hdCamera, PyramidType.Color, m_FrameSettings.enableStereo);
+                    m_ColorPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
                     cmd.ReleaseTemporaryRT(m_GaussianPyramidColorBuffer);
-                    cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_GaussianPyramidColorBufferDesc, FilterMode.Trilinear);
+                    cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_ColorPyramid.renderTextureDescriptor, FilterMode.Trilinear);
 
                     m_DepthPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
-
                     cmd.ReleaseTemporaryRT(m_DepthPyramidBuffer);
                     cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramid.renderTextureDescriptor, FilterMode.Trilinear);
                     // End
