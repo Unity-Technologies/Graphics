@@ -23,7 +23,8 @@
     #define VBUFFER_SLICE_COUNT 256
 #endif
 
-#define SUPPORT_ASYMMETRY 1 // Support asymmetric phase functions
+#define SUPPORT_ASYMMETRY       1 // Support asymmetric phase functions
+#define SUPPORT_PUNCTUAL_LIGHTS 1 // Punctual lights contribute to fog lighting
 
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
@@ -148,6 +149,10 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             lighting.radianceComplete += phase * intensity * color;
         }
     }
+
+#if (SUPPORT_PUNCTUAL_LIGHTS == 0)
+    return lighting;
+#endif
 
 #ifdef LIGHTLOOP_TILE_PASS
     // Loop over 1 or 2 light clusters.
