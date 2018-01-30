@@ -511,12 +511,13 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
-    // RT1 - 10:10:10:2
+    // RT1 - 8:8:8:8
+    // Our tangent encoding is based on our normal.
+    // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
     float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
-    // To have better precision encode the sign of XY separately.
-    uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
+    float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
-    outGBuffer1 = float4(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), abs(octNormalWS), PackInt(octNormalSign, 2));
+    outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
 
     // RT2 - 8:8:8:8
     uint materialFeatureId;
@@ -648,15 +649,11 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     float3 baseColor = inGBuffer0.rgb;
 
     bsdfData.specularOcclusion   = inGBuffer0.a; // Later possibly overwritten by SSS
-    bsdfData.perceptualRoughness = inGBuffer1.r;
+    bsdfData.perceptualRoughness = inGBuffer1.a;
 
-    float2 octNormalWS = inGBuffer1.gb;
-    uint octNormalSign = UnpackInt(inGBuffer1.a, 2);
-
-    octNormalWS.x = (octNormalSign & 1) ? -octNormalWS.x : octNormalWS.x;
-    octNormalWS.y = (octNormalSign & 2) ? -octNormalWS.y : octNormalWS.y;
-
-    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS);
+    float3 packNormalWS = inGBuffer1.rgb;
+    float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
+    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
