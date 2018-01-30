@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParametersController : VFXController<VFXParameter>
+    class VFXParametersController : VFXController<VFXParameter>, IPropertyRMProvider
     {
         VFXSubParameterController[] m_SubControllers;
 
@@ -340,6 +340,38 @@ namespace UnityEditor.VFX.UI
             }
 
             return changed;
+        }
+
+        bool IPropertyRMProvider.expanded
+        {
+            get
+            {
+                return false;
+            }
+        }
+        bool IPropertyRMProvider.editable
+        {
+            get { return true; }
+        }
+
+        bool IPropertyRMProvider.expandable { get { return false; } }
+
+        string IPropertyRMProvider.name { get { return "Value"; } }
+
+        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+
+        int IPropertyRMProvider.depth { get { return 0; } }
+
+        void IPropertyRMProvider.ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IPropertyRMProvider.RetractPath()
+        {
+            throw new NotImplementedException();
         }
     }
 }

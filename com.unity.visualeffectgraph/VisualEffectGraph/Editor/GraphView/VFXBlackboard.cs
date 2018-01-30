@@ -11,19 +11,122 @@ using System.Linq;
 
 namespace  UnityEditor.VFX.UI
 {
-    class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParametersController>
+    class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParametersController>
     {
-        public VFXBlackboardField(Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public VFXBlackboardRow owner
         {
+            get; set;
         }
 
         Controller IControlledElement.controller
         {
-            get { return GetFirstAncestorOfType<VFXBlackboardRow>().controller; }
+            get { return owner.controller; }
         }
         public VFXParametersController controller
         {
-            get { return GetFirstAncestorOfType<VFXBlackboardRow>().controller; }
+            get { return owner.controller; }
+        }
+
+        PropertyRM m_Property;
+        List<PropertyRM> m_SubProperties;
+
+
+        void GetPreferedWidths(ref float labelWidth)
+        {
+            var properties = m_SubProperties.Concat(Enumerable.Repeat(m_Property, 1));
+
+            foreach (var port in properties)
+            {
+                float portLabelWidth = port.GetPreferredLabelWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+            }
+        }
+
+        void ApplyWidths(float labelWidth)
+        {
+            var properties = m_SubProperties.Concat(Enumerable.Repeat(m_Property, 1));
+            foreach (var port in properties)
+            {
+                port.SetLabelWidth(labelWidth);
+            }
+        }
+
+        void CreateSubProperties(List<int> fieldPath)
+        {
+            var subControllers = controller.GetSubControllers(fieldPath);
+
+            var subFieldPath = new List<int>();
+            int cpt = 0;
+            foreach (var subController in subControllers)
+            {
+                PropertyRM prop = PropertyRM.Create(subController, 55);
+                if (prop != null)
+                {
+                    m_SubProperties.Add(prop);
+                    Add(prop);
+                }
+                if (prop == null || !prop.showsEverything)
+                {
+                    subFieldPath.Clear();
+                    subFieldPath.AddRange(fieldPath);
+                    subFieldPath.Add(cpt);
+                    CreateSubProperties(subFieldPath);
+                }
+                ++cpt;
+            }
+        }
+
+        public void SelfChange()
+        {
+            if (m_Property == null)
+            {
+                m_Property = PropertyRM.Create(controller, 55);
+                if (m_Property != null)
+                {
+                    Add(m_Property);
+                    m_SubProperties = new List<PropertyRM>();
+                    List<int> fieldpath = new List<int>();
+                    if (!m_Property.showsEverything)
+                    {
+                        CreateSubProperties(fieldpath);
+                    }
+                }
+            }
+            if (m_Property != null)
+                m_Property.Update();
+            if (m_SubProperties != null)
+            {
+                foreach (var subProp in m_SubProperties)
+                {
+                    subProp.Update();
+                }
+            }
+            float labelWidth = 70;
+            GetPreferedWidths(ref labelWidth);
+            ApplyWidths(labelWidth);
+        }
+    }
+    class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParametersController>
+    {
+        public VFXBlackboardRow owner
+        {
+            get; set;
+        }
+
+        public VFXBlackboardField() : base()
+        {}
+
+        Controller IControlledElement.controller
+        {
+            get { return owner.controller; }
+        }
+        public VFXParametersController controller
+        {
+            get { return owner.controller; }
         }
     }
 
@@ -31,15 +134,20 @@ namespace  UnityEditor.VFX.UI
     {
         VFXBlackboardField m_Field;
 
-        VisualElement m_Properties;
-        public VFXBlackboardRow() : base(new VFXBlackboardField(null, "", "") { name = "vfx-field" }, new VisualElement() { name = "vfx-properties"})
+        VFXBlackboardPropertyView m_Properties;
+        public VFXBlackboardRow() : this(new VFXBlackboardField() { name = "vfx-field" }, new VFXBlackboardPropertyView() { name = "vfx-properties" })
+        {}
+
+        private VFXBlackboardRow(VFXBlackboardField field, VFXBlackboardPropertyView property) : base(field, property)
         {
-            m_Field = this.Q<VFXBlackboardField>("vfx-field");
-            m_Properties = this.Q("vfx-properties");
+            m_Field = field;
+            m_Properties = property;
+
+            m_Field.owner = this;
+            m_Properties.owner = this;
 
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
-
 
         public int m_CurrentOrder;
         public bool m_CurrentExposed;
@@ -57,6 +165,8 @@ namespace  UnityEditor.VFX.UI
                 m_CurrentExposed = controller.exposed;
                 e.StopPropagation();
             }
+
+            m_Properties.SelfChange();
         }
 
         VFXParametersController m_Controller;
@@ -158,6 +268,8 @@ namespace  UnityEditor.VFX.UI
             Add(m_ExposedSection);
             m_PrivateSection = new BlackboardSection() { title = "private" };
             Add(m_PrivateSection);
+
+            AddStyleSheetPath("VFXBlackboard");
         }
 
         BlackboardSection m_ExposedSection;
