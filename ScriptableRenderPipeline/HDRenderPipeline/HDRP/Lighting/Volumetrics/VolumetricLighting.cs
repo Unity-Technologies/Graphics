@@ -156,7 +156,10 @@ public class VolumetricLightingModule
             {
                 for (int i = 0, n = this.lightingRTEX.Length; i < n; i++)
                 {
-                    this.lightingRTEX[i].Release();
+                    if (this.lightingRTEX[i] != null)
+                    {
+                        this.lightingRTEX[i].Release();
+                    }
                 }
             }
 
@@ -180,7 +183,7 @@ public class VolumetricLightingModule
         if (preset == VolumetricLightingPreset.Off) return;
 
         m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers = new List<VBuffer>(1);
+        m_VBuffers = new List<VBuffer>(0);
     }
 
     public void Cleanup()
@@ -247,7 +250,8 @@ public class VolumetricLightingModule
 
             for (int i = 0; i < n; i++)
             {
-                if (viewID == m_VBuffers[i].viewID)
+                // Check whether domain reload killed it...
+                if (viewID == m_VBuffers[i].viewID && m_VBuffers[i].lightingRTEX != null && m_VBuffers[i].lightingRTEX[0] != null)
                 {
                     vBuffer = m_VBuffers[i];
                 }
