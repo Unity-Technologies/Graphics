@@ -414,6 +414,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var height = previewNode.height;
 
             m_PreviewImage.style.height = height;
+            m_PreviewImage.style.width = width;
         }
 
         public void Dispose()
