@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range == Vector2.zero || range.y == Mathf.Infinity)
+            if (range == Vector2.zero || range.y == Mathf.Infinity || (uint)range.x >= (uint)range.y)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<long> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(VFXPropertyAttribute.Create(m_Provider.customAttributes));
-            if (range != Vector2.zero && (range.y == Mathf.Infinity || (uint)range.x < (uint)range.y))
+            if (range == Vector2.zero || range.y == Mathf.Infinity || (int)range.x >= (int)range.y)
             {
                 var field = new LabeledField<IntegerField, long>(m_Label);
                 field.control.dynamicUpdate = true;
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
         {
             Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
-            if (range != Vector2.zero && (int)range.x < (int)range.y)
+            if (range != Vector2.zero && (range.y == Mathf.Infinity || (int)range.x < (int)range.y))
             {
                 int val = (int)value;
 
