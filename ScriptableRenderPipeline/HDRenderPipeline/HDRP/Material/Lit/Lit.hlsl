@@ -59,7 +59,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define GBUFFER_LIT_STANDARD         0
 // we have not enough space (3bit) to store mat feature to have SSS and Transmission as bitmask, such why we have all variant
 #define GBUFFER_LIT_SSS              1
-#define GBUFFER_LIT_TRANSMISSION     2 
+#define GBUFFER_LIT_TRANSMISSION     2
 #define GBUFFER_LIT_TRANSMISSION_SSS 3
 #define GBUFFER_LIT_ANISOTROPIC      4
 #define GBUFFER_LIT_IRIDESCENCE      5 // TODO
@@ -239,7 +239,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
- 
+
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
                                                             _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
@@ -339,23 +339,31 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     reflectivity = preFGD.y;
 }
 
-void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(FragInputs input, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
-    {
-        bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
-        float overrideSmoothnessValue = _DebugLightingSmoothness.y;
+    // Override value if requested by user
+    // this can be use also in case of debug lighting mode like diffuse only
+    bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
+    bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
+    bool overrideNormal = _DebugLightingNormal.x != 0.0;
 
-        if (overrideSmoothness)
-        {
-            surfaceData.perceptualSmoothness = overrideSmoothnessValue;
-        }
+    if (overrideAlbedo)
+    {
+        float3 overrideAlbedoValue = _DebugLightingAlbedo.yzw;
+        surfaceData.baseColor = overrideAlbedoValue;
     }
 
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
+    if (overrideSmoothness)
     {
-        surfaceData.baseColor = _DebugLightingAlbedo.xyz;
+        float overrideSmoothnessValue = _DebugLightingSmoothness.y;
+        surfaceData.perceptualSmoothness = overrideSmoothnessValue;
+    }
+
+    if (overrideNormal)
+    {
+        float overrideNormalValue = _DebugLightingNormal.yzw;
+        surfaceData.normalWS = input.worldToTangent[2];
     }
 #endif
 }
@@ -377,8 +385,6 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 
 BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 {
-    ApplyDebugToSurfaceData(surfaceData);
-
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
@@ -505,8 +511,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
                         out GBufferType3 outGBuffer3
                         )
 {
-    ApplyDebugToSurfaceData(surfaceData);
-
     // RT0 - 8:8:8:8 sRGB
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
@@ -574,7 +578,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else // Standard
     {
-        // In the case of standard or specular color we always convert to specular color parametrization before encoding, 
+        // In the case of standard or specular color we always convert to specular color parametrization before encoding,
         // so decoding is more efficient (it allow better optimization for the compiler and save VGPR)
         // This mean that on the decode side, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR doesn't exist anymore
         materialFeatureId = GBUFFER_LIT_STANDARD;
@@ -684,8 +688,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
         // Overwrite the diffusion profile/subsurfaceMask extracted by DecodeFromSSSBuffer().
         // We must do this so the compiler can optimize away the read from the G-Buffer 0 to the very end (in PostEvaluateBSDF)
-        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have the information in the 
-        // material debug view + If we require it in the future. 
+        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have the information in the
+        // material debug view + If we require it in the future.
         UnpackFloatInt8bit(inGBuffer2.b, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
 
         // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
@@ -1714,7 +1718,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, 
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                                     int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
