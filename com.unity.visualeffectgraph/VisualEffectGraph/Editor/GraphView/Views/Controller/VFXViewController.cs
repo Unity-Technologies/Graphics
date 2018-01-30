@@ -1,3 +1,4 @@
+#define _RESTRICT_SOURCE_CURRENT_ATTRIBUTE
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -519,26 +520,28 @@ namespace UnityEditor.VFX.UI
             m_FlowAnchorController.Remove(controller);
         }
 
-        private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> listParent)
+        private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
         {
-            listParent.Add(operatorInput);
-            foreach (var input in operatorInput.inputSlots)
+            if (hashParents.Contains(operatorInput))
+                return;
+
+            hashParents.Add(operatorInput);
+
+            var parents = operatorInput.inputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
+            foreach (var parent in parents)
             {
-                if (input.HasLink())
-                {
-                    CollectParentOperator(input.refSlot.owner as IVFXSlotContainer, listParent);
-                }
+                CollectParentOperator(parent, hashParents);
             }
         }
 
         private static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
+            if (hashChildren.Contains(operatorInput))
+                return;
+
             hashChildren.Add(operatorInput);
 
-            var all = operatorInput.outputSlots.SelectMany(s => s.LinkedSlots.Select(
-                        o => o.owner
-                        ));
-            var children = all.Cast<IVFXSlotContainer>();
+            var children = operatorInput.outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
             foreach (var child in children)
             {
                 CollectChildOperator(child, hashChildren);
@@ -560,16 +563,35 @@ namespace UnityEditor.VFX.UI
                     var currentOperator = startAnchorOperatorController.sourceNode.slotContainer;
                     var childrenOperators = new HashSet<IVFXSlotContainer>();
                     CollectChildOperator(currentOperator, childrenOperators);
+
                     allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
+#if _RESTRICT_SOURCE_CURRENT_ATTRIBUTE
+                    var contextTypeInChildren = childrenOperators.OfType<VFXBlock>().Select(o => o.GetParent().contextType).Distinct();
+                    if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner || o == VFXContextType.kUpdate))
+                    {
+                        var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
+
+                        Func<VFXModel, bool> fnConditionSpawner = delegate (VFXModel model) { return model is VFXAttributeParameter; };
+                        Func<VFXModel, bool> fnConditionUpdate = delegate (VFXModel model) { return model is VFXSourceAttributeParameter; };
+                        var filterForSpawner = contextTypeInChildren.Any(o => o == VFXContextType.kSpawner);
+                        var filterForUpdate = contextTypeInChildren.Any(o => o == VFXContextType.kUpdate);
+
+                        foreach (var attributeParameter in allSlotContainerControllers.Where(o =>
+                                     (!filterForSpawner || fnConditionSpawner(o.model))
+                                     && (!filterForUpdate || fnConditionUpdate(o.model)))
+                                 .Select(o => o.model as VFXOperator))
+                        {
+                            CollectChildOperator(attributeParameter, additionnalExcludeOperator);
+                        }
+                        allSlotContainerControllers = allSlotContainerControllers.Where(o => !additionnalExcludeOperator.Contains(o.slotContainer));
+                    }
+#endif
                     var toSlot = startAnchorOperatorController.model;
                     allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>
                         {
                             var candidate = o as VFXDataAnchorController;
                             return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
                         }).ToList();
-                }
-                else
-                {
                 }
             }
             else
@@ -578,7 +600,21 @@ namespace UnityEditor.VFX.UI
                 var currentOperator = startAnchorOperatorController.sourceNode.slotContainer;
                 var parentOperators = new HashSet<IVFXSlotContainer>();
                 CollectParentOperator(currentOperator, parentOperators);
+
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
+#if _RESTRICT_SOURCE_CURRENT_ATTRIBUTE
+                var attributeLocationInParents = parentOperators.OfType<VFXAttributeParameter>().Select(o => o.location).Distinct();
+                if (attributeLocationInParents.Any())
+                {
+                    var filterUpdate = attributeLocationInParents.Any(o => o == VFXAttributeLocation.Source) ? new VFXContextType[] { VFXContextType.kSpawner, VFXContextType.kUpdate } : new VFXContextType[] { VFXContextType.kSpawner };
+                    var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
+                    foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && filterUpdate.Contains((o.model as VFXBlock).GetParent().contextType)).Select(o => o.model as VFXBlock))
+                    {
+                        CollectParentOperator(block, additionnalExcludeOperator);
+                    }
+                    allSlotContainerControllers = allSlotContainerControllers.Where(o => !additionnalExcludeOperator.Contains(o.slotContainer));
+                }
+#endif
                 allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(o =>
                     {
                         var candidate = o as VFXDataAnchorController;
