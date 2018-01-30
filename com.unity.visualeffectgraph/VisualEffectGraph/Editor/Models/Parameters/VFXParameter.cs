@@ -194,6 +194,18 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kUIChanged);
         }
 
+        public void ConcatInfos(IEnumerable<ParamInfo> infos)
+        {
+            foreach (var info in infos)
+            {
+                if (m_ParamInfos.Any(t => t.id == info.id))
+                {
+                    info.ChangeId(m_IDCounter++);
+                }
+                m_ParamInfos.Add(info);
+            }
+        }
+
         public void ValidateParamInfos()
         {
             // Case of the old VFXParameter we create a new one on the same place with all the Links
