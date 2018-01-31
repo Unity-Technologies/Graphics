@@ -664,8 +664,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var param in copyData.parameters)
             {
-                VFXParameterUI parameterUI = elements.OfType<VFXParameterUI>().FirstOrDefault(t => t.controller.model == param.parameter && t.controller.infos == param.parameter.nodes[param.index + param.infoIndexOffset]);
-                if (parameterUI != null)
+                foreach (var parameterUI in elements.OfType<VFXParameterUI>().Where(t => t.controller.model == param.parameter && param.parameter.nodes.IndexOf(t.controller.infos) >= param.infoIndexOffset))
                 {
                     newSlotContainerUIs.Add(parameterUI);
                     view.AddToSelection(parameterUI);
