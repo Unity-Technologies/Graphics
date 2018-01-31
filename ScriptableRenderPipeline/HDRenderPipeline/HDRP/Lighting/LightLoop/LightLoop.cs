@@ -185,9 +185,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
         public static float s_ViewportScaleZ = 1.0f;
 
-        // enable unity's original left-hand shader camera space (right-hand internally in unity).
-        public static int s_UseLeftHandCameraSpace = 1;
-
         public static int s_TileSizeFptl = 16;
         public static int s_TileSizeClustered = 32;
 
