@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.UI
                 {
                     m_EditContainer = new VFXMultiOperatorEdit();
                 }
-                (m_EditContainer as IControlledElement<VFXOperatorController>).controller = controller;
+                (m_EditContainer as VFXMultiOperatorEdit).controller = controller;
             }
             else
             {
