@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering
         private void OnDisable()
         {
             DestroyImmediate(templateImage);
-            DestroyImmediate(resultImage);
+            if(resultImage != null && resultImage != Texture2D.blackTexture) DestroyImmediate(resultImage);
             DestroyImmediate(diffMaterial);
         }
 
