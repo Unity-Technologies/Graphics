@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         private string m_exposedName;
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private bool m_exposed;
         [VFXSetting, SerializeField]
         private int m_order;

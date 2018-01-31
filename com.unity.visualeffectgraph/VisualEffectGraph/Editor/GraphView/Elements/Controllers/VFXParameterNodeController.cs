@@ -24,10 +24,8 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (model.IsMasterSlot())
-                {
-                    return model.property.type.UserFriendlyName();
-                }
+                if (depth == 0)
+                    return "";
                 return base.name;
             }
         }
@@ -73,7 +71,7 @@ namespace UnityEditor.VFX.UI
 
         public override string title
         {
-            get { return m_ParentController.parameter.outputSlots[0].property.type.UserFriendlyName(); }
+            get { return m_ParentController.parameter.exposedName; }
         }
 
         public string exposedName

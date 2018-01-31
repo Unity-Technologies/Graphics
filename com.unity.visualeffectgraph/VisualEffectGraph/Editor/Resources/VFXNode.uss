@@ -50,22 +50,6 @@ OperandInfo Button
     width:70;
 }
 
-
-VFXParameterUI #exposedContainer
-{
-	flex-direction:row;
-}
-
-VFXParameterUI IMGUIContainer
-{
-    text-color: rgb(153,153,153);
-}
-
-VFXParameterUI #exposedNameContainer
-{
-	flex-direction:row;
-}
-
 .VFXNodeUI.superCollapsed
 {
 height:30;
@@ -214,22 +198,4 @@ VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
 {
 	width:0;
 	height:0;
-}
-
-VFXParameterUI .value
-{
-	flex:1;
-}
-
-VFXParameterUI .propertyrm
-{
-	margin-right:6;
-}
-
-VFXParameterUI #IconContainer
-{
-	margin-left : 4;
-	margin-top: 4;
-	width:16;
-	height:16;
 }
