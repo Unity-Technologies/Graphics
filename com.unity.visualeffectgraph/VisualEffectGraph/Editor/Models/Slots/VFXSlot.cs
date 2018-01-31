@@ -581,7 +581,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private IEnumerable<VFXSlot> allChildrenWhere(Func<VFXSlot, bool> predicate)
+        public IEnumerable<VFXSlot> allChildrenWhere(Func<VFXSlot, bool> predicate)
         {
             if (predicate(this))
                 yield return this;
