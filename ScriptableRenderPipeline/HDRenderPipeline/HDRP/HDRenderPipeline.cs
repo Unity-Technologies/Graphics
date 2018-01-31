@@ -5,6 +5,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Experimental.Rendering;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -141,6 +145,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
+#if UNITY_EDITOR
+    public class SceneViewDrawMode
+    {
+        static private bool RejectDrawMode(SceneView.CameraMode cameraMode)
+        {
+            if (cameraMode.drawMode == DrawCameraMode.TexturedWire ||
+                cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
+                cameraMode.drawMode == DrawCameraMode.RenderPaths ||
+                cameraMode.drawMode == DrawCameraMode.AlphaChannel ||
+                cameraMode.drawMode == DrawCameraMode.Overdraw ||
+                cameraMode.drawMode == DrawCameraMode.Mipmaps ||
+                cameraMode.drawMode == DrawCameraMode.DeferredDiffuse ||
+                cameraMode.drawMode == DrawCameraMode.DeferredSpecular ||
+                cameraMode.drawMode == DrawCameraMode.DeferredSmoothness ||
+                cameraMode.drawMode == DrawCameraMode.DeferredNormal ||
+                cameraMode.drawMode == DrawCameraMode.ValidateAlbedo ||
+                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
+                cameraMode.drawMode == DrawCameraMode.ShadowMasks ||
+                cameraMode.drawMode == DrawCameraMode.LightOverlap
+                )
+                return false;
+
+            return true;
+        }
+
+        static public void SetupDrawMode()
+        {
+            SceneView sceneView = EditorWindow.GetWindow<SceneView>();
+            sceneView.onValidateCameraMode += RejectDrawMode;
+        }
+
+        static public void ResetDrawMode()
+        {
+            SceneView sceneView = EditorWindow.GetWindow<SceneView>();
+            sceneView.onValidateCameraMode -= RejectDrawMode;
+        }
+    }
+#endif
 
     public class HDRenderPipeline : RenderPipeline
     {
@@ -444,6 +486,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsReceiveShadows = true,
                 rendererSupportsReflectionProbes = true
             };
+
+#if UNITY_EDITOR
+            SceneViewDrawMode.SetupDrawMode();
+#endif
         }
 
         void InitializeDebugMaterials()
@@ -508,6 +554,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_VolumetricLightingModule.Cleanup();
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+
+#if UNITY_EDITOR
+            SceneViewDrawMode.ResetDrawMode();
+#endif
         }
 
         void CreateDepthStencilBuffer(HDCamera hdCamera)
@@ -783,13 +833,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
 
-#if UNITY_EDITOR
                     // emit scene view UI
                     if (camera.cameraType == CameraType.SceneView)
                     {
                         ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
                     }
-#endif
+
                     // decal system needs to be updated with current camera
                     if (m_FrameSettings.enableDBuffer)
                         DecalSystem.instance.BeginCull(camera);
@@ -1008,13 +1057,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
                     cmd.SetRenderTarget(new RenderTargetIdentifier(-1), new RenderTargetIdentifier(-1));
 
-#if UNITY_EDITOR
                     // We still need to bind correctly default camera target with our depth buffer in case we are currently rendering scene view. It should be the last camera here
-
                     // bind depth surface for editor grid/gizmo/selection rendering
                     if (camera.cameraType == CameraType.SceneView)
+                    {
                         cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
-#endif
+                    }
                 }
 
                 // Caution: ExecuteCommandBuffer must be outside of the profiling bracket
