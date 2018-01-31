@@ -89,6 +89,8 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
+    // no debug apply during light transport pass
+
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
     LightTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);
 
