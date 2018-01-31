@@ -141,7 +141,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
     }
 
-
     public class HDRenderPipeline : RenderPipeline
     {
         enum ForwardPass
@@ -444,6 +443,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsReceiveShadows = true,
                 rendererSupportsReflectionProbes = true
             };
+
+#if UNITY_EDITOR
+            SceneViewDrawMode.SetupDrawMode();
+#endif
         }
 
         void InitializeDebugMaterials()
@@ -508,6 +511,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_VolumetricLightingModule.Cleanup();
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+
+#if UNITY_EDITOR
+            SceneViewDrawMode.ResetDrawMode();
+#endif
         }
 
         void CreateDepthStencilBuffer(HDCamera hdCamera)
@@ -783,13 +790,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
 
-#if UNITY_EDITOR
                     // emit scene view UI
                     if (camera.cameraType == CameraType.SceneView)
                     {
                         ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
                     }
-#endif
+
                     // decal system needs to be updated with current camera
                     if (m_FrameSettings.enableDBuffer)
                         DecalSystem.instance.BeginCull(camera);
@@ -1008,13 +1014,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Make sure to unbind every render texture here because in the next iteration of the loop we might have to reallocate render texture (if the camera size is different)
                     cmd.SetRenderTarget(new RenderTargetIdentifier(-1), new RenderTargetIdentifier(-1));
 
-#if UNITY_EDITOR
                     // We still need to bind correctly default camera target with our depth buffer in case we are currently rendering scene view. It should be the last camera here
-
                     // bind depth surface for editor grid/gizmo/selection rendering
                     if (camera.cameraType == CameraType.SceneView)
+                    {
                         cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthStencilBufferRT);
-#endif
+                    }
                 }
 
                 // Caution: ExecuteCommandBuffer must be outside of the profiling bracket
