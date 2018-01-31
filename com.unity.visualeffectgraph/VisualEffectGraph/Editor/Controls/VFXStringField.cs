@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.UIElements
             m_TextField = new TextField(30, false, false, '*');
             m_TextField.AddToClassList("textfield");
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTextChanged);
+            m_TextField.value = "";
         }
 
         public VFXStringField(string label) : base(label)
@@ -33,16 +34,24 @@ namespace UnityEditor.VFX.UIElements
 
         void OnTextChanged(ChangeEvent<string> e)
         {
-            m_Value = m_TextField.text;
-            if (OnValueChanged != null)
+            if (m_Value != m_TextField.text)
             {
-                OnValueChanged();
+                m_Value = m_TextField.text;
+                if (OnValueChanged != null)
+                {
+                    OnValueChanged();
+                }
             }
+        }
+
+        void OnIgnoreEvent(EventBase e)
+        {
+            e.StopPropagation();
         }
 
         protected override void ValueToGUI()
         {
-            m_TextField.text = m_Value;
+            m_TextField.text = m_Value != null ? m_Value : "";
         }
     }
 }
