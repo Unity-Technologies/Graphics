@@ -35,3 +35,9 @@ VFXParameterUI.node > #node-border > #contents #output
     justify-content:center;
     background-color:rgba(0,0,0,0);
 }
+VFXParameterUI.node > #node-border > #contents #divider
+{
+    background-color:rgba(0,0,0,0);
+    border-color:rgba(0,0,0,0);
+    border-bottom-width:0;
+}
