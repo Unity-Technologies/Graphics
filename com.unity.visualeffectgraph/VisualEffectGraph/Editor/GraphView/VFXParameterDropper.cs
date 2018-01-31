@@ -9,8 +9,8 @@ namespace UnityEditor.VFX.UI
 {
     interface IParameterDropTarget
     {
-        void OnDragUpdated(IMGUIEvent evt, VFXParameterController parameter);
-        void OnDragPerform(IMGUIEvent evt, VFXParameterController parameter);
+        void OnDragUpdated(IMGUIEvent evt, VFXParameterNodeController parameter);
+        void OnDragPerform(IMGUIEvent evt, VFXParameterNodeController parameter);
     }
 
     class ParameterDropper : Manipulator
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
             if (dropTarget == null)
                 return;
 
-            VFXParameterController dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterController;
+            VFXParameterNodeController dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterNodeController;
 
             if (dragData == null)
                 return;

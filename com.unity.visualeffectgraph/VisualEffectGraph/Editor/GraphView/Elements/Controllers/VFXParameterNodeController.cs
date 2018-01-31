@@ -32,13 +32,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public new VFXParameterController sourceNode
+        public new VFXParameterNodeController sourceNode
         {
-            get { return base.sourceNode as VFXParameterController; }
+            get { return base.sourceNode as VFXParameterNodeController; }
         }
     }
 
-    class VFXParameterController : VFXSlotContainerController, IPropertyRMProvider, IValueController
+    class VFXParameterNodeController : VFXSlotContainerController, IPropertyRMProvider, IValueController
     {
         VFXParametersController m_ParentController;
 
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
 
         IDataWatchHandle m_SlotHandle;
 
-        public VFXParameterController(VFXParametersController controller, VFXParameter.ParamInfo infos, VFXViewController viewController) : base(controller.model, viewController)
+        public VFXParameterNodeController(VFXParametersController controller, VFXParameter.ParamInfo infos, VFXViewController viewController) : base(controller.model, viewController)
         {
             m_ParentController = controller;
             m_Infos = infos;

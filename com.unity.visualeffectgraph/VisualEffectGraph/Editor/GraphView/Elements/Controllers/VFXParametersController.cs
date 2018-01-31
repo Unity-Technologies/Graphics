@@ -290,7 +290,7 @@ namespace UnityEditor.VFX.UI
             return m_SubControllers[i];
         }
 
-        public VFXParameterController GetParameterForLink(VFXSlot slot)
+        public VFXParameterNodeController GetParameterForLink(VFXSlot slot)
         {
             return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Any(u => u.inputSlot == slot)).Value;
         }
@@ -465,7 +465,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Dictionary<int, VFXParameterController> m_Controllers = new Dictionary<int, VFXParameterController>();
+        Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
@@ -491,7 +491,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var addedController in paramInfos.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
             {
-                VFXParameterController controller = new VFXParameterController(this, addedController.Value, m_ViewController);
+                VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, m_ViewController);
 
                 m_Controllers[addedController.Key] = controller;
                 m_ViewController.AddControllerToModel(parameter, controller);

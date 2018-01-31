@@ -197,7 +197,7 @@ namespace UnityEditor.VFX.UI
                 {
                     copyPasteEdge.outputParameter = true;
                     copyPasteEdge.outputParameterIndex = System.Array.FindIndex(copyData.parameters, t => t.parameter == outputController.model.owner);
-                    copyPasteEdge.outputParameterInfoIndex = System.Array.IndexOf(copyData.parameters[copyPasteEdge.outputParameterIndex].infos, (outputController.sourceNode as VFXParameterController).infos);
+                    copyPasteEdge.outputParameterInfoIndex = System.Array.IndexOf(copyData.parameters[copyPasteEdge.outputParameterIndex].infos, (outputController.sourceNode as VFXParameterNodeController).infos);
                 }
                 else
                 {
@@ -260,7 +260,7 @@ namespace UnityEditor.VFX.UI
             copyData.slotContainers = copiedSlotContainers;
 
 
-            VFXParameterController[] parameters = slotContainers.OfType<VFXParameterController>().ToArray();
+            VFXParameterNodeController[] parameters = slotContainers.OfType<VFXParameterNodeController>().ToArray();
 
             copyData.parameters = parameters.GroupBy(t => t.parentController, t => t.infos, (p, i) => new Parameter() { originalInstanceID = p.model.GetInstanceID(), parameter = p.model, infos = i.ToArray() }).ToArray();
 
@@ -285,7 +285,7 @@ namespace UnityEditor.VFX.UI
         public static object CreateCopy(IEnumerable<Controller> elements)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
-            IEnumerable<VFXSlotContainerController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterController).Cast<VFXSlotContainerController>();
+            IEnumerable<VFXSlotContainerController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXSlotContainerController>();
             IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
 
             Data copyData = new Data();

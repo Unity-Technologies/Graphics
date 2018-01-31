@@ -72,7 +72,7 @@ public class VFXAssetEditor : Editor
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;
-            list = new ReorderableList(m_ExposedList, typeof(VFXParameterController), true, false, false, false);
+            list = new ReorderableList(m_ExposedList, typeof(VFXParameterNodeController), true, false, false, false);
             list.elementHeightCallback = GetExposedListElementHeight;
             list.drawElementCallback = DrawExposedListElement;
             list.drawHeaderCallback = DrawExposedHeader;

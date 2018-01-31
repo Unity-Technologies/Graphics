@@ -312,7 +312,7 @@ namespace UnityEditor.VFX.UI
             var slotOutput = output != null ? output.model : null;
             if (slotInput.Link(slotOutput))
             {
-                VFXParameterController fromController = output.sourceNode as VFXParameterController;
+                VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
 
                 if (fromController != null)
                 {
@@ -388,9 +388,9 @@ namespace UnityEditor.VFX.UI
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
             }
-            else if (element is VFXParameterController)
+            else if (element is VFXParameterNodeController)
             {
-                var parameter = element as VFXParameterController;
+                var parameter = element as VFXParameterNodeController;
 
                 parameter.parentController.model.RemoveParamInfo(parameter.infos);
                 DataEdgesMightHaveChanged();

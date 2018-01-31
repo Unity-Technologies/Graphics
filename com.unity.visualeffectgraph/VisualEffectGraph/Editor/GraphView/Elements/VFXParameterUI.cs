@@ -18,9 +18,9 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public new VFXParameterController controller
+        public new VFXParameterNodeController controller
         {
-            get { return base.controller as VFXParameterController; }
+            get { return base.controller as VFXParameterNodeController; }
         }
 
         public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)

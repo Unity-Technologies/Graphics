@@ -360,9 +360,9 @@ namespace UnityEditor.VFX.UI
             }
 
             // If linking to a new parameter, copy the slot value
-            if (direction == Direction.Input && newNode is VFXParameterController)
+            if (direction == Direction.Input && newNode is VFXParameterNodeController)
             {
-                VFXParameter parameter = (newNode as VFXParameterController).parentController.model;
+                VFXParameter parameter = (newNode as VFXParameterNodeController).parentController.model;
 
                 CopyValueToParameter(parameter);
             }

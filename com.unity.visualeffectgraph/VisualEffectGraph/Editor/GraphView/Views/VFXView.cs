@@ -287,7 +287,7 @@ namespace UnityEditor.VFX.UI
         {
             m_SlotContainerFactory[typeof(VFXContextController)] = typeof(VFXContextUI);
             m_SlotContainerFactory[typeof(VFXOperatorController)] = typeof(VFXOperatorUI);
-            m_SlotContainerFactory[typeof(VFXParameterController)] = typeof(VFXParameterUI);
+            m_SlotContainerFactory[typeof(VFXParameterNodeController)] = typeof(VFXParameterUI);
 
             forceNotififcationOnAdd = true;
             SetupZoom(0.125f, 8);
