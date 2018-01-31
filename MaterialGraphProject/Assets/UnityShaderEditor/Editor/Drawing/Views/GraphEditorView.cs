@@ -34,7 +34,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_FloatingWindowsLayoutKey;
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
-        string m_DocumentURL = "https://github.com/Unity-Technologies/ShaderGraph/wiki";
         public Action saveRequested { get; set; }
 
         public Action convertToSubgraphRequested
@@ -159,8 +158,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var nodeView = (MaterialNodeView)graphView.selection.First();
                     if(nodeView.node.documentationURL != null)
                         System.Diagnostics.Process.Start(nodeView.node.documentationURL);
-                    else
-                        Debug.Log("Missing Documentation URL for -> " + System.Diagnostics.Process.Start(m_DocumentURL));
                 }
             }
         }
