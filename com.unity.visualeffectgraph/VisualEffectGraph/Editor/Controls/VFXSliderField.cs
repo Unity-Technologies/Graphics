@@ -95,9 +95,9 @@ namespace UnityEditor.VFX.UIElements
                 SetValueAndNotify(e.newValue);
         }
     }
-    class VFXDoubleSliderField : VFXBaseSliderField<float>
+    class VFXFloatSliderField : VFXBaseSliderField<float>
     {
-        public VFXDoubleSliderField()
+        public VFXFloatSliderField()
         {
             m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
