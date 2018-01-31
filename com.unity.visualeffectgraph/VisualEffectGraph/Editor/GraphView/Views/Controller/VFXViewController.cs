@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.UI
                 IVFXSlotContainer targetSlotContainer = inputSlot.refSlot.owner;
                 if (targetSlotContainer is VFXParameter)
                 {
-                    VFXParametersController controller = m_ParametersControllers[targetSlotContainer as VFXParameter];
+                    VFXParameterController controller = m_ParametersControllers[targetSlotContainer as VFXParameter];
                     operatorControllerFrom = controller.GetParameterForLink(inputSlot);
                 }
                 else if (targetSlotContainer is VFXBlock)
@@ -395,7 +395,7 @@ namespace UnityEditor.VFX.UI
                 parameter.parentController.model.RemoveNode(parameter.infos);
                 DataEdgesMightHaveChanged();
             }
-            else if (element is VFXSlotContainerController || element is VFXParametersController)
+            else if (element is VFXSlotContainerController || element is VFXParameterController)
             {
                 IVFXSlotContainer container = null;
 
@@ -405,7 +405,7 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    container = (element as VFXParametersController).model;
+                    container = (element as VFXParameterController).model;
                 }
 
                 VFXSlot slotToClean = null;
@@ -808,7 +808,7 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public void AddVFXParameter(Vector2 pos, VFXParametersController parametersController)
+        public void AddVFXParameter(Vector2 pos, VFXParameterController parametersController)
         {
             parametersController.model.AddNode(pos);
         }
@@ -985,14 +985,14 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        Dictionary<VFXParameter, VFXParametersController> m_ParametersControllers = new Dictionary<VFXParameter, VFXParametersController>();
+        Dictionary<VFXParameter, VFXParameterController> m_ParametersControllers = new Dictionary<VFXParameter, VFXParameterController>();
 
-        public IEnumerable<VFXParametersController> parametersController
+        public IEnumerable<VFXParameterController> parametersController
         {
             get { return m_ParametersControllers.Values; }
         }
 
-        public void SetParametersOrder(VFXParametersController controller, int index)
+        public void SetParametersOrder(VFXParameterController controller, int index)
         {
             var orderedParameters = m_ParametersControllers.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
@@ -1037,7 +1037,7 @@ namespace UnityEditor.VFX.UI
                 VFXParameter parameter = model as VFXParameter;
                 parameter.ValidateNodes();
 
-                var newController = m_ParametersControllers[parameter] = new VFXParametersController(parameter, this);
+                var newController = m_ParametersControllers[parameter] = new VFXParameterController(parameter, this);
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
             }
@@ -1093,9 +1093,9 @@ namespace UnityEditor.VFX.UI
             return controller.First(t => t.id == id);
         }
 
-        public VFXParametersController GetParametersController(VFXParameter parameter)
+        public VFXParameterController GetParametersController(VFXParameter parameter)
         {
-            VFXParametersController controller = null;
+            VFXParameterController controller = null;
             m_ParametersControllers.TryGetValue(parameter, out controller);
             return controller;
         }

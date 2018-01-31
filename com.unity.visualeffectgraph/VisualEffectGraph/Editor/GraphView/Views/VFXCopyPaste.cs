@@ -538,7 +538,7 @@ namespace UnityEditor.VFX.UI
                     VFXParameter existingParameter = graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetInstanceID() == copyData.parameters[paramIndex].originalInstanceID);
                     if (existingParameter != null)
                     {
-                        // The original parameter is from the current graph, add the paramInfos to the original
+                        // The original parameter is from the current graph, add the nodes to the original
                         copyData.parameters[paramIndex].parameter = existingParameter;
 
                         copyData.parameters[paramIndex].infoIndexOffset = existingParameter.nodes.Count;
@@ -588,8 +588,6 @@ namespace UnityEditor.VFX.UI
                     {
                         var parameter = copyData.parameters[dataEdge.outputParameterIndex];
                         outputContainer = parameter.parameter;
-
-                        var paramInfo = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
                     }
                     else
                     {
@@ -603,8 +601,8 @@ namespace UnityEditor.VFX.UI
                         if (inputSlot.Link(outputSlot) && dataEdge.outputParameter)
                         {
                             var parameter = copyData.parameters[dataEdge.outputParameterIndex];
-                            var paramInfo = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
-                            paramInfo.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot  = inputSlot, outputSlot = outputSlot});
+                            var node = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
+                            node.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot  = inputSlot, outputSlot = outputSlot});
                         }
                     }
                 }

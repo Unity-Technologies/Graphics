@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSubParameterController : IPropertyRMProvider, IValueController
     {
-        VFXParametersController m_Parameter;
+        VFXParameterController m_Parameter;
         //int m_Field;
         int[] m_FieldPath;
         FieldInfo[] m_FieldInfos;
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         VFXSubParameterController[] m_Children;
 
 
-        public VFXSubParameterController(VFXParametersController parameter, IEnumerable<int> fieldPath)
+        public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
         {
             m_Parameter = parameter;
             //m_Field = field;
@@ -136,13 +136,13 @@ namespace UnityEditor.VFX.UI
 
     class VFXMinMaxParametersController : IPropertyRMProvider
     {
-        public VFXMinMaxParametersController(VFXParametersController owner, bool min)
+        public VFXMinMaxParametersController(VFXParameterController owner, bool min)
         {
             m_Owner = owner;
             m_Min = min;
         }
 
-        VFXParametersController m_Owner;
+        VFXParameterController m_Owner;
         bool m_Min;
         public bool expanded
         {
@@ -206,7 +206,7 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
     }
-    class VFXParametersController : VFXController<VFXParameter>, IPropertyRMProvider
+    class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider
     {
         VFXSubParameterController[] m_SubControllers;
 
@@ -238,7 +238,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXParametersController(VFXParameter model, VFXViewController viewController) : base(model)
+        public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(model)
         {
             m_ViewController = viewController;
         }
@@ -479,9 +479,9 @@ namespace UnityEditor.VFX.UI
         public bool UpdateControllers()
         {
             bool changed = false;
-            var paramInfos = model.nodes.ToDictionary(t => t.id, t => t);
+            var nodes = model.nodes.ToDictionary(t => t.id, t => t);
 
-            foreach (var removedController in m_Controllers.Where(t => !paramInfos.ContainsKey(t.Key)).ToArray())
+            foreach (var removedController in m_Controllers.Where(t => !nodes.ContainsKey(t.Key)).ToArray())
             {
                 removedController.Value.OnDisable();
                 m_Controllers.Remove(removedController.Key);
@@ -489,7 +489,7 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
-            foreach (var addedController in paramInfos.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
+            foreach (var addedController in nodes.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
             {
                 VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, m_ViewController);
 

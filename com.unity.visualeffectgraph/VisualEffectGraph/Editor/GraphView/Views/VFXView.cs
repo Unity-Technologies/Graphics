@@ -876,7 +876,7 @@ namespace UnityEditor.VFX.UI
             return controller.AddVFXParameter(pos, desc);
         }
 
-        void AddVFXParameter(Vector2 pos, VFXParametersController parametersController)
+        void AddVFXParameter(Vector2 pos, VFXParameterController parametersController)
         {
             if (controller == null || parametersController == null) return;
 

@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace  UnityEditor.VFX.UI
 {
-    class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParametersController>
+    class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParameterController>
     {
         public VFXBlackboardRow owner
         {
@@ -22,7 +22,7 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
-        public VFXParametersController controller
+        public VFXParameterController controller
         {
             get { return owner.controller; }
         }
@@ -131,7 +131,7 @@ namespace  UnityEditor.VFX.UI
             ApplyWidths(labelWidth);
         }
     }
-    class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParametersController>
+    class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParameterController>
     {
         public VFXBlackboardRow owner
         {
@@ -145,13 +145,13 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
-        public VFXParametersController controller
+        public VFXParameterController controller
         {
             get { return owner.controller; }
         }
     }
 
-    class VFXBlackboardRow : BlackboardRow, IControlledElement<VFXParametersController>
+    class VFXBlackboardRow : BlackboardRow, IControlledElement<VFXParameterController>
     {
         VFXBlackboardField m_Field;
 
@@ -190,12 +190,12 @@ namespace  UnityEditor.VFX.UI
             m_Properties.SelfChange();
         }
 
-        VFXParametersController m_Controller;
+        VFXParameterController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXParametersController controller
+        public VFXParameterController controller
         {
             get { return m_Controller; }
             set
@@ -312,11 +312,11 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        Dictionary<VFXParametersController, VFXBlackboardRow> m_ExposedParameters = new Dictionary<VFXParametersController, VFXBlackboardRow>();
-        Dictionary<VFXParametersController, VFXBlackboardRow> m_PrivateParameters = new Dictionary<VFXParametersController, VFXBlackboardRow>();
+        Dictionary<VFXParameterController, VFXBlackboardRow> m_ExposedParameters = new Dictionary<VFXParameterController, VFXBlackboardRow>();
+        Dictionary<VFXParameterController, VFXBlackboardRow> m_PrivateParameters = new Dictionary<VFXParameterController, VFXBlackboardRow>();
 
 
-        void SyncParameters(BlackboardSection section, HashSet<VFXParametersController> actualControllers , Dictionary<VFXParametersController, VFXBlackboardRow> parameters)
+        void SyncParameters(BlackboardSection section, HashSet<VFXParameterController> actualControllers , Dictionary<VFXParameterController, VFXBlackboardRow> parameters)
         {
             foreach (var removedControllers in parameters.Where(t => !actualControllers.Contains(t.Key)).ToArray())
             {
@@ -356,11 +356,11 @@ namespace  UnityEditor.VFX.UI
 
         void OnControllerChanged(ControllerChangedEvent e)
         {
-            if (e.controller == controller || e.controller is VFXParametersController) //optim : reorder only is only the order has changed
+            if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
-                HashSet<VFXParametersController> actualControllers = new HashSet<VFXParametersController>(controller.parametersController.Where(t => t.exposed));
+                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parametersController.Where(t => t.exposed));
                 SyncParameters(m_ExposedSection, actualControllers, m_ExposedParameters);
-                actualControllers = new HashSet<VFXParametersController>(controller.parametersController.Where(t => !t.exposed));
+                actualControllers = new HashSet<VFXParameterController>(controller.parametersController.Where(t => !t.exposed));
                 SyncParameters(m_PrivateSection, actualControllers, m_PrivateParameters);
             }
         }
