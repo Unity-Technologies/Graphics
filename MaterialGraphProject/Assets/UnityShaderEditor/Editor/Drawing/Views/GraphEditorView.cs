@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_FloatingWindowsLayoutKey;
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
+        string m_DocumentURL = "https://github.com/Unity-Technologies/ShaderGraph/wiki";
         public Action saveRequested { get; set; }
 
         public Action convertToSubgraphRequested
@@ -150,6 +151,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
 
                 graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
+            }
+            else if (evt.keyCode == KeyCode.F1)
+            {
+                if (m_GraphView.selection.OfType<MaterialNodeView>().Count() == 1)
+                {
+                    var nodeView = (MaterialNodeView)graphView.selection.First();
+                    if(nodeView.node.documentationURL != null)
+                        System.Diagnostics.Process.Start(nodeView.node.documentationURL);
+                    else
+                        Debug.Log("Missing Documentation URL for -> " + System.Diagnostics.Process.Start(m_DocumentURL));
+                }
             }
         }
 

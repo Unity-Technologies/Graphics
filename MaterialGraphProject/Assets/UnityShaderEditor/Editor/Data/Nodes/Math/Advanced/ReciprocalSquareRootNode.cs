@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Reciprocal Square Root";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Reciprocal-Square-Root-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Rsqrt", BindingFlags.Static | BindingFlags.NonPublic);

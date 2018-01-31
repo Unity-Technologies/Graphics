@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public AbstractMaterialGraph graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
 
+        private string m_DocumentURL = "https://github.com/Unity-Technologies/ShaderGraph/wiki";
+
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             var compatibleAnchors = new List<Port>();
@@ -57,11 +59,29 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
                 evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("See Documentation", SeeDocumentation, SeeDocumentationStatus);
             }
             else if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
             }
+        }
+
+        void SeeDocumentation(EventBase evt)
+        {
+            var node = selection.OfType<MaterialNodeView>().First().node;
+            if (node.documentationURL != null)
+                System.Diagnostics.Process.Start(node.documentationURL);
+            else
+                Debug.Log("Missing Documentation URL for -> " + System.Diagnostics.Process.Start(m_DocumentURL));
+        }
+
+        ContextualMenu.MenuAction.StatusFlags SeeDocumentationStatus(EventBase eventBase)
+        {
+            if (selection.OfType<MaterialNodeView>().Count() > 1)
+                return ContextualMenu.MenuAction.StatusFlags.Hidden;
+            return ContextualMenu.MenuAction.StatusFlags.Normal;
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
