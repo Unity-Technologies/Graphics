@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering
         private int[] diffStylesValues = new int[] {0, 1, 2, 3, 4, 5};
 
         private int topBarHeight = 20;
-        private int leftBarWidth = 200;
+        private int leftBarWidth = 300;
 
         private bool testOKOrNotRun = false;
 
@@ -85,9 +85,18 @@ namespace UnityEngine.Experimental.Rendering
         {
             sceneAsset = _sceneAsset;
 
+            if (sceneAsset == null) return;
+
             if (templateImage != null) DestroyImmediate(templateImage);
             string tmp = "";
-            if (sceneAsset != null ) templateImage = TestFrameworkTools.GetTemplateImage(sceneAsset, ref tmp);
+            if (sceneAsset != null)
+            {
+                templateImage = TestFrameworkTools.GetTemplateImage(sceneAsset, ref tmp);
+                templateImage.filterMode = FilterMode.Point;
+                templateImage.mipMapBias = -10;
+                templateImage.hideFlags = HideFlags.HideAndDontSave;
+                DontDestroyOnLoad(templateImage);
+            }
 
 
             string templatePath = Path.Combine( TestFrameworkTools.s_RootPath, "ImageTemplates");
@@ -100,6 +109,8 @@ namespace UnityEngine.Experimental.Rendering
             if (diffMaterial == null)
             {
                 diffMaterial = new Material(Shader.Find("GraphicTests/ComparerShader"));
+                diffMaterial.hideFlags = HideFlags.HideAndDontSave;
+                DontDestroyOnLoad(diffMaterial);
                 diffMaterial.SetFloat("_CorrectGamma", 1f);
                 diffMaterial.SetFloat("_FlipV2", 0f);
             }
@@ -113,6 +124,10 @@ namespace UnityEngine.Experimental.Rendering
             if (File.Exists(misMatchLocationResult))
             {
                 resultImage = new Texture2D(templateImage.width, templateImage.height, TextureFormat.ARGB32, false);
+                resultImage.filterMode = FilterMode.Point;
+                resultImage.mipMapBias = -10;
+                resultImage.hideFlags = HideFlags.HideAndDontSave;
+                DontDestroyOnLoad(resultImage);
 
                 byte[] resultBytes = File.ReadAllBytes(misMatchLocationResult);
                 resultImage.LoadImage(resultBytes);
@@ -137,6 +152,13 @@ namespace UnityEngine.Experimental.Rendering
             testResultTreeView.Reload();
         }
 
+        private void OnDisable()
+        {
+            DestroyImmediate(templateImage);
+            DestroyImmediate(resultImage);
+            DestroyImmediate(diffMaterial);
+        }
+
         private void OnGUI()
         {
             // tree view
@@ -155,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering
                     GUILayout.BeginHorizontal(GUILayout.Height(topBarHeight));
                     {
                         if (GUILayout.Button(reloadContent))
-                            Reload();
+                            Reload(sceneAsset.name+".unity");
 
                         if (GUILayout.Button(wipeResultContent))
                         {
@@ -184,6 +206,30 @@ namespace UnityEngine.Experimental.Rendering
                             GUILayout.FlexibleSpace();
                         }
 
+                        if (GUILayout.Button("Quick Switch"))
+                        {
+                            if (maxDiff > 0f)
+                            {
+                                minDiff = 0f;
+                                maxDiff = 0f;
+                            }
+                            else
+                            {
+                                minDiff = 1f;
+                                maxDiff = 1f;
+                            }
+                            ApplyValues();
+                        }
+
+                        if (GUILayout.Button("Reset"))
+                        {
+                            minDiff = 0.45f;
+                            maxDiff = 0.55f;
+                            ApplyValues();
+                        }
+
+                        GUILayout.FlexibleSpace();
+
                         GUILayout.Label("Diff. type: ");
                         diffStyle = EditorGUILayout.IntPopup(diffStyle, diffStylesList, diffStylesValues,
                             GUILayout.Width(200f));
@@ -193,11 +239,28 @@ namespace UnityEngine.Experimental.Rendering
                     EditorGUILayout.MinMaxSlider(ref minDiff, ref maxDiff, 0f, 1f, GUILayout.Height(topBarHeight));
 
                     if (EditorGUI.EndChangeCheck()) ApplyValues();
+
+                    // template / diff / result visualisation
+                    float w = position.width - leftBarWidth;
+                    Color c = GUI.color;
+
+                    Rect rect1 = new Rect(0, topBarHeight * 2, w * minDiff, topBarHeight);
+                    Rect rect2 = new Rect(rect1.max.x, rect1.y, w * (maxDiff - minDiff), topBarHeight);
+                    Rect rect3 = new Rect(rect2.max.x, rect2.y, w * (1f - maxDiff), topBarHeight);
+
+                    GUI.color = Color.green;
+                    if (rect1.width > 0) GUI.Box(rect1, "Template");
+                    GUI.color = Color.black;
+                    if (rect2.width > 0) GUI.Box(rect2,  "Diff" );
+                    GUI.color = Color.blue;
+                    if (rect3.width > 0) GUI.Box(rect3, "Result");
+
+                    GUI.color = c;
                 }
                 GUILayout.EndArea();
 
-                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 2, position.width - leftBarWidth,
-                    position.height - topBarHeight * 2);
+                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth,
+                    position.height - topBarHeight * 3);
                 EditorGUI.DrawPreviewTexture(textureRect, templateImage, diffMaterial, ScaleMode.ScaleToFit, 0, 0);
             }
         }
@@ -261,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering
                     var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
                     var filePath = Path.Combine(prjRelativeGraphsPath, info.relativePath);
 
-                    filePath = filePath.Replace(Application.dataPath, "");
+                    filePath = string.Format("Assets{0}", filePath.Replace(Application.dataPath, "") );
 
                     SceneAsset sceneObject = AssetDatabase.LoadAssetAtPath<SceneAsset>(filePath);
 
@@ -293,7 +356,7 @@ namespace UnityEngine.Experimental.Rendering
                     var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
                     var filePath = Path.Combine(prjRelativeGraphsPath, info.relativePath);
 
-                    filePath = filePath.Replace(Application.dataPath, "");
+                    filePath = string.Format("Assets{0}", filePath.Replace(Application.dataPath, ""));
 
                     SceneAsset sceneObject = AssetDatabase.LoadAssetAtPath<SceneAsset>(filePath);
 
