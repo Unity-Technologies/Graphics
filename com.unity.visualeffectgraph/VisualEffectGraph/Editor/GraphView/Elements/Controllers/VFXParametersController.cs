@@ -336,7 +336,6 @@ namespace UnityEditor.VFX.UI
                     candidateName = string.Format("{0} {1}", candidateMainPart, cpt);
                 }
 
-
                 parameter.SetSettingValue("m_exposedName", candidateName);
             }
         }

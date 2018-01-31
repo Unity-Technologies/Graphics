@@ -793,6 +793,13 @@ namespace UnityEditor.VFX.UI
                 List<VFXNodeController> nodeControllers = null;
                 m_SyncedModels.TryGetValue(newNode, out nodeControllers);
 
+                if (newNode is VFXParameter)
+                {
+                    // Set an exposed name on a new parameter so that uncity is ensured
+                    VFXParameter newParameter = newNode as VFXParameter;
+                    m_ParametersControllers[newParameter].exposedName = string.Format("New {0}", newParameter.type.UserFriendlyName());
+                }
+
                 NotifyChange(AnyThing);
 
                 return nodeControllers[0];
