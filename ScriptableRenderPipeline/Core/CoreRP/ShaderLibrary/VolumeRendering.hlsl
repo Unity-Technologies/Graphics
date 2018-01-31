@@ -64,8 +64,9 @@ real HenyeyGreensteinPhasePartConstant(real asymmetry)
 real HenyeyGreensteinPhasePartVarying(real asymmetry, real cosTheta)
 {
     real g = asymmetry;
+    real f = rsqrt(1 + g * g - 2 * g * cosTheta); // x^(-1/2)
 
-    return pow(abs(1 + g * g - 2 * g * cosTheta), -1.5);
+    return f * f * f; // x^(-3/2)
 }
 
 real HenyeyGreensteinPhaseFunction(real asymmetry, real cosTheta)
@@ -84,8 +85,10 @@ real CornetteShanksPhasePartConstant(real asymmetry)
 real CornetteShanksPhasePartVarying(real asymmetry, real cosTheta)
 {
     real g = asymmetry;
+    real f = rsqrt(1 + g * g - 2 * g * cosTheta); // x^(-1/2)
+    real h = (1 + cosTheta * cosTheta);
 
-    return (1 + cosTheta * cosTheta) * pow(abs(1 + g * g - 2 * g * cosTheta), -1.5);
+    return h * (f * f * f); // h * f^(-3/2)
 }
 
 // A better approximation of the Mie phase function.
@@ -110,7 +113,7 @@ void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real interv
     real x = 1 - exp(-extinction * intervalLength);
 
     // Avoid division by 0.
-    real rcpExt = extinction != 0 ? rcp(extinction) : 0;
+    real rcpExt = (extinction != 0) ? rcp(extinction) : 0;
 
     weight = x * rcpExt;
     offset = -log(1 - rndVal * x) * rcpExt;

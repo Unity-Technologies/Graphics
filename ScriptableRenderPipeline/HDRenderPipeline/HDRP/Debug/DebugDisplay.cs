@@ -35,9 +35,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string kShadowMinValueDebug = "Shadow Range Min Value";
         public static string kShadowMaxValueDebug = "Shadow Range Max Value";
         public static string kLightingDebugMode = "Lighting Debug Mode";
+
+        public static string kOverrideAlbedoDebug = "Override Albedo";
+        public static string kOverrideAlbedoValueDebug = "Override Albedo Value";
         public static string kOverrideSmoothnessDebug = "Override Smoothness";
         public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
-        public static string kDebugLightingAlbedo = "Debug Lighting Albedo";
+        public static string kOverrideNormalDebug = "Override normal";
+
+        public static string kDebugEnvironmentProxyDepthScale = "Debug Environment Proxy Depth Scale";
         public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
         public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
         public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
@@ -185,11 +190,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kDebugLightingAlbedo, () => lightingDebugSettings.debugLightingAlbedo, (value) => lightingDebugSettings.debugLightingAlbedo = (Color)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideAlbedoDebug, () => lightingDebugSettings.overrideAlbedo, (value) => lightingDebugSettings.overrideAlbedo = (bool)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kOverrideAlbedoValueDebug, () => lightingDebugSettings.overrideAlbedoValue, (value) => lightingDebugSettings.overrideAlbedoValue = (Color)value);
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideNormalDebug, () => lightingDebugSettings.overrideNormal, (value) => lightingDebugSettings.overrideNormal = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>("Lighting", kDisplaySkyReflectionDebug, () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kSkyReflectionMipmapDebug, () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value);
             DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterCategoryDebug>(kTileClusterCategoryDebug,() => lightingDebugSettings.tileClusterDebugByCategory, (value) => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value);
+
+            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kDebugEnvironmentProxyDepthScale, () => lightingDebugSettings.environmentProxyDepthScale, value => lightingDebugSettings.environmentProxyDepthScale = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.1f, 50f));
 
             DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
             DebugMenuManager.instance.AddDebugItem<DebugMipMapMode>("Rendering", "MipMaps", () => mipMapDebugSettings.debugMipMapMode, (value) => SetMipMapMode((DebugMipMapMode)value));

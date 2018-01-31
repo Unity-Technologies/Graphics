@@ -21,7 +21,8 @@ namespace UnityEditor.Experimental.Rendering
             for (var i = 0; i < m_AnimBools.Length; ++i)
             {
                 m_AnimBools[i].valueChanged.RemoveAllListeners();
-                m_AnimBools[i].valueChanged.AddListener(repaint);
+                if (repaint != null)
+                    m_AnimBools[i].valueChanged.AddListener(repaint);
             }
 
             Update();
