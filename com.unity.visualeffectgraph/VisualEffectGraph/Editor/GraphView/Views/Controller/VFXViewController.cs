@@ -571,8 +571,8 @@ namespace UnityEditor.VFX.UI
                     {
                         var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
 
-                        Func<VFXModel, bool> fnConditionSpawner = delegate (VFXModel model) { return model is VFXAttributeParameter; };
-                        Func<VFXModel, bool> fnConditionUpdate = delegate (VFXModel model) { return model is VFXSourceAttributeParameter; };
+                        Func<VFXModel, bool> fnConditionSpawner = delegate(VFXModel model) { return model is VFXAttributeParameter; };
+                        Func<VFXModel, bool> fnConditionUpdate = delegate(VFXModel model) { return model is VFXSourceAttributeParameter; };
                         var filterForSpawner = contextTypeInChildren.Any(o => o == VFXContextType.kSpawner);
                         var filterForUpdate = contextTypeInChildren.Any(o => o == VFXContextType.kUpdate);
 

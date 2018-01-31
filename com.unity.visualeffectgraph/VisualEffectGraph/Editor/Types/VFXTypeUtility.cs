@@ -34,6 +34,33 @@ namespace UnityEditor.VFX
             return maxNbComponents;
         }
 
+        public static int GetComponentCountDirect(VFXSlot slot)
+        {
+            var slotType = slot.property.type;
+            if (slotType == typeof(float) || slotType == typeof(uint) || slotType == typeof(int))
+                return 1;
+            else if (slotType == typeof(Vector2))
+                return 2;
+            else if (slotType == typeof(Vector3))
+                return 3;
+            else if (slotType == typeof(Vector4) || slotType == typeof(Color))
+                return 4;
+            else if (slotType == typeof(FloatN))
+                throw new InvalidOperationException("With the direct version FloatN is unsupported");
+            return 0;
+        }
+
+        public static int GetMaxComponentCountDirect(IEnumerable<VFXSlot> slots)
+        {
+            int maxNbComponents = 0;
+            foreach (var slot in slots)
+            {
+                int slotNbComponents = GetComponentCountDirect(slot);
+                maxNbComponents = Math.Max(slotNbComponents, maxNbComponents);
+            }
+            return maxNbComponents;
+        }
+
         public static Type GetFloatTypeFromComponentCount(int count)
         {
             switch (count)

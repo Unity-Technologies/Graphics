@@ -514,7 +514,7 @@ namespace UnityEditor.VFX
         {
             private VFXExpressionMapper mapper;
 
-            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.kNone, VFXDataType.kNone, VFXDataType.kNone) { }
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.kNone, VFXDataType.kNone, VFXDataType.kNone) {}
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
@@ -542,7 +542,7 @@ namespace UnityEditor.VFX
 
             public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
             {
-                    return target == VFXDeviceTarget.CPU ? mapper : null;
+                return target == VFXDeviceTarget.CPU ? mapper : null;
             }
         }
 

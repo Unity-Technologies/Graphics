@@ -10,16 +10,31 @@ VFXFloatField:focus
 	background-image: resource("Builtin Skins/LightSkin/Images/TextField focused.png");
 }
 
-VFXEnumField Button, VFXStringFieldProvider Button
+.PopupButton
 {
 	background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
 }
-VFXEnumField Button:hover:active, VFXStringFieldProvider Button:hover:active
+.PopupButton:hover:active
 {
 	background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
 }
 
-VFXEnumField Button:focus, VFXStringFieldProvider Button:focus
+.PopupButton:focus
 {
 	background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
+}
+
+#DraggingHandle #icon
+{
+    background-image: resource("Builtin Skins/LightSkin/Images/WindowBottomResize.png");
+}
+
+.ReorderableList > #Toolbar > #Add > #icon
+{
+    background-image: resource("VFX/StolenToolbarPlus.png");
+}
+
+.ReorderableList > #Toolbar > #Remove > #icon
+{
+    background-image: resource("VFX/StolenToolbarMinus.png");
 }
