@@ -42,7 +42,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     // Not lit here (but emissive is allowed)
-
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!

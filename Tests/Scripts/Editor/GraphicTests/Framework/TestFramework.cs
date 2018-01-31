@@ -121,6 +121,24 @@ namespace UnityEditor.Experimental.Rendering
                 yield return null;
             }
 
+            // Force rendering of all realtime reflection probes
+            ReflectionProbe[] probes = GameObject.FindObjectsOfType<ReflectionProbe>();
+            int[] renderIDs = new int[probes.Length];
+            for (int i=0; i<probes.Length; ++i)
+            {
+                if (probes[i].mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
+                    renderIDs[i] = probes[i].RenderProbe();
+                else
+                    renderIDs[i] = -1;
+            }
+            for (int i=0; i<probes.Length; ++i)
+            {
+                if (renderIDs[i] != -1)
+                {
+                    while (!probes[i].IsFinishedRendering(renderIDs[i])) yield return null;
+                }
+            }
+
             testSetup.thingToDoBeforeTest.Invoke();
 
             // Render the camera
@@ -143,7 +161,7 @@ namespace UnityEditor.Experimental.Rendering
 				var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
 				var generated = captured.EncodeToPNG();
                 File.WriteAllBytes(misMatchLocationResult, generated);
-                File.Copy(dumpFileLocation, misMatchLocationTemplate);
+                File.Copy(dumpFileLocation, misMatchLocationTemplate, true);
             }
 
 			Assert.IsTrue(areEqual, "Scene from {0}, did not match .template file.", testInfo.relativePath);

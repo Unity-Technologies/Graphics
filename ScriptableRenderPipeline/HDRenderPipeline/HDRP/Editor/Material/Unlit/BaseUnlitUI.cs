@@ -132,6 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected abstract void FindMaterialProperties(MaterialProperty[] props);
         protected abstract void SetupMaterialKeywordsAndPassInternal(Material material);
         protected abstract void MaterialPropertiesGUI(Material material);
+        protected abstract void MaterialPropertiesAdvanceGUI(Material material);
         protected abstract void VertexAnimationPropertiesGUI();
         // This function will say if emissive is used or not regarding enlighten/PVR
         protected abstract bool ShouldEmissionBeEnabled(Material material);
@@ -611,6 +612,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.EnableInstancingField();
+                MaterialPropertiesAdvanceGUI(material);
                 EditorGUI.indentLevel--;
             }
 

@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
         const float k_PreviewNormalizedSize = 0.2f;
 
         internal static Material s_GUITextureBlit2SRGBMaterial;
-        internal static Material GUITextureBlit2SRGBMaterial
+        public static Material GUITextureBlit2SRGBMaterial
         {
             get
             {
@@ -203,6 +203,24 @@ namespace UnityEditor.Experimental.Rendering
                     near[i] = camera.ViewportToWorldPoint(near[i]);
             }
             return true;
+        }
+
+        public static Vector3 PerspectiveClipToWorld(Matrix4x4 clipToWorld, Vector3 viewPositionWS, Vector3 positionCS)
+        {
+            var tempCS = new Vector3(positionCS.x, positionCS.y, 0.95f);
+            var result = clipToWorld.MultiplyPoint(tempCS);
+            var r = result - viewPositionWS;
+            return r.normalized * positionCS.z + viewPositionWS;
+        }
+
+        public static void GetFrustrumPlaneAt(Matrix4x4 clipToWorld, Vector3 viewPosition, float distance, Vector3[] points)
+        {
+            points[0] = new Vector3(-1, -1, distance); // leftBottomFar
+            points[1] = new Vector3(-1, 1, distance); // leftTopFar
+            points[2] = new Vector3(1, 1, distance); // rightTopFar
+            points[3] = new Vector3(1, -1, distance); // rightBottomFar
+            for (var i = 0; i < 4; ++i)
+                points[i] = PerspectiveClipToWorld(clipToWorld, viewPosition, points[i]);
         }
 
         static Vector3 MidPointPositionSlider(Vector3 position1, Vector3 position2, Vector3 direction)

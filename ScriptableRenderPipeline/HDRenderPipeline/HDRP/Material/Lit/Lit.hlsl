@@ -1,8 +1,4 @@
-﻿#define ENVMAP_FEATURE_PERFACEINFLUENCE
-#define ENVMAP_FEATURE_INFLUENCENORMAL
-#define ENVMAP_FEATURE_PERFACEFADE
-
-// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
+﻿// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
@@ -63,7 +59,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define GBUFFER_LIT_STANDARD         0
 // we have not enough space (3bit) to store mat feature to have SSS and Transmission as bitmask, such why we have all variant
 #define GBUFFER_LIT_SSS              1
-#define GBUFFER_LIT_TRANSMISSION     2 
+#define GBUFFER_LIT_TRANSMISSION     2
 #define GBUFFER_LIT_TRANSMISSION_SSS 3
 #define GBUFFER_LIT_ANISOTROPIC      4
 #define GBUFFER_LIT_IRIDESCENCE      5 // TODO
@@ -243,7 +239,6 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
 
     bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * diffusionProfile, 2u);
 
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(    _ShapeParams[diffusionProfile].rgb,
@@ -258,8 +253,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
                                                             bsdfData.thickness);
 #endif
 
-    // Apply the transmission mode. Only the thick object mode performs the thickness displacement.
-    bsdfData.useThickObjectMode = transmissionMode != TRANSMISSION_MODE_THIN;
+    bsdfData.useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
     if (bsdfData.useThickObjectMode)
     {
@@ -304,7 +298,7 @@ void FillMaterialClearCoatData(float coatMask, inout BSDFData bsdfData)
     // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
     // but here we go from clear coat (1.5) to material, we need to update fresnel0
     // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
-    bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0);
+    bsdfData.fresnel0 = lerp(bsdfData.fresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0), coatMask);
 }
 
 void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
@@ -345,23 +339,34 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     reflectivity = preFGD.y;
 }
 
-void ApplyDebugToSurfaceData(inout SurfaceData surfaceData)
+// This function is use to help with debugging and must be implemented by any lit material
+// Implementer must take into account what are the current override component and 
+// adjust SurfaceData properties accordingdly
+void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
-    {
-        bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
-        float overrideSmoothnessValue = _DebugLightingSmoothness.y;
+    // Override value if requested by user
+    // this can be use also in case of debug lighting mode like diffuse only
+    bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
+    bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
+    bool overrideNormal = _DebugLightingNormal.x != 0.0;
 
-        if (overrideSmoothness)
-        {
-            surfaceData.perceptualSmoothness = overrideSmoothnessValue;
-        }
+    if (overrideAlbedo)
+    {
+        float3 overrideAlbedoValue = _DebugLightingAlbedo.yzw;
+        surfaceData.baseColor = overrideAlbedoValue;
     }
 
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
+    if (overrideSmoothness)
     {
-        surfaceData.baseColor = _DebugLightingAlbedo.xyz;
+        float overrideSmoothnessValue = _DebugLightingSmoothness.y;
+        surfaceData.perceptualSmoothness = overrideSmoothnessValue;
+    }
+
+    if (overrideNormal)
+    {
+        float overrideNormalValue = _DebugLightingNormal.yzw;
+        surfaceData.normalWS = worldToTangent[2];
     }
 #endif
 }
@@ -383,8 +388,6 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 
 BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 {
-    ApplyDebugToSurfaceData(surfaceData);
-
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
@@ -511,18 +514,17 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
                         out GBufferType3 outGBuffer3
                         )
 {
-    ApplyDebugToSurfaceData(surfaceData);
-
     // RT0 - 8:8:8:8 sRGB
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
-    // RT1 - 10:10:10:2
+    // RT1 - 8:8:8:8
+    // Our tangent encoding is based on our normal.
+    // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
     float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
-    // To have better precision encode the sign of XY separately.
-    uint octNormalSign = (octNormalWS.x < 0.0 ? 1 : 0) | (octNormalWS.y < 0.0 ? 2 : 0);
+    float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
-    outGBuffer1 = float4(PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), abs(octNormalWS), PackInt(octNormalSign, 2));
+    outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
 
     // RT2 - 8:8:8:8
     uint materialFeatureId;
@@ -579,7 +581,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     }
     else // Standard
     {
-        // In the case of standard or specular color we always convert to specular color parametrization before encoding, 
+        // In the case of standard or specular color we always convert to specular color parametrization before encoding,
         // so decoding is more efficient (it allow better optimization for the compiler and save VGPR)
         // This mean that on the decode side, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR doesn't exist anymore
         materialFeatureId = GBUFFER_LIT_STANDARD;
@@ -641,7 +643,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     bool pixelHasTransmission = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_TRANSMISSION;
     bool pixelHasAnisotropy   = materialFeatureId == GBUFFER_LIT_ANISOTROPIC;
     bool pixelHasIridescence  = materialFeatureId == GBUFFER_LIT_IRIDESCENCE;
-    bool pixelHasClearCoat    = coatMask > 0;
+    bool pixelHasClearCoat    = coatMask > 0.0;
 
     // Disable pixel features disabled by the tile.
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasSubsurface   ? MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING : 0);
@@ -654,15 +656,11 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     float3 baseColor = inGBuffer0.rgb;
 
     bsdfData.specularOcclusion   = inGBuffer0.a; // Later possibly overwritten by SSS
-    bsdfData.perceptualRoughness = inGBuffer1.r;
+    bsdfData.perceptualRoughness = inGBuffer1.a;
 
-    float2 octNormalWS = inGBuffer1.gb;
-    uint octNormalSign = UnpackInt(inGBuffer1.a, 2);
-
-    octNormalWS.x = (octNormalSign & 1) ? -octNormalWS.x : octNormalWS.x;
-    octNormalWS.y = (octNormalSign & 2) ? -octNormalWS.y : octNormalWS.y;
-
-    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS);
+    float3 packNormalWS = inGBuffer1.rgb;
+    float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
+    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
@@ -693,8 +691,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
         // Overwrite the diffusion profile/subsurfaceMask extracted by DecodeFromSSSBuffer().
         // We must do this so the compiler can optimize away the read from the G-Buffer 0 to the very end (in PostEvaluateBSDF)
-        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have the information in the 
-        // material debug view + If we require it in the future. 
+        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have the information in the
+        // material debug view + If we require it in the future.
         UnpackFloatInt8bit(inGBuffer2.b, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
 
         // Reminder: when using SSS we exchange specular occlusion and subsurfaceMask/profileID
@@ -1048,7 +1046,9 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 
 bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 {
-    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID &&  bsdfData.subsurfaceMask != 0 &&  HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
+    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
+    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID && bsdfData.subsurfaceMask != 0 && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
 }
 
 //-----------------------------------------------------------------------------
@@ -1063,6 +1063,7 @@ bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
 #endif
 
 #include "../../Lighting/LightEvaluation.hlsl"
+#include "../../Lighting/Reflection/VolumeProjection.hlsl"
 
 //-----------------------------------------------------------------------------
 // Lighting structure for light accumulation
@@ -1181,7 +1182,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Note: The modification of the base roughness and fresnel0 by the clear coat is already handled in FillMaterialClearCoatData
 
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
-        diffuseLighting *= lerp(1, F_Schlick(CLEAR_COAT_F0, NdotL), bsdfData.coatMask);
+        diffuseLighting *= lerp(1, 1.0 - coatF, bsdfData.coatMask);
     }
 }
 
@@ -1720,7 +1721,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData, int envShapeType, int GPUImageBasedLightingType,
+                                    PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                                    int influenceShapeType, int GPUImageBasedLightingType,
                                     inout float hierarchyWeight)
 {
     IndirectLighting lighting;
@@ -1773,124 +1775,56 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
 
-    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
-    // the center of the bounding box is thus in locals space: positionLS - offsetLS
-    // We use this formulation as it is the one of legacy unity that was using only AABB box.
-    float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
-    float3 positionLS = positionWS - lightData.positionWS;
-    positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
+    float3x3 worldToIS = WorldToInfluenceSpace(lightData);
+    float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
+    float3 dirIS = mul(R, worldToIS);
 
-    // Note: using envShapeType instead of lightData.envShapeType allow to make compiler optimization in case the type is know (like for sky)
-    if (envShapeType == ENVSHAPETYPE_SPHERE)
+    float3x3 worldToPS = WorldToProxySpace(lightData);
+    float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
+    float3 dirPS = mul(R, worldToPS);
+
+    float projectionDistance = 0;
+    // 1. First process the projection
+    // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
+    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
     {
-        // 1. First process the projection
-        float3 dirLS = mul(R, worldToLocal);
-        float sphereOuterDistance = lightData.influenceExtents.x;
-
-        float projectionDistance = IntersectRaySphereSimple(positionLS, dirLS, sphereOuterDistance);
-        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDistance * R) - lightData.positionWS;
+        projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            dirLS = mul(coatR, worldToLocal);
-            projectionDistance = IntersectRaySphereSimple(positionLS, dirLS, sphereOuterDistance);
-            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
+            dirPS = mul(coatR, worldToPS);
+            projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
+            coatR = (positionWS + projectionDistance * coatR) - capturePositionWS;
         }
-
-        // 2. Process the position influence
-        float lengthPositionLS = length(positionLS);
-        float sphereInfluenceDistance = lightData.influenceExtents.x - lightData.blendDistancePositive.x;
-        float distFade = max(lengthPositionLS - sphereInfluenceDistance, 0.0);
-        float alpha = saturate(1.0 - distFade / max(lightData.blendDistancePositive.x, 0.0001)); // avoid divide by zero
-
-#if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
-        // 3. Process the normal influence
-        float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
-        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
-        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
-#endif
-
-        weight = alpha;
+        weight = InfluenceSphereWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
-    else if (envShapeType == ENVSHAPETYPE_BOX)
+    else if (influenceShapeType == ENVSHAPETYPE_BOX)
     {
-        // 1. First process the projection
-        float3 dirLS = mul(R, worldToLocal);
-        float3 boxOuterDistance = lightData.influenceExtents;
-        float projectionDistance = IntersectRayAABBSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-        projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-
+        projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + projectionDistance * R) - lightData.positionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // TODO: add distance based roughness
 
         // Test again for clear coat
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            dirLS = mul(coatR, worldToLocal);
-            projectionDistance = IntersectRayAABBSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
-            projectionDistance = max(projectionDistance, lightData.minProjectionDistance); // Setup projection to infinite if requested (mean no projection shape)
-            coatR = (positionWS + projectionDistance * coatR) - lightData.positionWS;
+            dirPS = mul(coatR, worldToPS);
+            projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
+            coatR = (positionWS + projectionDistance * coatR) - capturePositionWS;
         }
-
-        // 2. Process the position influence
-        // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
-
-#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE) || defined(ENVMAP_FEATURE_INFLUENCENORMAL) || defined(ENVMAP_FEATURE_PERFACEFADE)
-        // Distance to each cube face
-        float3 negativeDistance = boxOuterDistance + positionLS;
-        float3 positiveDistance = boxOuterDistance - positionLS;
-#endif
-
-#if defined(ENVMAP_FEATURE_PERFACEINFLUENCE)
-        // Influence falloff for each face
-        float3 negativeFalloff = negativeDistance / max(0.0001, lightData.blendDistanceNegative);
-        float3 positiveFalloff = positiveDistance / max(0.0001, lightData.blendDistancePositive);
-
-        // Fallof is the min for all faces
-        float influenceFalloff = min(
-            min(min(negativeFalloff.x, negativeFalloff.y), negativeFalloff.z),
-            min(min(positiveFalloff.x, positiveFalloff.y), positiveFalloff.z));
-
-        float alpha = saturate(influenceFalloff);
-#else
-        float distFace = DistancePointBox(positionLS, -lightData.influenceExtents + lightData.blendDistancePositive.x, lightData.influenceExtents - lightData.blendDistancePositive.x);
-        float alpha = saturate(1.0 - distFace / max(lightData.blendDistancePositive.x, 0.0001));
-#endif
-
-#if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
-        // 3. Process the normal influence
-        // Calculate a falloff value to discard normals pointing outward the center of the environment light
-        float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
-        float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
-        float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-        float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.positionWS));
-        alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
-#endif
-
-#if defined(ENVMAP_FEATURE_PERFACEFADE)
-        // 4. Fade specific cubemap faces
-        // For each axes (both positive and negative ones), we want to fade from the center of one face to another
-        // So we normalized the sample direction (R) and use its component to fade for each axis
-        // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
-        // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
-        // <=> axisFace = 4 * R - 1;
-        R = normalize(R);
-        float3 faceFade = saturate((4 * R - 1) * lightData.boxSideFadePositive) + saturate((-4 * R - 1) * lightData.boxSideFadeNegative);
-        alpha *= saturate(faceFade.x + faceFade.y + faceFade.z);
-#endif
-
-        weight = alpha;
+        weight = InfluenceBoxWeight(lightData, bsdfData, positionWS, positionIS, dirIS);
     }
 
-    // Smooth weighting
-    weight = Smoothstep01(weight);
+#ifdef DEBUG_DISPLAY
+    float3 radiusToProxy = R;
+#endif
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
@@ -1898,9 +1832,24 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
+    float3 sampleDirectionDiscardWS = GetSampleDirectionDiscardWS(lightData);
+    if (dot(sampleDirectionDiscardWS, R) < 0)
+        return lighting;
+
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
+
+
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    weight *= preLD.a;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
+        preLD = ApplyDebugProjectionVolume(preLD, radiusToProxy, _DebugEnvironmentProxyDepthScale);
+#endif
+
+    // Smooth weighting
+    weight = Smoothstep01(weight);
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
     {
@@ -1995,7 +1944,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #endif
 
     float3 modifiedDiffuseColor;
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
+    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
+    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING) && bsdfData.subsurfaceMask != 0)
         modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
     else
         modifiedDiffuseColor = bsdfData.diffuseColor;
