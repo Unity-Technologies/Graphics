@@ -240,11 +240,20 @@ namespace UnityEditor.VFX
 
         void GetAllLinks(List<NodeLinkedSlot> list, VFXSlot slot)
         {
-            list.AddRange(slot.LinkedSlots.Select(t => new NodeLinkedSlot() { outputSlot = slot, inputSlot = t}));
-
+            list.AddRange(slot.LinkedSlots.Select(t => new NodeLinkedSlot() { outputSlot = slot, inputSlot = t }));
             foreach (var child in slot.children)
             {
                 GetAllLinks(list, child);
+            }
+        }
+
+        void GetAllExpandedSlots(List<VFXSlot> list, VFXSlot slot)
+        {
+            if (!slot.collapsed)
+                list.Add(slot);
+            foreach (var child in slot.children)
+            {
+                GetAllExpandedSlots(list, child);
             }
         }
 
@@ -259,6 +268,8 @@ namespace UnityEditor.VFX
 
                 newInfos.linkedSlots = new List<NodeLinkedSlot>();
                 GetAllLinks(newInfos.linkedSlots, outputSlots[0]);
+                newInfos.expandedSlots = new List<VFXSlot>();
+                GetAllExpandedSlots(newInfos.expandedSlots, outputSlots[0]);
                 m_Nodes.Add(newInfos);
             }
             else
@@ -269,6 +280,7 @@ namespace UnityEditor.VFX
                 HashSet<int> usedIds = new HashSet<int>();
                 foreach (var info in nodes)
                 {
+                    // Check linkedSlots
                     if (info.linkedSlots == null)
                     {
                         info.linkedSlots = new List<NodeLinkedSlot>();
@@ -279,6 +291,12 @@ namespace UnityEditor.VFX
                         var intersect = info.linkedSlots.Intersect(links);
                         if (intersect.Count() != info.linkedSlots.Count())
                             info.linkedSlots = info.linkedSlots.Intersect(links).ToList();
+                    }
+
+                    //Check that all slots needed for
+                    if (info.expandedSlots == null)
+                    {
+                        info.expandedSlots = new List<VFXSlot>();
                     }
 
                     if (usedIds.Contains(info.id))
@@ -298,6 +316,7 @@ namespace UnityEditor.VFX
                     var newInfos = NewNode();
                     newInfos.position = Vector2.zero;
                     newInfos.linkedSlots = links;
+                    newInfos.expandedSlots = new List<VFXSlot>();
                     m_Nodes.Add(newInfos);
                 }
             }
