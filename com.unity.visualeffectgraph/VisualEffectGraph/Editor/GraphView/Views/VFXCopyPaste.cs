@@ -663,17 +663,16 @@ namespace UnityEditor.VFX.UI
                     view.AddToSelection(slotContainerUI);
                 }
             }
-            /*
-             * //TODO select copied parameters
-            foreach (var slotContainer in allSerializedObjects.OfType<VFXParameter>())
+
+            foreach (var param in copyData.parameters)
             {
-                VFXParameterUI slotContainerUI = elements.OfType<VFXParameterUI>().FirstOrDefault(t => t.controller.model == slotContainer);
-                if (slotContainerUI != null)
+                VFXParameterUI parameterUI = elements.OfType<VFXParameterUI>().FirstOrDefault(t => t.controller.model == param.parameter && t.controller.infos == param.parameter.paramInfos[param.index + param.infoIndexOffset]);
+                if (parameterUI != null)
                 {
-                    newSlotContainerUIs.Add(slotContainerUI);
-                    view.AddToSelection(slotContainerUI);
+                    newSlotContainerUIs.Add(parameterUI);
+                    view.AddToSelection(parameterUI);
                 }
-            }*/
+            }
 
             // Simply selected all data edge with the context or slot container, they can be no other than the copied ones
             foreach (var dataEdge in elements.OfType<VFXDataEdge>())
