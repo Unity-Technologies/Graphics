@@ -25,7 +25,6 @@ half4       _ShadowOffset2;
 half4       _ShadowOffset3;
 half4       _ShadowData;    // (x: shadowStrength)
 float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
-float4      _FrustumCorners[4];
 CBUFFER_END
 
 #if UNITY_REVERSED_Z
