@@ -216,4 +216,11 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
 
+// This method should be used for rendering any full screen quad that uses an auto-scaling Render Targets (see RTHandle/HDCamera)
+// It will account for the fact that the textures it samples are not necesarry using the full space of the render texture but only a partial viewport.
+float2 GetNormalizedFullScreenTriangleTexCoord(uint vertexID)
+{
+    return GetFullScreenTriangleTexCoord(vertexID) * _ScreenToTargetScale.xy;
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

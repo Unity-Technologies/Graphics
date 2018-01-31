@@ -196,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ViewParam = Shader.PropertyToID("_ViewParam");
         public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int _ScreenToTargetScale = Shader.PropertyToID("_ScreenToTargetScale");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameIndex    = Shader.PropertyToID("_TaaFrameIndex");
@@ -254,6 +255,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
+        public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
+        public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");

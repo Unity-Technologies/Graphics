@@ -46,7 +46,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
             }

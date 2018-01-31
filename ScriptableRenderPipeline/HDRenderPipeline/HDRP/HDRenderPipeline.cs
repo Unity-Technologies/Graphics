@@ -178,6 +178,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandle                        m_DebugFullScreenTempBuffer;
         bool                            m_FullScreenDebugPushed;
 
+        public Material GetBlitMaterial() { return m_Blit; }
+
         FrameSettings m_FrameSettings; // Init every frame
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
@@ -245,7 +247,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             InitializeRenderStateBlocks();
         }
 
-        int GetPyramidSize()
+        int GetPyramidSize(HDCamera camera)
         {
             // The monoscopic pyramid texture has both the width and height
             // matching, so the pyramid size could be either dimension.
@@ -253,7 +255,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // two pyramid textures next to each other inside the double-wide
             // texture.  The whole texture width will no longer be representative
             // of the pyramid size, but the height still corresponds to the pyramid.
-            return (int)m_GaussianPyramidColorBuffer.rt.height;
+            // Additionnaly, since we may not use the full size of the texture we need to return the size corresponding to the current camera.
+            return m_GaussianPyramidColorBuffer.GetScaledSize(new Vector2Int(camera.actualWidth, camera.actualHeight)).y;
+        }
+
+        // Pyramid might not be rendered in the full render target. Code that samples it must account for this by scaling UVs with this factor.
+        float GetGaussianPyramidScale(HDCamera camera)
+        {
+            return (float)GetPyramidSize(camera) / m_GaussianPyramidColorBuffer.rt.height;
         }
 
         Vector2Int CalculatePyramidSize(Vector2Int size)
@@ -272,17 +281,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector2Int(baseMipSize.x >> mipIndex, baseMipSize.y >> mipIndex);
         }
 
-        int GetPyramidLodCount()
+        int GetPyramidLodCount(HDCamera camera)
         {
-            var pyramidSideSize = GetPyramidSize();
+            var pyramidSideSize = GetPyramidSize(camera);
             // The Gaussian pyramid compute works in blocks of 8x8 so make sure the last lod has a
             // minimum size of 8x8
             return Mathf.FloorToInt(Mathf.Log(pyramidSideSize, 2f) - 3f);
         }
 
-        void UpdatePyramidMips(RenderTextureFormat format, List<RTHandle> mipList)
+        void UpdatePyramidMips(HDCamera camera, RenderTextureFormat format, List<RTHandle> mipList)
         {
-            int lodCount = GetPyramidLodCount();
+            int lodCount = GetPyramidLodCount(camera);
             int currentLodCount = mipList.Count;
             if (lodCount > currentLodCount)
             {
@@ -441,6 +450,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_DebugColorPicker);
             CoreUtils.Destroy(m_Blit);
+            CoreUtils.Destroy(m_CopyDepth);
             CoreUtils.Destroy(m_ErrorMaterial);
 
             m_SSSBufferManager.Cleanup();
@@ -791,7 +801,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                 // In the material classification shader we will simply test is we are no lighting
                                 // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
-                                CoreUtils.DrawFullScreen(cmd, m_CopyStencilForNoLighting, m_CameraStencilBufferCopy, m_CameraDepthStencilBuffer, null, 1);
+                                HDUtils.DrawFullScreen(cmd, hdCamera, m_CopyStencilForNoLighting, m_CameraStencilBufferCopy, m_CameraDepthStencilBuffer, null, 1);
                             }
                         }
 
@@ -1013,8 +1023,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Distortion", CustomSamplerId.Distortion.GetSampler()))
             {
-                cmd.SetRenderTarget(m_DistortionBuffer, m_CameraDepthStencilBuffer);
-                cmd.ClearRenderTarget(false, true, Color.clear);
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_DistortionBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, Color.clear);
 
                 // Only transparent object can render distortion vectors
                 RenderTransparentRenderList(cullResults, hdCamera.camera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
@@ -1028,7 +1037,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, 1f / hdCamera.screenSize.x, 1f / hdCamera.screenSize.y);
+                float scale = GetGaussianPyramidScale(hdCamera);
+
+                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, scale / hdCamera.screenSize.x, scale / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
@@ -1170,7 +1181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new ProfilingSample(cmd, "DebugViewMaterialGBuffer", CustomSamplerId.DebugViewMaterialGBuffer.GetSampler()))
                     {
-                        CoreUtils.DrawFullScreen(cmd, m_currentDebugViewMaterialGBuffer, m_CameraColorBuffer);
+                        HDUtils.DrawFullScreen(cmd, hdCamera, m_currentDebugViewMaterialGBuffer, m_CameraColorBuffer);
                     }
                 }
                 else
@@ -1395,7 +1406,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdcamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                CoreUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_VelocityBuffer, m_CameraDepthStencilBuffer, null, 0);
+                HDUtils.DrawFullScreen(cmd, hdcamera, m_CameraMotionVectorsMaterial, m_VelocityBuffer, m_CameraDepthStencilBuffer, null, 0);
                 PushFullScreenDebugTexture(cmd, m_VelocityBuffer, hdcamera, FullScreenDebugMode.MotionVectors);
             }
         }
@@ -1416,31 +1427,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
             {
-                UpdatePyramidMips(m_GaussianPyramidColorBuffer.rt.format, m_GaussianPyramidColorMips);
+                UpdatePyramidMips(hdCamera, m_GaussianPyramidColorBuffer.rt.format, m_GaussianPyramidColorMips);
 
-                int pyramidSideSize = GetPyramidSize();
-                int lodCount = GetPyramidLodCount();
-                cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
+                int pyramidSideSize = GetPyramidSize(hdCamera);
+                // Since we may not be using the full size of the Gaussian pyramid RT, we need to pass the scale so that we sample correctly.
+                float scale = GetGaussianPyramidScale(hdCamera);
+                int lodCount = GetPyramidLodCount(hdCamera);
+                cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, scale));
 
-                cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, m_CameraColorBuffer);
-                CoreUtils.DrawFullScreen(cmd, m_Blit, m_GaussianPyramidColorBuffer, null, 1); // Bilinear filtering
+                HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, m_GaussianPyramidColorBuffer, 0.0f, true); // true : bilinear
 
                 var last = m_GaussianPyramidColorBuffer;
 
                 for (int i = 0; i < lodCount; i++)
                 {
+                    pyramidSideSize = pyramidSideSize / 2;
                     // TODO: Add proper stereo support to the compute job
                     RTHandle dest = m_GaussianPyramidColorMips[i];
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Source", last);
                     cmd.SetComputeTextureParam(m_GaussianPyramidCS, m_GaussianPyramidKernel, "_Result", dest);
+                    // _Size is used as a scale inside the whole render target so here we need to keep the full size (and not the scaled size depending on the current camera)
                     cmd.SetComputeVectorParam(m_GaussianPyramidCS, "_Size", new Vector4(dest.rt.width, dest.rt.height, 1f / dest.rt.width, 1f / dest.rt.height));
-                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, dest.rt.width / 8, dest.rt.height / 8, 1);
+                    // For the dispatch we want to use the scaled size so that we don't compute unncessary pixels
+                    cmd.DispatchCompute(m_GaussianPyramidCS, m_GaussianPyramidKernel, pyramidSideSize / 8, pyramidSideSize / 8, 1);
                     cmd.CopyTexture(dest, 0, 0, m_GaussianPyramidColorBuffer, 0, i + 1);
 
                     last = dest;
                 }
 
-                PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBuffer, lodCount, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+                PushPyramidDebugTextureMip(cmd, m_GaussianPyramidColorBuffer, lodCount, hdCamera, scale, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
 
                 cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_GaussianPyramidColorBuffer);
             }
@@ -1453,13 +1468,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
             {
-                UpdatePyramidMips(m_DepthPyramidBuffer.rt.format, m_DepthPyramidMips);
+                UpdatePyramidMips(hdCamera, m_DepthPyramidBuffer.rt.format, m_DepthPyramidMips);
 
-                int pyramidSideSize = GetPyramidSize();
-                int lodCount = GetPyramidLodCount();
-                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, 0));
+                int pyramidSideSize = GetPyramidSize(hdCamera);
+                int lodCount = GetPyramidLodCount(hdCamera);
+                // Since we may not be using the full size of the Gaussian pyramid RT, we need to pass the scale so that we sample correctly.
+                float scale = GetGaussianPyramidScale(hdCamera);
+                cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(pyramidSideSize, pyramidSideSize, lodCount, scale));
 
-                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), m_DepthPyramidBuffer, new Vector2(m_DepthPyramidBuffer.rt.width, m_DepthPyramidBuffer.rt.height));
+                m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, GetDepthTexture(), m_DepthPyramidBuffer, new Vector2(pyramidSideSize, pyramidSideSize), new Vector2(pyramidSideSize / hdCamera.scaleBias.x, pyramidSideSize / hdCamera.scaleBias.y));
 
                 RTHandle last = m_DepthPyramidBuffer;
                 for (int i = 0; i < lodCount; i++)
@@ -1467,14 +1484,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RTHandle dest = m_DepthPyramidMips[i];
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Source", last);
                     cmd.SetComputeTextureParam(m_DepthPyramidCS, m_DepthPyramidKernel, "_Result", dest);
-                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(last.rt.width, last.rt.height, 1f / last.rt.width, 1f / last.rt.height));
+                    cmd.SetComputeVectorParam(m_DepthPyramidCS, "_SrcSize", new Vector4(pyramidSideSize, pyramidSideSize, scale / pyramidSideSize, scale / pyramidSideSize));
 
-                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, dest.rt.width / 8, dest.rt.height / 8, 1);
+                    pyramidSideSize = pyramidSideSize / 2;
+                    cmd.DispatchCompute(m_DepthPyramidCS, m_DepthPyramidKernel, pyramidSideSize / 8, pyramidSideSize / 8, 1);
 
                     cmd.CopyTexture(dest, 0, 0, m_DepthPyramidBuffer, 0, i + 1);
                 }
 
-                PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBuffer, lodCount, hdCamera, debugMode);
+                PushPyramidDebugTextureMip(cmd, m_DepthPyramidBuffer, lodCount, hdCamera, scale, debugMode);
 
                 cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
             }
@@ -1529,7 +1547,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // allowFlip is false if we call the function after the FinalPass or cmd.Blit that flip the screen
         public void PushColorPickerDebugTexture(CommandBuffer cmd, RTHandle textureID, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
@@ -1538,12 +1555,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // TODO TEMP: Not sure I want to keep this special. Gotta see how to get rid of it (not sure it will work correctly for non-full viewports.
+        // TODO TEMP: Not sure I want to keep this special case. Gotta see how to get rid of it (not sure it will work correctly for non-full viewports.
         public void PushColorPickerDebugTexture(CommandBuffer cmd, RenderTargetIdentifier textureID, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
-                cmd.Blit(textureID, m_DebugColorPickerBuffer);
+                HDUtils.BlitCameraTexture(cmd, hdCamera, textureID, m_DebugColorPickerBuffer);
             }
         }
 
@@ -1556,25 +1573,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RTHandle texture, int lodCount, HDCamera hdCamera, FullScreenDebugMode debugMode)
+        void PushPyramidDebugTextureMip(CommandBuffer cmd, RTHandle texture, int lodCount, HDCamera hdCamera, float scale, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
 
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-                cmd.CopyTexture(texture, 0, mipIndex, m_DebugFullScreenTempBuffer, 0, 0); // TODO: Support tex arrays
+                HDUtils.BlitCameraTexture(cmd, hdCamera, texture, m_DebugFullScreenTempBuffer, new Vector4(scale, scale, 0.0f, 0.0f), mipIndex);
             }
         }
 
-        void PushFullScreenDebugDepthMip(CommandBuffer cmd, RTHandle texture, int lodCount, HDCamera hdCamera, FullScreenDebugMode debugMode)
+        void PushDepthPyramidDebugDepthMip(CommandBuffer cmd, RTHandle texture, int lodCount, HDCamera hdCamera, float scale, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
 
+                //m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
+                //cmd.CopyTexture(texture, 0, mipIndex, m_DebugFullScreenTempBuffer, 0, 0); // TODO: Support tex arrays
+
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-                cmd.CopyTexture(texture, 0, mipIndex, m_DebugFullScreenTempBuffer, 0, 0); // TODO: Support tex arrays
+                HDUtils.BlitCameraTexture(cmd, hdCamera, texture, m_DebugFullScreenTempBuffer, new Vector4(scale, scale, 0.0f, 0.0f), mipIndex);
             }
         }
 
@@ -1596,7 +1616,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
                     // (i.e. we have perform a flip, we need to flip the input texture)
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
-                    CoreUtils.DrawFullScreen(cmd, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
+                    HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget, hdCamera);
                 }
@@ -1642,7 +1662,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
                     // (i.e. we have perform a flip, we need to flip the input texture) + we need to handle the case were we debug a fullscreen pass that have already perform the flip
                     m_DebugColorPicker.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
-                    CoreUtils.DrawFullScreen(cmd, m_DebugColorPicker, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
+                    HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugColorPicker, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
                 }
             }
         }
