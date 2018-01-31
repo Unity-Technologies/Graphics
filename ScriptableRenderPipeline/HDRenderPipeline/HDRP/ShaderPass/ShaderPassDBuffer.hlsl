@@ -34,5 +34,22 @@ void Frag(  PackedVaryingsToPS packedInput,
 	float3x3 decalToWorld = (float3x3)UNITY_ACCESS_INSTANCED_PROP(matrix, normalToWorld);
     GetSurfaceData(positionDS.xz, decalToWorld, surfaceData);
 
+	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
+	if((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
+	{
+		uint mask = 0;
+#if _COLORMAP
+		mask |= DBUFFERHTILEBIT_DIFFUSE;
+#endif
+#if _NORMALMAP
+		mask |= DBUFFERHTILEBIT_NORMAL;
+#endif
+#if _MASKMAP
+		mask |= DBUFFERHTILEBIT_MASK;
+#endif
+		uint oldVal = UnpackByte(_DecalHTile[posInput.positionSS.xy / 8]);
+		oldVal |= mask;
+		_DecalHTile[posInput.positionSS.xy / 8] = PackByte(oldVal);
+	}
 	ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }
