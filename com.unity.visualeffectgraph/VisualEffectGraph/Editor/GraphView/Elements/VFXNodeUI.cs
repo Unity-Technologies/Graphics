@@ -144,19 +144,41 @@ namespace UnityEditor.VFX.UI
         {
             var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
 
-            var deletedControllers = existingAnchors.Keys.Except(ports);
+            var deletedControllers = existingAnchors.Keys.Except(ports).ToArray();
 
             foreach (var deletedController in deletedControllers)
             {
                 container.Remove(existingAnchors[deletedController]);
+                existingAnchors.Remove(deletedController);
             }
 
-            foreach (var newController in ports.Except(existingAnchors.Keys))
+            var order = ports.Select((t, i) => new KeyValuePair<VFXDataAnchorController, int>(t, i)).ToDictionary(t => t.Key, t => t.Value);
+
+            var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
+
+            foreach (var newController in newAnchors)
             {
                 var newElement = InstantiateDataAnchor(newController, this);
                 (newElement as VFXDataAnchor).controller = newController;
 
                 container.Add(newElement);
+                existingAnchors[newController] = newElement;
+            }
+
+            //Reorder anchors.
+            if (ports.Count > 0)
+            {
+                var correctOrder = new VFXDataAnchor[ports.Count];
+                foreach (var kv in existingAnchors)
+                {
+                    correctOrder[order[kv.Key]] = kv.Value;
+                }
+
+                correctOrder[0].SendToBack();
+                for (int i = 1; i < correctOrder.Length; ++i)
+                {
+                    correctOrder[i].PlaceInFront(correctOrder[i - 1]);
+                }
             }
         }
 
@@ -188,6 +210,7 @@ namespace UnityEditor.VFX.UI
             SyncSettings();
             SyncAnchors();
             RefreshExpandedState();
+            RefreshLayout();
         }
 
         public override bool expanded
@@ -294,6 +317,10 @@ namespace UnityEditor.VFX.UI
             {
                 Debug.LogErrorFormat("Cannot create controller for {0}", setting.name);
             }
+        }
+
+        public virtual void RefreshLayout()
+        {
         }
     }
 }

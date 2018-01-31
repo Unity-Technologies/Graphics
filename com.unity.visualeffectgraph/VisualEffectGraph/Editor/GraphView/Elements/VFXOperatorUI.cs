@@ -7,16 +7,50 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Experimental.VFX;
+using UnityEditor.VFX.UIElements;
+
+using VFXEditableOperator = UnityEditor.VFX.VFXOperatorMultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXOperatorUI : VFXStandaloneSlotContainerUI
     {
+        VisualElement m_EditButton;
+
         public VFXOperatorUI()
         {
             m_Middle = new VisualElement();
             m_Middle.name = "middle";
             inputContainer.parent.Insert(1, m_Middle);
+
+            m_EditButton = new VisualElement() {name = "edit"};
+            m_EditButton.Add(new VisualElement() { name = "icon" });
+            m_EditButton.AddManipulator(new Clickable(OnEdit));
+        }
+
+        VisualElement m_EditContainer;
+
+        void OnEdit()
+        {
+            if (m_EditContainer != null)
+            {
+                if (m_EditContainer.parent != null)
+                {
+                    m_EditContainer.RemoveFromHierarchy();
+                }
+                else
+                {
+                    topContainer.Add(m_EditContainer);
+                }
+                ForceRefreshLayout();
+            }
+        }
+
+        public void ForceRefreshLayout()
+        {
+            (panel as BaseVisualElementPanel).ValidateLayout();
+            RefreshLayout();
         }
 
         VisualElement m_Middle;
@@ -56,6 +90,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override void RefreshLayout()
+        {
+            if (!isEditable || m_EditContainer == null || m_EditContainer.parent == null)
+            {
+                bool changed = topContainer.style.height.value != 0;
+                if (changed)
+                {
+                    topContainer.ResetPositionProperties();
+                }
+                base.RefreshLayout();
+            }
+            else
+            {
+                topContainer.style.height = m_EditContainer.layout.height;
+                topContainer.Dirty(ChangeType.Layout);
+            }
+        }
+
+        public bool isEditable
+        {
+            get
+            {
+                return controller != null && controller.model is VFXEditableOperator;
+            }
+        }
+
         protected override void SelfChange()
         {
             base.SelfChange();
@@ -71,6 +131,31 @@ namespace UnityEditor.VFX.UI
             else if (m_Middle.parent != null)
             {
                 m_Middle.RemoveFromHierarchy();
+            }
+
+            if (isEditable)
+            {
+                if (m_EditButton.parent == null)
+                {
+                    titleContainer.Insert(1, m_EditButton);
+                }
+                if (m_EditContainer == null)
+                {
+                    m_EditContainer = new VFXMultiOperatorEdit();
+                }
+                (m_EditContainer as IControlledElement<VFXOperatorController>).controller = controller;
+            }
+            else
+            {
+                if (m_EditContainer != null && m_EditContainer.parent != null)
+                {
+                    m_EditContainer.RemoveFromHierarchy();
+                }
+                m_EditContainer = null;
+                if (m_EditButton.parent != null)
+                {
+                    m_EditButton.RemoveFromHierarchy();
+                }
             }
         }
     }
