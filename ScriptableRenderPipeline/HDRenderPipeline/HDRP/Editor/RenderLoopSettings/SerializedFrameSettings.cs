@@ -2,7 +2,7 @@
 
 namespace UnityEditor.Experimental.Rendering
 {
-    class SerializedFrameSettings
+    public class SerializedFrameSettings
     {
         public SerializedProperty root;
 

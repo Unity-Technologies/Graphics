@@ -208,7 +208,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var S = obj.shapeParam;
             var T = (Vector4)profile.transmissionTint.colorValue;
             var R = profile.thicknessRemap.vector2Value;
-            bool transmissionEnabled = profile.transmissionMode.intValue != (int)DiffusionProfile.TransmissionMode.None;
 
             m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius, r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
@@ -249,7 +248,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // <<< Old SSS Model
 
             m_TransmittanceMaterial.SetVector(HDShaderIDs._ShapeParam, S);
-            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, transmissionEnabled ? T : Vector4.zero);
+            m_TransmittanceMaterial.SetVector(HDShaderIDs._TransmissionTint, T);
             m_TransmittanceMaterial.SetVector(HDShaderIDs._ThicknessRemap, R);
 
             // Draw the transmittance graph.

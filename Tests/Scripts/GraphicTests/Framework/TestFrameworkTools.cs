@@ -24,8 +24,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Dictionary<string, string> renderPipelineAssets = new Dictionary<string, string>()
         {
-            { "HDRP", "Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
-            { "LWRP", "Tests/GraphicsTests/RenderPipeline/LightweightPipeline/LightweightPipelineAsset.asset" }
+            { "HDRP", "HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
+            { "LWRP", "LightweightPipeline/LightweightPipelineAsset.asset" }
         };
 
         // Renderpipeline assets used for the tests
@@ -309,6 +309,52 @@ namespace UnityEngine.Experimental.Rendering
 
             return true;
         }
+
+        public static Texture2D GetTemplateImage(string _templatePath)
+        {
+            string templatePath = Path.Combine(s_RootPath, "ImageTemplates");
+            templatePath = Path.Combine(templatePath, string.Format("{0}.{1}", _templatePath, "png"));
+
+            if (File.Exists(templatePath))
+            {
+                byte[] template = File.ReadAllBytes(templatePath);
+                Texture2D o = new Texture2D(4, 4);
+                return o.LoadImage(template, false) ? o : null;
+            }
+            else
+                return null;
+        }
+
+        public static Texture2D GetTemplateImage(TestInfo _testInfo)
+        {
+            return GetTemplateImage(_testInfo.templatePath);
+        }
+
+#if UNITY_EDITOR
+        public static Texture2D GetTemplateImage(UnityEngine.Object _sceneAsset, ref string path)
+        {
+            string _scenePath = AssetDatabase.GetAssetPath(_sceneAsset);
+
+            var p = new FileInfo(_scenePath);
+
+            var split = s_Path.Aggregate("", Path.Combine);
+            split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
+            var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
+
+            path = splitPaths.Last();
+
+            TestInfo testInfo = new TestInfo
+            {
+                name = p.Name,
+                relativePath = p.ToString(),
+                templatePath = splitPaths.Last(),
+                threshold = 0.02f,
+                frameWait = 100,
+            };
+
+            return GetTemplateImage(testInfo);
+        }
+#endif
 
         public static class AssertFix
         {

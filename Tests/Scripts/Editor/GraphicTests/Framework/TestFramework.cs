@@ -20,13 +20,16 @@ namespace UnityEditor.Experimental.Rendering
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            BackupSceneManagerSetup();
             SetupRenderPipeAsset();
         }
 
         [OneTimeTearDown]
         public void OnTimeTearDown()
         {
+            Debug.Log("OnTimeTearDown");
             RestoreRenderPipeAsset();
+            RestoreSceneManagerSetup();
         }
 
         public static RenderPipelineAsset GetRenderPipelineAsset(string _SRP_ID)
@@ -34,6 +37,16 @@ namespace UnityEditor.Experimental.Rendering
             string absolutePath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
 
             string filePath = Path.Combine(absolutePath, TestFrameworkTools.renderPipelineAssets[_SRP_ID] );
+
+            filePath = filePath.Replace(Application.dataPath, "");
+
+            filePath = filePath.Remove(0, 1);
+
+            //Debug.Log("Before combine: " + filePath);
+
+            filePath = Path.Combine("Assets", filePath);
+
+            //Debug.Log("RP Asset is at : " + filePath);
 
             return (RenderPipelineAsset)AssetDatabase.LoadAssetAtPath(filePath, typeof(RenderPipelineAsset));
         }
@@ -43,19 +56,43 @@ namespace UnityEditor.Experimental.Rendering
 
         public void SetupRenderPipeAsset()
         {
-            Debug.Log("Set " + _SRP_ID + " render pipeline.");
+            //Debug.Log("Set " + _SRP_ID + " render pipeline. Previous was "+ ( (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset == null)? "null":UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.name) );
 
             beforeTestsRenderPipeAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset;
             wantedTestsRenderPipeAsset = GetRenderPipelineAsset(_SRP_ID);
 
             if (wantedTestsRenderPipeAsset != beforeTestsRenderPipeAsset)
+
                 UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = wantedTestsRenderPipeAsset;
         }
 
         public void RestoreRenderPipeAsset()
         {
+            //Debug.Log("RestoreRenderPipeAsset from " + wantedTestsRenderPipeAsset.name + " to " + ((beforeTestsRenderPipeAsset == null)?"null":beforeTestsRenderPipeAsset.name));
             if (wantedTestsRenderPipeAsset != beforeTestsRenderPipeAsset)
+            {
+                //Debug.Log("RestoreRenderPipeAsset -> Actual restore");
                 UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = beforeTestsRenderPipeAsset;
+            }
+        }
+
+        public static SceneSetup[] sceneManagerSetupBeforeTest;
+
+        public void BackupSceneManagerSetup()
+        {
+            sceneManagerSetupBeforeTest = EditorSceneManager.GetSceneManagerSetup();
+        }
+
+        public void RestoreSceneManagerSetup()
+        {
+            if ( (sceneManagerSetupBeforeTest == null) || ( sceneManagerSetupBeforeTest.Length == 0 ) )
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+            }
+            else
+            {
+                EditorSceneManager.RestoreSceneManagerSetup(sceneManagerSetupBeforeTest);
+            }
         }
 
 
@@ -84,6 +121,24 @@ namespace UnityEditor.Experimental.Rendering
                 yield return null;
             }
 
+            // Force rendering of all realtime reflection probes
+            ReflectionProbe[] probes = GameObject.FindObjectsOfType<ReflectionProbe>();
+            int[] renderIDs = new int[probes.Length];
+            for (int i=0; i<probes.Length; ++i)
+            {
+                if (probes[i].mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
+                    renderIDs[i] = probes[i].RenderProbe();
+                else
+                    renderIDs[i] = -1;
+            }
+            for (int i=0; i<probes.Length; ++i)
+            {
+                if (renderIDs[i] != -1)
+                {
+                    while (!probes[i].IsFinishedRendering(renderIDs[i])) yield return null;
+                }
+            }
+
             testSetup.thingToDoBeforeTest.Invoke();
 
             // Render the camera
@@ -106,7 +161,7 @@ namespace UnityEditor.Experimental.Rendering
 				var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
 				var generated = captured.EncodeToPNG();
                 File.WriteAllBytes(misMatchLocationResult, generated);
-                File.Copy(dumpFileLocation, misMatchLocationTemplate);
+                File.Copy(dumpFileLocation, misMatchLocationTemplate, true);
             }
 
 			Assert.IsTrue(areEqual, "Scene from {0}, did not match .template file.", testInfo.relativePath);
