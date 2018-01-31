@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.SceneManagement;
 using UnityEngine.Events;
 
 namespace UnityEngine.Experimental.Rendering
@@ -230,6 +231,17 @@ namespace UnityEngine.Experimental.Rendering
 
                         GUILayout.FlexibleSpace();
 
+                        bool b = GUI.enabled;
+                        GUI.enabled = true;
+                        if (GUILayout.Button("Open Scene"))
+                        {
+                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(sceneAsset), OpenSceneMode.Single);
+                        }
+
+                        GUI.enabled = b;
+
+                        GUILayout.FlexibleSpace();
+
                         GUILayout.Label("Diff. type: ");
                         diffStyle = EditorGUILayout.IntPopup(diffStyle, diffStylesList, diffStylesValues,
                             GUILayout.Width(200f));
@@ -261,6 +273,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth,
                     position.height - topBarHeight * 3);
+                GUI.enabled = true;
                 EditorGUI.DrawPreviewTexture(textureRect, templateImage, diffMaterial, ScaleMode.ScaleToFit, 0, 0);
             }
         }
