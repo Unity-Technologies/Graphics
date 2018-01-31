@@ -301,7 +301,43 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                parameter.SetSettingValue("m_exposedName", value);
+                HashSet<string> allNames = new HashSet<string>(m_ViewController.parametersController.Where(t => t != this).Select(t => t.exposedName));
+
+                string candidateName = value.Trim();
+                if (candidateName.Length < 1)
+                {
+                    return;
+                }
+                string candidateMainPart = null;
+                int cpt = 0;
+                while (allNames.Contains(candidateName))
+                {
+                    if (candidateMainPart == null)
+                    {
+                        int spaceIndex = candidateName.LastIndexOf(' ');
+                        if (spaceIndex == -1)
+                        {
+                            candidateMainPart = candidateName;
+                        }
+                        else
+                        {
+                            if (int.TryParse(candidateName.Substring(spaceIndex + 1), out cpt)) // spaceIndex can't be last char because of Trim()
+                            {
+                                candidateMainPart = candidateName.Substring(0, spaceIndex);
+                            }
+                            else
+                            {
+                                candidateMainPart = candidateName;
+                            }
+                        }
+                    }
+                    ++cpt;
+
+                    candidateName = string.Format("{0} {1}", candidateMainPart, cpt);
+                }
+
+
+                parameter.SetSettingValue("m_exposedName", candidateName);
             }
         }
         public bool exposed

@@ -571,7 +571,9 @@ namespace UnityEditor.VFX.UI
 
         public void NotifyParameterControllerChange()
         {
-            NotifyChange(AnyThing);
+            DataEdgesMightHaveChanged();
+            if (!m_Syncing)
+                NotifyChange(AnyThing);
         }
 
         public void RegisterFlowAnchorController(VFXFlowAnchorController controller)
@@ -961,6 +963,12 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
+            // make sure every parameter instance is created before we look for edges
+            foreach (var parameter in m_ParametersControllers.Values)
+            {
+                parameter.UpdateControllers();
+            }
+
             changed |= RecreateNodeEdges();
             changed |= RecreateFlowEdges();
 
@@ -1025,8 +1033,6 @@ namespace UnityEditor.VFX.UI
                 var newController = m_ParametersControllers[parameter] = new VFXParametersController(parameter, this);
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
-
-                newController.UpdateControllers();
             }
 
             if (newControllers.Count > 0)
@@ -1078,6 +1084,13 @@ namespace UnityEditor.VFX.UI
             m_SyncedModels.TryGetValue(model, out controller);
 
             return controller.First(t => t.id == id);
+        }
+
+        public VFXParametersController GetParametersController(VFXParameter parameter)
+        {
+            VFXParametersController controller = null;
+            m_ParametersControllers.TryGetValue(parameter, out controller);
+            return controller;
         }
 
         private VFXGraph m_Graph;

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         private string m_exposedName;
         [VFXSetting, SerializeField]
         private bool m_exposed;
