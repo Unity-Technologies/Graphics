@@ -231,35 +231,22 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        public VFXModel AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
-            Vector2 tPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
-            if (d.modelDescriptor is VFXModelDescriptor<VFXOperator>)
-            {
-                return AddVFXOperator(tPos, (d.modelDescriptor as VFXModelDescriptor<VFXOperator>));
-            }
-            else if (d.modelDescriptor is VFXModelDescriptor<VFXContext>)
-            {
-                return AddVFXContext(tPos, d.modelDescriptor as VFXModelDescriptor<VFXContext>);
-            }
-            else if (d.modelDescriptor is VFXModelDescriptorParameters)
-            {
-                return AddVFXParameter(tPos, d.modelDescriptor as VFXModelDescriptorParameters);
-            }
-            else if (d.modelDescriptor is string)
+            mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
+
+            if (d.modelDescriptor is string)
             {
                 string path = d.modelDescriptor as string;
 
-                CreateTemplateSystem(path, tPos);
+                CreateTemplateSystem(path, mPos);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
-                controller.AddGroupNode(tPos);
+                controller.AddGroupNode(mPos);
             }
             else
-            {
-                Debug.LogErrorFormat("Add unknown controller : {0}", d.modelDescriptor.GetType());
-            }
+                return controller.AddNode(mPos, d.modelDescriptor);
             return null;
         }
 

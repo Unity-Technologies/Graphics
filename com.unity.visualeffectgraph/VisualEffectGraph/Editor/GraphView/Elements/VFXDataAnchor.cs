@@ -336,32 +336,33 @@ namespace UnityEditor.VFX.UI
 
             VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
 
-            IVFXSlotContainer  result = view.AddNode(d, mPos) as IVFXSlotContainer;
+            VFXViewController viewController = controller.sourceNode.viewController;
+            VFXNodeController newNode = viewController.AddNode(tPos, desc);
 
-            if (result == null)
+            if (newNode == null)
                 return;
 
+            var ports = direction == Direction.Input ? newNode.outputPorts : newNode.inputPorts;
 
-            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)result.GetOutputSlot : (System.Func<int, VFXSlot>)result.GetInputSlot;
-
-            int count = direction == Direction.Input ? result.GetNbOutputSlots() : result.GetNbInputSlots();
+            int count = ports.Count();
 
             for (int i = 0; i < count; ++i)
             {
-                VFXSlot slot = getSlots(i);
+                var port = ports[i];
 
-                if (slot.CanLink(mySlot))
+                if (port.model.CanLink(mySlot))
                 {
-                    slot.Link(mySlot);
-                    break;
+                    if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
+                    {
+                        break;
+                    }
                 }
             }
 
             // If linking to a new parameter, copy the slot value
-
-            if (direction == Direction.Input && result is VFXParameter)
+            if (direction == Direction.Input && newNode is VFXParameterController)
             {
-                VFXParameter parameter = result as VFXParameter;
+                VFXParameter parameter = (newNode as VFXParameterController).parentController.model;
 
                 CopyValueToParameter(parameter);
             }

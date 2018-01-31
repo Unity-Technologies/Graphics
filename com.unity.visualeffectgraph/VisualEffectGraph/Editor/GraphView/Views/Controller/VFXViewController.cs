@@ -306,28 +306,30 @@ namespace UnityEditor.VFX.UI
             get { return m_FlowEdges.AsReadOnly(); }
         }
 
+        public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
+        {
+            var slotInput = input != null ? input.model : null;
+            var slotOutput = output != null ? output.model : null;
+            if (slotInput.Link(slotOutput))
+            {
+                VFXParameterController fromController = output.sourceNode as VFXParameterController;
+
+                if (fromController != null)
+                {
+                    fromController.infos.linkedSlots.Add(new VFXParameter.ParamLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput });
+                }
+                DataEdgesMightHaveChanged();
+                return true;
+            }
+            return false;
+        }
+
         public void AddElement(VFXDataEdgeController edge)
         {
             var fromAnchor = edge.output;
             var toAnchor = edge.input;
 
-            //Update connection
-            var slotInput = toAnchor != null ? toAnchor.model : null;
-            var slotOutput = fromAnchor != null ? fromAnchor.model : null;
-            if (slotInput && slotOutput)
-            {
-                //Save concerned object
-                if (slotInput.Link(slotOutput))
-                {
-                    VFXParameterController fromController = fromAnchor.sourceNode as VFXParameterController;
-
-                    if (fromController != null)
-                    {
-                        fromController.infos.linkedSlots.Add(new VFXParameter.ParamLinkedSlot() { inputSlot = slotInput , outputSlot = slotOutput});
-                    }
-                    DataEdgesMightHaveChanged();
-                }
-            }
+            CreateLink(toAnchor, fromAnchor);
             edge.OnDisable();
         }
 
@@ -749,15 +751,52 @@ namespace UnityEditor.VFX.UI
 
             if (!type.IsPrimitive)
             {
-                FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
-
-                if (defaultField != null)
+                if (type == typeof(Matrix4x4))
                 {
-                    parameter.value = defaultField.GetValue(null);
+                    parameter.value = Matrix4x4.identity;
+                }
+                else
+                {
+                    FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
+
+                    if (defaultField != null)
+                    {
+                        parameter.value = defaultField.GetValue(null);
+                    }
                 }
             }
 
             return model;
+        }
+
+        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor)
+        {
+            VFXModel newNode = null;
+            if (modelDescriptor is VFXModelDescriptor<VFXOperator>)
+            {
+                newNode = AddVFXOperator(tPos, (modelDescriptor as VFXModelDescriptor<VFXOperator>));
+            }
+            else if (modelDescriptor is VFXModelDescriptor<VFXContext>)
+            {
+                newNode = AddVFXContext(tPos, modelDescriptor as VFXModelDescriptor<VFXContext>);
+            }
+            else if (modelDescriptor is VFXModelDescriptorParameters)
+            {
+                newNode = AddVFXParameter(tPos, modelDescriptor as VFXModelDescriptorParameters);
+            }
+            if (newNode != null)
+            {
+                SyncControllerFromModel();
+
+                List<VFXNodeController> nodeControllers = null;
+                m_SyncedModels.TryGetValue(newNode, out nodeControllers);
+
+                NotifyChange(AnyThing);
+
+                return nodeControllers[0];
+            }
+
+            return null;
         }
 
         public void AddVFXParameter(Vector2 pos, VFXParametersController parametersController)
