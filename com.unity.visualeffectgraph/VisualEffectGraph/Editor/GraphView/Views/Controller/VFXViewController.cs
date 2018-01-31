@@ -316,7 +316,7 @@ namespace UnityEditor.VFX.UI
 
                 if (fromController != null)
                 {
-                    fromController.infos.linkedSlots.Add(new VFXParameter.ParamLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput });
+                    fromController.infos.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput });
                 }
                 DataEdgesMightHaveChanged();
                 return true;
@@ -392,7 +392,7 @@ namespace UnityEditor.VFX.UI
             {
                 var parameter = element as VFXParameterNodeController;
 
-                parameter.parentController.model.RemoveParamInfo(parameter.infos);
+                parameter.parentController.model.RemoveNode(parameter.infos);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXSlotContainerController || element is VFXParametersController)
@@ -810,7 +810,7 @@ namespace UnityEditor.VFX.UI
 
         public void AddVFXParameter(Vector2 pos, VFXParametersController parametersController)
         {
-            parametersController.model.AddParamsInfo(pos);
+            parametersController.model.AddNode(pos);
         }
 
         public void Clear()
@@ -1035,7 +1035,7 @@ namespace UnityEditor.VFX.UI
             else if (model is VFXParameter)
             {
                 VFXParameter parameter = model as VFXParameter;
-                parameter.ValidateParamInfos();
+                parameter.ValidateNodes();
 
                 var newController = m_ParametersControllers[parameter] = new VFXParametersController(parameter, this);
 

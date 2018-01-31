@@ -28,16 +28,16 @@ namespace UnityEditor.VFX
         public VFXSerializableObject m_Max;
 
         [System.Serializable]
-        public struct ParamLinkedSlot
+        public struct NodeLinkedSlot
         {
             public VFXSlot outputSlot; // some slot from the parameter
             public VFXSlot inputSlot;
         }
 
         [System.Serializable]
-        public class ParamInfo
+        public class Node
         {
-            public ParamInfo(int id)
+            public Node(int id)
             {
                 m_Id = id;
             }
@@ -47,11 +47,11 @@ namespace UnityEditor.VFX
 
             public int id { get { return m_Id; } }
 
-            public List<ParamLinkedSlot> linkedSlots;
+            public List<NodeLinkedSlot> linkedSlots;
             public Vector2 position;
 
 
-            //Should only be called by ValidateParamInfos if something very wrong happened with serialization
+            //Should only be called by ValidateNodes if something very wrong happened with serialization
             internal void ChangeId(int newId)
             {
                 m_Id = newId;
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
         }
 
         [SerializeField]
-        protected List<ParamInfo> m_ParamInfos;
+        protected List<Node> m_Nodes;
 
         [NonSerialized]
         int m_IDCounter = 0;
@@ -107,15 +107,15 @@ namespace UnityEditor.VFX
         }
 
 
-        public ReadOnlyCollection<ParamInfo> paramInfos
+        public ReadOnlyCollection<Node> nodes
         {
             get
             {
-                if (m_ParamInfos == null)
+                if (m_Nodes == null)
                 {
-                    m_ParamInfos = new List<ParamInfo>();
+                    m_Nodes = new List<Node>();
                 }
-                return m_ParamInfos.AsReadOnly();
+                return m_Nodes.AsReadOnly();
             }
         }
 
@@ -172,74 +172,74 @@ namespace UnityEditor.VFX
                 m_ValueExpr = new VFXValue[0];
             }
 
-            if (m_ParamInfos != null)
+            if (m_Nodes != null)
             {
-                foreach (var param in paramInfos)
+                foreach (var node in nodes)
                 {
-                    if (m_IDCounter < param.id + 1)
+                    if (m_IDCounter < node.id + 1)
                     {
-                        m_IDCounter = param.id + 1;
+                        m_IDCounter = node.id + 1;
                     }
                 }
             }
         }
 
-        ParamInfo CreateParamInfo()
+        Node NewNode()
         {
-            return new ParamInfo(m_IDCounter++);
+            return new Node(m_IDCounter++);
         }
 
-        public void AddParamsInfo(Vector2 pos)
+        public void AddNode(Vector2 pos)
         {
-            ParamInfo info = CreateParamInfo();
+            Node info = NewNode();
 
             info.position = pos;
 
-            m_ParamInfos.Add(info);
+            m_Nodes.Add(info);
 
             Invalidate(InvalidationCause.kUIChanged);
         }
 
-        public void RemoveParamInfo(ParamInfo info)
+        public void RemoveNode(Node info)
         {
-            if (m_ParamInfos.Contains(info))
+            if (m_Nodes.Contains(info))
             {
                 foreach (var slots in info.linkedSlots)
                 {
                     slots.outputSlot.Unlink(slots.inputSlot);
                 }
-                m_ParamInfos.Remove(info);
+                m_Nodes.Remove(info);
 
                 Invalidate(InvalidationCause.kUIChanged);
             }
         }
 
-        public void ConcatInfos(IEnumerable<ParamInfo> infos)
+        public void AddNodeRange(IEnumerable<Node> infos)
         {
             foreach (var info in infos)
             {
-                if (m_ParamInfos.Any(t => t.id == info.id))
+                if (m_Nodes.Any(t => t.id == info.id))
                 {
                     info.ChangeId(m_IDCounter++);
                 }
-                m_ParamInfos.Add(info);
+                m_Nodes.Add(info);
             }
 
             Invalidate(InvalidationCause.kUIChanged);
         }
 
-        public void SetParamInfos(IEnumerable<ParamInfo> infos)
+        public void SetNodes(IEnumerable<Node> infos)
         {
-            m_ParamInfos = infos.ToList();
+            m_Nodes = infos.ToList();
 
-            ValidateParamInfos();
+            ValidateNodes();
 
             Invalidate(InvalidationCause.kUIChanged);
         }
 
-        void GetAllLinks(List<ParamLinkedSlot> list, VFXSlot slot)
+        void GetAllLinks(List<NodeLinkedSlot> list, VFXSlot slot)
         {
-            list.AddRange(slot.LinkedSlots.Select(t => new ParamLinkedSlot() { outputSlot = slot, inputSlot = t}));
+            list.AddRange(slot.LinkedSlots.Select(t => new NodeLinkedSlot() { outputSlot = slot, inputSlot = t}));
 
             foreach (var child in slot.children)
             {
@@ -247,30 +247,30 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void ValidateParamInfos()
+        public void ValidateNodes()
         {
             // Case of the old VFXParameter we create a new one on the same place with all the Links
-            if (position != Vector2.zero && paramInfos.Count == 0)
+            if (position != Vector2.zero && nodes.Count == 0)
             {
-                var newInfos = CreateParamInfo();
+                var newInfos = NewNode();
                 newInfos.position = position;
 
 
-                newInfos.linkedSlots = new List<ParamLinkedSlot>();
+                newInfos.linkedSlots = new List<NodeLinkedSlot>();
                 GetAllLinks(newInfos.linkedSlots, outputSlots[0]);
-                m_ParamInfos.Add(newInfos);
+                m_Nodes.Add(newInfos);
             }
             else
             {
-                // the linked slot of the outSlot decides so make sure that all appear once and only once in all the paramInfos
-                List<ParamLinkedSlot> links = new List<ParamLinkedSlot>();
+                // the linked slot of the outSlot decides so make sure that all appear once and only once in all the nodes
+                List<NodeLinkedSlot> links = new List<NodeLinkedSlot>();
                 GetAllLinks(links, outputSlots[0]);
                 HashSet<int> usedIds = new HashSet<int>();
-                foreach (var info in paramInfos)
+                foreach (var info in nodes)
                 {
                     if (info.linkedSlots == null)
                     {
-                        info.linkedSlots = new List<ParamLinkedSlot>();
+                        info.linkedSlots = new List<NodeLinkedSlot>();
                     }
                     else
                     {
@@ -294,10 +294,10 @@ namespace UnityEditor.VFX
                 // if there are some links in the output slots that are in none of the infos, create a default param with them
                 if (links.Count > 0)
                 {
-                    var newInfos = CreateParamInfo();
+                    var newInfos = NewNode();
                     newInfos.position = Vector2.zero;
                     newInfos.linkedSlots = links;
-                    m_ParamInfos.Add(newInfos);
+                    m_Nodes.Add(newInfos);
                 }
             }
             position = Vector2.zero; // Set that as a marker that the parameter has been touched by the new code.

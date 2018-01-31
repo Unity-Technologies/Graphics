@@ -469,7 +469,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            model.ValidateParamInfos();
+            model.ValidateNodes();
             bool controllerListChanged = UpdateControllers();
             if (controllerListChanged)
                 m_ViewController.NotifyParameterControllerChange();
@@ -479,7 +479,7 @@ namespace UnityEditor.VFX.UI
         public bool UpdateControllers()
         {
             bool changed = false;
-            var paramInfos = model.paramInfos.ToDictionary(t => t.id, t => t);
+            var paramInfos = model.nodes.ToDictionary(t => t.id, t => t);
 
             foreach (var removedController in m_Controllers.Where(t => !paramInfos.ContainsKey(t.Key)).ToArray())
             {

@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
             public bool outputParameter;
             public int inputBlockIndex;
             public int outputParameterIndex;
-            public int outputParameterInfoIndex;
+            public int outputParameterNodeIndex;
             public DataAnchor input;
             public DataAnchor output;
         }
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
             public VFXParameter parameter;
             public int index;
             public int infoIndexOffset;
-            public VFXParameter.ParamInfo[] infos;
+            public VFXParameter.Node[] infos;
         }
 
         [System.Serializable]
@@ -197,7 +197,7 @@ namespace UnityEditor.VFX.UI
                 {
                     copyPasteEdge.outputParameter = true;
                     copyPasteEdge.outputParameterIndex = System.Array.FindIndex(copyData.parameters, t => t.parameter == outputController.model.owner);
-                    copyPasteEdge.outputParameterInfoIndex = System.Array.IndexOf(copyData.parameters[copyPasteEdge.outputParameterIndex].infos, (outputController.sourceNode as VFXParameterNodeController).infos);
+                    copyPasteEdge.outputParameterNodeIndex = System.Array.IndexOf(copyData.parameters[copyPasteEdge.outputParameterIndex].infos, (outputController.sourceNode as VFXParameterNodeController).infos);
                 }
                 else
                 {
@@ -541,19 +541,19 @@ namespace UnityEditor.VFX.UI
                         // The original parameter is from the current graph, add the paramInfos to the original
                         copyData.parameters[paramIndex].parameter = existingParameter;
 
-                        copyData.parameters[paramIndex].infoIndexOffset = existingParameter.paramInfos.Count;
+                        copyData.parameters[paramIndex].infoIndexOffset = existingParameter.nodes.Count;
 
                         foreach (var info in copyData.parameters[paramIndex].infos)
                         {
                             info.position += pasteOffset;
                         }
-                        existingParameter.ConcatInfos(copyData.parameters[paramIndex].infos);
+                        existingParameter.AddNodeRange(copyData.parameters[paramIndex].infos);
                     }
                     else
                     {
                         // The original parameter is from another graph : create the parameter in the other graph, but replace the infos with only the ones copied.
                         copyData.parameters[paramIndex].parameter = obj as VFXParameter;
-                        copyData.parameters[paramIndex].parameter.SetParamInfos(copyData.parameters[paramIndex].infos);
+                        copyData.parameters[paramIndex].parameter.SetNodes(copyData.parameters[paramIndex].infos);
 
                         graph.AddChild(obj as VFXModel);
                     }
@@ -589,7 +589,7 @@ namespace UnityEditor.VFX.UI
                         var parameter = copyData.parameters[dataEdge.outputParameterIndex];
                         outputContainer = parameter.parameter;
 
-                        var paramInfo = parameter.parameter.paramInfos[dataEdge.outputParameterInfoIndex + parameter.infoIndexOffset];
+                        var paramInfo = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
                     }
                     else
                     {
@@ -603,8 +603,8 @@ namespace UnityEditor.VFX.UI
                         if (inputSlot.Link(outputSlot) && dataEdge.outputParameter)
                         {
                             var parameter = copyData.parameters[dataEdge.outputParameterIndex];
-                            var paramInfo = parameter.parameter.paramInfos[dataEdge.outputParameterInfoIndex + parameter.infoIndexOffset];
-                            paramInfo.linkedSlots.Add(new VFXParameter.ParamLinkedSlot() { inputSlot  = inputSlot, outputSlot = outputSlot});
+                            var paramInfo = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
+                            paramInfo.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot  = inputSlot, outputSlot = outputSlot});
                         }
                     }
                 }
@@ -666,7 +666,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var param in copyData.parameters)
             {
-                VFXParameterUI parameterUI = elements.OfType<VFXParameterUI>().FirstOrDefault(t => t.controller.model == param.parameter && t.controller.infos == param.parameter.paramInfos[param.index + param.infoIndexOffset]);
+                VFXParameterUI parameterUI = elements.OfType<VFXParameterUI>().FirstOrDefault(t => t.controller.model == param.parameter && t.controller.infos == param.parameter.nodes[param.index + param.infoIndexOffset]);
                 if (parameterUI != null)
                 {
                     newSlotContainerUIs.Add(parameterUI);

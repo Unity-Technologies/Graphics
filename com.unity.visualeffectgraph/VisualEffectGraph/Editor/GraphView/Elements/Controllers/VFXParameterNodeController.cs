@@ -42,11 +42,11 @@ namespace UnityEditor.VFX.UI
     {
         VFXParametersController m_ParentController;
 
-        VFXParameter.ParamInfo m_Infos;
+        VFXParameter.Node m_Infos;
 
         IDataWatchHandle m_SlotHandle;
 
-        public VFXParameterNodeController(VFXParametersController controller, VFXParameter.ParamInfo infos, VFXViewController viewController) : base(controller.model, viewController)
+        public VFXParameterNodeController(VFXParametersController controller, VFXParameter.Node infos, VFXViewController viewController) : base(controller.model, viewController)
         {
             m_ParentController = controller;
             m_Infos = infos;
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        public VFXParameter.ParamInfo infos
+        public VFXParameter.Node infos
         {
             get { return m_Infos; }
         }
