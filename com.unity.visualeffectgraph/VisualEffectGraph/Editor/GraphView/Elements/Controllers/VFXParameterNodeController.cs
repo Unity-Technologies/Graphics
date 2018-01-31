@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXParameterOutputDataAnchorController : VFXDataAnchorController
     {
-        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXParameterNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
 
@@ -34,6 +34,38 @@ namespace UnityEditor.VFX.UI
         {
             get { return base.sourceNode as VFXParameterNodeController; }
         }
+        public override bool expandedSelf
+        {
+            get
+            {
+                return sourceNode.infos.expandedSlots != null && sourceNode.infos.expandedSlots.Contains(model);
+            }
+        }
+        public override void ExpandPath()
+        {
+            if (sourceNode.infos.expandedSlots == null)
+                sourceNode.infos.expandedSlots = new List<VFXSlot>();
+            if (!sourceNode.infos.expandedSlots.Contains(model))
+                sourceNode.infos.expandedSlots.Add(model);
+            if (SlotShouldSkipFirstLevel(model))
+            {
+                VFXSlot firstChild = model.children.First();
+                if (!sourceNode.infos.expandedSlots.Contains(firstChild))
+                    sourceNode.infos.expandedSlots.Add(firstChild);
+            }
+        }
+
+        public override void RetractPath()
+        {
+            if (sourceNode.infos.expandedSlots != null)
+            {
+                sourceNode.infos.expandedSlots.Remove(model);
+                if (SlotShouldSkipFirstLevel(model))
+                {
+                    sourceNode.infos.expandedSlots.Remove(model.children.First());
+                }
+            }
+        }
     }
 
     class VFXParameterNodeController : VFXSlotContainerController, IPropertyRMProvider, IValueController
@@ -42,19 +74,20 @@ namespace UnityEditor.VFX.UI
 
         VFXParameter.Node m_Infos;
 
-        IDataWatchHandle m_SlotHandle;
-
         public VFXParameterNodeController(VFXParameterController controller, VFXParameter.Node infos, VFXViewController viewController) : base(controller.model, viewController)
         {
             m_ParentController = controller;
             m_Infos = infos;
-
-            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(m_ParentController.parameter.outputSlots[0], OnSlotChanged);
         }
 
-        void OnSlotChanged(UnityEngine.Object obj)
+        protected override void ModelChanged(UnityEngine.Object obj)
         {
-            NotifyChange(AnyThing);
+            base.ModelChanged(obj);
+
+            foreach (var port in outputPorts)
+            {
+                port.ApplyChanges(); // call the port ApplyChange because expanded states are stored in the VFXParameter.Node
+            }
         }
 
         public VFXParameter.Node infos

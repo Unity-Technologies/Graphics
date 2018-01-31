@@ -49,6 +49,7 @@ namespace UnityEditor.VFX
 
             public List<NodeLinkedSlot> linkedSlots;
             public Vector2 position;
+            public List<VFXSlot> expandedSlots;
 
 
             //Should only be called by ValidateNodes if something very wrong happened with serialization
