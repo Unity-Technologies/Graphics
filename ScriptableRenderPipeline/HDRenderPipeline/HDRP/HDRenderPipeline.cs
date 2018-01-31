@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
@@ -172,14 +173,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static public void SetupDrawMode()
         {
-            SceneView sceneView = EditorWindow.GetWindow<SceneView>();
-            sceneView.onValidateCameraMode += RejectDrawMode;
+            ArrayList sceneViewArray = SceneView.sceneViews;
+            foreach (SceneView sceneView in sceneViewArray)
+                sceneView.onValidateCameraMode += RejectDrawMode;
         }
 
         static public void ResetDrawMode()
         {
-            SceneView sceneView = EditorWindow.GetWindow<SceneView>();
-            sceneView.onValidateCameraMode -= RejectDrawMode;
+            ArrayList sceneViewArray = SceneView.sceneViews;
+            foreach (SceneView sceneView in sceneViewArray)
+                sceneView.onValidateCameraMode -= RejectDrawMode;
         }
     }
 #endif
