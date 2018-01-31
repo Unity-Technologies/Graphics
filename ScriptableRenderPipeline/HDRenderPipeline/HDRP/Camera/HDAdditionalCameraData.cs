@@ -6,6 +6,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        // The light culling use standard projection matrices (non-oblique)
+        // If the user overrides the projection matrix with an oblique one
+        // He must also provide a callback to get the equivalent non oblique for the culling
+        public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
+
 #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
         // We can't rely on Unity for our additional data, we need to version it ourself.
         [SerializeField]
@@ -82,13 +87,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // For custom projection matrices
+        // Set the proper getter
+        public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
+
+        public Matrix4x4 GetNonObliqueProjection(Camera camera)
+        {
+            return nonObliqueProjectionGetter(camera);
+        }
+
         void RegisterDebug()
         {
             if (!m_IsDebugRegistered)
             {
                 // Note that we register m_FrameSettingsRuntime, so manipulating it in the Debug windows
                 // doesn't affect the serialized version
-                if (m_camera.cameraType != CameraType.Preview)
+                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
                     FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
                 }
@@ -101,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_IsDebugRegistered)
             {
-                if (m_camera.cameraType != CameraType.Preview)
+                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
                     FrameSettings.UnRegisterDebug(m_CameraRegisterName);
                 }

@@ -39,14 +39,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void InitSSSBuffers(GBufferManager gbufferManager, RenderPipelineSettings settings)
         {
             if (settings.supportsForwardOnly)
-            {
-                // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
-                // TODO: Provide a way to reuse a render target
+        {
+        // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
+        // TODO: Provide a way to reuse a render target
                 m_ColorMRTs[0] = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: true);
                 m_ExternalBuffer[0] = false;
             }
             else
-            {
+        {
                 // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
                 m_ColorMRTs[0] = gbufferManager.GetBuffer(0); // Note: This buffer must be sRGB (which is the case with Lit.shader)
                 m_ExternalBuffer[0] = true;
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!m_ExternalBuffer[i])
                 {
                     RTHandle.Release(m_ColorMRTs[i]);
-                }
+        }
             }
 
             RTHandle.Release(m_CameraFilteringBuffer);
@@ -149,6 +149,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (sssParameters == null || !frameSettings.enableSubsurfaceScattering)
                 return;
+
+            // TODO: For MSAA, at least initially, we can only support Jimenez, because we can't
+            // create MSAA + UAV render targets.
 
             using (new ProfilingSample(cmd, "Subsurface Scattering", CustomSamplerId.SubsurfaceScattering.GetSampler()))
             {

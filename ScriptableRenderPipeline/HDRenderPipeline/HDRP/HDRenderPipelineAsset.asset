@@ -64,8 +64,12 @@ MonoBehaviour:
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
       reflectionProbeCacheSize: 128
+      planarReflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
+      planarReflectionTextureSize: 128
       reflectionCacheCompressed: 0
+      planarReflectionCacheCompressed: 0
+      maxPlanarReflectionProbes: 128
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2

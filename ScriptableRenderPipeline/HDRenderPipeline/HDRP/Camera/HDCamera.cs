@@ -24,6 +24,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
+        // Non oblique projection matrix (RHS)
+        public Matrix4x4 nonObliqueProjMatrix
+        {
+            get
+            {
+                return m_AdditionalCameraData != null
+                    ? m_AdditionalCameraData.GetNonObliqueProjection(camera)
+                    : GeometryUtils.CalculateProjectionMatrix(camera);
+            }
+        }
+
         // This is the size actually used for this camera (as it can be altered by VR for example)
         int m_ActualWidth;
         int m_ActualHeight;
@@ -80,12 +91,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
+        HDAdditionalCameraData m_AdditionalCameraData;
+
         public HDCamera(Camera cam)
         {
             camera = cam;
             frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
             postprocessRenderContext = new PostProcessRenderContext();
+            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
         }
 
@@ -179,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ActualHeight = XRSettings.eyeTextureHeight;
             }
 
-            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA);
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, QualitySettings.antiAliasing);
             int maxWidth = RTHandle.maxWidth;
             int maxHeight = RTHandle.maxHeight;
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;

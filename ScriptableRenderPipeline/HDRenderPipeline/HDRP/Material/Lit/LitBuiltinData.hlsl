@@ -53,10 +53,11 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     #ifndef LAYERED_LIT_SHADER
-    ComputeLayerTexCoord(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3, float4(1.0, 0.0, 0.0, 0.0), float4(1.0, 0.0, 0.0, 0.0),
+    ComputeLayerTexCoord(
     #else
-    ComputeLayerTexCoord0(input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
+    ComputeLayerTexCoord0(
     #endif
+                            input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
                             _EmissiveColorMap_ST.xy, _EmissiveColorMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
                             input.positionWS, _TexWorldScaleEmissive,
                             mappingType, layerTexCoord);
