@@ -60,7 +60,7 @@ public class VFXParameterEditor : VFXSlotContainerEditor
             GUI.enabled = true;
             if (GUI.changed)
             {
-                VFXParameterController parameterController = controller.GetParametersController(parameter);
+                VFXParameterController parameterController = controller.GetParameterController(parameter);
                 if (parameterController != null)
                 {
                     parameterController.exposedName = newName;

@@ -876,11 +876,11 @@ namespace UnityEditor.VFX.UI
             return controller.AddVFXParameter(pos, desc);
         }
 
-        void AddVFXParameter(Vector2 pos, VFXParameterController parametersController)
+        void AddVFXParameter(Vector2 pos, VFXParameterController parameterController)
         {
-            if (controller == null || parametersController == null) return;
+            if (controller == null || parameterController == null) return;
 
-            controller.AddVFXParameter(pos, parametersController);
+            controller.AddVFXParameter(pos, parameterController);
         }
 
         public EventPropagation Resync()

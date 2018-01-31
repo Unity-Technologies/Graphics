@@ -134,9 +134,9 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXMinMaxParametersController : IPropertyRMProvider
+    class VFXMinMaxParameterController : IPropertyRMProvider
     {
-        public VFXMinMaxParametersController(VFXParameterController owner, bool min)
+        public VFXMinMaxParameterController(VFXParameterController owner, bool min)
         {
             m_Owner = owner;
             m_Min = min;
@@ -213,26 +213,26 @@ namespace UnityEditor.VFX.UI
         VFXViewController m_ViewController;
 
 
-        VFXMinMaxParametersController m_MinController;
-        public VFXMinMaxParametersController minController
+        VFXMinMaxParameterController m_MinController;
+        public VFXMinMaxParameterController minController
         {
             get
             {
                 if (m_MinController == null)
                 {
-                    m_MinController = new VFXMinMaxParametersController(this, true);
+                    m_MinController = new VFXMinMaxParameterController(this, true);
                 }
                 return m_MinController;
             }
         }
-        VFXMinMaxParametersController m_MaxController;
-        public VFXMinMaxParametersController maxController
+        VFXMinMaxParameterController m_MaxController;
+        public VFXMinMaxParameterController maxController
         {
             get
             {
                 if (m_MaxController == null)
                 {
-                    m_MaxController = new VFXMinMaxParametersController(this, false);
+                    m_MaxController = new VFXMinMaxParameterController(this, false);
                 }
                 return m_MaxController;
             }
@@ -301,7 +301,7 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                HashSet<string> allNames = new HashSet<string>(m_ViewController.parametersController.Where(t => t != this).Select(t => t.exposedName));
+                HashSet<string> allNames = new HashSet<string>(m_ViewController.parameterControllers.Where(t => t != this).Select(t => t.exposedName));
 
                 string candidateName = value.Trim();
                 if (candidateName.Length < 1)

@@ -68,7 +68,7 @@ public class VFXAssetEditor : Editor
             return;
 
 
-        var newList = m_Controller.parametersController.Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+        var newList = m_Controller.parameterControllers.Where(t => t.exposed).OrderBy(t => t.order).ToArray();
         if (list == null || !ArraysEquals(newList, m_ExposedList))
         {
             m_ExposedList = newList;

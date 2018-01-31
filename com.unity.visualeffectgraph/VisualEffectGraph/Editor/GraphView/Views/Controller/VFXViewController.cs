@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParametersControllers.Values.Cast<Controller>()); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
         }
 
         public override void ApplyChanges()
@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.UI
                 IVFXSlotContainer targetSlotContainer = inputSlot.refSlot.owner;
                 if (targetSlotContainer is VFXParameter)
                 {
-                    VFXParameterController controller = m_ParametersControllers[targetSlotContainer as VFXParameter];
+                    VFXParameterController controller = m_ParameterControllers[targetSlotContainer as VFXParameter];
                     operatorControllerFrom = controller.GetParameterForLink(inputSlot);
                 }
                 else if (targetSlotContainer is VFXBlock)
@@ -797,7 +797,7 @@ namespace UnityEditor.VFX.UI
                 {
                     // Set an exposed name on a new parameter so that uncity is ensured
                     VFXParameter newParameter = newNode as VFXParameter;
-                    m_ParametersControllers[newParameter].exposedName = string.Format("New {0}", newParameter.type.UserFriendlyName());
+                    m_ParameterControllers[newParameter].exposedName = string.Format("New {0}", newParameter.type.UserFriendlyName());
                 }
 
                 NotifyChange(AnyThing);
@@ -808,9 +808,9 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        public void AddVFXParameter(Vector2 pos, VFXParameterController parametersController)
+        public void AddVFXParameter(Vector2 pos, VFXParameterController parameterController)
         {
-            parametersController.model.AddNode(pos);
+            parameterController.model.AddNode(pos);
         }
 
         public void Clear()
@@ -822,7 +822,7 @@ namespace UnityEditor.VFX.UI
 
             m_FlowAnchorController.Clear();
             m_SyncedModels.Clear();
-            m_ParametersControllers.Clear();
+            m_ParameterControllers.Clear();
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
             m_GroupNodeControllers.Clear();
@@ -971,7 +971,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // make sure every parameter instance is created before we look for edges
-            foreach (var parameter in m_ParametersControllers.Values)
+            foreach (var parameter in m_ParameterControllers.Values)
             {
                 parameter.UpdateControllers();
             }
@@ -985,16 +985,16 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        Dictionary<VFXParameter, VFXParameterController> m_ParametersControllers = new Dictionary<VFXParameter, VFXParameterController>();
+        Dictionary<VFXParameter, VFXParameterController> m_ParameterControllers = new Dictionary<VFXParameter, VFXParameterController>();
 
-        public IEnumerable<VFXParameterController> parametersController
+        public IEnumerable<VFXParameterController> parameterControllers
         {
-            get { return m_ParametersControllers.Values; }
+            get { return m_ParameterControllers.Values; }
         }
 
         public void SetParametersOrder(VFXParameterController controller, int index)
         {
-            var orderedParameters = m_ParametersControllers.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            var orderedParameters = m_ParameterControllers.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
             int oldIndex = orderedParameters.IndexOf(controller);
 
@@ -1037,7 +1037,7 @@ namespace UnityEditor.VFX.UI
                 VFXParameter parameter = model as VFXParameter;
                 parameter.ValidateNodes();
 
-                var newController = m_ParametersControllers[parameter] = new VFXParameterController(parameter, this);
+                var newController = m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
             }
@@ -1080,8 +1080,8 @@ namespace UnityEditor.VFX.UI
             }
             if (model is VFXParameter)
             {
-                m_ParametersControllers[model as VFXParameter].OnDisable();
-                m_ParametersControllers.Remove(model as VFXParameter);
+                m_ParameterControllers[model as VFXParameter].OnDisable();
+                m_ParameterControllers.Remove(model as VFXParameter);
             }
         }
 
@@ -1093,10 +1093,10 @@ namespace UnityEditor.VFX.UI
             return controller.First(t => t.id == id);
         }
 
-        public VFXParameterController GetParametersController(VFXParameter parameter)
+        public VFXParameterController GetParameterController(VFXParameter parameter)
         {
             VFXParameterController controller = null;
-            m_ParametersControllers.TryGetValue(parameter, out controller);
+            m_ParameterControllers.TryGetValue(parameter, out controller);
             return controller;
         }
 

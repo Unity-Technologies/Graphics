@@ -358,9 +358,9 @@ namespace  UnityEditor.VFX.UI
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
-                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parametersController.Where(t => t.exposed));
+                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.exposed));
                 SyncParameters(m_ExposedSection, actualControllers, m_ExposedParameters);
-                actualControllers = new HashSet<VFXParameterController>(controller.parametersController.Where(t => !t.exposed));
+                actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => !t.exposed));
                 SyncParameters(m_PrivateSection, actualControllers, m_PrivateParameters);
             }
         }
