@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -1956,7 +1955,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
             if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null)
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.blackTexture);
                 return;
+            }
 
             using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {

@@ -253,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ViewParam, viewParam);
             cmd.SetGlobalVector(HDShaderIDs._InvProjParam, invProjParam);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, scaleBias);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
