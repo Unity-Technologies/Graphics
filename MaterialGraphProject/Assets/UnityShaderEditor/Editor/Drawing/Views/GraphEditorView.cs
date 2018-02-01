@@ -155,6 +155,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
             }
+            else if (evt.keyCode == KeyCode.F1)
+            {
+                if (m_GraphView.selection.OfType<MaterialNodeView>().Count() == 1)
+                {
+                    var nodeView = (MaterialNodeView)graphView.selection.First();
+                    if(nodeView.node.documentationURL != null)
+                        System.Diagnostics.Process.Start(nodeView.node.documentationURL);
+                }
+            }
         }
 
         GraphViewChange GraphViewChanged(GraphViewChange graphViewChange)

@@ -57,6 +57,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
                 evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Open Documentation", SeeDocumentation, SeeDocumentationStatus);
             }
             else if (evt.target is BlackboardField)
             {
@@ -86,6 +88,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.previewExpanded = true;
             }
+        }
+
+        void SeeDocumentation(EventBase evt)
+        {
+            var node = selection.OfType<MaterialNodeView>().First().node;
+            if (node.documentationURL != null)
+                System.Diagnostics.Process.Start(node.documentationURL);
+        }
+
+        ContextualMenu.MenuAction.StatusFlags SeeDocumentationStatus(EventBase eventBase)
+        {
+            if (selection.OfType<MaterialNodeView>().Count() > 1)
+                return ContextualMenu.MenuAction.StatusFlags.Hidden;
+            if (selection.OfType<MaterialNodeView>().First().node.documentationURL == null)
+                return ContextualMenu.MenuAction.StatusFlags.Disabled;
+            return ContextualMenu.MenuAction.StatusFlags.Normal;
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
