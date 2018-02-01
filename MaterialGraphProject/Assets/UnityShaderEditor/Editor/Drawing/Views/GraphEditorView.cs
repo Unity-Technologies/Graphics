@@ -16,6 +16,12 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public WindowDockingLayout previewLayout = new WindowDockingLayout();
         public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
+
+        [NonSerialized]
+        public WindowDockingLayout defaultPreviewLayout = new WindowDockingLayout();
+
+        [NonSerialized]
+        public WindowDockingLayout defaultBlackboardLayout = new WindowDockingLayout();
     }
 
     public class GraphEditorView : VisualElement, IDisposable
@@ -75,6 +81,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (showInProjectRequested != null)
                         showInProjectRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Reset Layout", EditorStyles.toolbarButton))
+                {
+                    m_MasterPreviewView.layout = m_FloatingWindowsLayout.defaultPreviewLayout.GetLayout(layout);
+                    m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.defaultBlackboardLayout.GetLayout(layout);
+                    m_MasterPreviewView.UpdateRenderTextureOnNextLayoutChange();
+                    UpdateSerializedWindowLayout();
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
@@ -457,6 +471,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
 
+                m_FloatingWindowsLayout.defaultPreviewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
+                m_FloatingWindowsLayout.defaultBlackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
+
                 m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout.GetLayout(layout);
                 m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(layout);
 
@@ -465,6 +482,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 m_FloatingWindowsLayout = new FloatingWindowsLayout();
+                m_FloatingWindowsLayout.defaultPreviewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
+                m_FloatingWindowsLayout.defaultBlackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
             }
         }
 
