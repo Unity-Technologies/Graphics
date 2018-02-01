@@ -72,6 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CollapsePreviews(EventBase evt)
         {
+            graph.owner.RegisterCompleteObjectUndo("Collapse Previews");
             foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
             {
                 node.previewExpanded = false;
@@ -80,6 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ExpandPreviews(EventBase evt)
         {
+            graph.owner.RegisterCompleteObjectUndo("Expand Previews");
             foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
             {
                 node.previewExpanded = true;
