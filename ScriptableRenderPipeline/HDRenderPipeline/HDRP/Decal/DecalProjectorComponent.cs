@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Material m_Material = null;
 		public float m_DrawDistance = 1000.0f;
+        public float m_FadeScale = 0.9f;
         private Material m_OldMaterial = null;
         public const int kInvalidIndex = -1;  
         private int m_CullIndex = kInvalidIndex;

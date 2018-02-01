@@ -17,6 +17,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        private const int kDefaultDrawDistance = 1000;
+        static public int DrawDistance
+        {
+            get
+            {
+                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                if (hdrp != null)
+                {
+                    return hdrp.renderPipelineSettings.decalSettings.drawDistance;
+                }
+                return kDefaultDrawDistance;
+            }
+        }
+
         private static readonly int m_NormalToWorldID = Shader.PropertyToID("normalToWorld");
         private static MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
@@ -36,8 +50,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public Matrix4x4[] m_InstanceMatrices = new Matrix4x4[kDrawIndexedBatchSize];
         static public Matrix4x4[] m_InstanceNormalToWorld = new Matrix4x4[kDrawIndexedBatchSize];
 		static public float[] m_BoundingDistances = new float[1];
-		static public HDRenderPipelineAsset m_Hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-		static public float m_FadeDistance = 1.0f;
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
 
@@ -73,7 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_CachedNormalToWorld[decal.CullIndex] = decalRotation;
 				// draw distance can't be more than global draw distance
-				m_CachedDrawDistances[decal.CullIndex] = decal.m_DrawDistance < m_BoundingDistances[0] ? decal.m_DrawDistance : m_BoundingDistances[0];
+                m_CachedDrawDistances[decal.CullIndex].x = decal.m_DrawDistance < DrawDistance ? decal.m_DrawDistance : DrawDistance;
+                m_CachedDrawDistances[decal.CullIndex].y = decal.m_FadeScale;
                 m_BoundingSpheres[decal.CullIndex] = GetDecalProjectBoundingSphere(m_CachedTransforms[decal.CullIndex]);
             }
 
@@ -86,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     BoundingSphere[] newSpheres = new BoundingSphere[m_DecalsCount + kDecalBlockSize];
                     Matrix4x4[] newCachedTransforms = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
                     Matrix4x4[] newCachedNormalToWorld = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
-					float[] newCachedDrawDistances = new float[m_DecalsCount + kDecalBlockSize];
+                    Vector2[] newCachedDrawDistances = new Vector2[m_DecalsCount + kDecalBlockSize];
                     m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
 
                     m_Decals.CopyTo(newDecals, 0);
@@ -134,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
 				// let the culling group code do some of the heavy lifting for global draw distance
-				m_BoundingDistances[0] = (m_Hdrp != null) ? m_Hdrp.renderPipelineSettings.decalSettings.drawDistance : 1000;
+                m_BoundingDistances[0] = DrawDistance;
                 m_NumResults = 0;
                 m_CullingGroup = new CullingGroup();
                 m_CullingGroup.targetCamera = camera;
@@ -172,12 +185,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int decalIndex = m_ResultIndices[resultIndex];
 					// do additional culling based on individual decal draw distances
 					float distanceToDecal = (cameraPos - m_BoundingSpheres[decalIndex].position).magnitude;
-					float cullDistance = m_CachedDrawDistances[decalIndex] + m_BoundingSpheres[decalIndex].radius;
-					if (distanceToDecal < cullDistance + m_FadeDistance)
+					float cullDistance = m_CachedDrawDistances[decalIndex].x + m_BoundingSpheres[decalIndex].radius;
+					if (distanceToDecal < cullDistance)
 					{
 						m_InstanceMatrices[instanceCount] = m_CachedTransforms[decalIndex];
 						m_InstanceNormalToWorld[instanceCount] = m_CachedNormalToWorld[decalIndex];
-						float fadeFactor = 1.0f - (distanceToDecal - cullDistance) / m_FadeDistance;
+                        float fadeFactor = (cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y));
 						m_InstanceNormalToWorld[instanceCount].m03 = fadeFactor; // rotation only matrix so 3rd column can be used to pass some values
 						instanceCount++;
 						if (instanceCount == kDrawIndexedBatchSize)
@@ -224,7 +237,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private int m_DecalsCount = 0;
             private Matrix4x4[] m_CachedTransforms = new Matrix4x4[kDecalBlockSize];
             private Matrix4x4[] m_CachedNormalToWorld = new Matrix4x4[kDecalBlockSize];
-			private float[] m_CachedDrawDistances = new float[kDecalBlockSize];
+			private Vector2[] m_CachedDrawDistances = new Vector2[kDecalBlockSize]; // x - draw distance, y - fade scale
             private Material m_Material;
         }
         
