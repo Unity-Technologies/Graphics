@@ -932,6 +932,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
                     // Caution: RenderDebug need to take into account that we have flip the screen (so anything capture before the flip will be flipped)
                     RenderDebug(hdCamera, cmd);
+
+#if UNITY_EDITOR
+                    // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
+                    cmd.SetViewport(new Rect(0.0f, 0.0f, hdCamera.actualWidth, hdCamera.actualHeight));
+#endif
                 }
 
                 // Caution: ExecuteCommandBuffer must be outside of the profiling bracket
