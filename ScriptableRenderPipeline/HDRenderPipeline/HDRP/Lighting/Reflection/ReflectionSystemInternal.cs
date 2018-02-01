@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
         public RenderTexture NewRenderTarget(PlanarReflectionProbe probe)
         {
-            var desc = GetRenderHDCamera(probe).renderTextureDesc;
+            RenderTextureDescriptor desc = new RenderTextureDescriptor();
             desc.width = m_Parameters.planarReflectionProbeSize;
             desc.height = m_Parameters.planarReflectionProbeSize;
             desc.colorFormat = RenderTextureFormat.ARGBHalf;

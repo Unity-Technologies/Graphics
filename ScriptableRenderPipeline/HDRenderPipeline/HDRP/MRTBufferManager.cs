@@ -9,6 +9,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected RTHandle[] m_RTs;
         protected int[] m_TextureShaderIDs;
 
+        public int bufferCount { get { return m_BufferCount; } }
+
         public MRTBufferManager(int maxBufferCount)
         {
             m_BufferCount = maxBufferCount;
@@ -43,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void DestroyBuffers()
+        virtual public void DestroyBuffers()
         {
             for (int i = 0; i < m_BufferCount; ++i)
             {
