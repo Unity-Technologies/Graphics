@@ -119,11 +119,17 @@ namespace UnityEditor.VFX.UI
                     }
                     if (nodeController is VFXContextController)
                     {
-                        foreach (var block in (nodeController as VFXContextController).blockControllers)
+                        VFXContextController contextController = nodeController as VFXContextController;
+                        foreach (var input in contextController.slotContainerController.inputPorts)
+                        {
+                            changed |= RecreateInputSlotEdge(unusedEdges, contextController.slotContainerController, input);
+                        }
+
+                        foreach (var block in contextController.blockControllers)
                         {
                             foreach (var input in block.inputPorts)
                             {
-                                changed |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
+                                changed |= RecreateInputSlotEdge(unusedEdges, block, input);
                             }
                         }
                     }
