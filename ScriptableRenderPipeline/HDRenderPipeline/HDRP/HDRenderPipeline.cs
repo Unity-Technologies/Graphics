@@ -183,8 +183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
         Material m_CopyStencilForNoLighting;
         GPUCopy m_GPUCopy;
-        DepthPyramid m_DepthPyramid;
-        ColorPyramid m_ColorPyramid;
+        BufferPyramid m_BufferPyramid;
 
         IBLFilterGGX m_IBLFilterGGX = null;
 
@@ -311,13 +310,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
-            m_DepthPyramid = new DepthPyramid(
+            m_BufferPyramid = new BufferPyramid(
+                asset.renderPipelineResources.gaussianPyramidCS,
+                HDShaderIDs._GaussianPyramidColorMips,
                 asset.renderPipelineResources.depthPyramidCS,
                 m_GPUCopy,
                 HDShaderIDs._DepthPyramidMips);
-            m_ColorPyramid = new ColorPyramid(
-                asset.renderPipelineResources.gaussianPyramidCS,
-                HDShaderIDs._GaussianPyramidColorMips);
 
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
@@ -1513,11 +1511,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
-                m_ColorPyramid.RenderPyramidColor(hdCamera, cmd, renderContext, m_CameraColorBufferRT, m_GaussianPyramidColorBufferRT);
+                m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBufferRT, m_GaussianPyramidColorBufferRT);
 
-            var size = new Vector4(m_ColorPyramid.renderTextureDescriptor.width, m_ColorPyramid.renderTextureDescriptor.height, m_ColorPyramid.usedMipMapCount, 0);
+            var size = new Vector4(m_BufferPyramid.colorRenderTextureDescriptor.width, m_BufferPyramid.colorRenderTextureDescriptor.height, m_BufferPyramid.colorUsedMipMapCount, 0);
             cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, size);
-            PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, m_ColorPyramid.usedMipMapCount, m_ColorPyramid.renderTextureDescriptor, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            PushFullScreenDebugTextureMip(cmd, m_GaussianPyramidColorBufferRT, m_BufferPyramid.colorUsedMipMapCount, m_BufferPyramid.colorRenderTextureDescriptor, hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
@@ -1526,11 +1524,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
-                m_DepthPyramid.RenderPyramidDepth(hdCamera, cmd, renderContext, GetDepthTexture(), m_DepthPyramidBufferRT);
+                m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture(), m_DepthPyramidBufferRT);
 
-            var depthSize = new Vector4(m_DepthPyramid.renderTextureDescriptor.width, m_DepthPyramid.renderTextureDescriptor.height, m_DepthPyramid.usedMipMapCount, 0);
+            var depthSize = new Vector4(m_BufferPyramid.depthRenderTextureDescriptor.width, m_BufferPyramid.depthRenderTextureDescriptor.height, m_BufferPyramid.depthUsedMipMapCount, 0);
             cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, depthSize);
-            PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, m_DepthPyramid.usedMipMapCount, m_DepthPyramid.renderTextureDescriptor, hdCamera, debugMode);
+            PushFullScreenDebugDepthMip(cmd, m_DepthPyramidBufferRT, m_BufferPyramid.depthUsedMipMapCount, m_BufferPyramid.depthRenderTextureDescriptor, hdCamera, debugMode);
 
             cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
         }
@@ -1745,13 +1743,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Color and depth pyramids
-                    m_ColorPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
+                    m_BufferPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
                     cmd.ReleaseTemporaryRT(m_GaussianPyramidColorBuffer);
-                    cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_ColorPyramid.renderTextureDescriptor, FilterMode.Trilinear);
+                    cmd.GetTemporaryRT(m_GaussianPyramidColorBuffer, m_BufferPyramid.colorRenderTextureDescriptor, FilterMode.Trilinear);
 
-                    m_DepthPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
+                    m_BufferPyramid.Initialize(hdCamera, m_FrameSettings.enableStereo);
                     cmd.ReleaseTemporaryRT(m_DepthPyramidBuffer);
-                    cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_DepthPyramid.renderTextureDescriptor, FilterMode.Trilinear);
+                    cmd.GetTemporaryRT(m_DepthPyramidBuffer, m_BufferPyramid.depthRenderTextureDescriptor, FilterMode.Trilinear);
                     // End
 
                     if (!m_FrameSettings.enableForwardRenderingOnly)
@@ -1802,50 +1800,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 // END TEMP
             }
-        }
-
-        static int CalculatePyramidSize(int w, int h)
-        {
-            return Mathf.ClosestPowerOfTwo(Mathf.Min(w, h));
-        }
-
-        static int GetPyramidSize(RenderTextureDescriptor pyramidDesc)
-        {
-            // The monoscopic pyramid texture has both the width and height
-            // matching, so the pyramid size could be either dimension.
-            // However, with stereo double-wide rendering, we will arrange
-            // two pyramid textures next to each other inside the double-wide
-            // texture.  The whole texture width will no longer be representative
-            // of the pyramid size, but the height still corresponds to the pyramid.
-            return pyramidDesc.height;
-        }
-
-        public enum PyramidType
-        {
-            Color = 0,
-            Depth = 1
-        }
-
-        static RenderTextureDescriptor BuildPyramidDescriptor(HDCamera hdCamera, PyramidType pyramidType, bool stereoEnabled)
-        {
-            var desc = hdCamera.renderTextureDesc;
-            desc.colorFormat = (pyramidType == PyramidType.Color) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.RFloat;
-            desc.depthBufferBits = 0;
-            desc.useMipMap = true;
-            desc.autoGenerateMips = false;
-
-            desc.msaaSamples = 1; // These are approximation textures, they don't need MSAA
-
-            // for stereo double-wide, each half of the texture will represent a single eye's pyramid
-            //var widthModifier = 1;
-            //if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
-            //    widthModifier = 2; // double-wide
-
-            //desc.width = pyramidSize * widthModifier;
-            desc.width = (int)hdCamera.screenSize.x;
-            desc.height = (int)hdCamera.screenSize.y;
-
-            return desc;
         }
     }
 }
