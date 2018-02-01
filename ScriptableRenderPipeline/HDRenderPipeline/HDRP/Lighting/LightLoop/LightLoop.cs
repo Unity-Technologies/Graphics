@@ -2099,6 +2099,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+
             // Predeclared to reduce GC pressure
             string tilePassName = "TilePass - Deferred Lighting Pass";
             string tilePassMRTName = "TilePass - Deferred Lighting Pass MRT";
@@ -2127,6 +2128,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numVariants = 1;
                     if (enableFeatureVariants)
                         numVariants = LightDefinitions.s_NumFeatureVariants;
+
+
+                    hdCamera.SetupComputeShader(deferredComputeShader, cmd);
 
                     for (int variant = 0; variant < numVariants; variant++)
                     {
