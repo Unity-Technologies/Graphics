@@ -24,7 +24,7 @@ VFXParameterUI.node > #node-border
 }
 VFXParameterUI.node > #selection-border
 {
-    border-radius:15;
+    border-radius:18;
 }
 VFXParameterUI.node > #node-border > #contents > #top
 {

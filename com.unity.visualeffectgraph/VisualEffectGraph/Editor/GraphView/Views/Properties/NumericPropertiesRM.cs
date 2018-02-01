@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
 
             Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
-            return (range == Vector2.zero || range.y == Mathf.Infinity) == (m_Slider == null);
+            return RangeShouldCreateSlider(range) != (m_Slider == null);
         }
 
         public override void UpdateGUI()
