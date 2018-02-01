@@ -401,7 +401,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
             SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]);
-            SetShadowCollectPassKeywords(cmd, ref lightData);
+            SetShadowCollectPassKeywords(cmd, visibleLights[lightData.mainLightIndex], ref lightData);
 
             cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
             cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
@@ -1100,10 +1100,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "FOG_EXP2", exponentialFogModeEnabled);
         }
 
-        private void SetShadowCollectPassKeywords(CommandBuffer cmd, ref LightData lightData)
+        private void SetShadowCollectPassKeywords(CommandBuffer cmd, VisibleLight shadowLight, ref LightData lightData)
         {
+            bool cascadeShadows = shadowLight.lightType == LightType.Directional && m_Asset.CascadeCount > 1;
             CoreUtils.SetKeyword(cmd, "_SHADOWS_SOFT", lightData.shadowMapSampleType == LightShadows.Soft);
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_CASCADE", lightData.shadowMapSampleType != LightShadows.None && m_Asset.CascadeCount > 1);
+            CoreUtils.SetKeyword(cmd, "_SHADOWS_CASCADE", cascadeShadows);
         }
 
         private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
