@@ -304,6 +304,11 @@ namespace UnityEngine.Experimental.Rendering
     {
         protected uint m_Min = 0;
         protected uint m_Max = 1;
+        protected Func<uint> m_MinGetter = null;
+        protected Func<uint> m_MaxGetter = null;
+
+        public uint min { get { return m_MinGetter != null ? m_MinGetter() : m_Min; } }
+        public uint max { get { return m_MaxGetter != null ? m_MaxGetter() : m_Max; } }
 
         public DebugItemHandlerUIntMinMax(uint min, uint max)
         {
@@ -311,9 +316,15 @@ namespace UnityEngine.Experimental.Rendering
             m_Max = max;
         }
 
+        public DebugItemHandlerUIntMinMax(Func<uint> minGetter, Func<uint> maxGetter)
+        {
+            m_MinGetter = minGetter;
+            m_MaxGetter = maxGetter;
+        }
+
         public override void ValidateValues(Func<object> getter, Action<object> setter)
         {
-            setter(Math.Min(m_Max, Math.Max(m_Min, (uint)getter())));
+            setter(Math.Min(max, Math.Max(min, (uint)getter())));
         }
 
 #if UNITY_EDITOR
@@ -322,7 +333,7 @@ namespace UnityEngine.Experimental.Rendering
             Initialize();
 
             EditorGUI.BeginChangeCheck();
-            int value = EditorGUILayout.IntSlider(m_DebugItem.name, (int)(uint)m_DebugItem.GetValue(), (int)m_Min, (int)m_Max);
+            int value = EditorGUILayout.IntSlider(m_DebugItem.name, (int)(uint)m_DebugItem.GetValue(), (int)min, (int)max);
             if (EditorGUI.EndChangeCheck())
             {
                 m_DebugItem.SetValue((uint)value);
