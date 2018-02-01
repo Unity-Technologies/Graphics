@@ -622,5 +622,8 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         public Quaternion rotation = Quaternion.identity;
+
+        [NonSerialized]
+        public float scale = 1f;
     }
 }
