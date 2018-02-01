@@ -42,6 +42,8 @@ namespace  UnityEditor.VFX.UI
                     result = result.Concat(Enumerable.Repeat(m_Property, 1));
                 if (m_SubProperties != null)
                     result = result.Concat(m_SubProperties);
+                if (m_RangeProperty != null)
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_RangeProperty, 1));
                 if (m_MinProperty != null)
                     result = result.Concat(Enumerable.Repeat(m_MinProperty, 1));
                 if (m_MaxProperty != null)
@@ -73,7 +75,7 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        void CreateSubProperties(List<int> fieldPath)
+        void CreateSubProperties(ref int insertIndex, List<int> fieldPath)
         {
             var subControllers = controller.GetSubControllers(fieldPath);
 
@@ -85,50 +87,120 @@ namespace  UnityEditor.VFX.UI
                 if (prop != null)
                 {
                     m_SubProperties.Add(prop);
-                    Add(prop);
+                    Insert(insertIndex++, prop);
                 }
                 if (prop == null || !prop.showsEverything)
                 {
                     subFieldPath.Clear();
                     subFieldPath.AddRange(fieldPath);
                     subFieldPath.Add(cpt);
-                    CreateSubProperties(subFieldPath);
+                    CreateSubProperties(ref insertIndex, subFieldPath);
                 }
                 ++cpt;
             }
         }
 
+        BoolPropertyRM m_RangeProperty;
+
+        IPropertyRMProvider m_RangeProvider;
+
         public void SelfChange()
         {
+            int insertIndex = 0;
             if (m_Property == null || !m_Property.IsCompatible(controller))
             {
+                if (m_Property != null)
+                {
+                    m_Property.RemoveFromHierarchy();
+                }
                 m_Property = PropertyRM.Create(controller, 55);
                 if (m_Property != null)
                 {
-                    Add(m_Property);
+                    Insert(insertIndex++, m_Property);
+
+                    if (m_SubProperties != null)
+                    {
+                        foreach (var prop in m_SubProperties)
+                        {
+                            prop.RemoveFromHierarchy();
+                        }
+                    }
                     m_SubProperties = new List<PropertyRM>();
                     List<int> fieldpath = new List<int>();
                     if (!m_Property.showsEverything)
                     {
-                        CreateSubProperties(fieldpath);
-                    }
-                    else if (controller.canHaveMinMax)
-                    {
-                        m_MinProperty = PropertyRM.Create(controller.minController, 55);
-                        m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
-
-                        Add(m_MinProperty);
-                        Add(m_MaxProperty);
+                        CreateSubProperties(ref insertIndex, fieldpath);
                     }
                 }
             }
-            foreach (var subProp in allProperties)
+            else
             {
-                subProp.Update();
+                insertIndex = 1 + m_SubProperties.Count;
             }
+
+
+            if (controller.canHaveRange)
+            {
+                if (m_MinProperty == null || !m_MinProperty.IsCompatible(controller.minController))
+                {
+                    if (m_MinProperty != null)
+                        m_MinProperty.RemoveFromHierarchy();
+                    m_MinProperty = PropertyRM.Create(controller.minController, 55);
+                }
+                if (m_MaxProperty == null || !m_MaxProperty.IsCompatible(controller.minController))
+                {
+                    if (m_MaxProperty != null)
+                        m_MaxProperty.RemoveFromHierarchy();
+                    m_MaxProperty = PropertyRM.Create(controller.maxController, 55);
+                }
+
+                if (m_RangeProperty == null)
+                {
+                    m_RangeProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Range", () => controller.hasRange, t => controller.hasRange = t), 55);
+                }
+                Insert(insertIndex++, m_RangeProperty);
+
+                if (controller.hasRange)
+                {
+                    if (m_MinProperty.parent == null)
+                    {
+                        Insert(insertIndex++, m_MinProperty);
+                        Insert(insertIndex++, m_MaxProperty);
+                    }
+                }
+                else if (m_MinProperty.parent != null)
+                {
+                    m_MinProperty.RemoveFromHierarchy();
+                    m_MaxProperty.RemoveFromHierarchy();
+                }
+            }
+            else
+            {
+                if (m_MinProperty != null)
+                {
+                    m_MinProperty.RemoveFromHierarchy();
+                    m_MinProperty = null;
+                }
+                if (m_MaxProperty != null)
+                {
+                    m_MaxProperty.RemoveFromHierarchy();
+                    m_MaxProperty = null;
+                }
+                if (m_RangeProperty != null)
+                {
+                    m_RangeProperty.RemoveFromHierarchy();
+                    m_RangeProperty = null;
+                }
+            }
+
             float labelWidth = 70;
             GetPreferedWidths(ref labelWidth);
             ApplyWidths(labelWidth);
+
+            foreach (var prop in allProperties)
+            {
+                prop.Update();
+            }
         }
     }
     class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParameterController>

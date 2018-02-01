@@ -361,11 +361,33 @@ namespace UnityEditor.VFX.UI
         public VFXParameter parameter { get { return model as VFXParameter; } }
 
 
-        public bool canHaveMinMax
+        public bool canHaveRange
         {
             get
             {
                 return portType == typeof(float) || portType == typeof(int) || portType == typeof(uint);
+            }
+        }
+
+        public bool hasRange
+        {
+            get { return parameter.m_Min != null && parameter.m_Min.type != null && parameter.m_Max != null && parameter.m_Max.type != null; }
+
+            set
+            {
+                if (value != hasRange)
+                {
+                    if (value)
+                    {
+                        parameter.m_Min = new VFXSerializableObject(portType);
+                        parameter.m_Max = new VFXSerializableObject(portType);
+                    }
+                    else
+                    {
+                        parameter.m_Min = null;
+                        parameter.m_Max = null;
+                    }
+                }
             }
         }
 
@@ -525,7 +547,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (canHaveMinMax)
+                if (canHaveRange)
                 {
                     return VFXPropertyAttribute.Create(new object[] { new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)) });
                 }
