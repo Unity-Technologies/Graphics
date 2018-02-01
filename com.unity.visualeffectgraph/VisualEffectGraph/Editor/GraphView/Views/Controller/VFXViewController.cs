@@ -169,6 +169,10 @@ namespace UnityEditor.VFX.UI
                 VFXNodeController operatorControllerFrom = null;
 
                 IVFXSlotContainer targetSlotContainer = inputSlot.refSlot.owner;
+                if (targetSlotContainer == null)
+                {
+                    return false;
+                }
                 if (targetSlotContainer is VFXParameter)
                 {
                     VFXParameterController controller = m_ParameterControllers[targetSlotContainer as VFXParameter];
@@ -560,6 +564,9 @@ namespace UnityEditor.VFX.UI
         protected void GraphChanged(UnityEngine.Object obj)
         {
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
+
+            VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
+            validation.ValidateGraph();
 
             SyncControllerFromModel();
 

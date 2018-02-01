@@ -435,6 +435,7 @@ namespace UnityEditor.VFX.UI
         {
             if (change == VFXViewController.Change.destroy)
             {
+                m_Blackboard.controller = null;
                 controller = null;
                 return;
             }

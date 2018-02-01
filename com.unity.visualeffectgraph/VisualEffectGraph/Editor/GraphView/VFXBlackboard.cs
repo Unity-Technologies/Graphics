@@ -236,6 +236,7 @@ namespace  UnityEditor.VFX.UI
                     {
                         m_Controller.UnregisterHandler(this);
                     }
+                    Clear();
                     m_Controller = value;
 
                     if (m_Controller != null)
@@ -246,6 +247,17 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
+        void Clear()
+        {
+            foreach (var param in m_ExposedParameters.Values)
+            {
+                param.RemoveFromHierarchy();
+            }
+            foreach (var param in m_PrivateParameters.Values)
+            {
+                param.RemoveFromHierarchy();
+            }
+        }
 
         const string blackBoardPositionPref = "VFXBlackboardRect";
 
