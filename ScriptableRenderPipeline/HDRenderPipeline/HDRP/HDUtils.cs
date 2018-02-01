@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const RendererConfiguration k_RendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
         public const RendererConfiguration k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | RendererConfiguration.PerObjectOcclusionProbe | RendererConfiguration.PerObjectOcclusionProbeProxyVolume | RendererConfiguration.PerObjectShadowMask;
 
-        static Material GetBlitMaterial()
+        public static Material GetBlitMaterial()
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
@@ -19,6 +19,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             return null;
+        }
+
+        public static RenderPipelineSettings hdrpSettings
+        {
+            get
+            {
+                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                if (hdPipeline != null)
+                {
+                    return hdPipeline.renderPipelineSettings;
+                }
+                return null;
+            }
         }
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();

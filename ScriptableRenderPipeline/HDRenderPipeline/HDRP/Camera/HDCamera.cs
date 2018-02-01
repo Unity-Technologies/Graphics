@@ -193,7 +193,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ActualHeight = XRSettings.eyeTextureHeight;
             }
 
-            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, QualitySettings.antiAliasing);
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, HDUtils.hdrpSettings.msaaSampleCount);
+
             int maxWidth = RTHandle.maxWidth;
             int maxHeight = RTHandle.maxHeight;
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;

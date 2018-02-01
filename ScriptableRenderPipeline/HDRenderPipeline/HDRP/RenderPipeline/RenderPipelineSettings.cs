@@ -27,10 +27,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportsForwardOnly = false;
 
         // Engine
-        public bool supportDBuffer = false;
-        public bool supportMSAA = false;
-        public bool supportsMotionVectors = true;
-        public bool supportsStereo = false;
+        public bool         supportDBuffer = false;
+        public bool         supportMSAAAntiAliasing = false;
+        public MSAASamples  msaaSampleCount = MSAASamples.None;
+        public bool         supportsMotionVectors = true;
+        public bool         supportsStereo = false;
 
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public ShadowInitParameters     shadowInitParams = new ShadowInitParameters();

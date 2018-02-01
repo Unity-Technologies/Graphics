@@ -40,17 +40,21 @@ namespace UnityEngine.Experimental.Rendering
         private static int GetMaxWith(RTCategory category) { return s_MaxWidths[(int)category]; }
         private static int GetMaxHeight(RTCategory category) { return s_MaxHeights[(int)category]; }
 
+
+        // Parameters for auto-scaled Render Textures
+        static bool             s_ScaledRTSupportsMSAA = false;
+        static MSAASamples      s_ScaledRTCurrentMSAASamples = MSAASamples.None;
         static List<RTHandle>   s_AutoSizedRTs;
-        static RTCategory       s_CurrentCategory = RTCategory.Regular;
+        static RTCategory       s_ScaledRTCurrentCategory = RTCategory.Regular;
 
         static int[] s_MaxWidths = new int[(int)RTCategory.Count];
         static int[] s_MaxHeights = new int[(int)RTCategory.Count];
 
-        public static int maxWidth { get { return GetMaxWith(s_CurrentCategory); } }
-        public static int maxHeight { get { return GetMaxHeight(s_CurrentCategory); } }
+        public static int maxWidth { get { return GetMaxWith(s_ScaledRTCurrentCategory); } }
+        public static int maxHeight { get { return GetMaxHeight(s_ScaledRTCurrentCategory); } }
 
         static RTHandle()
-        {
+{
             s_AutoSizedRTs = new List<RTHandle>();
             for (int i = 0; i < (int)RTCategory.Count; ++i)
             {
@@ -59,13 +63,28 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        // Call this once to set the initial size and allow msaa targets or not.
+        public static void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
+        {
+            Debug.Assert(s_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture.");
+
+            for (int i = 0; i < (int)RTCategory.Count; ++i)
+            {
+                s_MaxWidths[i] = width;
+                s_MaxHeights[i] = height;
+            }
+
+            s_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
+            s_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
+        }
+
         public static void Release(RTHandle rth)
         {
             if(rth != null)
                 rth.Release();
         }
 
-        public static void SetReferenceSize(int width, int height, bool msaa)
+        public static void SetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
         {
             // Technically, the enum could be passed as argument directly but let's not pollute public API with unnecessary complexity for now.
             RTCategory category = msaa ? RTCategory.MSAA : RTCategory.Regular;
@@ -73,11 +92,12 @@ namespace UnityEngine.Experimental.Rendering
             width = Mathf.Max(width, 1);
             height = Mathf.Max(height, 1);
 
-            if (width > GetMaxWith(category) || height > GetMaxHeight(category))
-                Resize(width, height, category);
+            bool msaaSamplesChanged = msaa && (msaaSamples != s_ScaledRTCurrentMSAASamples);
+            if (width > GetMaxWith(category) || height > GetMaxHeight(category) || msaaSamplesChanged)
+                Resize(width, height, category, msaaSamples);
         }
 
-        public static void ResetReferenceSize(int width, int height, bool msaa)
+        public static void ResetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
         {
             // Technically, the enum could be passed as argument directly but let's not pollute public API with unnecessary complexity for now.
             RTCategory category = msaa ? RTCategory.MSAA : RTCategory.Regular;
@@ -85,17 +105,19 @@ namespace UnityEngine.Experimental.Rendering
             width = Mathf.Max(width, 1);
             height = Mathf.Max(height, 1);
 
-            if (width != GetMaxWith(category) || height != GetMaxHeight(category))
-                Resize(width, height, category);
+            bool msaaSamplesChanged = msaa && (msaaSamples != s_ScaledRTCurrentMSAASamples);
+            if (width != GetMaxWith(category) || height != GetMaxHeight(category) || msaaSamplesChanged)
+                Resize(width, height, category, msaaSamples);
         }
 
-        static void Resize(int width, int height, RTCategory category)
+        static void Resize(int width, int height, RTCategory category, MSAASamples msaaSamples)
         {
             s_MaxWidths[(int)category] = width;
             s_MaxHeights[(int)category] = height;
+            s_ScaledRTCurrentMSAASamples = msaaSamples;
 
             var maxSize = new Vector2Int(width, height);
-            s_CurrentCategory = category;
+            s_ScaledRTCurrentCategory = category;
 
             foreach (var rth in s_AutoSizedRTs)
             {
@@ -111,10 +133,11 @@ namespace UnityEngine.Experimental.Rendering
 
                     rt.width = Mathf.Max(scaledSize.x, 1);
                     rt.height = Mathf.Max(scaledSize.y, 1);
+
+                    if (category == RTCategory.MSAA)
+                        rt.antiAliasing = (int)s_ScaledRTCurrentMSAASamples;
                     rt.Create();
                 }
-
-                rth.SetCurrentCategory(category);
             }
         }
 
@@ -142,7 +165,12 @@ namespace UnityEngine.Experimental.Rendering
                 RenderTextureMemoryless memoryless = RenderTextureMemoryless.None
             )
         {
-            RTCategory category = msaaSamples != MSAASamples.None ? RTCategory.MSAA : RTCategory.Regular;
+            bool enableMSAA = msaaSamples != MSAASamples.None;
+            if (!enableMSAA && bindTextureMS == true)
+            {
+                Debug.LogWarning("RTHandle allocated without MSAA but with bindMS set to true, forcing bindMS to false.");
+                bindTextureMS = false;
+            }
 
             var rt = new RenderTexture(width, height, (int)depthBufferBits, colorFormat, sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear)
             {
@@ -164,8 +192,12 @@ namespace UnityEngine.Experimental.Rendering
             };
             rt.Create();
 
-            var newRT = new RTHandle(rt, category);
+            RTCategory category = enableMSAA ? RTCategory.MSAA : RTCategory.Regular;
+            var newRT = new RTHandle();
+            newRT.SetRenderTexture(rt, category);
             newRT.useScaling = false;
+            newRT.m_EnableRandomWrite = enableRandomWrite;
+            newRT.m_EnableMSAA = enableMSAA;
             return newRT;
         }
 
@@ -187,19 +219,20 @@ namespace UnityEngine.Experimental.Rendering
                 bool autoGenerateMips = true,
                 int anisoLevel = 1,
                 float mipMapBias = 0f,
-                MSAASamples msaaSamples = MSAASamples.None,
+                bool enableMSAA = false,
                 bool bindTextureMS = false,
                 bool useDynamicScale = false,
                 VRTextureUsage vrUsage = VRTextureUsage.None,
                 RenderTextureMemoryless memoryless = RenderTextureMemoryless.None
             )
         {
-            RTCategory category = msaaSamples != MSAASamples.None ? RTCategory.MSAA : RTCategory.Regular;
+            bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
+            RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             int width = Mathf.Max(Mathf.RoundToInt(scaleFactor.x * GetMaxWith(category)), 1);
             int height = Mathf.Max(Mathf.RoundToInt(scaleFactor.y * GetMaxHeight(category)), 1);
 
-            var rth = Alloc(width,
+            var rth = AllocAutoSizedRenderTexture(width,
                 height,
                 1,
                 depthBufferBits,
@@ -213,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering
                 autoGenerateMips,
                 anisoLevel,
                 mipMapBias,
-                msaaSamples,
+                enableMSAA,
                 bindTextureMS,
                 useDynamicScale,
                 vrUsage,
@@ -221,8 +254,6 @@ namespace UnityEngine.Experimental.Rendering
             );
 
             rth.scaleFactor = scaleFactor;
-            rth.useScaling = true;
-            s_AutoSizedRTs.Add(rth);
             return rth;
         }
 
@@ -249,20 +280,21 @@ namespace UnityEngine.Experimental.Rendering
                 bool autoGenerateMips = true,
                 int anisoLevel = 1,
                 float mipMapBias = 0f,
-                MSAASamples msaaSamples = MSAASamples.None,
+                bool enableMSAA = false,
                 bool bindTextureMS = false,
                 bool useDynamicScale = false,
                 VRTextureUsage vrUsage = VRTextureUsage.None,
                 RenderTextureMemoryless memoryless = RenderTextureMemoryless.None
             )
         {
-            RTCategory category = msaaSamples != MSAASamples.None ? RTCategory.MSAA : RTCategory.Regular;
+            bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
+            RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             var scaleFactor = scaleFunc(new Vector2Int(GetMaxWith(category), GetMaxHeight(category)));
             int width = Mathf.Max(scaleFactor.x, 1);
             int height = Mathf.Max(scaleFactor.y, 1);
 
-            var rth = Alloc(width,
+            var rth = AllocAutoSizedRenderTexture(width,
                 height,
                 1,
                 depthBufferBits,
@@ -276,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering
                 autoGenerateMips,
                 anisoLevel,
                 mipMapBias,
-                msaaSamples,
+                enableMSAA,
                 bindTextureMS,
                 useDynamicScale,
                 vrUsage,
@@ -284,6 +316,73 @@ namespace UnityEngine.Experimental.Rendering
             );
 
             rth.scaleFunc = scaleFunc;
+            return rth;
+        }
+
+        static RTHandle AllocAutoSizedRenderTexture(
+                int width,
+                int height,
+                int slices,
+                DepthBits depthBufferBits,
+                RenderTextureFormat colorFormat,
+                FilterMode filterMode,
+                TextureWrapMode wrapMode,
+                TextureDimension dimension,
+                bool sRGB,
+                bool enableRandomWrite,
+                bool useMipMap,
+                bool autoGenerateMips,
+                int anisoLevel,
+                float mipMapBias,
+                bool enableMSAA,
+                bool bindTextureMS,
+                bool useDynamicScale,
+                VRTextureUsage vrUsage,
+                RenderTextureMemoryless memoryless
+            )
+        {
+            // Here user made a mistake in setting up msaa/bindMS, hence the warning
+            if (!enableMSAA && bindTextureMS == true)
+            {
+                Debug.LogWarning("RTHandle allocated without MSAA but with bindMS set to true, forcing bindMS to false.");
+                bindTextureMS = false;
+            }
+
+            bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
+            // Here we purposefully disable MSAA so we just force the bindMS param to false.
+            if (!allocForMSAA)
+            {
+                bindTextureMS = false;
+            }
+
+            int msaaSamples = allocForMSAA ? (int)s_ScaledRTCurrentMSAASamples : 1;
+            bool UAV = allocForMSAA ? false : enableRandomWrite; // MSAA Does not support random read/write.
+            RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
+
+            var rt = new RenderTexture(width, height, (int)depthBufferBits, colorFormat, sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                volumeDepth = slices,
+                filterMode = filterMode,
+                wrapMode = wrapMode,
+                dimension = dimension,
+                enableRandomWrite = UAV,
+                useMipMap = useMipMap,
+                autoGenerateMips = autoGenerateMips,
+                anisoLevel = anisoLevel,
+                mipMapBias = mipMapBias,
+                antiAliasing = msaaSamples,
+                bindTextureMS = bindTextureMS,
+                useDynamicScale = useDynamicScale,
+                vrUsage = vrUsage,
+                memorylessMode = memoryless
+            };
+            rt.Create();
+
+            RTHandle rth = new RTHandle();
+            rth.SetRenderTexture(rt, category);
+            rth.m_EnableMSAA = enableMSAA;
+            rth.m_EnableRandomWrite = enableRandomWrite;
             rth.useScaling = true;
             s_AutoSizedRTs.Add(rth);
             return rth;
@@ -312,9 +411,10 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Instance data
-        RTCategory m_CurrentCategory = RTCategory.Regular;
-        RenderTexture[] m_RTs = new RenderTexture[2];
-        RenderTargetIdentifier[] m_NameIDs = new RenderTargetIdentifier[2];
+        RenderTexture[]             m_RTs = new RenderTexture[2];
+        RenderTargetIdentifier[]    m_NameIDs = new RenderTargetIdentifier[2];
+        bool                        m_EnableMSAA = false;
+        bool                        m_EnableRandomWrite = false;
 
         Vector2 scaleFactor = Vector2.one;
         ScaleFunc scaleFunc;
@@ -325,8 +425,16 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                CreateIfNeeded(m_CurrentCategory);
-                return m_RTs[(int)m_CurrentCategory];
+                if(!useScaling)
+                {
+                    return m_EnableMSAA ? m_RTs[(int)RTCategory.MSAA] : m_RTs[(int)RTCategory.Regular];
+                }
+                else
+                {
+                    RTCategory category = (m_EnableMSAA && s_ScaledRTCurrentCategory == RTCategory.MSAA) ? RTCategory.MSAA : RTCategory.Regular;
+                    CreateIfNeeded(category);
+                    return m_RTs[(int)category];
+                }
             }
         }
 
@@ -334,17 +442,28 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                CreateIfNeeded(m_CurrentCategory);
-                return m_NameIDs[(int)m_CurrentCategory];
+                if (!useScaling)
+                {
+                    return m_EnableMSAA ? m_NameIDs[(int)RTCategory.MSAA] : m_RTs[(int)RTCategory.Regular];
+                }
+                else
+                {
+                    RTCategory category = (m_EnableMSAA && s_ScaledRTCurrentCategory == RTCategory.MSAA) ? RTCategory.MSAA : RTCategory.Regular;
+                    CreateIfNeeded(category);
+                    return m_NameIDs[(int)category];
+                }
             }
         }
 
-        RTHandle(RenderTexture rt, RTCategory category)
+        // Keep constructor private
+        RTHandle()
         {
-            this.m_RTs[(int)category] = rt;
-            this.m_NameIDs[(int)category] = new RenderTargetIdentifier(rt);
+        }
 
-            SetCurrentCategory(category);
+        void SetRenderTexture(RenderTexture rt, RTCategory category)
+        {
+            m_RTs[(int)category] = rt;
+            m_NameIDs[(int)category] = new RenderTargetIdentifier(rt);
         }
 
         void CreateIfNeeded(RTCategory category)
@@ -364,7 +483,7 @@ namespace UnityEngine.Experimental.Rendering
                     filterMode = refRT.filterMode,
                     wrapMode = refRT.wrapMode,
                     dimension = refRT.dimension,
-                    enableRandomWrite = refRT.enableRandomWrite,
+                    enableRandomWrite = m_EnableRandomWrite, // We cannot take the info from the msaa rt since we force it to 1
                     useMipMap = refRT.useMipMap,
                     autoGenerateMips = refRT.autoGenerateMips,
                     anisoLevel = refRT.anisoLevel,
@@ -382,13 +501,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void SetCurrentCategory(RTCategory category)
-        {
-            m_CurrentCategory = category;
-        }
-
         public void Release()
         {
+
             s_AutoSizedRTs.Remove(this);
             for (int i = 0; i < (int)RTCategory.Count; ++i)
             {
