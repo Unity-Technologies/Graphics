@@ -107,7 +107,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
                     
-                    if (IsNAN(color) || any(isinf(color)))
+                    if (AnyIsNan(color) || any(isinf(color)))
                     {
                         color = float4(1.0, 0.0, 0.0, 1.0);
                     }
