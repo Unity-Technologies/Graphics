@@ -34,7 +34,7 @@ void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThrea
 
     // Select the nearest sample
 #if UNITY_REVERSED_Z
-    float minDepth = max(min(depths.x, depths.y), max(depths.z, depths.w));
+    float minDepth = max(max(depths.x, depths.y), max(depths.z, depths.w));
 #else
     float minDepth = min(min(depths.x, depths.y), min(depths.z, depths.w));
 #endif
