@@ -124,7 +124,8 @@ namespace UnityEngine.Experimental.Rendering.Fptl
     public class FptlLighting : RenderPipelineAsset
     {
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("Assets/Create/Render Pipeline/FPTL/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
+        // Hide as not an official pipeline
+        // [UnityEditor.MenuItem("Assets/Create/Render Pipeline/FPTL/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateRenderLoopFPTL()
         {
             var instance = ScriptableObject.CreateInstance<FptlLighting>();
