@@ -258,25 +258,25 @@ float CubeMapFaceID(float3 dir)
 }
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
-// Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use IsNAN instead
-bool IsNAN(float n)
+// Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use AnyIsNan instead
+bool IsNan(float n)
 {
     return (n < 0.0 || n > 0.0 || n == 0.0) ? false : true;
 }
 
-bool IsNAN(float2 v)
+bool AnyIsNan(float2 v)
 {
-    return (IsNAN(v.x) || IsNAN(v.y)) ? true : false;
+    return (IsNan(v.x) || IsNan(v.y));
 }
 
-bool IsNAN(float3 v)
+bool AnyIsNan(float3 v)
 {
-    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z)) ? true : false;
+    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z));
 }
 
-bool IsNAN(float4 v)
+bool AnyIsNan(float4 v)
 {
-    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z) || IsNAN(v.w)) ? true : false;
+    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z) || IsNan(v.w));
 }
 
 // ----------------------------------------------------------------------------

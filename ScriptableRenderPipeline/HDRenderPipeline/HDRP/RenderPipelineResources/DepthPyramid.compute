@@ -1,5 +1,8 @@
 ﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
 
+#pragma kernel KMain_8                KERNEL_SIZE=8     KERNEL_NAME=KMain_8
+#pragma kernel KMain_1                KERNEL_SIZE=1     KERNEL_NAME=KMain_1
+
 Texture2D<float> _Source;
 RWTexture2D<float> _Result;
 
@@ -9,9 +12,9 @@ CBUFFER_START(cb)
 float4 _SrcSize;
 CBUFFER_END
 
-#pragma kernel KMain
-[numthreads(8, 8, 1)]
-void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     // Upper-left pixel coordinate of quad that this thread will read
     int2 threadUL = dispatchThreadId;
@@ -31,7 +34,7 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
 
     // Select the nearest sample
 #if UNITY_REVERSED_Z
-    float minDepth = max(min(depths.x, depths.y), max(depths.z, depths.w));
+    float minDepth = max(max(depths.x, depths.y), max(depths.z, depths.w));
 #else
     float minDepth = min(min(depths.x, depths.y), min(depths.z, depths.w));
 #endif
