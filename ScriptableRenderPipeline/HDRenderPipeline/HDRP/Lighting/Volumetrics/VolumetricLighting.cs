@@ -374,7 +374,7 @@ public class VolumetricLightingModule
     }
 
     // Undoes coefficient normalization to obtain the canonical values of SH.
-    public unsafe SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
+    public static unsafe SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
     {    
         float sqrtPi = Mathf.Sqrt(Mathf.PI);
 
@@ -400,7 +400,7 @@ public class VolumetricLightingModule
     }
 
     // Ref: "Stupid Spherical Harmonics Tricks", p. 6.
-    public unsafe SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)
+    public static unsafe SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)
     {
         for (int l = 0; l <= 2; l++)
         {
