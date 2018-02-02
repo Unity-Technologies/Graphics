@@ -250,6 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graph.RemoveShaderProperty(property.guid);
                 }
             }
+            selection.Clear();
         }
 
         public bool CanAcceptDrop(List<ISelectable> selection)
