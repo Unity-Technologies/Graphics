@@ -17,6 +17,22 @@ namespace UnityEditor.VFX.UIElements
             AddToClassList("sliderField");
         }
 
+        protected void RegisterCallBack()
+        {
+            (m_Field as VisualElement).RegisterCallback<BlurEvent>(OnFocusLost);
+        }
+
+        void OnFocusLost(BlurEvent e)
+        {
+            //forward the focus lost event
+            using (BlurEvent newE = BlurEvent.GetPooled(this, e.relatedTarget, e.direction))
+            {
+                UIElementsUtility.eventDispatcher.DispatchEvent(newE, null);
+            }
+
+            e.StopPropagation();
+        }
+
         public T m_Value;
 
         public T value
@@ -110,6 +126,7 @@ namespace UnityEditor.VFX.UIElements
 
             Add(m_Slider);
             Add(doubleField);
+            RegisterCallBack();
         }
 
         public override bool hasFocus
@@ -146,6 +163,7 @@ namespace UnityEditor.VFX.UIElements
 
             Add(m_Slider);
             Add(integerField);
+            RegisterCallBack();
         }
 
         public override bool hasFocus

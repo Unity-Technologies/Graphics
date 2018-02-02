@@ -41,16 +41,24 @@ namespace UnityEditor.VFX.UI
         public override INotifyValueChanged<U> CreateField()
         {
             Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
+            INotifyValueChanged<U> result;
             if (!RangeShouldCreateSlider(range))
             {
-                return CreateSimpleField(out m_TextField);
+                result = CreateSimpleField(out m_TextField);
+                m_TextField.RegisterCallback<BlurEvent>(OnFocusLost);
             }
             else
             {
-                var field = CreateSliderField(out m_Slider);
+                result = CreateSliderField(out m_Slider);
+                m_Slider.RegisterCallback<BlurEvent>(OnFocusLost);
                 m_Slider.range = range;
-                return field;
             }
+            return result;
+        }
+
+        void OnFocusLost(BlurEvent e)
+        {
+            UpdateGUI();
         }
 
         protected override bool HasFocus()

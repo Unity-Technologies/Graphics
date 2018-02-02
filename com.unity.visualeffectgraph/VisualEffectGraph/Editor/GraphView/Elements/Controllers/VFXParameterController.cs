@@ -212,6 +212,7 @@ namespace UnityEditor.VFX.UI
 
         VFXViewController m_ViewController;
 
+        IDataWatchHandle m_SlotHandle;
 
         VFXMinMaxParameterController m_MinController;
         public VFXMinMaxParameterController minController
@@ -241,6 +242,15 @@ namespace UnityEditor.VFX.UI
         public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(model)
         {
             m_ViewController = viewController;
+
+            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(model.outputSlots[0], OnSlotChanged);
+        }
+
+        public const int ValueChanged = 1;
+
+        void OnSlotChanged(UnityEngine.Object model)
+        {
+            NotifyChange(ValueChanged);
         }
 
         public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
@@ -371,7 +381,7 @@ namespace UnityEditor.VFX.UI
 
         public bool hasRange
         {
-            get { return parameter.m_Min != null && parameter.m_Min.type != null && parameter.m_Max != null && parameter.m_Max.type != null; }
+            get { return canHaveRange && parameter.m_Min != null && parameter.m_Min.type != null && parameter.m_Max != null && parameter.m_Max.type != null; }
 
             set
             {
@@ -422,6 +432,10 @@ namespace UnityEditor.VFX.UI
                         parameter.m_Min = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Min.Set(value);
+                    if (RangeToFloat(this.value) < RangeToFloat(value))
+                    {
+                        this.value = value;
+                    }
                     parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
                 else
@@ -439,6 +453,11 @@ namespace UnityEditor.VFX.UI
                         parameter.m_Max = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Max.Set(value);
+                    if (RangeToFloat(this.value) > RangeToFloat(value))
+                    {
+                        this.value = value;
+                    }
+
                     parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
                 else
@@ -462,6 +481,18 @@ namespace UnityEditor.VFX.UI
                 Undo.RecordObject(parameter, "Change Value");
 
                 VFXSlot slot = parameter.GetOutputSlot(0);
+
+                if (hasRange)
+                {
+                    if (RangeToFloat(value) < RangeToFloat(minValue))
+                    {
+                        value = minValue;
+                    }
+                    if (RangeToFloat(value) > RangeToFloat(maxValue))
+                    {
+                        value = maxValue;
+                    }
+                }
 
                 slot.value = value;
             }
@@ -565,6 +596,14 @@ namespace UnityEditor.VFX.UI
         public void RetractPath()
         {
             throw new NotImplementedException();
+        }
+
+        public override void OnDisable()
+        {
+            DataWatchService.sharedInstance.RemoveWatch(m_SlotHandle);
+            m_SlotHandle = null;
+
+            base.OnDisable();
         }
     }
 }

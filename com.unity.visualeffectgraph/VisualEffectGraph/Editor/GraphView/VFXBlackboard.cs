@@ -104,8 +104,16 @@ namespace  UnityEditor.VFX.UI
 
         IPropertyRMProvider m_RangeProvider;
 
-        public void SelfChange()
+        public void SelfChange(int change)
         {
+            if (change == VFXParameterController.ValueChanged)
+            {
+                foreach (var prop in allProperties)
+                {
+                    prop.Update();
+                }
+                return;
+            }
             int insertIndex = 0;
             if (m_Property == null || !m_Property.IsCompatible(controller))
             {
@@ -259,7 +267,7 @@ namespace  UnityEditor.VFX.UI
                 e.StopPropagation();
             }
 
-            m_Properties.SelfChange();
+            m_Properties.SelfChange(e.change);
         }
 
         VFXParameterController m_Controller;
