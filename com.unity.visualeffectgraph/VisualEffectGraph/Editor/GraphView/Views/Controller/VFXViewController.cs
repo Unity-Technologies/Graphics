@@ -492,6 +492,11 @@ namespace UnityEditor.VFX.UI
             // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
             if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
+                if (m_GraphHandle != null)
+                {
+                    DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
+                    m_GraphHandle = null;
+                }
                 if (m_Graph != null)
                 {
                     GraphLost();
@@ -514,6 +519,8 @@ namespace UnityEditor.VFX.UI
                     VFXUI ui = m_Graph.UIInfos;
 
                     m_UIHandle = DataWatchService.sharedInstance.AddWatch(ui, UIChanged);
+
+                    GraphChanged(m_Graph);
                 }
             }
         }
@@ -563,7 +570,14 @@ namespace UnityEditor.VFX.UI
 
         protected void GraphChanged(UnityEngine.Object obj)
         {
-            if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
+            if (m_Graph == null)
+            {
+                if (model != null)
+                {
+                    ModelChanged(model);
+                }
+                return;
+            }
 
             VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
             validation.ValidateGraph();
