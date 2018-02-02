@@ -47,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public const int editMenuPriority1 = 320;
         public const int editMenuPriority2 = 331;
+        public const int editMenuPriority3 = 342;
         public const int assetCreateMenuPriority1 = 230;
         public const int assetCreateMenuPriority2 = 241;
         public const int gameObjectMenuPriority = 10;
