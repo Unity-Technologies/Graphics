@@ -22,7 +22,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #include "../Debug/DebugDisplay.cs.hlsl"
 
             TEXTURE2D(_DebugFullScreenTexture);
-            SAMPLER(sampler_DebugFullScreenTexture);
             float _FullScreenDebugMode;
             float _RequireToFlipInputTexture;
 
@@ -87,7 +86,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             float2 SampleMotionVectors(float2 coords)
             {
-                return SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, coords).xy;
+                return SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, coords).xy;
             }
             // end motion vector utilties
 
@@ -101,13 +100,13 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
                 {
-                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord).xxxx;
+                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
-                    
-                    if (IsNAN(color) || any(isinf(color)))
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+
+                    if (AnyIsNan(color) || any(isinf(color)))
                     {
                         color = float4(1.0, 0.0, 0.0, 1.0);
                     }
@@ -178,19 +177,22 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEFERRED_SHADOWS)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return float4(color.rgb, 0.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return float4(color.rgb, 1.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, sampler_DebugFullScreenTexture, input.texcoord);
-                    return float4(color.rrr / (color.rrr + 1), 1.0);
+                    // Reuse depth display function from DebugViewMaterial
+                    float depth = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                    float linearDepth = frac(posInput.linearDepth * 0.1);
+                    return float4(linearDepth.xxx, 1.0);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

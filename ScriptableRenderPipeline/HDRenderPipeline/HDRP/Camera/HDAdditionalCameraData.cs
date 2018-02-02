@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Note that we register m_FrameSettingsRuntime, so manipulating it in the Debug windows
                 // doesn't affect the serialized version
-                if (m_camera.cameraType != CameraType.Preview)
+                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
                     FrameSettings.RegisterDebug(m_camera.name, GetFrameSettings());
                 }
@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_IsDebugRegistered)
             {
-                if (m_camera.cameraType != CameraType.Preview)
+                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
                     FrameSettings.UnRegisterDebug(m_CameraRegisterName);
                 }
