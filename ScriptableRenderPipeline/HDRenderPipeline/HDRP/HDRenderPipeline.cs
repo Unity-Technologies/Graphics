@@ -1199,9 +1199,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_FrameSettings.enableDBuffer)
                 {
                     m_DbufferManager.UnSetHTile(cmd);
+                }
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
-        }
         }
 
         void RenderDBuffer(HDCamera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)

@@ -154,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, miplevel, cubemapFace, depthSlice);
             SetViewport(cmd, camera, colorBuffer);
-            CoreUtils.ClearRenderTarget(cmd, clearFlag, CoreUtils.clearColorAllBlack);
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
             SetViewport(cmd, camera, depthBuffer);
-            CoreUtils.ClearRenderTarget(cmd, clearFlag, CoreUtils.clearColorAllBlack);
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
         // Scaling viewport is done for auto-scaling render targets.
