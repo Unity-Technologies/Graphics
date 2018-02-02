@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedShadowInitParameters shadowInitParams;
+		public SerializedGlobalDecalSettings decalSettings;
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -29,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             shadowInitParams = new SerializedShadowInitParameters(root.Find((RenderPipelineSettings s) => s.shadowInitParams));
+			decalSettings = new SerializedGlobalDecalSettings(root.Find((RenderPipelineSettings s) => s.decalSettings));
         }
     }
 }
