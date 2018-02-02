@@ -10,6 +10,7 @@
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (10000)
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL_WS (10001)
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (10002)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (10003)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
@@ -30,6 +31,7 @@ struct DecalSurfaceData
     float4 baseColor;
     float4 normalWS;
     float4 mask;
+    int HTileMask;
 };
 
 //
@@ -48,6 +50,9 @@ void GetGeneratedDecalSurfaceDataDebug(uint paramId, DecalSurfaceData decalsurfa
             break;
         case DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK:
             result = decalsurfacedata.mask.xyz;
+            break;
+        case DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK:
+            result = GetIndexColor(decalsurfacedata.HTileMask);
             break;
     }
 }
