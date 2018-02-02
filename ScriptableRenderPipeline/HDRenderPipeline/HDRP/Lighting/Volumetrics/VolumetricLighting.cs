@@ -342,16 +342,47 @@ public class VolumetricLightingModule
         return depthParams;
     }
 
-    Vector4 GetAmbientLightProbe()
+    // Undoes coefficient normalization to obtain the canonical values of SH.
+    SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
+    {    
+        float sqrtPi = Mathf.Sqrt(Mathf.PI);
+
+        float c0 = 1.0f / (2.0f * sqrtPi);
+        float c1 = Mathf.Sqrt( 3.0f) / ( 3.0f * sqrtPi);
+        float c2 = Mathf.Sqrt(15.0f) / ( 8.0f * sqrtPi);
+        float c3 = Mathf.Sqrt( 5.0f) / (16.0f * sqrtPi);
+        float c4 = 0.5f * c2;
+
+        // Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
+        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks". Note that we do not multiply by 3 here.
+        float[] invNormConsts = { 1.0f / c0, -1.0f / c1, 1.0f / c1, -1.0f / c1, 1.0f / c2, -1.0f / c2, 1.0f / c3, -1.0f / c2, 1.0f / c4 };
+
+        for (int i = 0; i < 9; i++)
+        {
+            for (int c = 0; c < 3; c++)
+            {
+                sh[c, i] *= invNormConsts[i];
+            }
+        }
+
+        return sh;
+    }
+
+    void SetAmbientLightProbe(CommandBuffer cmd)
     {
-        Vector4 probe = new Vector4();
+        SphericalHarmonicsL2 probeSH = DenormalizeSH(RenderSettings.ambientProbe);
 
-        SphericalHarmonicsL2 probeSH = RenderSettings.ambientProbe;
-        probe.x = probeSH[0, 0];
-        probe.y = probeSH[1, 0];
-        probe.z = probeSH[2, 0];
+        Vector4[] coeffs = new Vector4[9];
 
-        return probe;
+        for (int i = 0; i < 9; i++)
+        {
+            coeffs[i].x = probeSH[0, i]; // R
+            coeffs[i].y = probeSH[1, i]; // G
+            coeffs[i].z = probeSH[2, i]; // B
+            coeffs[i].w = 0;             // Unused
+        }
+
+        cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, coeffs);
     }
 
     public void PushGlobalParams(HDCamera camera, CommandBuffer cmd)
@@ -374,12 +405,12 @@ public class VolumetricLightingModule
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
 
+        SetAmbientLightProbe(cmd);
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams, ComputeLogarithmicDepthDecodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
-        cmd.SetGlobalVector( HDShaderIDs._AmbientProbe,               GetAmbientLightProbe());
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
