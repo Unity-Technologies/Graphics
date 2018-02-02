@@ -99,7 +99,7 @@ public class VolumetricLightingModule
     }
     class VBuffer
     {
-        public int                      viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
+        public long                     viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
         public RenderTexture[]          lightingRTEX = null;
         public RenderTargetIdentifier[] lightingRTID = null;
 
@@ -121,7 +121,7 @@ public class VolumetricLightingModule
             return lightingRTID[1 + ((Time.renderedFrameCount + 1) & 1)];
         }
 
-        public void Create(int viewID, int w, int h, int d)
+        public void Create(long viewID, int w, int h, int d)
         {
             Debug.Assert(viewID >= 0);
             Debug.Assert(w > 0 && h > 0 && d > 0);
@@ -204,7 +204,7 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        int viewID = camera.GetViewID();
+        long viewID = camera.GetViewID();
 
         Debug.Assert(viewID >= 0);
 
@@ -238,7 +238,7 @@ public class VolumetricLightingModule
         vBuffer.Create(viewID, w, h, d);
     }
 
-    VBuffer FindVBuffer(int viewID)
+    VBuffer FindVBuffer(long viewID)
     {
         Debug.Assert(viewID >= 0);
 
