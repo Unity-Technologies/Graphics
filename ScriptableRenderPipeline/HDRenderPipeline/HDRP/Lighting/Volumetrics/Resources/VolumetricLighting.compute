@@ -94,23 +94,13 @@ struct VoxelLighting
     float3 radianceNoPhase;
 };
 
-struct ZonalHarmonics
-{
-    float coeffs[3]; // 3 bands
-};
-
-struct SphericalHarmonics
-{
-    float coeffs[9]; // 3 bands
-};
-
 // RGB SphericalHarmonics
 struct LightProbe
 {
     float3 coeffs[9]; // 3 bands
 };
 
-LightProbe GetAmbientProbe()
+LightProbe GetPreconvolvedAmbientProbe()
 {
     LightProbe probe;
 
@@ -137,51 +127,17 @@ float EvaluateSphericalHarmonics(int i, float3 d)
         case 6: return  sqrt(0.3125 / PI) * (3 * Sq(d.z) - 1);
         case 7: return -sqrt(3.75 / PI) * d.x * d.z;
         case 8: return  sqrt(0.9375 / PI) * (Sq(d.x) - Sq(d.y));
-        default: return -FLT_INF; // Unreachable
+        default: return FLT_INF; // Unreachable
     }
 }
 
-// Ref: "Stupid Spherical Harmonics Tricks", p. 7.
-SphericalHarmonics RotateZonalHarmonics(ZonalHarmonics zh, float3 d)
+float3 EvaluateLightProbe(LightProbe probe, float3 d)
 {
-    SphericalHarmonics sh;
-
-    for (int l = 0; l <= 2; l++)
-    {
-        float n = sqrt((4 * PI) / (2 * l + 1));
-        float c = zh.coeffs[l];
-        float p = n * c;
-
-        for (int m = -l; m <= l; m++)
-        {
-            int i = l * (l + 1) + m;
-
-            sh.coeffs[i] = p * EvaluateSphericalHarmonics(i, d);
-        }
-    }
-
-    return sh;
-}
-
-float3 EvaluateLightProbe(LightProbe probe, float asymmetry, float3 d)
-{
-    float g = asymmetry;
-
-    // Represent the Henyey-Greenstein function using the Zonal Harmonics.
-    ZonalHarmonics zhPhase;
-    zhPhase.coeffs[0] = 0.5 * sqrt(1 / PI);
-    zhPhase.coeffs[1] = 0.5 * sqrt(3 / PI) * g;
-    zhPhase.coeffs[2] = 0.5 * sqrt(5 / PI) * g * g;
-
-    // Rotate the coefficients (z -> d).
-    SphericalHarmonics shPhase = RotateZonalHarmonics(zhPhase, d);
-
-    // Evaluate the integral.
     float3 radiance = 0;
 
     for (int i = 0; i < 9; i++)
     {
-        radiance += probe.coeffs[i] * shPhase.coeffs[i];
+        radiance += probe.coeffs[i] * EvaluateSphericalHarmonics(i, d);
     }
 
     return max(0, radiance);
@@ -591,7 +547,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         // Sample the light probe.
-        float3 probeRadiance = EvaluateLightProbe(GetAmbientProbe(), asymmetry, ray.centerDirWS) * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+        float3 probeRadiance = EvaluateLightProbe(GetPreconvolvedAmbientProbe(), ray.centerDirWS) * TransmittanceIntegralHomogeneousMedium(extinction, dt);
 
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
         totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);

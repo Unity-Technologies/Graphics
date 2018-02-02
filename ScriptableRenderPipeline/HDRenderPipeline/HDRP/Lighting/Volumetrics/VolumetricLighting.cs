@@ -342,8 +342,39 @@ public class VolumetricLightingModule
         return depthParams;
     }
 
+    public unsafe struct ZonalHarmonicsL2
+    {
+        public fixed float coeffs[3];
+    };
+
+    public static unsafe ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float asymmetry)
+    {
+        float g = asymmetry;
+
+        ZonalHarmonicsL2 zh = new ZonalHarmonicsL2();
+
+        zh.coeffs[0] = 0.5f * Mathf.Sqrt(1.0f / Mathf.PI);
+        zh.coeffs[1] = 0.5f * Mathf.Sqrt(3.0f / Mathf.PI) * g;
+        zh.coeffs[2] = 0.5f * Mathf.Sqrt(5.0f / Mathf.PI) * g * g;
+
+        return zh;
+    }
+
+    public static unsafe ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float asymmetry)
+    {
+        float g = asymmetry;
+
+        ZonalHarmonicsL2 zh = new ZonalHarmonicsL2();
+
+        zh.coeffs[0] = 0.282095f;
+        zh.coeffs[1] = 0.293162f * g * (4.0f + (g * g)) / (2.0f + (g * g));
+        zh.coeffs[2] = (0.126157f + 1.44179f * (g * g) + 0.324403f * (g * g) * (g * g)) / (2.0f + (g * g));
+
+        return zh;
+    }
+
     // Undoes coefficient normalization to obtain the canonical values of SH.
-    SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
+    public unsafe SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
     {    
         float sqrtPi = Mathf.Sqrt(Mathf.PI);
 
@@ -368,18 +399,43 @@ public class VolumetricLightingModule
         return sh;
     }
 
-    void SetAmbientLightProbe(CommandBuffer cmd)
+    // Ref: "Stupid Spherical Harmonics Tricks", p. 6.
+    public unsafe SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)
+    {
+        for (int l = 0; l <= 2; l++)
+        {
+            float n = Mathf.Sqrt((4.0f * Mathf.PI) / (2 * l + 1));
+            float k = zh.coeffs[l];
+            float p = n * k;
+
+            for (int m = -l; m <= l; m++)
+            {
+                int i = l * (l + 1) + m;
+
+                sh[0, i] *= p;
+                sh[1, i] *= p;
+                sh[2, i] *= p;
+            }
+        }
+
+        return sh;
+    }
+
+    void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float asymmetry)
     {
         SphericalHarmonicsL2 probeSH = DenormalizeSH(RenderSettings.ambientProbe);
+        ZonalHarmonicsL2     phaseZH = GetCornetteShanksPhaseFunction(asymmetry);
+
+        SphericalHarmonicsL2 convolvedSH = Convolve(probeSH, phaseZH);
 
         Vector4[] coeffs = new Vector4[9];
 
         for (int i = 0; i < 9; i++)
         {
-            coeffs[i].x = probeSH[0, i]; // R
-            coeffs[i].y = probeSH[1, i]; // G
-            coeffs[i].z = probeSH[2, i]; // B
-            coeffs[i].w = 0;             // Unused
+            coeffs[i].x = convolvedSH[0, i]; // R
+            coeffs[i].y = convolvedSH[1, i]; // G
+            coeffs[i].z = convolvedSH[2, i]; // B
+            coeffs[i].w = 0;                 // Unused
         }
 
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, coeffs);
@@ -395,9 +451,10 @@ public class VolumetricLightingModule
         VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
                                                                             : VolumeProperties.GetNeutralVolumeProperties();
 
+        float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
         cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
         cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
@@ -405,7 +462,7 @@ public class VolumetricLightingModule
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
 
-        SetAmbientLightProbe(cmd);
+        SetPreconvolvedAmbientLightProbe(cmd, asymmetry);
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
