@@ -125,24 +125,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<MouseUpEvent>(HandleDraggableMouseUp);
         }
 
-        static bool IsAnchorLeft(ResizeHandleAnchor anchor)
-        {
-            return anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft;
-        }
-
-        static bool IsAnchorTop(ResizeHandleAnchor anchor)
-        {
-            return anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight;
-        }
-
-        static bool IsAnchorCorner(ResizeHandleAnchor anchor)
-        {
-            return anchor == ResizeHandleAnchor.TopLeft ||
-                anchor == ResizeHandleAnchor.TopRight ||
-                anchor == ResizeHandleAnchor.BottomLeft ||
-                anchor == ResizeHandleAnchor.BottomRight;
-        }
-
         Vector2 GetMinSize()
         {
             Vector2 minSize = new Vector2(60f, 60f);
@@ -322,8 +304,123 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnResizeFromCorner(Vector2 resizeDelta, ResizeHandleAnchor anchor)
         {
-            Vector2 normalizedResizeDelta = resizeDelta / 2f;
-            Vector2 minSize = GetMinSize();
+            Rect newLayout = m_ResizeTarget.layout;
+            float resizeAmount;
+
+            if (maintainAspectRatio)
+            {
+                bool horizontalDominant;
+
+                if (Mathf.Abs(resizeDelta.x) > Mathf.Abs(resizeDelta.y))
+                {
+                    resizeAmount = resizeDelta.x * .5f;
+                    horizontalDominant = true;
+                }
+                else
+                {
+                    resizeAmount = resizeDelta.y * .5f;
+                    horizontalDominant = false;
+                }
+
+                switch (anchor)
+                {
+                    case ResizeHandleAnchor.TopLeft:
+                    {
+                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(true), GetMaxVerticalExpansion(true));
+                        float minResizeAmount = GetMaxContraction();
+                        resizeAmount = Mathf.Clamp(resizeAmount, -maxResizeAmount, minResizeAmount);
+                        newLayout.xMin += resizeAmount;
+                        newLayout.yMin += resizeAmount;
+                        break;
+                    }
+                    case ResizeHandleAnchor.TopRight:
+                    {
+                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(false), GetMaxVerticalExpansion(true));
+                        float minResizeAmount = GetMaxContraction();
+
+                        if (horizontalDominant)
+                        {
+                            resizeAmount = Mathf.Clamp(resizeAmount, -minResizeAmount, maxResizeAmount);
+                            newLayout.xMax += resizeAmount;
+                            newLayout.yMin -= resizeAmount;
+                        }
+                        else
+                        {
+                            resizeAmount = Mathf.Clamp(resizeAmount, -maxResizeAmount, minResizeAmount);
+                            newLayout.xMax -= resizeAmount;
+                            newLayout.yMin += resizeAmount;
+                        }
+
+                        break;
+                    }
+                    case ResizeHandleAnchor.BottomLeft:
+                    {
+                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(true), GetMaxVerticalExpansion(false));
+                        float minResizeAmount = GetMaxContraction();
+
+                        if (horizontalDominant)
+                        {
+                            resizeAmount = Mathf.Clamp(resizeAmount, -maxResizeAmount, minResizeAmount);
+                            newLayout.xMin += resizeAmount;
+                            newLayout.yMax -= resizeAmount;
+                        }
+                        else
+                        {
+                            resizeAmount = Mathf.Clamp(resizeAmount, -minResizeAmount, maxResizeAmount);
+                            newLayout.xMin -= resizeAmount;
+                            newLayout.yMax += resizeAmount;
+                        }
+
+                        break;
+                    }
+                    case ResizeHandleAnchor.BottomRight:
+                    {
+                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(false), GetMaxVerticalExpansion(false));
+                        float minResizeAmount = GetMaxContraction();
+                        resizeAmount = Mathf.Clamp(resizeAmount, -minResizeAmount, maxResizeAmount);
+                        newLayout.xMax += resizeAmount;
+                        newLayout.yMax += resizeAmount;
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Vector2 normalizedResizeDelta = resizeDelta * .5f;
+                Vector2 minSize = GetMinSize();
+
+                if (anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft)
+                {
+                    newLayout.xMin = Mathf.Min(newLayout.xMin + normalizedResizeDelta.x, newLayout.xMax - minSize.x);
+                }
+                else
+                {
+                    newLayout.xMax = Mathf.Max(newLayout.xMax + normalizedResizeDelta.x, newLayout.xMin + minSize.x);
+                }
+
+                if (anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight)
+                {
+                    newLayout.yMin = Mathf.Min(newLayout.yMin + normalizedResizeDelta.y, newLayout.yMax - minSize.y);
+                }
+                else
+                {
+                    newLayout.yMax = Mathf.Max(newLayout.yMax + normalizedResizeDelta.y, newLayout.yMin + minSize.y);
+                }
+
+                if (stayWithinParentBounds)
+                {
+                    newLayout.xMin = Mathf.Max(newLayout.xMin, 0f);
+                    newLayout.yMin = Mathf.Max(newLayout.yMin, 0f);
+                    newLayout.xMax = Mathf.Min(newLayout.xMax, m_ResizeTarget.parent.layout.width);
+                    newLayout.yMax = Mathf.Min(newLayout.yMax, m_ResizeTarget.parent.layout.height);
+                }
+            }
+
+            m_ResizeTarget.layout = newLayout;
         }
 
         void HandleMouseDown(MouseDownEvent evt)
