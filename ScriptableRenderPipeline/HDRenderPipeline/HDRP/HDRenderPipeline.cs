@@ -1563,14 +1563,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
             {
-                // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
-                // write extra data to deal with DOF/MB
-                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                RenderTargetIdentifier source = m_CameraColorBuffer;
+
+                bool tempHACK = true;
+                if(tempHACK)
+                {
+                    // TEMPORARY:
+                    // Since we don't render to the full render textures, we need to feed the post processing stack with the right scale/bias.
+                    // This feature not being implemented yet, we'll just copy the relevant buffers into an appropriately sized RT.
+                    cmd.ReleaseTemporaryRT(HDShaderIDs._CameraDepthTexture);
+                    cmd.ReleaseTemporaryRT(HDShaderIDs._CameraMotionVectorsTexture);
+                    cmd.ReleaseTemporaryRT(HDShaderIDs._CameraColorTexture);
+
+                    cmd.GetTemporaryRT(HDShaderIDs._CameraDepthTexture, hdcamera.actualWidth, hdcamera.actualHeight, m_CameraDepthStencilBuffer.rt.depth, FilterMode.Point, m_CameraDepthStencilBuffer.rt.format);
+                    m_CopyDepth.SetTexture(HDShaderIDs._InputDepth, m_CameraDepthStencilBuffer);
+                    cmd.Blit(null, HDShaderIDs._CameraDepthTexture, m_CopyDepth);
+                    cmd.GetTemporaryRT(HDShaderIDs._CameraMotionVectorsTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_VelocityBuffer.rt.format);
+                    HDUtils.BlitCameraTexture(cmd, hdcamera, m_VelocityBuffer, HDShaderIDs._CameraMotionVectorsTexture);
+                    cmd.GetTemporaryRT(HDShaderIDs._CameraColorTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_CameraColorBuffer.rt.format);
+                    HDUtils.BlitCameraTexture(cmd, hdcamera, m_CameraColorBuffer, HDShaderIDs._CameraColorTexture);
+                    source = HDShaderIDs._CameraColorTexture;
+                }
+                else
+                {
+                    // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
+                    // write extra data to deal with DOF/MB
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                }
 
                 var context = hdcamera.postprocessRenderContext;
                 context.Reset();
-                context.source = m_CameraColorBuffer;
+                context.source = source;
                 context.destination = BuiltinRenderTextureType.CameraTarget;
                 context.command = cmd;
                 context.camera = hdcamera.camera;
