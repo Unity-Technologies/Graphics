@@ -277,5 +277,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
+
+        // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
+        public static Vector4 GetMouseCoordinates(HDCamera camera)
+        {
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
+        }
     }
 }

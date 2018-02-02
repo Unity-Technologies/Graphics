@@ -193,7 +193,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ActualHeight = XRSettings.eyeTextureHeight;
             }
 
-            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, HDUtils.hdrpSettings.msaaSampleCount);
+            // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
+            MSAASamples msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, msaaSamples);
 
             int maxWidth = RTHandle.maxWidth;
             int maxHeight = RTHandle.maxHeight;
