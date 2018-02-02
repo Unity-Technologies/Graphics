@@ -94,6 +94,99 @@ struct VoxelLighting
     float3 radianceNoPhase;
 };
 
+struct ZonalHarmonics
+{
+    float coeffs[3]; // 3 bands
+};
+
+struct SphericalHarmonics
+{
+    float coeffs[9]; // 3 bands
+};
+
+// RGB SphericalHarmonics
+struct LightProbe
+{
+    float3 coeffs[9]; // 3 bands
+};
+
+LightProbe GetAmbientProbe()
+{
+    LightProbe probe;
+
+    for (int i = 0; i < 9; i++)
+    {
+        probe.coeffs[i] = _AmbientProbeCoeffs[i].rgb;
+    }
+
+    return probe;
+}
+
+// i = l * (l + 1) + m
+// Ref: "Stupid Spherical Harmonics Tricks", p. 28-29.
+float EvaluateSphericalHarmonics(int i, float3 d)
+{
+    switch (i)
+    {
+        case 0: return rsqrt(4 * PI);
+        case 1: return -sqrt(0.75 / PI) * d.y;
+        case 2: return  sqrt(0.75 / PI) * d.z;
+        case 3: return -sqrt(0.75 / PI) * d.x;
+        case 4: return  sqrt(3.75 / PI) * d.x * d.y;
+        case 5: return -sqrt(3.75 / PI) * d.y * d.z;
+        case 6: return  sqrt(0.3125 / PI) * (3 * Sq(d.z) - 1);
+        case 7: return -sqrt(3.75 / PI) * d.x * d.z;
+        case 8: return  sqrt(0.9375 / PI) * (Sq(d.x) - Sq(d.y));
+        default: return -FLT_INF; // Unreachable
+    }
+}
+
+// Ref: "Stupid Spherical Harmonics Tricks", p. 7.
+SphericalHarmonics RotateZonalHarmonics(ZonalHarmonics zh, float3 d)
+{
+    SphericalHarmonics sh;
+
+    for (int l = 0; l <= 2; l++)
+    {
+        float n = sqrt((4 * PI) / (2 * l + 1));
+        float c = zh.coeffs[l];
+        float p = n * c;
+
+        for (int m = -l; m <= l; m++)
+        {
+            int i = l * (l + 1) + m;
+
+            sh.coeffs[i] = p * EvaluateSphericalHarmonics(i, d);
+        }
+    }
+
+    return sh;
+}
+
+float3 EvaluateLightProbe(LightProbe probe, float asymmetry, float3 d)
+{
+    float g = asymmetry;
+
+    // Represent the Henyey-Greenstein function using the Zonal Harmonics.
+    ZonalHarmonics zhPhase;
+    zhPhase.coeffs[0] = 0.5 * sqrt(1 / PI);
+    zhPhase.coeffs[1] = 0.5 * sqrt(3 / PI) * g;
+    zhPhase.coeffs[2] = 0.5 * sqrt(5 / PI) * g * g;
+
+    // Rotate the coefficients (z -> d).
+    SphericalHarmonics shPhase = RotateZonalHarmonics(zhPhase, d);
+
+    // Evaluate the integral.
+    float3 radiance = 0;
+
+    for (int i = 0; i < 9; i++)
+    {
+        radiance += probe.coeffs[i] * shPhase.coeffs[i];
+    }
+
+    return max(0, radiance);
+}
+
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
@@ -498,10 +591,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         // Sample the light probe.
-        float3 probeRadiance = _AmbientProbe.rgb * (4 * PI) * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+        float3 probeRadiance = EvaluateLightProbe(GetAmbientProbe(), asymmetry, ray.centerDirWS) * TransmittanceIntegralHomogeneousMedium(extinction, dt);
 
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        totalRadiance += (transmittance * phase) * scattering * (blendedRadiance + probeRadiance);
+        totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
