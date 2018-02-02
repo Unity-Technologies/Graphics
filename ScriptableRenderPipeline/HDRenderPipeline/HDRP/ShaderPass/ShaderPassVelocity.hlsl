@@ -160,13 +160,13 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
+void Frag(  PackedVaryingsToPS packedInput,
+            out float4 outColor : SV_Target0
+            #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+            #endif
+            )
 {
-    // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
-    bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
-    if (forceNoMotion)
-        return float4(0.0, 0.0, 0.0, 0.0);
-
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
@@ -192,7 +192,14 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // TODO: How to allow overriden velocity vector from GetSurfaceAndBuiltinData ?
     float2 velocity = CalculateVelocity(inputPass.positionCS, inputPass.previousPositionCS);
 
-    float4 outBuffer;
-    EncodeVelocity(velocity, outBuffer);
-    return outBuffer;
+    EncodeVelocity(velocity, outColor);
+
+    // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
+    bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+    if (forceNoMotion)
+        outColor = float4(0.0, 0.0, 0.0, 0.0);
+
+#ifdef _DEPTHOFFSET_ON
+    outputDepth = posInput.deviceDepth;
+#endif
 }

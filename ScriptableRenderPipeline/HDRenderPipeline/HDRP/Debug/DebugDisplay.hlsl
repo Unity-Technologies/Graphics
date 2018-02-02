@@ -13,8 +13,9 @@ CBUFFER_START(UnityDebugDisplay)
 int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
-float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
+float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
+float4 _DebugLightingNormal; // x == bool override
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float _DebugEnvironmentProxyDepthScale;
 CBUFFER_END
@@ -187,7 +188,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
 
 void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
 {
-    if (IsNAN(floatValue))
+    if (IsNan(floatValue))
     {
         DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
         DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
