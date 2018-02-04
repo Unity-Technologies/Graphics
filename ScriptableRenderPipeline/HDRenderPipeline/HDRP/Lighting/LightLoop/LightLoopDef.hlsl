@@ -124,6 +124,8 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     uint cacheType = index & 1;
     index = index >> 1;
 
+    float4 color = float4(0.0, 0.0, 0.0, 1.0);
+
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
@@ -134,32 +136,30 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             ndc *= rcp(ndc.w);
             ndc.xy = ndc.xy * 0.5 + 0.5;
 
-            float4 color = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0);
-            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0 : 1;
+            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0).rgb;
+            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
             
 #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
-                return float4(ndc.xy, 0, color.a);
+                color = float4(ndc.xy, 0, color.a);
 #endif
-            return color;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-            float4 color = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod);
-            color.a = 1;
+            color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod).rgb;
 
 #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
-                return float4(texCoord.xyz * 0.5 + 0.5, color.a);
+                color = float4(texCoord.xyz * 0.5 + 0.5, color.a);
 #endif
-            return color;
         }
-        return float4(0, 0, 0, 0);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
-        return SampleSkyTexture(texCoord, lod);
+        color.rgb = SampleSkyTexture(texCoord, lod).rgb;
     }
+
+    return color;
 }
 
 //-----------------------------------------------------------------------------
