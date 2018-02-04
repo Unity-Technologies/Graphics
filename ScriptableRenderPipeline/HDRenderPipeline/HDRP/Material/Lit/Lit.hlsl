@@ -365,7 +365,6 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        float overrideNormalValue = _DebugLightingNormal.yzw;
         surfaceData.normalWS = worldToTangent[2];
     }
 #endif
