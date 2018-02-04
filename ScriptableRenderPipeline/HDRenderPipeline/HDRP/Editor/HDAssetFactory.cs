@@ -49,7 +49,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Load default renderPipelineResources / Material / Shader
                 string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
-                string PostProcessingPath = HDEditorUtils.GetPostProcessingPath();
                 string CorePath = HDEditorUtils.GetCorePath();
 
                 newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
