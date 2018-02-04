@@ -259,6 +259,12 @@ real ComputeWrappedDiffuseLighting(real NdotL, real w)
 // Helper functions
 //-----------------------------------------------------------------------------
 
+// This abs allow to avoid artifact
+float ClampNdotV(float3 N, float3 V)
+{
+    return abs(dot(N, V)) + 1e-5f;
+}
+
 // Inputs:    normalized normal and view vectors.
 // Outputs:   front-facing normal, and the new non-negative value of the cosine of the view angle.
 // Important: call Orthonormalize() on the tangent and recompute the bitangent afterwards.
