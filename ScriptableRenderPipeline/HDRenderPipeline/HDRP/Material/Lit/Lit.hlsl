@@ -340,7 +340,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
-// Implementer must take into account what are the current override component and 
+// Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
 void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
@@ -461,32 +461,32 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // GBuffer2 and GBuffer0.a interpretation depends on material feature enabled
 
 //GBuffer0  	RGBA8 sRGB  Gbuffer0 encode baseColor and so is sRGB to save precision. Alpha is not affected.
-//GBuffer1  	R10B10G10A2
+//GBuffer1  	RGBA8
 //GBuffer2  	RGBA8
 //GBuffer3  	RGBA8
 
 
 //FeatureName   Standard
 //GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
-//GBuffer1  	perceptualRoughness,    normal.x,   normal.y,   normal.sign
+//GBuffer1  	normal.xy (1212),   perceptualRoughness
 //GBuffer2  	f0.r,   f0.g,   f0.b,   featureID(3) / coatMask(5)
 //GBuffer3  	bakedDiffuseLighting.rgb
 
 //FeatureName   Subsurface Scattering + Transmission
 //GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,   diffusionProfile(4) / subsurfaceMask(4)
-//GBuffer1  	perceptualRoughness,    normal.x,   normal.y,   normal.sign
+//GBuffer1  	normal.xy (1212),   perceptualRoughness
 //GBuffer2  	specularOcclusion,  thickness,  diffusionProfile(4) / subsurfaceMask(4), featureID(3) / coatMask(5)
 //GBuffer3  	bakedDiffuseLighting.rgb
 
 //FeatureName   Anisotropic
 //GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
-//GBuffer1  	perceptualRoughness,    normal.x,   normal.y,   normal.sign
+//GBuffer1  	normal.xy (1212),   perceptualRoughness
 //GBuffer2  	anisotropy, tangent.x,  tangent.y(3) / metallic(5), featureID(3) / coatMask(5)
 //GBuffer3  	bakedDiffuseLighting.rgb
 
 //FeatureName   Irridescence
 //GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
-//GBuffer1  	perceptualRoughness,    normal.x,   normal.y,   normal.sign
+//GBuffer1  	normal.xy (1212),   perceptualRoughness
 //GBuffer2  	IOR,    thickness,  unused(3bit) / metallic(5), featureID(3) / coatMask(5)
 //GBuffer3  	bakedDiffuseLighting.rgb
 
@@ -622,6 +622,9 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
+    // Isolate material features.
+    tileFeatureFlags &= MATERIAL_FEATURE_MASK_FLAGS;
+
     GBufferType0 inGBuffer0 = LOAD_TEXTURE2D(_GBufferTexture0, positionSS);
     GBufferType1 inGBuffer1 = LOAD_TEXTURE2D(_GBufferTexture1, positionSS);
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, positionSS);
@@ -646,13 +649,26 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasIridescence  ? MATERIALFEATUREFLAGS_LIT_IRIDESCENCE           : 0);
     pixelFeatureFlags |= tileFeatureFlags & (pixelHasClearCoat    ? MATERIALFEATUREFLAGS_LIT_CLEAR_COAT            : 0);
 
-    // If tileFeatureFlags == UINT_MAX it mean we are call from deferred.shader (or a debug mode) that have no classification
-    // in this case for the sake of performance saving we should rely on pixelFeatureFlags
-    // TODO: validate that this doesn't hurst performance somewhere with classification
-    if (tileFeatureFlags == UINT_MAX)
+    // In the case of material classification we assign tileFeatureFlags to bsdfData.materialFeatures
+    // This mean that the branch inside the tile will be the same (coherency). Remember that a divergent branch
+    // on AMD GCN mean we will execute both branch for all fragement. We setup at pixel level values
+    // such that a particular branch will not have effect if it shouldn't. For example if SSS is enabled,
+    // setup a sssMask of 0 don't have any effect and we can safely take the SSS branch for the tile.
+    // Note that in the catch all variant of material classification we get the value from the structure buffer done
+    // in the classification pass. Mean even in catch all, we it is high likely that we don't have tileFeatureFlags == MATERIAL_FEATURE_MASK_FLAGS case.
+
+    // tileFeatureFlags == MATERIAL_FEATURE_MASK_FLAGS can appear in following situation
+    // call from deferred.shader or other shader that doesn't peform material classification
+    // call from last catch all variant in material classification, which mean we have all possible material inside a same tile (very rare)
+    // call from a specific case in material classification (currently we have variant 0)
+    // When this happen, we prefer to use the pixelFeatureFlags rather than the tileFeatureFlags as bsdfData.materialFeatures
+    // because there is more likelihood to save performance (excep in the very rare case of catch all of material classification).
+    // We can indeed have divergence inside a tile (like having aniso and not aniso)
+    // but it is more likely that the whole time is convergent (like everything have SSS and clear coat).
+    if (tileFeatureFlags == MATERIAL_FEATURE_MASK_FLAGS)
     {
         bsdfData.materialFeatures = pixelFeatureFlags;
-        tileFeatureFlags = pixelFeatureFlags;
+        tileFeatureFlags = pixelFeatureFlags; // Required for the aniso test (see below)
     }
     else
     {
