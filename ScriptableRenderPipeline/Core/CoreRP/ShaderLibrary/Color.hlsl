@@ -39,12 +39,12 @@ real4 LinearToGamma20(real4 c)
 // Gamma22
 real Gamma22ToLinear(real c)
 {
-    return pow(c, 2.2);
+    return PositivePow(c, 2.2);
 }
 
 real3 Gamma22ToLinear(real3 c)
 {
-    return pow(c.rgb, real3(2.2, 2.2, 2.2));
+    return PositivePow(c.rgb, real3(2.2, 2.2, 2.2));
 }
 
 real4 Gamma22ToLinear(real4 c)
@@ -54,12 +54,12 @@ real4 Gamma22ToLinear(real4 c)
 
 real LinearToGamma22(real c)
 {
-    return pow(c, 0.454545454545455);
+    return PositivePow(c, 0.454545454545455);
 }
 
 real3 LinearToGamma22(real3 c)
 {
-    return pow(c.rgb, real3(0.454545454545455, 0.454545454545455, 0.454545454545455));
+    return PositivePow(c.rgb, real3(0.454545454545455, 0.454545454545455, 0.454545454545455));
 }
 
 real4 LinearToGamma22(real4 c)
@@ -71,7 +71,7 @@ real4 LinearToGamma22(real4 c)
 real3 SRGBToLinear(real3 c)
 {
     real3 linearRGBLo  = c / 12.92;
-    real3 linearRGBHi  = pow((c + 0.055) / 1.055, real3(2.4, 2.4, 2.4));
+    real3 linearRGBHi  = PositivePow((c + 0.055) / 1.055, real3(2.4, 2.4, 2.4));
     real3 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
     return linearRGB;
 }
@@ -84,7 +84,7 @@ real4 SRGBToLinear(real4 c)
 real3 LinearToSRGB(real3 c)
 {
     real3 sRGBLo = c * 12.92;
-    real3 sRGBHi = (pow(c, real3(1.0/2.4, 1.0/2.4, 1.0/2.4)) * 1.055) - 0.055;
+    real3 sRGBHi = (PositivePow(c, real3(1.0/2.4, 1.0/2.4, 1.0/2.4)) * 1.055) - 0.055;
     real3 sRGB   = (c <= 0.0031308) ? sRGBLo : sRGBHi;
     return sRGB;
 }
@@ -108,7 +108,7 @@ real4 FastSRGBToLinear(real4 c)
 
 real3 FastLinearToSRGB(real3 c)
 {
-    return saturate(1.055 * pow(abs(c), 0.416666667) - 0.055);
+    return saturate(1.055 * PositivePow(c, 0.416666667) - 0.055);
 }
 
 real4 FastLinearToSRGB(real4 c)
