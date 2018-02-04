@@ -1131,28 +1131,31 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 {
     float3 N = bsdfData.normalWS;
 
-    float NdotV = ClampNdotV(N, V);
+    float NdotV = dot(N, V);
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
 
+    /*
     float3 H = normalize(V + L);
     float NdotH = saturate(dot(N, H));
     float LdotH = saturate(dot(L, H));
     float LdotV = dot(L, V);
-
-    /*
+    */
 
     float LdotV = dot(L, V);
-    float invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
+    float invLenLV = rsqrt(2.0 * LdotV + 2.0);  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
     float NdotH = saturate((NdotL + NdotV) * invLenLV);
     float LdotH = saturate(invLenLV * LdotV + invLenLV);
-    */
+
+    // The abs need to happen AFTER the processing above, else value above are incorrect...
+    N += (2.0 * saturate(-NdotV)) * V;
+    NdotV = abs(dot(N, V));
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     float DV;
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
-        //float3 H = (L + V) * invLenLV;
+        float3 H = (L + V) * invLenLV; // <= this is not correct!
 
         // For anisotropy we must not saturate these values
         float TdotH = dot(bsdfData.tangentWS, H);
@@ -1169,6 +1172,10 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessT, preLightData.partLambdaV);
     }
     specularLighting = F * DV;
+
+    // Reset everything:
+    N = bsdfData.normalWS;
+    NdotV = saturate(dot(N, V));
 
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float  diffuseTerm = Lambert();
