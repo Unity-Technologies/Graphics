@@ -158,7 +158,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
 {
     const uint maxStringSize = 16;
 
-    int absIntValue = abs(intValue);
+    uint absIntValue = abs(intValue);
 
     // 1. Get size of the number of display
     int numEntries = min((intValue == 0 ? 0 : log10(absIntValue)) + (intValue < 0 ? 1 : 0), maxStringSize);
