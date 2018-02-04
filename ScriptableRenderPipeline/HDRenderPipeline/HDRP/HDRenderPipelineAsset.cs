@@ -53,6 +53,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public ReflectionSystemParameters reflectionSystemParameters
+        {
+            get
+            {
+                return new ReflectionSystemParameters
+                {
+                    maxPlanarReflectionProbes = renderPipelineSettings.lightLoopSettings.maxPlanarReflectionProbes,
+                    planarReflectionProbeSize = renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                };
+            }
+        }
+
         // Store the various RenderPipelineSettings for each platform (for now only one)
         public RenderPipelineSettings renderPipelineSettings = new RenderPipelineSettings();
 
@@ -73,6 +85,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Material GetDefaultMaterial()
         {
             return m_RenderPipelineResources.defaultDiffuseMaterial;
+        }
+
+        // Note: This function is HD specific
+        public Material GetDefaultDecalMaterial()
+        {
+            return m_RenderPipelineResources.defaultDecalMaterial;
         }
 
         public override Material GetDefaultParticleMaterial()

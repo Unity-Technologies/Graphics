@@ -34,5 +34,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Gizmos.DrawWireCube(volumeParameters.bounds.center, volumeParameters.bounds.size);
             }
         }
+
+        // Returns NULL if a global fog component does not exist, or is not enabled.
+        public static HomogeneousFog GetGlobalFogComponent()
+        {
+            HomogeneousFog globalFogComponent = null;
+
+            HomogeneousFog[] fogComponents = FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
+
+            foreach (HomogeneousFog fogComponent in fogComponents)
+            {
+                if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
+                {
+                    globalFogComponent = fogComponent;
+                    break;
+                }
+            }
+
+            return globalFogComponent;
+        }
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

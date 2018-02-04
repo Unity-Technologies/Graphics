@@ -239,6 +239,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+        _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
@@ -262,7 +263,10 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         [Enum(Flip, 0, Mirror, 1)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1
+        // For layering, due to combinatorial explosion, we only support SSS/Transmission and Standard. We let other case for the shader graph
+        [Enum(Subsurface Scattering and Transmissison, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
+        [Enum(Both, 0, SSS only, 1, Transmission only, 2)] _SSSAndTransmissionType("SSSandTransmissionType", Int) = 0 // SSSandTransmissionType.Both
+
         [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
@@ -354,6 +358,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -421,6 +427,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+
+    #pragma shader_feature _DISABLE_DBUFFER
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

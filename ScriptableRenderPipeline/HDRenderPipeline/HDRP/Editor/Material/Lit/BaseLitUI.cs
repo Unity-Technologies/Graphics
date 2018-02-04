@@ -26,7 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("Enable MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
 
             // Material ID
-            public static GUIContent materialIDText = new GUIContent("Material type", "Subsurface Scattering: enable for translucent materials such as skin, vegetation, fruit, marble, wax and milk.");
+            public static GUIContent materialIDText = new GUIContent("Material type", "Select a material feature to enable on top of regular material");
+            public static GUIContent SSSAndTransmissionTypeText = new GUIContent("SSS and Transmission type", "Subsurface Scattering for translucent materials such as skin, vegetation, fruit, marble, wax and milk., Transmission for back lighting");
 
             // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
@@ -57,6 +58,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windDragText = new GUIContent("Drag");
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
+
+            public static GUIContent supportDBufferText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
         }
 
         public enum DoubleSidedNormalMode
@@ -81,12 +84,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum MaterialId
         {
-            LitSSS = 0,
+            LitSSSAndTransmission = 0,
             LitStandard = 1,
             LitAniso = 2,
-            LitClearCoat = 3,
-            LitSpecular = 4,
-            LitIridescence = 5,
+            LitIridescence = 3,
+            LitSpecular = 4
+        };
+
+        public enum SSSAndTransmissionType
+        {
+            LitSSSAndTransmission = 0,
+            LitSSSOnly = 1,
+            LitTransmissionOnly = 2,
         };
 
         public enum HeightmapParametrization
@@ -103,7 +112,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Properties
         // Material ID
         protected MaterialProperty materialID  = null;
-        protected const string     kMaterialID = "_MaterialID";
+        protected const string kMaterialID = "_MaterialID";
+        protected MaterialProperty sssAndTransmissionType = null;
+        protected const string kSSSAndTransmissionType = "_SSSAndTransmissionType";        
 
         protected const string kStencilRef = "_StencilRef";
         protected const string kStencilWriteMask = "_StencilWriteMask";
@@ -164,6 +175,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty tessellationBackFaceCullEpsilon = null;
         protected const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
 
+        // Decal
+        protected MaterialProperty supportDBuffer = null;
+        protected const string kSupportDBuffer = "_SupportDBuffer";
+
+
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             base.FindBaseMaterialProperties(props);
@@ -173,6 +189,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // MaterialID
             materialID = FindProperty(kMaterialID, props);
+            sssAndTransmissionType = FindProperty(kSSSAndTransmissionType, props);      
 
             displacementMode = FindProperty(kDisplacementMode, props);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
@@ -204,6 +221,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windDrag = FindProperty(kWindDrag, props);
             windShiverDrag = FindProperty(kWindShiverDrag, props);
             windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
+
+            // Decal
+            supportDBuffer = FindProperty(kSupportDBuffer, props);
         }
 
         void TessellationModePopup()
@@ -239,6 +259,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
+
+            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSSAndTransmission)
+            {
+                m_MaterialEditor.ShaderProperty(sssAndTransmissionType, StylesBaseLit.SSSAndTransmissionTypeText);                
+            }                
+
+            m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
 
             m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
 
@@ -346,9 +373,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
+            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSSAndTransmission)
             {
-                stencilRef = (int)StencilLightingUsage.SplitLighting;
+                if ((int)material.GetFloat(kSSSAndTransmissionType) == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission ||
+                    (int)material.GetFloat(kSSSAndTransmissionType) == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSOnly)
+                {
+                    stencilRef = (int)StencilLightingUsage.SplitLighting;
+                }
             }
             // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
@@ -387,6 +418,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
+
+            // Use negation so we don't create keyword by default
+            CoreUtils.SetKeyword(material, "_DISABLE_DBUFFER", material.GetFloat(kSupportDBuffer) == 0.0);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

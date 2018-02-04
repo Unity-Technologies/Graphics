@@ -47,7 +47,10 @@ namespace UnityEngine.Experimental.Rendering
 
 		public void TearDown()
 		{
-			if ( GraphicsSettings.renderPipelineAsset != m_OriginalAsset ) GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
+            if (GraphicsSettings.renderPipelineAsset != m_OriginalAsset)
+            {
+                GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
+            }
 
             //EditorApplication.isPaused = false;
             //EditorApplication.isPlaying = false;

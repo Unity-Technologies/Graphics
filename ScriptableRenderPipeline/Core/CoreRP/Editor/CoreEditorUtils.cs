@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -50,7 +51,12 @@ namespace UnityEditor.Experimental.Rendering
             var members = new List<string>();
             while (me != null)
             {
-                members.Add(me.Member.Name);
+                // For field, get the field name
+                // For properties, get the name of the backing field
+                var name = me.Member is FieldInfo
+                    ? me.Member.Name
+                    : "m_" + me.Member.Name.Substring(0, 1).ToUpper() + me.Member.Name.Substring(1);
+                members.Add(name);
                 me = me.Expression as MemberExpression;
             }
 
@@ -65,6 +71,21 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         // UI Helpers
+
+        public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(GetContent(label));
+            GUILayout.BeginVertical();
+            var labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 45;
+            for (var i = 0; i < ppts.Length; ++i)
+                EditorGUILayout.PropertyField(ppts[i], lbls[i]);
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            EditorGUIUtility.labelWidth = labelWidth;
+        }
+
         public static void DrawSplitter()
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);

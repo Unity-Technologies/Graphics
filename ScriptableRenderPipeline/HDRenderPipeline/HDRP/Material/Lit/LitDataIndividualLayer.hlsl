@@ -274,15 +274,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
-    // TEMP: The UI must control if we have transmission or not.
-    // Currently until we update the UI, this is control in the diffusion profile
-    uint transmissionMode = BitFieldExtract(asuint(_TransmissionFlags), 2u * surfaceData.diffusionProfile, 2u);
-    // Caution: Because of this dynamic test we don't know anymore statically if we have transmission, which mess with performance.
-    // in deferred case as we still have both sss and transmission until we update the UI it should be the same perf
-    if (transmissionMode != TRANSMISSION_MODE_NONE)
-    {
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
-    }
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 #endif
 #ifdef _MATERIAL_FEATURE_ANISOTROPY
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
@@ -347,7 +339,14 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.transmittanceMask = 0.0;
 #endif
 
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
     surfaceData.coatMask = _CoatMask;
+    // To shader feature for keyword to limit the variant
+    surfaceData.coatMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_CoatMaskMap), ADD_ZERO_IDX(sampler_CoatMaskMap), ADD_IDX(layerTexCoord.base)).r;
+#else
+    surfaceData.coatMask = 0.0;
+#endif
+
 
     surfaceData.thicknessIrid = 0.0;
 

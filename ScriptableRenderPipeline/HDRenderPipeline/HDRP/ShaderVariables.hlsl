@@ -190,14 +190,14 @@ CBUFFER_START(UnityPerFrame)
     float4 unity_ShadowColor;
     float2 _TaaFrameRotation; // {x = sin(_TaaFrameIndex * PI/2), y = cos(_TaaFrameIndex * PI/2), z = unused}
     uint   _TaaFrameIndex;    // [0, 7]
-    uint   _Align128;         // Pad for 128-bit alignment
-    // Volumetric lighting. Should be a struct in 'UnityPerFrame'.
-    // Unfortunately, structures inside constant buffers are not supported by Unity.
+    // Volumetric lighting.
+    float  _GlobalFog_Asymmetry;
     float3 _GlobalFog_Scattering;
     float  _GlobalFog_Extinction;
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     float4 _VBufferScaleAndSliceCount;  // { fracVisW, fracVisH, count, 1/count }
-    float4 _VBufferDepthEncodingParams; // { n, log2(f/n), 1/n, 1/log2(f/n) }
+    float4 _VBufferDepthEncodingParams; // See the call site for description
+    float4 _VBufferDepthDecodingParams; // See the call site for description
 CBUFFER_END
 
 // ----------------------------------------------------------------------------

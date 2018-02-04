@@ -11,7 +11,7 @@ CBUFFER_START(UnitySSSAndTransmissionParameters)
 // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.
 uint   _EnableSubsurfaceScattering; // Globally toggles subsurface and transmission scattering on/off
 float  _TexturingModeFlags;       // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-float  _TransmissionFlags;        // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+float  _TransmissionFlags;        // 1 bit/profile; 0 = regular, 1 = thin
 // Old SSS Model >>>
 float4 _HalfRcpVariancesAndWeights[DIFFUSION_PROFILE_COUNT][2]; // 2x Gaussians in RGB, A is interpolation weights
 // <<< Old SSS Model
@@ -80,14 +80,14 @@ TEXTURE2D(_SSSBufferTexture0);
 // Note: The SSS buffer used here is sRGB
 void EncodeIntoSSSBuffer(SSSData sssData, uint2 positionSS, out SSSBufferType0 outSSSBuffer0)
 {
-    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatUInt8bit(sssData.subsurfaceMask, sssData.diffusionProfile, 16));
+    outSSSBuffer0 = float4(sssData.diffuseColor, PackFloatInt8bit(sssData.subsurfaceMask, sssData.diffusionProfile, 16));
 }
 
 // Note: The SSS buffer used here is sRGB
 void DecodeFromSSSBuffer(float4 sssBuffer, uint2 positionSS, out SSSData sssData)
 {
     sssData.diffuseColor = sssBuffer.rgb;
-    UnpackFloatUInt8bit(sssBuffer.a, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
+    UnpackFloatInt8bit(sssBuffer.a, 16, sssData.subsurfaceMask, sssData.diffusionProfile);
 }
 
 void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
