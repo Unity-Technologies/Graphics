@@ -144,6 +144,9 @@ namespace UnityEditor.Experimental.Rendering
 
                     writer.Write("\n#endif\n");
 
+                    var customFile = it.Key + ".custom.hlsl";
+                    if (File.Exists(customFile))
+                        writer.Write("#include \"{0}\"", Path.GetFileName(customFile));
                 }
             }
         }

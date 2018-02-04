@@ -2,7 +2,7 @@
 
 namespace UnityEditor.Experimental.Rendering
 {
-    class SerializedLightLoopSettings
+    public class SerializedLightLoopSettings
     {
         public SerializedProperty root;
 

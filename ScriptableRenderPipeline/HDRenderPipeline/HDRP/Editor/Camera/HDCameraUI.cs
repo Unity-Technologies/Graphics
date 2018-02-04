@@ -168,16 +168,10 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_FieldClippingPlanes(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(_.GetContent("Clipping Planes"));
-            GUILayout.BeginVertical();
-            var labelWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = 45;
-            EditorGUILayout.PropertyField(p.nearClippingPlane, _.GetContent("Near|The closest point relative to the camera that drawing will occur."));
-            EditorGUILayout.PropertyField(p.farClippingPlane, _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n"));
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
-            EditorGUIUtility.labelWidth = labelWidth;
+            _.DrawMultipleFields(
+                "Clipping Planes",
+                new[] { p.nearClippingPlane, p.farClippingPlane },
+                new[] { _.GetContent("Near|The closest point relative to the camera that drawing will occur."), _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n") });
         }
 
         static void Drawer_FieldNormalizedViewPort(HDCameraUI s, SerializedHDCamera p, Editor owner)
