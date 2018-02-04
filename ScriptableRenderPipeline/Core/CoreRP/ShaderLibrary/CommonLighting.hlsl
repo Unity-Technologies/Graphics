@@ -51,39 +51,37 @@ real ComputeCubemapTexelSolidAngle(real3 L, real texelArea)
 //-----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR.
-real QuadraticAttenuation(real attenuation)
-{
-    return attenuation * attenuation;
-}
 
 // Non physically based hack to limit light influence to attenuationRadius.
-real DistanceAttenuation(real squaredDistance, real invSqrAttenuationRadius)
+// SmoothInfluenceAttenuation must be use, InfluenceAttenuation is just for optimization with SmoothQuadraticDistanceAttenuation
+real InfluenceAttenuation(real distSquare, real invSqrAttenuationRadius)
 {
-    real factor = squaredDistance * invSqrAttenuationRadius;
+    real factor = distSquare * invSqrAttenuationRadius;
     return saturate(1.0 - factor * factor);
 }
 
-real SmoothDistanceAttenuation(real squaredDistance, real invSqrAttenuationRadius)
+real SmoothInfluenceAttenuation(real distSquare, real invSqrAttenuationRadius)
 {
-    real smoothFactor = DistanceAttenuation(squaredDistance, invSqrAttenuationRadius);
-    return QuadraticAttenuation(smoothFactor);
+    real smoothFactor = InfluenceAttenuation(distSquare, invSqrAttenuationRadius);
+    return Sq(smoothFactor);
 }
 
 #define PUNCTUAL_LIGHT_THRESHOLD 0.01 // 1cm (in Unity 1 is 1m)
 
-real SmoothQuadraticDistanceAttenuation(real distSq, real distRcp, real invSqrAttenuationRadius)
+// Return physically based quadratic attenuation + influence limit to reach 0 at attenuationRadius
+real SmoothQuadraticDistanceAttenuation(real distSquare, real distRcp, real invSqrAttenuationRadius)
 {
-    // Becomes quadratic after the call to QuadraticAttenuation().
+    // Becomes quadratic after the call to Sq().
     real attenuation  = min(distRcp, 1.0 / PUNCTUAL_LIGHT_THRESHOLD);
-         attenuation *= DistanceAttenuation(distSq, invSqrAttenuationRadius);
-    return QuadraticAttenuation(attenuation);
+    attenuation *= InfluenceAttenuation(distSquare, invSqrAttenuationRadius);
+    return Sq(attenuation);
 }
 
 real SmoothQuadraticDistanceAttenuation(real3 unL, real invSqrAttenuationRadius)
 {
-    real distSq  = dot(unL, unL);
-    real distRcp = rsqrt(distSq);
-    return SmoothQuadraticDistanceAttenuation(distSq, distRcp, invSqrAttenuationRadius);
+    real distSquare = dot(unL, unL);
+    real distRcp = rsqrt(distSquare);
+    return SmoothQuadraticDistanceAttenuation(distSquare, distRcp, invSqrAttenuationRadius);
 }
 
 real AngleAttenuation(real cosFwd, real lightAngleScale, real lightAngleOffset)
@@ -94,7 +92,7 @@ real AngleAttenuation(real cosFwd, real lightAngleScale, real lightAngleOffset)
 real SmoothAngleAttenuation(real cosFwd, real lightAngleScale, real lightAngleOffset)
 {
     real attenuation = AngleAttenuation(cosFwd, lightAngleScale, lightAngleOffset);
-    return QuadraticAttenuation(attenuation);
+    return Sq(attenuation);
 }
 
 real SmoothAngleAttenuation(real3 L, real3 lightFwdDir, real lightAngleScale, real lightAngleOffset)
@@ -114,13 +112,13 @@ real SmoothPunctualLightAttenuation(real4 distances, real invSqrAttenuationRadiu
     real cosFwd   = distProj * distRcp;
 
     real attenuation  = min(distRcp, 1.0 / PUNCTUAL_LIGHT_THRESHOLD);
-         attenuation *= DistanceAttenuation(distSq, invSqrAttenuationRadius);
+         attenuation *= InfluenceAttenuation(distSq, invSqrAttenuationRadius);
          attenuation *= AngleAttenuation(cosFwd, lightAngleScale, lightAngleOffset);
 
-    return QuadraticAttenuation(attenuation);
+    return Sq(attenuation);
 }
 
-// Applies SmoothDistanceAttenuation() after transforming the attenuation ellipsoid into a sphere.
+// Applies SmoothInfluenceAttenuation() after transforming the attenuation ellipsoid into a sphere.
 // If r = rsqrt(invSqRadius), then the ellipsoid is defined s.t. r1 = r / invAspectRatio, r2 = r3 = r.
 // The transformation is performed along the major axis of the ellipsoid (corresponding to 'r1').
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
@@ -136,10 +134,10 @@ real EllipsoidalDistanceAttenuation(real3 unL,  real invSqRadius,
     unL -= diff * axis;
 
     real sqDist = dot(unL, unL);
-    return SmoothDistanceAttenuation(sqDist, invSqRadius);
+    return SmoothInfluenceAttenuation(sqDist, invSqRadius);
 }
 
-// Applies SmoothDistanceAttenuation() using the axis-aligned ellipsoid of the given dimensions.
+// Applies SmoothInfluenceAttenuation() using the axis-aligned ellipsoid of the given dimensions.
 // Both the ellipsoid and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
 real EllipsoidalDistanceAttenuation(real3 unL, real3 invHalfDim)
@@ -149,10 +147,10 @@ real EllipsoidalDistanceAttenuation(real3 unL, real3 invHalfDim)
     unL *= invHalfDim;
 
     real sqDist = dot(unL, unL);
-    return SmoothDistanceAttenuation(sqDist, 1.0);
+    return SmoothInfluenceAttenuation(sqDist, 1.0);
 }
 
-// Applies SmoothDistanceAttenuation() after mapping the axis-aligned box to a sphere.
+// Applies SmoothInfluenceAttenuation() after mapping the axis-aligned box to a sphere.
 // If the diagonal of the box is 'd', invHalfDim = rcp(0.5 * d).
 // Both the box and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the box.
@@ -166,7 +164,7 @@ real BoxDistanceAttenuation(real3 unL, real3 invHalfDim)
     if (Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0) return 0.0;
 
     real sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
-    return SmoothDistanceAttenuation(sqDist, 1.0);
+    return SmoothInfluenceAttenuation(sqDist, 1.0);
 }
 
 //-----------------------------------------------------------------------------
