@@ -9,7 +9,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class PlanarReflectionProbeUI
     {
+#if false
         static readonly Color k_GizmoCamera = new Color(233f / 255f, 233f / 255f, 233f / 255f, 128f / 255f);
+#endif
         static readonly Color k_GizmoMirrorPlaneCamera = new Color(128f / 255f, 128f / 255f, 233f / 255f, 128f / 255f);
 
         public static void DrawHandles(PlanarReflectionProbeUI s, PlanarReflectionProbe d, Editor o)
@@ -92,26 +94,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case EditBaseShape:
                     InfluenceVolumeUI.DrawGizmos(
-                        s.influenceVolume, 
-                        d.influenceVolume, 
-                        mat, 
-                        InfluenceVolumeUI.HandleType.Base, 
+                        s.influenceVolume,
+                        d.influenceVolume,
+                        mat,
+                        InfluenceVolumeUI.HandleType.Base,
                         InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawGizmos(
-                        s.influenceVolume, 
-                        d.influenceVolume, 
+                        s.influenceVolume,
+                        d.influenceVolume,
                         mat,
-                        InfluenceVolumeUI.HandleType.Influence, 
+                        InfluenceVolumeUI.HandleType.Influence,
                         InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceNormalShape:
                     InfluenceVolumeUI.DrawGizmos(
-                        s.influenceVolume, 
+                        s.influenceVolume,
                         d.influenceVolume,
                         mat,
-                        InfluenceVolumeUI.HandleType.InfluenceNormal, 
+                        InfluenceVolumeUI.HandleType.InfluenceNormal,
                         InfluenceVolumeUI.HandleType.All);
                     break;
                 default:
