@@ -475,6 +475,13 @@ public class VolumetricLightingModule
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, coeffs);
     }
 
+    float CornetteShanksPhasePartConstant(float asymmetry)
+    {
+        float g = asymmetry;
+
+        return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
+    }
+
     public void PushGlobalParams(HDCamera camera, CommandBuffer cmd)
     {
         if (preset == VolumetricLightingPreset.Off) return;
@@ -552,7 +559,15 @@ public class VolumetricLightingModule
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
             Debug.Assert(vBuffer != null);
 
-            if (HomogeneousFog.GetGlobalFogComponent() == null)
+            HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
+
+            // TODO: may want to cache these results somewhere.
+            VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
+                                                                                : VolumeProperties.GetNeutralVolumeProperties();
+
+            float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
+
+            if (globalFogComponent == null)
             {
                 // Clear the render target instead of running the shader.
                 // CoreUtils.SetRenderTarget(cmd, GetVBufferLightingIntegral(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
@@ -613,6 +628,7 @@ public class VolumetricLightingModule
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], rfc);
 
             // TODO: set 'm_VolumetricLightingPreset'.
+            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(asymmetry));
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
