@@ -73,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportSSR, _.GetContent("Support SSR"));
             EditorGUILayout.PropertyField(d.supportSSAO, _.GetContent("Support SSAO"));
             EditorGUILayout.PropertyField(d.supportDBuffer, _.GetContent("Support Decal Buffer"));
-            EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support MSAA"));
+            EditorGUILayout.PropertyField(d.msaaSampleCount, _.GetContent("MSAA Sample Count"));
             EditorGUILayout.PropertyField(d.supportSubsurfaceScattering, _.GetContent("Support Subsurface Scattering"));
             --EditorGUI.indentLevel;
         }
