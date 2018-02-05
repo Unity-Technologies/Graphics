@@ -777,7 +777,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderDBuffer(hdCamera, renderContext, cmd);
 
-                    RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
+                    RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
@@ -1158,7 +1158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // RenderGBuffer do the gbuffer pass. This is solely call with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque apha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderGBuffer(CullResults cull, HDCamera hdCamera, bool enableShadowMask, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (m_FrameSettings.enableForwardRenderingOnly)
                 return;
@@ -1168,10 +1168,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
             {
                 // setup GBuffer for rendering
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(enableShadowMask), m_CameraDepthStencilBuffer);
                 if (m_FrameSettings.enableDBuffer)
                 {
-                    m_DbufferManager.SetHTile(m_GbufferManager.bufferCount, cmd);
+                    m_DbufferManager.SetHTile(m_GbufferManager.GetBufferCount(enableShadowMask), cmd);
                 }
 
                 // Render opaque objects into GBuffer
