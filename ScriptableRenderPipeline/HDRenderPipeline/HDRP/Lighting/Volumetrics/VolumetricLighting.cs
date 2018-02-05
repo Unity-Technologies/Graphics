@@ -424,6 +424,8 @@ public class VolumetricLightingModule
 
     // Premultiplies the SH with the polynomial coefficients of SH basis functions,
     // which avoids using any constants during SH evaluation.
+    // The resulting evaluation takes the form:
+    // c_0 + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2 - 1) + c_7 x z + c_8 (x^2 - y^2)
     public static SphericalHarmonicsL2 PremultiplySH(SphericalHarmonicsL2 sh)
     {
         const float k0 = 0.28209479177387814347f; // {0, 0} : 1/2 * sqrt(1/Pi)
@@ -451,15 +453,24 @@ public class VolumetricLightingModule
         ZonalHarmonicsL2     phaseZH = GetCornetteShanksPhaseFunction(asymmetry);
         SphericalHarmonicsL2 finalSH = PremultiplySH(Convolve(probeSH, phaseZH));
 
+        // Reorder coefficients in the MAD form:
+        // HornerForm[c_0 + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2 - 1) + c_7 x z + c_8 (x^2 - y^2)]
+        // = z (3 c_6 z + c_7 x + c_2) + y (-c_8 y + c_5 z + c_4 x + c_1) + x (c_8 x + c_3) + (c_0 - c_6)
         Vector4[] coeffs = new Vector4[9];
 
-        for (int i = 0; i < 9; i++)
-        {
-            coeffs[i].x = finalSH[0, i]; // R
-            coeffs[i].y = finalSH[1, i]; // G
-            coeffs[i].z = finalSH[2, i]; // B
-            coeffs[i].w = 0;             // Unused
-        }
+        const int r = 0, g = 1, b = 2;
+
+        coeffs[0] = new Vector3(finalSH[r, 0], finalSH[g, 0], finalSH[b, 0])
+                  - new Vector3(finalSH[r, 6], finalSH[g, 6], finalSH[b, 6]);
+        coeffs[1] = new Vector3(finalSH[r, 3], finalSH[g, 3], finalSH[b, 3]);
+        coeffs[2] = new Vector3(finalSH[r, 8], finalSH[g, 8], finalSH[b, 8]);
+        coeffs[3] = new Vector3(finalSH[r, 1], finalSH[g, 1], finalSH[b, 1]);
+        coeffs[4] = new Vector3(finalSH[r, 4], finalSH[g, 4], finalSH[b, 4]);
+        coeffs[5] = new Vector3(finalSH[r, 5], finalSH[g, 5], finalSH[b, 5]);
+        // Avoid reduplicating c_8.
+        coeffs[6] = new Vector3(finalSH[r, 2], finalSH[g, 2], finalSH[b, 2]);
+        coeffs[7] = new Vector3(finalSH[r, 7], finalSH[g, 7], finalSH[b, 7]);
+        coeffs[8] = new Vector3(finalSH[r, 6], finalSH[g, 6], finalSH[b, 6]) * 3.0f;
 
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, coeffs);
     }

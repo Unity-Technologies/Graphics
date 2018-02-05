@@ -112,36 +112,17 @@ LightProbe GetPreconvolvedAmbientProbe()
     return probe;
 }
 
-// i = l * (l + 1) + m
-// See PremultiplySH().
-// Ref: "Stupid Spherical Harmonics Tricks", p. 28-29.
-float EvaluatePremultipliedSH(int i, float3 d)
-{
-    switch (i)
-    {
-        case 0: return 1;
-        case 1: return d.y;
-        case 2: return d.z;
-        case 3: return d.x;
-        case 4: return d.x * d.y;
-        case 5: return d.y * d.z;
-        case 6: return (3 * Sq(d.z) - 1);
-        case 7: return d.x * d.z;
-        case 8: return (Sq(d.x) - Sq(d.y));
-        default: return FLT_INF; // Unreachable
-    }
-}
-
+// Warning: since it's a SH, the results can be negative!
 float3 EvaluateLightProbe(LightProbe probe, float3 d)
 {
     float3 radiance = 0;
 
-    for (int i = 0; i < 9; i++)
-    {
-        radiance += probe.coeffs[i] * EvaluatePremultipliedSH(i, d);
-    }
-
-    return radiance; // Warning: could be negative
+    // Coefficients are premultiplied and reordered in the MAD form:
+    // HornerForm[c_0 + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2 - 1) + c_7 x z + c_8 (x^2 - y^2)]
+    // = z (3 c_6 z + c_7 x + c_2) + y (-c_8 y + c_5 z + c_4 x + c_1) + x (c_8 x + c_3) + (c_0 - c_6)
+    return probe.coeffs[0] + d.x * (probe.coeffs[1] + d.x * probe.coeffs[2])
+                           + d.y * (probe.coeffs[3] + d.x * probe.coeffs[4] + d.z * probe.coeffs[5] - d.y * probe.coeffs[2])
+                           + d.z * (probe.coeffs[6] + d.x * probe.coeffs[7] + d.z * probe.coeffs[8]);
 }
 
 // Computes the light integral (in-scattered radiance) within the voxel.
