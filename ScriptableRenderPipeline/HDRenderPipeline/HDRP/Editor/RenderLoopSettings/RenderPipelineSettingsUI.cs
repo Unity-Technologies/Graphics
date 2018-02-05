@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering
         public RenderPipelineSettingsUI()
             : base(0)
         {
-            
+
         }
 
         public override void Reset(SerializedRenderPipelineSettings data, UnityAction repaint)

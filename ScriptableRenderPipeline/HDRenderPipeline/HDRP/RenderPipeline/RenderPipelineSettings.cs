@@ -27,9 +27,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportsForwardOnly = false;
 
         // Engine
-        public bool         supportDBuffer = false;
+        public bool supportDBuffer = false;
         public bool         supportMSAAAntiAliasing = false;
-        public MSAASamples  msaaSampleCount = MSAASamples.None;
+        public MSAASamples msaaSampleCount = MSAASamples.None;
         public bool         supportsMotionVectors = true;
         public bool         supportsStereo = false;
 

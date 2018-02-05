@@ -73,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableTransparentObjects = true;
 
         public bool enableMSAA = false;
+        public MSAASamples msaaSampleCount { get; private set; }
 
         public bool enableShadowMask = false;
 
@@ -172,8 +173,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAAAntiAliasing;
-            if (QualitySettings.antiAliasing < 1)
-                aggregate.enableMSAA = false;
             aggregate.ConfigureMSAADependentSettings();
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
