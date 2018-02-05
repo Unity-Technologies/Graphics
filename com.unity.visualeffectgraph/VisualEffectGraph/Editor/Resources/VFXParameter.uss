@@ -41,3 +41,13 @@ VFXParameterUI.node > #node-border > #contents #divider
     border-color:rgba(0,0,0,0);
     border-bottom-width:0;
 }
+VFXParameterUI.node > #node-border > #title > #exposed-icon
+{
+    align-self:center;
+}
+VFXParameterUI.node.exposed > #node-border > #title > #exposed-icon
+{
+    image:resource("VFX/exposed dot");
+    width:6;
+    height:6;
+}

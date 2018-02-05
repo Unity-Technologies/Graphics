@@ -11,12 +11,15 @@ namespace UnityEditor.VFX.UI
 {
     class VFXParameterUI : VFXNodeUI
     {
+        Image m_Icon;
         public VFXParameterUI()
         {
             RemoveFromClassList("VFXNodeUI");
             AddStyleSheetPath("VFXParameter");
 
             m_CollapseButton.RemoveFromHierarchy();
+            m_Icon = new Image() { name = "exposed-icon" };
+            titleContainer.Insert(0, m_Icon);
         }
 
         public new VFXParameterNodeController controller
@@ -39,6 +42,15 @@ namespace UnityEditor.VFX.UI
 
             divider.visible = false;
             divider.AddToClassList(k_HiddenClassList);
+
+            if (controller.parentController.exposed)
+            {
+                AddToClassList("exposed");
+            }
+            else
+            {
+                RemoveFromClassList("exposed");
+            }
         }
     }
 }
