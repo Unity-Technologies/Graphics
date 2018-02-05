@@ -9,6 +9,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class DecalProjectorComponent : MonoBehaviour
     {
         public Material m_Material = null;
+		public float m_DrawDistance = 1000.0f;
+        public float m_FadeScale = 0.9f;
         private Material m_OldMaterial = null;
         public const int kInvalidIndex = -1;  
         private int m_CullIndex = kInvalidIndex;
@@ -104,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DrawGizmo(true);
             // if this object is selected there is a chance the transform was changed so update culling info
-            DecalSystem.instance.UpdateBoundingSphere(this);
+            DecalSystem.instance.UpdateCachedData(this);
         }
 
         public void OnDrawGizmos()
