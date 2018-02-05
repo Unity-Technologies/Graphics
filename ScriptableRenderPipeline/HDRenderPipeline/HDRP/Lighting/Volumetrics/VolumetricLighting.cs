@@ -373,32 +373,6 @@ public class VolumetricLightingModule
         return zh;
     }
 
-    // Undoes coefficient normalization to obtain the canonical values of SH.
-    public static unsafe SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
-    {    
-        float sqrtPi = Mathf.Sqrt(Mathf.PI);
-
-        float c0 = 1.0f / (2.0f * sqrtPi);
-        float c1 = Mathf.Sqrt( 3.0f) / ( 3.0f * sqrtPi);
-        float c2 = Mathf.Sqrt(15.0f) / ( 8.0f * sqrtPi);
-        float c3 = Mathf.Sqrt( 5.0f) / (16.0f * sqrtPi);
-        float c4 = 0.5f * c2;
-
-        // Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
-        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks". Note that we do not multiply by 3 here.
-        float[] invNormConsts = { 1.0f / c0, -1.0f / c1, 1.0f / c1, -1.0f / c1, 1.0f / c2, -1.0f / c2, 1.0f / c3, -1.0f / c2, 1.0f / c4 };
-
-        for (int i = 0; i < 9; i++)
-        {
-            for (int c = 0; c < 3; c++)
-            {
-                sh[c, i] *= invNormConsts[i];
-            }
-        }
-
-        return sh;
-    }
-
     // Ref: "Stupid Spherical Harmonics Tricks", p. 6.
     public static unsafe SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)
     {
@@ -412,9 +386,59 @@ public class VolumetricLightingModule
             {
                 int i = l * (l + 1) + m;
 
-                sh[0, i] *= p;
-                sh[1, i] *= p;
-                sh[2, i] *= p;
+                for (int c = 0; c < 3; c++)
+                {
+                    sh[c, i] *= p;
+                }
+            }
+        }
+
+        return sh;
+    }
+
+    // Undoes coefficient normalization to obtain the canonical values of SH.
+    public static SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
+    {    
+        float sqrtPi = Mathf.Sqrt(Mathf.PI);
+
+        const float c0 = 0.28209479177387814347f; // 1/2  * sqrt(1/Pi)
+        const float c1 = 0.32573500793527994772f; // 1/3  * sqrt(3/Pi)
+        const float c2 = 0.27313710764801976764f; // 1/8  * sqrt(15/Pi)
+        const float c3 = 0.07884789131313000151f; // 1/16 * sqrt(5/Pi)
+        const float c4 = 0.13656855382400988382f; // 1/16 * sqrt(15/Pi)
+
+        // Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
+        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks". Note that we do not multiply by 3 here.
+        float[] invNormConsts ={ 1.0f / c0, -1.0f / c1, 1.0f / c1, -1.0f / c1, 1.0f / c2, -1.0f / c2, 1.0f / c3, -1.0f / c2, 1.0f / c4 };
+
+        for (int c = 0; c < 3; c++)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                sh[c, i] *= invNormConsts[i];
+            }
+        }
+
+        return sh;
+    }
+
+    // Premultiplies the SH with the polynomial coefficients of SH basis functions,
+    // which avoids using any constants during SH evaluation.
+    public static SphericalHarmonicsL2 PremultiplySH(SphericalHarmonicsL2 sh)
+    {
+        const float k0 = 0.28209479177387814347f; // {0, 0} : 1/2 * sqrt(1/Pi)
+        const float k1 = 0.48860251190291992159f; // {1, 0} : 1/2 * sqrt(3/Pi)
+        const float k2 = 1.09254843059207907054f; // {2,-2} : 1/2 * sqrt(15/Pi)
+        const float k3 = 0.31539156525252000603f; // {2, 0} : 1/4 * sqrt(5/Pi)
+        const float k4 = 0.54627421529603953527f; // {2, 2} : 1/4 * sqrt(15/Pi)
+
+        float[] ks ={ k0, -k1, k1, -k1, k2, -k2, k3, -k2, k4 };
+
+        for (int c = 0; c < 3; c++)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                sh[c, i] *= ks[i];
             }
         }
 
@@ -425,17 +449,16 @@ public class VolumetricLightingModule
     {
         SphericalHarmonicsL2 probeSH = DenormalizeSH(RenderSettings.ambientProbe);
         ZonalHarmonicsL2     phaseZH = GetCornetteShanksPhaseFunction(asymmetry);
-
-        SphericalHarmonicsL2 convolvedSH = Convolve(probeSH, phaseZH);
+        SphericalHarmonicsL2 finalSH = PremultiplySH(Convolve(probeSH, phaseZH));
 
         Vector4[] coeffs = new Vector4[9];
 
         for (int i = 0; i < 9; i++)
         {
-            coeffs[i].x = convolvedSH[0, i]; // R
-            coeffs[i].y = convolvedSH[1, i]; // G
-            coeffs[i].z = convolvedSH[2, i]; // B
-            coeffs[i].w = 0;                 // Unused
+            coeffs[i].x = finalSH[0, i]; // R
+            coeffs[i].y = finalSH[1, i]; // G
+            coeffs[i].z = finalSH[2, i]; // B
+            coeffs[i].w = 0;             // Unused
         }
 
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, coeffs);
