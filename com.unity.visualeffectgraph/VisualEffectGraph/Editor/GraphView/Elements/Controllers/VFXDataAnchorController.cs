@@ -57,6 +57,8 @@ namespace UnityEditor.VFX.UI
 
         void MasterSlotChanged(UnityEngine.Object obj)
         {
+            if (m_MasterSlotHandle == null)
+                return;
             ModelChanged(obj);
         }
 
@@ -80,6 +82,7 @@ namespace UnityEditor.VFX.UI
             if (m_MasterSlotHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
+                m_MasterSlotHandle = null;
             }
             base.OnDisable();
         }

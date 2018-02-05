@@ -250,6 +250,8 @@ namespace UnityEditor.VFX.UI
 
         void OnSlotChanged(UnityEngine.Object model)
         {
+            if (m_SlotHandle == null)
+                return;
             NotifyChange(ValueChanged);
         }
 

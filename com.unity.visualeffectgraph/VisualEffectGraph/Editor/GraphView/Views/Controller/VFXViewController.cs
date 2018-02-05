@@ -496,6 +496,8 @@ namespace UnityEditor.VFX.UI
                 {
                     DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
                     m_GraphHandle = null;
+                    DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
+                    m_UIHandle = null;
                 }
                 if (m_Graph != null)
                 {
@@ -570,6 +572,8 @@ namespace UnityEditor.VFX.UI
 
         protected void GraphChanged(UnityEngine.Object obj)
         {
+            if (m_GraphHandle == null)
+                return;
             if (m_Graph == null)
             {
                 if (model != null)
@@ -589,6 +593,7 @@ namespace UnityEditor.VFX.UI
 
         protected void UIChanged(UnityEngine.Object obj)
         {
+            if (m_UIHandle == null) return;
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
             RecreateUI();

@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Model = model;
 
-            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, ModelChanged);
+            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
         }
 
         public override void OnDisable()
@@ -86,12 +86,19 @@ namespace UnityEditor.VFX.UI
             try
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+                m_Handle = null;
             }
             catch (ArgumentException e)
             {
                 Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
             }
             base.OnDisable();
+        }
+
+        void OnModelChanged(UnityEngine.Object obj)
+        {
+            if (m_Handle != null)
+                ModelChanged(obj);
         }
 
         protected abstract void ModelChanged(UnityEngine.Object obj);
