@@ -38,6 +38,8 @@ namespace  UnityEditor.VFX.UI
             {
                 var result = Enumerable.Empty<PropertyRM>();
 
+                if (m_ExposedProperty != null)
+                    result = result.Concat(Enumerable.Repeat<PropertyRM>(m_ExposedProperty, 1));
                 if (m_Property != null)
                     result = result.Concat(Enumerable.Repeat(m_Property, 1));
                 if (m_SubProperties != null)
@@ -101,8 +103,15 @@ namespace  UnityEditor.VFX.UI
         }
 
         BoolPropertyRM m_RangeProperty;
+        BoolPropertyRM m_ExposedProperty;
 
         IPropertyRMProvider m_RangeProvider;
+
+        public void Clear()
+        {
+            m_ExposedProperty = null;
+            m_RangeProperty = null;
+        }
 
         public void SelfChange(int change)
         {
@@ -115,6 +124,17 @@ namespace  UnityEditor.VFX.UI
                 return;
             }
             int insertIndex = 0;
+
+            if (m_ExposedProperty == null)
+            {
+                m_ExposedProperty = new BoolPropertyRM(new SimplePropertyRMProvider<bool>("Exposed", () => controller.exposed, t => controller.exposed = t), 55);
+                Insert(insertIndex++, m_ExposedProperty);
+            }
+            else
+            {
+                insertIndex++;
+            }
+
             if (m_Property == null || !m_Property.IsCompatible(controller))
             {
                 if (m_Property != null)
@@ -143,9 +163,8 @@ namespace  UnityEditor.VFX.UI
             }
             else
             {
-                insertIndex = 1 + m_SubProperties.Count;
+                insertIndex += 1 + m_SubProperties.Count;
             }
-
 
             if (controller.canHaveRange)
             {
@@ -229,6 +248,18 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
+
+        public void SelfChange()
+        {
+            if (controller.exposed)
+            {
+                icon = Resources.Load<Texture2D>("VFX/exposed dot");
+            }
+            else
+            {
+                icon = null;
+            }
+        }
     }
 
     class VFXBlackboardRow : BlackboardRow, IControlledElement<VFXParameterController>
@@ -253,7 +284,6 @@ namespace  UnityEditor.VFX.UI
         public int m_CurrentOrder;
         public bool m_CurrentExposed;
 
-
         void OnControllerChanged(ControllerChangedEvent e)
         {
             m_Field.text = controller.exposedName;
@@ -262,12 +292,14 @@ namespace  UnityEditor.VFX.UI
             // if the order or exposed change, let the event be caught by the VFXBlackboard
             if (controller.order == m_CurrentOrder && controller.exposed == m_CurrentExposed)
             {
-                m_CurrentOrder = controller.order;
-                m_CurrentExposed = controller.exposed;
                 e.StopPropagation();
             }
+            m_CurrentOrder = controller.order;
+            m_CurrentExposed = controller.exposed;
 
             m_Properties.SelfChange(e.change);
+
+            m_Field.SelfChange();
         }
 
         VFXParameterController m_Controller;
@@ -287,6 +319,7 @@ namespace  UnityEditor.VFX.UI
                         m_Controller.UnregisterHandler(this);
                     }
                     m_Controller = value;
+                    m_Properties.Clear();
 
                     if (m_Controller != null)
                     {
@@ -327,13 +360,9 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        void Clear()
+        new void Clear()
         {
             foreach (var param in m_ExposedParameters.Values)
-            {
-                param.RemoveFromHierarchy();
-            }
-            foreach (var param in m_PrivateParameters.Values)
             {
                 param.RemoveFromHierarchy();
             }
@@ -377,16 +406,13 @@ namespace  UnityEditor.VFX.UI
 
             SetPosition(LoadBlackBoardPosition());
 
-            m_ExposedSection = new BlackboardSection() { title = "exposed"};
+            m_ExposedSection = new BlackboardSection() { title = "parameters"};
             Add(m_ExposedSection);
-            m_PrivateSection = new BlackboardSection() { title = "private" };
-            Add(m_PrivateSection);
 
             AddStyleSheetPath("VFXBlackboard");
         }
 
         BlackboardSection m_ExposedSection;
-        BlackboardSection m_PrivateSection;
 
         void OnEditName(Blackboard bb, VisualElement element, string value)
         {
@@ -405,7 +431,6 @@ namespace  UnityEditor.VFX.UI
         }
 
         Dictionary<VFXParameterController, VFXBlackboardRow> m_ExposedParameters = new Dictionary<VFXParameterController, VFXBlackboardRow>();
-        Dictionary<VFXParameterController, VFXBlackboardRow> m_PrivateParameters = new Dictionary<VFXParameterController, VFXBlackboardRow>();
 
 
         void SyncParameters(BlackboardSection section, HashSet<VFXParameterController> actualControllers , Dictionary<VFXParameterController, VFXBlackboardRow> parameters)
@@ -450,10 +475,8 @@ namespace  UnityEditor.VFX.UI
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
-                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.exposed));
+                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers);
                 SyncParameters(m_ExposedSection, actualControllers, m_ExposedParameters);
-                actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => !t.exposed));
-                SyncParameters(m_PrivateSection, actualControllers, m_PrivateParameters);
             }
         }
 

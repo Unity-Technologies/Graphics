@@ -298,8 +298,6 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
 
-            this.AddManipulator(new ParameterDropper());
-
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
             AddStyleSheetPath("PropertyRM");
