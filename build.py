@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import shutil
 import textwrap
 
 sub_packages = {}
@@ -132,3 +133,16 @@ def cleanup(logger):
     for file in files:
         logger.info("  {}".format(file))
         os.remove(file)
+
+
+# helper function for preparations of tests
+def copy_path_to_project(path, repo_path, project_path, logger):
+    logger.info("Copying {}".format(path))
+    shutil.copytree(os.path.join(repo_path, path), os.path.join(project_path, "Assets", path))
+
+# Prepare an empty project for editor tests
+def prepare_editor_test_project(repo_path, project_path, logger):
+    copy_path_to_project("ImageTemplates", repo_path, project_path, logger)
+    copy_path_to_project("SampleScenes", repo_path, project_path, logger)
+    copy_path_to_project("TestbedPipelines", repo_path, project_path, logger)
+    copy_path_to_project("Tests", repo_path, project_path, logger)
