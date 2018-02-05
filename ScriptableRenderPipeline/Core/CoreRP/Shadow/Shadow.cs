@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
             public int Default() { return ShadowUtils.Asint( ValScale * ValDef ); }
         }
-        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.05f, 1.0f, 000.1f );
+        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.0f, 1.0f, 000.1f );
         readonly ValRange m_DefPCF_FilterSize = new ValRange( "Filter Size", 1.0f, 1.0f, 10.0f, 1.0f );
 
 
