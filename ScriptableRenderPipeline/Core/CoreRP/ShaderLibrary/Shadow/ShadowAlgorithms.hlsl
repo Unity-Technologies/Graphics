@@ -150,6 +150,7 @@ real EvalShadow_SampleBiasFlag( float flag )
 	return (asint( flag ) & 1) ? 1.0 : 0.0;
 }
 
+
 float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 normalWS, float3 tcs )
 {
 	float3 e1, e2;
@@ -312,7 +313,11 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 	// load the right shadow data for the current face
 	[branch]
 	if( shadowType == GPUSHADOWTYPE_POINT )
-		sd = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1];
+	{
+		sd.worldToShadow  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].worldToShadow;
+		sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;
+		sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;
+	}
 	
 	uint texIdx, sampIdx;
 	float slice;
@@ -341,7 +346,11 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 		/* load the right shadow data for the current face */																															            \
 		[branch]																																										            \
 		if( shadowType == GPUSHADOWTYPE_POINT )																																			            \
-			sd = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1];																											    \
+		{                                                                                                                                                                                           \
+			sd.worldToShadow  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].worldToShadow;																					\
+			sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;																					\
+			sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;                                                                                \
+		}                                                                                                                                                                                           \
 																																																	\
 		float slice;																																									            \
 		UnpackShadowmapId( sd.id, slice );																																				            \
