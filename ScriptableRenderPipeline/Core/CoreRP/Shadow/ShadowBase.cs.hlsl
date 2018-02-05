@@ -41,6 +41,7 @@ struct ShadowData
     uint id;
     uint shadowType;
     uint payloadOffset;
+    float edgeTolerance;
     float4 viewBias;
     float4 nrmlBias;
 };
@@ -79,6 +80,10 @@ uint GetShadowType(ShadowData value)
 uint GetPayloadOffset(ShadowData value)
 {
 	return value.payloadOffset;
+}
+float GetEdgeTolerance(ShadowData value)
+{
+    return value.edgeTolerance;
 }
 float4 GetViewBias(ShadowData value)
 {

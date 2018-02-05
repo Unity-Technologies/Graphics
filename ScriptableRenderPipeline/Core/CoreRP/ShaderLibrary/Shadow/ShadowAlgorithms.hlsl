@@ -77,12 +77,17 @@ real EvalShadow_ReceiverBiasWeightFlag( float flag )
 	return (asint( flag ) & 2) ? 1.0 : 0.0;
 }
 
-real3 EvalShadow_ReceiverBiasWeightPos( real3 positionWS, real3 normalWS, real3 L, real worldTexelSize )
+bool EvalShadow_ReceiverBiasWeightUseNormalFlag( float flag )
+{
+	return (asint( flag ) & 4) ? true : false;
+}
+
+real3 EvalShadow_ReceiverBiasWeightPos( real3 positionWS, real3 normalWS, real3 L, real worldTexelSize, real tolerance, bool useNormal )
 {
 #if SHADOW_USE_ONLY_VIEW_BASED_BIASING != 0
-	return positionWS + L * worldTexelSize;
+	return positionWS + L * worldTexelSize * tolerance;
 #else
-	return positionWS + normalWS * worldTexelSize;
+	return positionWS + (useNormal ? normalWS : L) * worldTexelSize * tolerance;
 #endif
 }
 
@@ -93,7 +98,7 @@ real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgo
 	[branch]
 	if( shadowAlgorithm <= GPUSHADOWALGORITHM_PCF_TENT_7X7 )
 	{
-		real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ) );
+		real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.nrmlBias.w ) );
 		real3 tcs = EvalShadow_GetTexcoords( sd, pos, perspProj );
 		weight = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, slice ).x;
 	}
@@ -103,7 +108,7 @@ real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgo
 
 real EvalShadow_ReceiverBiasWeight( ShadowData sd, Texture2DArray tex, SamplerComparisonState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, real slice, bool perspProj )
 {
-	real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ) );
+	real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.nrmlBias.w ) );
 	return lerp( 1.0, SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, samp, EvalShadow_GetTexcoords( sd, pos, perspProj ), slice ).x, EvalShadow_ReceiverBiasWeightFlag( sd.nrmlBias.w ) );
 }
 
@@ -115,7 +120,7 @@ real EvalShadow_ReceiverBiasWeight( ShadowData sd, Texture2DArray tex, SamplerSt
 #else // SHADOW_USE_VIEW_BIAS_SCALING != 0
 real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgorithm, ShadowData sd, uint texIdx, uint sampIdx, real3 positionWS, real3 normalWS, real3 L, real L_dist, real slice, bool perspProj ) { return 1.0; }
 real EvalShadow_ReceiverBiasWeight( ShadowData sd, Texture2DArray tex, SamplerComparisonState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, real slice, bool perspProj )                              { return 1.0; }
-real EvalShadow_ReceiverBiasWeight(ShadowData sd, Texture2DArray tex, SamplerState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, real slice, bool perspProj)                                          { return 1.0; }
+real EvalShadow_ReceiverBiasWeight (ShadowData sd, Texture2DArray tex, SamplerState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, real slice, bool perspProj )                                        { return 1.0; }
 #endif // SHADOW_USE_VIEW_BIAS_SCALING != 0
 
 // receiver bias either using the normal to weight normal and view biases, or just light view biasing

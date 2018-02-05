@@ -45,6 +45,9 @@ namespace UnityEngine.Experimental.Rendering
         public float nrmlBiasScale      = 1.0f;
         public bool sampleBiasScale     = true;
         public bool edgeLeakFixup       = true;
+        public bool edgeToleranceNrml   = true;
+        [Range(0.0F, 1.0F)]
+        public float edgeTolerance      = 1.0f;
 
 
         // shadow related parameters
