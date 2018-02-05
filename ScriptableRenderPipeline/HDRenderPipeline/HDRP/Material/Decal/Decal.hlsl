@@ -1,4 +1,5 @@
-﻿#include "Decal.cs.hlsl"
+﻿#include "CoreRP/ShaderLibrary/Debug.hlsl"
+#include "Decal.cs.hlsl"
 
 #define DBufferType0 float4
 #define DBufferType1 float4

@@ -178,6 +178,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
 
+            if (camera.cameraType == CameraType.Preview)
+            {
+                // remove undesired feature in preview
+                aggregate.enableShadow = false;
+                aggregate.enableContactShadows = false;
+                aggregate.enableSSR = false;
+                aggregate.enableSSAO = false;
+                aggregate.enableTransparentPrepass = false;
+                aggregate.enableMotionVectors = false;
+                aggregate.enableObjectMotionVectors = false;
+                aggregate.enableDBuffer = false;
+                aggregate.enableAtmosphericScattering = false;
+                aggregate.enableTransparentPostpass = false;
+                aggregate.enableDistortion = false;
+                aggregate.enablePostprocess = false;
+                aggregate.enableStereo = false;
+                aggregate.enableShadowMask = false;
+            }
+
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
         }
 
@@ -247,14 +266,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Register the camera into the debug menu
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableShadow);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableContactShadows);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSR);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSAO);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSubsurfaceScattering);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTransmission);
 
             DebugMenuManager.instance.RemoveDebugItem(menuName, kForwardOnly);
+            DebugMenuManager.instance.RemoveDebugItem(menuName, kDeferredDepthPrepass);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kDeferredDepthPrepassATestOnly);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, KEnableTransparentPrepass);
 
             DebugMenuManager.instance.RemoveDebugItem(menuName, KEnableTransparentPrepass);
             DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableMotionVectors);

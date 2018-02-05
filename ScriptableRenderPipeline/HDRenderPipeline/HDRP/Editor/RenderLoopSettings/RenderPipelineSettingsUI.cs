@@ -22,7 +22,14 @@ namespace UnityEditor.Experimental.Rendering
                     (s, d, o) => s.shadowInitParams,
                     (s, d, o) => d.shadowInitParams,
                     ShadowInitParametersUI.SectionAtlas
+                ),
+                CED.space,
+                CED.Select(
+                    (s, d, o) => s.decalSettings,
+                    (s, d, o) => d.decalSettings,
+                    GlobalDecalSettingsUI.Inspector
                 )
+
             );
         }
 
@@ -33,6 +40,7 @@ namespace UnityEditor.Experimental.Rendering
         );
 
         GlobalLightLoopSettingsUI lightLoopSettings = new GlobalLightLoopSettingsUI();
+		GlobalDecalSettingsUI decalSettings = new GlobalDecalSettingsUI();
         ShadowInitParametersUI shadowInitParams = new ShadowInitParametersUI();
 
         public RenderPipelineSettingsUI()
@@ -45,6 +53,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             lightLoopSettings.Reset(data.lightLoopSettings, repaint);
             shadowInitParams.Reset(data.shadowInitParams, repaint);
+			decalSettings.Reset(data.decalSettings, repaint);
             base.Reset(data, repaint);
         }
 
@@ -52,6 +61,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             lightLoopSettings.Update();
             shadowInitParams.Update();
+			decalSettings.Update();
             base.Update();
         }
 
