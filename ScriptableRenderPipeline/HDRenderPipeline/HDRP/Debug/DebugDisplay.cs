@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                     }
                     var size = Shader.GetGlobalVector(id);
-                    var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(size.x, size.y), 2f));
+                    var lodCount = size.z;
                     return (uint)(fullscreenDebugMip * lodCount);
 
                 },
@@ -222,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                     }
                     var size = Shader.GetGlobalVector(id);
-                    var lodCount = Mathf.Floor(Mathf.Log(Mathf.Min(size.x, size.y), 2f));
+                    var lodCount = size.z;
                     fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(Single)) / lodCount;
                 }, 
                 DebugItemFlag.None, 
@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 break;
                         }
                         var size = Shader.GetGlobalVector(id);
-                        var lodCount = Mathf.FloorToInt(Mathf.Log(Mathf.Min(size.x, size.y), 2f));
+                        var lodCount = size.z;
                         return (uint)lodCount;
                     })
                 );
