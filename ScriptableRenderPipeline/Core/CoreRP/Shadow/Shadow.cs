@@ -360,8 +360,10 @@ namespace UnityEngine.Experimental.Rendering
 
                     // extract texel size in world space
                     int flags = 0;
-                    flags |= asd.sampleBiasScale ? (1 << 0) : 0;
-                    flags |= asd.edgeLeakFixup   ? (1 << 1) : 0;
+                    flags |= asd.sampleBiasScale    ? (1 << 0) : 0;
+                    flags |= asd.edgeLeakFixup      ? (1 << 1) : 0;
+                    flags |= asd.edgeToleranceNrml  ? (1 << 2) : 0;
+                    sd.edgeTolerance = asd.edgeTolerance;
                     sd.viewBias = new Vector4( asd.viewBiasMin, asd.viewBiasMax, asd.viewBiasScale, 2.0f / ce.current.proj.m00 / ce.current.viewport.width * 1.4142135623730950488016887242097f );
                     sd.nrmlBias = new Vector4( asd.nrmlBiasMin, asd.nrmlBiasMax, asd.nrmlBiasScale, ShadowUtils.Asfloat( flags ) );
                     
