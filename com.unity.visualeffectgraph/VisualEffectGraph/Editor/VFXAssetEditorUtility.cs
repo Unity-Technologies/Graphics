@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor;
+using UnityEditor.VFX;
 
-namespace UnityEditor.VFX
+namespace UnityEditor
 {
+    [InitializeOnLoad]
     public class VFXAssetEditorUtility
     {
-        [MenuItem("GameObject/Visual Effect", false, 10)]
+        [MenuItem("GameObject/Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             GameObject go = new GameObject("Visual Effect");
@@ -22,6 +24,14 @@ namespace UnityEditor.VFX
             }
 
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+        }
+
+        [MenuItem("Assets/Create/VFX", false, 306)]
+        public static void CreateVFXAsset()
+        {
+            VFXAsset asset = new VFXAsset();
+
+            ProjectWindowUtil.CreateAsset(asset, "New VFX.asset");
         }
     }
 }
