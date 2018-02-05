@@ -28,6 +28,9 @@ Pass
 		nointerpolation float3 rotY : TEXCOORD4;
 		float3 posWS : TEXCOORD5;
 		nointerpolation float4 rimSettings : COLOR1;
+		#if VFX_USE_NORMAL_MAP
+		nointerpolation uint faceID : TEXCOORD6;
+		#endif
 		#endif
 	};
 	
@@ -49,6 +52,9 @@ Pass
 #define VFX_VARYING_ROTX rotX
 #define VFX_VARYING_ROTY rotY
 #define VFX_VARYING_POSWS posWS
+#if VFX_USE_NORMAL_MAP
+#define VFX_VARYING_FACEID faceID
+#endif
 #endif
 				
 	${VFXBegin:VFXVertexAdditionalProcess}
@@ -63,7 +69,7 @@ Pass
 	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
-	ps_output frag(ps_input i, uint primId : SV_PrimitiveID)
+	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
@@ -71,7 +77,7 @@ Pass
 #if VFX_USE_RIM_LIGHT
 		float3 normal = VFXCubeGetLocalNormal(i);	
 #if VFX_USE_NORMAL_MAP
-		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i,primId));
+		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
 		normal = VFXCubeTransformNormalTS(normal,n);
 #endif
 		normal = VFXCubeTransformNormalWS(i,normal);
