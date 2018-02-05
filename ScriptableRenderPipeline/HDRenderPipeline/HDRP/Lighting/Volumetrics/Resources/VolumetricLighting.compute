@@ -58,6 +58,7 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval 
 CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;              // {x, y, z}, w = rendered frame count
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_GlobalFog_Asymmetry)
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -527,8 +528,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float transmittance = Transmittance(opticalDepth);
 
     #if SUPPORT_ASYMMETRY
-        // TODO: precompute and load it from the constant buffer to not waste a VGPR.
-        float phase = CornetteShanksPhasePartConstant(asymmetry);
+        float phase = _CornetteShanksConstant;
     #else
         float phase = IsotropicPhaseFunction();
     #endif
