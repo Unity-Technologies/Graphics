@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (frameSettings.enableMSAA)
             {
                 // this is already pre-validated to be a valid sample count by InitializeFrameSettings
-                var sampleCount = QualitySettings.antiAliasing;
+                var sampleCount = (int)frameSettings.msaaSampleCount; 
                 tempDesc.msaaSamples = sampleCount;
             }
             else

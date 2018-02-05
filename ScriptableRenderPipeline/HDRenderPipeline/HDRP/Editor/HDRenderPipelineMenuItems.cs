@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
         // It require that the inspector of the material have a static function call that update all keyword based on material properties.
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Loaded Materials)", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Reset All Loaded High Definition Materials Keywords", priority = CoreUtils.editMenuPriority3)]
         static void ResetAllMaterialKeywords()
         {
             try
@@ -89,7 +89,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Material Asset's Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority2)]
+        // Don't expose, ResetAllMaterialKeywordsInProjectAndScenes include it anyway
+        //[MenuItem("Edit/Render Pipeline/Reset All Material Asset's Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority3)]
         static void ResetAllMaterialAssetsKeywords()
         {
             try
@@ -102,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Materials in Project and scenes)", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Reset All Project and Scene High Definition Materials Keywords", priority = CoreUtils.editMenuPriority3)]
         static void ResetAllMaterialKeywordsInProjectAndScenes()
         {
             var openedScenes = new string[EditorSceneManager.loadedSceneCount];
@@ -365,7 +366,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Tools/High Definition/Export Sky to Image", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Export Sky to Image", priority = CoreUtils.editMenuPriority3)]
         static void ExportSkyToImage()
         {
             var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -391,7 +392,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/Render Pipeline/High Definition/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Graphics/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateCustomGameObject(MenuCommand menuCommand)
         {
             var sceneSettings = new GameObject("Scene Settings");
@@ -429,7 +430,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> {}
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Graphics/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
