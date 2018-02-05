@@ -409,7 +409,7 @@ public class VolumetricLightingModule
 
         // Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
         // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks". Note that we do not multiply by 3 here.
-        float[] invNormConsts ={ 1.0f / c0, -1.0f / c1, 1.0f / c1, -1.0f / c1, 1.0f / c2, -1.0f / c2, 1.0f / c3, -1.0f / c2, 1.0f / c4 };
+        float[] invNormConsts = { 1.0f / c0, -1.0f / c1, 1.0f / c1, -1.0f / c1, 1.0f / c2, -1.0f / c2, 1.0f / c3, -1.0f / c2, 1.0f / c4 };
 
         for (int c = 0; c < 3; c++)
         {
@@ -434,7 +434,7 @@ public class VolumetricLightingModule
         const float k3 = 0.31539156525252000603f; // {2, 0} : 1/4 * sqrt(5/Pi)
         const float k4 = 0.54627421529603953527f; // {2, 2} : 1/4 * sqrt(15/Pi)
 
-        float[] ks ={ k0, -k1, k1, -k1, k2, -k2, k3, -k2, k4 };
+        float[] ks = { k0, -k1, k1, -k1, k2, -k2, k3, -k2, k4 };
 
         for (int c = 0; c < 3; c++)
         {
