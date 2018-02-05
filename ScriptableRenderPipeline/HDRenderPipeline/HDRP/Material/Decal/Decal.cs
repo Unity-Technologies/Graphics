@@ -13,7 +13,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
-            public Vector4 mask; 
+            public Vector4 mask;
+			[SurfaceDataAttributes("HTileMask")]
+			public uint HTileMask; 
         };
 
         [GenerateHLSL(PackingRules.Exact)]

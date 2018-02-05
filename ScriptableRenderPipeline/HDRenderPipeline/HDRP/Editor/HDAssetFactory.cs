@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Graphics/High Definition Render Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateHDRenderPipeline()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -49,7 +49,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Load default renderPipelineResources / Material / Shader
                 string HDRenderPipelinePath = HDEditorUtils.GetHDRenderPipelinePath();
-                string PostProcessingPath = HDEditorUtils.GetPostProcessingPath();
                 string CorePath = HDEditorUtils.GetCorePath();
 
                 newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
@@ -107,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Render Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Graphics/High Definition Render Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateRenderPipelineResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
