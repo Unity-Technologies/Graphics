@@ -282,9 +282,9 @@ public class VolumetricLightingModule
         switch (preset)
         {
             case VolumetricLightingPreset.Normal:
-                return 128;
+                return 64;
             case VolumetricLightingPreset.Ultra:
-                return 256;
+                return 128;
             case VolumetricLightingPreset.Off:
                 return 0;
             default:
