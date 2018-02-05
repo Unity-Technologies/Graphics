@@ -129,15 +129,17 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 	[ExecuteInEditMode]
 	public class OnTileDeferredRenderPipeline : RenderPipelineAsset {
 
-	#if UNITY_EDITOR
-		[UnityEditor.MenuItem("Assets/Create/Render Pipeline/On Tile Deferred/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
+#if UNITY_EDITOR
+        // Hide as not an official pipeline
+        // [UnityEditor.MenuItem("Assets/Create/Render Pipeline/On Tile Deferred/Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
 		static void CreateDeferredRenderPipeline()
 		{
 			var instance = ScriptableObject.CreateInstance<OnTileDeferredRenderPipeline> ();
 			UnityEditor.AssetDatabase.CreateAsset (instance, "Assets/OnTileDeferredPipeline.asset");
 		}
 
-		[UnityEditor.MenuItem("Edit/Render Pipeline/Upgrade/On Tile Deferred/Upgrade Standard Shader Materials", priority = CoreUtils.editMenuPriority2)]
+        // Hide as not an official pipeline
+		//[UnityEditor.MenuItem("Edit/Render Pipeline/Upgrade/On Tile Deferred/Upgrade Standard Shader Materials", priority = CoreUtils.editMenuPriority2)]
 		static void SetupDeferredRenderPipelineMaterials()
 		{
 			Renderer[] _renderers = Component.FindObjectsOfType<Renderer> ();
@@ -146,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				foreach (Material _material in _materials) {
 					if (_material == null)
 						continue;
-					
+
 					if (_material.shader.name.Contains ("Standard (Specular setup)")) {
 						_material.shader = Shader.Find("Standard-SRP (Specular setup)");
 					} else if (_material.shader.name.Contains ("Standard")) {
@@ -162,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		{
 			return new OnTileDeferredRenderPipelineInstance(this);
 		}
-			
+
 		[SerializeField] ShadowSettings m_ShadowSettings = new ShadowSettings();
 
 		ShadowSetup    m_ShadowSetup;
@@ -232,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		// TODO: When graphics/renderpass lands, replace code that uses boolean below with SystemInfo.supportsReadOnlyDepth
 		#if UNITY_EDITOR || UNITY_STANDALONE
 		static bool s_SupportsReadOnlyDepth = true;
-		#else 
+		#else
 		static bool s_SupportsReadOnlyDepth = false;
 		#endif
 
@@ -285,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			s_GBufferEmission = new RenderPassAttachment(RenderTextureFormat.ARGBHalf) { hideFlags = HideFlags.HideAndDontSave };
 			s_Depth = new RenderPassAttachment(RenderTextureFormat.Depth) { hideFlags = HideFlags.HideAndDontSave };
 			s_CameraTarget = s_GBufferAlbedo;
-				
+
 			s_GBufferEmission.Clear(new Color(0.0f, 0.0f, 0.0f, 0.0f), 1.0f, 0);
 			s_Depth.Clear(new Color(), 1.0f, 0);
 
@@ -352,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			m_ReflectionNearAndFarClipMaterial.SetInt("_DstABlend", (int)BlendMode.Zero);
 			m_ReflectionNearAndFarClipMaterial.SetInt("_CullMode", (int)CullMode.Off);
 			m_ReflectionNearAndFarClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
-						
+
 			m_CookieTexArray = new TextureCache2D();
 			m_CubeCookieTexArray = new TextureCacheCubemap();
 			m_CubeReflTexArray = new TextureCacheCubemap();
@@ -447,12 +449,12 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, ScriptableRenderContext loop)
 		{
-			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, s_SupportsReadOnlyDepth ? 
+			using (RenderPass rp = new RenderPass (loop, camera.pixelWidth, camera.pixelHeight, 1, s_SupportsReadOnlyDepth ?
 				new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission } :
 				new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, s_Depth)) {
 
 				// GBuffer pass
-				using (new RenderPass.SubPass (rp, s_SupportsReadOnlyDepth ? 
+				using (new RenderPass.SubPass (rp, s_SupportsReadOnlyDepth ?
 					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission } :
 					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission, s_GBufferRedF32 }, null)) {
 					using (var cmd = new CommandBuffer { name = "Create G-Buffer" }) {
@@ -460,7 +462,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 						cmd.EnableShaderKeyword ("UNITY_HDR_ON");
 						cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
 						loop.ExecuteCommandBuffer (cmd);
-					
+
 						// render opaque objects using Deferred pass
 						var drawSettings = new DrawRendererSettings (camera, new ShaderPassName ("Deferred")) {
 							sorting = { flags = SortFlags.CommonOpaque },
@@ -473,7 +475,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				}
 
 				//Lighting Pass
-				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission },  
+				using (new RenderPass.SubPass(rp, new[] { s_GBufferEmission },
 					new[] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_SupportsReadOnlyDepth ? s_Depth : s_GBufferRedF32 }, true))
 				{
 					using (var cmd = new CommandBuffer { name = "Deferred Lighting and Reflections Pass"} )
@@ -522,7 +524,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				}
 			}
 		}
-			
+
 		// Utilites
 		static Matrix4x4 GetFlipMatrix()
 		{
@@ -546,7 +548,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		{
 			return camera.projectionMatrix * GetFlipMatrix();
 		}
-		
+
 		Matrix4x4 PerspectiveCotanMatrix(float cotangent, float zNear, float zFar )
 		{
 			float deltaZ = zNear - zFar;
@@ -649,7 +651,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 				Matrix4x4 scaled = Matrix4x4.Scale (combinedExtent * 2.0f);
 				mat = mat * Matrix4x4.Translate (boxOffset) * scaled;
-						
+
 				var probeRadius = combinedExtent.magnitude;
 				var viewDistance = eyePlane.GetDistanceToPoint(boxOffset);
 				bool intersectsNear = viewDistance - probeRadius <= nearDistanceFudged;
@@ -681,7 +683,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 			// draw the base probe
 			// TODO: (cleanup) dont use builtins like unity_SpecCube0
-			{ 
+			{
 				var props = new MaterialPropertyBlock ();
 				props.SetFloat ("_LightAsQuad", 1.0f);
 
@@ -710,7 +712,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			Matrix4x4 temp3 = PerspectiveCotanMatrix (chsa, 0.0f, range);
 			return temp2 * temp1 * temp3 * worldToLight;
 		}
-			
+
 		void RenderSpotlight(VisibleLight light, CommandBuffer cmd, MaterialPropertyBlock properties, bool renderAsQuad, bool intersectsNear, bool deferred)
 		{
 			float range = light.range;
@@ -724,8 +726,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			// Setup Spot Rendering mesh matrix
 			float sideLength = range / chsa;
 
-			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
-			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
+			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector.
+			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here.
 			lightToWorld = lightToWorld * Matrix4x4.Scale (new Vector3(sideLength*SpotLightMeshScaleFactor, sideLength*SpotLightMeshScaleFactor, range*SpotLightMeshScaleFactor));
 
 			//set default cookie for spot light if there wasnt one added to the light manually
@@ -751,21 +753,21 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			Vector3 lightPos = light.localToWorld.GetColumn (3); //position
 			float range = light.range;
 
-			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector. 
-			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here. 
+			// scalingFactor corrosoponds to the scale factor setting (and wether file scale is used) of mesh in Unity mesh inspector.
+			// A scale factor setting in Unity of 0.01 would require this to be set to 100. A scale factor setting of 1, is just 1 here.
 			var matrix = Matrix4x4.TRS (lightPos, Quaternion.identity, new Vector3 (range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor, range*PointLightMeshScaleFactor));
 
 			Texture cookie = light.light.cookie;
-			if (cookie != null) 
+			if (cookie != null)
 				cmd.EnableShaderKeyword ("POINT_COOKIE");
-			else 
+			else
 				cmd.EnableShaderKeyword ("POINT");
 
-			if (renderAsQuad) 
+			if (renderAsQuad)
 				cmd.DrawMesh (m_QuadMesh, Matrix4x4.identity, m_DirectionalDeferredLightingMaterial, 0, 0, properties);
-			else if (intersectsNear) 
+			else if (intersectsNear)
 				cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteNearDeferredLightingMaterial, 0, 0, properties);
-			else 
+			else
 				cmd.DrawMesh (m_PointLightMesh, matrix, m_FiniteDeferredLightingMaterial, 0, 0, properties);
 
 		}
@@ -799,14 +801,14 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		void RenderLightsDeferred (Camera camera, CullResults inputs, CommandBuffer cmd, ScriptableRenderContext loop)
 		{
 			int lightCount = inputs.visibleLights.Count;
-			for (int lightNum = 0; lightNum < lightCount; lightNum++) 
+			for (int lightNum = 0; lightNum < lightCount; lightNum++)
 			{
 				VisibleLight light = inputs.visibleLights[lightNum];
 
 				bool intersectsNear = (light.flags & VisibleLightFlags.IntersectsNearPlane) != 0;
 				bool intersectsFar = (light.flags & VisibleLightFlags.IntersectsFarPlane) != 0;
 				bool renderAsQuad =  (intersectsNear && intersectsFar) || (light.lightType == LightType.Directional);
-					
+
 				Vector3 lightPos = light.localToWorld.GetColumn (3); //position
 				Vector3 lightDir = light.localToWorld.GetColumn (2); //z axis
 				float range = light.range;
@@ -920,13 +922,13 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 					float chsa = GetCotanHalfSpotAngle (light.spotAngle);
 
 					// Setup Light Matrix
-					m_LightMatrix[i] = SpotlightMatrix (light, worldToLight, range, chsa); 
+					m_LightMatrix[i] = SpotlightMatrix (light, worldToLight, range, chsa);
 
 					if (light.light.cookie != null)
 						m_LightData[i].z = m_CookieTexArray.FetchSlice (cmd, light.light.cookie);
 					else
 						m_LightData [i].z = m_CookieTexArray.FetchSlice (cmd, m_DefaultSpotCookie);
-					
+
 				} else if (light.lightType == LightType.Directional) {
 					m_LightData[i].x = LightDefinitions.DIRECTIONAL_LIGHT;
 
@@ -966,8 +968,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 				var decodeVals = rl.hdr;
 
 				// C is reflection volume center in world space (NOT same as cube map capture point)
-				var e = bnds.extents;       
-				var C = mat.MultiplyPoint(boxOffset); 
+				var e = bnds.extents;
+				var C = mat.MultiplyPoint(boxOffset);
 				var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
 				Vector3 vx = mat.GetColumn(0);
@@ -1033,7 +1035,7 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 			cmd.SetGlobalFloat ("_useLegacyCookies", UseLegacyCookies?1.0f:0.0f);
 			cmd.SetGlobalFloat ("_transparencyShadows", TransparencyShadows ? 1.0f : 0.0f);
-	
+
 		}
 	}
 }
