@@ -65,10 +65,6 @@ namespace UnityEditor.VFX.UI
                 return Direction.Input;
             }
         }
-        public override bool IsConnectable()
-        {
-            return !connected;
-        }
     }
 
     class VFXFlowOutputAnchorController : VFXFlowAnchorController

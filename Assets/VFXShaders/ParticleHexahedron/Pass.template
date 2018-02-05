@@ -98,17 +98,19 @@ float3 VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)
 #endif
 }
 
-float2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i) 
+static const uint VFXCubePrimToFaceType[6] = {0,1,0,1,2,2};
+
+float2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i,uint primId) 
 {
 #ifdef VFX_VARYING_OFFSETS
-	float3 aOffsets = abs(i.VFX_VARYING_OFFSETS);
 	float2 uv;
-	if (aOffsets.x > 1.0f - 1.e-5)
-		uv = i.VFX_VARYING_OFFSETS.yz;
-	else if (aOffsets.y > 1.0f - 1.e-5)
-		uv = i.VFX_VARYING_OFFSETS.xz;
+	uint face = VFXCubePrimToFaceType[(primId >> 1) % 6];
+	if (face == 0)
+		uv = i.VFX_VARYING_OFFSETS.xy * float2(-i.VFX_VARYING_OFFSETS.z,1);
+	else if (face == 1)
+		uv = i.VFX_VARYING_OFFSETS.xz * float2(i.VFX_VARYING_OFFSETS.y,1);
 	else
-		uv = i.VFX_VARYING_OFFSETS.xy;
+		uv = i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);
 	return uv * 0.5f + 0.5f;
 #else
 	return 0.0f;

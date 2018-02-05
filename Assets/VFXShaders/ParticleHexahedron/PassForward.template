@@ -63,7 +63,7 @@ Pass
 	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
-	ps_output frag(ps_input i)
+	ps_output frag(ps_input i, uint primId : SV_PrimitiveID)
 	{
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
@@ -71,7 +71,7 @@ Pass
 #if VFX_USE_RIM_LIGHT
 		float3 normal = VFXCubeGetLocalNormal(i);	
 #if VFX_USE_NORMAL_MAP
-		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
+		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i,primId));
 		normal = VFXCubeTransformNormalTS(normal,n);
 #endif
 		normal = VFXCubeTransformNormalWS(i,normal);
