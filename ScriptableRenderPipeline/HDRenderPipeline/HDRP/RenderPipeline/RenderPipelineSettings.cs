@@ -27,9 +27,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Engine
         public bool supportDBuffer = false;
-        public bool supportMSAA = false;
+        public MSAASamples msaaSampleCount = MSAASamples.None;
 
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public ShadowInitParameters     shadowInitParams = new ShadowInitParameters();
+		public GlobalDecalSettings		decalSettings = new GlobalDecalSettings();
     }
 }
