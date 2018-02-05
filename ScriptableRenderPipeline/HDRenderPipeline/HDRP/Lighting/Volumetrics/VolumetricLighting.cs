@@ -342,16 +342,17 @@ public class VolumetricLightingModule
         return depthParams;
     }
 
-    public unsafe struct ZonalHarmonicsL2
+    public struct ZonalHarmonicsL2
     {
-        public fixed float coeffs[3];
+        public float[] coeffs; 
     };
 
-    public static unsafe ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float asymmetry)
+    public static ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float asymmetry)
     {
         float g = asymmetry;
 
-        ZonalHarmonicsL2 zh = new ZonalHarmonicsL2();
+        var zh    = new ZonalHarmonicsL2();
+        zh.coeffs = new float[3];
 
         zh.coeffs[0] = 0.5f * Mathf.Sqrt(1.0f / Mathf.PI);
         zh.coeffs[1] = 0.5f * Mathf.Sqrt(3.0f / Mathf.PI) * g;
@@ -360,11 +361,12 @@ public class VolumetricLightingModule
         return zh;
     }
 
-    public static unsafe ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float asymmetry)
+    public static ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float asymmetry)
     {
         float g = asymmetry;
 
-        ZonalHarmonicsL2 zh = new ZonalHarmonicsL2();
+        var zh    = new ZonalHarmonicsL2();
+        zh.coeffs = new float[3];
 
         zh.coeffs[0] = 0.282095f;
         zh.coeffs[1] = 0.293162f * g * (4.0f + (g * g)) / (2.0f + (g * g));
@@ -374,7 +376,7 @@ public class VolumetricLightingModule
     }
 
     // Ref: "Stupid Spherical Harmonics Tricks", p. 6.
-    public static unsafe SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)
+    public static SphericalHarmonicsL2 Convolve(SphericalHarmonicsL2 sh, ZonalHarmonicsL2 zh)
     {
         for (int l = 0; l <= 2; l++)
         {
