@@ -60,7 +60,8 @@ Shader "HDRenderPipeline/Lit"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 1.0
+        _CoatMask("Coat Mask", Range(0.0, 1.0)) = 0.0
+        _CoatMaskMap("CoatMaskMap", 2D) = "white" {}
 
         [ToggleUI] _EnergyConservingSpecularColor("_EnergyConservingSpecularColor", Float) = 1.0
         _SpecularColor("SpecularColor", Color) = (1, 1, 1, 1)
@@ -138,7 +139,11 @@ Shader "HDRenderPipeline/Lit"
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
-        [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, ClearCoat, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.RegularLighting
+        // Following enum should be material feature flags (i.e bitfield), however due to Gbuffer encoding constrain many combination exclude each other
+        // so we use this enum as "material ID" which can be interpreted as preset of bitfield of material feature
+        // The only material feature flag that can be added in all cases is clear coat
+        [Enum(Subsurface Scattering and Transmissison, 0, Standard, 1, Anisotropy, 2, Iridescence, 3, Specular Color, 4)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
+        [Enum(Both, 0, SSS only, 1, Transmission only, 2)] _SSSAndTransmissionType("SSSandTransmissionType", Int) = 0 // SSSandTransmissionType.Both
 
         [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0

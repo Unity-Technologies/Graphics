@@ -23,7 +23,7 @@ CBUFFER_START(DeferredShadowParameters)
 float   _DirectionalShadowIndex;
 float3  _LightDirection;
 float4  _ScreenSpaceShadowsParameters;
-uint	_SampleCount;
+int     _SampleCount;
 CBUFFER_END
 
 #define _ContactShadowLength                _ScreenSpaceShadowsParameters.x

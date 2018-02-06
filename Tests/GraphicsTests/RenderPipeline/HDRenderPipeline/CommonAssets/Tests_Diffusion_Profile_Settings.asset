@@ -16,7 +16,7 @@ MonoBehaviour:
     scatteringDistance: {r: 0.75686276, g: 0.32156864, b: 0.2, a: 1}
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 0
-    transmissionMode: 2
+    transmissionMode: 0
     thicknessRemap: {x: 0, y: 8.152544}
     worldScale: 1
     ior: 1.4
@@ -38,7 +38,7 @@ MonoBehaviour:
     scatteringDistance: {r: 0.75686276, g: 0.32156864, b: 0.2, a: 1}
     transmissionTint: {r: 0.7568628, g: 0.32156864, b: 0.20000002, a: 1}
     texturingMode: 1
-    transmissionMode: 2
+    transmissionMode: 0
     thicknessRemap: {x: 0, y: 8.152548}
     worldScale: 1
     ior: 1.4
@@ -60,7 +60,7 @@ MonoBehaviour:
     scatteringDistance: {r: 0.76052475, g: 0.70110214, b: 0.2422812, a: 1}
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
-    transmissionMode: 2
+    transmissionMode: 0
     thicknessRemap: {x: 0, y: 0.2873168}
     worldScale: 1
     ior: 1.4

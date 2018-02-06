@@ -53,6 +53,9 @@ SAMPLER(sampler_SpecularColorMap);
 TEXTURE2D(_TransmittanceColorMap);
 SAMPLER(sampler_TransmittanceColorMap);
 
+TEXTURE2D(_CoatMaskMap);
+SAMPLER(sampler_CoatMaskMap);
+
 #else
 
 // Set of users variables

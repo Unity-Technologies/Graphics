@@ -14,7 +14,7 @@ Material:
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
@@ -481,6 +481,7 @@ Material:
     - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
     - _PreRefractionPass: 0
+    - _SSSAndTransmissionType: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _ShowLayer0: 0
@@ -520,6 +521,7 @@ Material:
     - _SubsurfaceRadius1: 1
     - _SubsurfaceRadius2: 1
     - _SubsurfaceRadius3: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScale0: 0.2
@@ -532,6 +534,7 @@ Material:
     - _Thickness1: 1
     - _Thickness2: 1
     - _Thickness3: 1
+    - _TransparentSortPriority: 0
     - _UVBase: 0
     - _UVBase0: 4
     - _UVBase1: 0
