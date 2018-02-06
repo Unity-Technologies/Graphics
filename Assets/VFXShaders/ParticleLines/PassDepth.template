@@ -1,4 +1,4 @@
-// Shadow pass
+// Depth pass
 Pass
 {		
 	Tags { "LightMode"=${VFXPassShadow} }
@@ -21,11 +21,7 @@ Pass
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
-		
-	${VFXBegin:VFXVertexAdditionalProcess}
-		o.pos = UnityApplyLinearShadowBias(o.pos);
-	${VFXEnd}
-		
+				
 	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
 		
 	#pragma fragment frag

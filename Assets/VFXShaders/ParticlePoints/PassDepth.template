@@ -1,11 +1,11 @@
-// Shadow pass
+// Depth pass
 Pass
 {		
-	Tags { "LightMode"=${VFXPassShadow} }
-
+	Tags { "LightMode"=${VFXPassDepth} }
+	
 	ZWrite On
 	Blend Off
-	
+
 	HLSLPROGRAM
 	#pragma target 4.5
 	
@@ -19,19 +19,18 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#define VFX_VARYING_ALPHA builtInInterpolants.y
-#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
-		
-	${VFXBegin:VFXVertexAdditionalProcess}
-		o.pos = UnityApplyLinearShadowBias(o.pos);
-	${VFXEnd}
-		
-	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
+#undef VFX_VARYING_POSSS
+#undef VFX_VARYING_COLOR // Not used
+#define VFX_VARYING_ALPHA builtInInterpolants.x
+#undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+
+	${VFXInclude("Assets/VFXShaders/ParticlePoints/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
-		float alpha = VFXGetFragmentColor(i);
+		float alpha = VFXGetFragmentColor(i).a;
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}

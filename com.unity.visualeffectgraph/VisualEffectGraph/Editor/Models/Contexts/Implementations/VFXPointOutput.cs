@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     class VFXPointOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Point Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticlePoints"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePoints"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticlePointOutput; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes

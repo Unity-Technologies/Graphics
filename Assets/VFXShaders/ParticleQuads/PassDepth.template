@@ -1,7 +1,7 @@
-// Shadow pass
+// Depth pass
 Pass
 {		
-	Tags { "LightMode"=${VFXPassShadow} }
+	Tags { "LightMode"=${VFXPassDepth} }
 
 	ZWrite On
 	Blend Off
@@ -31,12 +31,8 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_UV uv
-		
-	${VFXBegin:VFXVertexAdditionalProcess}
-	o.pos = UnityApplyLinearShadowBias(o.pos);
-	${VFXEnd}
-		
-	${VFXInclude("Assets/VFXShaders/ParticleMeshes/Pass.template")}	
+				
+	${VFXInclude("Assets/VFXShaders/ParticleQuads/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

@@ -51,6 +51,11 @@ namespace UnityEditor.VFX
 
     class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>
     {
+        protected static string RenderPipeTemplate(string fileName)
+        {
+            return VFXManager.renderPipeSettingsPath + "/templates/" + fileName;
+        }
+
         private VFXContext() { m_UICollapsed = false; } // Used by serialization
 
         public VFXContext(VFXContextType contextType, VFXDataType inputType, VFXDataType outputType)
