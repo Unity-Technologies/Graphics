@@ -402,8 +402,6 @@ public class VolumetricLightingModule
     // to obtain the canonical values of SH.
     public static SphericalHarmonicsL2 UndoCosineRescaling(SphericalHarmonicsL2 sh)
     {    
-        float sqrtPi = Mathf.Sqrt(Mathf.PI);
-
         const float c0 = 0.28209479177387814347f; // 1/2  * sqrt(1/Pi)
         const float c1 = 0.32573500793527994772f; // 1/3  * sqrt(3/Pi)
         const float c2 = 0.27313710764801976764f; // 1/8  * sqrt(15/Pi)
@@ -572,11 +570,6 @@ public class VolumetricLightingModule
             Debug.Assert(vBuffer != null);
 
             HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
-
-            // TODO: may want to cache these results somewhere.
-            VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
-                                                                                : VolumeProperties.GetNeutralVolumeProperties();
-
             float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
 
             if (globalFogComponent == null)
