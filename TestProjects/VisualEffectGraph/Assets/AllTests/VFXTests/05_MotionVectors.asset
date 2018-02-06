@@ -5152,7 +5152,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 64
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: d4e9e1fc1c132e445872b0ec67125412, type: 3}
+      processor: {fileID: 7200000, guid: 01df7839111a3d141ad70e67de957292, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5185,7 +5185,7 @@ VFXAsset:
       - index: 58
         nameId: Force_d
       params: []
-      processor: {fileID: 7200000, guid: 907627cb8bd7b6d4a93c51fe7ec81b37, type: 3}
+      processor: {fileID: 7200000, guid: 612f6f9d67d0a7044aa7c3a195692375, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5198,7 +5198,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c72a6ba3b1c76624c9c77f286b90f98e, type: 3}
+      processor: {fileID: 4800000, guid: 5170457310c2ab942b2084099bcec2a3, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
