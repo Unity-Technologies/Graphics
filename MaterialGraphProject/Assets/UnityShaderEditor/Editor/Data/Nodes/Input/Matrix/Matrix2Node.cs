@@ -1,13 +1,14 @@
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 2x2")]
     public class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
     {
-        const int kOutputSlotId = 0;
+        public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";
 
         [SerializeField]
@@ -35,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
-            Dirty(ModificationScope.Graph);
+            Dirty(ModificationScope.Node);
         }
 
         public Matrix2Node()
@@ -46,59 +47,65 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Matrix2MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+            AddSlot(new Matrix2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            properties.AddShaderProperty(new Vector2ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                generatePropertyBlock = false,
+                value = m_Row0
+            });
+
+            properties.AddShaderProperty(new Vector2ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                generatePropertyBlock = false,
+                value = m_Row1
+            });
+        }
+
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var sb = new ShaderStringBuilder();
+            if (!generationMode.IsPreview())
+            {
+                sb.AppendLine("{0}3 _{1}_m0 = {0}3 ({2}, {3});", precision, GetVariableNameForNode(), 
+                    NodeUtils.FloatToShaderValue(m_Row0.x), 
+                    NodeUtils.FloatToShaderValue(m_Row0.y));
+                sb.AppendLine("{0}3 _{1}_m1 = {0}3 ({2}, {3});", precision, GetVariableNameForNode(), 
+                    NodeUtils.FloatToShaderValue(m_Row1.x), 
+                    NodeUtils.FloatToShaderValue(m_Row1.y));
+            }
+            sb.AppendLine("{0}2x2 {1} = {0}2x2 (_{1}_m0.x, _{1}_m0.y, _{1}_m1.x, _{1}_m1.y);",
+                precision, GetVariableNameForNode());
+            visitor.AddShaderChunk(sb.ToString(), false);
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            properties.Add(new PreviewProperty(PropertyType.Vector2)
+            {
+                name = string.Format("_{0}_m0", GetVariableNameForNode()),
+                vector4Value = m_Row0
+            });
+
+            properties.Add(new PreviewProperty(PropertyType.Vector2)
+            {
+                name = string.Format("_{0}_m1", GetVariableNameForNode()),
+                vector4Value = m_Row1
+            });
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
             return GetVariableNameForNode();
         }
-
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            visitor.AddShaderChunk(precision + "2x2 " + GetVariableNameForNode() + " = " + precision + "2x2 (" + m_Row0.x + ", " + m_Row0.y + ", " + m_Row1.x + ", " + m_Row1.y + ");", true);
-        }
-
-        [SerializeField]
-        string m_Description = string.Empty;
-
-        public string description
-        {
-            get
-            {
-                return string.IsNullOrEmpty(m_Description) ? name : m_Description;
-            }
-            set { m_Description = value; }
-        }
-
-        // TODO - Remove Property entries everywhere?
-        // Matrix cant be a shader property
-        /*public override PropertyType propertyType
-        {
-            get { return PropertyType.Matrix2; }
-        }*/
-
-        /*public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
-        }*/
-
-        /*public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "2 " + propertyName + ";", true);
-        }*/
-
-        /*public override PreviewProperty GetPreviewProperty()
-        {
-            return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Vector2,
-                m_Vector2 = m_Value
-            };
-        }*/
     }
 }
