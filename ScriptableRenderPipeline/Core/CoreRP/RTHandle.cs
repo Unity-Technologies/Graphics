@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering
         public static int maxHeight { get { return GetMaxHeight(s_ScaledRTCurrentCategory); } }
 
         static RTHandle()
-{
+        {
             s_AutoSizedRTs = new List<RTHandle>();
             for (int i = 0; i < (int)RTCategory.Count; ++i)
             {
