@@ -95,37 +95,6 @@ struct VoxelLighting
     float3 radianceNoPhase;
 };
 
-// RGB SphericalHarmonics
-struct LightProbe
-{
-    float3 coeffs[9]; // 3 bands
-};
-
-LightProbe GetPreconvolvedAmbientProbe()
-{
-    LightProbe probe;
-
-    for (int i = 0; i < 9; i++)
-    {
-        probe.coeffs[i] = _AmbientProbeCoeffs[i].rgb;
-    }
-
-    return probe;
-}
-
-// Warning: since it's a SH, the results can be negative!
-float3 EvaluateLightProbe(LightProbe probe, float3 d)
-{
-    float3 radiance = 0;
-
-    // Coefficients are premultiplied and reordered in the MAD form:
-    // HornerForm[c_0 + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2 - 1) + c_7 x z + c_8 (x^2 - y^2)]
-    // = z (3 c_6 z + c_7 x + c_2) + y (-c_8 y + c_5 z + c_4 x + c_1) + x (c_8 x + c_3) + (c_0 - c_6)
-    return probe.coeffs[0] + d.x * (probe.coeffs[1] + d.x * probe.coeffs[2])
-                           + d.y * (probe.coeffs[3] + d.x * probe.coeffs[4] + d.z * probe.coeffs[5] - d.y * probe.coeffs[2])
-                           + d.z * (probe.coeffs[6] + d.x * probe.coeffs[7] + d.z * probe.coeffs[8]);
-}
-
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
@@ -394,7 +363,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
     // The contribution of the ambient probe does not depend on the position,
     // only on the direction and the length of the interval.
-    float3 probeInScatteredRadiance = EvaluateLightProbe(GetPreconvolvedAmbientProbe(), ray.centerDirWS);
+    // SampleSH9() evaluates the 3-band SH in a given direction.
+    float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;

@@ -345,7 +345,7 @@ public class VolumetricLightingModule
     public struct ZonalHarmonicsL2
     {
         public float[] coeffs; 
-    };
+    }
 
     public static ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float asymmetry)
     {
@@ -398,8 +398,9 @@ public class VolumetricLightingModule
         return sh;
     }
 
-    // Undoes coefficient normalization to obtain the canonical values of SH.
-    public static SphericalHarmonicsL2 DenormalizeSH(SphericalHarmonicsL2 sh)
+    // Undoes coefficient rescaling due to the convolution with the clamped cosine kernel
+    // to obtain the canonical values of SH.
+    public static SphericalHarmonicsL2 UndoCosineRescaling(SphericalHarmonicsL2 sh)
     {    
         float sqrtPi = Mathf.Sqrt(Mathf.PI);
 
@@ -410,7 +411,7 @@ public class VolumetricLightingModule
         const float c4 = 0.13656855382400988382f; // 1/16 * sqrt(15/Pi)
 
         // Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
-        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks". Note that we do not multiply by 3 here.
+        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
         float[] invNormConsts = { 1.0f / c0, -1.0f / c1, 1.0f / c1, -1.0f / c1, 1.0f / c2, -1.0f / c2, 1.0f / c3, -1.0f / c2, 1.0f / c4 };
 
         for (int c = 0; c < 3; c++)
@@ -427,8 +428,8 @@ public class VolumetricLightingModule
     // Premultiplies the SH with the polynomial coefficients of SH basis functions,
     // which avoids using any constants during SH evaluation.
     // The resulting evaluation takes the form:
-    // c_0 + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2 - 1) + c_7 x z + c_8 (x^2 - y^2)
-    public static SphericalHarmonicsL2 PremultiplySH(SphericalHarmonicsL2 sh)
+    // (c_0 - c_6) + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2) + c_7 x z + c_8 (x^2 - y^2)
+    public static SphericalHarmonicsL2 PremultiplyCoefficients(SphericalHarmonicsL2 sh)
     {
         const float k0 = 0.28209479177387814347f; // {0, 0} : 1/2 * sqrt(1/Pi)
         const float k1 = 0.48860251190291992159f; // {1, 0} : 1/2 * sqrt(3/Pi)
@@ -451,28 +452,37 @@ public class VolumetricLightingModule
 
     void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float asymmetry)
     {
-        SphericalHarmonicsL2 probeSH = DenormalizeSH(RenderSettings.ambientProbe);
+        SphericalHarmonicsL2 probeSH = UndoCosineRescaling(RenderSettings.ambientProbe);
         ZonalHarmonicsL2     phaseZH = GetCornetteShanksPhaseFunction(asymmetry);
-        SphericalHarmonicsL2 finalSH = PremultiplySH(Convolve(probeSH, phaseZH));
+        SphericalHarmonicsL2 finalSH = PremultiplyCoefficients(Convolve(probeSH, phaseZH));
 
-        // Reorder coefficients in the MAD form:
-        // HornerForm[c_0 + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2 - 1) + c_7 x z + c_8 (x^2 - y^2)]
-        // = z (3 c_6 z + c_7 x + c_2) + y (-c_8 y + c_5 z + c_4 x + c_1) + x (c_8 x + c_3) + (c_0 - c_6)
-        Vector4[] coeffs = new Vector4[9];
+        // Pack coefficients so that we can use Peter-Pike Sloan's shader code.
+        // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
+        Vector4[] coeffs = new Vector4[7];
 
-        const int r = 0, g = 1, b = 2;
+        // Constant + linear
+        for (int c = 0; c < 3; c++)
+        {
+            coeffs[c].x = finalSH[c, 3];
+            coeffs[c].y = finalSH[c, 1];
+            coeffs[c].z = finalSH[c, 2];
+            coeffs[c].w = finalSH[c, 0] - finalSH[c, 6];
+        }
 
-        coeffs[0] = new Vector3(finalSH[r, 0], finalSH[g, 0], finalSH[b, 0])
-                  - new Vector3(finalSH[r, 6], finalSH[g, 6], finalSH[b, 6]);
-        coeffs[1] = new Vector3(finalSH[r, 3], finalSH[g, 3], finalSH[b, 3]);
-        coeffs[2] = new Vector3(finalSH[r, 8], finalSH[g, 8], finalSH[b, 8]);
-        coeffs[3] = new Vector3(finalSH[r, 1], finalSH[g, 1], finalSH[b, 1]);
-        coeffs[4] = new Vector3(finalSH[r, 4], finalSH[g, 4], finalSH[b, 4]);
-        coeffs[5] = new Vector3(finalSH[r, 5], finalSH[g, 5], finalSH[b, 5]);
-        // Avoid reduplicating c_8.
-        coeffs[6] = new Vector3(finalSH[r, 2], finalSH[g, 2], finalSH[b, 2]);
-        coeffs[7] = new Vector3(finalSH[r, 7], finalSH[g, 7], finalSH[b, 7]);
-        coeffs[8] = new Vector3(finalSH[r, 6], finalSH[g, 6], finalSH[b, 6]) * 3.0f;
+        // Quadratic (4/5)
+        for (int c = 0; c < 3; c++)
+        {
+            coeffs[3 + c].x = finalSH[c, 4];
+            coeffs[3 + c].y = finalSH[c, 5];
+            coeffs[3 + c].z = finalSH[c, 6] * 3.0f;
+            coeffs[3 + c].w = finalSH[c, 7];
+        }
+
+        // Quadratic (5)
+        coeffs[6].x = finalSH[0, 8];
+        coeffs[6].y = finalSH[1, 8];
+        coeffs[6].z = finalSH[2, 8];
+        coeffs[6].w = 1.0f;
 
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, coeffs);
     }
