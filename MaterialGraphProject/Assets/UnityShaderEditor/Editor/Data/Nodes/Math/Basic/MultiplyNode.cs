@@ -25,17 +25,23 @@ namespace UnityEditor.ShaderGraph
         const string kInput2SlotName = "B";
         const string kOutputSlotName = "Out";
 
+        public enum MultiplyType
+        {
+            Vector,
+            Matrix,
+            Mixed
+        }
+
+        MultiplyType m_MultiplyType;
+
         public override bool hasPreview
         {
             get { return m_MultiplyType != MultiplyType.Matrix; }
-            //get { return false; }
         }
 
-        string GetFunctionName()
+        string GetFunctionHeader()
         {
-            return string.Format("Unity_Multiply_{0}_{1}", 
-                FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
-                FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision));
+            return string.Format("Unity_Multiply_{0}", precision);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -54,9 +60,17 @@ namespace UnityEditor.ShaderGraph
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
             sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId));
-            sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionName(), input1Value, input2Value, outputValue);
+            sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionHeader(), input1Value, input2Value, outputValue);
 
             visitor.AddShaderChunk(sb.ToString(), false);
+        }
+
+        string GetFunctionName()
+        {
+            return string.Format("{0}_{1}_{2}",
+                GetFunctionHeader(), 
+                FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
+                FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision));
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -64,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             registry.ProvideFunction(GetFunctionName(), s =>
             {
                 s.AppendLine("void {0} ({1} A, {2} B, out {3} Out)",
-                    GetFunctionName(),
+                    GetFunctionHeader(),
                     FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
                     FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision),
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
@@ -85,15 +99,6 @@ namespace UnityEditor.ShaderGraph
 
         // Internal validation
         // -------------------------------------------------
-
-        public enum MultiplyType
-        {
-            Vector,
-            Matrix,
-            Mixed
-        }
-
-        MultiplyType m_MultiplyType;
 
         public override void ValidateNode()
         {
@@ -276,17 +281,42 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicValueMaterialSlot>.Release(skippedDynamicSlots);
             DictionaryPool<DynamicValueMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+        }
 
-            List<MaterialSlot> inSlots = new List<MaterialSlot>();
-            List<MaterialSlot> outSlots = new List<MaterialSlot>();
-            GetInputSlots<MaterialSlot>(inSlots);
-            GetOutputSlots<MaterialSlot>(outSlots);
-
-            // Debugs
-            foreach(MaterialSlot i in inSlots)
-                Debug.Log("Node: "+this.guid +" slot "+i.displayName+" to type "+i.concreteValueType);
-            foreach(MaterialSlot o in outSlots)
-                Debug.Log("Node: "+this.guid +" slot "+o.displayName+" to type "+o.concreteValueType);
+        protected override bool CalculateNodeHasError()
+        {
+            if(m_MultiplyType == MultiplyType.Matrix)
+            {
+                foreach (var slot in this.GetOutputSlots<ISlot>())
+                {
+                    foreach (var edge in owner.GetEdges(slot.slotReference))
+                    {
+                        var inputNode = owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        List<MaterialSlot> slots = new List<MaterialSlot>();
+                        inputNode.GetInputSlots(slots);
+                        foreach(var s in slots)
+                        {
+                            foreach(var inputEdge in inputNode.owner.GetEdges(s.slotReference))
+                            {
+                                if(inputEdge == edge)
+                                {
+                                    if(s as DynamicValueMaterialSlot == null)
+                                    {
+                                        if(s.concreteValueType != ConcreteSlotValueType.Matrix4
+                                        && s.concreteValueType != ConcreteSlotValueType.Matrix3
+                                        && s.concreteValueType != ConcreteSlotValueType.Matrix2)
+                                        {
+                                            Debug.Log("ERROR: slot "+s.displayName+" cannot accept a Matrix type input");
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         private static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
@@ -423,118 +453,5 @@ namespace UnityEditor.ShaderGraph
             }
             return ConcreteSlotValueType.Matrix2;
         }
-
-        /*private ConcreteSlotValueType ConvertDynamicOutputType(List<ConcreteSlotValueType> inputTypesDistinct)
-        {
-            // If dynamics contain vectors return a vector
-            if(DynamicsContainVectors(inputTypesDistinct))
-            {
-                int vectorLength;
-                // If mul(matrix, vector) return matrix length
-                if(DynamicsContainMatrices(inputTypesDistinct, out vectorLength))
-                {
-                    switch(vectorLength)
-                    {
-                        case 2:
-                            return ConcreteSlotValueType.Vector2;
-                        case 3:
-                            return ConcreteSlotValueType.Vector3;
-                        case 4:
-                            return ConcreteSlotValueType.Vector4;
-                        default:
-                            return ConcreteSlotValueType.Vector1;
-                    }
-                }
-                
-                // find the 'minumum' channel width excluding 1 as it can promote
-                inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
-                var ordered = inputTypesDistinct.OrderByDescending(x => x);
-                if (ordered.Any())
-                    return ordered.FirstOrDefault();
-                return ConcreteSlotValueType.Vector1;
-            }
-            // Otherwise return a matrix
-            else
-            {
-                var ordered = inputTypesDistinct.OrderByDescending(x => x);
-                if (ordered.Any())
-                    return ordered.FirstOrDefault();
-                return ConcreteSlotValueType.Vector1;
-            }
-        }
-
-        private bool DynamicsContainVectors(IList<ConcreteSlotValueType> inputTypes)
-        {
-            for (int i = 0; i < inputTypes.Count; i++)
-            {
-                if(inputTypes[i] == ConcreteSlotValueType.Vector4
-                    || inputTypes[i] == ConcreteSlotValueType.Vector3
-                    || inputTypes[i] == ConcreteSlotValueType.Vector2
-                    || inputTypes[i] == ConcreteSlotValueType.Vector1)
-                {
-                    return true;
-                }
-
-            }
-            return false;
-        }
-
-        private bool DynamicsContainMatrices(IList<ConcreteSlotValueType> inputTypes, out int vectorLength)
-        {
-            for (int i = 0; i < inputTypes.Count; i++)
-            {
-                if(DynamicIsMatrix(inputTypes[i], out vectorLength))
-                    return true;
-            }
-            vectorLength = 0;
-            return false;
-        }
-
-        private bool DynamicIsMatrix(ConcreteSlotValueType type, out int vectorLength)
-        {
-            if(type == ConcreteSlotValueType.Matrix4)
-            {
-                vectorLength = 4;
-                return true;
-            }
-            else if(type == ConcreteSlotValueType.Matrix3)
-            {
-                vectorLength = 3;
-                return true;
-            }
-            else if(type == ConcreteSlotValueType.Matrix2)
-            {
-                vectorLength = 2;
-                return true;
-            }
-            else 
-                vectorLength = 1;
-                return false;
-        }*/
-
-        /*public MultiplyNode()
-        {
-            name = "Multiply";
-        }
-
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Multiply", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static string Unity_Multiply(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
-            [Slot(1, Binding.None, 2, 2, 2, 2)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
-        {
-            return
-                @"
-{
-    Out = A * B;
-}
-";
-        }*/
     }
-
-    
 }
