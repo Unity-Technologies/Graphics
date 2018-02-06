@@ -285,7 +285,7 @@ namespace UnityEditor.VFX.UI
 
             if (context != null)
             {
-                context.OnCreateBlock(evt);
+                context.OnCreateBlock(evt.originalMousePosition);
             }
             else
             {
