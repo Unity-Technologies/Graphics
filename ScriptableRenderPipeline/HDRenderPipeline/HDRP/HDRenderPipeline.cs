@@ -282,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_AmbientOcclusionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true);
             }
 
-            if (m_Asset.renderPipelineSettings.supportsMotionVectors)
+            if (m_Asset.renderPipelineSettings.supportMotionVectors)
             {
                 m_VelocityBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBuffer_sRGBFlag(), enableMSAA: true);
             }
