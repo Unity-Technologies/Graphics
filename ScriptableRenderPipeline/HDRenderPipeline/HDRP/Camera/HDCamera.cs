@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (frameSettings.enableMSAA)
             {
                 // this is already pre-validated to be a valid sample count by InitializeFrameSettings
-                var sampleCount = QualitySettings.antiAliasing;
+                var sampleCount = (int)frameSettings.msaaSampleCount; 
                 tempDesc.msaaSamples = sampleCount;
             }
             else
@@ -209,11 +209,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Warning: different views can use the same camera!
-        public int GetViewID()
+        public long GetViewID()
         {
             if (camera.cameraType == CameraType.Game)
             {
-                int viewID = camera.GetInstanceID();
+                long viewID = camera.GetInstanceID();
+                // Make it positive.
+                viewID += (-(long)int.MinValue) + 1;
                 Debug.Assert(viewID > 0);
                 return viewID;
             }

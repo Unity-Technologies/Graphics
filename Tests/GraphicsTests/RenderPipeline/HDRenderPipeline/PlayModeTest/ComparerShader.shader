@@ -40,6 +40,9 @@ Shader "GraphicTests/ComparerShader"
             sampler2D _CompareTex;
             int _Mode, _MaxMode;
 
+            float _FlipV2 = 1;
+            float _CorrectGamma = 0;
+
             float _Split, _ResultSplit, _LineWidth;
 			
 			v2f vert (appdata v)
@@ -53,7 +56,8 @@ Shader "GraphicTests/ComparerShader"
 			fixed4 frag (v2f i) : SV_Target
 			{
                 fixed4 c1 = tex2D(_MainTex, i.uv);
-                float2 uv2 = float2(i.uv.x, 1-i.uv.y);
+                float2 uv2 = i.uv;
+                if (_FlipV2 > 0) uv2.y = 1 - uv2.y;
                 fixed4 c2 = tex2D(_CompareTex, uv2);
 
                 fixed4 o = c1 - c2;
@@ -105,6 +109,9 @@ Shader "GraphicTests/ComparerShader"
                 {
                     o.rgb = 0;
                 }
+
+                if (_CorrectGamma > 0)
+                    o.rgb = pow(o.rgb, 0.4545454545);
 
                 return o;
 			}

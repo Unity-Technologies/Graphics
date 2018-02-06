@@ -489,6 +489,29 @@ real UnpackFloatFromR8G8(real2 f)
     return PackShort(cb);
 }
 
+// Pack float2 (each of 12 bit) in 888
+real3 PackFloat2To888(real2 f)
+{
+    uint2 i = (uint2)(f * 4095.5);
+    uint2 hi = i >> 8;
+    uint2 lo = i & 255;
+    // 8 bit in lo, 4 bit in hi
+    uint3 cb = uint3(lo, hi.x | (hi.y << 4));
+
+    return cb / 255.0;
+}
+
+// Unpack 2 float of 12bit packed into a 888
+real2 Unpack888ToFloat2(real3 x)
+{
+    uint3 i = (uint3)(x * 255.0);
+    // 8 bit in lo, 4 bit in hi
+    uint hi = i.z >> 4;
+    uint lo = i.z & 15;
+    uint2 cb = i.xy | uint2(lo << 8, hi << 8);
+
+    return cb / 4095.0;
+}
 #endif // SHADER_API_GLES
 
 #endif // UNITY_PACKING_INCLUDED

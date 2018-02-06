@@ -13,7 +13,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
-            public Vector4 mask; 
+            public Vector4 mask;
+			[SurfaceDataAttributes("HTileMask")]
+			public uint HTileMask; 
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -21,6 +23,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
             Count = 3
+        };
+
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum DBufferHTileBit
+        {            
+            Diffuse = 1,
+            Normal = 2,
+            Mask = 4
         };
 
         //-----------------------------------------------------------------------------

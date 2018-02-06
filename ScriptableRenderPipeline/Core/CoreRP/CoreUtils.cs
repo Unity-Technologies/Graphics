@@ -47,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public const int editMenuPriority1 = 320;
         public const int editMenuPriority2 = 331;
+        public const int editMenuPriority3 = 342;
         public const int assetCreateMenuPriority1 = 230;
         public const int assetCreateMenuPriority2 = 241;
         public const int gameObjectMenuPriority = 10;
@@ -457,6 +458,20 @@ namespace UnityEngine.Experimental.Rendering
 
             mesh.triangles = triangles;
             return mesh;
+        }
+
+		public static void ResizeHTile(ref RenderTexture hTile, ref RenderTargetIdentifier hTileRT, RenderTextureDescriptor desc)
+        {
+            // We must use a RenderTexture and not GetTemporaryRT() as currently Unity only aloow to bind a RenderTexture for a UAV in a pixel shader
+            // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.          
+            desc.width = (desc.width + 7) / 8;
+            desc.height = (desc.height + 7) / 8;
+            // TODO: This fails allocation with MSAA enabled?
+			hTile = CreateRenderTexture(desc, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            hTile.filterMode = FilterMode.Point;
+            hTile.enableRandomWrite = true;
+            hTile.Create();
+            hTileRT = new RenderTargetIdentifier(hTile);
         }
     }
 }

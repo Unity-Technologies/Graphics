@@ -116,6 +116,7 @@ Material:
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _SurfaceType: 0
+    - _TransparentSortPriority: 0
     - _UVSec: 0
     - _ZTestMode: 8
     - _ZWrite: 1
