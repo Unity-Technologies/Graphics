@@ -40,10 +40,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_ActualHeight;
         // This is the scale and bias of the camera viewport compared to the reference size of our Render Targets (RHandle.maxSize)
         Vector2 m_CameraScaleBias;
+        // Current mssa sample
+        MSAASamples m_msaaSamples;
 
         public int actualWidth { get { return m_ActualWidth; } }
         public int actualHeight { get { return m_ActualHeight; } }
         public Vector2 scaleBias { get { return m_CameraScaleBias; } }
+        public MSAASamples msaaSamples { get { return m_msaaSamples; } }
 
         public Matrix4x4 viewProjMatrix
         {
@@ -194,8 +197,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
-            MSAASamples msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, msaaSamples);
+            m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
 
             int maxWidth = RTHandle.maxWidth;
             int maxHeight = RTHandle.maxHeight;

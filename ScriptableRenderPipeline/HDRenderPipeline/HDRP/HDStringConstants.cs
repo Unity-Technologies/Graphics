@@ -71,6 +71,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_mScrProjection = Shader.PropertyToID("g_mScrProjection");
         public static readonly int g_mInvScrProjection = Shader.PropertyToID("g_mInvScrProjection");
         public static readonly int g_iLog2NumClusters = Shader.PropertyToID("g_iLog2NumClusters");
+        public static readonly int g_screenSize = Shader.PropertyToID("g_screenSize");
+        public static readonly int g_iNumSamplesMSAA = Shader.PropertyToID("g_iNumSamplesMSAA");
         public static readonly int g_fNearPlane = Shader.PropertyToID("g_fNearPlane");
         public static readonly int g_fFarPlane = Shader.PropertyToID("g_fFarPlane");
         public static readonly int g_fClustScale = Shader.PropertyToID("g_fClustScale");
