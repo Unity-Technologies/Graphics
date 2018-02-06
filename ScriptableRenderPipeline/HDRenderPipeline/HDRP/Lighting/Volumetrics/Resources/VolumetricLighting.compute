@@ -16,14 +16,15 @@
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET == 1)
     // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
     #define VBUFFER_TILE_SIZE   8
-    #define VBUFFER_SLICE_COUNT 128
+    #define VBUFFER_SLICE_COUNT 64
 #else
     // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
     #define VBUFFER_TILE_SIZE   4
-    #define VBUFFER_SLICE_COUNT 256
+    #define VBUFFER_SLICE_COUNT 128
 #endif
 
-#define SUPPORT_ASYMMETRY 1 // Support asymmetric phase functions
+#define SUPPORT_ASYMMETRY       1 // Support asymmetric phase functions
+#define SUPPORT_PUNCTUAL_LIGHTS 1 // Punctual lights contribute to fog lighting
 
 #define GROUP_SIZE_1D 16
 #define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
@@ -57,6 +58,7 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval 
 CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;              // {x, y, z}, w = rendered frame count
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_GlobalFog_Asymmetry)
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -148,6 +150,10 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             lighting.radianceComplete += phase * intensity * color;
         }
     }
+
+#if (SUPPORT_PUNCTUAL_LIGHTS == 0)
+    return lighting;
+#endif
 
 #ifdef LIGHTLOOP_TILE_PASS
     // Loop over 1 or 2 light clusters.
@@ -355,6 +361,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float t0 = ray.strataDirInvViewZ * z0; // Convert view space Z to distance along the stratified ray
     float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
 
+    // The contribution of the ambient probe does not depend on the position,
+    // only on the direction and the length of the interval.
+    // SampleSH9() evaluates the 3-band SH in a given direction.
+    float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
+
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
 
@@ -414,11 +425,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                    #else
                                                        );
                                                    #endif
-
-    #if (SUPPORT_ASYMMETRY == 0)
-        lighting.radianceComplete = lighting.radianceNoPhase;
-    #endif
-
     #if ENABLE_REPROJECTION
         // Reproject the history at 'centerWS'.
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
@@ -471,25 +477,37 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // to prevent ghosting.
         _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, dt);
 
+    #if SUPPORT_ASYMMETRY
         // Extrapolate the influence of the phase function on the results of the current frame.
-        // TODO: how to ensure we do not divide by 0?
-        float3 phaseCurrFrame = lighting.radianceComplete / lighting.radianceNoPhase;
+        // Use max() to prevent division by 0.
+        float3 phaseCurrFrame = lighting.radianceComplete * rcp(max(lighting.radianceNoPhase, FLT_MIN));
         blendedRadiance *= phaseCurrFrame;
-    #else
+    #endif // SUPPORT_ASYMMETRY
+
+    #else  // ENABLE_REPROJECTION
+
+    #if SUPPORT_ASYMMETRY
         float3 blendedRadiance = lighting.radianceComplete;
+    #else  // SUPPORT_ASYMMETRY
+        float3 blendedRadiance = lighting.radianceNoPhase;
+    #endif // SUPPORT_ASYMMETRY
+
     #endif // ENABLE_REPROJECTION
 
         // Compute the transmittance from the camera to 't0'.
         float transmittance = Transmittance(opticalDepth);
 
     #if SUPPORT_ASYMMETRY
-        float phase = CornetteShanksPhasePartConstant(asymmetry);
+        float phase = _CornetteShanksConstant;
     #else
         float phase = IsotropicPhaseFunction();
     #endif
 
+        // Integrate the contribution of the probe over the interval.
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        totalRadiance += (transmittance * phase) * scattering * blendedRadiance;
+        float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+
+        totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);
 
         // Compute the optical depth up to the center of the interval.
         opticalDepth += 0.5 * extinction * dt;
