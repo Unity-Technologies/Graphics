@@ -1,3 +1,4 @@
+#!/usr/bin/python -B
 import os
 import json
 import logging
@@ -146,5 +147,14 @@ def prepare_editor_test_project(repo_path, project_path, logger):
     copy_path_to_project("SampleScenes", repo_path, project_path, logger)
     copy_path_to_project("TestbedPipelines", repo_path, project_path, logger)
     copy_path_to_project("Tests", repo_path, project_path, logger)
-    # Temporary until post processing handled properly
-    copy_path_to_project("PostProcessing", repo_path, project_path, logger)
+
+
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, os.path.abspath(os.path.join("..", "automation-tools")))
+    
+    try:
+        import unity_package_build
+        build_log = unity_package_build.setup()
+    except ImportError:
+        print "No Automation Tools found."
