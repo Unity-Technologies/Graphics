@@ -678,7 +678,6 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
 #if SHADER_STAGE_COMPUTE
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
-    // TODO DO CORRECT HALF PIXEL OFFSET WITH SCALE
 #endif
     posInput.positionNDC *= invScreenSize;
 
