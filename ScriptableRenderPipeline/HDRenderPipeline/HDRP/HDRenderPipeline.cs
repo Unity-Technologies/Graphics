@@ -786,7 +786,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_FrameSettings.enableAsyncCompute)
                         {
-                            m_LightLoop.BuildGPULightListAsyncEnd(camera, cmd, buildGPULightListsCompleteFence);
+                            m_LightLoop.BuildGPULightListAsyncEnd(hdCamera, cmd, buildGPULightListsCompleteFence);
                         }
                         else
                         {
