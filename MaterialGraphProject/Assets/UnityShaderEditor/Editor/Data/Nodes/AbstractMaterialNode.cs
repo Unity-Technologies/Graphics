@@ -401,14 +401,6 @@ namespace UnityEditor.ShaderGraph
             foreach (var skippedSlot in skippedDynamicMatrixSlots)
                 skippedSlot.SetConcreteType(dynamicMatrixType);
 
-            // now override dynamic output type if one or more input is a matrix
-            if (dynamicMatrixType == ConcreteSlotValueType.Matrix2)
-                dynamicType = ConcreteSlotValueType.Vector2;
-            else if (dynamicMatrixType == ConcreteSlotValueType.Matrix3)
-                dynamicType = ConcreteSlotValueType.Vector3;
-            else if (dynamicMatrixType == ConcreteSlotValueType.Matrix4)
-                dynamicType = ConcreteSlotValueType.Vector4;
-
             s_TempSlots.Clear();
             GetInputSlots(s_TempSlots);
             var inputError = s_TempSlots.Any(x => x.hasError);
@@ -460,7 +452,7 @@ namespace UnityEditor.ShaderGraph
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
         }
 
-        public int version { get; private set; }
+        public int version { get; set; }
 
         //True if error
         protected virtual bool CalculateNodeHasError()

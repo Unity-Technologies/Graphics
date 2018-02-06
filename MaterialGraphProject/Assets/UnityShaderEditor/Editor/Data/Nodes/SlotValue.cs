@@ -13,11 +13,12 @@ namespace UnityEditor.ShaderGraph
         Matrix2,
         Texture2D,
         Cubemap,
-        Dynamic,
+        DynamicVector,
         Vector4,
         Vector3,
         Vector2,
         Vector1,
+        Dynamic,
         Boolean
     }
 
