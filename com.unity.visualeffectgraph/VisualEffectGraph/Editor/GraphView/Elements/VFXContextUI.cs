@@ -628,18 +628,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnCreateBlock(EventBase evt)
+        public void OnCreateBlock(ContextualMenu.MenuAction evt)
         {
-            Vector2 referencePosition;
-            if (evt is IMouseEvent)
-            {
-                referencePosition = (evt as IMouseEvent).mousePosition;
-            }
-            else
-            {
-                referencePosition = evt.imguiEvent.mousePosition;
-            }
+            Vector2 referencePosition = evt.eventInfo.mousePosition;
 
+            OnCreateBlock(referencePosition);
+        }
+
+        public void OnCreateBlock(Vector2 referencePosition)
+        {
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, m_BlockProvider);
         }
 

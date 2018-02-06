@@ -16,142 +16,6 @@ using EditMode = UnityEditorInternal.EditMode;
 
 static class VFXComponentUtility
 {
-    static public object GetValue(this VFXComponent comp, Type type, string name)
-    {
-        if (type == typeof(Vector2))
-        {
-            return comp.GetVector2(name);
-        }
-        else if (type == typeof(Vector3))
-        {
-            return comp.GetVector3(name);
-        }
-        else if (type == typeof(Vector4))
-        {
-            return comp.GetVector4(name);
-        }
-        else if (type == typeof(Color))
-        {
-            Color c;
-            Vector4 vec = comp.GetVector4(name);
-            c.r = vec.x;
-            c.g = vec.y;
-            c.b = vec.z;
-            c.a = vec.w;
-
-            return c;
-        }
-        else if (type == typeof(AnimationCurve))
-        {
-            return comp.GetAnimationCurve(name);
-        }
-        else if (type == typeof(Gradient))
-        {
-            return comp.GetGradient(name);
-        }
-        else if (type == typeof(Texture2D))
-        {
-            return comp.GetTexture(name);
-        }
-        else if (type == typeof(Texture2DArray))
-        {
-            return comp.GetTexture(name);
-        }
-        else if (type == typeof(Texture3D))
-        {
-            return comp.GetTexture(name);
-        }
-        else if (type == typeof(Cubemap))
-        {
-            return comp.GetTexture(name);
-        }
-        else if (type == typeof(CubemapArray))
-        {
-            return comp.GetTexture(name);
-        }
-        else if (type == typeof(float))
-        {
-            return comp.GetFloat(name);
-        }
-        else if (type == typeof(int))
-        {
-            return comp.GetInt(name);
-        }
-        else if (type == typeof(uint))
-        {
-            return comp.GetUInt(name);
-        }
-        return null;
-    }
-
-    static public void SetValue(this VFXComponent comp, Type type, string name, object value)
-    {
-        if (type == typeof(Vector2))
-        {
-            comp.SetVector2(name, (Vector2)value);
-        }
-        else if (type == typeof(Vector3))
-        {
-            comp.SetVector3(name, (Vector3)value);
-        }
-        else if (type == typeof(Vector4))
-        {
-            comp.SetVector4(name, (Vector4)value);
-        }
-        else if (type == typeof(Color))
-        {
-            Color c = (Color)value;
-
-            Vector4 vec;
-            vec.x = c.r;
-            vec.y = c.g;
-            vec.z = c.b;
-            vec.w = c.a;
-
-            comp.SetVector4(name, vec);
-        }
-        else if (type == typeof(AnimationCurve))
-        {
-            comp.SetAnimationCurve(name, (AnimationCurve)value);
-        }
-        else if (type == typeof(Gradient))
-        {
-            comp.SetGradient(name, (Gradient)value);
-        }
-        else if (type == typeof(Texture2D))
-        {
-            comp.SetTexture(name, (Texture2D)value);
-        }
-        else if (type == typeof(Texture2DArray))
-        {
-            comp.SetTexture(name, (Texture2DArray)value);
-        }
-        else if (type == typeof(Texture3D))
-        {
-            comp.SetTexture(name, (Texture3D)value);
-        }
-        else if (type == typeof(Cubemap))
-        {
-            comp.SetTexture(name, (Cubemap)value);
-        }
-        else if (type == typeof(CubemapArray))
-        {
-            comp.SetTexture(name, (CubemapArray)value);
-        }
-        else if (type == typeof(float))
-        {
-            comp.SetFloat(name, (float)value);
-        }
-        else if (type == typeof(int))
-        {
-            comp.SetInt(name, (int)value);
-        }
-        else if (type == typeof(uint))
-        {
-            comp.SetUInt(name, (uint)value);
-        }
-    }
-
     public static string GetTypeField(Type type)
     {
         if (type == typeof(Vector2))
@@ -212,7 +76,15 @@ static class VFXComponentUtility
         }
         else if (type == typeof(uint))
         {
-            return "m_UInt";
+            return "m_Uint";
+        }
+        else if (type == typeof(bool))
+        {
+            return "m_Bool";
+        }
+        else if (type == typeof(Matrix4x4))
+        {
+            return "m_Matrix4x4f";
         }
         //Debug.LogError("unknown vfx property type:"+type.UserFriendlyName());
         return null;
