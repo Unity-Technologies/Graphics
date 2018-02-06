@@ -435,7 +435,7 @@ namespace UnityEditor.VFX
             InvalidateChildren(model, cause);
 
             var owner = this.owner;
-            if (owner != null  && (direction == Direction.kInput || cause == InvalidationCause.kUIChanged))
+            if (owner != null)
                 owner.Invalidate(this, cause);
         }
 

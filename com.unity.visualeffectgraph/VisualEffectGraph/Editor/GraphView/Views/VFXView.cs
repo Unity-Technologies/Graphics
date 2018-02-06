@@ -344,7 +344,7 @@ namespace UnityEditor.VFX.UI
             toolbar.Add(m_ToggleDebug);
             m_ToggleDebug.AddToClassList("toolbarItem");
 
-            m_DropDownButtonCullingMode = new Button();
+            m_DropDownButtonCullingMode = new Label();
 
             m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
             m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
@@ -1166,7 +1166,7 @@ namespace UnityEditor.VFX.UI
 
         VFXBlackboard m_Blackboard;
 
-        private Button m_DropDownButtonCullingMode;
+        private Label m_DropDownButtonCullingMode;
         private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
 

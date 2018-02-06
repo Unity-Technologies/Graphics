@@ -45,9 +45,9 @@ OperandInfo VFXStringField .textfield
 {
     flex:1;
 }
-OperandInfo Button
+OperandInfo .PopupButton
 {
-    width:70;
+    width:50;
 }
 
 .VFXNodeUI.superCollapsed

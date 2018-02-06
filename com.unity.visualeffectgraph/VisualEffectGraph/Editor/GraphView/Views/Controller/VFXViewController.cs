@@ -735,7 +735,6 @@ namespace UnityEditor.VFX.UI
                 VFXContext owner = anchorController.owner;
                 if (owner == null ||
                     startAnchorController == anchorController ||
-                    !anchorController.IsConnectable() ||
                     startAnchorController.direction == anchorController.direction ||
                     owner == startFlowAnchorController.owner)
                     continue;
