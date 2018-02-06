@@ -13,9 +13,9 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportMSAAAntiAliasing;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportSubsurfaceScattering;
-        public SerializedProperty supportsForwardOnly;
-        public SerializedProperty supportsMotionVectors;
-        public SerializedProperty supportsStereo;
+        public SerializedProperty supportForwardOnly;
+        public SerializedProperty supportMotionVectors;
+        public SerializedProperty supportStereo;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedShadowInitParameters shadowInitParams;
@@ -32,9 +32,9 @@ namespace UnityEditor.Experimental.Rendering
             supportMSAAAntiAliasing = root.Find((RenderPipelineSettings s) => s.supportMSAAAntiAliasing);
             MSAASampleCount = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
-            supportsForwardOnly = root.Find((RenderPipelineSettings s) => s.supportsForwardOnly);
-            supportsMotionVectors = root.Find((RenderPipelineSettings s) => s.supportsMotionVectors);
-            supportsStereo = root.Find((RenderPipelineSettings s) => s.supportsStereo);
+            supportForwardOnly = root.Find((RenderPipelineSettings s) => s.supportForwardOnly);
+            supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
+            supportStereo = root.Find((RenderPipelineSettings s) => s.supportStereo);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             shadowInitParams = new SerializedShadowInitParameters(root.Find((RenderPipelineSettings s) => s.shadowInitParams));
