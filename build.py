@@ -144,8 +144,6 @@ def copy_path_to_project(path, repo_path, project_path, logger):
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
     copy_path_to_project("ImageTemplates", repo_path, project_path, logger)
-    copy_path_to_project("SampleScenes", repo_path, project_path, logger)
-    copy_path_to_project("TestbedPipelines", repo_path, project_path, logger)
     copy_path_to_project("Tests", repo_path, project_path, logger)
 
 
