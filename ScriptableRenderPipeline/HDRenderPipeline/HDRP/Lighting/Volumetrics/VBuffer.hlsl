@@ -50,9 +50,9 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
 
     [branch] if (clampToEdge || isInBounds)
     {
-    #if 0
-        // We could ignore non-linearity at the cost of accuracy.
-        // TODO: visually test this option (especially in motion).
+    #if 1
+        // Ignore non-linearity (for performance reasons) at the cost of accuracy.
+        // The results are exact for a stationary camera, but can potentially cause some judder in motion.
         float w = d;
     #else
         // Adjust the texture coordinate for HW trilinear sampling.
@@ -93,8 +93,14 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
     float z = linearDepth;
     float d = EncodeLogarithmicDepthGeneralized(z, VBufferDepthEncodingParams);
 
+#if 0
+    // Ignore non-linearity (for performance reasons) at the cost of accuracy.
+    // The results are exact for a stationary camera, but can potentially cause some judder in motion.
+    float w = d;
+#else
     // Adjust the texture coordinate for HW trilinear sampling.
     float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthDecodingParams);
+#endif
 
     float2 weights[2], offsets[2];
     BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
