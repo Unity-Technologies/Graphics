@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UIElements
 {
     class VFXStringFieldProvider : ValueControl<string>
     {
-        Button m_DropDownButton;
+        Label m_DropDownButton;
         Func<string[]> m_fnStringProvider;
 
 
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UIElements
 
         void CreateButton()
         {
-            m_DropDownButton = new Button();
+            m_DropDownButton = new Label();
             m_DropDownButton.AddToClassList("PopupButton");
             m_DropDownButton.AddManipulator(new DownClickable(OnClick));
         }

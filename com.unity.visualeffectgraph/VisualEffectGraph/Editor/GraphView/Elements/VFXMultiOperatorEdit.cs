@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
         }
 
         int m_CurrentIndex = -1;
-        void OnTypeMenu(Button button, int index)
+        void OnTypeMenu(Label button, int index)
         {
             VFXEditableOperator op = model;
             GenericMenu menu = new GenericMenu();
@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.UI
         class OperandInfo : VisualElement
         {
             VFXStringField field;
-            Button type;
+            Label type;
             VFXMultiOperatorEdit m_Owner;
 
             public int index;
@@ -167,7 +167,7 @@ namespace UnityEditor.VFX.UI
                 m_Owner = owner;
                 field = new VFXStringField("name");
                 field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
-                type = new Button();
+                type = new Label();
                 this.index = index;
                 type.AddToClassList("PopupButton");
                 type.AddManipulator(new DownClickable(() => owner.OnTypeMenu(type, index)));
