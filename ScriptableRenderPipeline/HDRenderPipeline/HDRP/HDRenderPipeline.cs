@@ -257,7 +257,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_GbufferManager.CreateBuffers();
 
-            if(m_Asset.renderPipelineSettings.supportDBuffer)
+            if (m_Asset.renderPipelineSettings.supportDBuffer)
                 m_DbufferManager.CreateBuffers();
 
             m_BufferPyramid.CreateBuffers();
