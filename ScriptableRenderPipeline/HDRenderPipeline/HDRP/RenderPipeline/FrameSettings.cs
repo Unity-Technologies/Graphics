@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
-            aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAAAntiAliasing;
+            aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
             aggregate.ConfigureMSAADependentSettings();
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;

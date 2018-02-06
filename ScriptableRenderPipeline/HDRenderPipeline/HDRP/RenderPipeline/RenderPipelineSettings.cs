@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Engine
         public bool         supportDBuffer = false;
-        public bool         supportMSAAAntiAliasing = false;
+        public bool         supportMSAA = false;
         public MSAASamples  msaaSampleCount = MSAASamples.None;
         public bool         supportMotionVectors = true;
         public bool         supportStereo = false;

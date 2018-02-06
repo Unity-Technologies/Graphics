@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSAO;
         public SerializedProperty supportDBuffer;
-        public SerializedProperty supportMSAAAntiAliasing;
+        public SerializedProperty supportMSAA;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedProperty supportForwardOnly;
@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering
             supportSSR = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSAO = root.Find((RenderPipelineSettings s) => s.supportSSAO);
             supportDBuffer = root.Find((RenderPipelineSettings s) => s.supportDBuffer);
-            supportMSAAAntiAliasing = root.Find((RenderPipelineSettings s) => s.supportMSAAAntiAliasing);
+            supportMSAA = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             supportForwardOnly = root.Find((RenderPipelineSettings s) => s.supportForwardOnly);
