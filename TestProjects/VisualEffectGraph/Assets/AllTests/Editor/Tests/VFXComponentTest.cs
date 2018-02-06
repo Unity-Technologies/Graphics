@@ -191,7 +191,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             /*
-             * Actually, this error is only caught in debug mode
+             * Actually, this error is only caught in debug mode, ignored in release for performance reason
             renderTartget2D.dimension = TextureDimension.Tex3D; //try to hack dimension
             Assert.AreEqual(renderTartget2D, vfxComponent.GetTexture(targetTextureName));
             yield return null;
@@ -199,9 +199,11 @@ namespace UnityEditor.VFX.Test
             */
         }
 
+        private static bool[] linkModes = { true, false };
+
         [UnityTest]
         [Timeout(1000 * 10)]
-        public IEnumerator CreateComponentWithAllBasicTypeExposed()
+        public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode)
         {
             var commonBaseName = "abcd_";
             Func<VFXValueType, object> GetValue_A = delegate(VFXValueType type)
@@ -223,6 +225,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kTextureCube: return m_textureCube_A;
                         case VFXValueType.kTextureCubeArray: return m_textureCubeArray_A;
                         case VFXValueType.kBool: return false;
+                        case VFXValueType.kMatrix4x4: return Matrix4x4.identity;
                     }
                     Assert.Fail();
                     return null;
@@ -247,6 +250,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.kTextureCube: return m_textureCube_B;
                         case VFXValueType.kTextureCubeArray: return m_textureCubeArray_B;
                         case VFXValueType.kBool: return true;
+                        case VFXValueType.kMatrix4x4: return Matrix4x4.LookAt(new Vector3(1, 2, 3), new Vector3(4, 5, 6), Vector3.up);
                     }
                     Assert.Fail();
                     return null;
@@ -274,7 +278,7 @@ namespace UnityEditor.VFX.Test
 
             var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
                 .Where(e => e != VFXValueType.kSpline
-                    &&  e != VFXValueType.kTransform
+                    &&  e != VFXValueType.kMatrix4x4
                     &&  e != VFXValueType.kNone).ToArray();
             foreach (var parameter in VFXLibrary.GetParameters())
             {
@@ -292,35 +296,38 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            foreach (var type in types)
+            if (linkMode)
             {
-                VFXSlot slot = null;
-                for (int i = 0; i < allType.GetNbInputSlots(); ++i)
+                foreach (var type in types)
                 {
-                    var currentSlot = allType.GetInputSlot(i);
-                    var expression = currentSlot.GetExpression();
-                    if (expression != null && expression.valueType == type)
+                    VFXSlot slot = null;
+                    for (int i = 0; i < allType.GetNbInputSlots(); ++i)
                     {
-                        slot = currentSlot;
-                        break;
-                    }
-                }
-                Assert.IsNotNull(slot, type.ToString());
-
-                var parameter = graph.children.OfType<VFXParameter>().FirstOrDefault(o =>
-                    {
-                        if (o.GetNbOutputSlots() > 0)
+                        var currentSlot = allType.GetInputSlot(i);
+                        var expression = currentSlot.GetExpression();
+                        if (expression != null && expression.valueType == type)
                         {
-                            var expression = o.outputSlots[0].GetExpression();
-                            if (expression != null && expression.valueType == type)
-                            {
-                                return true;
-                            }
+                            slot = currentSlot;
+                            break;
                         }
-                        return false;
-                    });
-                Assert.IsNotNull(parameter);
-                slot.Link(parameter.GetOutputSlot(0));
+                    }
+                    Assert.IsNotNull(slot, type.ToString());
+
+                    var parameter = graph.children.OfType<VFXParameter>().FirstOrDefault(o =>
+                        {
+                            if (o.GetNbOutputSlots() > 0)
+                            {
+                                var expression = o.outputSlots[0].GetExpression();
+                                if (expression != null && expression.valueType == type)
+                                {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+                    Assert.IsNotNull(parameter);
+                    slot.Link(parameter.GetOutputSlot(0));
+                }
             }
 
             graph.vfxAsset = new VFXAsset();
@@ -446,6 +453,12 @@ namespace UnityEditor.VFX.Test
                     Assert.AreEqual(baseValue, vfxComponent.GetBool(currentName));
                     vfxComponent.SetBool(currentName, (bool)newValue);
                 }
+                else if (type == VFXValueType.kMatrix4x4)
+                {
+                    Assert.IsTrue(vfxComponent.HasMatrix4x4(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetMatrix4x4(currentName));
+                    vfxComponent.SetMatrix4x4(currentName, (Matrix4x4)newValue);
+                }
                 else
                 {
                     Assert.Fail();
@@ -539,6 +552,11 @@ namespace UnityEditor.VFX.Test
                 {
                     Assert.IsTrue(vfxComponent.HasBool(currentName));
                     Assert.AreEqual(baseValue, vfxComponent.GetBool(currentName));
+                }
+                else if (type == VFXValueType.kMatrix4x4)
+                {
+                    Assert.IsTrue(vfxComponent.HasMatrix4x4(currentName));
+                    Assert.AreEqual(baseValue, vfxComponent.GetMatrix4x4(currentName));
                 }
                 else
                 {

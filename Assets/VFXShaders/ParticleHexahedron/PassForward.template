@@ -28,6 +28,9 @@ Pass
 		nointerpolation float3 rotY : TEXCOORD4;
 		float3 posWS : TEXCOORD5;
 		nointerpolation float4 rimSettings : COLOR1;
+		#if VFX_USE_NORMAL_MAP
+		nointerpolation uint faceID : TEXCOORD6;
+		#endif
 		#endif
 	};
 	
@@ -49,6 +52,9 @@ Pass
 #define VFX_VARYING_ROTX rotX
 #define VFX_VARYING_ROTY rotY
 #define VFX_VARYING_POSWS posWS
+#if VFX_USE_NORMAL_MAP
+#define VFX_VARYING_FACEID faceID
+#endif
 #endif
 				
 	${VFXBegin:VFXVertexAdditionalProcess}

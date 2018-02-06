@@ -312,7 +312,8 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, sphere.space, ref sphere.center))
             {
-                anchor.value = sphere;
+                arcSphere.sphere = sphere;
+                anchor.value = arcSphere;
             }
 
             // Radius controls
@@ -358,9 +359,9 @@ namespace UnityEditor.VFX.UI
                     float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
                     arc += Mathf.DeltaAngle(arc, newArc);
                     arc = Mathf.Repeat(arc, 360.0f);
-                    arcSphere.arc = arc * Mathf.Deg2Rad;
 
-                    anchor.value = sphere;
+                    arcSphere.arc = arc * Mathf.Deg2Rad;
+                    anchor.value = arcSphere;
                 }
             }
 

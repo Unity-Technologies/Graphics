@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
             yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Enable double-sided rendering, or use backface culling.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Enable double-sided rendering, or use backface culling.")]
         private bool twoSided;
 
         public class InputProperties

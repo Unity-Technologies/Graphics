@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.UI
             }
             UpdateInfos();
 
-            sourceNode.viewController.DataEdgesMightHaveChanged();
+            sourceNode.DataEdgesMightHaveChanged();
             NotifyChange(AnyThing);
         }
 

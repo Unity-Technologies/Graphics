@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -141,7 +142,7 @@ namespace UnityEditor.VFX
 
             m_Content = default(T);
 
-            if (value == null)
+            if (value == null || (value is Object && !(value as Object))) //if object is a deleted asset, value == null will be false, but cast to Object will return null
             {
                 return;
             }

@@ -246,6 +246,18 @@ namespace UnityEditor.VFX.UI
 
                 return val;
             }
+            else if (value is Vector4)
+            {
+                return ((Vector4)value).x;
+            }
+            else if (value is Vector3)
+            {
+                return ((Vector3)value).x;
+            }
+            else if (value is Vector2)
+            {
+                return ((Vector2)value).x;
+            }
             return (float)value;
         }
 

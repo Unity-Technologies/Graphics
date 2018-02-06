@@ -41,6 +41,30 @@ namespace UnityEditor.VFX
             { 4, VFXValue.Constant(Vector4.zero) },
         };
 
+        public static readonly Dictionary<int, VFXExpression> TwoExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, VFXValue.Constant(2.0f) },
+            { 2, VFXValue.Constant(Vector2.one * 2.0f) },
+            { 3, VFXValue.Constant(Vector3.one * 2.0f) },
+            { 4, VFXValue.Constant(Vector4.one * 2.0f) },
+        };
+
+        public static readonly Dictionary<int, VFXExpression> PiExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, VFXValue.Constant(Mathf.PI) },
+            { 2, VFXValue.Constant(Vector2.one * Mathf.PI) },
+            { 3, VFXValue.Constant(Vector3.one * Mathf.PI) },
+            { 4, VFXValue.Constant(Vector4.one * Mathf.PI) },
+        };
+
+        public static readonly Dictionary<int, VFXExpression> TauExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, VFXValue.Constant(2.0f * Mathf.PI) },
+            { 2, VFXValue.Constant(Vector2.one * 2.0f * Mathf.PI) },
+            { 3, VFXValue.Constant(Vector3.one * 2.0f * Mathf.PI) },
+            { 4, VFXValue.Constant(Vector4.one * 2.0f * Mathf.PI) },
+        };
+
         // unified binary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1)
         {
@@ -78,6 +102,13 @@ namespace UnityEditor.VFX
         {
             //x - floor(x)
             return input - new VFXExpressionFloor(input);
+        }
+
+        static public VFXExpression Round(VFXExpression input)
+        {
+            //x = floor(x + 0.5)
+            var half = HalfExpression[VFXExpression.TypeToSize(input.valueType)];
+            return new VFXExpressionFloor(input + half);
         }
 
         static public VFXExpression Sqrt(VFXExpression input)
