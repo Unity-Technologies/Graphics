@@ -10,8 +10,8 @@ namespace UnityEngine.Experimental.Rendering
 	public class SetupSceneForRenderPipelineTest : MonoBehaviour, IMonoBehaviourTest
 	{
 		private RenderPipelineAsset m_OriginalAsset;
-		public RenderPipelineAsset renderPipeline;
-		public Camera cameraToUse;
+	    public RenderPipelineAsset[] renderPipelines;
+        public Camera cameraToUse;
 		public bool hdr = false;
 	    public int msaaSamples = 1;
 
@@ -39,10 +39,15 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public void Setup()
+	    public void Setup()
+	    {
+	        m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
+            Setup(0);
+        }
+
+        public void Setup(int index)
 		{
-			m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
-            if (m_OriginalAsset != renderPipeline) GraphicsSettings.renderPipelineAsset = renderPipeline;
+            if (m_OriginalAsset != renderPipelines[index]) GraphicsSettings.renderPipelineAsset = renderPipelines[index];
 		}
 
 		public void TearDown()
