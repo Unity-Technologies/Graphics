@@ -432,11 +432,11 @@ namespace UnityEditor.VFX.UI
             return m_BlockContainer.childCount;
         }
 
-        EventPropagation IDropTarget.DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
-            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.originalMousePosition);
+            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
             int blockIndex = GetDragBlockIndex(mousePosition);
 
@@ -452,29 +452,29 @@ namespace UnityEditor.VFX.UI
                 // TODO: Do something on subsequent DragUpdated events
             }
 
-            return EventPropagation.Stop;
+            return true;
         }
 
-        EventPropagation IDropTarget.DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
             DragFinished();
 
-            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.originalMousePosition);
+            Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
             IEnumerable<VFXBlockUI> blocksUI = selection.OfType<VFXBlockUI>();
             if (!CanDrop(blocksUI))
-                return EventPropagation.Stop;
+                return true;
 
             int blockIndex = GetDragBlockIndex(mousePosition);
 
-            BlocksDropped(blockIndex, blocksUI, evt.imguiEvent.control);
+            BlocksDropped(blockIndex, blocksUI, evt.ctrlKey);
 
             DragAndDrop.AcceptDrag();
 
             m_DragStarted = false;
             RemoveFromClassList("dropping");
 
-            return EventPropagation.Stop;
+            return true;
         }
 
         public void BlocksDropped(int blockIndex, IEnumerable<VFXBlockUI> draggedBlocks, bool copy)
@@ -488,16 +488,21 @@ namespace UnityEditor.VFX.UI
             using (var growContext = new GrowContext(this))
             {
                 controller.BlocksDropped(blockIndex, draggedBlocks.Select(t => t.controller), copy);
+
+                foreach (var context in contexts)
+                {
+                    context.ApplyChanges();
+                }
             }
         }
 
-        EventPropagation IDropTarget.DragExited()
+        bool IDropTarget.DragExited()
         {
             // TODO: Do something when current drag is canceled
             DragFinished();
             m_DragStarted = false;
 
-            return EventPropagation.Stop;
+            return true;
         }
 
         public EventPropagation DeleteSelection()
@@ -599,7 +604,7 @@ namespace UnityEditor.VFX.UI
             void IDisposable.Dispose()
             {
                 VFXView view = m_Context.GetFirstAncestorOfType<VFXView>();
-                view.controller.ApplyChanges();
+                m_Context.controller.ApplyChanges();
                 (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
 
                 view.PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);

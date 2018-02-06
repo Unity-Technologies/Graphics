@@ -73,6 +73,9 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
+        VisualElement m_SettingsDivider;
+        VisualElement m_Content;
+
         protected void SyncSettings()
         {
             if (settingsContainer == null && controller.settings != null)
@@ -80,12 +83,13 @@ namespace UnityEditor.VFX.UI
                 object settings = controller.settings;
 
                 settingsContainer = new VisualElement { name = "settings" };
-                var divider = new VisualElement() {name = "divider"};
-                divider.AddToClassList("vertical");
+                m_SettingsDivider = new VisualElement() {name = "divider"};
+                m_SettingsDivider.AddToClassList("horizontal");
 
-                mainContainer.Q("contents").Insert(0, divider);
+                m_Content = mainContainer.Q("contents");
+                m_Content.Insert(0, m_SettingsDivider);
 
-                mainContainer.Q("contents").Insert(1, settingsContainer);
+                m_Content.Insert(1, settingsContainer);
 
                 foreach (var setting in controller.settings)
                 {
@@ -98,13 +102,30 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < m_Settings.Count; ++i)
                     m_Settings[i].RemoveFromHierarchy();
 
+                bool hasSettings = false;
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
                     if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
                     {
+                        hasSettings = true;
                         settingsContainer.Add(prop);
                         prop.Update();
+                    }
+                }
+
+                if (hasSettings)
+                {
+                    if (m_SettingsDivider.parent == null)
+                    {
+                        m_Content.Insert(0, m_SettingsDivider);
+                    }
+                }
+                else
+                {
+                    if (m_SettingsDivider.parent != null)
+                    {
+                        m_SettingsDivider.RemoveFromHierarchy();
                     }
                 }
             }
@@ -126,19 +147,41 @@ namespace UnityEditor.VFX.UI
         {
             var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
 
-            var deletedControllers = existingAnchors.Keys.Except(ports);
+            var deletedControllers = existingAnchors.Keys.Except(ports).ToArray();
 
             foreach (var deletedController in deletedControllers)
             {
                 container.Remove(existingAnchors[deletedController]);
+                existingAnchors.Remove(deletedController);
             }
 
-            foreach (var newController in ports.Except(existingAnchors.Keys))
+            var order = ports.Select((t, i) => new KeyValuePair<VFXDataAnchorController, int>(t, i)).ToDictionary(t => t.Key, t => t.Value);
+
+            var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
+
+            foreach (var newController in newAnchors)
             {
                 var newElement = InstantiateDataAnchor(newController, this);
                 (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
 
                 container.Add(newElement);
+                existingAnchors[newController] = newElement;
+            }
+
+            //Reorder anchors.
+            if (ports.Count > 0)
+            {
+                var correctOrder = new VFXDataAnchor[ports.Count];
+                foreach (var kv in existingAnchors)
+                {
+                    correctOrder[order[kv.Key]] = kv.Value;
+                }
+
+                correctOrder[0].SendToBack();
+                for (int i = 1; i < correctOrder.Length; ++i)
+                {
+                    correctOrder[i].PlaceInFront(correctOrder[i - 1]);
+                }
             }
         }
 
@@ -170,6 +213,7 @@ namespace UnityEditor.VFX.UI
             SyncSettings();
             SyncAnchors();
             RefreshExpandedState();
+            RefreshLayout();
         }
 
         public override bool expanded
@@ -276,6 +320,10 @@ namespace UnityEditor.VFX.UI
             {
                 Debug.LogErrorFormat("Cannot create controller for {0}", setting.name);
             }
+        }
+
+        public virtual void RefreshLayout()
+        {
         }
     }
 }

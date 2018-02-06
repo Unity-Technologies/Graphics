@@ -41,6 +41,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 #ifdef VFX_VARYING_OFFSETS
 			o.VFX_VARYING_OFFSETS = offsets;
 #endif
+#ifdef VFX_VARYING_FACEID
+			o.VFX_VARYING_FACEID = (id & 7) % 5;
+#endif
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
 			rot = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);
 #ifdef VFX_LOCAL_SPACE 
@@ -98,16 +101,13 @@ float3 VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)
 #endif
 }
 
-static const uint VFXCubePrimToFaceType[6] = {0,1,0,1,2,2};
-
-float2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i,uint primId) 
+float2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i) 
 {
-#ifdef VFX_VARYING_OFFSETS
+#if defined(VFX_VARYING_OFFSETS) && defined(VFX_VARYING_FACEID)
 	float2 uv;
-	uint face = VFXCubePrimToFaceType[(primId >> 1) % 6];
-	if (face == 0)
+	if (i.VFX_VARYING_FACEID == 0)
 		uv = i.VFX_VARYING_OFFSETS.xy * float2(-i.VFX_VARYING_OFFSETS.z,1);
-	else if (face == 1)
+	else if (i.VFX_VARYING_FACEID == 1)
 		uv = i.VFX_VARYING_OFFSETS.xz * float2(i.VFX_VARYING_OFFSETS.y,1);
 	else
 		uv = i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);

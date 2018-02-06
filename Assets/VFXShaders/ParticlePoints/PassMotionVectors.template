@@ -35,7 +35,6 @@ Pass
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_POSSS projPos
-#undef VFX_VARYING_COLOR // Not used
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y

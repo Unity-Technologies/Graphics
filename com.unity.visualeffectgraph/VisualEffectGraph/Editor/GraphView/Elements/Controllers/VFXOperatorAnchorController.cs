@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
                     newAnchorType = typeof(FloatN);
             }
             else
-                newAnchorType = slot.refSlot.property.type;
+                newAnchorType = slot.property.type;
 
             return newAnchorType;
         }

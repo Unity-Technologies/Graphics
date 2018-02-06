@@ -160,8 +160,8 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = 0.5f * VFXPropertyIM.depthOffset;
-                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f;
+                    line.style.marginLeft =  0.5f * VFXPropertyIM.depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f + ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
                 }
@@ -412,9 +412,18 @@ namespace UnityEditor.VFX.UI
         }
 
         INotifyValueChanged<U> m_Field;
+
+
+        protected INotifyValueChanged<U> field
+        {
+            get {return m_Field; }
+        }
+
+        protected virtual bool HasFocus() {return false; }
         public override void UpdateGUI()
         {
-            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+            if (!HasFocus())
+                m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
         }
 
         public override bool showsEverything { get { return true; } }

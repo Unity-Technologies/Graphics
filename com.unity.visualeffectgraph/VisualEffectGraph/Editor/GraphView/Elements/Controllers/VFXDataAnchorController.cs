@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.UI
             }
             UpdateInfos();
 
-            sourceNode.viewController.DataEdgesMightHaveChanged();
+            sourceNode.DataEdgesMightHaveChanged();
             NotifyChange(AnyThing);
         }
 
@@ -281,6 +281,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
+            Undo.RecordObject(model, "VFXSlotValue");
             model.value = value;
         }
 

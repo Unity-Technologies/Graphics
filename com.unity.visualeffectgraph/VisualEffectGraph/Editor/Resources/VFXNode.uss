@@ -7,6 +7,50 @@ VFXOperatorUI.VFXNodeUI.node #middle
 	
 }
 
+VFXOperatorUI #title #edit
+{
+   width:28;
+   flex-direction:column;
+   justify-content:center;
+}
+
+VFXOperatorUI #title #edit #icon
+{
+    background-image: resource("VFX/EditStolen");
+    width:15;
+    height:14;
+    align-self:center;
+}
+
+.VFXNodeUI.node #node-border > #title
+{
+    justify-content:flex-start;
+}
+
+.VFXNodeUI.node #node-border > #title > #title-label
+{
+    flex:1;
+}
+
+
+OperandInfo *
+{
+    height:16;
+}
+OperandInfo VFXStringField
+{
+    flex:1;
+}
+OperandInfo VFXStringField .textfield
+{
+    flex:1;
+}
+OperandInfo .PopupButton
+{
+    width:50;
+}
+
+
 VFXParameterUI #exposedContainer
 {
 	flex-direction:row;
@@ -37,6 +81,12 @@ width:-1;
 .VFXNodeUI.expanded #settings
 {
     max-height:10000;
+}
+
+
+.VFXNodeUI.node #contents > #top > #input
+{
+	padding-bottom:8;
 }
 
 .VFXNodeUI.node.superCollapsed #settings
@@ -170,10 +220,10 @@ VFXParameterUI .value
 {
 	flex:1;
 }
-VFXParameterUI .label
+
+VFXParameterUI .propertyrm
 {
-	text-color:#c4c4c4;
-	width : 69;
+	margin-right:6;
 }
 
 VFXParameterUI #IconContainer

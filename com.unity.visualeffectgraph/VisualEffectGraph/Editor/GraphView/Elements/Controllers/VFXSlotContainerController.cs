@@ -25,12 +25,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool m_SyncingSlots;
+        public void DataEdgesMightHaveChanged()
+        {
+            if (viewController != null && !m_SyncingSlots)
+            {
+                viewController.DataEdgesMightHaveChanged();
+            }
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
             List<VFXDataAnchorController> newAnchors = new List<VFXDataAnchorController>();
 
-            UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+            m_SyncingSlots = true;
+            bool changed = UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
 
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
             {
@@ -38,45 +48,52 @@ namespace UnityEditor.VFX.UI
             }
             m_InputPorts = newAnchors;
             newAnchors = new List<VFXDataAnchorController>();
-            UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
+            changed |= UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
 
             foreach (var anchorController in m_OutputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
             }
             m_OutputPorts = newAnchors;
+            m_SyncingSlots = false;
+
 
             base.ModelChanged(obj);
+            // Call after base.ModelChanged which ensure the ui has been refreshed before we try to create potiential new edges.
+            if (changed)
+                viewController.DataEdgesMightHaveChanged();
         }
 
         public override VFXSlotContainerController slotContainerController { get { return this; } }
 
 
-        void UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
+            bool changed = false;
+            foreach (VFXSlot slot in slots)
             {
-                foreach (VFXSlot slot in slots)
+                VFXDataAnchorController propController = GetPropertyController(slot, input);
+
+                if (propController == null)
                 {
-                    VFXDataAnchorController propController = GetPropertyController(slot, input);
+                    propController = AddDataAnchor(slot, input, !expanded);
+                    changed = true;
+                }
+                newAnchors.Add(propController);
 
-                    if (propController == null)
-                    {
-                        propController = AddDataAnchor(slot, input, !expanded);
-                    }
-                    newAnchors.Add(propController);
-
-                    if (!VFXDataAnchorController.SlotShouldSkipFirstLevel(slot))
-                    {
-                        UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
-                    }
-                    else
-                    {
-                        VFXSlot firstSlot = slot.children.First();
-                        UpdateSlots(newAnchors, firstSlot.children, expanded && !slot.collapsed, input);
-                    }
+                if (!VFXDataAnchorController.SlotShouldSkipFirstLevel(slot))
+                {
+                    changed |= UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
+                }
+                else
+                {
+                    VFXSlot firstSlot = slot.children.First();
+                    changed |= UpdateSlots(newAnchors, firstSlot.children, expanded && !slot.collapsed, input);
                 }
             }
+
+            return changed;
         }
 
         public VFXDataAnchorController GetPropertyController(VFXSlot slot, bool input)

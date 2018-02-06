@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
         void UpdateOutputExpressions();
 
         void Invalidate(VFXModel.InvalidationCause cause);
+        void Invalidate(VFXModel model, VFXModel.InvalidationCause cause);
 
         void SetSettingValue(string name, object value);
 
@@ -128,6 +129,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        void IVFXSlotContainer.Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            Invalidate(model, cause);
+        }
+
         public virtual void RemoveSlot(VFXSlot slot) { InnerRemoveSlot(slot, true); }
         private void InnerRemoveSlot(VFXSlot slot, bool notify)
         {
@@ -215,6 +221,21 @@ namespace UnityEditor.VFX
             return changed;
         }
 
+        public void MoveSlots(VFXSlot.Direction direction, int movedIndex, int targetIndex)
+        {
+            VFXSlot movedSlot = m_InputSlots[movedIndex];
+            if (movedIndex < targetIndex)
+            {
+                m_InputSlots.Insert(targetIndex, movedSlot);
+                m_InputSlots.RemoveAt(movedIndex);
+            }
+            else
+            {
+                m_InputSlots.RemoveAt(movedIndex);
+                m_InputSlots.Insert(targetIndex, movedSlot);
+            }
+        }
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (model == this && cause == InvalidationCause.kSettingChanged)
@@ -239,8 +260,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        private static bool TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
+            bool oneLinkTransfered = false;
             var links = src.LinkedSlots.ToArray();
             int index = 0;
             while (index < links.Count())
@@ -250,6 +272,7 @@ namespace UnityEditor.VFX
                 {
                     dst.Link(link, notify);
                     src.Unlink(link, notify);
+                    oneLinkTransfered = true;
                 }
                 ++index;
             }
@@ -258,8 +281,10 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    TransferLinks(dst[i], src[i], notify);
+                    oneLinkTransfered |= TransferLinks(dst[i], src[i], notify);
             }
+
+            return oneLinkTransfered;
         }
 
         protected bool SyncSlots(VFXSlot.Direction direction, bool notify)
@@ -269,6 +294,18 @@ namespace UnityEditor.VFX
             var expectedProperties = (isInput ? inputProperties : outputProperties).ToArray();
             int nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
             var currentSlots = isInput ? inputSlots : outputSlots;
+
+            // check all slots owner
+            for (int i = 0; i < nbSlots; ++i)
+            {
+                VFXSlot slot = currentSlots[i];
+                var slotOwner = slot.owner as VFXSlotContainerModel<ParentType, ChildrenType>;
+                if (slotOwner != this)
+                {
+                    Debug.LogError("Slot :" + slot.name + " of Container" + name + "Has a wrong owner.");
+                    slot.SetOwner(this); // make sure everythiing work even if the owner was lost for some reason.
+                }
+            }
 
             bool recreate = false;
             if (nbSlots != expectedProperties.Length)
@@ -290,8 +327,9 @@ namespace UnityEditor.VFX
                 // First remove and register all existing slots
                 for (int i = nbSlots - 1; i >= 0; --i)
                 {
-                    existingSlots.Add(currentSlots[i]);
-                    InnerRemoveSlot(currentSlots[i], false);
+                    VFXSlot slot = currentSlots[i];
+                    existingSlots.Add(slot);
+                    InnerRemoveSlot(slot, false);
                 }
                 existingSlots.Reverse();
 
@@ -306,16 +344,30 @@ namespace UnityEditor.VFX
                     InnerAddSlot(slot, -1, false);
                 }
 
+                nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+
+                if (nbSlots != expectedProperties.Length)
+                {
+                    Debug.LogError("Something wrong");
+                }
+
                 var currentSlot = isInput ? inputSlots : outputSlots;
 
                 // Try to keep links for slots of same name and compatible types
-                foreach (var slot in existingSlots)
+                for (int i = 0; i < existingSlots.Count; ++i)
                 {
+                    var slot = existingSlots[i];
                     if (slot.HasLink(true))
                     {
+                        //first check at the same index
+                        if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && TransferLinks(currentSlots[i], slot, notify))
+                        {
+                            break;
+                        }
                         var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
                         foreach (var candidate in candidates)
-                            TransferLinks(candidate, slot, notify);
+                            if (TransferLinks(candidate, slot, notify))
+                                break;
                     }
                 }
 
@@ -339,13 +391,20 @@ namespace UnityEditor.VFX
             }
 
             currentSlots = isInput ? inputSlots : outputSlots;
+
+            var currentSlotsCpy = currentSlots.ToArray();
             nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+
 
             for (int i = 0; i < nbSlots; ++i)
             {
-                VFXProperty prop = currentSlots[i].property;
+                if (currentSlots.Count != nbSlots)
+                {
+                    Debug.Log("Collection changed while iterating");
+                }
+                VFXProperty prop = currentSlotsCpy[i].property;
 
-                currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
+                currentSlotsCpy[i].UpdateAttributes(expectedProperties[i].property.attributes);
             }
 
 

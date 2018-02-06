@@ -59,8 +59,9 @@ namespace UnityEditor.VFX
                     {
                         GetMasterData().m_Value.Set(value);
                         UpdateDefaultExpressionValue();
+
                         if (owner != null)
-                            owner.Invalidate(InvalidationCause.kParamChanged);
+                            Invalidate(InvalidationCause.kParamChanged);
                     }
                     else
                     {
@@ -434,8 +435,8 @@ namespace UnityEditor.VFX
             InvalidateChildren(model, cause);
 
             var owner = this.owner;
-            if (owner != null  && (direction == Direction.kInput || cause == InvalidationCause.kUIChanged))
-                owner.Invalidate(cause);
+            if (owner != null)
+                owner.Invalidate(this, cause);
         }
 
         public void UpdateAttributes(VFXPropertyAttribute[] attributes)
@@ -580,7 +581,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private IEnumerable<VFXSlot> allChildrenWhere(Func<VFXSlot, bool> predicate)
+        public IEnumerable<VFXSlot> allChildrenWhere(Func<VFXSlot, bool> predicate)
         {
             if (predicate(this))
                 yield return this;
