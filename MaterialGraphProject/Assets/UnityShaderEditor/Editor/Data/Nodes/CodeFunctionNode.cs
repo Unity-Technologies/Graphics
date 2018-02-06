@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph
             }
             if (t == typeof(DynamicDimensionVector))
             {
-                return SlotValueType.Dynamic;
+                return SlotValueType.DynamicVector;
             }
             if (t == typeof(Matrix4x4))
             {

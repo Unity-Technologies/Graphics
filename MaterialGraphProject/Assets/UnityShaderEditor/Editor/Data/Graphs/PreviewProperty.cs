@@ -91,7 +91,8 @@ namespace UnityEditor.ShaderGraph
             }
             set
             {
-                if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4)
+                if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4 
+                    && propType != PropertyType.Matrix2 && propType != PropertyType.Matrix3 && propType != PropertyType.Matrix4)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector4, propType));
                 m_Data.vector4Value = value;
             }
