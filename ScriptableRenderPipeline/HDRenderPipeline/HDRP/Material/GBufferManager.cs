@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_EnableShadowMask)
             {
-                m_RTs[m_GBufferCount] = RTHandle.Alloc(Vector2.one, colorFormat: Builtin.GetShadowMaskBufferFormat(), sRGB: Builtin.GetShadowMask_sRGBFlag(), filterMode: FilterMode.Point);
+                m_RTs[m_GBufferCount] = RTHandle.Alloc(Vector2.one, colorFormat: Builtin.GetShadowMaskBufferFormat(), sRGB: Builtin.GetShadowMaskSRGBFlag(), filterMode: FilterMode.Point);
                 m_RTIDs[m_GBufferCount] = new RenderTargetIdentifier(m_RTs[m_GBufferCount]);
                 m_TextureShaderIDs[m_GBufferCount] = HDShaderIDs._ShadowMaskTexture;
             }
