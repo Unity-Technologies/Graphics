@@ -296,6 +296,14 @@ UVSlotControlView > EnumField {
     width: 40;
 }
 
+ScreenPositionSlotControlView > EnumField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 54;
+}
+
 ColorRGBASlotControlView {
     flex-direction: row;
     align-items: center;
