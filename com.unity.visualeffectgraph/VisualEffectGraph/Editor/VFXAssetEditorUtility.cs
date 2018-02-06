@@ -31,7 +31,7 @@ namespace UnityEditor
         {
             VFXAsset asset = new VFXAsset();
 
-            ProjectWindowUtil.CreateAsset(asset, "New VFX.asset");
+            ProjectWindowUtil.CreateAsset(asset, "New VFX.vfx");
         }
     }
 }

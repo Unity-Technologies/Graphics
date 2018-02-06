@@ -40,15 +40,11 @@ namespace UnityEditor.VFX.UIElements
                 {
                     var dragger = new FieldMouseDragger<float>((IValueField<float>)m_Control);
                     dragger.SetDragZone(m_Label);
-
-                    //m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
                 }
                 else if (typeof(U) == typeof(double))
                 {
                     var dragger = new FieldMouseDragger<double>((IValueField<double>)m_Control);
                     dragger.SetDragZone(m_Label);
-
-                    //m_Label.AddManipulator(new UIDragValueManipulator<double>((INotifyValueChanged<double> )m_Control));
                 }
                 else if (typeof(U) == typeof(long))
                 {

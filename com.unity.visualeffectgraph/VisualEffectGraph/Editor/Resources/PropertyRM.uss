@@ -246,9 +246,11 @@ CurvePropertyRM
 	slice-right: 14;
 	slice-bottom: 4;
 	text-color: #B4B4B4;
+    padding-right:14;
+    padding-left:4;
 }
 
-VFXEnumField Button:hover
+VFXEnumField .PopupButton:hover
 {
 	text-color: #FFF;
 }
