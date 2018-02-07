@@ -307,6 +307,7 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -314,6 +315,9 @@ Shader "HDRenderPipeline/Lit"
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../ShaderVariables.hlsl"
+            #ifdef DEBUG_DISPLAY
+            #include "../../Debug/DebugDisplay.hlsl"
+            #endif
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -341,6 +345,7 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -349,40 +354,9 @@ Shader "HDRenderPipeline/Lit"
             #define SHADERPASS SHADERPASS_GBUFFER
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/LitSharePass.hlsl"
-            #include "LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "GBufferDebugDisplay"  // Name is not used
-            Tags{ "LightMode" = "GBufferDebugDisplay" } // This will be only for opaque object based on the RenderQueue index
-
-            Cull [_CullMode]
-
-            Stencil
-            {
-                WriteMask [_StencilWriteMask]
-                Ref  [_StencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-            HLSLPROGRAM
-
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
-
-            #define DEBUG_DISPLAY
-            #define SHADERPASS SHADERPASS_GBUFFER
-            #include "../../ShaderVariables.hlsl"
+            #ifdef DEBUG_DISPLAY
             #include "../../Debug/DebugDisplay.hlsl"
+            #endif
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -552,6 +526,7 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -562,6 +537,9 @@ Shader "HDRenderPipeline/Lit"
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
+            #ifdef DEBUG_DISPLAY
+            #include "../../Debug/DebugDisplay.hlsl"
+            #endif
             #include "../../Lighting/Lighting.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"
@@ -589,6 +567,7 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -599,45 +578,9 @@ Shader "HDRenderPipeline/Lit"
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../ShaderVariables.hlsl"
-            #include "../../Lighting/Lighting.hlsl"
-            #include "ShaderPass/LitSharePass.hlsl"
-            #include "LitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForward.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "ForwardDebugDisplay" // Name is not used
-            Tags{ "LightMode" = "ForwardDebugDisplay" } // This will be only for transparent object based on the RenderQueue index
-
-            Stencil
-            {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-            Blend[_SrcBlend][_DstBlend]
-            ZWrite[_ZWrite]
-            Cull[_CullModeForward]
-
-            HLSLPROGRAM
-
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
-            // #include "../../Lighting/Forward.hlsl"
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-
-            #define DEBUG_DISPLAY
-            #define SHADERPASS SHADERPASS_FORWARD
-            #include "../../ShaderVariables.hlsl"
+            #ifdef DEBUG_DISPLAY
             #include "../../Debug/DebugDisplay.hlsl"
+            #endif
             #include "../../Lighting/Lighting.hlsl"
             #include "ShaderPass/LitSharePass.hlsl"
             #include "LitData.hlsl"

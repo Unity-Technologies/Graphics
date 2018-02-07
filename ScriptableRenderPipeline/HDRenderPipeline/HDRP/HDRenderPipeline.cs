@@ -113,14 +113,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                         HDShaderPassNames.s_ForwardName,
                                                         HDShaderPassNames.s_SRPDefaultUnlitName };
 
-        ShaderPassName[] m_AllTransparentDebugDisplayPassNames = {  HDShaderPassNames.s_TransparentBackfaceDebugDisplayName,
-                                                                    HDShaderPassNames.s_ForwardOnlyDebugDisplayName,
-                                                                    HDShaderPassNames.s_ForwardDebugDisplayName,
-                                                                    HDShaderPassNames.s_SRPDefaultUnlitName };
-
-        ShaderPassName[] m_AllForwardDebugDisplayPassNames = {  HDShaderPassNames.s_TransparentBackfaceDebugDisplayName,
-                                                                HDShaderPassNames.s_ForwardOnlyDebugDisplayName,
-                                                                HDShaderPassNames.s_ForwardDebugDisplayName };
+        ShaderPassName[] m_AllForwardOpaquePassNames = {    HDShaderPassNames.s_ForwardOnlyName,
+                                                            HDShaderPassNames.s_ForwardName,
+                                                            HDShaderPassNames.s_SRPDefaultUnlitName };
 
         ShaderPassName[] m_DepthOnlyAndDepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName, HDShaderPassNames.s_DepthOnlyName };
         ShaderPassName[] m_DepthForwardOnlyPassNames = { HDShaderPassNames.s_DepthForwardOnlyName };
@@ -657,11 +652,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         DecalSystem.instance.EndCull();
                     }
 
-                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
-                    {
-                        m_CurrentDebugDisplaySettings.UpdateMaterials();
-                    }
-
                     renderContext.SetupCameraProperties(camera);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
@@ -1098,7 +1088,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var camera = hdCamera.camera;
 
-            using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBufferDebugDisplay" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
+            using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBuffer Debug" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
             {
                 // setup GBuffer for rendering
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(enableShadowMask), m_CameraDepthStencilBuffer);
@@ -1108,31 +1098,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Render opaque objects into GBuffer
-                if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
                 {
-                    // When doing debug display, the shader has the clip instruction regardless of the depth prepass so we can use regular depth test.
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferDebugDisplayName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
+                    // When using depth prepass for opaque alpha test only we need to use regular depth test for normal opaque objects.
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest, m_FrameSettings.enableAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
+                    // but for opaque alpha tested object we use a depth equal and no depth write. And we rely on the shader pass GbufferWithDepthPrepass
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferWithPrepassName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueAlphaTest, m_DepthStateOpaqueWithPrepass);
                 }
                 else
                 {
-                    if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
-                    {
-                        // When using depth prepass for opaque alpha test only we need to use regular depth test for normal opaque objects.
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest, m_FrameSettings.enableAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
-                        // but for opaque alpha tested object we use a depth equal and no depth write. And we rely on the shader pass GbufferWithDepthPrepass
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferWithPrepassName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueAlphaTest, m_DepthStateOpaqueWithPrepass);
-                    }
-                    else
-                    {
-                        // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
-                    }
+                    // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
                 }
 
                 if (m_FrameSettings.enableDBuffer)
                 {
                     m_DbufferManager.UnSetHTile(cmd);
                 }
+
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
         }
@@ -1182,10 +1165,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.All, CoreUtils.clearColorAllBlack);
                     // Render Opaque forward
-                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, m_currentRendererConfigurationBakedLighting);
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardOpaquePassNames, m_currentRendererConfigurationBakedLighting);
 
                     // Render forward transparent
-                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardDebugDisplayPassNames, m_currentRendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting);
                 }
             }
 
@@ -1317,16 +1300,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
                     }
 
-                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
-                    {
-                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyDebugDisplayName;
-                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardDebugDisplayName;
-                    }
-                    else
-                    {
-                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
-                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
-                    }
+                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
+                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
 
                     var passNames = m_FrameSettings.enableForwardRenderingOnly ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
                     // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
@@ -1335,9 +1310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-
-                    var passNames = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? m_AllTransparentDebugDisplayPassNames : m_AllTransparentPassNames;
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
                 }
             }
         }
@@ -1497,6 +1470,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None ||
                 m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
+                // enable globally the keyword DEBUG_DISPLAY on shader that support it with multicompile
+                cmd.EnableShaderKeyword("DEBUG_DISPLAY");
+
+                // This is for texture streaming
+                m_CurrentDebugDisplaySettings.UpdateMaterials();
+
                 var lightingDebugSettings = m_CurrentDebugDisplaySettings.lightingDebugSettings;
                 var debugAlbedo = new Vector4(lightingDebugSettings.overrideAlbedo ? 1.0f : 0.0f, lightingDebugSettings.overrideAlbedoValue.r, lightingDebugSettings.overrideAlbedoValue.g, lightingDebugSettings.overrideAlbedoValue.b);
                 var debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
@@ -1513,6 +1492,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
 
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, m_Asset.renderPipelineResources.debugFontTexture);
+            }
+            else
+            {
+                // TODO: Be sure that if there is no change in the state of this keyword, it doesn't imply any work on CPU side! else we will need to save the sate somewher
+                cmd.DisableShaderKeyword("DEBUG_DISPLAY");
             }
         }
 
