@@ -1199,7 +1199,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
+        protected internal override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
         {
             CollectElements(elements, elementsToCopySet);
 

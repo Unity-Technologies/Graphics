@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     class VFXBasicCubeOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Cube Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleBasicCube"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleBasicCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
 
         public override bool supportsFlipbooks { get { return true; } }

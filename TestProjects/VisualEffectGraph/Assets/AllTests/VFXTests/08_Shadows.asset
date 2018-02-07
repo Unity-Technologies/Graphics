@@ -1806,6 +1806,7 @@ MonoBehaviour:
   sortPriority: 0
   indirectDraw: 0
   preRefraction: 0
+  twoSided: 0
 --- !u!114 &114365880646675674
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5645,7 +5646,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 68
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: c52068b207121054b94fc6f5ccb3a3bc, type: 3}
+      processor: {fileID: 7200000, guid: ebe672251cd8bec44bd757e6f56cb78e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5672,7 +5673,7 @@ VFXAsset:
       - index: 84
         nameId: gradient_d
       params: []
-      processor: {fileID: 7200000, guid: 930a51a4dbe31b44e91e4fe6f81fc8f1, type: 3}
+      processor: {fileID: 7200000, guid: f0c0f7c4a8ef88c4bb7d3f2ebf46fd1c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5685,7 +5686,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: aaf92cc95232ab24698d2bf1adc00a58, type: 3}
+      processor: {fileID: 4800000, guid: a121abdde9dab39469e551c561e95655, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5702,7 +5703,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: d4e7db3bfd82ef04cbe96927d13cbd72, type: 3}
+      processor: {fileID: 4800000, guid: a20b1cbdf77ecf04096e1adccb91c6d1, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5721,7 +5722,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: d960919780d07b443a3f5b833216f715, type: 3}
+      processor: {fileID: 4800000, guid: a011a05b46e65294b95f3e480a9cc006, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5742,7 +5743,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 4b917473967194c46adec1968f37533f, type: 3}
+      processor: {fileID: 4800000, guid: 774316646c79aaa48ba0ff9137064b14, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
