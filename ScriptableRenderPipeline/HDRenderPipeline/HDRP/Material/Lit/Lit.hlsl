@@ -20,7 +20,7 @@ TEXTURE2D(_GaussianPyramidColorTexture);
 TEXTURE2D(_PyramidDepthTexture);
 
 CBUFFER_START(UnityGaussianPyramidParameters)
-float4 _GaussianPyramidColorMipSize; // z = lodCount
+float4 _GaussianPyramidColorMipSize; // (x,y) = PyramidToScreenScale, z = lodCount
 float4 _PyramidDepthMipSize;
 CBUFFER_END
 
