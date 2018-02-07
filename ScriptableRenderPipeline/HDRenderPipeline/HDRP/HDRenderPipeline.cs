@@ -1299,7 +1299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 				CoreUtils.SetRenderTarget(cmd, m_DbufferManager.GetDBuffers(), m_CameraDepthStencilBufferRT); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.dbufferCount, cmd);
-                DecalSystem.instance.Render(renderContext, camera, cmd);
+                DecalSystem.instance.Render(renderContext, camera, cmd, m_LightLoop);
                 m_DbufferManager.UnSetHTile(cmd);
             }
         }

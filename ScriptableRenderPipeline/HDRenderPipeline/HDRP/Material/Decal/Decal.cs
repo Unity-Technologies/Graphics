@@ -49,4 +49,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTReadWrite = m_RTReadWrite;
        }
     }
+
+    [GenerateHLSL]
+    public struct DecalData
+    {
+        public Matrix4x4 normalToWorld;
+        public int diffuseIndex;
+        public int normalIndex;
+        public int maskIndex;
+    };
 }

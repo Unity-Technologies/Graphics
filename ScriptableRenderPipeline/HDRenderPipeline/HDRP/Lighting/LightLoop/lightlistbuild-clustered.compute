@@ -25,6 +25,7 @@ float4x4 g_mInvScrProjection;
 float4x4 g_mScrProjection;
 uint g_isOrthographic;
 int _EnvLightIndexShift;
+int _DecalIndexShift;
 
 float g_fClustScale;
 float g_fClustBase;
@@ -353,7 +354,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// to make it work correctly
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DecalIndexShift;
 
 	int categoryListCount[LIGHTCATEGORY_COUNT]; // direct light count and reflection lights
 	ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);

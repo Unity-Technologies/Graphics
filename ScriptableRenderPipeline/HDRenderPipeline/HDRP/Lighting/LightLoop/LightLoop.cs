@@ -161,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Punctual,
         Area,
         Env,
+        Decal,
         Count
     }
 
@@ -1255,7 +1256,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return true;
         }
+        
+        public void GetDecalVolumeDataAndBound(Matrix4x4 decalToWorld, Matrix4x4 worldToView)
+        {
+            var bound = new SFiniteLightBound();
+            var lightVolumeData = new LightVolumeData();
 
+            var yExtent = decalToWorld.GetColumn(1) * 0.5f; // because of how decal mesh is defined Y is not centered, but rather covers a full extent
+
+            // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+            var influenceRightVS = worldToView.MultiplyVector(decalToWorld.GetColumn(0));
+            var influenceUpVS = worldToView.MultiplyVector(yExtent); 
+            var influenceForwardVS = worldToView.MultiplyVector(decalToWorld.GetColumn(2));
+            var influencePositionVS = worldToView.MultiplyPoint(decalToWorld.GetColumn(3) + yExtent); // place the mesh pivot in the center
+            var influenceExtents = influenceRightVS + influenceUpVS + influenceForwardVS;
+            influenceExtents.x = Mathf.Abs(influenceExtents.x);
+            influenceExtents.y = Mathf.Abs(influenceExtents.y);
+            influenceExtents.z = Mathf.Abs(influenceExtents.z);
+            
+            lightVolumeData.lightCategory = (uint)LightCategory.Env;
+            lightVolumeData.lightVolume = (uint)LightVolumeType.Box;
+            lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
+
+            bound.center = influencePositionVS;
+            bound.boxAxisX = influenceRightVS;
+            bound.boxAxisY = influenceUpVS;
+            bound.boxAxisZ = influenceForwardVS;
+            bound.scaleXY.Set(1.0f, 1.0f);
+            bound.radius = influenceExtents.magnitude;
+
+            // The culling system culls pixels that are further
+            //   than a threshold to the box influence extents.
+            // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+            lightVolumeData.lightPos = influencePositionVS;
+            lightVolumeData.lightAxisX = influenceRightVS;
+            lightVolumeData.lightAxisY = influenceUpVS;
+            lightVolumeData.lightAxisZ = influenceForwardVS;
+            lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
+            lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
+        
+            m_lightList.bounds.Add(bound);
+            m_lightList.lightVolumes.Add(lightVolumeData);            
+        }
+      
         public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
         {
             var bound = new SFiniteLightBound();
@@ -1729,6 +1772,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool isOrthographic = camera.orthographic;
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
+            cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
             cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjection, projscr);
             cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
@@ -1821,6 +1865,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
+                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
@@ -1844,6 +1889,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
+                cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
 
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);

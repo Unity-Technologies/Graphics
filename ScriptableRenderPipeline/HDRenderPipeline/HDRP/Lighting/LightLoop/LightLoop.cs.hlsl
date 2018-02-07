@@ -18,7 +18,8 @@
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
-#define LIGHTCATEGORY_COUNT (3)
+#define LIGHTCATEGORY_DECAL (3)
+#define LIGHTCATEGORY_COUNT (4)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.LightFeatureFlags:  static fields
@@ -37,7 +38,6 @@
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
 #define MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE (512)
 #define VIEWPORT_SCALE_Z (1)
-#define USE_LEFT_HAND_CAMERA_SPACE (1)
 #define TILE_SIZE_FPTL (16)
 #define TILE_SIZE_CLUSTERED (32)
 #define NUM_FEATURE_VARIANTS (27)

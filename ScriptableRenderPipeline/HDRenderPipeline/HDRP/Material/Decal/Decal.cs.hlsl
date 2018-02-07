@@ -31,8 +31,38 @@ struct DecalSurfaceData
     float4 baseColor;
     float4 normalWS;
     float4 mask;
-    int HTileMask;
+    uint HTileMask;
 };
+
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DecalData
+// PackingRules = Exact
+struct DecalData
+{
+    float4x4 normalToWorld;
+    int diffuseIndex;
+    int normalIndex;
+    int maskIndex;
+};
+
+//
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DecalData
+//
+float4x4 GetNormalToWorld(DecalData value)
+{
+	return value.normalToWorld;
+}
+int GetDiffuseIndex(DecalData value)
+{
+	return value.diffuseIndex;
+}
+int GetNormalIndex(DecalData value)
+{
+	return value.normalIndex;
+}
+int GetMaskIndex(DecalData value)
+{
+	return value.maskIndex;
+}
 
 //
 // Debug functions
