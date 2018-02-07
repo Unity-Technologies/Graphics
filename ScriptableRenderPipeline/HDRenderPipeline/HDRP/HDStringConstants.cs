@@ -5,20 +5,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // ShaderPass string - use to have consistent name through the code
         public static readonly string s_EmptyStr = "";
         public static readonly string s_ForwardStr = "Forward";
-        public static readonly string s_ForwardDebugDisplayStr = "ForwardDebugDisplay";
         public static readonly string s_DepthOnlyStr = "DepthOnly";
         public static readonly string s_DepthForwardOnlyStr = "DepthForwardOnly";
         public static readonly string s_ForwardOnlyStr = "ForwardOnly";
-        public static readonly string s_ForwardOnlyDebugDisplayStr = "ForwardOnlyDebugDisplay";
         public static readonly string s_GBufferStr = "GBuffer";
         public static readonly string s_GBufferWithPrepassStr = "GBufferWithPrepass";
-        public static readonly string s_GBufferDebugDisplayStr = "GBufferDebugDisplay";
         public static readonly string s_SRPDefaultUnlitStr = "SRPDefaultUnlit";
         public static readonly string s_MotionVectorsStr = "MotionVectors";
         public static readonly string s_DistortionVectorsStr = "DistortionVectors";
         public static readonly string s_TransparentDepthPrepassStr = "TransparentDepthPrepass";
         public static readonly string s_TransparentBackfaceStr = "TransparentBackface";
-        public static readonly string s_TransparentBackfaceDebugDisplayStr = "TransparentBackfaceDebugDisplay";
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
@@ -26,20 +22,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // ShaderPass name
         public static readonly ShaderPassName s_EmptyName = new ShaderPassName(s_EmptyStr);
         public static readonly ShaderPassName s_ForwardName = new ShaderPassName(s_ForwardStr);
-        public static readonly ShaderPassName s_ForwardDebugDisplayName = new ShaderPassName(s_ForwardDebugDisplayStr);
         public static readonly ShaderPassName s_DepthOnlyName = new ShaderPassName(s_DepthOnlyStr);
         public static readonly ShaderPassName s_DepthForwardOnlyName = new ShaderPassName(s_DepthForwardOnlyStr);
         public static readonly ShaderPassName s_ForwardOnlyName = new ShaderPassName(s_ForwardOnlyStr);
-        public static readonly ShaderPassName s_ForwardOnlyDebugDisplayName = new ShaderPassName(s_ForwardOnlyDebugDisplayStr);
         public static readonly ShaderPassName s_GBufferName = new ShaderPassName(s_GBufferStr);
         public static readonly ShaderPassName s_GBufferWithPrepassName = new ShaderPassName(s_GBufferWithPrepassStr);
-        public static readonly ShaderPassName s_GBufferDebugDisplayName = new ShaderPassName(s_GBufferDebugDisplayStr);
         public static readonly ShaderPassName s_SRPDefaultUnlitName = new ShaderPassName(s_SRPDefaultUnlitStr);
         public static readonly ShaderPassName s_MotionVectorsName = new ShaderPassName(s_MotionVectorsStr);
         public static readonly ShaderPassName s_DistortionVectorsName = new ShaderPassName(s_DistortionVectorsStr);
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
         public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
-        public static readonly ShaderPassName s_TransparentBackfaceDebugDisplayName = new ShaderPassName(s_TransparentBackfaceDebugDisplayStr);
         public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
 
         // Legacy name
