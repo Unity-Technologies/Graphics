@@ -944,6 +944,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
+                        // The pass only requires the volume properties, and can run async.
+                        m_VolumetricLightingModule.VoxelizeDensityVolumes(hdCamera, cmd);
+
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
                         m_VolumetricLightingModule.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
