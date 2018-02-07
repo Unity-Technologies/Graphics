@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     class VFXMeshOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Mesh Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleMeshes"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleMeshOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
             yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Enable double-sided rendering, or use backface culling.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Enable double-sided rendering, or use backface culling.")]
         private bool twoSided;
 
         public class InputProperties

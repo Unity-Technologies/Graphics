@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
                         case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
                         case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
-                        case VFXValueType.kTransform: value = CreateValueDesc<Matrix4x4>(exp, i); break;
+                        case VFXValueType.kMatrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
                         case VFXValueType.kMesh: value = CreateValueDesc<Mesh>(exp, i); break;
@@ -139,10 +139,14 @@ namespace UnityEditor.VFX
             var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
             if (expression != null)
             {
+                var exprIndex = graph.GetFlattenedIndex(expression);
+                if (exprIndex == -1)
+                    throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
+
                 outExposedParameters.Add(new VFXExposedDesc()
                 {
                     name = name,
-                    expressionIndex = (uint)graph.GetFlattenedIndex(expression)
+                    expressionIndex = (uint)exprIndex
                 });
             }
             else
@@ -532,6 +536,43 @@ namespace UnityEditor.VFX
             }
         }
 
+        private class VFXImplicitContextOfExposedExpression : VFXContext
+        {
+            private VFXExpressionMapper mapper;
+
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.kNone, VFXDataType.kNone, VFXDataType.kNone) {}
+
+            private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
+            {
+                var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
+                if (expression != null)
+                    expressions.Add(expression);
+                else
+                {
+                    foreach (var child in slot.children)
+                        CollectExposedExpression(expressions, child);
+                }
+            }
+
+            public void FillExpression(VFXGraph graph)
+            {
+                var allExposedParameter = graph.children.OfType<VFXParameter>().Where(o => o.exposed);
+                var expressionsList = new List<VFXExpression>();
+                foreach (var parameter in allExposedParameter)
+                    CollectExposedExpression(expressionsList, parameter.outputSlots[0]);
+
+                mapper = new VFXExpressionMapper();
+                for (int i = 0; i < expressionsList.Count; ++i)
+                    mapper.AddExpression(expressionsList[i], "ImplicitExposedExpression", i);
+            }
+
+            public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
+            {
+                return target == VFXDeviceTarget.CPU ? mapper : null;
+            }
+        }
+
+
         public void Compile()
         {
             Profiler.BeginSample("VFXEditor.CompileAsset");
@@ -563,7 +604,9 @@ namespace UnityEditor.VFX
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionGraph.CompileExpressions(m_Graph, VFXExpressionContextOption.Reduction, true);
+                var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();
+                exposedExpressionContext.FillExpression(m_Graph); //Force all exposed expression to be visible, only for registering in CompileExpressions
+                m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] { exposedExpressionContext }), VFXExpressionContextOption.Reduction);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 4 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
@@ -696,7 +739,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.kTexture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
                         case VFXValueType.kTextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
                         case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
-                        case VFXValueType.kTransform: SetValueDesc<Matrix4x4>(desc, exp); break;
+                        case VFXValueType.kMatrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.kCurve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.kColorGradient: SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.kMesh: SetValueDesc<Mesh>(desc, exp); break;

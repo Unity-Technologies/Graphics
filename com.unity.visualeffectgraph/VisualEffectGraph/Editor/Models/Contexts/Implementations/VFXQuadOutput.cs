@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         public bool useGeometryShader = false;
 
         public override string name { get { return "Quad Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleQuad"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleQuad"); } }
         public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.kParticlePointOutput : VFXTaskType.kParticleQuadOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 

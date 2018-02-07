@@ -19,10 +19,7 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-#undef VFX_VARYING_POSSS
-#undef VFX_VARYING_COLOR
 #define VFX_VARYING_ALPHA builtInInterpolants.y
-#undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 		
 	${VFXBegin:VFXVertexAdditionalProcess}

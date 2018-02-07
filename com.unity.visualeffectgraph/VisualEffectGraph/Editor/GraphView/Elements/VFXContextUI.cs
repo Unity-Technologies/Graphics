@@ -487,6 +487,11 @@ namespace UnityEditor.VFX.UI
             using (var growContext = new GrowContext(this))
             {
                 controller.BlocksDropped(blockIndex, draggedBlocks.Select(t => t.controller), copy);
+
+                foreach (var context in contexts)
+                {
+                    context.ApplyChanges();
+                }
             }
         }
 
@@ -598,7 +603,7 @@ namespace UnityEditor.VFX.UI
             void IDisposable.Dispose()
             {
                 VFXView view = m_Context.GetFirstAncestorOfType<VFXView>();
-                view.controller.ApplyChanges();
+                m_Context.controller.ApplyChanges();
                 (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
 
                 view.PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
