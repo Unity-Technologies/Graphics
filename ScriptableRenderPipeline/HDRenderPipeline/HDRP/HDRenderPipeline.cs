@@ -1023,6 +1023,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
 
+                // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
                 var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, pyramidScale.x / hdCamera.screenSize.x, pyramidScale.y / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
