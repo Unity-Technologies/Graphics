@@ -192,6 +192,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public static void BlitTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+        }
+
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
         // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
         // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
@@ -200,11 +208,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, camera, destination);
+            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
+        }
 
-            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, camera.scaleBias);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+        // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            // Will set the correct camera viewport as well.
+            SetRenderTarget(cmd, camera, destination);
+            BlitTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
+        }
+
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            SetRenderTarget(cmd, camera, destination);
+            cmd.SetViewport(destViewport);
+            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
         }
 
         // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
@@ -226,18 +245,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             //s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, camera.scaleBias);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), 0, MeshTopology.Triangles, 3, 1);
-        }
-
-        // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
-        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
-        {
-            // Will set the correct camera viewport as well.
-            SetRenderTarget(cmd, camera, destination);
-
-            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
