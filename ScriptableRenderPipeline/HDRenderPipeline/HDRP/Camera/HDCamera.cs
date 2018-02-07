@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 screenSize;
         public Plane[] frustumPlanes;
         public Vector4[] frustumPlaneEquations;
+        public Vector3[] frustumCorners;
         public Camera camera;
         public uint taaFrameIndex;
         public Vector2 taaFrameRotation;
@@ -87,11 +88,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public HDCamera(Camera cam)
         {
-            camera = cam;
-            frustumPlanes = new Plane[6];
-            frustumPlaneEquations = new Vector4[6];
+            camera                   = cam;
+            m_AdditionalCameraData   = cam.GetComponent<HDAdditionalCameraData>();
+            frustumPlanes            = new Plane[6];
+            frustumPlaneEquations    = new Vector4[6];
+            frustumCorners           = new Vector3[8];
             postprocessRenderContext = new PostProcessRenderContext();
-            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
         }
 
@@ -160,20 +162,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Warning: near and far planes appear to be broken (or rather far plane seems broken)
+            // Also note: frustum plane normals are inward-facing.
             GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
 
-            for (int i = 0; i < 4; i++)
+            Vector3 forward = -viewMatrix.GetRow(2); // camera.forward is not always available
+
+            // Near, far.
+            frustumPlanes[4].normal   =  forward;
+            frustumPlanes[4].distance = -Vector3.Dot(forward, relPos) - camera.nearClipPlane;
+            frustumPlanes[5].normal   = -forward;
+            frustumPlanes[5].distance = Vector3.Dot(forward, relPos) + camera.farClipPlane;
+
+            // Left, right, top, bottom, near, far.
+            for (int i = 0; i < 6; i++)
             {
-                // Left, right, top, bottom.
                 frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
             }
 
-            // Near, far.
-            Vector4 forward = (camera.cameraType == CameraType.Reflection) ? camera.worldToCameraMatrix.GetRow(2) : new Vector4(camera.transform.forward.x, camera.transform.forward.y, camera.transform.forward.z, 0.0f);
-            // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
-            forward = viewParam.x < 0.0f ? forward : -forward;
-            frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
-            frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
+            Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
+
+            // Unproject 8 frustum points.
+            frustumCorners[0] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 1));
+            frustumCorners[1] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 1));
+            frustumCorners[2] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 1));
+            frustumCorners[3] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 1));
+            frustumCorners[4] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 0));
+            frustumCorners[5] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 0));
+            frustumCorners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 0));
+            frustumCorners[7] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 0));
 
             m_LastFrameActive = Time.frameCount;
 

@@ -29,9 +29,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnDrawGizmos()
         {
-            if (volumeParameters != null && !volumeParameters.IsVolumeUnbounded())
+            if (volumeParameters.IsLocalVolume())
             {
-                Gizmos.DrawWireCube(volumeParameters.bounds.center, volumeParameters.bounds.size);
+                Gizmos.color  = volumeParameters.albedo;
+                Gizmos.matrix = transform.localToWorldMatrix;
+                Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
             }
         }
 
@@ -44,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (HomogeneousFog fogComponent in fogComponents)
             {
-                if (fogComponent.enabled && fogComponent.volumeParameters.IsVolumeUnbounded())
+                if (fogComponent.enabled && !fogComponent.volumeParameters.IsLocalVolume())
                 {
                     globalFogComponent = fogComponent;
                     break;
