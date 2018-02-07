@@ -1421,7 +1421,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
                 m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer);
 
-            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.colorPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
+            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.colorPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
@@ -1432,7 +1433,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
                 m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture());
 
-            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.depthPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), hdCamera, debugMode);
+            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
+            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.depthPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
 
             cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_BufferPyramid.depthPyramid);
         }
@@ -1539,14 +1541,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RTHandle texture, int lodCount, HDCamera hdCamera, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RTHandle texture, int lodCount, Vector4 scaleBias, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
                 var mipIndex = Mathf.FloorToInt(m_CurrentDebugDisplaySettings.fullscreenDebugMip * (lodCount));
 
                 m_FullScreenDebugPushed = true; // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
-                HDUtils.BlitCameraTexture(cmd, hdCamera, texture, m_DebugFullScreenTempBuffer, mipIndex);
+                HDUtils.BlitCameraTexture(cmd, hdCamera, texture, m_DebugFullScreenTempBuffer, scaleBias, mipIndex);
             }
         }
 
