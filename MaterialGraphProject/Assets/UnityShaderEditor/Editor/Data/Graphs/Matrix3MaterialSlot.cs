@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Matrix3MaterialSlot : MaterialSlot
+    public class Matrix3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Matrix4x4>
     {
         [SerializeField]
         private Matrix4x4 m_Value;
@@ -64,9 +64,7 @@ namespace UnityEditor.ShaderGraph
             var pp = new PreviewProperty(PropertyType.Matrix3)
             {
                 name = name,
-                vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, value.GetRow(0).z, 0),
-                floatValue = value.GetRow(0).x,
-                colorValue = new Vector4(value.GetRow(0).x, value.GetRow(0).x, value.GetRow(0).z, 0)
+                vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, value.GetRow(0).z, 0)
             };
             return pp;
         }

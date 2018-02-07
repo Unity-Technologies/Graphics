@@ -3,28 +3,32 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math", "Matrix", "TransposeMatrix")]
+    [Title("Math", "Matrix", "Matrix Transpose")]
     public class MatrixTransposeNode : CodeFunctionNode
     {
         public MatrixTransposeNode()
         {
-            name = "TransposeMatrix";
+            name = "Matrix Transpose";
+        }
+
+        public override bool hasPreview
+        {
+            get { return false; }
         }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("unity_MatrixTranspose_", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_MatrixTranspose", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string unity_MatrixTranspose_(
-            [Slot(0, Binding.None)] Matrix4x4 inMatrix,
-            [Slot(1, Binding.None)] out Matrix4x4 outMatrix)
+        static string Unity_MatrixTranspose(
+            [Slot(0, Binding.None)] DynamicDimensionMatrix In,
+            [Slot(1, Binding.None)] out DynamicDimensionMatrix Out)
         {
-            outMatrix = Matrix4x4.identity;
             return
                 @"
 {
-    outMatrix = transpose(inMatrix);
+    Out = transpose(In);
 }
 ";
         }

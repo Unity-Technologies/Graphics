@@ -17,16 +17,6 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix3; }
         }
 
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(); }
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return default(PreviewProperty);
-        }
-
         public override INode ToConcreteNode()
         {
             return new Matrix3Node 
