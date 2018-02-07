@@ -41,7 +41,6 @@ Pass
 #define VFX_VARYING_POSSS projPos
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
-#undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_FLIPBOOKSIZE builtInInterpolants.y
 #define VFX_VARYING_INVFLIPBOOKSIZE builtInInterpolants.z

@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
 
         public virtual bool supportsFlipbooks { get { return false; } }
 
-        public virtual bool supportSoftParticles { get { return useSoftParticle && blendMode != BlendMode.Masked; } }
+        public virtual bool supportSoftParticles { get { return useSoftParticle && (blendMode != BlendMode.Opaque && blendMode != BlendMode.Masked); } }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
@@ -107,6 +107,8 @@ namespace UnityEditor.VFX
         {
             get
             {
+                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Masked)
+                    yield return "IS_OPAQUE_PARTICLE";
                 if (blendMode == BlendMode.Masked)
                     yield return "USE_ALPHA_TEST";
                 if (supportSoftParticles)
@@ -144,7 +146,7 @@ namespace UnityEditor.VFX
                 if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
                     yield return "preRefraction";
 
-                if (blendMode == BlendMode.Opaque)
+                if (blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked)
                     yield return "useSoftParticle";
             }
         }
@@ -185,7 +187,7 @@ namespace UnityEditor.VFX
 
                 rs.WriteLine("ZTest LEqual");
 
-                if (blendMode == BlendMode.Masked)
+                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
                     rs.WriteLine("ZWrite On");
                 else
                     rs.WriteLine("ZWrite Off");

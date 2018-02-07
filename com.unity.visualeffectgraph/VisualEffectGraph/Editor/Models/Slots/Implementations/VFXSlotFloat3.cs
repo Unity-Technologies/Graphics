@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                 return new VFXExpressionCombine(expression.x, expression.y, expression.z);
             }
 
-            throw new Exception("Unexpected type of expression " + expression);
+            throw new Exception("Unexpected type of expression " + expression + "valueType" + expression.valueType);
         }
 
         sealed protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)

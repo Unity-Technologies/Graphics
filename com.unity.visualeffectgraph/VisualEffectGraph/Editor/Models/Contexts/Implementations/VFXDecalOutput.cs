@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     class VFXDecalOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Decal Output"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXParticleDecal"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 

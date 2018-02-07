@@ -8,12 +8,13 @@ namespace UnityEditor.VFX.UIElements
 {
     class VFXEnumField : ValueControl<int>
     {
-        Button m_DropDownButton;
+        Label m_DropDownButton;
         System.Type m_EnumType;
 
         void CreateButton()
         {
-            m_DropDownButton = new Button();
+            m_DropDownButton = new Label();
+            m_DropDownButton.AddToClassList("PopupButton");
             m_DropDownButton.AddManipulator(new DownClickable(OnClick));
         }
 
