@@ -177,12 +177,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
 
         RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
-        RenderTextureReadWrite[] m_RTReadWrite4 = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
+        bool[] m_RTsRGBFlag4 = { true, false, false, false };
 
-        public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
+        public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag)
         {
             RTFormat = m_RTFormat4;
-            RTReadWrite = m_RTReadWrite4;
+            sRGBFlag = m_RTsRGBFlag4;
         }
 
         //-----------------------------------------------------------------------------

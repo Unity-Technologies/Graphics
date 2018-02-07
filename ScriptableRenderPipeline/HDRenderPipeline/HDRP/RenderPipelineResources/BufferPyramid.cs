@@ -1,4 +1,5 @@
-﻿using UnityEngine.Rendering;
+﻿using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -13,197 +14,201 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GPUCopy m_GPUCopy;
         ComputeShader m_ColorPyramidCS;
 
-        RenderTextureDescriptor m_ColorRenderTextureDescriptor;
-        int[] m_ColorPyramidMips = new int[0];
+        RTHandle m_ColorPyramidBuffer;
+        List<RTHandle> m_ColorPyramidMips = new List<RTHandle>();
         int m_ColorPyramidKernel;
 
         ComputeShader m_DepthPyramidCS;
-        RenderTextureDescriptor m_DepthRenderTextureDescriptor;
-        int[] m_DepthPyramidMips = new int[0];
+        RTHandle m_DepthPyramidBuffer;
+        List<RTHandle> m_DepthPyramidMips = new List<RTHandle>();
         int m_DepthPyramidKernel_8;
         int m_DepthPyramidKernel_1;
 
-        public RenderTextureDescriptor colorRenderTextureDescriptor { get { return m_ColorRenderTextureDescriptor; } }
-        public int colorUsedMipMapCount { get { return Mathf.Min(colorBufferMipMapCount, m_ColorPyramidMips.Length); } }
-        public int colorBufferMipMapCount
-        {
-            get
-            {
-                var minSize = Mathf.Min(colorRenderTextureDescriptor.width, colorRenderTextureDescriptor.height);
-                return Mathf.FloorToInt(Mathf.Log(minSize, 2f));
-            }
-        }
-
-        public RenderTextureDescriptor depthRenderTextureDescriptor { get { return m_DepthRenderTextureDescriptor; } }
-        public int depthUsedMipMapCount { get { return Mathf.Min(depthBufferMipMapCount, m_DepthPyramidMips.Length); } }
-        public int depthBufferMipMapCount
-        {
-            get
-            {
-                var minSize = Mathf.Min(depthRenderTextureDescriptor.width, depthRenderTextureDescriptor.height);
-                return Mathf.FloorToInt(Mathf.Log(minSize, 2f));
-            }
-        }
+        public RTHandle colorPyramid { get { return m_ColorPyramidBuffer; } }
+        public RTHandle depthPyramid { get { return m_DepthPyramidBuffer; } }
 
         public BufferPyramid(
-            ComputeShader colorPyramidCS, int[] colorMipIds,
-            ComputeShader depthPyramidCS, GPUCopy gpuCopy, int[] depthMipIds)
+            ComputeShader colorPyramidCS,
+            ComputeShader depthPyramidCS, GPUCopy gpuCopy)
         {
             m_ColorPyramidCS = colorPyramidCS;
             m_ColorPyramidKernel = m_ColorPyramidCS.FindKernel("KMain");
-            m_ColorPyramidMips = colorMipIds;
 
             m_DepthPyramidCS = depthPyramidCS;
             m_GPUCopy = gpuCopy;
-            m_DepthPyramidMips = depthMipIds;
             m_DepthPyramidKernel_8 = m_DepthPyramidCS.FindKernel("KMain_8");
             m_DepthPyramidKernel_1 = m_DepthPyramidCS.FindKernel("KMain_1");
+        }
+
+        float GetXRscale()
+        {
+            // for stereo double-wide, each half of the texture will represent a single eye's pyramid
+            float scale = 1.0f;
+            //if (m_Asset.renderPipelineSettings.supportsStereo && (desc.dimension != TextureDimension.Tex2DArray))
+            //    scale = 2.0f; // double-wide
+            return scale;
+        }
+
+        public void CreateBuffers()
+        {
+            m_ColorPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, useMipMap: true, autoGenerateMips: false);
+            m_DepthPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true); // Need randomReadWrite because we downsample the first mip with a compute shader.
+        }
+
+        public void DestroyBuffers()
+        {
+            RTHandle.Release(m_ColorPyramidBuffer);
+            RTHandle.Release(m_DepthPyramidBuffer);
+
+            foreach (var rth in m_ColorPyramidMips)
+            {
+                RTHandle.Release(rth);
+            }
+
+            foreach (var rth in m_DepthPyramidMips)
+            {
+                RTHandle.Release(rth);
+            }
+        }
+
+        public int GetPyramidLodCount(HDCamera camera)
+        {
+            var minSize = Mathf.Min(camera.actualWidth, camera.actualHeight);
+            return Mathf.FloorToInt(Mathf.Log(minSize, 2f));
+        }
+
+        Vector2Int CalculatePyramidMipSize(Vector2Int baseMipSize, int mipIndex)
+        {
+            return new Vector2Int(baseMipSize.x >> mipIndex, baseMipSize.y >> mipIndex);
+        }
+
+        Vector2Int CalculatePyramidSize(Vector2Int size)
+        {
+            // Instead of using the screen size, we round up to the next power of 2 because currently some platforms don't support NPOT Render Texture with mip maps (PS4 for example)
+            // Then we render in a Screen Sized viewport.
+            // Note that even if PS4 supported POT Mips, the buffers would be padded to the next power of 2 anyway (TODO: check with other platforms...)
+            int pyramidSize = (int)Mathf.NextPowerOfTwo(Mathf.Max(size.x, size.y));
+            return new Vector2Int((int)(pyramidSize * GetXRscale()), pyramidSize);
+        }
+
+        void UpdatePyramidMips(HDCamera camera, RenderTextureFormat format, List<RTHandle> mipList, int lodCount)
+        {
+            int currentLodCount = mipList.Count;
+            if (lodCount > currentLodCount)
+            {
+                for (int i = currentLodCount; i < lodCount; ++i)
+                {
+                    int mipIndexCopy = i + 1; // Don't remove this copy! It's important for the value to be correctly captured by the lambda.
+                    RTHandle newMip = RTHandle.Alloc(size => CalculatePyramidMipSize(CalculatePyramidSize(size), mipIndexCopy), colorFormat: format, sRGB: false, enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear);
+                    mipList.Add(newMip);
+                }
+            }
+        }
+
+        public Vector2 GetPyramidToScreenScale(HDCamera camera)
+        {
+            return new Vector2((float)camera.actualWidth / m_DepthPyramidBuffer.rt.width, (float)camera.actualHeight / m_DepthPyramidBuffer.rt.height);
         }
 
         public void RenderDepthPyramid(
             HDCamera hdCamera,
             CommandBuffer cmd,
             ScriptableRenderContext renderContext,
-            RenderTargetIdentifier depthTexture,
-            RenderTargetIdentifier targetTexture)
+            RTHandle depthTexture)
         {
-            var depthPyramidDesc = m_DepthRenderTextureDescriptor;
+            int lodCount = GetPyramidLodCount(hdCamera);
+            UpdatePyramidMips(hdCamera, m_DepthPyramidBuffer.rt.format, m_DepthPyramidMips, lodCount);
 
-            var lodCount = depthBufferMipMapCount;
-            if (lodCount > m_DepthPyramidMips.Length)
-            {
-                Debug.LogWarningFormat("Cannot compute all mipmaps of the depth pyramid, max texture size supported: {0}", (2 << m_DepthPyramidMips.Length).ToString());
-                lodCount = m_DepthPyramidMips.Length;
-            }
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, lodCount, 0.0f));
 
-            cmd.ReleaseTemporaryRT(m_DepthPyramidMips[0]);
+            m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidBuffer, new Vector2(hdCamera.actualWidth, hdCamera.actualHeight));
 
-            depthPyramidDesc.sRGB = false;
-            depthPyramidDesc.enableRandomWrite = true;
-            depthPyramidDesc.useMipMap = false;
+            Vector2 scale = GetPyramidToScreenScale(hdCamera);
 
-            cmd.GetTemporaryRT(m_DepthPyramidMips[0], depthPyramidDesc, FilterMode.Bilinear);
-            m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidMips[0], new Vector2(depthPyramidDesc.width, depthPyramidDesc.height));
-            cmd.CopyTexture(m_DepthPyramidMips[0], 0, 0, targetTexture, 0, 0);
-
+            RTHandle src = m_DepthPyramidBuffer;
             for (var i = 0; i < lodCount; i++)
             {
-                var srcMipWidth = depthPyramidDesc.width;
-                var srcMipHeight = depthPyramidDesc.height;
-                depthPyramidDesc.width = srcMipWidth >> 1;
-                depthPyramidDesc.height = srcMipHeight >> 1;
+                RTHandle dest = m_DepthPyramidMips[i];
+
+                var srcMipWidth = hdCamera.actualWidth >> i;
+                var srcMipHeight = hdCamera.actualHeight >> i;
+                var dstMipWidth = srcMipWidth >> 1;
+                var dstMipHeight = srcMipHeight >> 1;
 
                 var kernel = m_DepthPyramidKernel_8;
                 var kernelBlockSize = 8f;
-                if (depthPyramidDesc.width < 4 * k_DepthBlockSize
-                    || depthPyramidDesc.height < 4 * k_DepthBlockSize)
+                if (dstMipWidth < 4 * k_DepthBlockSize
+                    || dstMipHeight < 4 * k_DepthBlockSize)
                 {
                     kernel = m_DepthPyramidKernel_1;
                     kernelBlockSize = 1;
                 }
 
-                cmd.ReleaseTemporaryRT(m_DepthPyramidMips[i + 1]);
-                cmd.GetTemporaryRT(m_DepthPyramidMips[i + 1], depthPyramidDesc, FilterMode.Bilinear);
-
-                cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Source, m_DepthPyramidMips[i]);
-                cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Result, m_DepthPyramidMips[i + 1]);
-                cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(srcMipWidth, srcMipHeight, 1f / srcMipWidth, 1f / srcMipHeight));
+                cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Source, src);
+                cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Result, dest);
+                cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(srcMipWidth, srcMipHeight, (1.0f / srcMipWidth) * scale.x, (1.0f / srcMipHeight) * scale.y));
 
                 cmd.DispatchCompute(
                     m_DepthPyramidCS,
                     kernel,
-                    Mathf.CeilToInt(depthPyramidDesc.width / kernelBlockSize),
-                    Mathf.CeilToInt(depthPyramidDesc.height / kernelBlockSize),
+                    Mathf.CeilToInt(dstMipWidth / kernelBlockSize),
+                    Mathf.CeilToInt(dstMipHeight / kernelBlockSize),
                     1);
 
-                cmd.CopyTexture(m_DepthPyramidMips[i + 1], 0, 0, targetTexture, 0, i + 1);
+                // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
+                cmd.CopyTexture(m_DepthPyramidMips[i], 0, 0, 0, 0, dstMipWidth, dstMipHeight, m_DepthPyramidBuffer, 0, i + 1, 0, 0);
+                src = dest;
             }
 
-            for (int i = 0; i < lodCount + 1; i++)
-                cmd.ReleaseTemporaryRT(m_DepthPyramidMips[i]);
+            cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
         }
 
         public void RenderColorPyramid(
             HDCamera hdCamera,
             CommandBuffer cmd, 
             ScriptableRenderContext renderContext,
-            RenderTargetIdentifier colorTexture,
-            RenderTargetIdentifier targetTexture)
+            RTHandle colorTexture)
         {
-            var colorPyramidDesc = colorRenderTextureDescriptor;
+            int lodCount = GetPyramidLodCount(hdCamera);
+            UpdatePyramidMips(hdCamera, m_ColorPyramidBuffer.rt.format, m_ColorPyramidMips, lodCount);
 
-            var lodCount = colorBufferMipMapCount;
-            if (lodCount > m_ColorPyramidMips.Length)
-            {
-                Debug.LogWarningFormat("Cannot compute all mipmaps of the color pyramid, max texture size supported: {0}", (2 << m_ColorPyramidMips.Length).ToString());
-                lodCount = m_ColorPyramidMips.Length;
-            }
+            Vector2 scale = GetPyramidToScreenScale(hdCamera);
+            cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(scale.x, scale.y, lodCount, 0.0f));
 
             // Copy mip 0
-            cmd.CopyTexture(colorTexture, 0, 0, targetTexture, 0, 0);
-            var last = colorTexture;
+            // Here we blit a "camera space" texture into a square texture but we want to keep the original viewport.
+            // Other BlitCameraTexture version will setup the viewport based on the destination RT scale (square here) so we need override it here.
+            HDUtils.BlitCameraTexture(cmd, hdCamera, colorTexture, m_ColorPyramidBuffer, new Rect(0.0f, 0.0f, hdCamera.actualWidth, hdCamera.actualHeight));
 
-            colorPyramidDesc.sRGB = false;
-            colorPyramidDesc.enableRandomWrite = true;
-            colorPyramidDesc.useMipMap = false;
-
+            RTHandle src = m_ColorPyramidBuffer;
             for (var i = 0; i < lodCount; i++)
             {
-                colorPyramidDesc.width = colorPyramidDesc.width >> 1;
-                colorPyramidDesc.height = colorPyramidDesc.height >> 1;
+                RTHandle dest = m_ColorPyramidMips[i];
+
+                var srcMipWidth = hdCamera.actualWidth >> i;
+                var srcMipHeight = hdCamera.actualHeight >> i;
+                var dstMipWidth = srcMipWidth >> 1;
+                var dstMipHeight = srcMipHeight >> 1;
 
                 // TODO: Add proper stereo support to the compute job
 
-                cmd.ReleaseTemporaryRT(m_ColorPyramidMips[i + 1]);
-                cmd.GetTemporaryRT(m_ColorPyramidMips[i + 1], colorPyramidDesc, FilterMode.Bilinear);
-                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Source, last);
-                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Result, m_ColorPyramidMips[i + 1]);
-                cmd.SetComputeVectorParam(m_ColorPyramidCS, _Size, new Vector4(colorPyramidDesc.width, colorPyramidDesc.height, 1f / colorPyramidDesc.width, 1f / colorPyramidDesc.height));
+                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Source, src);
+                cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Result, dest);
+                // _Size is used as a scale inside the whole render target so here we need to keep the full size (and not the scaled size depending on the current camera)
+                cmd.SetComputeVectorParam(m_ColorPyramidCS, _Size, new Vector4(dest.rt.width, dest.rt.height, 1f / dest.rt.width, 1f / dest.rt.height));
                 cmd.DispatchCompute(
                     m_ColorPyramidCS,
                     m_ColorPyramidKernel,
-                    Mathf.CeilToInt(colorPyramidDesc.width / 8f),
-                    Mathf.CeilToInt(colorPyramidDesc.height / 8f),
+                    Mathf.CeilToInt(dstMipWidth / 8f),
+                    Mathf.CeilToInt(dstMipHeight / 8f),
                     1);
-                cmd.CopyTexture(m_ColorPyramidMips[i + 1], 0, 0, targetTexture, 0, i + 1);
+                // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
+                cmd.CopyTexture(m_ColorPyramidMips[i], 0, 0, 0, 0, dstMipWidth, dstMipHeight, m_ColorPyramidBuffer, 0, i + 1, 0, 0);
 
-                last = m_ColorPyramidMips[i + 1];
+                src = dest;
             }
 
-            for (int i = 0; i < lodCount; i++)
-                cmd.ReleaseTemporaryRT(m_ColorPyramidMips[i + 1]);
-        }
-
-        public void Initialize(HDCamera hdCamera, bool enableStereo)
-        {
-            var colorDesc = CalculateRenderTextureDescriptor(hdCamera, enableStereo);
-            colorDesc.colorFormat = RenderTextureFormat.ARGBHalf;
-            m_ColorRenderTextureDescriptor = colorDesc;
-
-            var depthDesc = CalculateRenderTextureDescriptor(hdCamera, enableStereo);
-            depthDesc.colorFormat = RenderTextureFormat.RFloat;
-            m_DepthRenderTextureDescriptor = depthDesc;
-        }
-
-        public static RenderTextureDescriptor CalculateRenderTextureDescriptor(HDCamera hdCamera, bool enableStereo)
-        {
-            var desc = hdCamera.renderTextureDesc;
-            desc.depthBufferBits = 0;
-            desc.useMipMap = true;
-            desc.autoGenerateMips = false;
-
-            desc.msaaSamples = 1; // These are approximation textures, they don't need MSAA
-
-            // for stereo double-wide, each half of the texture will represent a single eye's pyramid
-            //var widthModifier = 1;
-            //if (stereoEnabled && (desc.dimension != TextureDimension.Tex2DArray))
-            //    widthModifier = 2; // double-wide
-
-            //desc.width = pyramidSize * widthModifier;
-            desc.width = (int)hdCamera.screenSize.x;
-            desc.height = (int)hdCamera.screenSize.y;
-
-            return desc;
+            cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_ColorPyramidBuffer);
         }
     }
 }

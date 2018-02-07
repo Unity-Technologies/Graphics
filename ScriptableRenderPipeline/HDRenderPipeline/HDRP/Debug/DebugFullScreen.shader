@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
             }
@@ -94,7 +94,8 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             {
                 if (_RequireToFlipInputTexture > 0.0)
                 {
-                    input.texcoord.y = 1.0 - input.texcoord.y;
+                    // Texcoord are already scaled by _ScreenToTargetScale but we need to account for the flip here anyway.
+                    input.texcoord.y = 1.0 * _ScreenToTargetScale.y - input.texcoord.y;
                 }
 
                 // SSAO
@@ -105,7 +106,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-
+                    
                     if (AnyIsNan(color) || any(isinf(color)))
                     {
                         color = float4(1.0, 0.0, 0.0, 1.0);
@@ -152,6 +153,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     {
                         arrow_coord.y = 1.0 - arrow_coord.y;
                     }
+                    arrow_coord *= _ScreenToTargetScale;
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
 
@@ -178,7 +180,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEFERRED_SHADOWS)
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-                    return float4(color.rgb, 0.0);
+                    return float4(color.rrr, 0.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
