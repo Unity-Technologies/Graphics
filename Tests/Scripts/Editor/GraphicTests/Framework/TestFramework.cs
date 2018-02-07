@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering
         [OneTimeTearDown]
         public void OnTimeTearDown()
         {
-            Debug.Log("OnTimeTearDown");
+            //Debug.Log("OneTimeTearDown");
             RestoreRenderPipeAsset();
             RestoreSceneManagerSetup();
         }
@@ -167,12 +167,39 @@ namespace UnityEditor.Experimental.Rendering
                     Directory.CreateDirectory(failedPath);
                     var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", testInfo.name, "png"));
                     var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
+
+                    // Add associated renderpipeline label image if it exists
+                    string rpLabelPath = AssetDatabase.GetAssetPath(testSetup.renderPipelines[r]);
+                    Texture2D rpLabel = AssetDatabase.LoadAssetAtPath<Texture2D>(rpLabelPath.Remove(rpLabelPath.Length - 5)+"png");
+                    if (rpLabel != null)
+                    {
+                        Color[] rpLabelPixels = rpLabel.GetPixels();
+                        Color[] targetPixels = captured.GetPixels(0, 0, rpLabel.width, rpLabel.height);
+
+                        for (int p = 0; p < rpLabelPixels.Length; ++p)
+                        {
+                            targetPixels[p] = Color.Lerp(targetPixels[p], rpLabelPixels[p], rpLabelPixels[p].a);
+                            targetPixels[p].a = 1f;
+                        }
+
+                        captured.SetPixels(0, 0, rpLabel.width, rpLabel.height, targetPixels);
+                        captured.Apply();
+                    }
+
                     var generated = captured.EncodeToPNG();
                     File.WriteAllBytes(misMatchLocationResult, generated);
                     File.Copy(dumpFileLocation, misMatchLocationTemplate, true);
+
+                    Object.DestroyImmediate(captured);
                 }
 
                 Assert.IsTrue(areEqual, "Scene from {0}, did not match .template file.", testInfo.relativePath);
+
+                if (!areEqual) // No need to continue the test on other renderpipelines, it would overwrite the fail capture
+                {
+                    testSetup.TearDown();
+                    yield break;
+                }
             }
 
             testSetup.TearDown();
