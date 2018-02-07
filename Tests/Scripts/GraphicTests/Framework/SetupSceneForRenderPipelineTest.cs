@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Collections;
 using UnityEngine.TestTools;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -47,8 +48,33 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Setup(int index)
 		{
-            if (m_OriginalAsset != renderPipelines[index]) GraphicsSettings.renderPipelineAsset = renderPipelines[index];
-		}
+		    if (m_OriginalAsset != renderPipelines[index])
+		    {
+                //Debug.Log("Set Render Pipeline: "+ renderPipelines[index]);
+		        GraphicsSettings.renderPipelineAsset = renderPipelines[index];
+
+                // Update Camera Frame Settings (HDRP)
+                HDAdditionalCameraData additionalCameraData = cameraToUse.gameObject.GetComponent<HDAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    HDRenderPipelineAsset m_Asset = (HDRenderPipelineAsset) renderPipelines[index];
+                    /*
+
+                    FrameSettings srcFrameSettings;
+
+                    additionalCameraData.UpdateDirtyFrameSettings(true, m_Asset.GetFrameSettings());
+                    srcFrameSettings = additionalCameraData.GetFrameSettings();
+
+                    FrameSettings m_FrameSettings = new FrameSettings();
+
+                    // Get the effective frame settings for this camera taking into account the global setting and camera type
+                    FrameSettings.InitializeFrameSettings(cameraToUse, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref m_FrameSettings);
+                    */
+
+                    additionalCameraData.UpdateDirtyFrameSettings(true, m_Asset.GetFrameSettings() );
+                }
+            }
+        }
 
 		public void TearDown()
 		{
