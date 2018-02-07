@@ -404,7 +404,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         // TODO: piecewise linear.
         float3 scattering = _GlobalFog_Scattering;
-        float  extinction = _GlobalFog_Extinction;
+        float  extinction = max(_GlobalFog_Extinction, FLT_MIN); // Avoid NaNs
         float  asymmetry  = _GlobalFog_Asymmetry;
         
         // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),

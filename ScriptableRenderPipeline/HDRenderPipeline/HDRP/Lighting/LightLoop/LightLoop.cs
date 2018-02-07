@@ -430,24 +430,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        int GetNumTileFtplX(Camera camera)
+        int GetNumTileFtplX(HDCamera hdCamera)
         {
-            return (camera.pixelWidth + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
+            return (hdCamera.actualWidth + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
         }
 
-        int GetNumTileFtplY(Camera camera)
+        int GetNumTileFtplY(HDCamera hdCamera)
         {
-            return (camera.pixelHeight + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
+            return (hdCamera.actualHeight + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
         }
 
-        int GetNumTileClusteredX(Camera camera)
+        int GetNumTileClusteredX(HDCamera hdCamera)
         {
-            return (camera.pixelWidth + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
+            return (hdCamera.actualWidth + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
         }
 
-        int GetNumTileClusteredY(Camera camera)
+        int GetNumTileClusteredY(HDCamera hdCamera)
         {
-            return (camera.pixelHeight + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
+            return (hdCamera.actualHeight + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
         }
 
         public bool GetFeatureVariantsEnabled()
@@ -1719,8 +1719,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (uint)logVolume << 20 | (uint)lightVolumeType << 17 | listType << 16 | ((uint)probeIndex & 0xFFFF);
         }
 
-        void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
+        void VoxelLightListGeneration(CommandBuffer cmd, HDCamera hdCamera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
         {
+            Camera camera = hdCamera.camera;
             // clear atomic offset index
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
@@ -1733,6 +1734,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
 
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+
+            cmd.SetComputeVectorParam(buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, hdCamera.screenSize);
+            cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, (int)hdCamera.msaaSamples);
 
             //Vector4 v2_near = invProjscr * new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
             //Vector4 v2_far = invProjscr * new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -1766,8 +1770,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
             cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-            var numTilesX = GetNumTileClusteredX(camera);
-            var numTilesY = GetNumTileClusteredY(camera);
+            var numTilesX = GetNumTileClusteredX(hdCamera);
+            var numTilesY = GetNumTileClusteredY(hdCamera);
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
@@ -1832,8 +1836,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
             }
 
-            var numTilesX = GetNumTileFtplX(camera);
-            var numTilesY = GetNumTileFtplY(camera);
+            var numTilesX = GetNumTileFtplX(hdCamera);
+            var numTilesY = GetNumTileFtplY(hdCamera);
             var numTiles = numTilesX * numTilesY;
             bool enableFeatureVariants = GetFeatureVariantsEnabled();
 
@@ -1879,7 +1883,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-            VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
+            VoxelLightListGeneration(cmd, hdCamera, projscr, invProjscr, cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {
@@ -1925,7 +1929,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
             BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
-            PushGlobalParams(hdCamera.camera, cmd);
+            PushGlobalParams(hdCamera, cmd);
         }
 
         public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
@@ -1941,10 +1945,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return completeFence;
         }
 
-        public void BuildGPULightListAsyncEnd(Camera camera, CommandBuffer cmd, GPUFence doneFence)
+        public void BuildGPULightListAsyncEnd(HDCamera hdCamera, CommandBuffer cmd, GPUFence doneFence)
         {
             cmd.WaitOnGPUFence(doneFence);
-            PushGlobalParams(camera, cmd);
+            PushGlobalParams(hdCamera, cmd);
         }
 
         private void UpdateDataBuffers()
@@ -1982,10 +1986,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return add;
         }
 
-        void PushGlobalParams(Camera camera, CommandBuffer cmd)
+        void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
             {
+                Camera camera = hdCamera.camera;
                 // Shadows
                 m_ShadowMgr.SyncData();
                 m_ShadowMgr.BindResources(cmd, null, 0);
@@ -2005,11 +2010,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
 
-                cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(camera));
-                cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(camera));
+                cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(hdCamera));
+                cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(hdCamera));
 
-                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(camera));
-                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(camera));
+                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(hdCamera));
+                cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(hdCamera));
 
                 if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
@@ -2021,6 +2026,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                     cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
                     cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+
                     cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
 
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);

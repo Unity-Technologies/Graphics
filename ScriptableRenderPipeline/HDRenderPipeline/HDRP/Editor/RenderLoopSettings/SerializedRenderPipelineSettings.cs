@@ -10,12 +10,12 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSAO;
         public SerializedProperty supportDBuffer;
-        public SerializedProperty supportMSAAAntiAliasing;
+        public SerializedProperty supportMSAA;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportSubsurfaceScattering;
-        public SerializedProperty supportsForwardOnly;
-        public SerializedProperty supportsMotionVectors;
-        public SerializedProperty supportsStereo;
+        public SerializedProperty supportForwardOnly;
+        public SerializedProperty supportMotionVectors;
+        public SerializedProperty supportStereo;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedShadowInitParameters shadowInitParams;
@@ -29,12 +29,12 @@ namespace UnityEditor.Experimental.Rendering
             supportSSR = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSAO = root.Find((RenderPipelineSettings s) => s.supportSSAO);
             supportDBuffer = root.Find((RenderPipelineSettings s) => s.supportDBuffer);
-            supportMSAAAntiAliasing = root.Find((RenderPipelineSettings s) => s.supportMSAAAntiAliasing);
+            supportMSAA = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
-            supportsForwardOnly = root.Find((RenderPipelineSettings s) => s.supportsForwardOnly);
-            supportsMotionVectors = root.Find((RenderPipelineSettings s) => s.supportsMotionVectors);
-            supportsStereo = root.Find((RenderPipelineSettings s) => s.supportsStereo);
+            supportForwardOnly = root.Find((RenderPipelineSettings s) => s.supportForwardOnly);
+            supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
+            supportStereo = root.Find((RenderPipelineSettings s) => s.supportStereo);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             shadowInitParams = new SerializedShadowInitParameters(root.Find((RenderPipelineSettings s) => s.shadowInitParams));
