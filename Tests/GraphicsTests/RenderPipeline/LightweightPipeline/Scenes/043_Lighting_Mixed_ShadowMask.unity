@@ -1827,7 +1827,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a05220af15327674cb776279e892d996, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
+  renderPipelines:
+  - {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   cameraToUse: {fileID: 1865670500}
   hdr: 0
   msaaSamples: 1
