@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP_GraphicTests_Asset
+  m_Name: HDRP_Test_Def_DepthPrepass
   m_EditorClassIdentifier: 
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
@@ -23,7 +23,7 @@ MonoBehaviour:
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
-    enableDepthPrepassWithDeferredRendering: 0
+    enableDepthPrepassWithDeferredRendering: 1
     enableAlphaTestOnlyInDeferredPrepass: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -54,7 +54,7 @@ MonoBehaviour:
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     supportDBuffer: 1
-    supportMSAA: 0
+    msaaSampleCount: 1
     lightLoopSettings:
       spotCookieSize: 128
       cookieTexArraySize: 16
@@ -74,5 +74,8 @@ MonoBehaviour:
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
+    decalSettings:
+      drawDistance: 1000
+      atlasSize: 8192
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}
