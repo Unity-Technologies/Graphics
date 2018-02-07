@@ -1021,7 +1021,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, hdCamera.scaleBias.x / hdCamera.screenSize.x, hdCamera.scaleBias.y / hdCamera.screenSize.y);
+                Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
+
+                var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, pyramidScale.x / hdCamera.screenSize.x, pyramidScale.y / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
@@ -1441,8 +1443,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RenderTargetIdentifier source = m_CameraColorBuffer;
 
+#if UNITY_EDITOR
                 bool tempHACK = true;
-                if(tempHACK)
+#else
+                // In theory in the player the only place where we have post process is the main camera with the RTHandle reference size, so we won't need to copy.
+                bool tempHACK = false;
+#endif
+                if (tempHACK)
                 {
                     // TEMPORARY:
                     // Since we don't render to the full render textures, we need to feed the post processing stack with the right scale/bias.
@@ -1462,9 +1469,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
-                // write extra data to deal with DOF/MB
-                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
+                    // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
+                    // write extra data to deal with DOF/MB
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
                     cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
                 }
 
