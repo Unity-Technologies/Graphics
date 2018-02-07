@@ -31,6 +31,10 @@ float g_fClustBase;
 float g_fNearPlane;
 float g_fFarPlane;
 int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+
+float4 g_screenSize;
+int g_iNumSamplesMSAA;
+
 CBUFFER_END
 
 #include "ClusteredUtils.hlsl"
@@ -185,20 +189,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	uint2 tileIDX = u3GroupID.xy;
 	uint t=threadID;
 
-	uint iWidth;
-	uint iHeight;
-#ifdef MSAA_ENABLED
-	uint iNumSamplesMSAA;
-	g_depth_tex.GetDimensions(iWidth, iHeight, iNumSamplesMSAA);
-#else
-	g_depth_tex.GetDimensions(iWidth, iHeight);
-#endif
 	const uint log2TileSize = firstbithigh(TILE_SIZE_CLUSTERED);
-	uint nrTilesX = (iWidth+(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
-	uint nrTilesY = (iHeight+(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
+	uint nrTilesX = ((uint)g_screenSize.x +(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
+	uint nrTilesY = ((uint)g_screenSize.y +(TILE_SIZE_CLUSTERED-1))>>log2TileSize;
 
 	uint2 viTilLL = TILE_SIZE_CLUSTERED*tileIDX;
-	uint2 viTilUR = min( viTilLL+uint2(TILE_SIZE_CLUSTERED,TILE_SIZE_CLUSTERED), uint2(iWidth, iHeight) );		// not width and height minus 1 since viTilUR represents the end of the tile corner.
+	uint2 viTilUR = min( viTilLL+uint2(TILE_SIZE_CLUSTERED,TILE_SIZE_CLUSTERED), uint2(g_screenSize.x, g_screenSize.y) );		// not width and height minus 1 since viTilUR represents the end of the tile corner.
 
 	if(t==0)
 	{
@@ -221,9 +217,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	for(int idx=t; idx<(TILE_SIZE_CLUSTERED*TILE_SIZE_CLUSTERED); idx+=NR_THREADS)
 	{
-		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(iWidth-1, iHeight-1) );
+		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(g_screenSize.x-1, g_screenSize.y-1) );
 #ifdef MSAA_ENABLED
-		for(uint i=0; i<iNumSamplesMSAA; i++)
+		for(uint i=0; i<g_iNumSamplesMSAA; i++)
 		{
 		const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
 #else
@@ -248,8 +244,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	if(dpt_ma<=0.0) dpt_ma = VIEWPORT_SCALE_Z;		// assume sky pixel
 #endif
 
-	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
-	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
+	float2 vTileLL = float2(viTilLL.x/g_screenSize.x, viTilLL.y/g_screenSize.y);
+	float2 vTileUR = float2(viTilUR.x/g_screenSize.x, viTilUR.y/g_screenSize.y);
 
 	// build coarse list using AABB
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -284,7 +280,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(iWidth-1, iHeight-1))) );
+	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(g_screenSize.x-1, g_screenSize.y-1))) );
 #endif
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE

@@ -253,11 +253,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
-            RTHandle.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAAAntiAliasing, m_Asset.renderPipelineSettings.msaaSampleCount);
+            RTHandle.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
 
             m_GbufferManager.CreateBuffers();
 
-            if(m_Asset.renderPipelineSettings.supportDBuffer)
+            if (m_Asset.renderPipelineSettings.supportDBuffer)
                 m_DbufferManager.CreateBuffers();
 
             m_BufferPyramid.CreateBuffers();
@@ -282,12 +282,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_AmbientOcclusionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true);
             }
 
-            if (m_Asset.renderPipelineSettings.supportsMotionVectors)
+            if (m_Asset.renderPipelineSettings.supportMotionVectors)
             {
-                m_VelocityBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBuffer_sRGBFlag(), enableMSAA: true);
+                m_VelocityBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBufferSRGBFlag(), enableMSAA: true);
             }
 
-            m_DistortionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBuffer_sRGBFlag());
+            m_DistortionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag());
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
             m_DeferredShadowBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true);
@@ -786,7 +786,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_FrameSettings.enableAsyncCompute)
                         {
-                            m_LightLoop.BuildGPULightListAsyncEnd(camera, cmd, buildGPULightListsCompleteFence);
+                            m_LightLoop.BuildGPULightListAsyncEnd(hdCamera, cmd, buildGPULightListsCompleteFence);
                         }
                         else
                         {
@@ -842,7 +842,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.CopyDepthForSceneView.GetSampler()))
+                            using (new ProfilingSample(cmd, "Blit to final RT", CustomSamplerId.BlitToFinalRT.GetSampler()))
                             {
                                 // This Blit will flip the screen on anything other than openGL
                                 HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
@@ -862,7 +862,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Make sure RenderDebug does not change the current Render Target
                     if (camera.cameraType == CameraType.SceneView)
                     {
-                        using (new ProfilingSample(cmd, "Copy Depth For SceneView", CustomSamplerId.BlitToFinalRT.GetSampler()))
+                        using (new ProfilingSample(cmd, "Copy Depth For SceneView", CustomSamplerId.CopyDepthForSceneView.GetSampler()))
                         {
                             m_CopyDepth.SetTexture(HDShaderIDs._InputDepth, m_CameraDepthStencilBuffer);
                             cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_CopyDepth);

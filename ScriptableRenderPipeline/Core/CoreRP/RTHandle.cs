@@ -355,8 +355,15 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS = false;
             }
 
+            // MSAA Does not support random read/write.
+            if (allocForMSAA && enableRandomWrite == true)
+            {
+                Debug.LogWarning("RTHandle allocated with MSAA can't be enableRandomWrite.");
+                enableRandomWrite = false;
+            }
+
             int msaaSamples = allocForMSAA ? (int)s_ScaledRTCurrentMSAASamples : 1;
-            bool UAV = allocForMSAA ? false : enableRandomWrite; // MSAA Does not support random read/write.
+            bool UAV = enableRandomWrite;
             RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             var rt = new RenderTexture(width, height, (int)depthBufferBits, colorFormat, sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear)
