@@ -20,7 +20,7 @@ TEXTURE2D(_GaussianPyramidColorTexture);
 TEXTURE2D(_PyramidDepthTexture);
 
 CBUFFER_START(UnityGaussianPyramidParameters)
-float4 _GaussianPyramidColorMipSize;
+float4 _GaussianPyramidColorMipSize; // (x,y) = PyramidToScreenScale, z = lodCount
 float4 _PyramidDepthMipSize;
 CBUFFER_END
 
@@ -1705,7 +1705,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC, preLightData.transparentSSMipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC * _GaussianPyramidColorMipSize.xy, preLightData.transparentSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
     lighting.specularTransmitted *= preLightData.transparentTransmittance;

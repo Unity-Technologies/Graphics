@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering
                     k_KernelSize.ToString(), k_KernelSize.ToString()));
                 cck.AppendLine(string.Format(@"void {0}(uint2 dispatchThreadId : SV_DispatchThreadID)", kernelName));
                 cck.AppendLine("{");
-                cck.AppendLine(string.Format("    _Result{0}[dispatchThreadId] = SAMPLE_TEXTURE2D_LOD(_Source{1}, sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).{2};",
+                cck.AppendLine(string.Format("    _Result{0}[dispatchThreadId] = LOAD_TEXTURE2D(_Source{1}, dispatchThreadId).{2};",
                     o.targetChannel.ToString(), o.sourceChannel.ToString(), o.subscript));
                 cck.AppendLine("}");
                 cck.AppendLine();

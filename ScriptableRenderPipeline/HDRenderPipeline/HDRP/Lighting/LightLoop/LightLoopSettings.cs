@@ -4,6 +4,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class LightLoopSettings
     {
+        public static string kEnableFptlForForwardOpaque = "Enable Fptl for Forward Opaque";
         public static string kEnableTileCluster = "Enable Tile/Cluster";
         public static string kEnableBigTile = "Enable Big Tile";
         public static string kEnableComputeLighting = "Enable Compute Lighting";
@@ -61,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static public void RegisterDebug(String menuName, LightLoopSettings lightLoopSettings)
         {
+            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableFptlForForwardOpaque, () => lightLoopSettings.enableFptlForForwardOpaque, (value) => lightLoopSettings.enableFptlForForwardOpaque = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTileCluster, () => lightLoopSettings.enableTileAndCluster, (value) => lightLoopSettings.enableTileAndCluster = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableBigTile, () => lightLoopSettings.enableBigTilePrepass, (value) => lightLoopSettings.enableBigTilePrepass = (bool)value);
             DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableComputeLighting, () => lightLoopSettings.enableComputeLightEvaluation, (value) => lightLoopSettings.enableComputeLightEvaluation = (bool)value);

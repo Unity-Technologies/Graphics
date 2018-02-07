@@ -28,14 +28,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4                pixelCoordToViewDirMatrix;
-        public Matrix4x4                invViewProjMatrix;
-        public Vector3                  cameraPosWS;
-        public Vector4                  screenSize;
-        public CommandBuffer            commandBuffer;
-        public Light                    sunLight;
-        public RenderTargetIdentifier   colorBuffer;
-        public RenderTargetIdentifier   depthBuffer;
+        public Matrix4x4        pixelCoordToViewDirMatrix;
+        public Matrix4x4        invViewProjMatrix;
+        public Vector3          cameraPosWS;
+        public Vector4          screenSize;
+        public CommandBuffer    commandBuffer;
+        public Light            sunLight;
+        public RTHandle         colorBuffer;
+        public RTHandle         depthBuffer;
+        public HDCamera         hdCamera;
 
         public static RenderTargetIdentifier nullRT = -1;
     }
@@ -278,7 +279,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, CommandBuffer cmd)
         {
             m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, cmd);
         }
