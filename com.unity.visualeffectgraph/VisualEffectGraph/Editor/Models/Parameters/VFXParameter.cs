@@ -215,6 +215,7 @@ namespace UnityEditor.VFX
             }
         }
 
+        //AddNodeRange will take ownership of the Nodes instead of copying them
         public void AddNodeRange(IEnumerable<Node> infos)
         {
             foreach (var info in infos)
@@ -229,6 +230,7 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kUIChanged);
         }
 
+        //SetNodes will take ownership of the Nodes instead of copying them
         public void SetNodes(IEnumerable<Node> infos)
         {
             m_Nodes = infos.ToList();

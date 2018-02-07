@@ -60,9 +60,13 @@ namespace UnityEditor.VFX.UI
             public int originalInstanceID;
             [NonSerialized]
             public VFXParameter parameter;
+            [NonSerialized]
+            public VFXParameter copiedParameter;
             public int index;
             public int infoIndexOffset;
             public VFXParameter.Node[] infos;
+            [NonSerialized]
+            public Dictionary<int, int> idMap;
         }
 
         [System.Serializable]
@@ -487,83 +491,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData, ScriptableObject[] allSerializedObjects)
+        private static void CopyDataEdges(Data copyData, ScriptableObject[] allSerializedObjects)
         {
-            var graph = view.controller.graph;
-
-            if (copyData.contexts != null)
-            {
-                foreach (var slotContainer in copyData.contexts)
-                {
-                    var newContext = slotContainer;
-                    newContext.position += pasteOffset;
-                    ClearLinks(newContext);
-                }
-            }
-
-            if (copyData.slotContainers != null)
-            {
-                foreach (var slotContainer in copyData.slotContainers)
-                {
-                    var newSlotContainer = slotContainer;
-                    newSlotContainer.position += pasteOffset;
-                    ClearLinks(newSlotContainer as IVFXSlotContainer);
-                }
-            }
-
-
-            VFXUI copiedUI = allSerializedObjects.OfType<VFXUI>().FirstOrDefault();
-            int firstCopiedGroup = -1;
-            if (copiedUI != null)
-            {
-                VFXUI ui = view.controller.graph.UIInfos;
-
-                if (ui.groupInfos == null)
-                {
-                    ui.groupInfos = new VFXUI.GroupInfo[0];
-                }
-                firstCopiedGroup = ui.groupInfos.Length;
-
-                ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo() {title = t.title, position = new Rect(t.position.position + pasteOffset, t.position.size), content = t.content})).ToArray();
-            }
-
-            for (int i = 0; i < allSerializedObjects.Length; ++i)
-            {
-                ScriptableObject obj = allSerializedObjects[i];
-
-                if (obj is VFXContext || obj is VFXOperator)
-                {
-                    graph.AddChild(obj as VFXModel);
-                }
-                else if (obj is VFXParameter)
-                {
-                    int paramIndex = System.Array.FindIndex(copyData.parameters, t => t.index == i);
-
-                    VFXParameter existingParameter = graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetInstanceID() == copyData.parameters[paramIndex].originalInstanceID);
-                    if (existingParameter != null)
-                    {
-                        // The original parameter is from the current graph, add the nodes to the original
-                        copyData.parameters[paramIndex].parameter = existingParameter;
-
-                        copyData.parameters[paramIndex].infoIndexOffset = existingParameter.nodes.Count;
-
-                        foreach (var info in copyData.parameters[paramIndex].infos)
-                        {
-                            info.position += pasteOffset;
-                        }
-                        existingParameter.AddNodeRange(copyData.parameters[paramIndex].infos);
-                    }
-                    else
-                    {
-                        // The original parameter is from another graph : create the parameter in the other graph, but replace the infos with only the ones copied.
-                        copyData.parameters[paramIndex].parameter = obj as VFXParameter;
-                        copyData.parameters[paramIndex].parameter.SetNodes(copyData.parameters[paramIndex].infos);
-
-                        graph.AddChild(obj as VFXModel);
-                    }
-                }
-            }
-
             if (copyData.dataEdges != null)
             {
                 foreach (var dataEdge in copyData.dataEdges)
@@ -606,11 +535,118 @@ namespace UnityEditor.VFX.UI
                         {
                             var parameter = copyData.parameters[dataEdge.outputParameterIndex];
                             var node = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
-                            node.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot  = inputSlot, outputSlot = outputSlot});
+                            node.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot = inputSlot, outputSlot = outputSlot });
                         }
                     }
                 }
             }
+        }
+
+        static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData, ScriptableObject[] allSerializedObjects)
+        {
+            var graph = view.controller.graph;
+
+            if (copyData.contexts != null)
+            {
+                foreach (var slotContainer in copyData.contexts)
+                {
+                    var newContext = slotContainer;
+                    newContext.position += pasteOffset;
+                    ClearLinks(newContext);
+                }
+            }
+
+            if (copyData.slotContainers != null)
+            {
+                foreach (var slotContainer in copyData.slotContainers)
+                {
+                    var newSlotContainer = slotContainer;
+                    newSlotContainer.position += pasteOffset;
+                    ClearLinks(newSlotContainer as IVFXSlotContainer);
+                }
+            }
+
+
+            for (int i = 0; i < allSerializedObjects.Length; ++i)
+            {
+                ScriptableObject obj = allSerializedObjects[i];
+
+                if (obj is VFXContext || obj is VFXOperator)
+                {
+                    graph.AddChild(obj as VFXModel);
+                }
+                else if (obj is VFXParameter)
+                {
+                    int paramIndex = System.Array.FindIndex(copyData.parameters, t => t.index == i);
+
+                    VFXParameter existingParameter = graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetInstanceID() == copyData.parameters[paramIndex].originalInstanceID);
+                    if (existingParameter != null)
+                    {
+                        // The original parameter is from the current graph, add the nodes to the original
+                        copyData.parameters[paramIndex].parameter = existingParameter;
+                        copyData.parameters[paramIndex].copiedParameter = obj as VFXParameter;
+
+                        copyData.parameters[paramIndex].infoIndexOffset = existingParameter.nodes.Count;
+
+                        foreach (var info in copyData.parameters[paramIndex].infos)
+                        {
+                            info.position += pasteOffset;
+                        }
+
+                        var oldIDs = copyData.parameters[paramIndex].infos.ToDictionary(t => t, t => t.id);
+
+                        existingParameter.AddNodeRange(copyData.parameters[paramIndex].infos);
+
+                        //keep track of new ids for groupnodes
+                        copyData.parameters[paramIndex].idMap = copyData.parameters[paramIndex].infos.ToDictionary(t => oldIDs[t], t => t.id);
+                    }
+                    else
+                    {
+                        // The original parameter is from another graph : create the parameter in the other graph, but replace the infos with only the ones copied.
+                        copyData.parameters[paramIndex].parameter = obj as VFXParameter;
+                        copyData.parameters[paramIndex].parameter.SetNodes(copyData.parameters[paramIndex].infos);
+
+                        graph.AddChild(obj as VFXModel);
+                    }
+                }
+            }
+
+
+            VFXUI copiedUI = allSerializedObjects.OfType<VFXUI>().FirstOrDefault();
+            int firstCopiedGroup = -1;
+            if (copiedUI != null)
+            {
+                VFXUI ui = view.controller.graph.UIInfos;
+
+                if (ui.groupInfos == null)
+                {
+                    ui.groupInfos = new VFXUI.GroupInfo[0];
+                }
+                firstCopiedGroup = ui.groupInfos.Length;
+
+                foreach (var groupInfos in copiedUI.groupInfos)
+                {
+                    for (int i = 0; i < groupInfos.content.Length; ++i)
+                    {
+                        // if we link the parameter node to an existing parameter instead of the copied parameter we have to patch the groupnode content to point the that parameter with the correct id.
+                        if (groupInfos.content[i].model is VFXParameter)
+                        {
+                            VFXParameter parameter = groupInfos.content[i].model as VFXParameter;
+                            var paramInfo = copyData.parameters.FirstOrDefault(t => t.copiedParameter == parameter);
+                            if (paramInfo.parameter != null) // parameter will not be null unless the struct returned is the default.
+                            {
+                                groupInfos.content[i].model = paramInfo.parameter;
+                                groupInfos.content[i].id = paramInfo.idMap[groupInfos.content[i].id];
+                            }
+                        }
+                    }
+                }
+
+                ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo() { title = t.title, position = new Rect(t.position.position + pasteOffset, t.position.size), content = t.content })).ToArray();
+            }
+
+            CopyDataEdges(copyData, allSerializedObjects);
+
 
             if (copyData.flowEdges != null)
             {
