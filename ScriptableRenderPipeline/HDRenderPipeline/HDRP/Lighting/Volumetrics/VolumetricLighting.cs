@@ -180,6 +180,11 @@ public class VolumetricLightingModule
     List<VBuffer>          m_VBuffers                = null;
     List<OrientedBBox>     m_VisibleVolumes          = null;
     List<VolumeProperties> m_VisibleVolumeProperties = null;
+    public const int       k_MaxVisibleVolumeCount   = 512;
+
+    // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
+    static ComputeBuffer s_VisibleVolumesBuffer          = null;
+    static ComputeBuffer s_VisibleVolumePropertiesBuffer = null;
 
     float       m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
     float       m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
@@ -189,10 +194,12 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        m_VolumetricLightingCS    = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers                = new List<VBuffer>();
-        m_VisibleVolumes          = new List<OrientedBBox>();
-        m_VisibleVolumeProperties = new List<VolumeProperties>();
+        m_VolumetricLightingCS          = asset.renderPipelineResources.volumetricLightingCS;
+        m_VBuffers                      = new List<VBuffer>();
+        m_VisibleVolumes                = new List<OrientedBBox>();
+        m_VisibleVolumeProperties       = new List<VolumeProperties>();
+        s_VisibleVolumesBuffer          = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
+        s_VisibleVolumePropertiesBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(VolumeProperties)));
     }
 
     public void Cleanup()
@@ -209,6 +216,9 @@ public class VolumetricLightingModule
         m_VBuffers                = null;
         m_VisibleVolumes          = null;
         m_VisibleVolumeProperties = null;
+
+        CoreUtils.SafeRelease(s_VisibleVolumesBuffer);
+        CoreUtils.SafeRelease(s_VisibleVolumePropertiesBuffer);
     }
 
     public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
@@ -435,6 +445,9 @@ public class VolumetricLightingModule
                 }
             }
         }
+
+        s_VisibleVolumesBuffer.SetData(m_VisibleVolumes);
+        s_VisibleVolumePropertiesBuffer.SetData(m_VisibleVolumeProperties);
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
