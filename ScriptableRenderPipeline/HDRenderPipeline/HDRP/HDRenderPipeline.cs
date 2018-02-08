@@ -1096,6 +1096,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_DbufferManager.SetHTile(m_GbufferManager.GetBufferCount(enableShadowMask), cmd);
                 }
+                else
+                {
+                    // On PS4 if the UAV is not bound it can cause crashes in some cases so we bind an empty useless UAV
+                    cmd.SetRandomWriteTarget(m_GbufferManager.GetBufferCount(enableShadowMask), CoreUtils.emptyUAV);
+                }
 
                 // Render opaque objects into GBuffer
                 if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
