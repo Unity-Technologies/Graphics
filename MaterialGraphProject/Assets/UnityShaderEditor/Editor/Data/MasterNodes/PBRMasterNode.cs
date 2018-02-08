@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -108,9 +107,8 @@ namespace UnityEditor.ShaderGraph
                 AlphaThresholdSlotId
             }, true);
 
-
-            if (m_SubShaders.Count == 0)
-                m_SubShaders.Add(new LightWeightPBRSubShader());
+            if (!subShaders.Any())
+                AddSubShader(new LightWeightPBRSubShader());
         }
     }
 }

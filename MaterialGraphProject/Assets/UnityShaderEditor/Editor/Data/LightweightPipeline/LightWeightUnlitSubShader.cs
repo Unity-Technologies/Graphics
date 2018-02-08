@@ -9,10 +9,10 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class LightWeightUnlitSubShader : IUnlitSubShader
     {
-        Pass m_UnlitPass = new Pass()
+        Pass m_UnlitPass = new Pass
         {
             Name = "Unlit",
-            PixelShaderSlots = new List<int>()
+            PixelShaderSlots = new List<int>
             {
                 UnlitMasterNode.ColorSlotId,
                 UnlitMasterNode.AlphaSlotId,
