@@ -391,99 +391,9 @@ public class VolumetricLightingModule
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
     }
 
-    struct OrientedBBox
-    {
-        // TODO: in the shader, merge axes and extents, and 16-byte align the data structure.
-        Vector3 center;
-        Vector3 right, up, forward; // X, Y, Z, normalized
-        Vector3 extents;            // Size of the half-diagonal
-
-        public static OrientedBBox Create(Transform t)
-        {
-            return Create(t, Vector3.zero);
-        }
-
-        public static OrientedBBox Create(Transform t, Vector3 offset)
-        {
-            OrientedBBox obb = new OrientedBBox();
-
-            obb.center  = t.position + offset;
-            obb.right   = t.right;
-            obb.up      = t.up;
-            obb.forward = t.forward;
-            obb.extents = t.localScale * 0.5f;
-
-            return obb;
-        }
-
-        // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
-        public bool OverlapsFrustum(Plane[]   frustumPlanes,  int numPlanes,
-                                    Vector3[] frustumCorners, int numCorners)
-        {
-            bool overlap = true;
-
-            // Test the OBB against frustum planes. Frustum planes have inward-facing.
-            // The OBB is outside if it's entirely behind one of the frustum planes.
-            // See "Real-Time Rendering", 3rd Edition, 16.10.2.
-            for (int i = 0; overlap && (i < numPlanes); i++)
-            {
-                Vector3 n = frustumPlanes[i].normal;
-                float   d = frustumPlanes[i].distance;
-
-                // Max projection of the half-diagonal onto the normal (always positive).
-                float maxHalfDiagProj = extents.x * Mathf.Abs(Vector3.Dot(n, right))
-                                      + extents.y * Mathf.Abs(Vector3.Dot(n, up))
-                                      + extents.z * Mathf.Abs(Vector3.Dot(n, forward));
-
-                // Negative distance -> center behind the plane (outside).
-                float centerToPlaneDist = Vector3.Dot(n, center) + d;
-
-                // outside = maxHalfDiagProj < -centerToPlaneDist
-                // outside = maxHalfDiagProj + centerToPlaneDist < 0
-                // overlap = overlap && !outside
-                overlap = overlap && (maxHalfDiagProj + centerToPlaneDist >= 0);
-            }
-
-            if (numCorners == 0) return overlap;
-
-            // Test the frustum corners against OBB planes. The OBB planes are outward-facing.
-            // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
-            // See "Correct Frustum Culling" by Inigo Quilez.
-            // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
-            Plane[] planes = new Plane[3];
-
-            planes[0].normal   = right;
-            planes[0].distance = extents.x;
-            planes[1].normal   = up;
-            planes[1].distance = extents.y;
-            planes[2].normal   = forward;
-            planes[2].distance = extents.z;
-
-            for (int i = 0; overlap && (i < 3); i++)
-            {
-                Plane plane = planes[i];
-
-                // We need a separate counter for the "box fully inside frustum" case.
-                bool outsidePos = true; // Positive normal
-                bool outsideNeg = true; // Reversed normal
-
-                // Merge 2 loops. Continue as long as all points are outside either plane.
-                for (int j = 0; (outsidePos || outsideNeg) && (j < numCorners); j++)
-                {
-                    float proj = Vector3.Dot(plane.normal, frustumCorners[j] - center);
-                    outsidePos = outsidePos && ( proj > plane.distance);
-                    outsideNeg = outsideNeg && (-proj > plane.distance);
-                }
-
-                overlap = overlap && !(outsidePos || outsideNeg);
-            }
-
-            return overlap;
-        }
-    }
-
     public void VoxelizeDensityVolumes(HDCamera camera, CommandBuffer cmd)
     {
+        if (preset == VolumetricLightingPreset.Off) return;
         if (camera.camera.cameraType != CameraType.SceneView) return;
 
         Vector3 camPosition = camera.camera.transform.position;
@@ -503,10 +413,10 @@ public class VolumetricLightingModule
             {
                 // Convert to the camera-relative coordinates if necessary.
                 // TODO: cache these?
-                var obb = OrientedBBox.Create(fogComponent.transform, camOffset);
+                var obb = OrientedBBox.Create(fogComponent.transform);
 
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                if (!obb.OverlapsFrustum(camera.frustumPlanes, 6, camera.frustumCorners, 8))
+                if (!obb.OverlapsFrustum(camera.frustumPlanes, 6, camera.frustumCorners, 8, camOffset))
                 {
                     Debug.Log("Culled.");
                 }
