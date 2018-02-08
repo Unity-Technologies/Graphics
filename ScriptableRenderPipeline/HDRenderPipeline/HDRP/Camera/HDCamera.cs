@@ -190,10 +190,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ActualWidth = camera.pixelWidth;
             m_ActualHeight = camera.pixelHeight;
+            var screenWidth = m_ActualWidth;
+            var screenHeight = m_ActualHeight;
             if (frameSettings.enableStereo)
             {
-                m_ActualWidth = XRSettings.eyeTextureWidth;
-                m_ActualHeight = XRSettings.eyeTextureHeight;
+                screenWidth = XRSettings.eyeTextureWidth;
+                screenHeight = XRSettings.eyeTextureHeight;
+
+                var xrDesc = XRSettings.eyeTextureDesc;
+                m_ActualWidth = xrDesc.width;
+                m_ActualHeight = xrDesc.height;
             }
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
@@ -205,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
 
-            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, 1.0f / m_ActualWidth, 1.0f / m_ActualHeight);
+            screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
         }
 
         // Warning: different views can use the same camera!
