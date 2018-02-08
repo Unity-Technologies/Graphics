@@ -53,6 +53,11 @@ float3 TransformObjectToWorldDir(float3 dirOS)
     return normalize(mul((float3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
+float3 TransformWorldToViewDir(float3 dirWS)
+{
+    return mul((float3x3)GetWorldToViewMatrix(), dirWS).xyz;
+}
+
 float3 TransformWorldToObjectDir(float3 dirWS)
 {
     // Normalize to support uniform scaling
