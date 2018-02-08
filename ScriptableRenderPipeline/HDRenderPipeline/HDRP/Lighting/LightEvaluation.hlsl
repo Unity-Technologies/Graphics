@@ -130,7 +130,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
     float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
-    attenuation *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, distVol);
+    attenuation *= TransmittanceHomogeneousMedium(_Global_Extinction, distVol);
 #endif
 
     // Projector lights always have cookies, so we can perform clipping inside the if().

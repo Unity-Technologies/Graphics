@@ -177,17 +177,22 @@ public class VolumetricLightingModule
 
     ComputeShader m_VolumetricLightingCS = null;
 
-    List<VBuffer> m_VBuffers         = null;
-    float         m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
-    float         m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
-    const float   k_LogScale         = 0.5f;
+    List<VBuffer>          m_VBuffers                = null;
+    List<OrientedBBox>     m_VisibleVolumes          = null;
+    List<VolumeProperties> m_VisibleVolumeProperties = null;
+
+    float       m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
+    float       m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
+    const float k_LogScale         = 0.5f;
 
     public void Build(HDRenderPipelineAsset asset)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers = new List<VBuffer>(0);
+        m_VolumetricLightingCS    = asset.renderPipelineResources.volumetricLightingCS;
+        m_VBuffers                = new List<VBuffer>();
+        m_VisibleVolumes          = new List<OrientedBBox>();
+        m_VisibleVolumeProperties = new List<VolumeProperties>();
     }
 
     public void Cleanup()
@@ -201,7 +206,9 @@ public class VolumetricLightingModule
             m_VBuffers[i].Destroy();
         }
 
-        m_VBuffers = null;
+        m_VBuffers                = null;
+        m_VisibleVolumes          = null;
+        m_VisibleVolumeProperties = null;
     }
 
     public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
@@ -366,16 +373,16 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
+        HomogeneousMediumVolume globalVolume = HomogeneousMediumVolume.GetGlobalHomogeneousMediumVolume();
 
         // TODO: may want to cache these results somewhere.
-        VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
+        VolumeProperties globalVolumeProperties = (globalVolume != null) ? globalVolume.volumeParameters.GetProperties()
                                                                             : VolumeProperties.GetNeutralVolumeProperties();
 
-        float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
-        cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  asymmetry);
+        float asymmetry = globalVolume != null ? globalVolume.volumeParameters.asymmetry : 0;
+        cmd.SetGlobalVector(HDShaderIDs._Global_Scattering, globalVolumeProperties.scattering);
+        cmd.SetGlobalFloat( HDShaderIDs._Global_Extinction, globalVolumeProperties.extinction);
+        cmd.SetGlobalFloat( HDShaderIDs._Global_Asymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
@@ -403,21 +410,28 @@ public class VolumetricLightingModule
             camOffset = -camPosition; // Camera-relative
         }
 
-        HomogeneousFog[] fogComponents = Object.FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
+        m_VisibleVolumes.Clear();
+        m_VisibleVolumeProperties.Clear();
 
-        foreach (HomogeneousFog fogComponent in fogComponents)
+        // Collect all the visible volume data, and upload it to the GPU.
+        HomogeneousMediumVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousMediumVolume)) as HomogeneousMediumVolume[];
+
+        foreach (HomogeneousMediumVolume volume in volumes)
         {
             // Only test active finite volumes.
-            if (fogComponent.enabled && fogComponent.volumeParameters.IsLocalVolume())
+            if (volume.enabled && volume.volumeParameters.IsLocalVolume())
             {
-                // Convert to the camera-relative coordinates if necessary.
                 // TODO: cache these?
-                var obb = OrientedBBox.Create(fogComponent.transform);
+                var obb = OrientedBBox.Create(volume.transform);
 
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                if (!GeometryUtils.Overlap(obb, camOffset, camera.frustum, 6, 8))
+                if (GeometryUtils.Overlap(obb, camOffset, camera.frustum, 6, 8))
                 {
-                    Debug.Log("Culled.");
+                    // TODO: cache these?
+                    var properties = volume.volumeParameters.GetProperties();
+
+                    m_VisibleVolumes.Add(obb);
+                    m_VisibleVolumeProperties.Add(properties);
                 }
             }
         }
@@ -471,10 +485,10 @@ public class VolumetricLightingModule
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
             Debug.Assert(vBuffer != null);
 
-            HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
-            float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
+            HomogeneousMediumVolume globalVolume = HomogeneousMediumVolume.GetGlobalHomogeneousMediumVolume();
+            float asymmetry = globalVolume != null ? globalVolume.volumeParameters.asymmetry : 0;
 
-            if (globalFogComponent == null)
+            if (globalVolume == null)
             {
                 // Clear the render target instead of running the shader.
                 // CoreUtils.SetRenderTarget(cmd, GetVBufferLightingIntegral(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
