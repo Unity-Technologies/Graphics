@@ -2,12 +2,6 @@
 
 #include "../ShaderLibrary/Common.hlsl"
 
-SamplerState sampler_LinearClamp;
-
-CBUFFER_START(cb)
-    float4 _Size;
-CBUFFER_END
-
 RWTexture2D<float1> _Result1;
 
 Texture2D<float4> _Source4;
