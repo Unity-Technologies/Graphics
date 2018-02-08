@@ -198,6 +198,11 @@ namespace UnityEditor.ShaderGraph
                     materialOptions),
                 true);
 
+            var extraPassesTemplateLocation = ShaderGenerator.GetTemplatePath("lightweightUnlitExtraPasses.template");
+            if (File.Exists(extraPassesTemplateLocation))
+                subShader.AddShaderChunk(File.ReadAllText(extraPassesTemplateLocation), true);
+
+
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
