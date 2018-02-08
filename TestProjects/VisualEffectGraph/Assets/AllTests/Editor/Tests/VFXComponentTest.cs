@@ -11,7 +11,7 @@ using UnityEditor.VFX.Block.Test;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXComponentTest
+    public class VisualEffectTest
     {
         GameObject m_cubeEmpty;
         GameObject m_sphereEmpty;
@@ -162,14 +162,14 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.vfxAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
-            while (m_mainObject.GetComponent<VFXComponent>() != null)
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VFXComponent>());
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
-            var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
             yield return null;
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX.Test
                     return null;
                 };
 
-            Func<VFXValueType, VFXComponent, string, bool> fnHas_UsingBindings = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, bool> fnHas_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     switch (type)
                     {
@@ -282,7 +282,7 @@ namespace UnityEditor.VFX.Test
                     return false;
                 };
 
-            Func<VFXValueType, VFXComponent, string, object> fnGet_UsingBindings = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, object> fnGet_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     switch (type)
                     {
@@ -307,7 +307,7 @@ namespace UnityEditor.VFX.Test
                     return null;
                 };
 
-            Action<VFXValueType, VFXComponent, string, object> fnSet_UsingBindings = delegate(VFXValueType type, VFXComponent vfx, string name, object value)
+            Action<VFXValueType, VisualEffect, string, object> fnSet_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name, object value)
                 {
                     switch (type)
                     {
@@ -331,11 +331,11 @@ namespace UnityEditor.VFX.Test
                 };
 
 
-            Func<VFXValueType, VFXComponent, string, bool> fnHas_UsingSerializedProperty = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, bool> fnHas_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     var editor = Editor.CreateEditor(vfx);
                     var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    var fieldName = VFXComponentUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                     var vfxField = propertySheet.FindPropertyRelative(fieldName);
                     if (vfxField != null)
                     {
@@ -402,13 +402,13 @@ namespace UnityEditor.VFX.Test
                     property.FindPropertyRelative("e33").floatValue = mat.m33;
                 };
 
-            Func<VFXValueType, VFXComponent, string, object> fnGet_UsingSerializedProperty = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, object> fnGet_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     var editor = Editor.CreateEditor(vfx);
                     var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
                     editor.serializedObject.Update();
 
-                    var fieldName = VFXComponentUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                     var vfxField = propertySheet.FindPropertyRelative(fieldName);
                     if (vfxField != null)
                     {
@@ -446,13 +446,13 @@ namespace UnityEditor.VFX.Test
                     return null;
                 };
 
-            Action<VFXValueType, VFXComponent, string, object> fnSet_UsingSerializedProperty = delegate(VFXValueType type, VFXComponent vfx, string name, object value)
+            Action<VFXValueType, VisualEffect, string, object> fnSet_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name, object value)
                 {
                     var editor = Editor.CreateEditor(vfx);
                     editor.serializedObject.Update();
 
                     var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    var fieldName = VFXComponentUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                     var vfxField = propertySheet.FindPropertyRelative(fieldName);
                     if (vfxField != null)
                     {
@@ -491,9 +491,9 @@ namespace UnityEditor.VFX.Test
                     editor.serializedObject.ApplyModifiedProperties();
                 };
 
-            Func<VFXValueType, VFXComponent, string, bool> fnHas = bindingModes ? fnHas_UsingBindings : fnHas_UsingSerializedProperty;
-            Func<VFXValueType, VFXComponent, string, object> fnGet = bindingModes ? fnGet_UsingBindings : fnGet_UsingSerializedProperty;
-            Action<VFXValueType, VFXComponent, string, object> fnSet = bindingModes ? fnSet_UsingBindings : fnSet_UsingSerializedProperty;
+            Func<VFXValueType, VisualEffect, string, bool> fnHas = bindingModes ? fnHas_UsingBindings : fnHas_UsingSerializedProperty;
+            Func<VFXValueType, VisualEffect, string, object> fnGet = bindingModes ? fnGet_UsingBindings : fnGet_UsingSerializedProperty;
+            Action<VFXValueType, VisualEffect, string, object> fnSet = bindingModes ? fnSet_UsingBindings : fnSet_UsingSerializedProperty;
 
             EditorApplication.ExecuteMenuItem("Window/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
@@ -568,14 +568,14 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.vfxAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
-            while (m_mainObject.GetComponent<VFXComponent>() != null)
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VFXComponent>());
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
-            var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.vfxAsset = graph.vfxAsset;
 
             yield return null;

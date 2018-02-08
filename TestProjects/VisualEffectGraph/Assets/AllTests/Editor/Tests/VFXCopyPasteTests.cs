@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void CreateTestAsset()
         {
-            VFXAsset asset = new VFXAsset();
+            VisualEffectAsset asset = new VisualEffectAsset();
 
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteEdges()
         {
-            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
 
             VFXViewController controller = VFXViewController.GetController(asset, true);
 

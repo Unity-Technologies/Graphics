@@ -463,7 +463,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VFXAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void SaveShaderFiles(VisualEffectAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -709,7 +709,7 @@ namespace UnityEditor.VFX
             m_Graph.vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
-        public VFXAsset vfxAsset
+        public VisualEffectAsset vfxAsset
         {
             get
             {

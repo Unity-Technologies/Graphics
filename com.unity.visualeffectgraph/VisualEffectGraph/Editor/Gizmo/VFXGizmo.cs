@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
 
         public static void OnDrawComponentGizmo(Object component)
         {
-            VFXComponent comp = component as VFXComponent;
+            VisualEffect comp = component as VisualEffect;
 
             if (VFXViewWindow.currentWindow == null) return;
 
