@@ -376,7 +376,8 @@ namespace UnityEngine.Experimental.Rendering
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
                     sd.textureSize   = new Vector4( m_Width, m_Height, ce.current.viewport.width, ce.current.viewport.height );
                     sd.texelSizeRcp  = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / ce.current.viewport.width, 1.0f / ce.current.viewport.height );
-                    sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
+                    sd.PackShadowmapId( m_TexSlot, m_SampSlot );
+                    sd.slice         = ce.current.slice;
                     sd.PackShadowType( sr.shadowType, sanitizedAlgo );
                     sd.payloadOffset = originalPayloadCount;
                     entries.AddUnchecked( sd );
@@ -509,7 +510,8 @@ namespace UnityEngine.Experimental.Rendering
                     ShadowData sd = entries[ce.key.shadowDataIdx];
                     // update the shadow data with the actual result of the layouting step
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x * m_WidthRcp, ce.current.viewport.y * m_HeightRcp );
-                    sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
+                    sd.PackShadowmapId( m_TexSlot, m_SampSlot );
+                    sd.slice = ce.current.slice;
                     // write back the correct results
                     entries[ce.key.shadowDataIdx] = sd;
                 }
@@ -1507,9 +1509,9 @@ namespace UnityEngine.Experimental.Rendering
             int offset = (m_TmpRequests[index].facecount > 1 ) ? 1 : 0;
             VectorArray<ShadowData> shadowDatas = m_ShadowCtxt.shadowDatas;
             ShadowData faceData = shadowDatas[(uint)(m_ShadowIndices[index] + offset + faceIndex)];
-            uint texID, samplerID, slice;
-            faceData.UnpackShadowmapId(out texID, out samplerID, out slice);
-            m_Shadowmaps[texID].DisplayShadowMap(cmd, faceData.scaleOffset, slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            uint texID, samplerID;
+            faceData.UnpackShadowmapId(out texID, out samplerID);
+            m_Shadowmaps[texID].DisplayShadowMap(cmd, faceData.scaleOffset, (uint) faceData.slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         public override void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
