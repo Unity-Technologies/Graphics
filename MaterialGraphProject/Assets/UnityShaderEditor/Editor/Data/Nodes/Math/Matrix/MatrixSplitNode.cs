@@ -3,9 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
+    public enum MatrixAxis
+    {
+        Row,
+        Column
+    }
+
     [Title("Math", "Matrix", "Matrix Split")]
     public class MatrixSplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
@@ -26,6 +33,24 @@ namespace UnityEditor.ShaderGraph
             name = "Matrix Split";
             UpdateNodeAfterDeserialization();
         }
+
+        [SerializeField]
+        MatrixAxis m_Axis;
+
+        [EnumControl("")]
+        MatrixAxis axis
+        {
+            get { return m_Axis; }
+            set
+            {
+                if (m_Axis.Equals(value))
+                    return;
+                m_Axis = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        static string[] s_ComponentList = new string[4] { "r", "g", "b", "a" };
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -57,7 +82,6 @@ namespace UnityEditor.ShaderGraph
 
             for (var i = 0; i < 4; i++)
             {
-                var outputFormat = string.Format("{0}[{1}]", inputValue, i);
                 string outputValue;
                 if(i >= numInputRows)
                 {
@@ -68,10 +92,27 @@ namespace UnityEditor.ShaderGraph
                             outputValue += ", ";
                         outputValue += "0";
                     }
-                    outputValue += ");";
+                    outputValue += ")";
                 }
                 else
-                    outputValue = outputFormat;
+                {
+                    switch(m_Axis)
+                    {
+                        case MatrixAxis.Column:
+                            outputValue = string.Format("{0}{1}(", precision, numInputRows);
+                            for(int r = 0; r < numInputRows; r++)
+                            {
+                                if(r!= 0)
+                                    outputValue += ", ";
+                                outputValue += string.Format("{0}[{1}].{2}", inputValue, r, s_ComponentList[i]);
+                            }
+                            outputValue += ")";
+                            break;
+                        default:
+                            outputValue = string.Format("{0}[{1}]", inputValue, i);
+                            break;
+                    }
+                }
                 visitor.AddShaderChunk(string.Format("{0}{1} {2} = {3};", precision, numInputRows, GetVariableNameForSlot(s_OutputSlots[i]), outputValue), true);
             }
         }
