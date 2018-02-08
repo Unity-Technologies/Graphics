@@ -244,18 +244,10 @@ namespace UnityEditor.ShaderGraph
 
             var fromCount = SlotValueHelper.GetChannelCount(from);
             var toCount = SlotValueHelper.GetChannelCount(to);
-
-
-            // can convert from v1 vectors :)
-            if (from == ConcreteSlotValueType.Vector1 && toCount > 0)
+            
+            if (toCount > 0 && fromCount > 0)
                 return true;
-
-            if (toCount == 0)
-                return false;
-
-            if (toCount <= fromCount)
-                return true;
-
+            
             return false;
         }
 
