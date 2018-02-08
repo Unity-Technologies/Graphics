@@ -1,4 +1,5 @@
 ﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -54,10 +55,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.ClearRandomWriteTargets();
         }
 
-        public void PushGlobalParams(CommandBuffer cmd)
+        public void PushGlobalParams(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
-            BindBufferAsTextures(cmd);
+            if (frameSettings.enableDBuffer)
+            {
+                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
+                BindBufferAsTextures(cmd);
+            }
+            else
+            {
+                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, 0);
+                // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
+                for (int i = 0; i < m_BufferCount; ++i)
+                {
+                    cmd.SetGlobalTexture(m_TextureShaderIDs[i], RuntimeUtilities.blackTexture);
+                }
+            }
         }
     }
 }

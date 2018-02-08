@@ -103,6 +103,22 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static RenderTexture m_EmptyUAV;
+        public static RenderTexture emptyUAV
+        {
+            get
+            {
+                if(m_EmptyUAV == null)
+                {
+                    m_EmptyUAV = new RenderTexture(1, 1, 0);
+                    m_EmptyUAV.enableRandomWrite = true;
+                    m_EmptyUAV.Create();
+                }
+
+                return m_EmptyUAV;
+            }
+        }
+
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
