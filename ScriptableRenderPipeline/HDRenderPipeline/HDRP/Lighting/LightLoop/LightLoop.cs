@@ -175,7 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Env         = 1 << 15,
         Sky         = 1 << 16,
         SSRefraction = 1 << 17,
-        SSReflection = 1 << 18,
+        SSReflection = 1 << 18
         // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
     }
 
@@ -250,7 +250,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Environment = 4,
             EnvironmentAndPunctual = 5,
             EnvironmentAndArea = 6,
-            EnvironmentAndAreaAndPunctual = 7
+            EnvironmentAndAreaAndPunctual = 7,
+			Decal = 8
         };
 
         public const int k_MaxDirectionalLightsOnScreen = 4;
@@ -1273,10 +1274,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             influenceExtents.x = Mathf.Abs(influenceExtents.x);
             influenceExtents.y = Mathf.Abs(influenceExtents.y);
             influenceExtents.z = Mathf.Abs(influenceExtents.z);
-            
-            lightVolumeData.lightCategory = (uint)LightCategory.Env;
+
+			lightVolumeData.lightCategory = (uint)LightCategory.Decal;
             lightVolumeData.lightVolume = (uint)LightVolumeType.Box;
-            lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
+			lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
 
             bound.center = influencePositionVS;
             bound.boxAxisX = influenceRightVS;
