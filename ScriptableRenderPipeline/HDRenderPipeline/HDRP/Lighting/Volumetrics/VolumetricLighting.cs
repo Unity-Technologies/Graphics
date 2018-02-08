@@ -416,7 +416,7 @@ public class VolumetricLightingModule
                 var obb = OrientedBBox.Create(fogComponent.transform);
 
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                if (!obb.OverlapsFrustum(camera.frustumPlanes, 6, camera.frustumCorners, 8, camOffset))
+                if (!obb.OverlapsFrustum(camera.frustum, 6, 8, camOffset))
                 {
                     Debug.Log("Culled.");
                 }
