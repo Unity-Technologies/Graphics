@@ -250,7 +250,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
             RTHandle.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
 
-            m_GbufferManager.CreateBuffers();
+            if(!m_Asset.renderPipelineSettings.supportForwardOnly)
+                m_GbufferManager.CreateBuffers();
 
             if (m_Asset.renderPipelineSettings.supportDBuffer)
                 m_DbufferManager.CreateBuffers();
@@ -298,7 +299,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
-
             m_BufferPyramid.DestroyBuffers();
 
             RTHandle.Release(m_CameraColorBuffer);
