@@ -496,7 +496,7 @@ namespace UnityEngine.Experimental.Rendering
                     anisoLevel = refRT.anisoLevel,
                     mipMapBias = refRT.mipMapBias,
                     antiAliasing = 1, // No MSAA for the regular version of the texture.
-                    bindTextureMS = refRT.bindTextureMS,
+                    bindTextureMS = false, // Somehow, this can be true even if antiAliasing == 1. Leads to Unity-internal binding errors.
                     useDynamicScale = refRT.useDynamicScale,
                     vrUsage = refRT.vrUsage,
                     memorylessMode = refRT.memorylessMode
