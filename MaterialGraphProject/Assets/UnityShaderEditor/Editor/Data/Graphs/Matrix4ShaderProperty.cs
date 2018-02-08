@@ -17,11 +17,6 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix4; }
         }
 
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return "float4x4 " + referenceName + ";";
-        }
-
         public override INode ToConcreteNode()
         {
             return new Matrix4Node 

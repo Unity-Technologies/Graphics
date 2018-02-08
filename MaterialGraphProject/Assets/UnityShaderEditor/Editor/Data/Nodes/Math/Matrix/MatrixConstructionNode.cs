@@ -48,8 +48,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static string[] s_ComponentList = new string[4] { "r", "g", "b", "a" };
-
         string GetFunctionName()
         {
             return string.Format("Unity_MatrixConstruction_{0}", precision);
