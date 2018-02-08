@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph
                         SetConcreteValueTypeFromEdge(dynamicKvP.Key);
                     }
                     MaterialSlot matrixSlot = GetMatrixSlot();
-                    ConcreteSlotValueType vectorType = ConvertMatrixToVectorType(matrixSlot.concreteValueType);
+                    ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
                     foreach (var dynamicKvP in dynamicInputSlotsToCompare)
                     {
                         if(dynamicKvP.Key != matrixSlot)
@@ -254,7 +254,7 @@ namespace UnityEditor.ShaderGraph
                         // Set output concrete to vector
                         case MultiplyType.Mixed:
                             MaterialSlot matrixSlot = GetMatrixSlot();
-                            ConcreteSlotValueType vectorType = ConvertMatrixToVectorType(matrixSlot.concreteValueType);
+                            ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
                             (outputSlot as DynamicValueMaterialSlot).SetConcreteType(vectorType);
                             break;
                         // As per dynamic vector
@@ -319,28 +319,6 @@ namespace UnityEditor.ShaderGraph
             return false;
         }
 
-        private static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
-        {
-            if (from == to)
-                return true;
-
-            var fromCount = SlotValueHelper.GetChannelCount(from);
-            var toCount = SlotValueHelper.GetChannelCount(to);
-
-
-            // can convert from v1 vectors :)
-            if (from == ConcreteSlotValueType.Vector1 && toCount > 0)
-                return true;
-
-            if (toCount == 0)
-                return false;
-
-            if (toCount <= fromCount)
-                return true;
-
-            return false;
-        }
-
         private MultiplyType GetMultiplyType(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as List<ConcreteSlotValueType> ?? inputTypes.ToList();
@@ -399,59 +377,6 @@ namespace UnityEditor.ShaderGraph
             var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
             var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
             slot.SetConcreteType(outputSlot.concreteValueType);
-        }
-
-        private ConcreteSlotValueType ConvertMatrixToVectorType(ConcreteSlotValueType matrixType)
-        {
-            switch(matrixType)
-            {
-                case ConcreteSlotValueType.Matrix4:
-                    return ConcreteSlotValueType.Vector4;
-                case ConcreteSlotValueType.Matrix3:
-                    return ConcreteSlotValueType.Vector3;
-                default:
-                    return ConcreteSlotValueType.Vector2;
-            }
-        }
-
-        private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
-        {
-            var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
-            var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
-            switch (inputTypesDistinct.Count)
-            {
-                case 0:
-                    return ConcreteSlotValueType.Vector1;
-                case 1:
-                    return inputTypesDistinct.FirstOrDefault();
-                default:
-                    // find the 'minumum' channel width excluding 1 as it can promote
-                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
-                    var ordered = inputTypesDistinct.OrderByDescending(x => x);
-                    if (ordered.Any())
-                        return ordered.FirstOrDefault();
-                    break;
-            }
-            return ConcreteSlotValueType.Vector1;
-        }
-
-        private ConcreteSlotValueType ConvertDynamicMatrixInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
-        {
-            var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
-            var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
-            switch (inputTypesDistinct.Count)
-            {
-                case 0:
-                    return ConcreteSlotValueType.Matrix2;
-                case 1:
-                    return inputTypesDistinct.FirstOrDefault();
-                default:
-                    var ordered = inputTypesDistinct.OrderByDescending(x => x);
-                    if (ordered.Any())
-                        return ordered.FirstOrDefault();
-                    break;
-            }
-            return ConcreteSlotValueType.Matrix2;
         }
     }
 }

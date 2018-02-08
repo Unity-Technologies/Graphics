@@ -237,7 +237,7 @@ namespace UnityEditor.ShaderGraph
             return inputSlot.GetDefaultValue(generationMode);
         }
 
-        private static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
+        public static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
             if (from == to)
                 return true;
@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph
             return false;
         }
 
-        private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
+        public virtual ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
 
@@ -281,7 +281,7 @@ namespace UnityEditor.ShaderGraph
             return ConcreteSlotValueType.Vector1;
         }
 
-        private ConcreteSlotValueType ConvertDynamicMatrixInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
+        public virtual ConcreteSlotValueType ConvertDynamicMatrixInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
 
