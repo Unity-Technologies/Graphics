@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.UI
     }
 
     //[StyleSheet("Assets/VFXEditor/Editor/GraphView/Views/")]
-    class VFXView : GraphView, IParameterDropTarget, IControlledElement<VFXViewController>
+    class VFXView : GraphView, IControlledElement<VFXViewController>
     {
         VisualElement m_NoAssetLabel;
 
@@ -312,8 +312,6 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
             this.AddManipulator(new FreehandSelector());
-
-            this.AddManipulator(new ParameterDropper());
 
             m_NodeProvider = new VFXNodeProvider((d, mPos) => AddNode(d, mPos));
 
@@ -1107,18 +1105,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-        }
-
-        void IParameterDropTarget.OnDragUpdated(IMGUIEvent evt, VFXParameterController parameter)
-        {
-            //TODO : show that we accept the drag
-            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-        }
-
-        void IParameterDropTarget.OnDragPerform(IMGUIEvent evt, VFXParameterController parameter)
-        {
-            if (controller == null) return;
-            controller.AddVFXParameter(contentViewContainer.GlobalToBound(evt.imguiEvent.mousePosition), VFXLibrary.GetParameters().FirstOrDefault(t => t.name == parameter.portType.UserFriendlyName()));
         }
 
         void SelectionUpdated()
