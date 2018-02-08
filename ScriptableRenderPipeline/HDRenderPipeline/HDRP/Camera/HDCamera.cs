@@ -16,9 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4 screenSize;
-        public Plane[] frustumPlanes;
+        public Frustum frustum;
         public Vector4[] frustumPlaneEquations;
-        public Vector3[] frustumCorners;
         public Camera camera;
         public uint taaFrameIndex;
         public Vector2 taaFrameRotation;
@@ -90,9 +89,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             camera                   = cam;
             m_AdditionalCameraData   = cam.GetComponent<HDAdditionalCameraData>();
-            frustumPlanes            = new Plane[6];
+            frustum                  = new Frustum();
             frustumPlaneEquations    = new Vector4[6];
-            frustumCorners           = new Vector3[8];
             postprocessRenderContext = new PostProcessRenderContext();
             Reset();
         }
@@ -161,35 +159,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
-            // Warning: near and far planes appear to be broken (or rather far plane seems broken)
-            // Also note: frustum plane normals are inward-facing.
-            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
-
-            Vector3 forward = -viewMatrix.GetRow(2); // camera.forward is not always available
-
-            // Near, far.
-            frustumPlanes[4].normal   =  forward;
-            frustumPlanes[4].distance = -Vector3.Dot(forward, relPos) - camera.nearClipPlane;
-            frustumPlanes[5].normal   = -forward;
-            frustumPlanes[5].distance = Vector3.Dot(forward, relPos) + camera.farClipPlane;
+            frustum = Frustum.Create(viewProjMatrix, true, true);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
             {
-                frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
+                frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
             }
-
-            Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
-
-            // Unproject 8 frustum points.
-            frustumCorners[0] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 1));
-            frustumCorners[1] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 1));
-            frustumCorners[2] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 1));
-            frustumCorners[3] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 1));
-            frustumCorners[4] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 0));
-            frustumCorners[5] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 0));
-            frustumCorners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 0));
-            frustumCorners[7] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 0));
 
             m_LastFrameActive = Time.frameCount;
 
