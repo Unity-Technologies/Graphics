@@ -36,13 +36,13 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
 
-            graph.vfxAsset = new VisualEffectAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
             var camera = cameraObj.AddComponent<Camera>();

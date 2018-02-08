@@ -162,7 +162,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.vfxAsset = new VisualEffectAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -170,7 +170,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             yield return null;
 
@@ -568,7 +568,7 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.vfxAsset = new VisualEffectAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -576,7 +576,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             yield return null;
 

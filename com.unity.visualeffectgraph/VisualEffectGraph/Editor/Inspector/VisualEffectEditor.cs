@@ -499,12 +499,12 @@ public class VisualEffectEditor : Editor
         {
             EditorGUILayout.PropertyField(m_VisualEffectAsset, m_Contents.AssetPath);
 
-            GUI.enabled = component.vfxAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+            GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                window.LoadAsset(component.vfxAsset);
+                window.LoadAsset(component.visualEffectAsset);
             }
         }
 
@@ -528,9 +528,9 @@ public class VisualEffectEditor : Editor
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        if (m_graph == null || m_asset != component.vfxAsset)
+        if (m_graph == null || m_asset != component.visualEffectAsset)
         {
-            m_asset = component.vfxAsset;
+            m_asset = component.visualEffectAsset;
             if (m_asset != null)
             {
                 m_graph = m_asset.GetOrCreateGraph();
@@ -565,7 +565,7 @@ public class VisualEffectEditor : Editor
         if (s_IsEditingAsset && !m_WasEditingAsset)
         {
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.LoadAsset(component.vfxAsset);
+            window.LoadAsset(component.visualEffectAsset);
         }
         m_WasEditingAsset = s_IsEditingAsset;
     }

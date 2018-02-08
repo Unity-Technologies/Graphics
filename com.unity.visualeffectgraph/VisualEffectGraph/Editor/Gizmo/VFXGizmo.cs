@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
 
             VFXView view = VFXViewWindow.currentWindow.graphView as VFXView;
 
-            if (comp.vfxAsset != view.controller.model) return;
+            if (comp.visualEffectAsset != view.controller.model) return;
 
             VFXBlockUI selectedBlock = view.selection.OfType<VFXBlockUI>().FirstOrDefault();
 

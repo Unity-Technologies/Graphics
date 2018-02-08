@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.Test
 
             var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VisualEffect>());
             var animator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
-            var vfxAsset = vfxComponent.Select(o => o.vfxAsset).Where(o => o != null).Distinct();
+            var vfxAsset = vfxComponent.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
 
             foreach (var vfx in vfxAsset)
             {

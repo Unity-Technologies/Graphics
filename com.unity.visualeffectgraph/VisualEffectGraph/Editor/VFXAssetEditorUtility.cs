@@ -19,7 +19,7 @@ namespace UnityEditor
 
             if (Selection.activeObject != null && Selection.activeObject is VisualEffectAsset)
             {
-                vfxComp.vfxAsset = Selection.activeObject as VisualEffectAsset;
+                vfxComp.visualEffectAsset = Selection.activeObject as VisualEffectAsset;
                 vfxComp.startSeed = (uint)Random.Range(int.MinValue, int.MaxValue);
             }
 

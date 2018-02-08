@@ -97,7 +97,7 @@ namespace UnityEditor.VFX
             }
 
             VFXGraph graph = (VFXGraph)g;
-            graph.vfxAsset = asset;
+            graph.visualEffectAsset = asset;
             return graph;
         }
 
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
 
     class VFXGraph : VFXModel
     {
-        public VisualEffectAsset vfxAsset
+        public VisualEffectAsset visualEffectAsset
         {
             get
             {
@@ -282,7 +282,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(visualEffectAsset));
             }
         }
 
@@ -299,9 +299,9 @@ namespace UnityEditor.VFX
         {
             bool modified = false;
 
-            if (!EditorUtility.IsPersistent(this) && (this.vfxAsset != null && EditorUtility.IsPersistent(this.vfxAsset)))
+            if (!EditorUtility.IsPersistent(this) && (this.visualEffectAsset != null && EditorUtility.IsPersistent(this.visualEffectAsset)))
             {
-                string assetPath = AssetDatabase.GetAssetPath(this.vfxAsset);
+                string assetPath = AssetDatabase.GetAssetPath(this.visualEffectAsset);
                 AssetDatabase.AddObjectToAsset(this, assetPath);
             }
 
@@ -432,9 +432,9 @@ namespace UnityEditor.VFX
             {
                 foreach (var component in VisualEffect.GetAllActive())
                 {
-                    if (component.vfxAsset == compiledData.vfxAsset)
+                    if (component.visualEffectAsset == compiledData.visualEffectAsset)
                     {
-                        component.SetVfxAssetDirty(considerGraphDirty);
+                        component.SetVisualEffectAssetDirty(considerGraphDirty);
                     }
                 }
             }
