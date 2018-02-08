@@ -17,6 +17,11 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix2; }
         }
 
+        public override string GetPropertyDeclarationString(string delimiter = ";")
+        {
+            return "float2x2 " + referenceName + ";";
+        }
+
         public override INode ToConcreteNode()
         {
             return new Matrix2Node 
