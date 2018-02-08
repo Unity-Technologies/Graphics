@@ -128,11 +128,35 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 
 	SampleShadow_ComputeSamples_Tent_5x5( shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV );
 
+
+#if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
+	// the loops are only there to prevent the compiler form coalescing all 16 texture fetches which increases register usage
+	int i;
+	[loop]
+	for( i = 0; i < 1; i++ )
+	{
+		shadow += fetchesWeights[ 0] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 0].xy, coord.z + dot( fetchesUV[ 0].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 1] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 1].xy, coord.z + dot( fetchesUV[ 1].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 2] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 2].xy, coord.z + dot( fetchesUV[ 2].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 3] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 3].xy, coord.z + dot( fetchesUV[ 3].xy - coord.xy, sampleBias ) ), slice ).x;
+	}
+
+	[loop]
+	for( i = 0; i < 1; i++ )
+	{
+		shadow += fetchesWeights[ 4] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 4].xy, coord.z + dot( fetchesUV[ 4].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 5] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 5].xy, coord.z + dot( fetchesUV[ 5].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 6] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 6].xy, coord.z + dot( fetchesUV[ 6].xy - coord.xy, sampleBias ) ), slice ).x;
+		shadow += fetchesWeights[ 7] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 7].xy, coord.z + dot( fetchesUV[ 7].xy - coord.xy, sampleBias ) ), slice ).x;
+	}
+
+	shadow += fetchesWeights[ 8] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[ 8].xy, coord.z + dot( fetchesUV[ 8].xy - coord.xy, sampleBias ) ), slice ).x;
+#else
 	for( int i = 0; i < 9; i++ )
 	{
 		shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, real3( fetchesUV[i].xy, coord.z + dot( fetchesUV[i].xy - coord.xy, sampleBias ) ), slice ).x;
 	}
-
+#endif
 	return shadow;
 }
 
