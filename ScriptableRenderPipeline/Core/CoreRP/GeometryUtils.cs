@@ -126,8 +126,9 @@ namespace UnityEngine.Experimental.Rendering
             if (depth_0_1)
             {
                 // See "Fast Extraction of Viewing Frustum Planes" by Gribb and Hartmann.
-                Vector3 nv = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
-                Plane   np = new Plane(nv / nv.magnitude, viewProjMatrix.m23 / nv.magnitude);
+                Vector3 f  = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
+                float   s  = (float)(1.0 / Math.Sqrt(f.sqrMagnitude));
+                Plane   np = new Plane(s * f, s * viewProjMatrix.m23);
 
                 frustum.planes[4] = np;
             }
