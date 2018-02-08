@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     public abstract class MasterNode<T> : AbstractMaterialNode, IMasterNode where T : class, ISubShader
     {
         [NonSerialized]
-        protected List<T> m_SubShaders = new List<T>();
+        List<T> m_SubShaders = new List<T>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableSubShaders = new List<SerializationHelper.JSONSerializedElement>();
@@ -28,6 +28,26 @@ namespace UnityEditor.ShaderGraph
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
+        }
+        
+        public IEnumerable<T> subShaders
+        {
+            get { return m_SubShaders; }
+        }
+
+        public void AddSubShader(T subshader)
+        {
+            if (m_SubShaders.Contains(subshader))
+                return; 
+
+            m_SubShaders.Add(subshader);
+            onModified(this, ModificationScope.Node);
+        }
+
+        public void RemoveSubShader(T subshader)
+        {
+            m_SubShaders.RemoveAll(x => x == subshader);
+            onModified(this, ModificationScope.Node);
         }
 
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)
