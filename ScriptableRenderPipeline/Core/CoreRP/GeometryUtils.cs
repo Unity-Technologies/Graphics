@@ -2,8 +2,150 @@
 
 namespace UnityEngine.Experimental.Rendering
 {
+    public struct Frustum
+    {
+        public Plane[]   planes;  // Left, right, top, bottom, near, far
+        public Vector3[] corners; // Positions of the 8 corners
+
+        // The frustum will be camera-relative if given a camera-relative VP matrix.
+        public static Frustum Create(Matrix4x4 viewProjMatrix, bool depth_0_1, bool reverseZ)
+        {
+            Frustum frustum = new Frustum();
+
+            frustum.planes  = new Plane[6];
+            frustum.corners = new Vector3[8];
+
+            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustum.planes);
+
+            float nd = -1.0f;
+
+            if (depth_0_1)
+            {
+                nd = 0.0f;
+
+                // See "Fast Extraction of Viewing Frustum Planes" by Gribb and Hartmann.
+                Vector3 f  = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
+                float   s  = (float)(1.0 / Math.Sqrt(f.sqrMagnitude));
+                Plane   np = new Plane(s * f, s * viewProjMatrix.m23);
+
+                frustum.planes[4] = np;
+            }
+
+            if (reverseZ)
+            {
+                Plane tmp         = frustum.planes[4];
+                frustum.planes[4] = frustum.planes[5];
+                frustum.planes[5] = tmp;
+            }
+
+            Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
+
+            // Unproject 8 frustum points.
+            frustum.corners[0] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 1));
+            frustum.corners[1] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 1));
+            frustum.corners[2] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 1));
+            frustum.corners[3] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 1));
+            frustum.corners[4] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, nd));
+            frustum.corners[5] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, nd));
+            frustum.corners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, nd));
+            frustum.corners[7] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, nd));
+
+            return frustum;
+        }
+    } // struct Frustum
+
+    [GenerateHLSL]
+    public struct OrientedBBox
+    {
+        public Vector4 center;             // w is unused
+        public Vector4 right, up, forward; // {x, y, z} = normalized local axis, w = 1/2 * size along the axis
+
+        public static OrientedBBox Create(Transform t)
+        {
+            OrientedBBox obb = new OrientedBBox();
+
+            obb.center    = t.position;
+            obb.right     = t.right;
+            obb.right.w   = 0.5f * t.localScale.x;
+            obb.up        = t.up;
+            obb.up.w      = 0.5f * t.localScale.y;
+            obb.forward   = t.forward;
+            obb.forward.w = 0.5f * t.localScale.z;
+
+            return obb;
+        }
+    } // struct OrientedBBox
+
     public static class GeometryUtils
     {
+        // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
+        // 'cameraRelativeOffset' can be used to intersect a world-space OBB with a camera-relative frustum.
+        public static bool Overlap(OrientedBBox obb, Vector3 cameraRelativeOffset,
+                                   Frustum frustum, int numPlanes, int numCorners)
+        {
+            Vector3 relCenter = (Vector3)obb.center + cameraRelativeOffset;
+
+            bool overlap = true;
+
+            // Test the OBB against frustum planes. Frustum planes have inward-facing.
+            // The OBB is outside if it's entirely behind one of the frustum planes.
+            // See "Real-Time Rendering", 3rd Edition, 16.10.2.
+            for (int i = 0; overlap && i < numPlanes; i++)
+            {
+                Vector3 n = frustum.planes[i].normal;
+                float   d = frustum.planes[i].distance;
+
+                // Max projection of the half-diagonal onto the normal (always positive).
+                float maxHalfDiagProj = Mathf.Abs(Vector3.Dot(n, obb.right))   * obb.right.w
+                                      + Mathf.Abs(Vector3.Dot(n, obb.up))      * obb.up.w
+                                      + Mathf.Abs(Vector3.Dot(n, obb.forward)) * obb.forward.w;
+
+                // Negative distance -> center behind the plane (outside).
+                float centerToPlaneDist = Vector3.Dot(n, relCenter) + d;
+
+                // outside = maxHalfDiagProj < -centerToPlaneDist
+                // outside = maxHalfDiagProj + centerToPlaneDist < 0
+                // overlap = overlap && !outside
+                overlap = overlap && (maxHalfDiagProj + centerToPlaneDist >= 0);
+            }
+
+            if (numCorners == 0) return overlap;
+
+            // Test the frustum corners against OBB planes. The OBB planes are outward-facing.
+            // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
+            // See "Correct Frustum Culling" by Inigo Quilez.
+            // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
+            Plane[] planes = new Plane[3];
+
+            planes[0].normal   = obb.right;
+            planes[0].distance = obb.right.w;
+            planes[1].normal   = obb.up;
+            planes[1].distance = obb.up.w;
+            planes[2].normal   = obb.forward;
+            planes[2].distance = obb.forward.w;
+
+            for (int i = 0; overlap && i < 3; i++)
+            {
+                Plane plane = planes[i];
+
+                // We need a separate counter for the "box fully inside frustum" case.
+                bool outsidePos = true; // Positive normal
+                bool outsideNeg = true; // Reversed normal
+
+                // Merge 2 loops. Continue as long as all points are outside either plane.
+                for (int j = 0; j < numCorners; j++)
+                {
+                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - relCenter);
+                    outsidePos = outsidePos && ( proj > plane.distance);
+                    outsideNeg = outsideNeg && (-proj > plane.distance);
+                }
+
+                overlap = overlap && !(outsidePos || outsideNeg);
+            }
+
+            return overlap;
+        }
+
         public static readonly Matrix4x4 FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
         public static Vector4 Plane(Vector3 position, Vector3 normal)
@@ -106,141 +248,5 @@ namespace UnityEngine.Experimental.Rendering
             else
                 return Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
         }
-    }
-
-    public struct Frustum
-    {
-        public Plane[]   planes;  // Left, right, top, bottom, near, far
-        public Vector3[] corners; // Positions of the 8 corners
-
-        // The frustum will be camera-relative if given a camera-relative VP matrix.
-        public static Frustum Create(Matrix4x4 viewProjMatrix, bool depth_0_1, bool reverseZ)
-        {
-            Frustum frustum = new Frustum();
-
-            frustum.planes  = new Plane[6];
-            frustum.corners = new Vector3[8];
-
-            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustum.planes);
-
-            if (depth_0_1)
-            {
-                // See "Fast Extraction of Viewing Frustum Planes" by Gribb and Hartmann.
-                Vector3 f  = new Vector3(viewProjMatrix.m20, viewProjMatrix.m21, viewProjMatrix.m22);
-                float   s  = (float)(1.0 / Math.Sqrt(f.sqrMagnitude));
-                Plane   np = new Plane(s * f, s * viewProjMatrix.m23);
-
-                frustum.planes[4] = np;
-            }
-
-            if (reverseZ)
-            {
-                Plane tmp         = frustum.planes[4];
-                frustum.planes[4] = frustum.planes[5];
-                frustum.planes[5] = tmp;
-            }
-
-            Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
-
-            // Unproject 8 frustum points.
-            frustum.corners[0] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 1));
-            frustum.corners[1] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 1));
-            frustum.corners[2] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 1));
-            frustum.corners[3] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 1));
-            frustum.corners[4] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 0));
-            frustum.corners[5] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 0));
-            frustum.corners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 0));
-            frustum.corners[7] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 0));
-
-            return frustum;
-        }
-    }
-
-    public struct OrientedBBox
-    {
-        // TODO: in the shader, merge axes and extents, and 16-byte align the data structure.
-        public Vector3 center;
-        public Vector3 right, up, forward; // X, Y, Z, normalized
-        public Vector3 extents;            // Size of the half-diagonal
-
-        public static OrientedBBox Create(Transform t)
-        {
-            OrientedBBox obb = new OrientedBBox();
-
-            obb.center  = t.position;
-            obb.right   = t.right;
-            obb.up      = t.up;
-            obb.forward = t.forward;
-            obb.extents = t.localScale * 0.5f;
-
-            return obb;
-        }
-
-        // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
-        // 'cameraRelativeOffset' can be used to intersect a world-space OBB with a camera-relative frustum.
-        public bool OverlapsFrustum(Frustum frustum, int numPlanes, int numCorners, Vector3 cameraRelativeOffset)
-        {
-            Vector3 relCenter = center + cameraRelativeOffset;
-
-            bool overlap = true;
-
-            // Test the OBB against frustum planes. Frustum planes have inward-facing.
-            // The OBB is outside if it's entirely behind one of the frustum planes.
-            // See "Real-Time Rendering", 3rd Edition, 16.10.2.
-            for (int i = 0; overlap && i < numPlanes; i++)
-            {
-                Vector3 n = frustum.planes[i].normal;
-                float   d = frustum.planes[i].distance;
-
-                // Max projection of the half-diagonal onto the normal (always positive).
-                float maxHalfDiagProj = extents.x * Mathf.Abs(Vector3.Dot(n, right))
-                                      + extents.y * Mathf.Abs(Vector3.Dot(n, up))
-                                      + extents.z * Mathf.Abs(Vector3.Dot(n, forward));
-
-                // Negative distance -> center behind the plane (outside).
-                float centerToPlaneDist = Vector3.Dot(n, relCenter) + d;
-
-                // outside = maxHalfDiagProj < -centerToPlaneDist
-                // outside = maxHalfDiagProj + centerToPlaneDist < 0
-                // overlap = overlap && !outside
-                overlap = overlap && (maxHalfDiagProj + centerToPlaneDist >= 0);
-            }
-
-            if (numCorners == 0) return overlap;
-
-            // Test the frustum corners against OBB planes. The OBB planes are outward-facing.
-            // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
-            // See "Correct Frustum Culling" by Inigo Quilez.
-            // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
-            Plane[] planes = new Plane[3];
-
-            planes[0].normal   = right;
-            planes[0].distance = extents.x;
-            planes[1].normal   = up;
-            planes[1].distance = extents.y;
-            planes[2].normal   = forward;
-            planes[2].distance = extents.z;
-
-            for (int i = 0; overlap && i < 3; i++)
-            {
-                Plane plane = planes[i];
-
-                // We need a separate counter for the "box fully inside frustum" case.
-                bool outsidePos = true; // Positive normal
-                bool outsideNeg = true; // Reversed normal
-
-                // Merge 2 loops. Continue as long as all points are outside either plane.
-                for (int j = 0; j < numCorners; j++)
-                {
-                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - relCenter);
-                    outsidePos = outsidePos && ( proj > plane.distance);
-                    outsideNeg = outsideNeg && (-proj > plane.distance);
-                }
-
-                overlap = overlap && !(outsidePos || outsideNeg);
-            }
-
-            return overlap;
-        }
-    } // struct OrientedBBox
+    } // class GeometryUtils
 }
