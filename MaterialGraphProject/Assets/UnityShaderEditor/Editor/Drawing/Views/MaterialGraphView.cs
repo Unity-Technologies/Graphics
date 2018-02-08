@@ -57,11 +57,54 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
                 evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+                if (selection.OfType<MaterialNodeView>().Count() == 1)
+                {
+                    evt.menu.AppendSeparator();
+                    evt.menu.AppendAction("Open Documentation", SeeDocumentation, SeeDocumentationStatus);
+                }
             }
             else if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
             }
+            if (evt.target is MaterialGraphView)
+            {
+                evt.menu.AppendAction("Collapse Previews", CollapsePreviews, ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Expand Previews", ExpandPreviews, ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendSeparator();
+            }
+        }
+
+        void CollapsePreviews(EventBase evt)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Collapse Previews");
+            foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.previewExpanded = false;
+            }
+        }
+
+        void ExpandPreviews(EventBase evt)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Expand Previews");
+            foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.previewExpanded = true;
+            }
+        }
+
+        void SeeDocumentation(EventBase evt)
+        {
+            var node = selection.OfType<MaterialNodeView>().First().node;
+            if (node.documentationURL != null)
+                System.Diagnostics.Process.Start(node.documentationURL);
+        }
+
+        ContextualMenu.MenuAction.StatusFlags SeeDocumentationStatus(EventBase eventBase)
+        {
+            if (selection.OfType<MaterialNodeView>().First().node.documentationURL == null)
+                return ContextualMenu.MenuAction.StatusFlags.Disabled;
+            return ContextualMenu.MenuAction.StatusFlags.Normal;
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus(EventBase eventBase)
@@ -207,6 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graph.RemoveShaderProperty(property.guid);
                 }
             }
+            selection.Clear();
         }
 
         public bool CanAcceptDrop(List<ISelectable> selection)

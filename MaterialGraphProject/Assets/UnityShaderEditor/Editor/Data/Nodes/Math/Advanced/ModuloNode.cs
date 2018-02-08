@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Modulo";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Modulo-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Modulo", BindingFlags.Static | BindingFlags.NonPublic);

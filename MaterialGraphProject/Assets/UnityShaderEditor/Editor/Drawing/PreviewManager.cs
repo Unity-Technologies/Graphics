@@ -278,7 +278,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
                 var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
-                previewTransform *= Matrix4x4.Scale(Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                var scale = m_Graph.previewData.scale;
+                previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
                 RenderPreview(masterRenderData, mesh, previewTransform);
             }
