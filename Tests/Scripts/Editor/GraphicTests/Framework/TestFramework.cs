@@ -17,19 +17,31 @@ namespace UnityEditor.Experimental.Rendering
         // Change the SRP before a full batch of tests
         public virtual string _SRP_ID { get { return "NONE"; } }
 
-        private static bool doOnlyFirstRenderPipelineAsset = true;
+        [MenuItem("Internal/GraphicTest Tools/Set Tests Pipelines",false, 0)]
+        public static void SetTestsPipelines()
+        {
+            _doOnlyFirstRenderPipelineAsset = !EditorUtility.DisplayDialog(
+                "Graphic Tests",
+                "Do you want to run the test(s) on all available Render Pipeline assets or only the first (main) one ?",
+                "Hell YEAH, go for it !",
+                "No thanks, just one please.");
+        }
+
+        private static bool? _doOnlyFirstRenderPipelineAsset;
+        private static bool doOnlyFirstRenderPipelineAsset
+        {
+            get
+            {
+                if (!_doOnlyFirstRenderPipelineAsset.HasValue) SetTestsPipelines();
+                return _doOnlyFirstRenderPipelineAsset.Value;
+            }
+        }
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             BackupSceneManagerSetup();
             SetupRenderPipeAsset();
-
-            doOnlyFirstRenderPipelineAsset = !EditorUtility.DisplayDialog(
-                "Graphic Tests",
-                "Do you want to run the test(s) on all available Render Pipeline assets or only the first (main) one ?",
-                "Hell YEAH, go for it !",
-                "No thanks, just one please.");
         }
 
         [OneTimeTearDown]
