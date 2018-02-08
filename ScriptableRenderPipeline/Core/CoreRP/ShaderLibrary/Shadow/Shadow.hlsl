@@ -60,7 +60,7 @@
 #endif
 
 #include "CoreRP/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
-#include "ShadowTexFetch.hlsl"						// Resource sampling definitions (don't modify)
+#include "ShadowTexFetch.hlsl"				// Resource sampling definitions (don't modify)
 
 struct ShadowContext
 {
@@ -72,22 +72,11 @@ struct ShadowContext
 SHADOW_DEFINE_SAMPLING_FUNCS( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
 
 // helper function to extract shadowmap data from the ShadowData struct
-void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx, out float slice )
-{
-	texIdx  = (shadowmapId >> 24) & 0xff;
-	sampIdx = (shadowmapId >> 16) & 0xff;
-	slice   = shadowmapId & 0xffff;
-}
 void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx )
 {
 	texIdx  = (shadowmapId >> 24) & 0xff;
 	sampIdx = (shadowmapId >> 16) & 0xff;
 }
-void UnpackShadowmapId( uint shadowmapId, out float slice )
-{
-	slice = shadowmapId & 0xffff;
-}
-
 void UnpackShadowType( uint packedShadowType, out uint shadowType, out uint shadowAlgorithm )
 {
 	shadowType		= packedShadowType >> 10;

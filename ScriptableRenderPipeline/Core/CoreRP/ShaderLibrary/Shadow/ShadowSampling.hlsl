@@ -10,7 +10,7 @@
 //
 //					1 tap PCF sampling
 //
-real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, uint texIdx, uint sampIdx )
 {
 	real depthBias = asfloat( shadowContext.payloads[payloadOffset].x );
 	payloadOffset++;
@@ -21,7 +21,7 @@ real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffse
 	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, slice ).x;
 }
 
-real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real depthBias = asfloat( shadowContext.payloads[payloadOffset].x );
 	payloadOffset++;
@@ -35,7 +35,7 @@ real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffse
 //
 //					3x3 tent PCF sampling (4 taps)
 //
-real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -59,7 +59,7 @@ real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadO
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -86,7 +86,7 @@ real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOf
 //
 //					5x5 tent PCF sampling (9 taps)
 //
-real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -110,7 +110,7 @@ real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadO
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -163,7 +163,7 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 //
 //					7x7 tent PCF sampling (16 taps)
 //
-real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -188,7 +188,7 @@ real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadO
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -254,7 +254,7 @@ real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOf
 //
 //					9 tap adaptive PCF sampling
 //
-real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real2 sampleBias, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -297,7 +297,7 @@ real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint pay
 	return flSum;
 }
 
-real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real2 sampleBias, uint slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 tcs, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
@@ -345,7 +345,7 @@ real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payl
 //
 //					1 tap VSM sampling
 //
-real SampleShadow_VSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, uint texIdx, uint sampIdx )
+real SampleShadow_VSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, uint texIdx, uint sampIdx )
 {
 #if UNITY_REVERSED_Z
 	real  depth		 = 1.0 - tcs.z;
@@ -362,7 +362,7 @@ real SampleShadow_VSM_1tap( ShadowContext shadowContext, inout uint payloadOffse
 	return ShadowMoments_ChebyshevsInequality( moments, depth, varianceBias, lightLeakBias );
 }
 
-real SampleShadow_VSM_1tap(ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, Texture2DArray tex, SamplerState samp )
+real SampleShadow_VSM_1tap(ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, Texture2DArray tex, SamplerState samp )
 {
 #if UNITY_REVERSED_Z
 	real  depth		 = 1.0 - tcs.z;
@@ -382,7 +382,7 @@ real SampleShadow_VSM_1tap(ShadowContext shadowContext, inout uint payloadOffset
 //
 //					1 tap EVSM sampling
 //
-real SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, uint texIdx, uint sampIdx, bool fourMoments )
+real SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, uint texIdx, uint sampIdx, bool fourMoments )
 {
 #if UNITY_REVERSED_Z
 	real  depth		 = 1.0 - tcs.z;
@@ -416,7 +416,7 @@ real SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 	}
 }
 
-real SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, Texture2DArray tex, SamplerState samp, bool fourMoments )
+real SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, Texture2DArray tex, SamplerState samp, bool fourMoments )
 {
 #if UNITY_REVERSED_Z
 	real  depth		 = 1.0 - tcs.z;
@@ -454,7 +454,7 @@ real SampleShadow_EVSM_1tap( ShadowContext shadowContext, inout uint payloadOffs
 //
 //					1 tap MSM sampling
 //
-real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, uint texIdx, uint sampIdx, bool useHamburger )
+real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, uint texIdx, uint sampIdx, bool useHamburger )
 {
 	real4 params        = asfloat( shadowContext.payloads[payloadOffset] );
 	real  lightLeakBias = params.x;
@@ -482,7 +482,7 @@ real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffse
 		return (z[1] < 0.0 || z[2] > 1.0) ? ShadowMoments_SolveDelta4MSM( z, b, lightLeakBias ) : ShadowMoments_SolveDelta3MSM( z, b.xy, lightLeakBias );
 }
 
-real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, uint slice, Texture2DArray tex, SamplerState samp, bool useHamburger )
+real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, Texture2DArray tex, SamplerState samp, bool useHamburger )
 {
 	real4 params        = asfloat( shadowContext.payloads[payloadOffset] );
 	real  lightLeakBias = params.x;
@@ -512,50 +512,50 @@ real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffse
 
 //-----------------------------------------------------------------------------------------------------
 // helper function to dispatch a specific shadow algorithm
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint slice, uint algorithm, uint texIdx, uint sampIdx )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, uint texIdx, uint sampIdx )
 {
 	[branch]
 	switch( algorithm )
 	{
-	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_VSM				: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_EVSM_2			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, false );
-	case GPUSHADOWALGORITHM_EVSM_4			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, true );
-	case GPUSHADOWALGORITHM_MSM_HAM			: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, true );
-	case GPUSHADOWALGORITHM_MSM_HAUS		: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, slice, texIdx, sampIdx, false );
+	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_VSM				: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_EVSM_2			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, false );
+	case GPUSHADOWALGORITHM_EVSM_4			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, true );
+	case GPUSHADOWALGORITHM_MSM_HAM			: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, true );
+	case GPUSHADOWALGORITHM_MSM_HAUS		: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, false );
 	default: return 1.0;
 	}
 }
 
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint slice, uint algorithm, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	[branch]
 	switch( algorithm )
 	{
-	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
 
 	default: return 1.0;
 	}
 }
 
-real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint slice, uint algorithm, Texture2DArray tex, SamplerState samp )
+real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shadowData, inout uint payloadOffset, real3 posTC, real2 sampleBias, uint algorithm, Texture2DArray tex, SamplerState samp )
 {
 	[branch]
 	switch( algorithm )
 	{
-	case GPUSHADOWALGORITHM_VSM				: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, slice, tex, samp );
-	case GPUSHADOWALGORITHM_EVSM_2			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, tex, samp, false );
-	case GPUSHADOWALGORITHM_EVSM_4			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, slice, tex, samp, true );
-	case GPUSHADOWALGORITHM_MSM_HAM			: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, slice, tex, samp, true );
-	case GPUSHADOWALGORITHM_MSM_HAUS		: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, slice, tex, samp, false );
+	case GPUSHADOWALGORITHM_VSM				: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, tex, samp );
+	case GPUSHADOWALGORITHM_EVSM_2			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, tex, samp, false );
+	case GPUSHADOWALGORITHM_EVSM_4			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, tex, samp, true );
+	case GPUSHADOWALGORITHM_MSM_HAM			: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, tex, samp, true );
+	case GPUSHADOWALGORITHM_MSM_HAUS		: return SampleShadow_MSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, tex, samp, false );
 	default: return 1.0;
 	}
 }
