@@ -5,20 +5,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // ShaderPass string - use to have consistent name through the code
         public static readonly string s_EmptyStr = "";
         public static readonly string s_ForwardStr = "Forward";
-        public static readonly string s_ForwardDebugDisplayStr = "ForwardDebugDisplay";
         public static readonly string s_DepthOnlyStr = "DepthOnly";
         public static readonly string s_DepthForwardOnlyStr = "DepthForwardOnly";
         public static readonly string s_ForwardOnlyStr = "ForwardOnly";
-        public static readonly string s_ForwardOnlyDebugDisplayStr = "ForwardOnlyDebugDisplay";
         public static readonly string s_GBufferStr = "GBuffer";
         public static readonly string s_GBufferWithPrepassStr = "GBufferWithPrepass";
-        public static readonly string s_GBufferDebugDisplayStr = "GBufferDebugDisplay";
         public static readonly string s_SRPDefaultUnlitStr = "SRPDefaultUnlit";
         public static readonly string s_MotionVectorsStr = "MotionVectors";
         public static readonly string s_DistortionVectorsStr = "DistortionVectors";
         public static readonly string s_TransparentDepthPrepassStr = "TransparentDepthPrepass";
         public static readonly string s_TransparentBackfaceStr = "TransparentBackface";
-        public static readonly string s_TransparentBackfaceDebugDisplayStr = "TransparentBackfaceDebugDisplay";
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
@@ -26,20 +22,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // ShaderPass name
         public static readonly ShaderPassName s_EmptyName = new ShaderPassName(s_EmptyStr);
         public static readonly ShaderPassName s_ForwardName = new ShaderPassName(s_ForwardStr);
-        public static readonly ShaderPassName s_ForwardDebugDisplayName = new ShaderPassName(s_ForwardDebugDisplayStr);
         public static readonly ShaderPassName s_DepthOnlyName = new ShaderPassName(s_DepthOnlyStr);
         public static readonly ShaderPassName s_DepthForwardOnlyName = new ShaderPassName(s_DepthForwardOnlyStr);
         public static readonly ShaderPassName s_ForwardOnlyName = new ShaderPassName(s_ForwardOnlyStr);
-        public static readonly ShaderPassName s_ForwardOnlyDebugDisplayName = new ShaderPassName(s_ForwardOnlyDebugDisplayStr);
         public static readonly ShaderPassName s_GBufferName = new ShaderPassName(s_GBufferStr);
         public static readonly ShaderPassName s_GBufferWithPrepassName = new ShaderPassName(s_GBufferWithPrepassStr);
-        public static readonly ShaderPassName s_GBufferDebugDisplayName = new ShaderPassName(s_GBufferDebugDisplayStr);
         public static readonly ShaderPassName s_SRPDefaultUnlitName = new ShaderPassName(s_SRPDefaultUnlitStr);
         public static readonly ShaderPassName s_MotionVectorsName = new ShaderPassName(s_MotionVectorsStr);
         public static readonly ShaderPassName s_DistortionVectorsName = new ShaderPassName(s_DistortionVectorsStr);
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
         public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
-        public static readonly ShaderPassName s_TransparentBackfaceDebugDisplayName = new ShaderPassName(s_TransparentBackfaceDebugDisplayStr);
         public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
 
         // Legacy name
@@ -71,6 +63,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_mScrProjection = Shader.PropertyToID("g_mScrProjection");
         public static readonly int g_mInvScrProjection = Shader.PropertyToID("g_mInvScrProjection");
         public static readonly int g_iLog2NumClusters = Shader.PropertyToID("g_iLog2NumClusters");
+        public static readonly int g_screenSize = Shader.PropertyToID("g_screenSize");
+        public static readonly int g_iNumSamplesMSAA = Shader.PropertyToID("g_iNumSamplesMSAA");
         public static readonly int g_fNearPlane = Shader.PropertyToID("g_fNearPlane");
         public static readonly int g_fFarPlane = Shader.PropertyToID("g_fFarPlane");
         public static readonly int g_fClustScale = Shader.PropertyToID("g_fClustScale");
@@ -182,6 +176,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
         public static readonly int _StencilCmp = Shader.PropertyToID("_StencilCmp");
 
+        public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
+
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
@@ -199,6 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ViewParam = Shader.PropertyToID("_ViewParam");
         public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int _ScreenToTargetScale = Shader.PropertyToID("_ScreenToTargetScale");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameIndex    = Shader.PropertyToID("_TaaFrameIndex");
@@ -246,43 +243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
         public static readonly int _PyramidDepthTexture = Shader.PropertyToID("_PyramidDepthTexture");
         public static readonly int _GaussianPyramidColorMipSize = Shader.PropertyToID("_GaussianPyramidColorMipSize");
-        public static readonly int[] _GaussianPyramidColorMips =
-        {
-            Shader.PropertyToID("_GaussianColorMip0"),
-            Shader.PropertyToID("_GaussianColorMip1"),
-            Shader.PropertyToID("_GaussianColorMip2"),
-            Shader.PropertyToID("_GaussianColorMip3"),
-            Shader.PropertyToID("_GaussianColorMip4"),
-            Shader.PropertyToID("_GaussianColorMip5"),
-            Shader.PropertyToID("_GaussianColorMip6"),
-            Shader.PropertyToID("_GaussianColorMip7"),
-            Shader.PropertyToID("_GaussianColorMip8"),
-            Shader.PropertyToID("_GaussianColorMip9"),
-            Shader.PropertyToID("_GaussianColorMip10"),
-            Shader.PropertyToID("_GaussianColorMip11"),
-            Shader.PropertyToID("_GaussianColorMip12"),
-            Shader.PropertyToID("_GaussianColorMip13"),
-            Shader.PropertyToID("_GaussianColorMip14"),
-        };
         public static readonly int _DepthPyramidMipSize = Shader.PropertyToID("_PyramidDepthMipSize");
-        public static readonly int[] _DepthPyramidMips =
-        {
-            Shader.PropertyToID("_DepthPyramidMip0"),
-            Shader.PropertyToID("_DepthPyramidMip1"),
-            Shader.PropertyToID("_DepthPyramidMip2"),
-            Shader.PropertyToID("_DepthPyramidMip3"),
-            Shader.PropertyToID("_DepthPyramidMip4"),
-            Shader.PropertyToID("_DepthPyramidMip5"),
-            Shader.PropertyToID("_DepthPyramidMip6"),
-            Shader.PropertyToID("_DepthPyramidMip7"),
-            Shader.PropertyToID("_DepthPyramidMip8"),
-            Shader.PropertyToID("_DepthPyramidMip9"),
-            Shader.PropertyToID("_DepthPyramidMip10"),
-            Shader.PropertyToID("_DepthPyramidMip11"),
-            Shader.PropertyToID("_DepthPyramidMip12"),
-            Shader.PropertyToID("_DepthPyramidMip13"),
-            Shader.PropertyToID("_DepthPyramidMip14"),
-        };
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
         public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
@@ -293,6 +254,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
+        public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
+        public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");

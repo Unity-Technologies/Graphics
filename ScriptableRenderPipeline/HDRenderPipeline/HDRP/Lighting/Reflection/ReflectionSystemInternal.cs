@@ -166,13 +166,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
         public RenderTexture NewRenderTarget(PlanarReflectionProbe probe)
         {
-            var desc = GetRenderHDCamera(probe).renderTextureDesc;
-            desc.width = m_Parameters.planarReflectionProbeSize;
-            desc.height = m_Parameters.planarReflectionProbeSize;
-            desc.colorFormat = RenderTextureFormat.ARGBHalf;
-            desc.useMipMap = true;
-            var rt = new RenderTexture(desc);
+            var rt = new RenderTexture(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, 0, RenderTextureFormat.ARGBHalf);
+            rt.useMipMap = true;
+            rt.autoGenerateMips = false;
             rt.name = "PlanarProbeRT " + probe.name;
+            rt.Create();
             return rt;
         }
 

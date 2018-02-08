@@ -17,7 +17,7 @@ Texture2D<float4> _Source4;
 [numthreads(8, 8, 1)]
 void KSampleCopy4_1_x(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    _Result1[dispatchThreadId] = SAMPLE_TEXTURE2D_LOD(_Source4, sampler_LinearClamp, float2(dispatchThreadId) * _Size.zw, 0.0).x;
+    _Result1[dispatchThreadId] = LOAD_TEXTURE2D(_Source4, dispatchThreadId).x;
 }
 
 

@@ -34,7 +34,6 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.LightDefinitions:  static fields
 //
-#define MAX_NR_LIGHTS_PER_CAMERA (1024)
 #define MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE (512)
 #define VIEWPORT_SCALE_Z (1)
 #define USE_LEFT_HAND_CAMERA_SPACE (1)

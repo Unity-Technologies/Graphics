@@ -35,6 +35,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // This is the size actually used for this camera (as it can be altered by VR for example)
+        int m_ActualWidth;
+        int m_ActualHeight;
+        // This is the scale and bias of the camera viewport compared to the reference size of our Render Targets (RHandle.maxSize)
+        Vector2 m_CameraScaleBias;
+        // Current mssa sample
+        MSAASamples m_msaaSamples;
+
+        public int actualWidth { get { return m_ActualWidth; } }
+        public int actualHeight { get { return m_ActualHeight; } }
+        public Vector2 scaleBias { get { return m_CameraScaleBias; } }
+        public MSAASamples msaaSamples { get { return m_msaaSamples; } }
+
         public Matrix4x4 viewProjMatrix
         {
             get { return projMatrix * viewMatrix; }
@@ -44,8 +57,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
-
-        public RenderTextureDescriptor renderTextureDesc { get; private set; }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -177,35 +188,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LastFrameActive = Time.frameCount;
 
-            RenderTextureDescriptor tempDesc;
+            m_ActualWidth = camera.pixelWidth;
+            m_ActualHeight = camera.pixelHeight;
             if (frameSettings.enableStereo)
             {
-                screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
-                tempDesc = XRSettings.eyeTextureDesc;
-            }
-            else
-            {
-                screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
-                tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                m_ActualWidth = XRSettings.eyeTextureWidth;
+                m_ActualHeight = XRSettings.eyeTextureHeight;
             }
 
-            if (frameSettings.enableMSAA)
-            {
-                // this is already pre-validated to be a valid sample count by InitializeFrameSettings
-                var sampleCount = (int)frameSettings.msaaSampleCount; 
-                tempDesc.msaaSamples = sampleCount;
-            }
-            else
-            {
-                tempDesc.msaaSamples = 1;
-            }
-            tempDesc.depthBufferBits = 0;
-            tempDesc.autoGenerateMips = false;
-            tempDesc.useMipMap = false;
-            tempDesc.enableRandomWrite = false;
-            tempDesc.memoryless = RenderTextureMemoryless.None;
+            // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
+            m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
 
-            renderTextureDesc = tempDesc;
+            int maxWidth = RTHandle.maxWidth;
+            int maxHeight = RTHandle.maxHeight;
+            m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
+            m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
+
+            screenSize = new Vector4(m_ActualWidth, m_ActualHeight, 1.0f / m_ActualWidth, 1.0f / m_ActualHeight);
         }
 
         // Warning: different views can use the same camera!
@@ -275,6 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ViewParam, viewParam);
             cmd.SetGlobalVector(HDShaderIDs._InvProjParam, invProjParam);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, scaleBias);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
