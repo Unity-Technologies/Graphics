@@ -46,7 +46,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
             }
@@ -139,7 +139,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             {
                 if (_RequireToFlipInputTexture > 0.0)
                 {
-                    input.texcoord.y = 1.0 - input.texcoord.y;
+                    input.texcoord.y = 1.0 * _ScreenToTargetScale.y - input.texcoord.y;
                 }
 
                 float4 result = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);

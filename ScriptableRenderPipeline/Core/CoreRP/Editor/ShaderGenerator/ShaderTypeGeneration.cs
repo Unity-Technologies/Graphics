@@ -585,11 +585,8 @@ namespace UnityEditor.Experimental.Rendering
 
                 if (attr.needParamDebug)
                 {
-                    string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
-                    className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
-                    string name = InsertUnderscore(field.Name);
-                    string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
-                    m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+                    List<string> displayNames = new List<string>();
+                    displayNames.Add(field.Name);
 
                     bool isDirection = false;
                     bool sRGBDisplay = false;
@@ -598,11 +595,30 @@ namespace UnityEditor.Experimental.Rendering
                     if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
                     {
                         var propertyAttr = (SurfaceDataAttributes[])field.GetCustomAttributes(typeof(SurfaceDataAttributes), false);
+
+                        // User can want to only override isDirection and sRGBDisplay
+                        // in this case it can specify empty string
+                        if (propertyAttr[0].displayNames[0] != "")
+                        {
+                            displayNames.Clear();
+                            displayNames.AddRange(propertyAttr[0].displayNames);
+                        }
                         isDirection = propertyAttr[0].isDirection;
                         sRGBDisplay = propertyAttr[0].sRGBDisplay;
                     }
 
-                    m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, field.FieldType, isDirection, sRGBDisplay));
+                    string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
+                    className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
+
+                    foreach (string it in displayNames)
+                    {
+                        string fieldName = it.Replace(' ', '_');
+                        string name = InsertUnderscore(fieldName);
+                        string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
+                        m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+
+                        m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, field.FieldType, isDirection, sRGBDisplay));
+                    }
                 }
 
                 if (field.FieldType.IsPrimitive)

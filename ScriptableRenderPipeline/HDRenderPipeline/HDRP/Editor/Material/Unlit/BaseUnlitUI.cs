@@ -512,19 +512,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Disable all passes except distortion
                 // Distortion is setup in code above
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DepthOnlyStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DepthForwardOnlyStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardOnlyDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferWithPrepassStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_GBufferDebugDisplayStr, true);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, distortionEnable); // note: use distortionEnable
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, enablePass);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPostpassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
@@ -562,12 +558,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (backFaceEnable)
                 {
                     material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, true);
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, true);
                 }
                 else
                 {
                     material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceStr, false);
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentBackfaceDebugDisplayStr, false);
                 }
             }
 

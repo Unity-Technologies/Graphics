@@ -37,7 +37,6 @@ namespace UnityEditor.Experimental.Rendering
             if (EditorGUILayout.BeginFadeGroup(s.isSectionExpandedEnableTileAndCluster.faded))
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(p.isFptlEnabled, _.GetContent("Enable FPTL"));
                 EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
                 EditorGUILayout.PropertyField(p.enableBigTilePrepass, _.GetContent("Enable Big Tile Prepass"));
                 EditorGUILayout.PropertyField(p.enableComputeLightEvaluation, _.GetContent("Enable Compute Light Evaluation"));

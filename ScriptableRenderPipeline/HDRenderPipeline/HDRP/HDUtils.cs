@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -8,6 +9,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public const RendererConfiguration k_RendererConfigurationBakedLighting = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
         public const RendererConfiguration k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | RendererConfiguration.PerObjectOcclusionProbe | RendererConfiguration.PerObjectOcclusionProbeProxyVolume | RendererConfiguration.PerObjectShadowMask;
+
+        public static Material GetBlitMaterial()
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                return hdPipeline.GetBlitMaterial();
+            }
+
+            return null;
+        }
+
+        public static RenderPipelineSettings hdrpSettings
+        {
+            get
+            {
+                HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                if (hdPipeline != null)
+                {
+                    return hdPipeline.renderPipelineSettings;
+                }
+                return null;
+            }
+        }
+
+        static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
         public static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
         {
@@ -97,6 +124,172 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Transpose for HLSL.
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
+        }
+
+        // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
+        // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        {
+            cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
+            SetViewport(cmd, camera, buffer);
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        {
+            SetRenderTarget(cmd, camera, buffer, clearFlag, CoreUtils.clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        {
+            SetRenderTarget(cmd, camera, colorBuffer, depthBuffer, ClearFlag.None, CoreUtils.clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        {
+            SetRenderTarget(cmd, camera, colorBuffer, depthBuffer, clearFlag, CoreUtils.clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        {
+            CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, miplevel, cubemapFace, depthSlice);
+            SetViewport(cmd, camera, colorBuffer);
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
+        {
+            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, CoreUtils.clearColorAllBlack);
+            SetViewport(cmd, camera, depthBuffer);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
+        {
+            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer); // Don't clear here, viewport needs to be set before we do.
+            SetViewport(cmd, camera, depthBuffer);
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, CoreUtils.clearColorAllBlack);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(colorBuffers, depthBuffer);
+            SetViewport(cmd, camera, depthBuffer);
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        // Scaling viewport is done for auto-scaling render targets.
+        // In the context of HDRP, every auto-scaled RT is scaled against the maximum RTHandles reference size (that can only grow).
+        // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
+        // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
+        // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
+        public static void SetViewport(CommandBuffer cmd, HDCamera camera, RTHandle target)
+        {
+            if (target.useScaling)
+            {
+                Debug.Assert(camera != null, "Missing HDCamera when setting up Render Target with auto-scale and Viewport.");
+                Vector2Int scaledViewportSize = target.GetScaledSize(new Vector2Int(camera.actualWidth, camera.actualHeight));
+                cmd.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
+            }
+        }
+
+        public static void BlitTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+        }
+
+        // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
+        // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
+        // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
+        // Here, both source and destination are camera-scaled.
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            // Will set the correct camera viewport as well.
+            SetRenderTarget(cmd, camera, destination);
+            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
+        }
+
+        // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            // Will set the correct camera viewport as well.
+            SetRenderTarget(cmd, camera, destination);
+            BlitTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
+        }
+
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            SetRenderTarget(cmd, camera, destination);
+            cmd.SetViewport(destViewport);
+            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
+        }
+
+        // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RenderTargetIdentifier destination)
+        {
+            cmd.Blit(source, destination, new Vector2(camera.scaleBias.x, camera.scaleBias.y), Vector2.zero);
+        }
+
+        // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
+        public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier source, RTHandle destination)
+        {
+            // Will set the correct camera viewport as well.
+            SetRenderTarget(cmd, camera, destination);
+
+            cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, source);
+            cmd.SetGlobalVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+            cmd.SetGlobalFloat(HDShaderIDs._BlitMipLevel, 0.0f);
+            // Wanted to make things clean and not use SetGlobalXXX APIs but can't use MaterialPropertyBlock with RenderTargetIdentifier so YEY
+            //s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            //s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, camera.scaleBias);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), 0, MeshTopology.Triangles, 3, 1);
+        }
+
+        // These method should be used to render full screen triangles sampling auto-scaling RTs.
+        // This will set the proper viewport and UV scale.
+        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
+                                            RTHandle colorBuffer,
+                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
+                                            RTHandle colorBuffer, RTHandle depthStencilBuffer,
+                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer, depthStencilBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
+                                            RenderTargetIdentifier[] colorBuffers, RTHandle depthStencilBuffer,
+                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffers, depthStencilBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
+                                            RenderTargetIdentifier colorBuffer,
+                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        // Returns mouse coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
+        public static Vector4 GetMouseCoordinates(HDCamera camera)
+        {
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
         }
     }
 }
