@@ -441,7 +441,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
-                m_DbufferManager.PushGlobalParams(cmd);
+                m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
 
                 m_VolumetricLightingModule.PushGlobalParams(hdCamera, cmd);
             }
