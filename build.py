@@ -139,13 +139,20 @@ def cleanup(logger):
 # helper function for preparations of tests
 def copy_path_to_project(path, repo_path, project_path, logger):
     logger.info("Copying {}".format(path))
-    shutil.copytree(os.path.join(repo_path, path), os.path.join(project_path, "Assets", path))
+    shutil.copytree(os.path.join(repo_path, path), os.path.join(project_path, "Assets", "ScriptableRenderLoop", path))
+
+def copy_file_to_project(path, repo_path, project_path, logger):
+    logger.info("Copying {}".format(path))
+    shutil.copy(os.path.join(repo_path, path), os.path.join(project_path, "Assets", "ScriptableRenderLoop", path))
 
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
     copy_path_to_project("ImageTemplates", repo_path, project_path, logger)
     copy_path_to_project("Tests", repo_path, project_path, logger)
-
+    copy_file_to_project("SRPMARKER", repo_path, project_path, logger)
+    copy_file_to_project("SRPMARKER.meta", repo_path, project_path, logger)
+    copy_file_to_project("ImageTemplates.meta", repo_path, project_path, logger)
+    copy_file_to_project("Tests.meta", repo_path, project_path, logger)
 
 if __name__ == "__main__":
     import sys
