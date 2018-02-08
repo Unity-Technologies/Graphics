@@ -93,6 +93,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 
+                // Uncomment to enable pixel caching profiler
+//                m_ProfilerView = new PixelCacheProfilerView(this);
+//                m_GraphView.Add(m_ProfilerView);
+
                 m_BlackboardProvider = new BlackboardProvider(assetName, graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
                 m_BlackboardProvider.blackboard.layout = new Rect(new Vector2(10f, 10f), m_BlackboardProvider.blackboard.layout.size);
@@ -150,6 +154,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
 
                 graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
+            }
+            else if (evt.keyCode == KeyCode.F1)
+            {
+                if (m_GraphView.selection.OfType<MaterialNodeView>().Count() == 1)
+                {
+                    var nodeView = (MaterialNodeView)graphView.selection.First();
+                    if(nodeView.node.documentationURL != null)
+                        System.Diagnostics.Process.Start(nodeView.node.documentationURL);
+                }
             }
         }
 
@@ -290,6 +303,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
+
+            if (m_ProfilerView != null)
+                m_ProfilerView.Profile();
         }
 
         void AddNode(INode node)
@@ -384,6 +400,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<MaterialNodeView> m_NodeStack = new Stack<MaterialNodeView>();
+        PixelCacheProfilerView m_ProfilerView;
 
         void UpdateEdgeColors(HashSet<MaterialNodeView> nodeViews)
         {

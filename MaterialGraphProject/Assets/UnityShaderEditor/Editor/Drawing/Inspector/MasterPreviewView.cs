@@ -57,12 +57,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
 
                 middleContainer.Add(m_PreviewTextureView);
+
+                middleContainer.AddManipulator(new Scrollable(OnScroll));
             }
             Add(middleContainer);
         }
 
+        void OnScroll(float scrollValue)
+        {
+            float rescaleAmount = -scrollValue * .03f;
+            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
+        }
+
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        { 
+        {
             foreach (var primitiveTypeName in Enum.GetNames(typeof(PrimitiveType)))
             {
                 if(m_DoNotShowPrimitives.Contains(primitiveTypeName))
