@@ -56,6 +56,34 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static int GetMatrixDimension(ConcreteSlotValueType type)
+        {
+            switch (type)
+            {
+                case ConcreteSlotValueType.Matrix4:
+                    return 4;
+                case ConcreteSlotValueType.Matrix3:
+                    return 3;
+                case ConcreteSlotValueType.Matrix2:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        public static ConcreteSlotValueType ConvertMatrixToVectorType(ConcreteSlotValueType matrixType)
+        {
+            switch(matrixType)
+            {
+                case ConcreteSlotValueType.Matrix4:
+                    return ConcreteSlotValueType.Vector4;
+                case ConcreteSlotValueType.Matrix3:
+                    return ConcreteSlotValueType.Vector3;
+                default:
+                    return ConcreteSlotValueType.Vector2;
+            }
+        }
+
         static readonly string[] k_ConcreteSlotValueTypeClassNames =
         {
             null,
