@@ -6,7 +6,6 @@
         "com.unity.render-pipelines.high-defintion.Editor",
         "com.unity.render-pipelines.lightweight.Editor",
         "GraphicTests",
-        "com.unity.render-pipelines.testbed-pipelines",
         "com.unity.postprocessing.Runtime",
         "com.unity.render-pipelines.core.IncludePaths",
         "com.unity.render-pipelines.core.Runtime",
