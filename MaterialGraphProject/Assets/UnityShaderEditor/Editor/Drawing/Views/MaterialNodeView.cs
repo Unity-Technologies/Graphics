@@ -178,10 +178,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ConvertToShader(EventBase eventBase)
         {
             List<PropertyCollector.TextureInfo> textureInfo;
-            var masterNode = node as MasterNode;
+            var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
-                var shader = masterNode.GetShader(GenerationMode.ForReals, masterNode.name, out textureInfo);
+                var shader = masterNode.GetShader(GenerationMode.ForReals, node.name, out textureInfo);
                 GUIUtility.systemCopyBuffer = shader;
             }
             else

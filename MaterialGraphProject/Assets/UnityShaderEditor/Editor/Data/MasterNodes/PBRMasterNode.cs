@@ -7,16 +7,9 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum AlphaMode
-    {
-        Opaque,
-        AlphaBlend,
-        AdditiveBlend
-    }
-
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode
+    public class PBRMasterNode : MasterNode<IPBRSubShader>
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -114,43 +107,10 @@ namespace UnityEditor.ShaderGraph
                 AlphaSlotId,
                 AlphaThresholdSlotId
             }, true);
-        }
 
-        public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)
-        {
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
-            var shaderProperties = new PropertyCollector();
-
-            var abstractMaterialGraph = owner as AbstractMaterialGraph;
-            if (abstractMaterialGraph != null)
-                abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
-
-            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
-                activeNode.CollectShaderProperties(shaderProperties, mode);
-
-            var finalShader = new ShaderGenerator();
-            finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", outputName), false);
-            finalShader.AddShaderChunk("{", false);
-            finalShader.Indent();
-
-            finalShader.AddShaderChunk("Properties", false);
-            finalShader.AddShaderChunk("{", false);
-            finalShader.Indent();
-            finalShader.AddShaderChunk(shaderProperties.GetPropertiesBlock(2), false);
-            finalShader.Deindent();
-            finalShader.AddShaderChunk("}", false);
-
-            var lwSub = new LightWeightPBRSubShader();
-            foreach (var subshader in lwSub.GetSubshader(this, mode))
-                finalShader.AddShaderChunk(subshader, true);
-
-            finalShader.Deindent();
-            finalShader.AddShaderChunk("}", false);
-
-            configuredTextures = shaderProperties.GetConfiguredTexutres();
-            return finalShader.GetShaderString(0);
+            if (m_SubShaders.Count == 0)
+                m_SubShaders.Add(new LightWeightPBRSubShader());
         }
     }
 }
