@@ -183,12 +183,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
         public static float s_ViewportScaleZ = 1.0f;
+        public static int s_UseLeftHandCameraSpace = 1;
 
         public static int s_TileSizeFptl = 16;
         public static int s_TileSizeClustered = 32;
 
         // feature variants
-        public static int s_NumFeatureVariants = 27;
+        public static int s_NumFeatureVariants = 27;        
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
