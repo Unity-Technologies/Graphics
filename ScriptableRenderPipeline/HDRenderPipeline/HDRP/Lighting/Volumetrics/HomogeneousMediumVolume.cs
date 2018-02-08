@@ -1,8 +1,8 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    [AddComponentMenu("RenderPipeline/High Definition/Homogenous Fog", -1)]
-    public class HomogeneousFog : MonoBehaviour
+    [AddComponentMenu("RenderPipeline/High Definition/Homogeneous Medium Volume", -1)]
+    public class HomogeneousMediumVolume : MonoBehaviour
     {
         public VolumeParameters volumeParameters = new VolumeParameters();
 
@@ -38,22 +38,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Returns NULL if a global fog component does not exist, or is not enabled.
-        public static HomogeneousFog GetGlobalFogComponent()
+        public static HomogeneousMediumVolume GetGlobalHomogeneousMediumVolume()
         {
-            HomogeneousFog globalFogComponent = null;
+            HomogeneousMediumVolume globalVolume = null;
 
-            HomogeneousFog[] fogComponents = FindObjectsOfType(typeof(HomogeneousFog)) as HomogeneousFog[];
+            HomogeneousMediumVolume[] volumes = FindObjectsOfType(typeof(HomogeneousMediumVolume)) as HomogeneousMediumVolume[];
 
-            foreach (HomogeneousFog fogComponent in fogComponents)
+            foreach (HomogeneousMediumVolume volume in volumes)
             {
-                if (fogComponent.enabled && !fogComponent.volumeParameters.IsLocalVolume())
+                if (volume.enabled && !volume.volumeParameters.IsLocalVolume())
                 {
-                    globalFogComponent = fogComponent;
+                    globalVolume = volume;
                     break;
                 }
             }
 
-            return globalFogComponent;
+            return globalVolume;
         }
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
