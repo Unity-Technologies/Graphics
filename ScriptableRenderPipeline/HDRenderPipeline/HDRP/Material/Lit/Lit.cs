@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Specular Occlusion")]
             public float specularOcclusion;
 
-            [SurfaceDataAttributes("Normal", true)]
+            [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public float specularOcclusion;
 
-            [SurfaceDataAttributes("", true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
             public float perceptualRoughness;
 
