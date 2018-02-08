@@ -394,7 +394,6 @@ public class VolumetricLightingModule
     public void VoxelizeDensityVolumes(HDCamera camera, CommandBuffer cmd)
     {
         if (preset == VolumetricLightingPreset.Off) return;
-        if (camera.camera.cameraType != CameraType.SceneView) return;
 
         Vector3 camPosition = camera.camera.transform.position;
         Vector3 camOffset   = Vector3.zero; // World-origin-relative
@@ -416,7 +415,7 @@ public class VolumetricLightingModule
                 var obb = OrientedBBox.Create(fogComponent.transform);
 
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                if (!obb.OverlapsFrustum(camera.frustum, 6, 8, camOffset))
+                if (!GeometryUtils.Overlap(obb, camOffset, camera.frustum, 6, 8))
                 {
                     Debug.Log("Culled.");
                 }
