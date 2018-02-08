@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     [Title("Math", "Matrix", "Matrix Split")]
     public class MatrixSplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
-        const string kInputSlotName = "Input";
+        const string kInputSlotName = "In";
         const string kOutputSlotM0Name = "M0";
         const string kOutputSlotM1Name = "M1";
         const string kOutputSlotM2Name = "M2";
@@ -70,6 +70,8 @@ namespace UnityEditor.ShaderGraph
 
             var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
             var numInputRows = 0;
+            bool useIndentity = false;
+            
             if (inputSlot != null)
             {
                 numInputRows = SlotValueHelper.GetMatrixDimension(inputSlot.concreteValueType);
@@ -77,20 +79,25 @@ namespace UnityEditor.ShaderGraph
                     numInputRows = 0;
 
                 if (!owner.GetEdges(inputSlot.slotReference).Any())
+                {
                     numInputRows = 0;
+                    useIndentity = true;
+                }
             }
 
-            for (var i = 0; i < 4; i++)
+            int concreteRowCount = useIndentity ? 2 : numInputRows;
+
+            for (var r = 0; r < 4; r++)
             {
                 string outputValue;
-                if(i >= numInputRows)
+                if(r >= numInputRows)
                 {
-                    outputValue = string.Format("{0}{1}(", precision, numInputRows);
-                    for(int r = 0; r < numInputRows; r++)
+                    outputValue = string.Format("{0}{1}(", precision, concreteRowCount);
+                    for(int c = 0; c < concreteRowCount; c++)
                     {
-                        if(r!= 0)
+                        if(c!= 0)
                             outputValue += ", ";
-                        outputValue += "0";
+                        outputValue += Matrix4x4.identity.GetRow(r)[c];
                     }
                     outputValue += ")";
                 }
@@ -100,20 +107,20 @@ namespace UnityEditor.ShaderGraph
                     {
                         case MatrixAxis.Column:
                             outputValue = string.Format("{0}{1}(", precision, numInputRows);
-                            for(int r = 0; r < numInputRows; r++)
+                            for(int c = 0; c < numInputRows; c++)
                             {
-                                if(r!= 0)
+                                if(c!= 0)
                                     outputValue += ", ";
-                                outputValue += string.Format("{0}[{1}].{2}", inputValue, r, s_ComponentList[i]);
+                                outputValue += string.Format("{0}[{1}].{2}", inputValue, c, s_ComponentList[r]);
                             }
                             outputValue += ")";
                             break;
                         default:
-                            outputValue = string.Format("{0}[{1}]", inputValue, i);
+                            outputValue = string.Format("{0}[{1}]", inputValue, r);
                             break;
                     }
                 }
-                visitor.AddShaderChunk(string.Format("{0}{1} {2} = {3};", precision, numInputRows, GetVariableNameForSlot(s_OutputSlots[i]), outputValue), true);
+                visitor.AddShaderChunk(string.Format("{0}{1} {2} = {3};", precision, concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue), true);
             }
         }
 
@@ -266,28 +273,6 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
             DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
-        }
-
-        public override ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
-        {
-            var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
-
-            var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
-            switch (inputTypesDistinct.Count)
-            {
-                case 0:
-                    return ConcreteSlotValueType.Vector1;
-                case 1:
-                    return inputTypesDistinct.FirstOrDefault();
-                default:
-                    // find the 'minumum' channel width excluding 1 as it can promote
-                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
-                    var ordered = inputTypesDistinct.OrderByDescending(x => x);
-                    if (ordered.Any())
-                        return ordered.FirstOrDefault();
-                    break;
-            }
-            return ConcreteSlotValueType.Vector1;
         }
     }
 }

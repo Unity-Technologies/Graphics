@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return "float2x2 " + referenceName + ";";
+            return "float4x4 " + referenceName + " = float4x4(1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)" + delimiter;
         }
 
         public override INode ToConcreteNode()
@@ -29,6 +29,6 @@ namespace UnityEditor.ShaderGraph
                 row0 = new Vector2(value.m00, value.m01), 
                 row1 = new Vector2(value.m10, value.m11)
             };
-        }
+        } 
     }
 }

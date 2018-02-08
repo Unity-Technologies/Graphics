@@ -10,10 +10,10 @@ namespace UnityEditor.ShaderGraph
     public class DynamicMatrixMaterialSlot : MaterialSlot, IMaterialSlotHasValue<Matrix4x4>
     {
         [SerializeField]
-        private Matrix4x4 m_Value;
+        private Matrix4x4 m_Value = Matrix4x4.identity;
 
         [SerializeField]
-        private Matrix4x4 m_DefaultValue;
+        private Matrix4x4 m_DefaultValue = Matrix4x4.identity;
 
         private ConcreteSlotValueType m_ConcreteValueType = ConcreteSlotValueType.Matrix4;
 
@@ -31,6 +31,11 @@ namespace UnityEditor.ShaderGraph
             : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
             m_Value = value;
+        }
+
+        public override VisualElement InstantiateControl()
+        {
+            return new LabelSlotControlView("Identity");
         }
 
         public Matrix4x4 defaultValue { get { return m_DefaultValue; } }
@@ -55,16 +60,20 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
         {
-            var channelCount = (int)SlotValueHelper.GetChannelCount(concreteValueType);
+            var channelCount = (int)SlotValueHelper.GetMatrixDimension(concreteValueType);
             var values = "";
+            bool isFirst = true;
             for (var r = 0; r < channelCount; r++)
             {
-                for (var i = 0; i < channelCount; i++)
+                for (var c = 0; c < channelCount; c++)
                 {
-                    values += ", " + value.GetRow(r)[i];
+                    if(!isFirst)
+                        values += ", ";
+                    isFirst = false;
+                    values += value.GetRow(r)[c];
                 }
             }
-            return string.Format("{0}{1}({2})", precision, channelCount, values);
+            return string.Format("{0}{1}x{1}({2})", precision, channelCount, values);
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

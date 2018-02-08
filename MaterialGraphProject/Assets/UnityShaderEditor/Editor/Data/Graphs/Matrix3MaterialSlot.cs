@@ -1,6 +1,8 @@
 using System;
-using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -8,10 +10,10 @@ namespace UnityEditor.ShaderGraph
     public class Matrix3MaterialSlot : MaterialSlot, IMaterialSlotHasValue<Matrix4x4>
     {
         [SerializeField]
-        private Matrix4x4 m_Value;
+        private Matrix4x4 m_Value = Matrix4x4.identity;
 
         [SerializeField]
-        private Matrix4x4 m_DefaultValue;
+        private Matrix4x4 m_DefaultValue = Matrix4x4.identity;
 
         public Matrix3MaterialSlot()
         {
@@ -26,6 +28,11 @@ namespace UnityEditor.ShaderGraph
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
+        }
+
+        public override VisualElement InstantiateControl()
+        {
+            return new LabelSlotControlView("Identity");
         }
 
         public Matrix4x4 defaultValue { get { return m_DefaultValue; } }
