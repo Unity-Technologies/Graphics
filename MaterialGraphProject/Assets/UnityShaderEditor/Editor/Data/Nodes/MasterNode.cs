@@ -29,6 +29,11 @@ namespace UnityEditor.ShaderGraph
         {
             get { return PreviewMode.Preview3D; }
         }
+
+        public Type supportedSubshaderType
+        {
+            get { return typeof(T); }
+        }
         
         public IEnumerable<T> subShaders
         {
