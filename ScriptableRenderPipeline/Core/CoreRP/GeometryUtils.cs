@@ -57,20 +57,23 @@ namespace UnityEngine.Experimental.Rendering
     [GenerateHLSL]
     public struct OrientedBBox
     {
-        public Vector4 center;             // w is unused
-        public Vector4 right, up, forward; // {x, y, z} = normalized local axis, w = 1/2 * size along the axis
+        public Vector3 center;
+        public float   extentX;
+        public Vector3 right;
+        public float   extentY;
+        public Vector3 up;
+        public float   extentZ;
 
         public static OrientedBBox Create(Transform t)
         {
             OrientedBBox obb = new OrientedBBox();
 
-            obb.center    = t.position;
-            obb.right     = t.right;
-            obb.right.w   = 0.5f * t.localScale.x;
-            obb.up        = t.up;
-            obb.up.w      = 0.5f * t.localScale.y;
-            obb.forward   = t.forward;
-            obb.forward.w = 0.5f * t.localScale.z;
+            obb.center  = t.position;
+            obb.right   = t.right;
+            obb.up      = t.up;
+            obb.extentX = 0.5f * t.localScale.x;
+            obb.extentY = 0.5f * t.localScale.y;
+            obb.extentZ = 0.5f * t.localScale.z;
 
             return obb;
         }
@@ -83,7 +86,8 @@ namespace UnityEngine.Experimental.Rendering
         public static bool Overlap(OrientedBBox obb, Vector3 cameraRelativeOffset,
                                    Frustum frustum, int numPlanes, int numCorners)
         {
-            Vector3 relCenter = (Vector3)obb.center + cameraRelativeOffset;
+            Vector3 center  = obb.center + cameraRelativeOffset;
+            Vector3 forward = Vector3.Cross(obb.up, obb.right);
 
             bool overlap = true;
 
@@ -96,12 +100,12 @@ namespace UnityEngine.Experimental.Rendering
                 float   d = frustum.planes[i].distance;
 
                 // Max projection of the half-diagonal onto the normal (always positive).
-                float maxHalfDiagProj = Mathf.Abs(Vector3.Dot(n, obb.right))   * obb.right.w
-                                      + Mathf.Abs(Vector3.Dot(n, obb.up))      * obb.up.w
-                                      + Mathf.Abs(Vector3.Dot(n, obb.forward)) * obb.forward.w;
+                float maxHalfDiagProj = obb.extentX * Mathf.Abs(Vector3.Dot(n, obb.right))
+                                      + obb.extentY * Mathf.Abs(Vector3.Dot(n, obb.up)) 
+                                      + obb.extentZ * Mathf.Abs(Vector3.Dot(n, forward));
 
                 // Negative distance -> center behind the plane (outside).
-                float centerToPlaneDist = Vector3.Dot(n, relCenter) + d;
+                float centerToPlaneDist = Vector3.Dot(n, center) + d;
 
                 // outside = maxHalfDiagProj < -centerToPlaneDist
                 // outside = maxHalfDiagProj + centerToPlaneDist < 0
@@ -118,11 +122,11 @@ namespace UnityEngine.Experimental.Rendering
             Plane[] planes = new Plane[3];
 
             planes[0].normal   = obb.right;
-            planes[0].distance = obb.right.w;
+            planes[0].distance = obb.extentX;
             planes[1].normal   = obb.up;
-            planes[1].distance = obb.up.w;
-            planes[2].normal   = obb.forward;
-            planes[2].distance = obb.forward.w;
+            planes[1].distance = obb.extentY;
+            planes[2].normal   = forward;
+            planes[2].distance = obb.extentZ;
 
             for (int i = 0; overlap && i < 3; i++)
             {
@@ -135,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Merge 2 loops. Continue as long as all points are outside either plane.
                 for (int j = 0; j < numCorners; j++)
                 {
-                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - relCenter);
+                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - center);
                     outsidePos = outsidePos && ( proj > plane.distance);
                     outsideNeg = outsideNeg && (-proj > plane.distance);
                 }
