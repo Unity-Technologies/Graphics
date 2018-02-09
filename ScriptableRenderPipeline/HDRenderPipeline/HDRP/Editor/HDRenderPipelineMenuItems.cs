@@ -278,24 +278,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (materialID != 0.0)
                             continue;
 
-                        CheckOutFile(VSCEnabled, mat);
-
-                        float materialSSSAndTransmissionID = mat.GetInt("_SSSAndTransmissionType");
-
-                        // Both;, SSS only, Transmission only
-                        if (materialSSSAndTransmissionID == 2.0)
+                        if (mat.HasProperty("_SSSAndTransmissionType"))
                         {
-                            mat.SetInt("_MaterialID", 5);
-                        }
-                        else
-                        {
-                            if (materialSSSAndTransmissionID == 0.0)
-                                mat.SetFloat("_TransmissionEnable", 1.0f);
+                            CheckOutFile(VSCEnabled, mat);
+
+                            int materialSSSAndTransmissionID = mat.GetInt("_SSSAndTransmissionType");
+
+                            // Both;, SSS only, Transmission only
+                            if (materialSSSAndTransmissionID == 2.0)
+                            {
+                                mat.SetInt("_MaterialID", 5);
+                            }
                             else
-                                mat.SetFloat("_TransmissionEnable", 0.0f);
-                        }
+                            {
+                                if (materialSSSAndTransmissionID == 0.0)
+                                    mat.SetFloat("_TransmissionEnable", 1.0f);
+                                else
+                                    mat.SetFloat("_TransmissionEnable", 0.0f);
+                            }
 
-                        EditorUtility.SetDirty(mat);
+                            EditorUtility.SetDirty(mat);
+                        }
                     }
                 }
             }
