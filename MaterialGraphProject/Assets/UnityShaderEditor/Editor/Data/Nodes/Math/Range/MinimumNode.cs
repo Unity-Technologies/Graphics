@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Minimum";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Minimum-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Minimum", BindingFlags.Static | BindingFlags.NonPublic);
