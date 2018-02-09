@@ -55,6 +55,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.ClearRandomWriteTargets();
         }
 
+        public void SetHTileTexture(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._DecalHTileTexture, m_HTile);
+        }
+
         public void PushGlobalParams(CommandBuffer cmd, FrameSettings frameSettings)
         {
             if (frameSettings.enableDBuffer)
