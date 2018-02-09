@@ -291,6 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
+            public int decalCount;
 
             public void Clear()
             {
@@ -298,6 +299,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights.Clear();
                 envLights.Clear();
                 shadows.Clear();
+                decalCount = 0;
 
                 bounds.Clear();
                 lightVolumes.Clear();
@@ -309,6 +311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
                 shadows = new List<ShadowData>();
+                decalCount = 0;
 
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
@@ -1254,7 +1257,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.proxyPositionWS = proxyToWorld.GetColumn(3);
 
             m_lightList.envLights.Add(envLightData);
-
             return true;
         }
         
@@ -1263,26 +1265,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
 
-            var yExtent = decalToWorld.GetColumn(1) * 0.5f; // because of how decal mesh is defined Y is not centered, but rather covers a full extent
+            var influenceX = decalToWorld.GetColumn(0) * 0.5f;
+            var influenceY = decalToWorld.GetColumn(1) * 0.5f;
+            var influenceZ = decalToWorld.GetColumn(2) * 0.5f;
+            var pos = decalToWorld.GetColumn(3) - influenceY; // decal cube mesh pivot is at 0,0,0, with bottom face at -1 on the y plane
+
+            Vector3 influenceExtents = new Vector3();
+            influenceExtents.x = influenceX.magnitude;
+            influenceExtents.y = influenceY.magnitude;
+            influenceExtents.z = influenceZ.magnitude;
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-            var influenceRightVS = worldToView.MultiplyVector(decalToWorld.GetColumn(0));
-            var influenceUpVS = worldToView.MultiplyVector(yExtent); 
-            var influenceForwardVS = worldToView.MultiplyVector(decalToWorld.GetColumn(2));
-            var influencePositionVS = worldToView.MultiplyPoint(decalToWorld.GetColumn(3) + yExtent); // place the mesh pivot in the center
-            var influenceExtents = influenceRightVS + influenceUpVS + influenceForwardVS;
-            influenceExtents.x = Mathf.Abs(influenceExtents.x);
-            influenceExtents.y = Mathf.Abs(influenceExtents.y);
-            influenceExtents.z = Mathf.Abs(influenceExtents.z);
+            var influenceRightVS = worldToView.MultiplyVector(influenceX / influenceExtents.x);
+            var influenceUpVS = worldToView.MultiplyVector(influenceY / influenceExtents.y);
+            var influenceForwardVS = worldToView.MultiplyVector(influenceZ / influenceExtents.z);
+            var influencePositionVS = worldToView.MultiplyPoint(pos); // place the mesh pivot in the center
 
 			lightVolumeData.lightCategory = (uint)LightCategory.Decal;
             lightVolumeData.lightVolume = (uint)LightVolumeType.Box;
-			lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
+			lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
 
             bound.center = influencePositionVS;
-            bound.boxAxisX = influenceRightVS;
-            bound.boxAxisY = influenceUpVS;
-            bound.boxAxisZ = influenceForwardVS;
+            bound.boxAxisX = influenceRightVS * influenceExtents.x;
+            bound.boxAxisY = influenceUpVS * influenceExtents.y;
+            bound.boxAxisZ = influenceForwardVS * influenceExtents.z;
             bound.scaleXY.Set(1.0f, 1.0f);
             bound.radius = influenceExtents.magnitude;
 
@@ -1295,9 +1301,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightVolumeData.lightAxisZ = influenceForwardVS;
             lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
             lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
-        
+
             m_lightList.bounds.Add(bound);
-            m_lightList.lightVolumes.Add(lightVolumeData);            
+            m_lightList.lightVolumes.Add(lightVolumeData);
+            m_lightCount++;
         }
       
         public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
@@ -1736,7 +1743,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
-                UpdateDataBuffers();
+//                UpdateDataBuffers();
 
                 m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
@@ -1995,7 +2002,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PushGlobalParams(camera, cmd);
         }
 
-        private void UpdateDataBuffers()
+        public void UpdateDataBuffers()
         {
             s_DirectionalLightDatas.SetData(m_lightList.directionalLights);
             s_LightDatas.SetData(m_lightList.lights);

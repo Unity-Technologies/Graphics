@@ -130,11 +130,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.ClearRandomWriteTargets();
         }
 
+
+        public void SetHTileTexture(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._DecalHTileTexture, m_HTileRT);
+        }
+
         public void PushGlobalParams(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
         }
-
+        
         public void Resize(HDCamera camera)
         {
 			CoreUtils.ResizeHTile(ref m_HTile, ref m_HTileRT, camera.renderTextureDesc);
@@ -860,6 +866,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderDBuffer(hdCamera, renderContext, cmd);
 
+                    m_LightLoop.UpdateDataBuffers();
+
                     RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
@@ -1240,10 +1248,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffers(), m_CameraDepthStencilBufferRT);
-                if (m_FrameSettings.enableDBuffer)
-                {
-                    m_DbufferManager.SetHTile(m_GbufferManager.gbufferCount, cmd);
-                }
 
                 // Render opaque objects into GBuffer
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
@@ -1265,11 +1269,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
                     }
-                }
-
-                if (m_FrameSettings.enableDBuffer)
-                {
-                    m_DbufferManager.UnSetHTile(cmd);
                 }
             }
         }
@@ -1301,6 +1300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.SetHTile(m_DbufferManager.dbufferCount, cmd);
                 DecalSystem.instance.Render(renderContext, camera, cmd, m_LightLoop);
                 m_DbufferManager.UnSetHTile(cmd);
+                m_DbufferManager.SetHTileTexture(cmd);
             }
         }
 

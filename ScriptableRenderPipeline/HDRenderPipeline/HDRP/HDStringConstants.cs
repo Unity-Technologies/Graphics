@@ -188,6 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _HTile = Shader.PropertyToID("_HTile");
         public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
+        public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
 
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
