@@ -7,20 +7,21 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialNodeView : Node
     {
-        List<VisualElement> m_ControlViews;
         PreviewRenderData m_PreviewRenderData;
-        PreviewTextureView m_PreviewTextureView;
-        VisualElement m_ControlsContainer;
+        Image m_PreviewImage;
         VisualElement m_PreviewContainer;
-        List<Attacher> m_Attachers;
+        VisualElement m_ControlItems;
+        VisualElement m_PreviewFiller;
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
+        VisualElement m_PortInputContainer;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -29,34 +30,47 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (inNode == null)
                 return;
 
+            var contents = this.Q("contents");
+
             m_ConnectorListener = connectorListener;
             node = inNode;
             persistenceKey = node.guid.ToString();
             UpdateTitle();
 
-            m_ControlsContainer = new VisualElement
+            // Add controls container
+            var controlsContainer = new VisualElement { name = "controls" };
             {
-                name = "controls"
-            };
-            extensionContainer.Add(m_ControlsContainer);
-            m_ControlsDivider = new VisualElement { name = "divider" };
-            m_ControlsDivider.AddToClassList("horizontal");
+                m_ControlsDivider = new VisualElement { name = "divider" };
+                m_ControlsDivider.AddToClassList("horizontal");
+                controlsContainer.Add(m_ControlsDivider);
+                m_ControlItems = new VisualElement { name = "items" };
+                controlsContainer.Add(m_ControlItems);
+
+                // Instantiate control views from node
+                foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
+                    m_ControlItems.Add(attribute.InstantiateControl(node, propertyInfo));
+            }
+            if (m_ControlItems.childCount > 0)
+                contents.Add(controlsContainer);
 
             if (node.hasPreview)
             {
-                m_PreviewContainer = new VisualElement { name = "previewContainer" };
-                m_PreviewContainer.AddToClassList("expanded");
+                // Add actual preview which floats on top of the node
+                m_PreviewContainer = new VisualElement
                 {
-                    m_PreviewTextureView = new PreviewTextureView
-                    {
-                        name = "preview",
-                        pickingMode = PickingMode.Ignore,
-                        image = Texture2D.whiteTexture
-                    };
-                    m_PreviewRenderData = previewManager.GetPreview(inNode);
-                    m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
-                    UpdatePreviewTexture();
-
+                    name = "previewContainer",
+                    clippingOptions = ClippingOptions.ClipAndCacheContents,
+                    pickingMode = PickingMode.Ignore
+                };
+                m_PreviewImage = new Image
+                {
+                    name = "preview",
+                    pickingMode = PickingMode.Ignore,
+                    image = Texture2D.whiteTexture,
+                };
+                {
+                    // Add preview collapse button on top of preview
                     var collapsePreviewButton = new VisualElement { name = "collapse" };
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
@@ -64,8 +78,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
                         UpdatePreviewExpandedState(false);
                     }));
-                    UpdatePreviewExpandedState(node.previewExpanded);
-                    m_PreviewTextureView.Add(collapsePreviewButton);
+                    m_PreviewImage.Add(collapsePreviewButton);
+                }
+                m_PreviewContainer.Add(m_PreviewImage);
+
+                // Hook up preview image to preview manager
+                m_PreviewRenderData = previewManager.GetPreview(inNode);
+                m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
+                UpdatePreviewTexture();
+
+                // Add fake preview which pads out the node to provide space for the floating preview
+                m_PreviewFiller = new VisualElement { name = "previewFiller" };
+                m_PreviewFiller.AddToClassList("expanded");
+                {
+                    var previewDivider = new VisualElement { name = "divider" };
+                    previewDivider.AddToClassList("horizontal");
+                    m_PreviewFiller.Add(previewDivider);
 
                     var expandPreviewButton = new VisualElement { name = "expand" };
                     expandPreviewButton.Add(new VisualElement { name = "icon" });
@@ -74,26 +102,29 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
                         UpdatePreviewExpandedState(true);
                     }));
-                    m_PreviewContainer.Add(expandPreviewButton);
+                    m_PreviewFiller.Add(expandPreviewButton);
                 }
+                contents.Add(m_PreviewFiller);
 
-                extensionContainer.Add(m_PreviewContainer);
+                UpdatePreviewExpandedState(node.previewExpanded);
             }
 
-            m_ControlViews = new List<VisualElement>();
-            foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
-                m_ControlViews.Add(attribute.InstantiateControl(node, propertyInfo));
-            m_Attachers = new List<Attacher>(node.GetInputSlots<MaterialSlot>().Count());
+            // Add port input container, which acts as a pixel cache for all port inputs
+            m_PortInputContainer = new VisualElement
+            {
+                name = "portInputContainer",
+                clippingOptions = ClippingOptions.ClipAndCacheContents,
+                pickingMode = PickingMode.Ignore
+            };
+            Add(m_PortInputContainer);
 
             AddSlots(node.GetSlots<MaterialSlot>());
-            UpdateSlotAttachers();
+            UpdatePortInputs();
             base.expanded = node.drawState.expanded;
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
             UpdatePortInputVisibilities();
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-            UpdateControls();
 
             if (node is PreviewNode)
             {
@@ -102,6 +133,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Add(resizeHandle);
                 UpdateSize();
             }
+
+            m_PortInputContainer.SendToBack();
+            if (node.hasPreview)
+                m_PreviewFiller.BringToFront();
         }
 
         public AbstractMaterialNode node { get; private set; }
@@ -121,9 +156,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.drawState = ds;
                 }
 
-                UpdateControls();
-                UpdatePortInputVisibilities();
                 RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+                UpdatePortInputVisibilities();
+                if (node.hasPreview)
+                    m_PreviewFiller.BringToFront();
             }
         }
 
@@ -158,25 +194,25 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdatePreviewExpandedState(bool expanded)
         {
             node.previewExpanded = expanded;
-            if (m_PreviewContainer == null)
+            if (m_PreviewFiller == null)
                 return;
             if (expanded)
             {
-                if (m_PreviewTextureView.parent != m_PreviewContainer)
+                if (m_PreviewContainer.parent != this)
                 {
-                    m_PreviewContainer.Add(m_PreviewTextureView);
+                    Add(m_PreviewContainer);
                 }
-                m_PreviewContainer.AddToClassList("expanded");
-                m_PreviewContainer.RemoveFromClassList("collapsed");
+                m_PreviewFiller.AddToClassList("expanded");
+                m_PreviewFiller.RemoveFromClassList("collapsed");
             }
             else
             {
-                if (m_PreviewTextureView.parent == m_PreviewContainer)
+                if (m_PreviewContainer.parent == m_PreviewFiller)
                 {
-                    m_PreviewTextureView.RemoveFromHierarchy();
+                    m_PreviewContainer.RemoveFromHierarchy();
                 }
-                m_PreviewContainer.RemoveFromClassList("expanded");
-                m_PreviewContainer.AddToClassList("collapsed");
+                m_PreviewFiller.RemoveFromClassList("expanded");
+                m_PreviewFiller.AddToClassList("collapsed");
             }
         }
 
@@ -212,14 +248,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // Slot doesn't exist anymore, remove it
                         inputContainer.Remove(port);
 
-                        // We also need to remove the attacher along with the element it's attaching
-                        var attacher = m_Attachers.FirstOrDefault(a => a.target == port);
-                        if (attacher != null)
-                        {
-                            attacher.Detach();
-                            attacher.element.parent.Remove(attacher.element);
-                            m_Attachers.Remove(attacher);
-                        }
+                        // We also need to remove the inline input
+                        var portInputView = m_PortInputContainer.OfType<PortInputView>().FirstOrDefault(v => Equals(v.slot, port.slot));
+                        if (portInputView != null)
+                            portInputView.RemoveFromHierarchy();
                     }
                     else
                     {
@@ -255,12 +287,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
             }
 
-            UpdateControls();
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
-            UpdateSlotAttachers();
+            UpdatePortInputs();
             UpdatePortInputVisibilities();
 
-            foreach (var control in m_ControlViews)
+            foreach (var control in m_ControlItems)
             {
                 var listener = control as INodeModificationListener;
                 if (listener != null)
@@ -283,26 +314,47 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdateSlotAttachers()
+        void UpdatePortInputs()
         {
             foreach (var port in inputContainer.OfType<ShaderPort>())
             {
-                if (!m_Attachers.Any(a => a.target == port))
+                if (!m_PortInputContainer.OfType<PortInputView>().Any(a => Equals(a.slot, port.slot)))
                 {
-                    var portInputView = new PortInputView(port.slot);
-                    Add(portInputView);
-                    mainContainer.BringToFront();
-                    m_Attachers.Add(new Attacher(portInputView, port, SpriteAlignment.LeftCenter) { distance = -8f });
+                    var portInputView = new PortInputView(port.slot) { style = { positionType = PositionType.Absolute } };
+                    m_PortInputContainer.Add(portInputView);
+                    port.RegisterCallback<PostLayoutEvent>(evt => UpdatePortInput((ShaderPort)evt.target));
                 }
             }
         }
 
+        void UpdatePortInput(ShaderPort port)
+        {
+            var inputView = m_PortInputContainer.OfType<PortInputView>().First(x => Equals(x.slot, port.slot));
+
+            var currentRect = new Rect(inputView.style.positionLeft, inputView.style.positionTop, inputView.style.width, inputView.style.height);
+            var targetRect = new Rect(0.0f, 0.0f, port.layout.width, port.layout.height);
+            targetRect = port.ChangeCoordinatesTo(inputView.shadow.parent, targetRect);
+            var centerY = targetRect.center.y;
+            var centerX = targetRect.xMax - currentRect.width;
+            currentRect.center = new Vector2(centerX, centerY);
+
+            inputView.style.positionTop = currentRect.yMin;
+            var newHeight = inputView.parent.layout.height;
+            foreach (var element in inputView.parent.Children())
+                newHeight = Mathf.Max(newHeight, element.style.positionTop + element.layout.height);
+            if (Math.Abs(inputView.parent.style.height - newHeight) > 1e-3)
+                inputView.parent.style.height = newHeight;
+        }
+
         public void UpdatePortInputVisibilities()
         {
-            foreach (var attacher in m_Attachers)
+            foreach (var portInputView in m_PortInputContainer.OfType<PortInputView>())
             {
-                var slot = ((ShaderPort)attacher.target).slot;
-                attacher.element.visible = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any();
+                var slot = portInputView.slot;
+                var oldVisibility = portInputView.visible;
+                portInputView.visible = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any();
+                if (portInputView.visible != oldVisibility)
+                    m_PortInputContainer.Dirty(ChangeType.Repaint);
             }
         }
 
@@ -315,17 +367,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 anchor.visualClass = slot.concreteValueType.ToClassName();
             }
 
-            foreach (var attacher in m_Attachers)
-            {
-                var portInputView = (PortInputView)attacher.element;
+            foreach (var portInputView in m_PortInputContainer.OfType<PortInputView>())
                 portInputView.UpdateSlotType();
-            }
         }
 
         void OnResize(Vector2 deltaSize)
         {
             var updatedWidth = topContainer.layout.width + deltaSize.x;
-            var updatedHeight = m_PreviewTextureView.layout.height + deltaSize.y;
+            var updatedHeight = m_PreviewImage.layout.height + deltaSize.y;
 
             var previewNode = node as PreviewNode;
             if (previewNode != null)
@@ -339,42 +388,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_PreviewRenderData.texture == null || !node.previewExpanded)
             {
-                m_PreviewTextureView.visible = false;
-                m_PreviewTextureView.image = Texture2D.blackTexture;
+                m_PreviewImage.visible = false;
+                m_PreviewImage.image = Texture2D.blackTexture;
             }
             else
             {
-                m_PreviewTextureView.visible = true;
-                m_PreviewTextureView.AddToClassList("visible");
-                m_PreviewTextureView.RemoveFromClassList("hidden");
-                if (m_PreviewTextureView.image != m_PreviewRenderData.texture)
-                    m_PreviewTextureView.image = m_PreviewRenderData.texture;
+                m_PreviewImage.visible = true;
+                m_PreviewImage.AddToClassList("visible");
+                m_PreviewImage.RemoveFromClassList("hidden");
+                if (m_PreviewImage.image != m_PreviewRenderData.texture)
+                    m_PreviewImage.image = m_PreviewRenderData.texture;
                 else
-                    m_PreviewTextureView.Dirty(ChangeType.Repaint);
+                    m_PreviewImage.Dirty(ChangeType.Repaint);
             }
-        }
-
-        void UpdateControls()
-        {
-            if (!expanded)
-            {
-                m_ControlsContainer.Clear();
-                m_ControlsDivider.RemoveFromHierarchy();
-            }
-            else if (m_ControlsContainer.childCount != m_ControlViews.Count)
-            {
-                m_ControlsContainer.Clear();
-                foreach (var view in m_ControlViews)
-                    m_ControlsContainer.Add(view);
-                extensionContainer.Add(m_ControlsDivider);
-                if (m_PreviewContainer != null)
-                    m_ControlsDivider.PlaceBehind(m_PreviewContainer);
-            }
-
-            if (m_ControlsContainer.childCount == 0)
-                m_ControlsContainer.RemoveFromClassList("notEmpty");
-            else
-                m_ControlsContainer.AddToClassList("notEmpty");
         }
 
         void UpdateSize()
@@ -387,18 +413,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var width = previewNode.width;
             var height = previewNode.height;
 
-            m_PreviewTextureView.style.height = height;
+            m_PreviewImage.style.height = height;
+            m_PreviewImage.style.width = width;
         }
 
         public void Dispose()
         {
-            foreach (var attacher in m_Attachers)
-            {
-                ((PortInputView)attacher.element).Dispose();
-                attacher.Detach();
-                attacher.element.parent.Remove(attacher.element);
-            }
-            m_Attachers.Clear();
+            foreach (var portInputView in m_PortInputContainer.OfType<PortInputView>())
+                portInputView.Dispose();
 
             node = null;
             if (m_PreviewRenderData != null)

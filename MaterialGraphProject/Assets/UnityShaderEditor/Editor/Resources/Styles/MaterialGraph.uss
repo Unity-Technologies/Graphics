@@ -32,23 +32,41 @@ MaterialNodeView.graphElement.node.MaterialNode {
     margin-right: 0;
 }
 
-MaterialNodeView #previewContainer,
+MaterialNodeView #collapsible-area {
+    width: 0;
+    height: 0;
+}
+
+MaterialNodeView #previewFiller.expanded {
+    width: 200;
+    padding-bottom: 200;
+}
+
+MaterialNodeView #previewFiller,
 MaterialNodeView #controls {
     background-color: rgba(63, 63, 63, 0.8);
 }
 
-MaterialNodeView #controls.notEmpty {
+MaterialNodeView #controls > #items {
     padding-top: 4;
     padding-bottom: 4;
 }
 
-MaterialNodeView #previewContainer > #preview  {
+MaterialNodeView > #previewContainer {
+    position-type: absolute;
+    position-bottom: 4;
+    position-left: 4;
+    border-radius: 6;
+    padding-top: 6;
+}
+
+MaterialNodeView > #previewContainer > #preview  {
     width: 200;
     height: 200;
     align-items:center;
 }
 
-MaterialNodeView #previewContainer > #preview > #collapse {
+MaterialNodeView > #previewContainer > #preview > #collapse {
     background-color: #000;
     border-color: #F0F0F0;
     width: 0;
@@ -65,27 +83,23 @@ MaterialNodeView #previewContainer > #preview > #collapse {
 }
 
 
-MaterialNodeView #previewContainer:hover > #preview > #collapse {
+MaterialNodeView:hover > #previewContainer > #preview > #collapse {
     width: 20;
     height: 20;
     opacity: 0.6;
 }
 
-MaterialNodeView #previewContainer > #preview > #collapse > #icon
-{
+MaterialNodeView > #previewContainer > #preview > #collapse > #icon  {
     background-image : resource("GraphView/Nodes/PreviewCollapse.png");
     width: 16;
     height: 16;
 }
-MaterialNodeView #previewContainer > #preview > #collapse:hover {
+
+MaterialNodeView > #previewContainer > #preview > #collapse:hover {
     opacity: 1.0;
 }
 
-MaterialNodeView #previewContainer.collapsed > #preview > #collapse {
-    height: 0;
-}
-
-MaterialNodeView #previewContainer > #expand {
+MaterialNodeView #previewFiller > #expand {
     align-self: center;
     width: 56;
     height: 16;
@@ -93,18 +107,18 @@ MaterialNodeView #previewContainer > #expand {
     justify-content:center;
 }
 
-MaterialNodeView #previewContainer > #expand > #icon {
+MaterialNodeView #previewFiller > #expand > #icon {
     align-self: center;
     background-image : resource("GraphView/Nodes/PreviewExpand.png");
     width: 16;
     height: 16;
 }
 
-MaterialNodeView #previewContainer.collapsed > #expand:hover {
+MaterialNodeView #previewFiller.collapsed > #expand:hover {
     background-color: #2B2B2B;
 }
 
-MaterialNodeView #previewContainer.expanded > #expand {
+MaterialNodeView #previewFiller.expanded > #expand {
     height: 0;
 }
 
@@ -116,6 +130,13 @@ MaterialNodeView > #resize {
     width: 10;
     height: 10;
     cursor: resize-up-left;
+}
+
+MaterialNodeView > #portInputContainer {
+    position-type: absolute;
+    width: 212;
+    position-left: -200;
+    position-top: 46;
 }
 
 PortInputView {
@@ -273,6 +294,14 @@ UVSlotControlView > EnumField {
     margin-left: 0;
     margin-right: 0;
     width: 40;
+}
+
+ScreenPositionSlotControlView > EnumField {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 54;
 }
 
 ColorRGBASlotControlView {
@@ -447,48 +476,45 @@ MasterPreviewView {
     justify-content: flex-start;
     min-width: 200;
     min-height: 200;
+    border-radius: 6;
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    border-color: rgb(25,25,25);
+
 }
 
 MasterPreviewView > #top {
     background-color: rgb(64, 64, 64);
-}
-
-MasterPreviewView > #top > #title {
-    font-style: bold;
-    font-size: 11;
-}
-
-MasterPreviewView > #top {
     padding-top: 8;
     padding-bottom: 8;
     padding-left: 8;
     padding-right: 8;
+    border-top-left-radius: 6;
+    border-top-right-radius: 6;
+}
+
+MasterPreviewView > #top > #title {
+    font-size: 12;
+    text-color: rgb(180, 180, 180);
+    padding-top: 1;
+    padding-bottom: 2;
+    padding-left: 2;
+    padding-right: 2;
 }
 
 MasterPreviewView > #middle {
     flex-grow: 1;
+    border-width: 10;
     flex-direction: row;
-    margin-bottom: 40;
+    border-color: rgb(0,10,190);
 }
 
 MasterPreviewView > #middle > #preview {
     flex-grow: 1;
-}
-
-MasterPreviewView > #bottom {
-    background-color: rgb(79, 79, 79);
-    position-type: absolute;
-    position-bottom: 0;
-    position-left: 0;
-    position-right: 0;
-    padding-left: 10;
-    padding-right: 10;
-    padding-top: 8;
-    padding-bottom: 12;
-}
-
-MasterPreviewView > #bottom > #picker > ObjectFieldDisplay > Label {
-    font-size: 11;
+    border-width: 10;
+    border-color: rgb(200,10,190);
 }
 
 #resizeBorderFrame > .resize {

@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public BlackboardRow(VisualElement item, VisualElement propertyView)
         {
-            var tpl = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UnityShaderEditor/Editor/Resources/UXML/GraphView/BlackboardRow.uxml") as VisualTreeAsset;
+            var tpl = Resources.Load<VisualTreeAsset>("UXML/GraphView/BlackboardRow");
             VisualElement mainContainer = tpl.CloneTree(null);
             mainContainer.AddToClassList("mainContainer");
 

@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Multiply";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Multiply-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Multiply", BindingFlags.Static | BindingFlags.NonPublic);
