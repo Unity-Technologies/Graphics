@@ -369,7 +369,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // clear coat
             coatMask = FindProperty(kCoatMask, props);
-            coatMaskMap = FindProperty(kCoatMaskMap, props);            
+            coatMaskMap = FindProperty(kCoatMaskMap, props);
 
             // Transparency
             refractionMode = FindProperty(kRefractionMode, props, false);
@@ -435,13 +435,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     diffusionProfileID[layerIndex].floatValue = profileID;
             }
 
-            if ((int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || (int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSOnly)
+            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
             {
+                m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
+
                 m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             }
 
-            if ((int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || (int)sssAndTransmissionType.floatValue == (int)BaseLitGUI.SSSAndTransmissionType.LitTransmissionOnly)
+            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS ||
+                ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitTranslucent && transmissionEnable.floatValue > 0.0f))
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
                 if (thicknessMap[layerIndex].textureValue != null)
@@ -626,7 +629,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             switch ((BaseLitGUI.MaterialId)materialID.floatValue)
             {
-                case BaseLitGUI.MaterialId.LitSSSAndTransmission:
+                case BaseLitGUI.MaterialId.LitSSS:
+                case BaseLitGUI.MaterialId.LitTranslucent:
                     ShaderSSSAndTransmissionInputGUI(material, layerIndex);
                     break;
                 case BaseLitGUI.MaterialId.LitStandard:
@@ -650,7 +654,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!isLayeredLit)
             {
                 ShaderClearCoatInputGUI();
-            }            
+            }
 
             EditorGUILayout.Space();
 
@@ -900,18 +904,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
-            BaseLitGUI.SSSAndTransmissionType sssAndTransmissionType = (BaseLitGUI.SSSAndTransmissionType)material.GetFloat(kSSSAndTransmissionType);
-
-            if (materialId == BaseLitGUI.MaterialId.LitSSSAndTransmission)
-            {
-                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSOnly);
-                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission || sssAndTransmissionType == BaseLitGUI.SSSAndTransmissionType.LitTransmissionOnly);
-            }
-            else
-            {
-                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", false);
-                CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", false);
-            }
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitTranslucent || (materialId == BaseLitGUI.MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
 
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == BaseLitGUI.MaterialId.LitAniso);
             // No material Id for clear coat, just test the attribute
