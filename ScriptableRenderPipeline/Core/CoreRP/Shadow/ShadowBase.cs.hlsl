@@ -33,8 +33,12 @@
 // PackingRules = Exact
 struct ShadowData
 {
-    float4x4 worldToShadow;
     float4x4 shadowToWorld;
+    float4 proj;
+    float3 pos;
+    float3 rot0;
+    float3 rot1;
+    float3 rot2;
     float4 scaleOffset;
     float4 textureSize;
     float4 texelSizeRcp;
@@ -50,13 +54,29 @@ struct ShadowData
 //
 // Accessors for UnityEngine.Experimental.Rendering.ShadowData
 //
-float4x4 GetWorldToShadow(ShadowData value)
-{
-	return value.worldToShadow;
-}
 float4x4 GetShadowToWorld(ShadowData value)
 {
 	return value.shadowToWorld;
+}
+float4 GetProj(ShadowData value)
+{
+	return value.proj;
+}
+float3 GetPos(ShadowData value)
+{
+	return value.pos;
+}
+float3 GetRot0(ShadowData value)
+{
+	return value.rot0;
+}
+float3 GetRot1(ShadowData value)
+{
+	return value.rot1;
+}
+float3 GetRot2(ShadowData value)
+{
+	return value.rot2;
 }
 float4 GetScaleOffset(ShadowData value)
 {
