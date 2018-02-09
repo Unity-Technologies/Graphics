@@ -317,6 +317,7 @@ public class VolumetricLightingModule
     // Since a single voxel corresponds to a tile (e.g. 8x8) of pixels,
     // the VBuffer can potentially extend past the boundaries of the viewport.
     // The function returns the fraction of the {width, height} of the VBuffer visible on screen.
+    // Note: for performance reasons, scale is unused (implicitly 1). The error is typically under 1%.
     static Vector2 ComputeVBufferResolutionAndScale(VolumetricLightingPreset preset,
                                                     int screenWidth, int screenHeight,
                                                     ref int w, ref int h, ref int d)
@@ -395,14 +396,14 @@ public class VolumetricLightingModule
         cmd.SetGlobalFloat( HDShaderIDs._Global_Asymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
-        Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
+        ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
 
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
 
         SetPreconvolvedAmbientLightProbe(cmd, asymmetry);
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
-        cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferSliceCount,          new Vector4(d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams, ComputeLogarithmicDepthDecodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
@@ -530,13 +531,12 @@ public class VolumetricLightingModule
             }
 
             int w = 0, h = 0, d = 0;
-            Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
-            float   vFoV  = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
 
             // Compose the matrix which allows us to compute the world space view direction.
-            // Compute it using the scaled resolution to account for the visible area of the VBuffer.
-            Vector4   scaledRes = new Vector4(w * scale.x, h * scale.y, 1.0f / (w * scale.x), 1.0f / (h * scale.y));
-            Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, scaledRes, camera.viewMatrix, false);
+            float     vFoV       = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
+            Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
 
             camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 

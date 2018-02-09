@@ -331,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Global_Asymmetry           = Shader.PropertyToID("_Global_Asymmetry");
         public static readonly int _CornetteShanksConstant     = Shader.PropertyToID("_CornetteShanksConstant");
         public static readonly int _VBufferResolution          = Shader.PropertyToID("_VBufferResolution");
-        public static readonly int _VBufferScaleAndSliceCount  = Shader.PropertyToID("_VBufferScaleAndSliceCount");
+        public static readonly int _VBufferSliceCount          = Shader.PropertyToID("_VBufferSliceCount");
         public static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
         public static readonly int _VBufferDepthDecodingParams = Shader.PropertyToID("_VBufferDepthDecodingParams");
         public static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
