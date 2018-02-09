@@ -398,8 +398,12 @@ namespace UnityEngine.Experimental.Rendering
     public struct ShadowData
     {
         // shadow texture related params (need to be set by ShadowmapBase and derivatives)
-        public Matrix4x4     worldToShadow;  // to light space matrix
         public Matrix4x4     shadowToWorld;  // from light space matrix
+        public Vector4       proj;           // projection matrix value _00, _11, _22, _23
+        public Vector3       pos;            // view matrix light position
+        public Vector3       rot0;           // first column of view matrix rotation
+        public Vector3       rot1;           // second column of view matrix rotation
+        public Vector3       rot2;           // third column of view matrix rotation
         public Vector4       scaleOffset;    // scale and offset of shadowmap in atlas
         public Vector4       textureSize;    // the shadowmap's size in x and y. xy is texture relative, zw is viewport relative.
         public Vector4       texelSizeRcp;   // reciprocal of the shadowmap's texel size in x and y. xy is texture relative, zw is viewport relative.

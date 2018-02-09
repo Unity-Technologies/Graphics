@@ -2,10 +2,40 @@
 // There are two variants provided, one takes the texture and sampler explicitly so they can be statically passed in.
 // The variant without resource parameters dynamically accesses the texture when sampling.
 
+float4 EvalShadow_WorldToShadow( ShadowData sd, real3 positionWS, bool perspProj )
+{
+	if( perspProj )
+	{
+		positionWS = positionWS - sd.pos;
+		float3x3 view = { sd.rot0, sd.rot1, sd.rot2 };
+		positionWS = mul( view, positionWS );
+	}
+	else
+	{
+		float3x4 view;
+		view[0] = float4( sd.rot0, sd.pos.x );
+		view[1] = float4( sd.rot1, sd.pos.y );
+		view[2] = float4( sd.rot2, sd.pos.z );
+		positionWS = mul( view, float4( positionWS, 1.0 ) ).xyz;
+	}
+
+	float4x4 proj;
+	proj = 0.0;
+	proj._m00 = sd.proj[0];
+	proj._m11 = sd.proj[1];
+	proj._m22 = sd.proj[2];
+	proj._m23 = sd.proj[3];
+	if( perspProj )
+		proj._m32 = -1.0;
+	else
+		proj._m33 = 1.0;
+
+	return mul( proj, float4( positionWS, 1.0 ) );
+}
 // function called by spot, point and directional eval routines to calculate shadow coordinates
 real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real3 posNDC, bool clampToRect, bool perspProj )
 {
-	real4 posCS = mul( real4( positionWS, 1.0 ), sd.worldToShadow );
+	real4 posCS = EvalShadow_WorldToShadow( sd, positionWS, perspProj );
 	posNDC = perspProj ? (posCS.xyz / posCS.w) : posCS.xyz;
 	// calc TCs
 	real3 posTC = real3( posNDC.xy * 0.5 + 0.5, posNDC.z );
@@ -23,7 +53,7 @@ real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, bool perspProj )
 
 uint2 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real2 closestSampleNDC, bool perspProj )
 {
-	real4 posCS = mul( real4( positionWS, 1.0 ), sd.worldToShadow );
+	real4 posCS = EvalShadow_WorldToShadow( sd, positionWS, perspProj );
 	real2 posNDC = perspProj ? (posCS.xy / posCS.w) : posCS.xy;
 	// calc TCs
 	real2 posTC = posNDC * 0.5 + 0.5;
@@ -175,8 +205,8 @@ float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 nor
 		e2 = float3( -normalWS.z / normalWS.x, 0.0, 1.0 );
 	}
 
-	float4 p1 = mul( float4( positionWS + e1, 1.0 ), sd.worldToShadow );
-	float4 p2 = mul( float4( positionWS + e2, 1.0 ), sd.worldToShadow );
+	float4 p1 = EvalShadow_WorldToShadow( sd, positionWS + e1, true );
+	float4 p2 = EvalShadow_WorldToShadow( sd, positionWS + e2, true );
 
 	p1.xyz /= p1.w;
 	p2.xyz /= p2.w;
@@ -313,7 +343,9 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 	[branch]
 	if( shadowType == GPUSHADOWTYPE_POINT )
 	{
-		sd.worldToShadow  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].worldToShadow;
+		sd.rot0           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot0;																					        \
+		sd.rot1           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot1;																					        \
+		sd.rot2           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot2;																					        \
 		sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;
 		sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;
 		sd.slice          = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].slice;
@@ -346,7 +378,9 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 		[branch]																																										            \
 		if( shadowType == GPUSHADOWTYPE_POINT )																																			            \
 		{                                                                                                                                                                                           \
-			sd.worldToShadow  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].worldToShadow;																					\
+			sd.rot0           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot0;																					        \
+			sd.rot1           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot1;																					        \
+			sd.rot2           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot2;																					        \
 			sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;																					\
 			sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;                                                                                \
 			sd.slice          = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].slice;                                                                                         \

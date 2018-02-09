@@ -312,24 +312,23 @@ namespace UnityEngine.Experimental.Rendering
                     CachedEntry ce = m_EntryCache[ceIdx];
                     ce.zclip = sr.shadowType != GPUShadowType.Directional;
 
-
                     // modify
-                    Matrix4x4 vp, invvp;
+                    Matrix4x4 vp, invvp, devproj;
                     if( sr.shadowType == GPUShadowType.Point )
                     {
                         // calculate the fov bias
                         float guardAngle = ShadowUtils.CalcGuardAnglePerspective( 90.0f, ce.current.viewport.width, GetFilterWidthInTexels( sr, asd ), asd.nrmlBiasMax, 79.0f );
-                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, guardAngle, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     }
                     else if( sr.shadowType == GPUShadowType.Spot )
                     {
                         float spotAngle = lights[sr.index].spotAngle;
                         float guardAngle = ShadowUtils.CalcGuardAnglePerspective( spotAngle, ce.current.viewport.width,  GetFilterWidthInTexels( sr, asd ), asd.nrmlBiasMax, 180.0f - spotAngle );
-                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], guardAngle, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     }
                     else if( sr.shadowType == GPUShadowType.Directional )
                     {
-                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
+                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
                         m_TmpSplits[key.faceIdx]    = ce.current.splitData.cullingSphere;
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                         {
@@ -342,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
                     else
-                        vp = invvp = Matrix4x4.identity; // should never happen, though
+                        vp = invvp = devproj = Matrix4x4.identity; // should never happen, though
 
                     if (cameraRelativeRendering)
                     {
@@ -371,8 +370,16 @@ namespace UnityEngine.Experimental.Rendering
                     ce.current.shadowAlgo = (GPUShadowAlgorithm) shadowAlgo;
                     m_EntryCache[ceIdx] = ce;
 
-                    sd.worldToShadow = vp.transpose; // apparently we need to transpose matrices that are sent to HLSL
+                    if (sr.shadowType == GPUShadowType.Directional)
+                        sd.pos = new Vector3( ce.current.view.m03, ce.current.view.m13, ce.current.view.m23 );
+                    else
+                        sd.pos = cameraRelativeRendering ? (lights[sr.index].light.transform.position - camera.transform.position) : lights[sr.index].light.transform.position;
+
                     sd.shadowToWorld = invvp.transpose;
+                    sd.proj          = new Vector4( devproj.m00, devproj.m11, devproj.m22, devproj.m23 );
+                    sd.rot0          = new Vector3( ce.current.view.m00, ce.current.view.m01, ce.current.view.m02 );
+                    sd.rot1          = new Vector3( ce.current.view.m10, ce.current.view.m11, ce.current.view.m12 );
+                    sd.rot2          = new Vector3( ce.current.view.m20, ce.current.view.m21, ce.current.view.m22 );
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
                     sd.textureSize   = new Vector4( m_Width, m_Height, ce.current.viewport.width, ce.current.viewport.height );
                     sd.texelSizeRcp  = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / ce.current.viewport.width, 1.0f / ce.current.viewport.height );
