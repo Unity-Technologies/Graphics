@@ -191,11 +191,6 @@ Shader "HDRenderPipeline/LayeredLit"
         _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
         [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
-        _HeightOffset0("Height Offset0", Float) = 0
-        _HeightOffset1("Height Offset1", Float) = 0
-        _HeightOffset2("Height Offset2", Float) = 0
-        _HeightOffset3("Height Offset3", Float) = 0
-
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
         [ToggleUI] _UseDensityMode("Use Density mode", Float) = 0.0
