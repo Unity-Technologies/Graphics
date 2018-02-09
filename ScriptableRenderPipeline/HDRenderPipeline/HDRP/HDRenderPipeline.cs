@@ -1094,15 +1094,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(enableShadowMask), m_CameraDepthStencilBuffer);
-                if (m_FrameSettings.enableDBuffer)
-                {
-                    m_DbufferManager.SetHTile(m_GbufferManager.GetBufferCount(enableShadowMask), cmd);
-                }
-                else
-                {
-                    // On PS4 if the UAV is not bound it can cause crashes in some cases so we bind an empty useless UAV
-                    cmd.SetRandomWriteTarget(m_GbufferManager.GetBufferCount(enableShadowMask), CoreUtils.emptyUAV);
-                }
 
                 // Render opaque objects into GBuffer
                 if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
@@ -1116,11 +1107,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
                     RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
-                }
-
-                if (m_FrameSettings.enableDBuffer)
-                {
-                    m_DbufferManager.UnSetHTile(cmd);
                 }
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
@@ -1154,6 +1140,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
                 DecalSystem.instance.Render(renderContext, camera, cmd);
                 m_DbufferManager.UnSetHTile(cmd);
+                m_DbufferManager.SetHTileTexture(cmd);
+
             }
         }
 
