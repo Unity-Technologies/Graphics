@@ -13,6 +13,11 @@ namespace UnityEditor.ShaderGraph
             name = "DDXY";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/DDXY-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_DDXY", BindingFlags.Static | BindingFlags.NonPublic);

@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Clamp";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Clamp-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Clamp", BindingFlags.Static | BindingFlags.NonPublic);
