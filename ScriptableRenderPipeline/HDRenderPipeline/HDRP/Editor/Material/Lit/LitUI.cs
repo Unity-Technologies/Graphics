@@ -437,8 +437,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
             {
-                m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
-
                 m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             }
