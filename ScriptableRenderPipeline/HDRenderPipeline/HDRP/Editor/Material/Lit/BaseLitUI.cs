@@ -254,6 +254,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
+            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
+                EditorGUI.indentLevel--;
+            }
+
             m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
 
             m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
