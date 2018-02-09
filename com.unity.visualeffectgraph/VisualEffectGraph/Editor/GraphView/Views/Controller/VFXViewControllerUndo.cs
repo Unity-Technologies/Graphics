@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         private int m_lastGraphUndoCursor;
     }
 
-    partial class VFXViewController : Controller<VFXAsset>
+    partial class VFXViewController : Controller<VisualEffectAsset>
     {
         [NonSerialized]
         private bool m_reentrant;

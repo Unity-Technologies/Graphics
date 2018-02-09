@@ -14,7 +14,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using EditMode = UnityEditorInternal.EditMode;
 
 
-static class VFXComponentUtility
+static class VisualEffectUtility
 {
     public static string GetTypeField(Type type)
     {
@@ -95,7 +95,7 @@ static class VFXComponentUtility
 /*
 public class SlotValueBinder : VFXPropertySlotObserver
 {
-    public SlotValueBinder(string name, VFXComponent component, VFXPropertySlot slot)
+    public SlotValueBinder(string name, VisualEffect component, VFXPropertySlot slot)
     {
         m_Name = name;
         m_Component = component;
@@ -153,7 +153,7 @@ public class SlotValueBinder : VFXPropertySlotObserver
         if (m_Slot != slot || type != VFXPropertySlot.Event.kValueUpdated)
             throw new Exception("Something wrong went on !"); // This should never happen
 
-        if (!VFXComponentEditor.CanSetOverride) // Hack
+        if (!VisualEffectEditor.CanSetOverride) // Hack
             return;
 
         switch (slot.ValueType)
@@ -190,17 +190,17 @@ public class SlotValueBinder : VFXPropertySlotObserver
     public string Name { get { return m_Name; } }
 
     private string m_Name;
-    private VFXComponent m_Component;
+    private VisualEffect m_Component;
     private VFXPropertySlot m_Slot;
     private bool m_Dirty = false;
 }
 */
-[CustomEditor(typeof(VFXComponent))]
-public class VFXComponentEditor : Editor
+[CustomEditor(typeof(VisualEffect))]
+public class VisualEffectEditor : Editor
 {
     public static bool CanSetOverride = false;
 
-    SerializedProperty m_VFXAsset;
+    SerializedProperty m_VisualEffectAsset;
     SerializedProperty m_ReseedOnPlay;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
@@ -220,14 +220,14 @@ public class VFXComponentEditor : Editor
     //private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
     //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>();
 
-    //private VFXComponentDebugPanel m_DebugPanel;
+    //private VisualEffectDebugPanel m_DebugPanel;
     private bool m_ShowDebugStats = false;
 
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
         m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
-        m_VFXAsset = serializedObject.FindProperty("m_Asset");
+        m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
         InitSlots();
@@ -252,9 +252,9 @@ public class VFXComponentEditor : Editor
 
     void OnParamGUI(VFXParameter parameter)
     {
-        VFXComponent comp = (VFXComponent)target;
+        VisualEffect comp = (VisualEffect)target;
 
-        string fieldName = VFXComponentUtility.GetTypeField(parameter.type);
+        string fieldName = VisualEffectUtility.GetTypeField(parameter.type);
 
 
         var vfxField = m_VFXPropertySheet.FindPropertyRelative(fieldName + ".m_Array");
@@ -319,10 +319,10 @@ public class VFXComponentEditor : Editor
 
         m_ExposedData.Clear();
         */
-        if (m_VFXAsset == null)
+        if (m_VisualEffectAsset == null)
             return;
 
-        VFXAsset asset = m_VFXAsset.objectReferenceValue as VFXAsset;
+        VisualEffectAsset asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
         if (asset == null)
             return;
 
@@ -363,7 +363,7 @@ public class VFXComponentEditor : Editor
             }
         else
         {
-            data.valueBinders.Add(new SlotValueBinder(name, (VFXComponent)target, slot));
+            data.valueBinders.Add(new SlotValueBinder(name, (VisualEffect)target, slot));
         }
     }
     */
@@ -381,7 +381,7 @@ public class VFXComponentEditor : Editor
     protected virtual void OnSceneGUI()
     {
         if (EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this))
-            VFXGizmo.OnDrawComponentGizmo(target as VFXComponent);
+            VFXGizmo.OnDrawComponentGizmo(target as VisualEffect);
     }
 
     /*
@@ -421,7 +421,7 @@ public class VFXComponentEditor : Editor
 
     public void DrawPlayControlsWindow(int windowID)
     {
-        var component = (VFXComponent)target;
+        var component = (VisualEffect)target;
 
         m_ShowDebugStats = GUI.Toggle(new Rect(260,0,64,16),m_ShowDebugStats, m_Contents.infoButton, EditorStyles.miniButton);
 
@@ -483,28 +483,28 @@ public class VFXComponentEditor : Editor
             Event.current.Use();
     }*/
 
-    private VFXAsset m_asset;
+    private VisualEffectAsset m_asset;
     private VFXGraph m_graph;
 
     public override void OnInspectorGUI()
     {
         InitializeGUI();
 
-        var component = (VFXComponent)target;
+        var component = (VisualEffect)target;
 
         //Asset
         GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
 
         using (new GUILayout.HorizontalScope())
         {
-            EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
+            EditorGUILayout.PropertyField(m_VisualEffectAsset, m_Contents.AssetPath);
 
-            GUI.enabled = component.vfxAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+            GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                window.LoadAsset(component.vfxAsset);
+                window.LoadAsset(component.visualEffectAsset);
             }
         }
 
@@ -528,9 +528,9 @@ public class VFXComponentEditor : Editor
         //Field
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        if (m_graph == null || m_asset != component.vfxAsset)
+        if (m_graph == null || m_asset != component.visualEffectAsset)
         {
-            m_asset = component.vfxAsset;
+            m_asset = component.visualEffectAsset;
             if (m_asset != null)
             {
                 m_graph = m_asset.GetOrCreateGraph();
@@ -565,7 +565,7 @@ public class VFXComponentEditor : Editor
         if (s_IsEditingAsset && !m_WasEditingAsset)
         {
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.LoadAsset(component.vfxAsset);
+            window.LoadAsset(component.visualEffectAsset);
         }
         m_WasEditingAsset = s_IsEditingAsset;
     }
@@ -574,7 +574,7 @@ public class VFXComponentEditor : Editor
 
     private void SetPlayRate(object rate)
     {
-        var component = (VFXComponent)target;
+        var component = (VisualEffect)target;
         component.playRate = (float)rate;
     }
 

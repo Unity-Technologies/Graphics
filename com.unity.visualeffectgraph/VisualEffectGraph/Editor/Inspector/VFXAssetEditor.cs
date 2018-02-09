@@ -13,13 +13,13 @@ using UnityEditor.VFX.UI;
 using Object = UnityEngine.Object;
 using UnityEditorInternal;
 
-[CustomEditor(typeof(VFXAsset))]
-public class VFXAssetEditor : Editor
+[CustomEditor(typeof(VisualEffectAsset))]
+public class VisualEffectAssetEditor : Editor
 {
     VFXViewController m_Controller;
     void OnEnable()
     {
-        VFXAsset asset = (VFXAsset)target;
+        VisualEffectAsset asset = (VisualEffectAsset)target;
         if (asset.graph != null)
         {
             m_Controller = VFXViewController.GetController(asset);
@@ -58,7 +58,7 @@ public class VFXAssetEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        VFXAsset asset = (VFXAsset)target;
+        VisualEffectAsset asset = (VisualEffectAsset)target;
         if (asset.graph != null && m_Controller == null)
         {
             m_Controller = VFXViewController.GetController(asset);

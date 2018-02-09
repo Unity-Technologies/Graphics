@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
             if (dropTarget == null)
                 return;
 
-            VFXParameterController dragData = DragAndDrop.GetGenericData(VFXAssetEditor.VFXParameterDragging) as VFXParameterController;
+            VFXParameterController dragData = DragAndDrop.GetGenericData(VisualEffectAssetEditor.VFXParameterDragging) as VFXParameterController;
 
             if (dragData == null)
                 return;

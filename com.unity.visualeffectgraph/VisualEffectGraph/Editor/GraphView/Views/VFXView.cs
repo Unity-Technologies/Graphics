@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseUpEvent evt)
         {
-            if (!VFXComponentEditor.s_IsEditingAsset)
+            if (!VisualEffectEditor.s_IsEditingAsset)
                 Selection.activeObject = m_View.controller.model;
         }
     }
@@ -393,7 +393,7 @@ namespace UnityEditor.VFX.UI
 
             Toggle toggleRenderBounds = new Toggle(OnShowBounds);
             toggleRenderBounds.text = "Show Bounds";
-            toggleRenderBounds.on = VFXComponent.renderBounds;
+            toggleRenderBounds.on = VisualEffect.renderBounds;
             toolbar.Add(toggleRenderBounds);
             toggleRenderBounds.AddToClassList("toolbarItem");
 
@@ -473,7 +473,7 @@ namespace UnityEditor.VFX.UI
                     m_ToggleDebug.on = controller.graph.displaySubAssets;
 
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
-                    VFXAsset asset = controller.model;
+                    VisualEffectAsset asset = controller.model;
                     if (asset == null)
                     {
                         this.controller = null;
@@ -802,7 +802,7 @@ namespace UnityEditor.VFX.UI
 
         public void CreateTemplateSystem(string path, Vector2 tPos)
         {
-            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             if (asset != null)
             {
                 VFXViewController controller = VFXViewController.GetController(asset, true);
@@ -851,7 +851,7 @@ namespace UnityEditor.VFX.UI
 
         void OnShowBounds()
         {
-            VFXComponent.renderBounds = !VFXComponent.renderBounds;
+            VisualEffect.renderBounds = !VisualEffect.renderBounds;
         }
 
         void OnToggleCompile()
@@ -921,7 +921,7 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation ReinitComponents()
         {
-            foreach (var component in VFXComponent.GetAllActive())
+            foreach (var component in VisualEffect.GetAllActive())
                 component.Reinit();
             return EventPropagation.Stop;
         }
@@ -1125,7 +1125,7 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return;
 
-            if (!VFXComponentEditor.s_IsEditingAsset)
+            if (!VisualEffectEditor.s_IsEditingAsset)
             {
                 var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null);
 
