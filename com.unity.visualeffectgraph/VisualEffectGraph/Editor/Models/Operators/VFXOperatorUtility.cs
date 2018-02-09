@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
 
         public static readonly Dictionary<int, VFXExpression> TauExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, VFXValue.Constant( 2.0f * Mathf.PI) },
+            { 1, VFXValue.Constant(2.0f * Mathf.PI) },
             { 2, VFXValue.Constant(Vector2.one * 2.0f * Mathf.PI) },
             { 3, VFXValue.Constant(Vector3.one * 2.0f * Mathf.PI) },
             { 4, VFXValue.Constant(Vector4.one * 2.0f * Mathf.PI) },
