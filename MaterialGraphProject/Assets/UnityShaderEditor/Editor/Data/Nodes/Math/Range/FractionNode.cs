@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Fraction";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Fraction-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Fraction", BindingFlags.Static | BindingFlags.NonPublic);
