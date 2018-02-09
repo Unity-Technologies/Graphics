@@ -19,6 +19,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_EdgeColor.GetSpecifiedValueOrDefault(Color.red); }
         }
 
+        public MaterialSlot slot
+        {
+            get { return m_Slot; }
+        }
+
         MaterialSlot m_Slot;
         ConcreteSlotValueType m_SlotType;
         VisualElement m_Control;
@@ -44,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Container = new VisualElement { name = "container" };
             {
-                m_Control = m_Slot.InstantiateControl();
+                m_Control = this.slot.InstantiateControl();
                 if (m_Control != null)
                     m_Container.Add(m_Control);
 
@@ -57,7 +62,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(m_Container);
 
             m_Container.visible = m_EdgeControl.visible = m_Control != null;
-            m_Container.clippingOptions = ClippingOptions.ClipAndCacheContents;
         }
 
         protected override void OnStyleResolved(ICustomStyle styles)
@@ -71,10 +75,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdateSlotType()
         {
-            if (m_Slot.concreteValueType != m_SlotType)
+            if (slot.concreteValueType != m_SlotType)
             {
                 RemoveFromClassList("type" + m_SlotType);
-                m_SlotType = m_Slot.concreteValueType;
+                m_SlotType = slot.concreteValueType;
                 AddToClassList("type" + m_SlotType);
                 if (m_Control != null)
                 {
@@ -83,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         disposable.Dispose();
                     m_Container.Remove(m_Control);
                 }
-                m_Control = m_Slot.InstantiateControl();
+                m_Control = slot.InstantiateControl();
                 if (m_Control != null)
                     m_Container.Insert(0, m_Control);
 

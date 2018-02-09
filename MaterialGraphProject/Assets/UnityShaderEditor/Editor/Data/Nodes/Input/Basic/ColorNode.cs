@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
                 if ((value.color == m_Color.color) && (value.mode == m_Color.mode))
                     return;
                 m_Color = value;
-                Dirty(ModificationScope.Graph);
+                Dirty(ModificationScope.Node);
             }
         }
 

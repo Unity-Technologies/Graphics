@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Power";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Power-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Power", BindingFlags.Static | BindingFlags.NonPublic);

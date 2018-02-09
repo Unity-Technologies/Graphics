@@ -189,9 +189,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             PropagateNodeSet(m_DirtyPreviews);
 
             m_NodesWith3DPreview.Clear();
-            foreach (var index in m_DirtyPreviews)
+            foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
             {
-                var node = (AbstractMaterialNode)m_Graph.GetNodeFromTempId(m_Identifiers[index]);
                 if (node.previewMode == PreviewMode.Preview3D)
                     m_NodesWith3DPreview.Add(node.tempId.index);
             }
@@ -279,7 +278,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
                 var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
-                previewTransform *= Matrix4x4.Scale(Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                var scale = m_Graph.previewData.scale;
+                previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
                 RenderPreview(masterRenderData, mesh, previewTransform);
             }
@@ -487,13 +487,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyRenderData(PreviewRenderData renderData)
         {
-            if (renderData.shaderData.shader != null && renderData.shaderData.shader != m_UberShader)
+            if (renderData.shaderData != null
+                && renderData.shaderData.shader != null
+                && renderData.shaderData.shader != m_UberShader)
                 Object.DestroyImmediate(renderData.shaderData.shader, true);
             if (renderData.renderTexture != null)
                 Object.DestroyImmediate(renderData.renderTexture, true);
-            var node = renderData.shaderData.node;
-            if (node != null)
-                node.onModified -= OnNodeModified;
+
+            if (renderData.shaderData != null && renderData.shaderData.node != null)
+                renderData.shaderData.node.onModified -= OnNodeModified;
         }
 
         void DestroyPreview(Identifier nodeId)
