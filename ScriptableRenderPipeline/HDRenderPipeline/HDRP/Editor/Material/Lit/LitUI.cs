@@ -443,8 +443,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             }
 
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS ||
-                ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitTranslucent && transmissionEnable.floatValue > 0.0f))
+            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitTranslucent ||
+                ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS && transmissionEnable.floatValue > 0.0f))
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
                 if (thicknessMap[layerIndex].textureValue != null)
