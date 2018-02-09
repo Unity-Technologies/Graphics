@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Select a material feature to enable on top of regular material");
-            public static GUIContent SSSAndTransmissionTypeText = new GUIContent("SSS and Transmission type", "Subsurface Scattering for translucent materials such as skin, vegetation, fruit, marble, wax and milk., Transmission for back lighting");
+            public static GUIContent transmissionEnableText = new GUIContent("Enable Transmission", "Enable Transmission for getting  back lighting");
 
             // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Minimum steps (texture sample) to use with per pixel displacement mapping");
@@ -84,18 +84,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public enum MaterialId
         {
-            LitSSSAndTransmission = 0,
+            LitSSS = 0,
             LitStandard = 1,
             LitAniso = 2,
             LitIridescence = 3,
-            LitSpecular = 4
-        };
-
-        public enum SSSAndTransmissionType
-        {
-            LitSSSAndTransmission = 0,
-            LitSSSOnly = 1,
-            LitTransmissionOnly = 2,
+            LitSpecular = 4,
+            LitTranslucent = 5
         };
 
         public enum HeightmapParametrization
@@ -113,8 +107,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Material ID
         protected MaterialProperty materialID  = null;
         protected const string kMaterialID = "_MaterialID";
-        protected MaterialProperty sssAndTransmissionType = null;
-        protected const string kSSSAndTransmissionType = "_SSSAndTransmissionType";        
+        protected MaterialProperty transmissionEnable = null;
+        protected const string kTransmissionEnable = "_TransmissionEnable";
 
         protected const string kStencilRef = "_StencilRef";
         protected const string kStencilWriteMask = "_StencilWriteMask";
@@ -189,7 +183,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // MaterialID
             materialID = FindProperty(kMaterialID, props);
-            sssAndTransmissionType = FindProperty(kSSSAndTransmissionType, props);      
+            transmissionEnable = FindProperty(kTransmissionEnable, props);
 
             displacementMode = FindProperty(kDisplacementMode, props);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
@@ -259,11 +253,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
-
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSSAndTransmission)
-            {
-                m_MaterialEditor.ShaderProperty(sssAndTransmissionType, StylesBaseLit.SSSAndTransmissionTypeText);                
-            }                
 
             m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
 
@@ -373,13 +362,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSSAndTransmission)
+            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
             {
-                if ((int)material.GetFloat(kSSSAndTransmissionType) == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSAndTransmission ||
-                    (int)material.GetFloat(kSSSAndTransmissionType) == (int)BaseLitGUI.SSSAndTransmissionType.LitSSSOnly)
-                {
-                    stencilRef = (int)StencilLightingUsage.SplitLighting;
-                }
+                stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
             // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
