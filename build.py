@@ -142,13 +142,16 @@ def cleanup(logger):
 def copy_path_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
     if platform.system() == "Windows":
-        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, path), "/E", "/Q", "/Y"])
+        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/E", "/Q", "/Y"])
     else:
         shutil.copytree(os.path.join(repo_path, path),os.path.join(project_target_path, path))
 
 def copy_file_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
-    shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
+    if platform.system() == "Windows":
+        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, path), "/Q", "/Y"])
+    else:
+        shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
 
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
