@@ -250,6 +250,64 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        [MenuItem("Internal/HDRenderPipeline/Update/Update material for subsurface")]
+        static void UpdateMaterialForSubsurface()
+        {
+            try
+            {
+                var matIds = AssetDatabase.FindAssets("t:Material");
+
+                for (int i = 0, length = matIds.Length; i < length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                    EditorUtility.DisplayProgressBar(
+                        "Setup materials Keywords...",
+                        string.Format("{0} / {1} materials subsurface updated.", i, length),
+                        i / (float)(length - 1));
+
+                    bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
+                        mat.shader.name == "HDRenderPipeline/Lit" ||
+                        mat.shader.name == "HDRenderPipeline/LayeredLit" ||
+                        mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                    {
+                        float materialID = mat.GetInt("_MaterialID");
+                        if (materialID != 0.0)
+                            continue;
+
+                        if (mat.HasProperty("_SSSAndTransmissionType"))
+                        {
+                            CheckOutFile(VSCEnabled, mat);
+
+                            int materialSSSAndTransmissionID = mat.GetInt("_SSSAndTransmissionType");
+
+                            // Both;, SSS only, Transmission only
+                            if (materialSSSAndTransmissionID == 2.0)
+                            {
+                                mat.SetInt("_MaterialID", 5);
+                            }
+                            else
+                            {
+                                if (materialSSSAndTransmissionID == 0.0)
+                                    mat.SetFloat("_TransmissionEnable", 1.0f);
+                                else
+                                    mat.SetFloat("_TransmissionEnable", 0.0f);
+                            }
+
+                            EditorUtility.SetDirty(mat);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
         //
         [MenuItem("Internal/HDRenderPipeline/Update/Update Height Maps parametrization")]
         static void UpdateHeightMapParametrization()

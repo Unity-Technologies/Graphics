@@ -191,11 +191,6 @@ Shader "HDRenderPipeline/LayeredLit"
         _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
         [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
-        _HeightOffset0("Height Offset0", Float) = 0
-        _HeightOffset1("Height Offset1", Float) = 0
-        _HeightOffset2("Height Offset2", Float) = 0
-        _HeightOffset3("Height Offset3", Float) = 0
-
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
         [ToggleUI] _UseDensityMode("Use Density mode", Float) = 0.0
@@ -264,8 +259,8 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         // For layering, due to combinatorial explosion, we only support SSS/Transmission and Standard. We let other case for the shader graph
-        [Enum(Subsurface Scattering and Transmissison, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
-        [Enum(Both, 0, SSS only, 1, Transmission only, 2)] _SSSAndTransmissionType("SSSandTransmissionType", Int) = 0 // SSSandTransmissionType.Both
+        [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
+        [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
         [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
