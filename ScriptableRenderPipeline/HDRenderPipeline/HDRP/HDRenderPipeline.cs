@@ -731,6 +731,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             RenderSSAO(cmd, hdCamera, renderContext, postProcessLayer);
                         }
 
+                        // Clear and copy the stencil texture needs to be moved to before we invoke the async light list build,
+                        // otherwise the async compute queue can end up using that texture before the graphics queue is done with it.
+                        // TODO: Move this code inside LightLoop
+                        if (m_LightLoop.GetFeatureVariantsEnabled())
+                        {
+                            // For material classification we use compute shader and so can't read into the stencil, so prepare it.
+                            using (new ProfilingSample(cmd, "Clear and copy stencil texture", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
+                            {
+                                HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraStencilBufferCopy, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+
+                                // In the material classification shader we will simply test is we are no lighting
+                                // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
+                                HDUtils.DrawFullScreen(cmd, hdCamera, m_CopyStencilForNoLighting, m_CameraStencilBufferCopy, m_CameraDepthStencilBuffer, null, 1);
+                            }
+                        }
+
                         GPUFence buildGPULightListsCompleteFence = new GPUFence();
                         if (m_FrameSettings.enableAsyncCompute)
                         {
@@ -758,20 +774,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             m_LightLoop.RenderDeferredDirectionalShadow(hdCamera, m_DeferredShadowBuffer, GetDepthTexture(), cmd);
                             PushFullScreenDebugTexture(cmd, m_DeferredShadowBuffer, hdCamera, FullScreenDebugMode.DeferredShadows);
-                        }
-
-                        // TODO: Move this code inside LightLoop
-                        if (m_LightLoop.GetFeatureVariantsEnabled())
-                        {
-                            // For material classification we use compute shader and so can't read into the stencil, so prepare it.
-                            using (new ProfilingSample(cmd, "Clear and copy stencil texture", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
-                            {
-                                HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraStencilBufferCopy, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-
-                                // In the material classification shader we will simply test is we are no lighting
-                                // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
-                                HDUtils.DrawFullScreen(cmd, hdCamera, m_CopyStencilForNoLighting, m_CameraStencilBufferCopy, m_CameraDepthStencilBuffer, null, 1);
-                            }
                         }
 
                         if (m_FrameSettings.enableAsyncCompute)
