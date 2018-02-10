@@ -149,7 +149,7 @@ def copy_path_to_project(path, repo_path, project_target_path, logger):
 def copy_file_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
     if platform.system() == "Windows":
-        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, path), "/Q", "/Y"])
+        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/Q", "/Y"])
     else:
         shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
 
