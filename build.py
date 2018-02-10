@@ -2,7 +2,9 @@
 import os
 import json
 import logging
+import platform
 import shutil
+import subprocess
 import textwrap
 
 sub_packages = {}
@@ -137,22 +139,26 @@ def cleanup(logger):
 
 
 # helper function for preparations of tests
-def copy_path_to_project(path, repo_path, project_path, logger):
+def copy_path_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
-    shutil.copytree(os.path.join(repo_path, path), os.path.join(project_path, "Assets", "ScriptableRenderLoop", path))
+    if platform.system() == "Windows":
+        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, path), "/E", "/Q", "/Y"])
+    else:
+        shutil.copytree(os.path.join(repo_path, path),os.path.join(project_target_path, path))
 
-def copy_file_to_project(path, repo_path, project_path, logger):
+def copy_file_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
-    shutil.copy(os.path.join(repo_path, path), os.path.join(project_path, "Assets", "ScriptableRenderLoop", path))
+    shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
 
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
-    copy_path_to_project("ImageTemplates", repo_path, project_path, logger)
-    copy_path_to_project("Tests", repo_path, project_path, logger)
-    copy_file_to_project("SRPMARKER", repo_path, project_path, logger)
-    copy_file_to_project("SRPMARKER.meta", repo_path, project_path, logger)
-    copy_file_to_project("ImageTemplates.meta", repo_path, project_path, logger)
-    copy_file_to_project("Tests.meta", repo_path, project_path, logger)
+    dest_path = os.path.join(project_path, "Assets", "ScriptableRenderLoop")
+    copy_path_to_project("ImageTemplates", repo_path, dest_path, logger)
+    copy_path_to_project("Tests", repo_path, dest_path, logger)
+    copy_file_to_project("SRPMARKER", repo_path, dest_path, logger)
+    copy_file_to_project("SRPMARKER.meta", repo_path, dest_path, logger)
+    copy_file_to_project("ImageTemplates.meta", repo_path, dest_path, logger)
+    copy_file_to_project("Tests.meta", repo_path, dest_path, logger)
 
 if __name__ == "__main__":
     import sys
