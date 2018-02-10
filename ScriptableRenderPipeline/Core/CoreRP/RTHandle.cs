@@ -141,6 +141,11 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static string GetAutomaticName(int width, int height, RenderTextureFormat format)
+        {
+            return "RenderTarget_" + width + "x" + height + "_" + format.ToString();
+        }
+
         // This method wraps around regular RenderTexture creation.
         // There is no specific logic applied to RenderTextures created this way.
         public static RTHandle Alloc(
@@ -162,7 +167,8 @@ namespace UnityEngine.Experimental.Rendering
                 bool bindTextureMS = false,
                 bool useDynamicScale = false,
                 VRTextureUsage vrUsage = VRTextureUsage.None,
-                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None
+                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+                string name = ""
             )
         {
             bool enableMSAA = msaaSamples != MSAASamples.None;
@@ -188,7 +194,8 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS = bindTextureMS,
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
-                memorylessMode = memoryless
+                memorylessMode = memoryless,
+                name = name == "" ? GetAutomaticName(width, height, colorFormat) : name
             };
             rt.Create();
 
@@ -223,7 +230,8 @@ namespace UnityEngine.Experimental.Rendering
                 bool bindTextureMS = false,
                 bool useDynamicScale = false,
                 VRTextureUsage vrUsage = VRTextureUsage.None,
-                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None
+                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+                string name = ""
             )
         {
             bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
@@ -250,7 +258,8 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 vrUsage,
-                memoryless
+                memoryless,
+                name
             );
 
             rth.scaleFactor = scaleFactor;
@@ -284,7 +293,8 @@ namespace UnityEngine.Experimental.Rendering
                 bool bindTextureMS = false,
                 bool useDynamicScale = false,
                 VRTextureUsage vrUsage = VRTextureUsage.None,
-                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None
+                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+                string name = ""
             )
         {
             bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
@@ -312,13 +322,15 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS,
                 useDynamicScale,
                 vrUsage,
-                memoryless
+                memoryless,
+                name
             );
 
             rth.scaleFunc = scaleFunc;
             return rth;
         }
 
+        // Internal function
         static RTHandle AllocAutoSizedRenderTexture(
                 int width,
                 int height,
@@ -338,7 +350,8 @@ namespace UnityEngine.Experimental.Rendering
                 bool bindTextureMS,
                 bool useDynamicScale,
                 VRTextureUsage vrUsage,
-                RenderTextureMemoryless memoryless
+                RenderTextureMemoryless memoryless,
+                string name
             )
         {
             // Here user made a mistake in setting up msaa/bindMS, hence the warning
@@ -382,7 +395,8 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS = bindTextureMS,
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
-                memorylessMode = memoryless
+                memorylessMode = memoryless,
+                name = name == "" ? GetAutomaticName(width, height, colorFormat) : name
             };
             rt.Create();
 
@@ -499,7 +513,8 @@ namespace UnityEngine.Experimental.Rendering
                     bindTextureMS = false, // Somehow, this can be true even if antiAliasing == 1. Leads to Unity-internal binding errors.
                     useDynamicScale = refRT.useDynamicScale,
                     vrUsage = refRT.vrUsage,
-                    memorylessMode = refRT.memorylessMode
+                    memorylessMode = refRT.memorylessMode,
+                    name = refRT.name
                 };
                 newRT.Create();
 
