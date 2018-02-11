@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Iridescence
-            public static GUIContent iorIridescenceText = new GUIContent("Iridescence IOR");
+            public static GUIContent iorIridescenceText = new GUIContent("Iridescence IOR", "Controls the number of color fringes with increasing angle (view dependent): Smaller mean more fringe. Also modify intensity and saturation of color fringes: Higher value mean more intense and saturate.");
             public static GUIContent thicknessIridescenceText = new GUIContent("Iridescence Thickness");
             public static GUIContent thicknessMapIridescenceText = new GUIContent("Iridescence Thickness map");
             public static GUIContent thicknessRemapIridescenceText = new GUIContent("Iridescence Thickness remap");
