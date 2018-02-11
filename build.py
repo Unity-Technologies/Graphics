@@ -11,6 +11,12 @@ sub_packages = {}
 sub_package_folders = {}
 publish_order = []
 
+packages = {
+    ("com.unity.render-pipelines.core", os.path.join("ScriptableRenderPipeline", "Core")),
+    ("com.unity.render-pipelines.high-definition", os.path.join("ScriptableRenderPipeline", "HDRenderPipeline")),
+    ("com.unity.render-pipelines.lightweight", os.path.join("ScriptableRenderPipeline", "LightweightPipeline"))
+}
+
 def prepare(logger):
     file_path = os.path.join("./ScriptableRenderPipeline", "master-package.json")
     if os.path.isfile(file_path):
@@ -142,14 +148,14 @@ def cleanup(logger):
 def copy_path_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
     if platform.system() == "Windows":
-        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/E", "/Q", "/Y"])
+        subprocess.call(["robocopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/e"])
     else:
         shutil.copytree(os.path.join(repo_path, path),os.path.join(project_target_path, path))
 
 def copy_file_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
     if platform.system() == "Windows":
-        subprocess.call(["xcopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/Q", "/Y"])
+        subprocess.call(["robocopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path))])
     else:
         shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
 
