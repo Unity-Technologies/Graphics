@@ -279,9 +279,10 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float thicknessIrid, inout BSDFData bsdfData)
+void FillMaterialIridescence(float ior, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.thicknessIrid = thicknessIrid;
+    bsdfData.iorIridescence = ior;
+    bsdfData.thicknessIridescence = thickness;
 }
 
 // Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
@@ -307,11 +308,22 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
     bsdfData.ior = ior;
 
     // IOR define the fresnel0 value, so update it also for consistency (and even if not physical we still need to take into account any metal mask)
-    bsdfData.fresnel0 = lerp(IORToFresnel0(ior).xxx, baseColor, metallic);
+    bsdfData.fresnel0 = lerp(IorToFresnel0(ior).xxx, baseColor, metallic);
 
     bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance);
     bsdfData.transmittanceMask = transmittanceMask;
     bsdfData.thickness = max(thickness, 0.0001);
+}
+
+// Remap IOR in range 1..2.5 to 0..1
+float RemapIor25to01(float ior)
+{
+    return saturate((ior - 1.0) / 1.5);
+}
+
+float RemapIor01to25(float ior)
+{
+    return ior * 1.5 + 1.0;
 }
 
 // For image based lighting, a part of the BSDF is pre-integrated.
@@ -430,7 +442,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(surfaceData.thicknessIrid, bsdfData);
+        FillMaterialIridescence(surfaceData.iorIridescence, surfaceData.thicknessIridescence, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
@@ -575,7 +587,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         materialFeatureId = GBUFFER_LIT_IRIDESCENCE;
 
-        outGBuffer2.rgb = float3(0.0 /* TODO: IOR */, surfaceData.thicknessIrid,
+        // Range of IOR is 1..2.5, so remap to 0..1
+        outGBuffer2.rgb = float3(RemapIor25to01(surfaceData.iorIridescence), surfaceData.thicknessIridescence,
                                  PackFloatInt8bit(surfaceData.metallic, 0, 8));
     }
     else // Standard
@@ -772,7 +785,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(inGBuffer2.g, bsdfData);
+        // Range of IOR is 1..2.5
+        FillMaterialIridescence(RemapIor01to25(inGBuffer2.r), inGBuffer2.g, bsdfData);
     }
 
     // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
@@ -821,6 +835,12 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
         result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
+    case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION_OF_IRIDESCENCE:
+        result = RemapIor25to01(surfaceData.iorIridescence).xxx;
+        break;
+    case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
+        result = RemapIor25to01(surfaceData.ior).xxx;
+        break;
     }
 }
 
@@ -837,6 +857,12 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         break;
     case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
         result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
+        break;
+    case DEBUGVIEW_LIT_BSDFDATA_IOR_IRIDESCENCE:
+        result = RemapIor25to01(bsdfData.iorIridescence).xxx;
+        break;
+    case DEBUGVIEW_LIT_BSDFDATA_IOR:
+        result = RemapIor25to01(bsdfData.ior).xxx;
         break;
     }
 }

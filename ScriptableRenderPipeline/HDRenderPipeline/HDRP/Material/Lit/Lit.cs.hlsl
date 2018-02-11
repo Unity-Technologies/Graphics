@@ -40,11 +40,12 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1012)
 #define DEBUGVIEW_LIT_SURFACEDATA_TANGENT (1013)
 #define DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY (1014)
-#define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS_IRID (1015)
-#define DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION (1016)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1017)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1018)
-#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1019)
+#define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS_OF_IRIDESCENCE (1015)
+#define DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION_OF_IRIDESCENCE (1016)
+#define DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION (1017)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1018)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1019)
+#define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1020)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
@@ -67,11 +68,12 @@
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B (1046)
 #define DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY (1047)
-#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS_IRID (1048)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1049)
-#define DEBUGVIEW_LIT_BSDFDATA_IOR (1050)
-#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1051)
-#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1052)
+#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS_IRIDESCENCE (1048)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR_IRIDESCENCE (1049)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1050)
+#define DEBUGVIEW_LIT_BSDFDATA_IOR (1051)
+#define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1052)
+#define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1053)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+GBufferMaterial:  static fields
@@ -96,7 +98,8 @@ struct SurfaceData
     float thickness;
     float3 tangentWS;
     float anisotropy;
-    float thicknessIrid;
+    float thicknessIridescence;
+    float iorIridescence;
     float ior;
     float3 transmittanceColor;
     float atDistance;
@@ -124,7 +127,8 @@ struct BSDFData
     float roughnessT;
     float roughnessB;
     float anisotropy;
-    float thicknessIrid;
+    float thicknessIridescence;
+    float iorIridescence;
     float coatRoughness;
     float ior;
     float3 absorptionCoefficient;
@@ -185,8 +189,11 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:
             result = surfacedata.anisotropy.xxx;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS_IRID:
-            result = surfacedata.thicknessIrid.xxx;
+        case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS_OF_IRIDESCENCE:
+            result = surfacedata.thicknessIridescence.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION_OF_IRIDESCENCE:
+            result = surfacedata.iorIridescence.xxx;
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
             result = surfacedata.ior.xxx;
@@ -265,8 +272,11 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
             result = bsdfdata.anisotropy.xxx;
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_THICKNESS_IRID:
-            result = bsdfdata.thicknessIrid.xxx;
+        case DEBUGVIEW_LIT_BSDFDATA_THICKNESS_IRIDESCENCE:
+            result = bsdfdata.thicknessIridescence.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_IOR_IRIDESCENCE:
+            result = bsdfdata.iorIridescence.xxx;
             break;
         case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:
             result = bsdfdata.coatRoughness.xxx;
