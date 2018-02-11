@@ -868,6 +868,71 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 }
 
 //-----------------------------------------------------------------------------
+// Iridescence
+//-----------------------------------------------------------------------------
+
+// Evaluation XYZ sensitivity curves in Fourier space
+float3 EvalSensitivity(float opd, float shift)
+{
+    // Use Gaussian fits, given by 3 parameters: val, pos and var
+    float phase = 2.0 * PI * opd * 1e-6;
+    float3 val = float3(5.4856e-13, 4.4201e-13, 5.2481e-13);
+    float3 pos = float3(1.6810e+06, 1.7953e+06, 2.2084e+06);
+    float3 var = float3(4.3278e+09, 9.3046e+09, 6.6121e+09);
+    float3 xyz = val * sqrt(2.0 * PI * var) * cos(pos * phase + shift) * exp(-var * phase * phase);
+    xyz.x += 9.7470e-14 * sqrt(2.0 * PI * 4.5282e+09) * cos(2.2399e+06 * phase + shift) * exp(-4.5282e+09 * phase * phase);
+    return xyz / 1.0685e-7;
+}
+
+// Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
+float3 EvalIridescence(float cosTheta1, BSDFData bsdfData)
+{
+    float Dinc = 2.0 * bsdfData.iorIridescence * bsdfData.thicknessIridescence;
+
+    // Force eta_2 -> 1.0 when Dinc -> 0.0
+    float eta_2 = lerp(1.0, bsdfData.iorIridescence, smoothstep(0.0, 0.03, Dinc));
+    float R0 = Sq((1.0 - eta_2) / (1.0 + eta_2));
+
+    // Evaluate the cosTheta on the base layer
+    float cosTheta2 = sqrt(1.0 - Sq(1.0 / eta_2) * (1.0 - Sq(cosTheta1)));
+
+    // First interface
+    float3 R12 = F_Schlick(R0, cosTheta1);
+    float3 R21 = R12;
+    float3 T121 = float3(1.0, 1.0, 1.0) - R12;
+    float  phi12 = 0.0;
+    float  phi21 = PI - phi12;
+
+    // Second interface
+    float3 R23 = F_Schlick(bsdfData.fresnel0, cosTheta2);
+    float  phi23 = 0.0;
+
+    // Phase shift
+    float OPD = Dinc * cosTheta2;
+    float phi = phi21 + phi23;
+
+    // Compound terms
+    float3 R123 = R12 * R23;
+    float3 r123 = sqrt(R123);
+    float3 Rs = Sq(T121) * R23 / (float3(1.0, 1.0, 1.0) - R123);
+    float3 Cm = Rs - T121;
+
+    // Reflectance term for m = 0 (DC term amplitude)
+    float3 C0 = R12 + Rs;
+    float3 I = C0;
+
+    // Reflectance term for m > 0 (pairs of diracs)
+    for (int m = 1; m <= 2; ++m)
+    {
+        Cm *= r123;
+        float3 Sm = 2.0 * EvalSensitivity(m * OPD, m * phi);
+        I += Cm * Sm;
+    }
+
+    return I;
+}
+
+//-----------------------------------------------------------------------------
 // PreLightData
 //-----------------------------------------------------------------------------
 
@@ -919,6 +984,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     float  NdotV = saturate(dot(N, V));
     preLightData.clampNdotV = NdotV; // Caution: The handling of edge cases where N is directed away from the screen is handled during Gbuffer/forward pass, so here do nothing
     preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
+    
+    float3 fresnel0 = bsdfData.fresnel0;
+
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    {
+        fresnel0 = EvalIridescence(NdotV, bsdfData);
+    }
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -960,7 +1032,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // Handle IBL +  multiscattering
     float reflectivity;
-    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
+    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
 
     iblR = reflect(-V, iblN);
     // This is a ad-hoc tweak to better match reference of anisotropic GGX.
@@ -1020,7 +1092,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
     // to match the reference for rough metals, but further darkens dielectrics.
-    preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
+    preLightData.ltcMagnitudeFresnel = fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -1177,7 +1249,16 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float NdotH = saturate((NdotL + NdotV) * invLenLV);
     float LdotH = saturate(invLenLV * LdotV + invLenLV);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    float3 F;
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    {
+        F = EvalIridescence(LdotH, bsdfData);
+    }
+    else
+    {
+        F = F_Schlick(bsdfData.fresnel0, LdotH);
+    }
+
     float DV;
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
