@@ -142,7 +142,7 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     BSDFData bsdfData;
     BakeLightingData bakeLightingData;
-    DECODE_FROM_GBUFFER(posInput.positionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
+    DECODE_FROM_GBUFFER(V, posInput.positionSS, featureFlags, bsdfData, bakeLightingData.bakeDiffuseLighting);
     #ifdef SHADOWS_SHADOWMASK
     DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
     #endif
