@@ -66,26 +66,26 @@ real VarianceToRoughness(real variance)
 
 // ior is a value between 1.0 and 2.5
 // Assume air interface for top
-real IORToFresnel0(real ior)
+real IorToFresnel0(real ior)
 {
     return Sq((ior - 1.0) / (ior + 1.0));
 }
 
-real IORToFresnel0(real baseIor, real topIor)
+real IorToFresnel0(real baseIor, real topIor)
 {
     return Sq((baseIor - topIor) / (baseIor + topIor));
 }
 
 // Assume air interface for top
 // Note: Don't handle the case fresnel0 == 1
-real Fresnel0ToIOR(real fresnel0)
+real Fresnel0ToIor(real fresnel0)
 {
     real sqrtF0 = sqrt(fresnel0);
     return (1.0 + sqrtF0) / (1.0 - sqrtF0);
 }
 
 // This function is a coarse approximation of computing fresnel0 for a different top than air (here clear coat of IOR 1.5) when we only have fresnel0 with air interface
-// This function is equivalent to IORToFresnel0(Fresnel0ToIOR(fresnel0), 1.5)
+// This function is equivalent to IorToFresnel0(Fresnel0ToIor(fresnel0), 1.5)
 // mean
 // real sqrtF0 = sqrt(fresnel0);
 // return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);

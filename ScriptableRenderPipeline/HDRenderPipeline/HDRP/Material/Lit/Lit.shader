@@ -60,6 +60,11 @@ Shader "HDRenderPipeline/Lit"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
+        _ThicknessIridescence("Thickness sridescence", Range(0.0, 1.0)) = 1.0
+        _ThicknessMapIridescence("Thickness Map Iridescence", 2D) = "white" {}
+        _ThicknessRemapIridescence("Thickness Remap Iridescence", Vector) = (0, 1, 0, 0)
+        _IorIridescence("Indice Of Refraction Iridescence", Range(1.0, 2.5)) = 1.0
+
         _CoatMask("Coat Mask", Range(0.0, 1.0)) = 0.0
         _CoatMaskMap("CoatMaskMap", 2D) = "white" {}
 
@@ -103,7 +108,7 @@ Shader "HDRenderPipeline/Lit"
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
-        _IOR("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
+        _Ior("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
         _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}

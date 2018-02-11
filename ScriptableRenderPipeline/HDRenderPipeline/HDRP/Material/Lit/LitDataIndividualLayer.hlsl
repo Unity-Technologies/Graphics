@@ -320,7 +320,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #if HAS_REFRACTION
-    surfaceData.ior = _IOR;
+    surfaceData.ior = _Ior;
     surfaceData.transmittanceColor = _TransmittanceColor;
     #ifdef _TRANSMITTANCECOLORMAP
     surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_TransmittanceColorMap), ADD_ZERO_IDX(sampler_TransmittanceColorMap), ADD_IDX(layerTexCoord.base)).rgb;
@@ -347,8 +347,18 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.coatMask = 0.0;
 #endif
 
-
-    surfaceData.thicknessIrid = 0.0;
+#ifdef _MATERIAL_FEATURE_IRIDESCENCE
+    #ifdef _THICKNESSMAP_IRIDESCENCE_IDX
+    surfaceData.thicknessIridescence = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMapIridescence), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.thicknessIridescence = ADD_IDX(_ThicknessRemapIridescence).x + ADD_IDX(_ThicknessRemapIridescence).y * surfaceData.thicknessIridescence;
+    #else
+    surfaceData.thicknessIridescence = ADD_IDX(_ThicknessIridescence);
+    #endif
+    surfaceData.iorIridescence = ADD_IDX(_IorIridescence);
+#else
+    surfaceData.thicknessIridescence = 0.0;
+    surfaceData.iorIridescence = 1.0;
+#endif
 
 #else // #if !defined(LAYERED_LIT_SHADER)
 
@@ -362,7 +372,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.thicknessIrid = 0.0;
+    surfaceData.thicknessIridescence = 0.0;
+    surfaceData.iorIridescence = 0.0;
     surfaceData.coatMask = 0.0;
 
     // Transparency

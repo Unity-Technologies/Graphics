@@ -47,6 +47,9 @@ SAMPLER(sampler_SubsurfaceMaskMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER(sampler_ThicknessMap);
 
+TEXTURE2D(_ThicknessMapIridescence);
+SAMPLER(sampler_ThicknessMapIridescence);
+
 TEXTURE2D(_SpecularColorMap);
 SAMPLER(sampler_SpecularColorMap);
 
@@ -117,7 +120,7 @@ float _EnableSpecularOcclusion;
 
 // Transparency
 float3 _TransmittanceColor;
-float _IOR;
+float _Ior;
 float _ATDistance;
 float _ThicknessMultiplier;
 
@@ -172,6 +175,11 @@ int   _DiffusionProfile;
 float _SubsurfaceMask;
 float _Thickness;
 float4 _ThicknessRemap;
+
+
+float _ThicknessIridescence;
+float4 _ThicknessRemapIridescence;
+float _IorIridescence;
 
 float _CoatMask;
 
