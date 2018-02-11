@@ -148,14 +148,14 @@ def cleanup(logger):
 def copy_path_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
     if platform.system() == "Windows":
-        subprocess.call(["robocopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/e"])
+        subprocess.call(["robocopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/e", "/np"])
     else:
         shutil.copytree(os.path.join(repo_path, path),os.path.join(project_target_path, path))
 
 def copy_file_to_project(path, repo_path, project_target_path, logger):
     logger.info("Copying {}".format(path))
     if platform.system() == "Windows":
-        subprocess.call(["robocopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path))])
+        subprocess.call(["robocopy", os.path.join(repo_path, os.path.dirname(path)), os.path.join(project_target_path, os.path.dirname(path)), os.path.basename(path), "/np"])
     else:
         shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
 
