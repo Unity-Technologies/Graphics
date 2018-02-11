@@ -242,6 +242,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
+    #pragma shader_feature _THICKNESSMAP_IRIDESCENCE
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
