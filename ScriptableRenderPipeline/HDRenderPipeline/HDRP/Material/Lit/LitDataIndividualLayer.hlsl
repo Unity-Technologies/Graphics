@@ -323,7 +323,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.ior = _Ior;
     surfaceData.transmittanceColor = _TransmittanceColor;
     #ifdef _TRANSMITTANCECOLORMAP
-    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_TransmittanceColorMap), ADD_ZERO_IDX(sampler_TransmittanceColorMap), ADD_IDX(layerTexCoord.base)).rgb;
+    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(_TransmittanceColorMap, sampler_TransmittanceColorMap, ADD_IDX(layerTexCoord.base)).rgb;
     #endif
 
     surfaceData.atDistance = _ATDistance;
@@ -348,8 +348,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
-    #ifdef _THICKNESSMAP_IRIDESCENCE_IDX
-    surfaceData.thicknessIridescence = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMapIridescence), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    #ifdef _THICKNESSMAP_IRIDESCENCE
+    surfaceData.thicknessIridescence = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMapIridescence, sampler_ThicknessMapIridescence, ADD_IDX(layerTexCoord.base)).r;
     surfaceData.thicknessIridescence = ADD_IDX(_ThicknessRemapIridescence).x + ADD_IDX(_ThicknessRemapIridescence).y * surfaceData.thicknessIridescence;
     #else
     surfaceData.thicknessIridescence = ADD_IDX(_ThicknessIridescence);
