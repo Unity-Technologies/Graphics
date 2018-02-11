@@ -91,7 +91,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
     // no debug apply during light transport pass
 
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(V, posInput.positionSS, surfaceData);
     LightTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);
 
     // This shader is call two times. Once for getting emissiveColor, the other time to get diffuseColor

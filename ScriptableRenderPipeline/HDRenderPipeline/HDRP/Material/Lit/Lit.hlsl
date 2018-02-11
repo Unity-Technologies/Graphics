@@ -173,6 +173,77 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+
+//-----------------------------------------------------------------------------
+// Iridescence
+//-----------------------------------------------------------------------------
+
+// Evaluation XYZ sensitivity curves in Fourier space
+float3 EvalSensitivity(float opd, float shift)
+{
+    // Use Gaussian fits, given by 3 parameters: val, pos and var
+    float phase = 2.0 * PI * opd * 1e-6;
+    float3 val = float3(5.4856e-13, 4.4201e-13, 5.2481e-13);
+    float3 pos = float3(1.6810e+06, 1.7953e+06, 2.2084e+06);
+    float3 var = float3(4.3278e+09, 9.3046e+09, 6.6121e+09);
+    float3 xyz = val * sqrt(2.0 * PI * var) * cos(pos * phase + shift) * exp(-var * phase * phase);
+    xyz.x += 9.7470e-14 * sqrt(2.0 * PI * 4.5282e+09) * cos(2.2399e+06 * phase + shift) * exp(-4.5282e+09 * phase * phase);
+    return xyz / 1.0685e-7;
+}
+
+// Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
+float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
+{
+    eta_1 = 1.0; // air is 1.0 but for clear coat should be 1.5
+    float Dinc = 2.0 * bsdfData.iorIridescence * bsdfData.thicknessIridescence;
+
+    // Force eta_2 -> eta_1 when Dinc -> 0.0
+    float eta_2 = lerp(eta_1, bsdfData.iorIridescence, smoothstep(0.0, 0.03, Dinc));
+    // Evaluate the cosTheta on the base layer (Snell law)
+    float cosTheta2 = sqrt(1.0 - Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1)));
+
+    // First interface
+    float R0 = IorToFresnel0(eta_2, eta_1);
+    float R12 = F_Schlick(R0, cosTheta1);
+    float R21 = R12;
+    float T121 = 1.0 - R12;
+    float phi12 = 0.0;
+    float phi21 = PI - phi12;
+
+    // Second interface
+    float3 R23 = F_Schlick(bsdfData.fresnel0, cosTheta2);
+    float  phi23 = 0.0;
+
+    // Phase shift
+    float OPD = Dinc * cosTheta2;
+    float phi = phi21 + phi23;
+
+    // Compound terms
+    float3 R123 = R12 * R23;
+    float3 r123 = sqrt(R123);
+    float3 Rs = Sq(T121) * R23 / (float3(1.0, 1.0, 1.0) - R123);   
+
+    // Reflectance term for m = 0 (DC term amplitude)
+    float3 C0 = R12 + Rs;
+    float3 I = C0;
+
+    // Reflectance term for m > 0 (pairs of diracs)
+    float3 Cm = Rs - T121;
+    for (int m = 1; m <= 2; ++m)
+    {
+        Cm *= r123;
+        float3 Sm = 2.0 * EvalSensitivity(m * OPD, m * phi);
+        //vec3 SmP = 2.0 * evalSensitivity(m*OPD, m*phi2.y);
+        I += Cm * Sm;
+    }
+
+    // Convert back to RGB reflectance
+    //I = clamp(mul(I, XYZ_TO_RGB), float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 1.0)); 
+    //I = mul(XYZ_TO_RGB, I);
+
+    return I;
+}
+
 #if HAS_REFRACTION
 # include "CoreRP/ShaderLibrary/Refraction.hlsl"
 
@@ -279,10 +350,18 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float ior, float thickness, inout BSDFData bsdfData)
+void FillMaterialIridescence(float3 V, float coatMask, float ior, float thickness, inout BSDFData bsdfData)
 {
     bsdfData.iorIridescence = ior;
     bsdfData.thicknessIridescence = thickness;
+
+    float topIor = lerp(1.0, CLEAR_COAT_IOR, coatMask);
+
+    // HACK: Use the reflected direction to specify the Fresnel coefficient for pre-convolved envmaps
+    // TODO: Take into account roughness for peak ?
+    // TODO: take into account clear coat...
+    float NdotV = sqrt(1.0 + Sq(1.0 / ior) * (Sq(dot(bsdfData.normalWS, V)) - 1.0));
+    bsdfData.fresnel0 = EvalIridescence(topIor, NdotV, bsdfData);
 }
 
 // Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
@@ -397,7 +476,7 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(float3 V, uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
@@ -442,7 +521,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(surfaceData.iorIridescence, surfaceData.thicknessIridescence, bsdfData);
+        // Modify fresnel0
+        FillMaterialIridescence(V, surfaceData.coatMask, surfaceData.iorIridescence, surfaceData.thicknessIridescence, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
@@ -516,9 +596,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
 // Encode SurfaceData (BSDF parameters) into GBuffer
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
-void EncodeIntoGBuffer( SurfaceData surfaceData,
+void EncodeIntoGBuffer( float3 V, uint2 positionSS, SurfaceData surfaceData,
                         float3 bakeDiffuseLighting,
-                        uint2 positionSS,
                         out GBufferType0 outGBuffer0,
                         out GBufferType1 outGBuffer1,
                         out GBufferType2 outGBuffer2,
@@ -629,7 +708,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 // If you're not using the feature classification system, pass UINT_MAX.
 // Also, see comment in TileVariantToFeatureFlags. When we are the worse case (i.e last variant), we read the featureflags
 // from the structured buffer use to generate the indirect draw call. It allow to not go through all branch and the branch is scalar (not VGPR)
-uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
+uint DecodeFromGBuffer(float3 V, uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
 {
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID,
     // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
@@ -786,7 +865,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
         // Range of IOR is 1..2.5
-        FillMaterialIridescence(RemapIor01to25(inGBuffer2.r), inGBuffer2.g, bsdfData);
+        // Modify fresnel0
+        FillMaterialIridescence(V, coatMask, RemapIor01to25(inGBuffer2.r), inGBuffer2.g, bsdfData);
     }
 
     // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
@@ -814,7 +894,7 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
     float3 unused;
     // Call the regular function, compiler will optimized out everything not used.
     // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
-    return DecodeFromGBuffer(positionSS, UINT_MAX, bsdfData, unused);
+    return DecodeFromGBuffer(float3(0.0, 0.0, 1.0), positionSS, UINT_MAX, bsdfData, unused);
 }
 
 //-----------------------------------------------------------------------------
@@ -865,71 +945,6 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         result = RemapIor25to01(bsdfData.ior).xxx;
         break;
     }
-}
-
-//-----------------------------------------------------------------------------
-// Iridescence
-//-----------------------------------------------------------------------------
-
-// Evaluation XYZ sensitivity curves in Fourier space
-float3 EvalSensitivity(float opd, float shift)
-{
-    // Use Gaussian fits, given by 3 parameters: val, pos and var
-    float phase = 2.0 * PI * opd * 1e-6;
-    float3 val = float3(5.4856e-13, 4.4201e-13, 5.2481e-13);
-    float3 pos = float3(1.6810e+06, 1.7953e+06, 2.2084e+06);
-    float3 var = float3(4.3278e+09, 9.3046e+09, 6.6121e+09);
-    float3 xyz = val * sqrt(2.0 * PI * var) * cos(pos * phase + shift) * exp(-var * phase * phase);
-    xyz.x += 9.7470e-14 * sqrt(2.0 * PI * 4.5282e+09) * cos(2.2399e+06 * phase + shift) * exp(-4.5282e+09 * phase * phase);
-    return xyz / 1.0685e-7;
-}
-
-// Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
-float3 EvalIridescence(float cosTheta1, BSDFData bsdfData)
-{
-    float Dinc = 2.0 * bsdfData.iorIridescence * bsdfData.thicknessIridescence;
-
-    // Force eta_2 -> 1.0 when Dinc -> 0.0
-    float eta_2 = lerp(1.0, bsdfData.iorIridescence, smoothstep(0.0, 0.03, Dinc));
-    float R0 = Sq((1.0 - eta_2) / (1.0 + eta_2));
-
-    // Evaluate the cosTheta on the base layer
-    float cosTheta2 = sqrt(1.0 - Sq(1.0 / eta_2) * (1.0 - Sq(cosTheta1)));
-
-    // First interface
-    float3 R12 = F_Schlick(R0, cosTheta1);
-    float3 R21 = R12;
-    float3 T121 = float3(1.0, 1.0, 1.0) - R12;
-    float  phi12 = 0.0;
-    float  phi21 = PI - phi12;
-
-    // Second interface
-    float3 R23 = F_Schlick(bsdfData.fresnel0, cosTheta2);
-    float  phi23 = 0.0;
-
-    // Phase shift
-    float OPD = Dinc * cosTheta2;
-    float phi = phi21 + phi23;
-
-    // Compound terms
-    float3 R123 = R12 * R23;
-    float3 r123 = sqrt(R123);
-    float3 Rs = Sq(T121) * R23 / (float3(1.0, 1.0, 1.0) - R123);
-    float3 Cm = Rs - T121;
-
-    // Reflectance term for m = 0 (DC term amplitude)
-    float3 C0 = R12 + Rs;
-    float3 I = C0;
-
-    // Reflectance term for m > 0 (pairs of diracs)
-    for (int m = 1; m <= 2; ++m)
-    {
-        Cm *= r123;
-        float3 Sm = 2.0 * EvalSensitivity(m * OPD, m * phi);
-        I += Cm * Sm;
-    }
-
-    return I;
 }
 
 //-----------------------------------------------------------------------------
@@ -984,13 +999,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     float  NdotV = saturate(dot(N, V));
     preLightData.clampNdotV = NdotV; // Caution: The handling of edge cases where N is directed away from the screen is handled during Gbuffer/forward pass, so here do nothing
     preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
-    
-    float3 fresnel0 = bsdfData.fresnel0;
-
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
-    {
-        fresnel0 = EvalIridescence(NdotV, bsdfData);
-    }
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -1032,7 +1040,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // Handle IBL +  multiscattering
     float reflectivity;
-    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
+    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
 
     iblR = reflect(-V, iblN);
     // This is a ad-hoc tweak to better match reference of anisotropic GGX.
@@ -1092,7 +1100,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
     // to match the reference for rough metals, but further darkens dielectrics.
-    preLightData.ltcMagnitudeFresnel = fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
+    preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -1249,16 +1257,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float NdotH = saturate((NdotL + NdotV) * invLenLV);
     float LdotH = saturate(invLenLV * LdotV + invLenLV);
 
-    float3 F;
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
-    {
-        F = EvalIridescence(LdotH, bsdfData);
-    }
-    else
-    {
-        F = F_Schlick(bsdfData.fresnel0, LdotH);
-    }
-
+    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     float DV;
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
