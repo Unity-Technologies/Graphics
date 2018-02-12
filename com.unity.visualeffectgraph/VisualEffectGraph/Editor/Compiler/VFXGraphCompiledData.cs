@@ -469,38 +469,39 @@ namespace UnityEditor.VFX
             try
             {
                 var currentCacheFolder = baseCacheFolder;
+                var assetPath = AssetDatabase.GetAssetPath(asset);
                 if (asset != null)
                 {
-                    var path = AssetDatabase.GetAssetPath(asset);
-                    path = path.Replace("Assets", "");
+                    string path = assetPath.Replace("Assets", "");
                     path = path.Replace(".asset", "");
                     currentCacheFolder += path;
                 }
 
                 System.IO.Directory.CreateDirectory(currentCacheFolder);
+
+                VFXShaderSourceDesc[] descs = new VFXShaderSourceDesc[generatedCodeData.Count];
+
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
-                    var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                    var fileName = string.Format("Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
 
-                    string oldContent = "";
-                    if (System.IO.File.Exists(path))
-                    {
-                        oldContent = System.IO.File.ReadAllText(path);
-                    }
-                    var newContent = generated.content.ToString();
-                    bool hasChanged = oldContent != newContent;
-                    if (hasChanged)
-                    {
-                        System.IO.File.WriteAllText(path, newContent);
-                        Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
-                        AssetDatabase.ImportAsset(path);
-                        Profiler.EndSample();
-                    }
+                    descs[i].source = generated.content.ToString();
+                    descs[i].name = fileName;
+                    descs[i].compute = generated.computeShader;
+                }
 
-                    Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
+                asset.shaderSources = descs;
+
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
+
+                descs = asset.shaderSources;
+
+                for (int i = 0; i < generatedCodeData.Count; ++i)
+                {
+                    var generated = generatedCodeData[i];
                     var contextData = contextToCompiledData[generated.context];
-                    contextData.processor = imported;
+                    contextData.processor = descs[i].shader;
                     contextToCompiledData[generated.context] = contextData;
                 }
             }
