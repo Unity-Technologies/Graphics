@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -45,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Specular Occlusion")]
             public float specularOcclusion;
 
-            [SurfaceDataAttributes("Normal", true)]
+            [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
@@ -115,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public float specularOcclusion;
 
-            [SurfaceDataAttributes("", true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
             public float perceptualRoughness;
 
@@ -176,13 +177,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
 
-        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB2101010, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
-        RenderTextureReadWrite[] m_RTReadWrite4 = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
+        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
+        bool[] m_RTsRGBFlag4 = { true, false, false, false };
 
-        public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
+        public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag)
         {
             RTFormat = m_RTFormat4;
-            RTReadWrite = m_RTReadWrite4;
+            sRGBFlag = m_RTsRGBFlag4;
         }
 
         //-----------------------------------------------------------------------------
@@ -261,9 +262,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
 
             m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_PreIntegratedFGD.hideFlags = HideFlags.HideAndDontSave;
             m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
             m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
             m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
+            m_PreIntegratedFGD.name = CoreUtils.GetRenderTargetAutoName(128, 128, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD");
             m_PreIntegratedFGD.Create();
 
             m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)

@@ -258,25 +258,25 @@ float CubeMapFaceID(float3 dir)
 }
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
-// Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use IsNAN instead
-bool IsNAN(float n)
+// Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use AnyIsNan instead
+bool IsNan(float n)
 {
     return (n < 0.0 || n > 0.0 || n == 0.0) ? false : true;
 }
 
-bool IsNAN(float2 v)
+bool AnyIsNan(float2 v)
 {
-    return (IsNAN(v.x) || IsNAN(v.y)) ? true : false;
+    return (IsNan(v.x) || IsNan(v.y));
 }
 
-bool IsNAN(float3 v)
+bool AnyIsNan(float3 v)
 {
-    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z)) ? true : false;
+    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z));
 }
 
-bool IsNAN(float4 v)
+bool AnyIsNan(float4 v)
 {
-    return (IsNAN(v.x) || IsNAN(v.y) || IsNAN(v.z) || IsNAN(v.w)) ? true : false;
+    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z) || IsNan(v.w));
 }
 
 // ----------------------------------------------------------------------------
@@ -363,8 +363,9 @@ real FastATan(real x)
 
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
-// PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-TEMPLATE_2_REAL(PositivePow, base, power, return pow(max(abs(base), FLT_EPS), power))
+// PositivePow remove this warning when you know the value is positive or 0 and avoid inf/NAN.
+// Note: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx pow(0, >0) == 0
+TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
@@ -593,21 +594,28 @@ static const float4x4 k_identity4x4 = {1, 0, 0, 0,
                                        0, 0, 1, 0,
                                        0, 0, 0, 1};
 
-// Use case examples:
-// (position = positionCS) => (clipSpaceTransform = use default)
-// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
-// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float4 ComputeClipSpaceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
 {
-    float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
 
 #if UNITY_UV_STARTS_AT_TOP
-    // Our clip space is correct, but the NDC is flipped.
-    // Conceptually, it should be (positionNDC.y = 1.0 - positionNDC.y), but this is more efficient.
+    // Our world space, view space, screen space and NDC space are Y-up.
+    // Our clip space is flipped upside-down due to poor legacy Unity design.
+    // The flip is baked into the projection matrix, so we only have to flip
+    // manually when going from CS to NDC and back.
     positionCS.y = -positionCS.y;
 #endif
 
     return positionCS;
+}
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    return mul(clipSpaceTransform, float4(position, 1.0));
 }
 
 // Use case examples:
@@ -616,22 +624,17 @@ float4 ComputeClipSpaceCoordinates(float3 position, float4x4 clipSpaceTransform 
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
 float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
-    float4 positionCS = ComputeClipSpaceCoordinates(position, clipSpaceTransform);
-
-    return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
-}
-
-float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
-{
-    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+    float4 positionCS = ComputeClipSpacePosition(position, clipSpaceTransform);
 
 #if UNITY_UV_STARTS_AT_TOP
-    // Our clip space is correct, but the NDC is flipped.
-    // Conceptually, it should be (positionNDC.y = 1.0 - positionNDC.y), but this is more efficient.
+    // Our world space, view space, screen space and NDC space are Y-up.
+    // Our clip space is flipped upside-down due to poor legacy Unity design.
+    // The flip is baked into the projection matrix, so we only have to flip
+    // manually when going from CS to NDC and back.
     positionCS.y = -positionCS.y;
 #endif
 
-    return positionCS;
+    return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
 }
 
 float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
@@ -657,11 +660,11 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 struct PositionInputs
 {
     float3 positionWS;  // World space position (could be camera-relative)
-    float2 positionNDC; // Normalized screen UVs          : [0, 1) (with the half-pixel offset)
-    uint2  positionSS;  // Screen space pixel coordinates : [0, NumPixels)
-    uint2  tileCoord;   // Screen tile coordinates        : [0, NumTiles)
-    float  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
-    float  linearDepth; // View space Z coordinate        : [Near, Far]
+    float2 positionNDC; // Normalized screen coordinates within the viewport    : [0, 1) (with the half-pixel offset)
+    uint2  positionSS;  // Screen space pixel coordinates                       : [0, NumPixels)
+    uint2  tileCoord;   // Screen tile coordinates                              : [0, NumTiles)
+    float  deviceDepth; // Depth from the depth buffer                          : [0, 1] (typically reversed)
+    float  linearDepth; // View space Z coordinate                              : [Near, Far]
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.

@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -49,12 +49,16 @@ MonoBehaviour:
       enableBigTilePrepass: 1
       isFptlEnabled: 1
   renderPipelineSettings:
-    supportShadowMask: 1
+    supportShadowMask: 0
     supportSSR: 1
     supportSSAO: 1
     supportSubsurfaceScattering: 1
+    supportsForwardOnly: 0
     supportDBuffer: 1
-    supportMSAA: 0
+    supportMSAAAntiAliasing: 0
+    msaaSampleCount: 1
+    supportsMotionVectors: 1
+    supportsStereo: 0
     lightLoopSettings:
       spotCookieSize: 128
       cookieTexArraySize: 16
@@ -74,5 +78,8 @@ MonoBehaviour:
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
+    decalSettings:
+      drawDistance: 1000
+      atlasSize: 8192
   diffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0,
     type: 2}

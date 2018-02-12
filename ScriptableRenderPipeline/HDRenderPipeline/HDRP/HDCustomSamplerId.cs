@@ -34,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PyramidDepth,
         PostProcessing,
         RenderDebug,
-        InitAndClearBuffer,
-        InitGBuffersAndClearDepthStencil,
+        ClearBuffers,
+        ClearDepthStencil,
         ClearSSSDiffuseTarget,
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ClearGBuffer,
         HDRenderPipelineRender,
         CullResultsCull,
+        CopyDepthForSceneView,
 
         // Profile sampler for tile pass
         TPPrepareLightsForGPU,

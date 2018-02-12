@@ -13,8 +13,9 @@ CBUFFER_START(UnityDebugDisplay)
 int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
-float4 _DebugLightingAlbedo; // xyz = albedo for diffuse, w unused
+float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
+float4 _DebugLightingNormal; // x == bool override
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float _DebugEnvironmentProxyDepthScale;
 CBUFFER_END
@@ -85,21 +86,28 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 
 float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
 {
+    float3 outColor = originalColor;
+
     switch (paramId)
     {
     case DEBUGMIPMAPMODE_MIP_RATIO:
-        return GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
+        outColor = GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
+        break;
     case DEBUGMIPMAPMODE_MIP_COUNT:
-        return GetDebugMipCountColor(originalColor, tex);
+        outColor = GetDebugMipCountColor(originalColor, tex);
+        break;
     case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
-        return GetDebugMipReductionColor(tex, mipInfo);
+        outColor = GetDebugMipReductionColor(tex, mipInfo);
+        break;
     case DEBUGMIPMAPMODE_STREAMING_MIP_BUDGET:
-        return GetDebugStreamingMipColor(tex, mipInfo);
+        outColor = GetDebugStreamingMipColor(tex, mipInfo);
+        break;
     case DEBUGMIPMAPMODE_STREAMING_MIP:
-        return GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+        outColor = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+        break;
     }
 
-    return originalColor;
+    return outColor;
 }
 
 // DebugFont code assume black and white font with texture size 256x128 with bloc of 16x16
@@ -157,7 +165,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
 {
     const uint maxStringSize = 16;
 
-    int absIntValue = abs(intValue);
+    uint absIntValue = abs(intValue);
 
     // 1. Get size of the number of display
     int numEntries = min((intValue == 0 ? 0 : log10(absIntValue)) + (intValue < 0 ? 1 : 0), maxStringSize);
@@ -187,7 +195,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
 
 void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
 {
-    if (IsNAN(floatValue))
+    if (IsNan(floatValue))
     {
         DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
         DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);

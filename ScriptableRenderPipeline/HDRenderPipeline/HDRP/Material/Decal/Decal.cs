@@ -13,7 +13,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
-            public Vector4 mask; 
+            public Vector4 mask;
+			[SurfaceDataAttributes("HTileMask")]
+			public uint HTileMask; 
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -39,12 +41,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
        static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
 	   static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32 };
-	   static RenderTextureReadWrite[] m_RTReadWrite = { RenderTextureReadWrite.sRGB, RenderTextureReadWrite.Linear, RenderTextureReadWrite.Linear };
+	   static bool[] m_sRGBFlags= { true, false, false };
 
-       static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
+       static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlags)
        {
             RTFormat = m_RTFormat;
-            RTReadWrite = m_RTReadWrite;
+            sRGBFlags = m_sRGBFlags;
        }
     }
 }

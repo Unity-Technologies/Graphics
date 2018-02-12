@@ -130,7 +130,6 @@ Shader "HDRenderPipeline/Unlit"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitDepthPass.hlsl"
             #include "UnlitData.hlsl"
@@ -151,29 +150,13 @@ Shader "HDRenderPipeline/Unlit"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #include "../../Material/Material.hlsl"
-            #include "ShaderPass/UnlitSharePass.hlsl"
-            #include "UnlitData.hlsl"
-            #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
+            #pragma multi_compile _ DEBUG_DISPLAY
 
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "ForwardDebugDisplay"
-            Tags { "LightMode" = "ForwardOnlyDebugDisplay" }
-
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define DEBUG_DISPLAY
-            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #ifdef DEBUG_DISPLAY
             #include "../../Debug/DebugDisplay.hlsl"
+            #endif
+
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
             #include "../../Material/Material.hlsl"
             #include "ShaderPass/UnlitSharePass.hlsl"
             #include "UnlitData.hlsl"
