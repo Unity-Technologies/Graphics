@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,12 +6,13 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     public class LightWeightUnlitSubShader : IUnlitSubShader
     {
-        Pass m_UnlitPass = new Pass()
+        Pass m_UnlitPass = new Pass
         {
             Name = "Unlit",
-            PixelShaderSlots = new List<int>()
+            PixelShaderSlots = new List<int>
             {
                 UnlitMasterNode.ColorSlotId,
                 UnlitMasterNode.AlphaSlotId,
@@ -176,15 +178,16 @@ namespace UnityEditor.ShaderGraph
             return resultPass;
         }
 
-        public string GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
         {
+            var masterNode = inMasterNode as UnlitMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = MasterNode.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
+            var materialOptions = ShaderGenerator.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
@@ -197,6 +200,11 @@ namespace UnityEditor.ShaderGraph
                     mode,
                     materialOptions),
                 true);
+
+            var extraPassesTemplateLocation = ShaderGenerator.GetTemplatePath("lightweightUnlitExtraPasses.template");
+            if (File.Exists(extraPassesTemplateLocation))
+                subShader.AddShaderChunk(File.ReadAllText(extraPassesTemplateLocation), true);
+
 
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
