@@ -173,14 +173,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             string temp;
             if (enableMSAA)
-                temp = string.Format("RT_{0}x{1}_{2}_{3}{4}", width, height, format, mips ? "_Mips"  : "", msaaSamples.ToString());
+                temp = string.Format("{0}x{1}_{2}{3}_{4}", width, height, format, mips ? "_Mips"  : "", msaaSamples.ToString());
             else
-                temp = string.Format("RT_{0}x{1}_{2}_{3}", width, height, format, mips ? "_Mips" : "");
+                temp = string.Format("{0}x{1}_{2}{3}", width, height, format, mips ? "_Mips" : "");
 
-            if (name != "")
-            {
-                temp = String.Format("{0}_{1}", name, temp);
-            }
+            temp = String.Format("{0}_{1}", name == "" ? "RenderTarget" : name, temp);
 
             return temp;
         }
