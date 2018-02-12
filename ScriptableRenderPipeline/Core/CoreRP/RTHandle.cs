@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (category == RTCategory.MSAA)
                         rt.antiAliasing = (int)s_ScaledRTCurrentMSAASamples;
 
-                    rt.name = CoreUtils.GetRenderTargetAutoName(width, height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: s_ScaledRTCurrentMSAASamples);
+                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: s_ScaledRTCurrentMSAASamples);
                     rt.Create();
                 }
             }

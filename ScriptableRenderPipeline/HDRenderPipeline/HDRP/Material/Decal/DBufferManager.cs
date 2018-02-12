@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int dbufferIndex = 0; dbufferIndex < m_BufferCount; ++dbufferIndex)
             {
-                m_RTs[dbufferIndex] = RTHandle.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: "DBuffer");
+                m_RTs[dbufferIndex] = RTHandle.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: string.Format("DBuffer{0}", dbufferIndex));
                 m_RTIDs[dbufferIndex] = m_RTs[dbufferIndex].nameID;
                 m_TextureShaderIDs[dbufferIndex] = HDShaderIDs._DBufferTexture[dbufferIndex];
             }
