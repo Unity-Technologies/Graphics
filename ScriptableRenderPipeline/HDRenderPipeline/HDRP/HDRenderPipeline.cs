@@ -618,7 +618,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
                     ScriptableCullingParameters cullingParams;
-                    if (!CullResults.GetCullingParameters(camera, out cullingParams))
+                    if (!CullResults.GetCullingParameters(camera, m_FrameSettings.enableStereo, out cullingParams))
                     {
                         renderContext.Submit();
                         continue;
@@ -654,7 +654,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         DecalSystem.instance.EndCull();
                     }
 
-                    renderContext.SetupCameraProperties(camera);
+                    renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
 
@@ -693,7 +693,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
+                    if (m_FrameSettings.enableStereo)
+                        renderContext.StartMultiEye(hdCamera.camera);
+                        
                     ClearBuffers(hdCamera, cmd);
+
+                    // TODO: Add stereo occlusion mask
 
                     bool forcePrepassForDecals = m_DbufferManager.vsibleDecalCount > 0;
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
@@ -718,6 +723,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
+                    if (m_FrameSettings.enableStereo)
+                        renderContext.StopMultiEye(hdCamera.camera);
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                     {
@@ -727,6 +734,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
+                        if (m_FrameSettings.enableStereo)
+                            renderContext.StartMultiEye(hdCamera.camera);
+
                         using (new ProfilingSample(cmd, "Render SSAO", CustomSamplerId.RenderSSAO.GetSampler()))
                         {
                             // TODO: Everything here (SSAO, Shadow, Build light list, deferred shadow, material and light classification can be parallelize with Async compute)
@@ -749,6 +759,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
+                        if (m_FrameSettings.enableStereo)
+                            renderContext.StopMultiEye(hdCamera.camera);
+
                         GPUFence buildGPULightListsCompleteFence = new GPUFence();
                         if (m_FrameSettings.enableAsyncCompute)
                         {
@@ -763,7 +776,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
                             // TODO: check if statement below still apply
-                            renderContext.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
+                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
                         }
 
                         using (new ProfilingSample(cmd, "Deferred directional shadows", CustomSamplerId.RenderDeferredDirectionalShadow.GetSampler()))
@@ -796,6 +809,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         RenderDeferredLighting(hdCamera, cmd);
 
+                        // Might float this higher if we enable stereo w/ deferred
+                        if (m_FrameSettings.enableStereo)
+                            renderContext.StartMultiEye(hdCamera.camera);
+
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
 
@@ -823,11 +840,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
 
+                        if (m_FrameSettings.enableStereo)
+                            renderContext.StopMultiEye(hdCamera.camera);
+
                         PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.NanTracker);
                         PushColorPickerDebugTexture(cmd, m_CameraColorBuffer, hdCamera);
 
                         // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
                         // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
+
+                        if (m_FrameSettings.enableStereo)
+                            renderContext.StartMultiEye(hdCamera.camera);
 
                         // Final blit
                         if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
@@ -841,6 +864,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // This Blit will flip the screen on anything other than openGL
                                 HDUtils.BlitCameraTexture(cmd, hdCamera, m_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
                             }
+                        }
+
+                        if (m_FrameSettings.enableStereo)
+                        {
+                            renderContext.StopMultiEye(hdCamera.camera);
+                            renderContext.StereoEndRender(hdCamera.camera);
                         }
                     }
 
