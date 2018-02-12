@@ -622,7 +622,7 @@ float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
     float4 positionCS = ComputeClipSpacePosition(position, clipSpaceTransform);
 
@@ -634,7 +634,19 @@ float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTra
     positionCS.y = -positionCS.y;
 #endif
 
-    return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
+    positionCS *= rcp(positionCS.w);
+    positionCS.xy = positionCS.xy * 0.5 + 0.5;
+
+    return positionCS.xyz;
+}
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    return ComputeNormalizedDeviceCoordinatesWithZ(position, clipSpaceTransform);
 }
 
 float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
