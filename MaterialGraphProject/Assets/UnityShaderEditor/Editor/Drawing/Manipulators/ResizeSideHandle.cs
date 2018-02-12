@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -49,6 +50,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_DockingLeft;
         bool m_DockingTop;
+        bool m_Dragging;
+
+        float m_InitialAspectRatio;
+
+        Rect m_ResizeBeginLayout;
+        Vector2 m_ResizeBeginMousePosition;
 
         public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)
         {
@@ -62,67 +69,70 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     AddToClassList("vertical");
                     AddToClassList("top");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromTop);
                     break;
                 }
                 case ResizeHandleAnchor.TopRight:
                 {
                     AddToClassList("diagonal");
                     AddToClassList("top-right");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromTopRight);
                     break;
                 }
                 case ResizeHandleAnchor.Right:
                 {
                     AddToClassList("horizontal");
                     AddToClassList("right");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromRight);
                     break;
                 }
                 case ResizeHandleAnchor.BottomRight:
                 {
                     AddToClassList("diagonal");
                     AddToClassList("bottom-right");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromBottomRight);
                     break;
                 }
                 case ResizeHandleAnchor.Bottom:
                 {
                     AddToClassList("vertical");
                     AddToClassList("bottom");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromBottom);
                     break;
                 }
                 case ResizeHandleAnchor.BottomLeft:
                 {
                     AddToClassList("diagonal");
                     AddToClassList("bottom-left");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromBottomLeft);
                     break;
                 }
                 case ResizeHandleAnchor.Left:
                 {
                     AddToClassList("horizontal");
                     AddToClassList("left");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromLeft);
                     break;
                 }
                 case ResizeHandleAnchor.TopLeft:
                 {
                     AddToClassList("diagonal");
                     AddToClassList("top-left");
+                    RegisterCallback<MouseMoveEvent>(HandleResizeFromTopLeft);
                     break;
                 }
             }
 
-            if (anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.Right)
-            {
-                this.AddManipulator(new Draggable(mouseDelta => OnResizeFromHorizontal(mouseDelta, anchor)));
-            }
-            else if (anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.Bottom)
-            {
-                this.AddManipulator(new Draggable(mouseDelta => OnResizeFromVertical(mouseDelta, anchor)));
-            }
-            else
-            {
-                this.AddManipulator(new Draggable(mouseDelta => OnResizeFromCorner(mouseDelta, anchor)));
-            }
-
             RegisterCallback<MouseDownEvent>(HandleMouseDown);
             RegisterCallback<MouseUpEvent>(HandleDraggableMouseUp);
+
+            m_ResizeTarget.RegisterCallback<PostLayoutEvent>(InitialLayoutSetup);
+        }
+
+        void InitialLayoutSetup(PostLayoutEvent evt)
+        {
+            m_ResizeTarget.UnregisterCallback<PostLayoutEvent>(InitialLayoutSetup);
+            m_InitialAspectRatio = m_ResizeTarget.layout.width / m_ResizeTarget.layout.height;
         }
 
         Vector2 GetMinSize()
@@ -148,22 +158,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (expandingLeft)
             {
-                maxHorizontalExpansion = m_ResizeTarget.layout.x;
+                maxHorizontalExpansion = m_ResizeBeginLayout.x;
             }
             else
             {
-                maxHorizontalExpansion =  m_ResizeTarget.parent.layout.width - m_ResizeTarget.layout.xMax;
+                maxHorizontalExpansion = m_ResizeTarget.parent.layout.width - m_ResizeBeginLayout.xMax;
             }
 
             if (maintainAspectRatio)
             {
                 if (!m_DockingTop)
                 {
-                    maxHorizontalExpansion = Mathf.Min(maxHorizontalExpansion, m_ResizeTarget.layout.y);
+                    maxHorizontalExpansion = Mathf.Min(maxHorizontalExpansion, m_ResizeBeginLayout.y);
                 }
                 else
                 {
-                    maxHorizontalExpansion = Mathf.Min(maxHorizontalExpansion, m_ResizeTarget.parent.layout.height - m_ResizeTarget.layout.yMax);
+                    maxHorizontalExpansion = Mathf.Min(maxHorizontalExpansion, m_ResizeTarget.parent.layout.height - m_ResizeBeginLayout.yMax);
                 }
             }
 
@@ -176,261 +186,375 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (expandingUp)
             {
-                maxVerticalExpansion = m_ResizeTarget.layout.y;
+                maxVerticalExpansion = m_ResizeBeginLayout.y;
             }
             else
             {
-                maxVerticalExpansion =  m_ResizeTarget.parent.layout.height - m_ResizeTarget.layout.yMax;
+                maxVerticalExpansion = m_ResizeTarget.parent.layout.height - m_ResizeBeginLayout.yMax;
             }
 
             if (maintainAspectRatio)
             {
                 if (!m_DockingLeft)
                 {
-                    maxVerticalExpansion = Mathf.Min(maxVerticalExpansion, m_ResizeTarget.layout.x);
+                    maxVerticalExpansion = Mathf.Min(maxVerticalExpansion, m_ResizeBeginLayout.x);
                 }
                 else
                 {
-                    maxVerticalExpansion = Mathf.Min(maxVerticalExpansion, m_ResizeTarget.parent.layout.width - m_ResizeTarget.layout.xMax);
+                    maxVerticalExpansion = Mathf.Min(maxVerticalExpansion, m_ResizeTarget.parent.layout.width - m_ResizeBeginLayout.xMax);
                 }
             }
 
             return maxVerticalExpansion;
         }
 
-        float GetMaxContraction()
+        void HandleResizeFromTop(MouseMoveEvent mouseMoveEvent)
         {
-            Vector2 minSize = GetMinSize();
-            return Mathf.Min(m_ResizeTarget.layout.width - minSize.x, m_ResizeTarget.layout.height - minSize.y);
-        }
+            if (!m_Dragging)
+            {
+                return;
+            }
 
-        void OnResizeFromHorizontal(Vector2 resizeDelta, ResizeHandleAnchor anchor)
-        {
-            float resizeAmount = resizeDelta.x / 2f;
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
 
-            Rect newLayout = m_ResizeTarget.layout;
-
-            bool resizeLeft = anchor == ResizeHandleAnchor.Left;
+            restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginLayout.yMax - GetMinSize().y);
 
             if (stayWithinParentBounds)
             {
-                if (resizeLeft)
-                {
-                    resizeAmount = Mathf.Clamp(resizeAmount, -GetMaxHorizontalExpansion(resizeLeft), GetMaxContraction());
-                }
-                else
-                {
-                    resizeAmount = Mathf.Clamp(resizeAmount, -GetMaxContraction(), GetMaxHorizontalExpansion(resizeLeft));
-                }
+                restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginMousePosition.y - GetMaxVerticalExpansion(true));
             }
 
-            if (resizeLeft)
-            {
-                newLayout.xMin += resizeAmount;
-            }
-            else
-            {
-                newLayout.xMax += resizeAmount;
-            }
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.yMin = m_ResizeBeginLayout.yMin + delta.y;
 
             if (maintainAspectRatio)
             {
-                if (!resizeLeft)
+                if (m_DockingLeft)
                 {
-                    resizeAmount = -resizeAmount;
-                }
-
-                if (!m_DockingTop)
-                {
-                    newLayout.yMin += resizeAmount;
+                    newLayout.width = newLayout.height * m_InitialAspectRatio;
                 }
                 else
                 {
-                    newLayout.yMax -= resizeAmount;
+                    newLayout.xMin = newLayout.xMax - (newLayout.height * m_InitialAspectRatio);
                 }
             }
 
             m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
         }
 
-        void OnResizeFromVertical(Vector2 resizeDelta, ResizeHandleAnchor anchor)
+        void HandleResizeFromTopRight(MouseMoveEvent mouseMoveEvent)
         {
-            float resizeAmount = resizeDelta.y / 2f;
+            if (!m_Dragging)
+            {
+                return;
+            }
 
-            Rect newLayout = m_ResizeTarget.layout;
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
 
-            bool resizeUp = anchor == ResizeHandleAnchor.Top;
+            restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginLayout.xMin + GetMinSize().x);
+            restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginLayout.yMax - GetMinSize().y);
 
             if (stayWithinParentBounds)
             {
-                if (resizeUp)
-                {
-                    resizeAmount = Mathf.Clamp(resizeAmount, -GetMaxVerticalExpansion(resizeUp), GetMaxContraction());
-                }
-                else
-                {
-                    resizeAmount = Mathf.Clamp(resizeAmount, -GetMaxContraction(), GetMaxVerticalExpansion(resizeUp));
-                }
+                restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginMousePosition.x + GetMaxHorizontalExpansion(false));
+                restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, 0f);
             }
 
-            if (resizeUp)
-            {
-                newLayout.yMin += resizeAmount;
-            }
-            else
-            {
-                newLayout.yMax += resizeAmount;
-            }
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.width += delta.x;
+            newLayout.yMin += delta.y;
 
             if (maintainAspectRatio)
             {
-                if (!resizeUp)
+                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
                 {
-                    resizeAmount = -resizeAmount;
-                }
-
-                if (!m_DockingLeft)
-                {
-                    newLayout.xMin += resizeAmount;
+                    newLayout.yMin = Mathf.Min(newLayout.yMax - newLayout.width / m_InitialAspectRatio, newLayout.yMax - GetMinSize().y);
                 }
                 else
                 {
-                    newLayout.xMax -= resizeAmount;
+                    newLayout.width = newLayout.height * m_InitialAspectRatio;
                 }
             }
 
             m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
         }
 
-        void OnResizeFromCorner(Vector2 resizeDelta, ResizeHandleAnchor anchor)
+        void HandleResizeFromRight(MouseMoveEvent mouseMoveEvent)
         {
-            Rect newLayout = m_ResizeTarget.layout;
-            float resizeAmount;
+            if (!m_Dragging)
+            {
+                return;
+            }
+
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+
+            restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginLayout.xMin + GetMinSize().x);
+
+            if (stayWithinParentBounds)
+            {
+                restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginMousePosition.x + GetMaxHorizontalExpansion(false));
+            }
+
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.xMax = m_ResizeBeginLayout.xMax + delta.x;
 
             if (maintainAspectRatio)
             {
-                bool horizontalDominant;
-
-                if (Mathf.Abs(resizeDelta.x) > Mathf.Abs(resizeDelta.y))
+                if (m_DockingTop)
                 {
-                    resizeAmount = resizeDelta.x * .5f;
-                    horizontalDominant = true;
+                    newLayout.height = newLayout.width / m_InitialAspectRatio;
                 }
                 else
                 {
-                    resizeAmount = resizeDelta.y * .5f;
-                    horizontalDominant = false;
-                }
-
-                switch (anchor)
-                {
-                    case ResizeHandleAnchor.TopLeft:
-                    {
-                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(true), GetMaxVerticalExpansion(true));
-                        float minResizeAmount = GetMaxContraction();
-                        resizeAmount = Mathf.Clamp(resizeAmount, -maxResizeAmount, minResizeAmount);
-                        newLayout.xMin += resizeAmount;
-                        newLayout.yMin += resizeAmount;
-                        break;
-                    }
-                    case ResizeHandleAnchor.TopRight:
-                    {
-                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(false), GetMaxVerticalExpansion(true));
-                        float minResizeAmount = GetMaxContraction();
-
-                        if (horizontalDominant)
-                        {
-                            resizeAmount = Mathf.Clamp(resizeAmount, -minResizeAmount, maxResizeAmount);
-                            newLayout.xMax += resizeAmount;
-                            newLayout.yMin -= resizeAmount;
-                        }
-                        else
-                        {
-                            resizeAmount = Mathf.Clamp(resizeAmount, -maxResizeAmount, minResizeAmount);
-                            newLayout.xMax -= resizeAmount;
-                            newLayout.yMin += resizeAmount;
-                        }
-
-                        break;
-                    }
-                    case ResizeHandleAnchor.BottomLeft:
-                    {
-                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(true), GetMaxVerticalExpansion(false));
-                        float minResizeAmount = GetMaxContraction();
-
-                        if (horizontalDominant)
-                        {
-                            resizeAmount = Mathf.Clamp(resizeAmount, -maxResizeAmount, minResizeAmount);
-                            newLayout.xMin += resizeAmount;
-                            newLayout.yMax -= resizeAmount;
-                        }
-                        else
-                        {
-                            resizeAmount = Mathf.Clamp(resizeAmount, -minResizeAmount, maxResizeAmount);
-                            newLayout.xMin -= resizeAmount;
-                            newLayout.yMax += resizeAmount;
-                        }
-
-                        break;
-                    }
-                    case ResizeHandleAnchor.BottomRight:
-                    {
-                        float maxResizeAmount = Mathf.Min(GetMaxHorizontalExpansion(false), GetMaxVerticalExpansion(false));
-                        float minResizeAmount = GetMaxContraction();
-                        resizeAmount = Mathf.Clamp(resizeAmount, -minResizeAmount, maxResizeAmount);
-                        newLayout.xMax += resizeAmount;
-                        newLayout.yMax += resizeAmount;
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                Vector2 normalizedResizeDelta = resizeDelta * .5f;
-                Vector2 minSize = GetMinSize();
-
-                if (anchor == ResizeHandleAnchor.Left || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.BottomLeft)
-                {
-                    newLayout.xMin = Mathf.Min(newLayout.xMin + normalizedResizeDelta.x, newLayout.xMax - minSize.x);
-                }
-                else
-                {
-                    newLayout.xMax = Mathf.Max(newLayout.xMax + normalizedResizeDelta.x, newLayout.xMin + minSize.x);
-                }
-
-                if (anchor == ResizeHandleAnchor.Top || anchor == ResizeHandleAnchor.TopLeft || anchor == ResizeHandleAnchor.TopRight)
-                {
-                    newLayout.yMin = Mathf.Min(newLayout.yMin + normalizedResizeDelta.y, newLayout.yMax - minSize.y);
-                }
-                else
-                {
-                    newLayout.yMax = Mathf.Max(newLayout.yMax + normalizedResizeDelta.y, newLayout.yMin + minSize.y);
-                }
-
-                if (stayWithinParentBounds)
-                {
-                    newLayout.xMin = Mathf.Max(newLayout.xMin, 0f);
-                    newLayout.yMin = Mathf.Max(newLayout.yMin, 0f);
-                    newLayout.xMax = Mathf.Min(newLayout.xMax, m_ResizeTarget.parent.layout.width);
-                    newLayout.yMax = Mathf.Min(newLayout.yMax, m_ResizeTarget.parent.layout.height);
+                    newLayout.yMin = newLayout.yMax - (newLayout.width / m_InitialAspectRatio);
                 }
             }
 
             m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
         }
 
-        void HandleMouseDown(MouseDownEvent evt)
+        void HandleResizeFromBottomRight(MouseMoveEvent mouseMoveEvent)
         {
+            if (!m_Dragging)
+            {
+                return;
+            }
+
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+
+            restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginLayout.xMin + GetMinSize().x);
+            restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginLayout.yMin + GetMinSize().y);
+
+            if (stayWithinParentBounds)
+            {
+                restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginMousePosition.x + GetMaxHorizontalExpansion(false));
+                restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginMousePosition.y + GetMaxVerticalExpansion(false));
+            }
+
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.size += delta;
+
+            if (maintainAspectRatio)
+            {
+                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
+                {
+                    newLayout.height = newLayout.width / m_InitialAspectRatio;
+                }
+                else
+                {
+                    newLayout.width = newLayout.height * m_InitialAspectRatio;
+                }
+            }
+
+            m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
+        }
+
+        void HandleResizeFromBottom(MouseMoveEvent mouseMoveEvent)
+        {
+            if (!m_Dragging)
+            {
+                return;
+            }
+
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+
+            restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginLayout.yMin + GetMinSize().y);
+
+            if (stayWithinParentBounds)
+            {
+                restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginMousePosition.y + GetMaxVerticalExpansion(false));
+            }
+
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.yMax = m_ResizeBeginLayout.yMax + delta.y;
+
+            if (maintainAspectRatio)
+            {
+                if (m_DockingLeft)
+                {
+                    newLayout.width = newLayout.height * m_InitialAspectRatio;
+                }
+                else
+                {
+                    newLayout.xMin = newLayout.xMax - (newLayout.height * m_InitialAspectRatio);
+                }
+            }
+
+            m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
+        }
+
+        void HandleResizeFromBottomLeft(MouseMoveEvent mouseMoveEvent)
+        {
+            if (!m_Dragging)
+            {
+                return;
+            }
+
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+
+            restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginLayout.xMax - GetMinSize().x);
+            restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginLayout.yMin + GetMinSize().y);
+
+            if (stayWithinParentBounds)
+            {
+                restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, 0f);
+                restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginMousePosition.y + GetMaxVerticalExpansion(false));
+            }
+
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.xMin += delta.x;
+            newLayout.height += delta.y;
+
+            if (maintainAspectRatio)
+            {
+                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
+                {
+                    newLayout.height = newLayout.width / m_InitialAspectRatio;
+                }
+                else
+                {
+                    newLayout.xMin = Mathf.Min(newLayout.xMax - newLayout.height * m_InitialAspectRatio, newLayout.xMax - GetMinSize().x);
+                }
+            }
+
+            m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
+        }
+
+        void HandleResizeFromLeft(MouseMoveEvent mouseMoveEvent)
+        {
+            if (!m_Dragging)
+            {
+                return;
+            }
+
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+
+            restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginLayout.xMax - GetMinSize().x);
+
+            if (stayWithinParentBounds)
+            {
+                restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginMousePosition.x - GetMaxHorizontalExpansion(true));
+            }
+
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.xMin = m_ResizeBeginLayout.xMin + delta.x;
+
+            if (maintainAspectRatio)
+            {
+                if (m_DockingTop)
+                {
+                    newLayout.height = newLayout.width / m_InitialAspectRatio;
+                }
+                else
+                {
+                    newLayout.yMin = newLayout.yMax - (newLayout.width / m_InitialAspectRatio);
+                }
+            }
+
+            m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
+        }
+
+        void HandleResizeFromTopLeft(MouseMoveEvent mouseMoveEvent)
+        {
+            if (!m_Dragging)
+            {
+                return;
+            }
+
+            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+
+            restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginLayout.xMax - GetMinSize().x);
+            restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginLayout.yMax - GetMinSize().y);
+
+            if (stayWithinParentBounds)
+            {
+                restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, 0f);
+                restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, 0f);
+            }
+
+            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
+
+            Rect newLayout = m_ResizeBeginLayout;
+
+            newLayout.xMin += delta.x;
+            newLayout.yMin += delta.y;
+
+            if (maintainAspectRatio)
+            {
+                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
+                {
+                    newLayout.yMin = Mathf.Min(newLayout.yMax - newLayout.width / m_InitialAspectRatio, newLayout.yMax - GetMinSize().y);
+                }
+                else
+                {
+                    newLayout.xMin = Mathf.Min(newLayout.xMax - newLayout.height * m_InitialAspectRatio, newLayout.xMax - GetMinSize().x);
+                }
+            }
+
+            m_ResizeTarget.layout = newLayout;
+
+            mouseMoveEvent.StopPropagation();
+        }
+
+        void HandleMouseDown(MouseDownEvent mouseDownEvent)
+        {
+            m_Dragging = true;
+
             m_DockingLeft = m_ResizeTarget.layout.center.x / m_ResizeTarget.parent.layout.width < .5f;
             m_DockingTop = m_ResizeTarget.layout.center.y / m_ResizeTarget.parent.layout.height < .5f;
+
+            m_ResizeBeginLayout = m_ResizeTarget.layout;
+            m_ResizeBeginMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseDownEvent.mousePosition);
+
+            m_Dragging = true;
+            this.TakeMouseCapture();
+            mouseDownEvent.StopPropagation();
         }
 
-        void HandleDraggableMouseUp(MouseUpEvent evt)
+        void HandleDraggableMouseUp(MouseUpEvent mouseUpEvent)
         {
+            m_Dragging = false;
+
+            if (this.HasMouseCapture())
+            {
+                this.ReleaseMouseCapture();
+            }
+
             if (OnResizeFinished != null)
             {
                 OnResizeFinished();
