@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -10,40 +10,47 @@ namespace UnityEditor.VFX
     enum VFXAttributeMode
     {
         None        = 0,
-        Read        = 1 << 0,
-        Write       = 1 << 1,
-        ReadWrite   = Read | Write,
-    }
-
-    enum VFXAttributeLocation
-    {
-        Current = 0,
-        Source = 1,
+        Read = 1 << 0,
+        Write = 1 << 1,
+        ReadWrite = Read | Write,
+        ReadSource  = 1 << 2,
     }
 
     struct VFXAttribute
     {
-        public static readonly VFXAttribute Seed               = new VFXAttribute("seed", VFXValueType.kUint);
-        public static readonly VFXAttribute Position           = new VFXAttribute("position", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Velocity           = new VFXAttribute("velocity", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Color              = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
-        public static readonly VFXAttribute Alpha              = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute Phase              = new VFXAttribute("phase", VFXValueType.kFloat);
-        public static readonly VFXAttribute Size               = new VFXAttribute("size", VFXValue.Constant(new Vector2(0.1f, 0.1f)));
-        public static readonly VFXAttribute Lifetime           = new VFXAttribute("lifetime", VFXValueType.kFloat);
-        public static readonly VFXAttribute Age                = new VFXAttribute("age", VFXValueType.kFloat);
-        public static readonly VFXAttribute Angle              = new VFXAttribute("angle", VFXValueType.kFloat);
-        public static readonly VFXAttribute AngularVelocity    = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
-        public static readonly VFXAttribute TexIndex           = new VFXAttribute("texIndex", VFXValueType.kFloat);
-        public static readonly VFXAttribute Pivot              = new VFXAttribute("pivot", VFXValueType.kFloat3);
-        public static readonly VFXAttribute ParticleId         = new VFXAttribute("particleId", VFXValueType.kUint);
-        public static readonly VFXAttribute Front              = new VFXAttribute("front", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Side               = new VFXAttribute("side", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Up                 = new VFXAttribute("up", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Alive              = new VFXAttribute("alive", VFXValue.Constant(true));
+        public static readonly float kDefaultSize = 0.1f;
+
+        public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.kUint);
+        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
+        public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
+        public static readonly VFXAttribute Phase               = new VFXAttribute("phase", VFXValueType.kFloat);
+        public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.kFloat);
+        public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
+        public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.kFloat);
+        public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.kFloat3);
+        public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.kUint);
+        public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
+        public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
+        public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
+        public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
+        public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
+        public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.kFloat3);
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId };
+        public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
+        public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
@@ -60,35 +67,44 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXAttribute(string name, VFXValueType type, VFXAttributeLocation location = VFXAttributeLocation.Current)
+        public VFXAttribute(string name, VFXValueType type)
         {
             this.name = name;
-            this.location = location;
             this.value = GetValueFromType(type);
         }
 
-        public VFXAttribute(string name, VFXValue value, VFXAttributeLocation location = VFXAttributeLocation.Current)
+        public VFXAttribute(string name, VFXValue value)
         {
             this.name = name;
-            this.location = location;
             this.value = value;
         }
 
-        public static VFXAttribute Find(string attributeName, VFXAttributeLocation location)
+        public static VFXAttribute Find(string attributeName)
         {
+            // TODO temp to avoid errors when loading graphs. Will be removed at some point
+            if (attributeName == "size")
+            {
+                Debug.LogWarning("Found an attribute size which is deprecated. Using sizeX instead. Please fix that!");
+                attributeName = "sizeX";
+            }
+
+            if (attributeName == "angle")
+            {
+                Debug.LogWarning("Found an attribute angle which is deprecated. Using angleZ instead. Please fix that!");
+                attributeName = "angleZ";
+            }
+
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
                 throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
             }
 
             var attribute = AllAttribute.First(e => e.name == attributeName);
-            attribute.location = location;
             return attribute;
         }
 
         public string name;
         public VFXValue value;
-        public VFXAttributeLocation location;
         public VFXValueType type
         {
             get
@@ -110,11 +126,18 @@ namespace UnityEditor.VFX
         public VFXAttributeMode mode;
     }
 
+    enum VFXAttributeLocation
+    {
+        Current = 0,
+        Source = 1,
+    }
+
     sealed class VFXAttributeExpression : VFXExpression
     {
-        public VFXAttributeExpression(VFXAttribute attribute) : base(Flags.PerElement)
+        public VFXAttributeExpression(VFXAttribute attribute, VFXAttributeLocation location = VFXAttributeLocation.Current) : base(Flags.PerElement)
         {
-            m_Attribute = attribute;
+            m_attribute = attribute;
+            m_attributeLocation = location;
         }
 
         public override VFXExpressionOp operation
@@ -129,7 +152,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Attribute.type;
+                return m_attribute.type;
             }
         }
 
@@ -137,7 +160,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Attribute.name;
+                return m_attribute.name;
             }
         }
 
@@ -145,13 +168,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_Attribute.location;
+                return m_attributeLocation;
             }
         }
 
-        public VFXAttribute attribute { get { return m_Attribute; } }
-        private VFXAttribute m_Attribute;
-
+        public VFXAttribute attribute { get { return m_attribute; } }
+        private VFXAttribute m_attribute;
+        private VFXAttributeLocation m_attributeLocation;
 
         public override bool Equals(object obj)
         {
@@ -159,10 +182,10 @@ namespace UnityEditor.VFX
                 return false;
 
             var other = (VFXAttributeExpression)obj;
-            return valueType == other.valueType && attributeName == other.attributeName && attributeLocation == other.attributeLocation;
+            return valueType == other.valueType && attributeLocation == other.attributeLocation && attributeName == other.attributeName;
         }
 
-        public override int GetHashCode()
+        protected override int GetInnerHashCode()
         {
             return (attributeName.GetHashCode() * 397) ^ attributeLocation.GetHashCode();
         }
@@ -179,7 +202,7 @@ namespace UnityEditor.VFX
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
-            yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
+            yield return new VFXAttributeInfo(attribute, m_attributeLocation == VFXAttributeLocation.Source ? VFXAttributeMode.ReadSource : VFXAttributeMode.Read);
         }
     }
 }

@@ -14,6 +14,12 @@ namespace UnityEditor.VFX
             public FloatN b = Vector3.zero;
         }
 
+        public class OutputProperties
+        {
+            [Tooltip("The squared distance between a and b.")]
+            public float d;
+        }
+
         override public string name { get { return "Squared Distance"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

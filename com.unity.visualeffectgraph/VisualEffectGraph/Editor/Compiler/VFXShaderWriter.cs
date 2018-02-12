@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -40,6 +40,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat2:
                 case VFXValueType.kFloat3:
                 case VFXValueType.kFloat4:
+                case VFXValueType.kMatrix4x4:
                     format = "{0}{1}";
                     break;
                 default: throw new Exception("GetValueString missing type: " + type);
@@ -59,6 +60,15 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4:
                     value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2},{3})", ((Vector4)value).x, ((Vector4)value).y, ((Vector4)value).z, ((Vector4)value).w);
                     break;
+                case VFXValueType.kMatrix4x4:
+                {
+                    var matrix = (Matrix4x4)value;
+                    value = "(";
+                    for (int i = 0; i < 16; ++i)
+                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i]);
+                    value += ")";
+                }
+                break;
             }
             return string.Format(CultureInfo.InvariantCulture, format, VFXExpression.TypeToCode(type), value);
         }
@@ -229,7 +239,7 @@ namespace UnityEditor.VFX
                     int currentSize = 0;
                     foreach (var value in block)
                     {
-                        string type = VFXExpression.TypeToCode(value.valueType);
+                        string type = VFXExpression.TypeToUniformCode(value.valueType);
                         string name = mapper.GetName(value);
                         currentSize += VFXExpression.TypeToSize(value.valueType);
 
@@ -254,7 +264,10 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXValueType.kTexture2D: return "VFXSampler2D";
+                case VFXValueType.kTexture2DArray: return "VFXSampler2DArray";
                 case VFXValueType.kTexture3D: return "VFXSampler3D";
+                case VFXValueType.kTextureCube: return "VFXSamplerCube";
+                case VFXValueType.kTextureCubeArray: return "VFXSamplerCubeArray";
 
                 default:
                     return VFXExpression.TypeToCode(type);
@@ -267,7 +280,10 @@ namespace UnityEditor.VFX
             switch (expression.valueType)
             {
                 case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture3D: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
+                case VFXValueType.kTexture2DArray:
+                case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
 
                 default:
                     return expressionName;

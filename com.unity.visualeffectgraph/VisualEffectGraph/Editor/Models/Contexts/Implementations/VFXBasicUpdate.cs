@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
@@ -16,14 +16,26 @@ namespace UnityEditor.VFX
             None
         }
 
-        [VFXSetting]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
-        public override string codeGeneratorTemplate { get { return "VFXUpdate"; } }
+        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
+
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.OldPosition))
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
+                    yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Write);
+                }
+            }
+        }
 
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {
@@ -31,11 +43,20 @@ namespace UnityEditor.VFX
             {
                 var data = GetData();
 
-                if (integration != VFXIntegrationMode.None && data.IsAttributeWritten(VFXAttribute.Velocity))
+                if (integration != VFXIntegrationMode.None && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
                     yield return CreateInstance<EulerIntegration>();
 
-                if (GetData().IsAttributeWritten(VFXAttribute.Lifetime))
+                if (GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime))
                     yield return CreateInstance<AgeAndDie>();
+            }
+        }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                if ((GetData() as VFXDataParticle).NeedsIndirectBuffer())
+                    yield return "VFX_HAS_INDIRECT_DRAW";
             }
         }
     }

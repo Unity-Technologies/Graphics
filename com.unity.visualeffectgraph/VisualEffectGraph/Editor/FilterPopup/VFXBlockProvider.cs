@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.UI
 {
@@ -19,10 +20,9 @@ namespace UnityEditor.VFX.UI
             public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                var str = "";
+                var str = name;
                 if (!string.IsNullOrEmpty(category))
-                    str = category.Replace("/", " ") + " : ";
-                str += name;
+                    str += " (" + category.Replace("/", " ") + ") ";
                 content = new GUIContent(str /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 descriptor = desc;
             }
@@ -37,13 +37,18 @@ namespace UnityEditor.VFX.UI
         protected abstract string GetName(T desc);
         protected abstract string GetCategory(T desc);
 
+        protected abstract string title
+        {
+            get;
+        }
+
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
         {
-            tree.Add(new VFXFilterWindow.GroupElement(0, "Node"));
+            tree.Add(new VFXFilterWindow.GroupElement(0, title));
             var descriptors = GetDescriptors();
 
             string prevCategory = "";
-            int depth = 0;
+            int depth = 1;
 
             foreach (var desc in descriptors)
             {
@@ -94,10 +99,10 @@ namespace UnityEditor.VFX.UI
 
     class VFXBlockProvider : VFXAbstractProvider<VFXModelDescriptor<VFXBlock>>
     {
-        VFXContextPresenter m_ContextPresenter;
-        public VFXBlockProvider(VFXContextPresenter context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
+        VFXContextController m_ContextController;
+        public VFXBlockProvider(VFXContextController context, Action<VFXModelDescriptor<VFXBlock>, Vector2> onAddBlock) : base(onAddBlock)
         {
-            m_ContextPresenter = context;
+            m_ContextController = context;
         }
 
         protected override string GetCategory(VFXModelDescriptor<VFXBlock> desc)
@@ -110,10 +115,15 @@ namespace UnityEditor.VFX.UI
             return desc.name;
         }
 
+        protected override string title
+        {
+            get {return "Block"; }
+        }
+
         protected override IEnumerable<VFXModelDescriptor<VFXBlock>> GetDescriptors()
         {
             var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
-            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextPresenter.model)).ToList();
+            var filteredBlocks = blocks.Where(b => b.AcceptParent(m_ContextController.model)).ToList();
             filteredBlocks.Sort((blockA, blockB) =>
                 {
                     var infoA = blockA.info;

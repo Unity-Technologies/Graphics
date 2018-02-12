@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -18,14 +18,9 @@ namespace UnityEditor.VFX
                 ||  type == typeof(Color);
         }
 
-        sealed protected override bool CanConvertFrom(VFXExpression expr)
+        sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return base.CanConvertFrom(expr) || CanConvertFrom(VFXExpression.TypeToType(expr.valueType));
-        }
-
-        sealed protected override VFXValue DefaultExpression()
-        {
-            return new VFXValue<Vector2>(Vector2.zero, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<Vector2>(Vector2.zero, mode);
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)

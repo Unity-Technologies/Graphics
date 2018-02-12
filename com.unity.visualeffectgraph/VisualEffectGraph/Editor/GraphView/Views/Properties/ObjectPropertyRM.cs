@@ -9,14 +9,63 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
+#if true
+using ObjectField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.ObjectField, UnityEngine.Object>;
+
 namespace UnityEditor.VFX.UI
 {
     class ObjectPropertyRM : PropertyRM<Object>
     {
-        public ObjectPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_ObjectField = new ObjectField(m_Label);
-            m_ObjectField.editedType = presenter.anchorType;
+            m_ObjectField.control.objectType = controller.portType;
+
+            m_ObjectField.RegisterCallback<ChangeEvent<Object>>(OnValueChanged);
+
+            m_ObjectField.style.flex = 1;
+
+            Add(m_ObjectField);
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 120;
+        }
+
+        public void OnValueChanged(ChangeEvent<Object> onObjectChanged)
+        {
+            Object newValue = m_ObjectField.value;
+            m_Value = newValue;
+            NotifyValueChanged();
+        }
+
+        ObjectField m_ObjectField;
+
+        protected override void UpdateEnabled()
+        {
+            m_ObjectField.SetEnabled(propertyEnabled);
+        }
+
+        public override void UpdateGUI()
+        {
+            m_ObjectField.value = m_Value;
+        }
+
+        public override bool showsEverything { get { return true; } }
+    }
+}
+#else
+using ObjectField = UnityEditor.VFX.UIElements.VFXObjectField;
+
+namespace UnityEditor.VFX.UI
+{
+    class ObjectPropertyRM : PropertyRM<Object>
+    {
+        public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+            m_ObjectField = new ObjectField(m_Label);
+            m_ObjectField.editedType = controller.portType;
             m_ObjectField.OnValueChanged = OnValueChanged;
 
             m_ObjectField.style.flex = 1;
@@ -46,3 +95,5 @@ namespace UnityEditor.VFX.UI
         public override bool showsEverything { get { return true; } }
     }
 }
+
+#endif

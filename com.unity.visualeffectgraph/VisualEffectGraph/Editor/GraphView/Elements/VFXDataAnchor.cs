@@ -9,11 +9,40 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXDataAnchor : NodeAnchor, IEdgeConnectorListener
+    class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
     {
         VisualElement m_ConnectorHighlight;
 
-        protected VFXDataAnchor()
+        VFXDataAnchorController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXDataAnchorController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
+
+        VFXNodeUI m_Node;
+
+        public new VFXNodeUI node
+        {
+            get {return m_Node; }
+        }
+
+        protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
             AddToClassList("VFXDataAnchor");
 
@@ -29,6 +58,10 @@ namespace UnityEditor.VFX.UI
             VisualElement connector = m_ConnectorBox as VisualElement;
 
             connector.Add(m_ConnectorHighlight);
+
+            m_Node = node;
+
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         protected override VisualElement CreateConnector()
@@ -36,11 +69,11 @@ namespace UnityEditor.VFX.UI
             return new VisualElement();
         }
 
-        public static VFXDataAnchor Create<TEdgePresenter>(VFXDataAnchorPresenter presenter) where TEdgePresenter : VFXDataEdgePresenter
+        public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var anchor = new VFXDataAnchor();
-            anchor.m_EdgeConnector = new EdgeConnector<TEdgePresenter>(anchor);
-            anchor.presenter = presenter;
+            var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType, node);
+            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.controller = controller;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
@@ -51,6 +84,11 @@ namespace UnityEditor.VFX.UI
             plus,
             minus,
             simple
+        }
+
+        public override bool collapsed
+        {
+            get { return !controller.expandedInHierachy; }
         }
 
         public static Texture2D GetTypeIcon(Type type, IconType iconType)
@@ -76,116 +114,118 @@ namespace UnityEditor.VFX.UI
         StyleValue<Color> m_AnchorColor;
 
 
-        public Color anchorColor { get { return m_AnchorColor.GetSpecifiedValueOrDefault(GetPresenter<VFXDataAnchorPresenter>().direction == Direction.Input ? Color.red : Color.green); } }
-        public override void OnStyleResolved(ICustomStyle styles)
+        protected override void OnStyleResolved(ICustomStyle styles)
         {
             base.OnStyleResolved(styles);
-
-
-            Color prevColor = m_AnchorColor.value;
-            styles.ApplyCustomProperty(AnchorColorProperty, ref m_AnchorColor);
-            if (m_AnchorColor.value != prevColor)
-            {
-                foreach (var edge in GetAllEdges())
-                {
-                    edge.OnAnchorChanged();
-                }
-            }
         }
 
         IEnumerable<VFXDataEdge> GetAllEdges()
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
 
-            foreach (var edgePresenter in GetPresenter<VFXDataAnchorPresenter>().connections)
+            foreach (var edgeController in controller.connections)
             {
-                VFXDataEdge edge = view.GetDataEdgeByPresenter(edgePresenter as VFXDataEdgePresenter);
-                yield return edge;
+                VFXDataEdge edge = view.GetDataEdgeByController(edgeController as VFXDataEdgeController);
+                if (edge != null)
+                    yield return edge;
             }
         }
 
-        public override void OnDataChanged()
+        void OnChange(ControllerChangedEvent e)
         {
-            base.OnDataChanged();
-            m_ConnectorText.text = "";
+            if (e.controller == controller)
+            {
+                SelfChange(e.change);
+            }
+        }
 
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+        public virtual void SelfChange(int change)
+        {
+            if (change != VFXDataAnchorController.Change.hidden)
+            {
+                if (controller.connected)
+                    AddToClassList("connected");
+                else
+                    RemoveFromClassList("connected");
 
-            // reverse because we want the flex to choose the position of the connector
-            presenter.position = layout;
+                portType = controller.portType;
 
-            if (presenter.connected)
-                AddToClassList("connected");
+
+                string className = VFXTypeDefinition.GetTypeCSSClass(controller.portType);
+                // update the css type of the class
+                foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
+                {
+                    if (cls != className)
+                    {
+                        m_ConnectorBox.RemoveFromClassList(cls);
+                        RemoveFromClassList(cls);
+                    }
+                }
+
+                AddToClassList(className);
+                m_ConnectorBox.AddToClassList(className);
+
+                AddToClassList("EdgeConnector");
+
+                switch (controller.direction)
+                {
+                    case Direction.Input:
+                        AddToClassList("Input");
+                        break;
+                    case Direction.Output:
+                        AddToClassList("Output");
+                        break;
+                }
+
+                portName = "";
+            }
+
+            if (controller.expandedInHierachy)
+            {
+                RemoveFromClassList("hidden");
+            }
             else
-                RemoveFromClassList("connected");
-
-
-            // update the css type of the class
-            foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
             {
-                m_ConnectorBox.RemoveFromClassList(cls);
-                RemoveFromClassList(cls);
-            }
-
-            string className = VFXTypeDefinition.GetTypeCSSClass(presenter.anchorType);
-            AddToClassList(className);
-            m_ConnectorBox.AddToClassList(className);
-
-
-            if (presenter.connections.FirstOrDefault(t => t.selected) != null)
-            {
-                AddToClassList("selected");
-            }
-            else
-            {
-                RemoveFromClassList("selected");
-            }
-
-            AddToClassList("EdgeConnector");
-
-            switch (presenter.direction)
-            {
-                case Direction.Input:
-                    AddToClassList("Input");
-                    break;
-                case Direction.Output:
-                    AddToClassList("Output");
-                    break;
-            }
-
-
-            RemoveFromClassList("hidden");
-            RemoveFromClassList("invisible");
-
-            if (presenter.collapsed && !presenter.connected)
-            {
-                visible = false;
-
                 AddToClassList("hidden");
-                AddToClassList("invisible");
-            }
-            else if (!visible)
-            {
-                visible = true;
             }
 
-            if (presenter.direction == Direction.Output)
-                m_ConnectorText.text = presenter.name;
+
+            if (controller.direction == Direction.Output)
+                m_ConnectorText.text = controller.name;
+            else
+                m_ConnectorText.text = "";
         }
 
-        void IEdgeConnectorListener.OnDropOutsideAnchor(EdgePresenter edge, Vector2 position)
+        void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
         {
-            VFXDataAnchorPresenter presenter = GetPresenter<VFXDataAnchorPresenter>();
+            VFXView view = graphView as VFXView;
+            VFXDataEdge dataEdge = edge as VFXDataEdge;
+            VFXDataEdgeController edgeController = new VFXDataEdgeController(dataEdge.input.controller, dataEdge.output.controller);
 
-            VFXSlot startSlot = presenter.model;
+            if (dataEdge.controller != null)
+            {
+                view.controller.RemoveElement(dataEdge.controller);
+            }
 
+            view.controller.AddElement(edgeController);
+        }
+
+        public override void Disconnect(Edge edge)
+        {
+            base.Disconnect(edge);
+            UpdateCapColor();
+        }
+
+        void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
+        {
+            VFXSlot startSlot = controller.model;
 
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXViewPresenter viewPresenter = view.GetPresenter<VFXViewPresenter>();
+            VFXViewController viewController = view.controller;
 
 
-            Node endNode = null;
-            foreach (var node in view.GetAllNodes())
+            VFXNodeUI endNode = null;
+            foreach (var node in view.GetAllNodes().OfType<VFXNodeUI>())
             {
                 if (node.worldBound.Contains(position))
                 {
@@ -193,21 +233,29 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            VFXDataEdge dataEdge  = edge as VFXDataEdge;
+            bool exists = false;
+            if (dataEdge.controller != null)
+            {
+                exists = true;
+                view.controller.RemoveElement(dataEdge.controller);
+            }
+
             if (endNode != null)
             {
-                VFXSlotContainerPresenter nodePresenter = endNode.GetPresenter<VFXSlotContainerPresenter>();
+                VFXSlotContainerController nodeController = endNode.controller.slotContainerController;
 
-                var compatibleAnchors = nodePresenter.viewPresenter.GetCompatibleAnchors(presenter, null);
+                var compatibleAnchors = nodeController.viewController.GetCompatiblePorts(controller, null);
 
-                if (nodePresenter != null)
+                if (nodeController != null)
                 {
-                    IVFXSlotContainer slotContainer = nodePresenter.slotContainer;
-                    if (presenter.direction == Direction.Input)
+                    IVFXSlotContainer slotContainer = nodeController.slotContainer;
+                    if (controller.direction == Direction.Input)
                     {
                         foreach (var outputSlot in slotContainer.outputSlots)
                         {
-                            var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == outputSlot);
-                            if (compatibleAnchors.Contains(endPresenter))
+                            var endController = nodeController.outputPorts.First(t => t.model == outputSlot);
+                            if (compatibleAnchors.Contains(endController))
                             {
                                 startSlot.Link(outputSlot);
                                 break;
@@ -218,8 +266,8 @@ namespace UnityEditor.VFX.UI
                     {
                         foreach (var inputSlot in slotContainer.inputSlots)
                         {
-                            var endPresenter = nodePresenter.allChildren.OfType<VFXDataAnchorPresenter>().First(t => t.model == inputSlot);
-                            if (compatibleAnchors.Contains(endPresenter))
+                            var endController = nodeController.inputPorts.First(t => t.model == inputSlot);
+                            if (compatibleAnchors.Contains(endController) && !endController.connected)
                             {
                                 inputSlot.Link(startSlot);
                                 break;
@@ -228,14 +276,105 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else if (presenter.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
+            else if (controller.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
-                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == presenter.anchorType.UserFriendlyName());
+                VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewPresenter.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
+                    VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
                     startSlot.Link(parameter.outputSlots[0]);
+
+                    CopyValueToParameter(parameter);
                 }
+            }
+            else if (!exists)
+            {
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+            }
+        }
+
+        bool ProviderFilter(VFXNodeProvider.Descriptor d)
+        {
+            var mySlot = controller.model;
+
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+            if (desc == null)
+                return false;
+
+            IVFXSlotContainer container = desc.model as IVFXSlotContainer;
+            if (container == null)
+            {
+                return false;
+            }
+
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot> )container.GetOutputSlot : (System.Func<int, VFXSlot> )container.GetInputSlot;
+
+            int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+
+
+            bool oneFound = false;
+            for (int i = 0; i < count; ++i)
+            {
+                VFXSlot slot = getSlots(i);
+
+                if (slot.CanLink(mySlot))
+                {
+                    oneFound = true;
+                    break;
+                }
+            }
+
+            return oneFound;
+        }
+
+        void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            var mySlot = controller.model;
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null) return;
+            Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
+
+            VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
+
+            IVFXSlotContainer  result = view.AddNode(d, mPos) as IVFXSlotContainer;
+
+            if (result == null)
+                return;
+
+
+            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)result.GetOutputSlot : (System.Func<int, VFXSlot>)result.GetInputSlot;
+
+            int count = direction == Direction.Input ? result.GetNbOutputSlots() : result.GetNbInputSlots();
+
+            for (int i = 0; i < count; ++i)
+            {
+                VFXSlot slot = getSlots(i);
+
+                if (slot.CanLink(mySlot))
+                {
+                    slot.Link(mySlot);
+                    break;
+                }
+            }
+
+            // If linking to a new parameter, copy the slot value
+
+            if (direction == Direction.Input && result is VFXParameter)
+            {
+                VFXParameter parameter = result as VFXParameter;
+
+                CopyValueToParameter(parameter);
+            }
+        }
+
+        void CopyValueToParameter(VFXParameter parameter)
+        {
+            if (parameter.type == portType)
+            {
+                if (VFXConverter.CanConvert(parameter.type))
+                    parameter.value = VFXConverter.ConvertTo(controller.model.value, parameter.type);
+                else
+                    parameter.value = controller.model.value;
             }
         }
 

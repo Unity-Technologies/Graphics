@@ -1,14 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
-using System.Linq;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
     abstract class VFXData : VFXModel
     {
         public abstract VFXDataType type { get; }
+
+        public virtual uint sourceCount
+        {
+            get
+            {
+                return 0u;
+            }
+        }
 
         public IEnumerable<VFXContext> owners
         {
@@ -20,7 +29,7 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kSpawnEvent:   return ScriptableObject.CreateInstance<VFXDataSpawnEvent>();
+                case VFXDataType.kMesh:         return ScriptableObject.CreateInstance<VFXDataMesh>();
                 default:                        return null;
             }
         }
@@ -31,34 +40,59 @@ namespace UnityEditor.VFX
 
             if (m_Owners == null)
                 m_Owners = new List<VFXContext>();
+        }
 
-            if (m_TestId == 0)
-                m_TestId = UnityEngine.Random.Range(0, int.MaxValue);
+        public abstract void CopySettings<T>(T dst) where T : VFXData;
+
+        public virtual bool CanBeCompiled()
+        {
+            return true;
+        }
+
+        public virtual void FillDescs(
+            List<VFXGPUBufferDesc> outBufferDescs,
+            List<VFXSystemDesc> outSystemDescs,
+            VFXExpressionGraph expressionGraph,
+            Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
+        {
+            // Empty implementation by default
         }
 
         // Never call this directly ! Only context must call this through SetData
         public void OnContextAdded(VFXContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException();
+            if (m_Owners.Contains(context))
+                throw new ArgumentException(string.Format("{0} is already in the owner list of {1}", context, this));
+
             m_Owners.Add(context);
         }
 
         // Never call this directly ! Only context must call this through SetData
         public void OnContextRemoved(VFXContext context)
         {
-            m_Owners.Remove(context);
+            if (!m_Owners.Remove(context))
+                throw new ArgumentException(string.Format("{0} is not in the owner list of {1}", context, this));
         }
 
-        public bool IsAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
-        public bool IsAttributeWritten(VFXAttribute attrib)                     { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
+        public bool IsCurrentAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
+        public bool IsCurrentAttributeWritten(VFXAttribute attrib)                     { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
 
-        public bool IsAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
-        public bool IsAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Write) != 0; }
+        public bool IsCurrentAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
+        public bool IsCurrentAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Write) != 0; }
 
-        public bool IsAttributeUsed(VFXAttribute attrib)                        { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
-        public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context)    { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
+        public bool IsAttributeUsed(VFXAttribute attrib)                                { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+        public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context)            { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
 
-        public bool IsAttributeLocal(VFXAttribute attrib)                       { return m_LocalAttributes.Contains(attrib); }
-        public bool IsAttributeStored(VFXAttribute attrib)                      { return m_StoredAttributes.ContainsKey(attrib); }
+        public bool IsCurrentAttributeUsed(VFXAttribute attrib)                         { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWrite) != 0; }
+
+        public bool IsSourceAttributeUsed(VFXAttribute attrib)                          { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadSource) != 0; }
+        public bool IsSourceAttributeUsed(VFXAttribute attrib, VFXContext context)      { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadSource) != 0; }
+
+        public bool IsAttributeLocal(VFXAttribute attrib)                               { return m_LocalCurrentAttributes.Contains(attrib); }
+        public bool IsAttributeStored(VFXAttribute attrib)                              { return m_StoredCurrentAttributes.ContainsKey(attrib); }
 
         public VFXAttributeMode GetAttributeMode(VFXAttribute attrib, VFXContext context)
         {
@@ -112,39 +146,38 @@ namespace UnityEditor.VFX
             public VFXContext context;
         }
 
+        public abstract VFXDeviceTarget GetCompilationTarget(VFXContext context);
+
         public void CollectAttributes()
         {
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
 
+            var processedExp = new HashSet<VFXExpression>();
+
             bool changed = true;
+            int count = 0;
             while (changed)
             {
+                ++count;
                 var attributeContexts = new List<VFXAttributeInfoContext>();
                 foreach (var context in owners)
                 {
+                    processedExp.Clear();
+
                     var attributes = Enumerable.Empty<VFXAttributeInfo>();
                     attributes = attributes.Concat(context.attributes);
                     foreach (var block in context.activeChildrenWithImplicit)
                         attributes = attributes.Concat(block.attributes);
 
-                    var mapper = context.GetExpressionMapper(context.ownedType == VFXDataType.kParticle ? VFXDeviceTarget.GPU : VFXDeviceTarget.CPU);
+                    var mapper = context.GetExpressionMapper(GetCompilationTarget(context));
                     foreach (var exp in mapper.expressions)
-                        attributes = attributes.Concat(CollectInputAttributes(exp));
+                        attributes = attributes.Concat(CollectInputAttributes(exp, processedExp));
 
                     attributeContexts.Add(new VFXAttributeInfoContext
                     {
                         attributes = attributes.ToArray(),
                         context = context
-                    });
-                }
-
-                for (int i = 0; i < m_Owners.Count; ++i)
-                {
-                    attributeContexts.Add(new VFXAttributeInfoContext
-                    {
-                        attributes = m_Owners[i].optionalAttributes.ToArray(),
-                        context = m_Owners[i]
                     });
                 }
 
@@ -176,8 +209,13 @@ namespace UnityEditor.VFX
 
         private void ProcessAttributes()
         {
-            m_StoredAttributes.Clear();
-            m_LocalAttributes.Clear();
+            m_StoredCurrentAttributes.Clear();
+            m_LocalCurrentAttributes.Clear();
+            m_ReadSourceAttributes.Clear();
+            if (type == VFXDataType.kParticle)
+            {
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.kFloat));
+            }
 
             int nbOwners = m_Owners.Count;
             if (nbOwners > 16)
@@ -195,10 +233,27 @@ namespace UnityEditor.VFX
                 bool onlyUpdateWrite = true;
                 bool needsSpecialInit = HasImplicitInit(attribute);
                 bool writtenInInit = needsSpecialInit;
+                bool readSourceInInit = false;
 
                 foreach (var kvp2 in kvp.Value)
                 {
                     var context = kvp2.Key;
+                    if (context.contextType == VFXContextType.kInit
+                        &&  (kvp2.Value & VFXAttributeMode.ReadSource) != 0)
+                    {
+                        readSourceInInit = true;
+                    }
+
+                    if (kvp2.Value == VFXAttributeMode.None)
+                    {
+                        throw new InvalidOperationException("Unexpected attribute mode : " + attribute);
+                    }
+
+                    if (kvp2.Value == VFXAttributeMode.ReadSource)
+                    {
+                        continue;
+                    }
+
                     if (context.contextType != VFXContextType.kInit)
                         onlyInit = false;
                     if (context.contextType != VFXContextType.kOutput)
@@ -238,25 +293,25 @@ namespace UnityEditor.VFX
                     local = true;
 
                 if (local)
-                    m_LocalAttributes.Add(attribute);
+                    m_LocalCurrentAttributes.Add(attribute);
                 else
-                    m_StoredAttributes.Add(attribute, key);
+                    m_StoredCurrentAttributes.Add(attribute, key);
+
+                if (readSourceInInit)
+                    m_ReadSourceAttributes.Add(attribute);
             }
         }
 
-        public virtual void GenerateAttributeLayout()                                   {}
+        public virtual void GenerateAttributeLayout() {}
 
-        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode)        { throw new NotImplementedException(); }
-        public virtual string GetLoadAttributeCode(VFXAttribute attrib)                 { throw new NotImplementedException(); }
+        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode) { throw new NotImplementedException(); }
+        public virtual string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location) { throw new NotImplementedException(); }
         public virtual string GetStoreAttributeCode(VFXAttribute attrib, string value)  { throw new NotImplementedException(); }
 
         private bool AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
             if (attribInfo.mode == VFXAttributeMode.None)
                 throw new ArgumentException("Cannot add an attribute without mode");
-
-            //if ((attribInfo.mode & VFXAttributeMode.Write) != 0 && context.contextType == VFXContextType.kOutput)
-            //    throw new ArgumentException("Output contexts cannot write attributes");
 
             Dictionary<VFXAttribute, VFXAttributeMode> attribs;
             if (!m_ContextsToAttributes.TryGetValue(context, out attribs))
@@ -300,16 +355,18 @@ namespace UnityEditor.VFX
         }
 
         // Collect attribute expressions recursively
-        private IEnumerable<VFXAttributeInfo> CollectInputAttributes(VFXExpression exp)
+        private IEnumerable<VFXAttributeInfo> CollectInputAttributes(VFXExpression exp, HashSet<VFXExpression> processed)
         {
-            if (exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
+            if (!processed.Contains(exp) && exp.Is(VFXExpression.Flags.PerElement)) // Testing per element allows to early out as it is propagated
             {
+                processed.Add(exp);
+
                 foreach (var info in exp.GetNeededAttributes())
                     yield return info;
 
                 foreach (var parent in exp.parents)
                 {
-                    foreach (var info in CollectInputAttributes(parent))
+                    foreach (var info in CollectInputAttributes(parent, processed))
                         yield return info;
                 }
             }
@@ -331,17 +388,17 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (m_StoredAttributes.Count > 0)
+            if (m_StoredCurrentAttributes.Count > 0)
             {
-                builder.AppendLine("--- STORED ATTRIBUTES ---");
-                foreach (var kvp in m_StoredAttributes)
+                builder.AppendLine("--- STORED CURRENT ATTRIBUTES ---");
+                foreach (var kvp in m_StoredCurrentAttributes)
                     builder.AppendLine(string.Format("\t\tAttribute {0} {1} {2}", kvp.Key.name, kvp.Key.type, kvp.Value));
             }
 
             if (m_AttributesToContexts.Count > 0)
             {
-                builder.AppendLine("--- LOCAL ATTRIBUTES ---");
-                foreach (var attrib in m_LocalAttributes)
+                builder.AppendLine("--- LOCAL CURRENT ATTRIBUTES ---");
+                foreach (var attrib in m_LocalCurrentAttributes)
                     builder.AppendLine(string.Format("\t\tAttribute {0} {1}", attrib.name, attrib.type));
             }
 
@@ -351,17 +408,17 @@ namespace UnityEditor.VFX
         [SerializeField]
         protected List<VFXContext> m_Owners;
 
-        //[NonSerialized]
-        public int m_TestId;
-
         [NonSerialized]
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();
         [NonSerialized]
         protected Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> m_AttributesToContexts = new Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>>();
 
         [NonSerialized]
-        protected Dictionary<VFXAttribute, int> m_StoredAttributes = new Dictionary<VFXAttribute, int>();
+        protected Dictionary<VFXAttribute, int> m_StoredCurrentAttributes = new Dictionary<VFXAttribute, int>();
         [NonSerialized]
-        protected HashSet<VFXAttribute> m_LocalAttributes = new HashSet<VFXAttribute>();
+        protected HashSet<VFXAttribute> m_LocalCurrentAttributes = new HashSet<VFXAttribute>();
+
+        [NonSerialized]
+        protected HashSet<VFXAttribute> m_ReadSourceAttributes = new HashSet<VFXAttribute>();
     }
 }

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -41,6 +41,30 @@ namespace UnityEditor.VFX
             { 4, VFXValue.Constant(Vector4.zero) },
         };
 
+        public static readonly Dictionary<int, VFXExpression> TwoExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, VFXValue.Constant(2.0f) },
+            { 2, VFXValue.Constant(Vector2.one * 2.0f) },
+            { 3, VFXValue.Constant(Vector3.one * 2.0f) },
+            { 4, VFXValue.Constant(Vector4.one * 2.0f) },
+        };
+
+        public static readonly Dictionary<int, VFXExpression> PiExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, VFXValue.Constant(Mathf.PI) },
+            { 2, VFXValue.Constant(Vector2.one * Mathf.PI) },
+            { 3, VFXValue.Constant(Vector3.one * Mathf.PI) },
+            { 4, VFXValue.Constant(Vector4.one * Mathf.PI) },
+        };
+
+        public static readonly Dictionary<int, VFXExpression> TauExpression = new Dictionary<int, VFXExpression>
+        {
+            { 1, VFXValue.Constant(2.0f * Mathf.PI) },
+            { 2, VFXValue.Constant(Vector2.one * 2.0f * Mathf.PI) },
+            { 3, VFXValue.Constant(Vector3.one * 2.0f * Mathf.PI) },
+            { 4, VFXValue.Constant(Vector4.one * 2.0f * Mathf.PI) },
+        };
+
         // unified binary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1)
         {
@@ -64,14 +88,27 @@ namespace UnityEditor.VFX
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
         {
             //Max(Min(x, max), min))
-            var maxExp = new VFXExpressionMax(input, min);
-            return new VFXExpressionMin(maxExp, max);
+            var maxExp = new VFXExpressionMax(input, CastFloat(min, input.valueType));
+            return new VFXExpressionMin(maxExp, CastFloat(max, input.valueType));
+        }
+
+        static public VFXExpression Saturate(VFXExpression input)
+        {
+            //Max(Min(x, 1.0f), 0.0f))
+            return Clamp(input, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
         }
 
         static public VFXExpression Frac(VFXExpression input)
         {
             //x - floor(x)
             return input - new VFXExpressionFloor(input);
+        }
+
+        static public VFXExpression Round(VFXExpression input)
+        {
+            //x = floor(x + 0.5)
+            var half = HalfExpression[VFXExpression.TypeToSize(input.valueType)];
+            return new VFXExpressionFloor(input + half);
         }
 
         static public VFXExpression Sqrt(VFXExpression input)
@@ -170,6 +207,11 @@ namespace UnityEditor.VFX
             result = (result * t);
 
             return result;
+        }
+
+        static public VFXExpression Discretize(VFXExpression value, VFXExpression granularity)
+        {
+            return new VFXExpressionFloor(value / granularity) * granularity;
         }
 
         static public VFXExpression ColorLuma(VFXExpression color)
@@ -294,6 +336,32 @@ namespace UnityEditor.VFX
         {
             VFXExpression d = Dot(planePosition, planeNormal);
             return Dot(position, planeNormal) - d;
+        }
+
+        static public VFXExpression GammaToLinear(VFXExpression gamma)
+        {
+            var components = VFXOperatorUtility.ExtractComponents(gamma).ToArray();
+            if (components.Length != 3 && components.Length != 4)
+                throw new ArgumentException("input expression must be a 3 or 4 components vector");
+
+            VFXExpression exp = VFXValue.Constant(2.2f);
+            for (int i = 0; i < 3; ++i)
+                components[i] = new VFXExpressionPow(components[i], exp);
+
+            return new VFXExpressionCombine(components);
+        }
+
+        static public VFXExpression LinearToGamma(VFXExpression linear)
+        {
+            var components = VFXOperatorUtility.ExtractComponents(linear).ToArray();
+            if (components.Length != 3 && components.Length != 4)
+                throw new ArgumentException("input expression must be a 3 or 4 components vector");
+
+            VFXExpression exp = VFXValue.Constant(1.0f / 2.2f);
+            for (int i = 0; i < 3; ++i)
+                components[i] = new VFXExpressionPow(components[i], exp);
+
+            return new VFXExpressionCombine(components);
         }
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)

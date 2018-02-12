@@ -3,6 +3,7 @@ using System.Text;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
 
@@ -33,7 +34,7 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(float4);
             graph.AddChild(length);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             attributeParameter.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
@@ -52,7 +53,7 @@ namespace UnityEditor.VFX.Test
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var outputContext = ScriptableObject.CreateInstance<VFXBasicOutput>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
 
             graph.AddChild(spawnerContext);
             graph.AddChild(initContext);
@@ -69,7 +70,7 @@ namespace UnityEditor.VFX.Test
                 initContext.AddChild(initBlock);
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
         }
 

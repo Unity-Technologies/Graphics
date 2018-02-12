@@ -81,6 +81,10 @@ namespace UnityEditor.VFX
                     {
                         obj = System.Activator.CreateInstance(typeof(FloatN), obj);
                     }
+                    else if (obj is UnityEngine.Object && (obj as UnityEngine.Object == null))
+                    {
+                        // Some object couldn't be loaded. just ignore it.
+                    }
                     else
                     {
                         throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));

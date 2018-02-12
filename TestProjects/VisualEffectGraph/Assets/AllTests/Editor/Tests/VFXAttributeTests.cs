@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 using Object = UnityEngine.Object;
 
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.Test
             if (init != null)
                 init(graph);
 
-            var models = new HashSet<Object>();
+            var models = new HashSet<ScriptableObject>();
             graph.CollectDependencies(models);
 
             var data = models.OfType<VFXData>().First();

@@ -2,25 +2,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Transform))]
     class VFXSlotTransform : VFXSlot
     {
-        protected override VFXValue DefaultExpression()
+        public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Matrix4x4>(Matrix4x4.identity, VFXValue.Mode.FoldableVariable);
+            return new VFXValue<Matrix4x4>(Matrix4x4.identity, mode);
         }
 
         protected override bool CanConvertFrom(Type type)
         {
-            return type == typeof(Matrix4x4);
+            return base.CanConvertFrom(type) || type == typeof(Matrix4x4);
+        }
+
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        {
+            if (expression.valueType == VFXValueType.kMatrix4x4)
+                return expression;
+
+            throw new Exception("Unexpected type of expression " + expression);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
-            expr[1] = VFXOperatorUtility.DegToRad(expr[1]);
             return new VFXExpressionTRSToMatrix(expr);
         }
 
@@ -29,7 +37,7 @@ namespace UnityEditor.VFX
             return new VFXExpression[3]
             {
                 new VFXExpressionExtractPositionFromMatrix(expr),
-                VFXOperatorUtility.RadToDeg(new VFXExpressionExtractAnglesFromMatrix(expr)),
+                new VFXExpressionExtractAnglesFromMatrix(expr),
                 new VFXExpressionExtractScaleFromMatrix(expr)
             };
         }

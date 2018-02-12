@@ -1,133 +1,76 @@
-.VFXContextSlotContainerUI.node.horizontal {
-	background-color: #2C2C2C;
+.VFXContextSlotContainerUI.node {
 	flex:1;
 	align-items:stretch;
-	margin-bottom:1;
-	border-radius:2;
+	margin-bottom:2;
+	margin-top:2;
+	border-radius:0;
 	border-color:rgba(0,0,0,0);
+	padding-top:0;
+	padding-left:0;
+	padding-right:0;
+	padding-bottom:0;
 }
 
-.VFXContextSlotContainerUI.node.horizontal #pane
+.VFXContextSlotContainerUI #settings .propertyrm
 {
-	border-left: 2;
-	border-top: 2;
-	border-right: 2;
-	border-bottom: 2;
-	flex-direction:column;
+	margin-left:16;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title
+{
+	flex-direction:row;
+	align-items:center;
+	justify-content:flex-start;
+}
+
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled
+{
+    opacity:0.5;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title #title-label
+{
+	margin-left:4;
 	flex:1;
 }
 
-VFXContextUI VFXBlockUI.VFXNodeUI.node.horizontal #title
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled #title-label
 {
-	background-color:rgba(0,0,0,0);
+    opacity:0.5;
 }
 
-.VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #left
+VFXBlockUI.VFXContextSlotContainerUI.node #title Toggle
 {
-	width:-1;
-	background-color:rgba(0,0,0,0);
+	width:14;
+	height:14;
+	margin-right:0;
 }
-
-.VFXContextSlotContainerUI  .propertyrm
+VFXBlockUI.VFXContextSlotContainerUI.node #title #collapse-button
 {
-	margin-left:12;
+	width:20;
+	padding-right:4;
 }
 
-.VFXContextSlotContainerUI.VFXNodeUI.node.horizontal #pane > #right
-{
-	width:0;
-	visible:false;
-}
-
-.VFXContextSlotContainerUI.horizontal.node #pane > #left
-{
-	width:-1;
-	background-color: #363636;
-}
-
-.VFXContextSlotContainerUI.node.horizontal #title {
-	flex-direction:row;
-}
-VFXBlockUI.node.horizontal #title > Label {
-	margin-left:0;
-}
-
-VFXBlockUI.VFXContextSlotContainerUI.node.horizontal #title Toggle
-{
-	width:16;
-	margin-top:16;
-	height:17;
-}
-
-
-VFXBlockUI.VFXContextSlotContainerUI.node.horizontal.collapsed #title Toggle
-{
-	margin-top:6;
-	margin-left:17;
-}
-
-VFXBlockUI.VFXNodeUI.node.horizontal.collapsed #title > Label {
-	margin-top:4;
-	margin-left:6;
-	margin-right:6;
-	font-size:14;
-}
-
-.node.horizontal.selected
+.node.selected
 {
 	border-color:#FFFFFF;
 }
 
-.VFXContextSlotContainerUI.node.horizontal #left > #title > Label {
-	text-color: #c4c4c4;
-	font-style: bold;
-	text-alignment: middle-left;
-	flex: 1;
-}
-.VFXContextSlotContainerUI.node.horizontal:disabled #left > #title > Label {
-	text-color: #333;
-}
-
-.VFXContextSlotContainerUI.node.horizontal:disabled {
-	background-color: #F00;
-}
-
-.VFXContextSlotContainerUI.node.horizontal #left > #title > Button {
-	text-color: rgb(153, 153, 153);
-	min-width:50;
-	margin-right: 6;
-	padding-right: 0;
-	padding-left: 0;
-	flex:0;
-	text-alignment: middle-center;
-}
-
-.VFXContextSlotContainerUI #pane #left VisualContainer#input
+VFXBlockUI.node 
 {
-	flex:1;
-	align-items: stretch;
-	padding-bottom:3;
-}
-
-.VFXContextSlotContainerUI #pane #left VisualContainer#output
-{
-	flex:1;
-	align-items: stretch;
-	padding-bottom:3;
-}
-
-VFXBlockUI
-{
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
 	flex-direction:row;
 }
 
-VFXBlockUI .mainContainer
+VFXBlockUI.node > #node-border
 {
-	flex-direction:row;
 	flex:1;
-}
-VFXBlockUI .mainContainer #left
-{
-	width:-1;
-	flex:1;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
 }

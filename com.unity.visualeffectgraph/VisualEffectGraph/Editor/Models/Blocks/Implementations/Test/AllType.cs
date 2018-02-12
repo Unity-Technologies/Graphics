@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block.Test
 {
@@ -25,7 +26,10 @@ namespace UnityEditor.VFX.Block.Test
             [Tooltip("This is a color")]
             public Color aColor = Color.gray;
             public Texture2D aTexture2D = null;
+            public Texture2DArray aTexture2DArray = null;
             public Texture3D aTexture3D = null;
+            public Cubemap aTextureCube = null;
+            public CubemapArray aTextureCubeArray = null;
             public Sphere aSphere;
             public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
             public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
@@ -48,53 +52,5 @@ namespace UnityEditor.VFX.Block.Test
         public RotateMode mode;
         [VFXSetting]
         public bool rotateTwice;
-    }
-    [VFXInfo(category = "Tests")]
-    class VFXAABoxBlock : VFXBlock
-    {
-        public override string name { get { return "AABox"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
-
-        public class InputProperties
-        {
-            public AABox box = new AABox { size = Vector3.one};
-        }
-    }
-    [VFXInfo(category = "Tests")]
-    class VFXOrientedBoxBlock : VFXBlock
-    {
-        public override string name { get { return "Oriented Box"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
-
-        public class InputProperties
-        {
-            public OrientedBox box = new OrientedBox { size = Vector3.one };
-        }
-    }
-    [VFXInfo(category = "Tests")]
-    class VFXPlaneBlock : VFXBlock
-    {
-        public override string name { get { return "Plane"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
-
-        public class InputProperties
-        {
-            public Plane plane = new Plane(Vector3.up);
-        }
-    }
-    [VFXInfo(category = "Tests")]
-    class VFXCylinderBlock : VFXBlock
-    {
-        public override string name { get { return "Cylinder"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kAll; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle | VFXDataType.kSpawnEvent; } }
-
-        public class InputProperties
-        {
-            public Cylinder cylinder = new Cylinder { radius = 1, height = 1 };
-        }
     }
 }

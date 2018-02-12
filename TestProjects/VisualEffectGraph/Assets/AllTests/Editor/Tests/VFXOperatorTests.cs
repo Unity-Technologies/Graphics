@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
@@ -154,16 +154,16 @@ namespace UnityEditor.VFX.Test
             var cosOperator = ScriptableObject.CreateInstance<VFXOperatorCosine>();
 
             Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().valueType);
-            Assert.AreEqual(1, appendOperator.outputSlots.Count);
-            Assert.AreEqual(2, appendOperator.inputSlots.Count);
-            Assert.AreEqual(VFXValueType.kFloat2, appendOperator.outputSlots[0].GetExpression().valueType);
-
-            cosOperator.inputSlots[0].Link(appendOperator.outputSlots[0]);
-            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(0, appendOperator.outputSlots.Count);
+            Assert.AreEqual(1, appendOperator.inputSlots.Count);
 
             appendOperator.inputSlots[0].Link(absOperator.outputSlots[0]);
+            Assert.AreEqual(1, appendOperator.outputSlots.Count);
+            Assert.AreEqual(VFXValueType.kFloat, appendOperator.outputSlots[0].GetExpression().valueType);
+
+            cosOperator.inputSlots[0].Link(appendOperator.outputSlots[0]);
             Assert.AreEqual(2, appendOperator.inputSlots.Count);
-            Assert.AreEqual(VFXValueType.kFloat2, cosOperator.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.kFloat, cosOperator.outputSlots[0].GetExpression().valueType);
 
             appendOperator.inputSlots[1].Link(absOperator.outputSlots[0]);
             Assert.AreEqual(3, appendOperator.inputSlots.Count);
@@ -183,14 +183,14 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var attribute in VFXAttribute.All)
             {
-                var desc = VFXLibrary.GetCurrentAttributeParameters().First(p => p.name == attribute);
+                var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXCurrentAttributeParameter));
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
                 Assert.IsNotNull(a);
                 Assert.IsNotNull(b);
                 Assert.AreNotEqual(a, b);
 
-                var referenceAttribute = VFXAttribute.Find(attribute, VFXAttributeLocation.Current);
+                var referenceAttribute = VFXAttribute.Find(attribute);
                 var reference = new VFXAttributeExpression(referenceAttribute);
                 Assert.AreEqual(reference, a.outputSlots[0].GetExpression());
                 Assert.AreEqual(reference, b.outputSlots[0].GetExpression());
@@ -202,7 +202,7 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var operation in VFXBuiltInExpression.All)
             {
-                var desc = VFXLibrary.GetBuiltInParameters().First(p => p.name == operation.ToString());
+                var desc = VFXLibrary.GetOperators().First(p => p.name == operation.ToString());
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
                 Assert.IsNotNull(a);

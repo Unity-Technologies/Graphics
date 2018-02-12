@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -20,6 +20,56 @@ namespace UnityEditor.VFX
 
     abstract partial class VFXExpression
     {
+        public struct Operands
+        {
+            public static readonly int OperandCount = 4;
+
+            int data0;
+            int data1;
+            int data2;
+            int data3;
+
+            public Operands(int defaultValue)
+            {
+                data0 = defaultValue;
+                data1 = defaultValue;
+                data2 = defaultValue;
+                data3 = defaultValue;
+            }
+
+            // This ugly code is for optimization purpose (no garbage created)
+            public int this[int index]
+            {
+                get
+                {
+                    switch (index)
+                    {
+                        case 0: return data0;
+                        case 1: return data1;
+                        case 2: return data2;
+                        case 3: return data3;
+                        default: throw new IndexOutOfRangeException();
+                    }
+                }
+                set
+                {
+                    switch (index)
+                    {
+                        case 0: data0 = value; break;
+                        case 1: data1 = value; break;
+                        case 2: data2 = value; break;
+                        case 3: data3 = value; break;
+                        default: throw new IndexOutOfRangeException();
+                    }
+                }
+            }
+
+            public int[] ToArray()
+            {
+                return new int[] { data0, data1, data2, data3 };
+            }
+        }
+
         [Flags]
         public enum Flags
         {
@@ -30,6 +80,7 @@ namespace UnityEditor.VFX
             InvalidOnGPU =  1 << 3, // Expression can be evaluated on GPU
             InvalidOnCPU =  1 << 4, // Expression can be evaluated on CPU
             PerElement =    1 << 5, // Expression is per element
+            NotCompilabeOnCPU = InvalidOnCPU | PerElement //Helper to filter out invalid expression on CPU
         }
 
         public static bool IsFloatValueType(VFXValueType valueType)
@@ -61,9 +112,29 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt: return "int";
                 case VFXValueType.kUint: return "uint";
                 case VFXValueType.kTexture2D: return "Texture2D";
+                case VFXValueType.kTexture2DArray: return "Texture2DArray";
                 case VFXValueType.kTexture3D: return "Texture3D";
-                case VFXValueType.kTransform: return "float4x4";
+                case VFXValueType.kTextureCube: return "TextureCube";
+                case VFXValueType.kTextureCubeArray: return "TextureCubeArray";
+                case VFXValueType.kMatrix4x4: return "float4x4";
                 case VFXValueType.kBool: return "bool";
+            }
+            throw new NotImplementedException(type.ToString());
+        }
+
+        // As certain type of uniforms are not handled in material, we need to use floats instead
+        public static string TypeToUniformCode(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kFloat: return "float";
+                case VFXValueType.kFloat2: return "float2";
+                case VFXValueType.kFloat3: return "float3";
+                case VFXValueType.kFloat4: return "float4";
+                case VFXValueType.kInt: return "float";
+                case VFXValueType.kUint: return "float";
+                case VFXValueType.kMatrix4x4: return "float4x4";
+                case VFXValueType.kBool: return "float";
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -79,8 +150,11 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt: return typeof(int);
                 case VFXValueType.kUint: return typeof(uint);
                 case VFXValueType.kTexture2D: return typeof(Texture2D);
+                case VFXValueType.kTexture2DArray: return typeof(Texture2DArray);
                 case VFXValueType.kTexture3D: return typeof(Texture3D);
-                case VFXValueType.kTransform: return typeof(Matrix4x4);
+                case VFXValueType.kTextureCube: return typeof(Cubemap);
+                case VFXValueType.kTextureCubeArray: return typeof(CubemapArray);
+                case VFXValueType.kMatrix4x4: return typeof(Matrix4x4);
                 case VFXValueType.kMesh: return typeof(Mesh);
                 case VFXValueType.kCurve: return typeof(AnimationCurve);
                 case VFXValueType.kColorGradient: return typeof(Gradient);
@@ -100,8 +174,11 @@ namespace UnityEditor.VFX
                 case VFXValueType.kInt:
                 case VFXValueType.kUint:
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture2DArray:
                 case VFXValueType.kTexture3D:
-                case VFXValueType.kTransform:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray:
+                case VFXValueType.kMatrix4x4:
                 case VFXValueType.kBool:
                     return true;
             }
@@ -114,7 +191,10 @@ namespace UnityEditor.VFX
             switch (type)
             {
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture2DArray:
                 case VFXValueType.kTexture3D:
+                case VFXValueType.kTextureCube:
+                case VFXValueType.kTextureCubeArray:
                     return true;
             }
 
@@ -131,11 +211,33 @@ namespace UnityEditor.VFX
                 case VFXValueType.kFloat4:
                 case VFXValueType.kInt:
                 case VFXValueType.kUint:
-                case VFXValueType.kTransform:
+                case VFXValueType.kMatrix4x4:
                 case VFXValueType.kBool:
                     return true;
             }
             return false;
+        }
+
+        public static VFXValueType GetVFXValueTypeFromType(Type type)
+        {
+            if (type == typeof(float)) return VFXValueType.kFloat;
+            if (type == typeof(Vector2)) return VFXValueType.kFloat2;
+            if (type == typeof(Vector3)) return VFXValueType.kFloat3;
+            if (type == typeof(Vector4)) return VFXValueType.kFloat4;
+            if (type == typeof(int)) return VFXValueType.kInt;
+            if (type == typeof(uint)) return VFXValueType.kUint;
+            if (type == typeof(Texture2D)) return VFXValueType.kTexture2D;
+            if (type == typeof(Texture2DArray)) return VFXValueType.kTexture2DArray;
+            if (type == typeof(Texture3D)) return VFXValueType.kTexture3D;
+            if (type == typeof(Cubemap)) return VFXValueType.kTextureCube;
+            if (type == typeof(CubemapArray)) return VFXValueType.kTextureCubeArray;
+            if (type == typeof(Matrix4x4)) return VFXValueType.kMatrix4x4;
+            if (type == typeof(AnimationCurve)) return VFXValueType.kCurve;
+            if (type == typeof(Gradient)) return VFXValueType.kColorGradient;
+            if (type == typeof(Mesh)) return VFXValueType.kMesh;
+            if (type == typeof(List<Vector3>)) return VFXValueType.kSpline;
+            if (type == typeof(bool)) return VFXValueType.kBool;
+            return VFXValueType.kNone;
         }
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
@@ -188,26 +290,24 @@ namespace UnityEditor.VFX
         // Get the HLSL code snippet
         public virtual string GetCodeString(string[] parents)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(GetType().ToString());
         }
 
         // Get the operands for the runtime evaluation
-        public int[] GetOperands(VFXExpressionGraph graph)
+        public Operands GetOperands(VFXExpressionGraph graph)
         {
-            var parentsIndex = parents.Select(p => graph == null ? -1 : graph.GetFlattenedIndex(p)).ToArray();
-            if (parentsIndex.Length + additionnalOperands.Length > 4)
+            var addOperands = additionnalOperands;
+            if (parents.Length + addOperands.Length > 4)
                 throw new Exception("Too much parameter for expression : " + this);
 
-            var data = new int[] { -1, -1, -1, -1};
-            for (int i = 0; i < parents.Length; ++i)
-            {
-                data[i] = parentsIndex[i];
-            }
+            var data = new Operands(-1);
+            if (graph != null)
+                for (int i = 0; i < parents.Length; ++i)
+                    data[i] = graph.GetFlattenedIndex(parents[i]);
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-            {
-                data[data.Length - additionnalOperands.Length + i] = additionnalOperands[i];
-            }
+            for (int i = 0; i < addOperands.Length; ++i)
+                data[Operands.OperandCount - addOperands.Length + i] = addOperands[i];
+
             return data;
         }
 
@@ -233,8 +333,14 @@ namespace UnityEditor.VFX
 
         public override bool Equals(object obj)
         {
+            if (ReferenceEquals(this, obj))
+                return true;
+
             var other = obj as VFXExpression;
             if (other == null)
+                return false;
+
+            if (GetType() != other.GetType())
                 return false;
 
             if (operation != other.operation)
@@ -246,11 +352,17 @@ namespace UnityEditor.VFX
             if (m_Flags != other.m_Flags)
                 return false;
 
-            if (other.additionnalOperands.Length != additionnalOperands.Length)
+            if (GetHashCode() != other.GetHashCode())
                 return false;
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                if (additionnalOperands[i] != other.additionnalOperands[i])
+            var operands = additionnalOperands;
+            var otherOperands = other.additionnalOperands;
+
+            if (operands.Length != otherOperands.Length)
+                return false;
+
+            for (int i = 0; i < operands.Length; ++i)
+                if (operands[i] != otherOperands[i])
                     return false;
 
             var thisParents = parents;
@@ -270,7 +382,18 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        public override int GetHashCode()
+        public override sealed int GetHashCode()
+        {
+            if (!m_HashCodeCached)
+            {
+                m_HashCode = GetInnerHashCode();
+                m_HashCodeCached = true;
+            }
+
+            return m_HashCode;
+        }
+
+        protected virtual int GetInnerHashCode()
         {
             int hash = GetType().GetHashCode();
 
@@ -278,8 +401,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < parents.Length; ++i)
                 hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
-            for (int i = 0; i < additionnalOperands.Length; ++i)
-                hash = (hash * 397) ^ additionnalOperands[i].GetHashCode();
+            var operands = additionnalOperands;
+            for (int i = 0; i < operands.Length; ++i)
+                hash = (hash * 397) ^ operands[i].GetHashCode();
 
             hash = (hash * 397) ^ m_Flags.GetHashCode();
             hash = (hash * 397) ^ valueType.GetHashCode();
@@ -310,6 +434,7 @@ namespace UnityEditor.VFX
             m_Parents = parents;
             m_Flags |= additionalFlags;
             PropagateParentsFlags();
+            m_HashCodeCached = false; // as expression is mutated
         }
 
         private void PropagateParentsFlags()
@@ -344,5 +469,8 @@ namespace UnityEditor.VFX
 
         protected Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;
+
+        private int m_HashCode;
+        private bool m_HashCodeCached = false;
     }
 }

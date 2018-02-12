@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -65,7 +66,7 @@ namespace UnityEditor.VFX
                 return false;
 
             VFXProperty other = (VFXProperty)obj;
-            return name == other.name && type == other.type;
+            return type == other.type && name == other.name;
         }
 
         public IEnumerable<VFXProperty> SubProperties()
@@ -84,7 +85,7 @@ namespace UnityEditor.VFX
 
         public bool IsExpandable()
         {
-            return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve);
+            return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && type != typeof(Matrix4x4);
         }
     }
 }

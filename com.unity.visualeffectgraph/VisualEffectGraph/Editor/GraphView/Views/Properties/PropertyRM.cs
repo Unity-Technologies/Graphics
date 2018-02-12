@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
         object[] customAttributes { get; }
-        Type anchorType { get; }
+        Type portType { get; }
         int depth {get; }
         bool editable { get; }
         void RetractPath();
@@ -31,12 +31,14 @@ namespace UnityEditor.VFX.UI
     {
         public abstract void SetValue(object obj);
         public abstract object GetValue();
+        public virtual void SetMultiplier(object obj) {}
 
         public VisualElement m_Icon;
+        Clickable m_IconClickable;
 
         Texture2D[] m_IconStates;
 
-        public VisualElement m_Label;
+        public Label m_Label;
 
 
         public bool m_PropertyEnabled;
@@ -53,14 +55,48 @@ namespace UnityEditor.VFX.UI
         }
 
 
+        public virtual bool IsCompatible(IPropertyRMProvider provider)
+        {
+            return GetType() == GetPropertyType(provider);
+        }
+
+        public virtual float GetPreferredLabelWidth()
+        {
+            if (m_Label.panel == null) return 40;
+
+            VisualElement element = this;
+            while (element != null && element.style.font.value == null)
+            {
+                element = element.parent;
+            }
+            if (element != null)
+            {
+                m_Label.style.font = element.style.font;
+                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
+            }
+            return 40 + m_Provider.depth * VFXPropertyIM.depthOffset;
+        }
+
+        public abstract float GetPreferredControlWidth();
+
+        public void SetLabelWidth(float label)
+        {
+            m_labelWidth = label;
+            m_Label.style.width = effectiveLabelWidth - m_Provider.depth * VFXPropertyIM.depthOffset;
+        }
+
         protected abstract void UpdateEnabled();
 
         public void Update()
         {
-            m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded && m_Provider.expandable ? 1 : 0];
+            if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
+                SetMultiplier(Mathf.PI / 180.0f);
+
+            UpdateExpandable();
+
             SetValue(m_Provider.value);
 
-            string text = m_Provider.name;
+            string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
             VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
             m_Label.text = text;
@@ -69,46 +105,52 @@ namespace UnityEditor.VFX.UI
             //m_Label.AddTooltip(tooltip);
         }
 
+        void UpdateExpandable()
+        {
+            if (m_Provider.expandable)
+            {
+                if (m_IconStates == null)
+                {
+                    m_IconStates = new Texture2D[] {
+                        Resources.Load<Texture2D>("VFX/plus"),
+                        Resources.Load<Texture2D>("VFX/minus")
+                    };
+
+                    m_Icon.AddManipulator(m_IconClickable);
+                }
+                m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
+            }
+            else
+            {
+                if (m_IconStates != null)
+                {
+                    m_IconStates = null;
+
+                    m_Icon.RemoveManipulator(m_IconClickable);
+
+                    m_Icon.style.backgroundImage = null;
+                }
+            }
+        }
+
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
             m_Provider = provider;
             m_labelWidth = labelWidth;
 
-            m_Icon =  new VisualElement() {name = "icon"};
+            m_Icon = new VisualElement() { name = "icon" };
             Add(m_Icon);
 
-            if (provider.expandable)
-            {
-                m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_plus"),
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name + "_minus")
-                };
+            m_IconClickable = new Clickable(OnExpand);
 
-                if (m_IconStates[0] == null)
-                {
-                    m_IconStates[0] = Resources.Load<Texture2D>("VFX/Default_plus");
-                    m_IconStates[1] = Resources.Load<Texture2D>("VFX/Default_minus");
-                }
-                m_Icon.AddManipulator(new Clickable(OnExpand));
-            }
-            else
-            {
-                m_IconStates = new Texture2D[] {
-                    Resources.Load<Texture2D>("VFX/" + provider.anchorType.Name)
-                };
 
-                if (m_IconStates[0] == null)
-                {
-                    m_IconStates[0] = Resources.Load<Texture2D>("VFX/Default");
-                }
-            }
-
-            m_Icon.style.backgroundImage = m_IconStates[0];
+            if (VFXPropertyAttribute.IsAngle(provider.attributes))
+                SetMultiplier(Mathf.PI / 180.0f);
 
             string labelText = provider.name;
             string labelTooltip = null;
             VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
-            m_Label = new VisualElement() { name = "label", text = labelText };
+            m_Label = new Label() { name = "label", text = labelText };
             m_Label.AddTooltip(labelTooltip);
 
             if (provider.depth != 0)
@@ -118,17 +160,26 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = 0.5f * VFXPropertyIM.depthOffset;
-                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f;
+                    line.style.marginLeft =  0.5f * VFXPropertyIM.depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f + ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
                 }
             }
             m_Label.style.width = effectiveLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
-            //m_Label.marginLeft = presenter.depth * VFXPropertyIM.depthOffset;
             Add(m_Label);
 
             AddToClassList("propertyrm");
+
+
+            RegisterCallback<MouseDownEvent>(OnCatchMouse);
+
+            UpdateExpandable();
+        }
+
+        void OnCatchMouse(MouseDownEvent e)
+        {
+            e.StopPropagation();
         }
 
         protected float m_labelWidth = 100;
@@ -151,9 +202,11 @@ namespace UnityEditor.VFX.UI
             {typeof(float), typeof(FloatPropertyRM)},
             {typeof(int), typeof(IntPropertyRM)},
             {typeof(uint), typeof(UintPropertyRM)},
+            {typeof(FlipBook), typeof(FlipBookPropertyRM)},
             {typeof(Vector2), typeof(Vector2PropertyRM)},
             {typeof(Vector3), typeof(Vector3PropertyRM)},
             {typeof(Vector4), typeof(Vector4PropertyRM)},
+            {typeof(Matrix4x4), typeof(Matrix4x4PropertyRM)},
             {typeof(Color), typeof(ColorPropertyRM)},
             {typeof(Gradient), typeof(GradientPropertyRM)},
             {typeof(AnimationCurve), typeof(CurvePropertyRM)},
@@ -161,11 +214,11 @@ namespace UnityEditor.VFX.UI
             {typeof(string), typeof(StringPropertyRM)}
         };
 
-        public static PropertyRM Create(IPropertyRMProvider presenter, float labelWidth)
+
+        static Type GetPropertyType(IPropertyRMProvider controller)
         {
             Type propertyType = null;
-
-            Type type = presenter.anchorType;
+            Type type = controller.portType;
 
             if (type.IsEnum)
             {
@@ -192,14 +245,31 @@ namespace UnityEditor.VFX.UI
                     type = type.BaseType;
                 }
             }
+            if (propertyType == null)
+            {
+                propertyType = typeof(EmptyPropertyRM);
+            }
 
-            return (propertyType != null) ? System.Activator.CreateInstance(propertyType, new object[] { presenter, labelWidth }) as PropertyRM : null;
+            return propertyType;
+        }
+
+        public static PropertyRM Create(IPropertyRMProvider controller, float labelWidth)
+        {
+            Type propertyType = GetPropertyType(controller);
+
+            return System.Activator.CreateInstance(propertyType, new object[] { controller, labelWidth }) as PropertyRM;
+        }
+
+        public virtual object FilterValue(object value)
+        {
+            return value;
         }
 
         protected void NotifyValueChanged()
         {
-            //m_Presenter.SetPropertyValue(GetValue());
-            m_Provider.value = GetValue();
+            object value = GetValue();
+            value = FilterValue(value);
+            m_Provider.value = value;
         }
 
         void OnExpand()
@@ -226,7 +296,7 @@ namespace UnityEditor.VFX.UI
 
     abstract class PropertyRM<T> : PropertyRM
     {
-        public PropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {}
         public override void SetValue(object obj)
         {
@@ -248,6 +318,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+
             UpdateGUI();
         }
 
@@ -265,7 +336,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract ValueControl<T> CreateField();
 
-        public SimplePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public SimplePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
             m_Field.AddToClassList("fieldContainer");
@@ -290,19 +361,99 @@ namespace UnityEditor.VFX.UI
             m_Field.SetEnabled(propertyEnabled);
         }
 
-        ValueControl<T> m_Field;
+        protected ValueControl<T> m_Field;
         public override void UpdateGUI()
         {
             m_Field.SetValue(m_Value);
         }
 
-        /*
-        public override void SetEnabled(bool value)
+        public override bool showsEverything { get { return true; } }
+
+        public override void SetMultiplier(object obj)
         {
-            base.SetEnabled(value);
-            if (m_Field != null)
-                m_Field.SetEnabled(value);
-        }*/
+            try
+            {
+                m_Field.SetMultiplier((T)obj);
+            }
+            catch (System.Exception)
+            {
+            }
+        }
+    }
+
+
+    abstract class SimpleUIPropertyRM<T, U> : PropertyRM<T>
+    {
+        public abstract INotifyValueChanged<U> CreateField();
+
+        public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+            m_Field = CreateField();
+
+            VisualElement fieldElement = m_Field as VisualElement;
+            fieldElement.AddToClassList("fieldContainer");
+            fieldElement.RegisterCallback<ChangeEvent<U>>(OnValueChanged);
+            Add(fieldElement);
+        }
+
+        public void OnValueChanged(ChangeEvent<U> e)
+        {
+            T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+            if (!newValue.Equals(m_Value))
+            {
+                m_Value = newValue;
+                NotifyValueChanged();
+            }
+        }
+
+        protected override void UpdateEnabled()
+        {
+            (m_Field as VisualElement).SetEnabled(propertyEnabled);
+        }
+
+        INotifyValueChanged<U> m_Field;
+
+
+        protected INotifyValueChanged<U> field
+        {
+            get {return m_Field; }
+        }
+
+        protected virtual bool HasFocus() {return false; }
+        public override void UpdateGUI()
+        {
+            if (!HasFocus())
+                m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+        }
+
+        public override bool showsEverything { get { return true; } }
+    }
+
+
+    class EmptyPropertyRM : PropertyRM
+    {
+        public override float GetPreferredControlWidth()
+        {
+            return 0;
+        }
+
+        public override void SetValue(object obj)
+        {
+        }
+
+        public override object GetValue()
+        {
+            return null;
+        }
+
+        protected override void UpdateEnabled()
+        {
+        }
+
+        public EmptyPropertyRM(IPropertyRMProvider provider, float labelWidth) : base(provider, labelWidth)
+        {
+        }
+
         public override bool showsEverything { get { return true; } }
     }
 }

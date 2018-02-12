@@ -45,6 +45,28 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ProcessExpressionInverseMatrix()
+        {
+            var t = new Vector3(0.2f, 0.3f, 0.4f);
+            var r = new Vector3(0.5f, 0.6f, 0.7f);
+            var s = new Vector3(0.8f, 0.9f, 1.0f);
+
+            var q = Quaternion.Euler(r);
+
+            Matrix4x4 inputMatrix = new Matrix4x4();
+            inputMatrix.SetTRS(t, q, s);
+            Matrix4x4 outputMatrix = inputMatrix.inverse;
+
+            var matrixExpression = VFXValue.Constant(inputMatrix);
+            var invMatrixExpressions = new VFXExpressionInverseMatrix(matrixExpression);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(invMatrixExpressions);
+
+            Assert.AreEqual(resultExpression.Get<Matrix4x4>(), outputMatrix);
+        }
+
+        [Test]
         public void ProcessExpressionTransformPosition()
         {
             var t = new Vector3(0.2f, 0.3f, 0.4f);

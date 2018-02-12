@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -23,21 +23,31 @@ namespace UnityEditor.VFX.Test
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
 
+            // Attach to a valid particle system so that spawner is compiled
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(outputContext);
+
             var slotRate = constantRate.GetInputSlot(0);
-            var totalTime = VFXLibrary.GetBuiltInParameters().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
+            var totalTime = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.kVFXTotalTimeOp.ToString()).CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));
 
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
-            var vfxComponent = gameObj.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+
+            var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -54,6 +64,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
 
             UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
     }
 }

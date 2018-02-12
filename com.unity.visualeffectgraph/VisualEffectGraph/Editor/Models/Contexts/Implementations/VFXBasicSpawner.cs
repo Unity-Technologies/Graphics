@@ -1,10 +1,20 @@
+using System.Linq;
+
 namespace UnityEditor.VFX
 {
     [VFXInfo]
     class VFXBasicSpawner : VFXContext
     {
-        public VFXBasicSpawner() : base(VFXContextType.kSpawner, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
+        public VFXBasicSpawner() : base(VFXContextType.kSpawner, VFXDataType.kEvent, VFXDataType.kSpawnEvent) {}
         public override string name { get { return "Spawner"; } }
+
+        protected override int inputFlowCount
+        {
+            get
+            {
+                return 2;
+            }
+        }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
@@ -12,6 +22,11 @@ namespace UnityEditor.VFX
                 return VFXExpressionMapper.FromContext(this);
 
             return null;
+        }
+
+        public override bool CanBeCompiled()
+        {
+            return outputContexts.Any(c => c.CanBeCompiled());
         }
     }
 }

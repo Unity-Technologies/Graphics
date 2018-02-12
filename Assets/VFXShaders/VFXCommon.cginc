@@ -1,18 +1,6 @@
 //Helper to disable bounding box compute code
 #define USE_DYNAMIC_AABB 1
 
-// Pi variables are redefined here as UnityCG.cginc is not included for compute shader as it adds too many unused uniforms to constant buffers
-#ifndef UNITY_CG_INCLUDED
-#define UNITY_PI            3.14159265359f
-#define UNITY_TWO_PI        6.28318530718f
-#define UNITY_FOUR_PI       12.56637061436f
-#define UNITY_INV_PI        0.31830988618f
-#define UNITY_INV_TWO_PI    0.15915494309f
-#define UNITY_INV_FOUR_PI   0.07957747155f
-#define UNITY_HALF_PI       1.57079632679f
-#define UNITY_INV_HALF_PI   0.636619772367f
-#endif
-
 // Special semantics for VFX blocks
 #define RAND randLcg(seed)
 #define RAND2 float2(RAND,RAND)
@@ -34,87 +22,67 @@ struct VFXSampler2D
     SamplerState s;
 };
 
+struct VFXSampler2DArray
+{
+    Texture2DArray t;
+    SamplerState s;
+};
+
 struct VFXSampler3D
 {
     Texture3D t;
     SamplerState s;
 };
 
-// indices to access to system data
-#define VFX_DATA_UPDATE_ARG_GROUP_X     0
-#define VFX_DATA_RENDER_ARG_NB_INDEX    4
-#define VFX_DATA_RENDER_ARG_NB_INSTANCE 5
-#define VFX_DATA_NB_CURRENT             8
-#define VFX_DATA_NB_INIT                9
-#define VFX_DATA_NB_UPDATE              10
-#define VFX_DATA_NB_FREE                11
+struct VFXSamplerCube
+{
+    TextureCube t;
+    SamplerState s;
+};
 
-#ifdef VFX_WORLD_SPACE // World Space
-float3 VFXCameraPos()                   { return _WorldSpaceCameraPos.xyz; }
-float3 VFXCameraLook()                  { return -unity_WorldToCamera[2].xyz; }
-float4x4 VFXCameraMatrix()              { return unity_WorldToCamera; }
-float VFXNearPlaneDist(float3 position) { return mul(unity_WorldToCamera,float4(position,1.0f)).z; }
-float4x4 VFXModelViewProj()             { return UNITY_MATRIX_VP; }
-#elif defined(VFX_LOCAL_SPACE) // Local space
-float3 VFXCameraPos()                   { return mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; }
-float3 VFXCameraLook()                  { return UNITY_MATRIX_MV[2].xyz; }
-float4x4 VFXCameraMatrix()              { return UNITY_MATRIX_MV; }
-float VFXNearPlaneDist(float3 position) { return -mul(UNITY_MATRIX_MV,float4(position,1.0f)).z; }
-float4x4 VFXModelViewProj()             { return UNITY_MATRIX_MVP; }
+struct VFXSamplerCubeArray
+{
+    TextureCubeArray t;
+    SamplerState s;
+};
+
+#ifdef VFX_WORLD_SPACE
+float3 TransformPositionVFXToWorld(float3 pos)  { return pos; }
+float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionWorldToClip(pos); }
+float3x3 GetVFXToViewRotMatrix()                { return VFXGetWorldToViewRotMatrix(); }
+float3 GetViewVFXPosition()                     { return VFXGetViewWorldPosition(); }
+#else
+float3 TransformPositionVFXToWorld(float3 pos)  { return mul(VFXGetObjectToWorldMatrix(),float4(pos,1.0f)).xyz; }
+float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionObjectToClip(pos); }
+float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRotMatrix(),(float3x3)VFXGetObjectToWorldMatrix()); }
+float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
 #endif
 
-// Macros to use Sphere semantic type directly
-#define VFXPositionOnSphere(SphereName,cosPhi,theta,rNorm)  PositionOnSphere(SphereName##_center,SphereName##_radius,cosPhi,theta,rNorm)
-#define VFXPositionOnSphereSurface(SphereName,cosPhi,theta) PositionOnSphereSurface(SphereName##_center,SphereName##_radius,cosPhi,theta)
+#define VFX_SAMPLER(name) GetVFXSampler(##name,sampler##name)
 
-// center,radius: Sphere description
-// cosPhi: cosine of Phi angle (we used the cosine directly as it used for uniform distribution)
-// theta: theta angle
-// rNorm: normalized radius in the sphere where the point lies
-float3 PositionOnSphere(float3 center,float radius,float cosPhi,float theta,float rNorm)
+float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
 {
-    float2 sincosTheta;
-    sincos(theta,sincosTheta.x,sincosTheta.y);
-    sincosTheta *= sqrt(1.0 - cosPhi*cosPhi);
-    return float3(sincosTheta,cosPhi) * (rNorm * radius) + center;
+    return s.t.SampleLevel(s.s,coords, level);
 }
 
-float3 PositionOnSphereSurface(float3 center,float radius,float cosPhi,float theta)
+float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
 {
-    return PositionOnSphere(center,radius,cosPhi,theta,1.0f);
+    return s.t.SampleLevel(s.s,float3(coords,slice),level);
 }
 
-// Macros to use Cylinder semantic type directly
-#define VFXPositionOnCylinder(CylinderName,hNorm,theta,rNorm)   PositionOnCylinder(CylinderName##_position,CylinderName##_direction,CylinderName##_height,CylinderName##_radius,hNorm,theta,rNorm)
-#define VFXPositionOnCylinderSurface(CylinderName,hNorm,theta)  PositionOnCylinderSurface(CylinderName##_position,CylinderName##_direction,CylinderName##_height,CylinderName##_radius,hNorm,theta)
-
-// pos,dir,height,radius: Cylinder description
-// hNorm: normalized height for the point in [-0.5,0.5]
-// theta: theta angle
-// rNorm: normalise radius for the point
-float3 PositionOnCylinder(float3 pos,float3 dir,float height,float radius,float hNorm,float theta,float rNorm)
+float4 SampleTexture(VFXSampler3D s,float3 coords,float level = 0.0f)
 {
-    float2 sincosTheta;
-    sincos(theta,sincosTheta.x,sincosTheta.y);
-    sincosTheta *= rNorm * radius;
-    float3 normal = normalize(cross(dir,dir.zxy));
-    float3 binormal = cross(normal,dir);
-    return normal * sincosTheta.x + binormal * sincosTheta.y + dir * (hNorm * height) + pos;
+    return s.t.SampleLevel(s.s,coords,level);
 }
 
-float3 PositionOnCylinderSurface(float3 pos,float3 dir,float height,float radius,float hNorm,float theta)
+float4 SampleTexture(VFXSamplerCube s,float3 coords,float level = 0.0f)
 {
-    return PositionOnCylinder(pos,dir,height,radius,hNorm,theta,1.0f);
+    return s.t.SampleLevel(s.s,coords,level);
 }
 
-float4 SampleTexture(VFXSampler2D s,float2 coords)
+float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,0.0f);
-}
-
-float4 SampleTexture(VFXSampler3D s,float3 coords)
-{
-    return s.t.SampleLevel(s.s,coords,0.0f);
+    return s.t.SampleLevel(s.s,float4(coords,slice),level);
 }
 
 VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
@@ -125,9 +93,33 @@ VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
     return vfxSampler;
 }
 
+VFXSampler2DArray GetVFXSampler(Texture2DArray t,SamplerState s)
+{
+    VFXSampler2DArray vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
 VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
 {
     VFXSampler3D vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
+VFXSamplerCube GetVFXSampler(TextureCube t,SamplerState s)
+{
+    VFXSamplerCube vfxSampler;
+    vfxSampler.t = t;
+    vfxSampler.s = s;
+    return vfxSampler;
+}
+
+VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t,SamplerState s)
+{
+    VFXSamplerCubeArray vfxSampler;
     vfxSampler.t = t;
     vfxSampler.s = s;
     return vfxSampler;
@@ -259,3 +251,96 @@ float SampleCurve(float4 curveData,float u)
     }
     return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
+
+///////////
+// Utils //
+///////////
+
+float3x3 GetScaleMatrix(float3 scale)
+{
+    return float3x3(scale.x,    0,          0,
+                    0,          scale.y,    0,
+                    0,          0,          scale.z);
+}
+
+float3x3 GetRotationMatrix(float3 axis,float angle)
+{
+    float2 sincosA;
+    sincos(angle, sincosA.x, sincosA.y);
+    const float c = sincosA.y;
+    const float s = sincosA.x;
+    const float t = 1.0 - c;
+    const float x = axis.x;
+    const float y = axis.y;
+    const float z = axis.z;
+
+    return float3x3(t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,
+                    t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
+                    t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
+}
+
+float3x3 GetEulerMatrix(float3 angles)
+{
+    float3 s,c;
+    sincos(angles, s, c);
+
+    return float3x3(c.y * c.z + s.x * s.y * s.z,    c.z * s.x * s.y - c.y * s.z,    c.x * s.y,
+                    c.x * s.z,                      c.x * c.z,                      -s.x,
+                    -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
+}
+
+float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rotAndScale = GetScaleMatrix(size * 0.5f);
+    rotAndScale = mul(rot,rotAndScale);
+    rotAndScale = mul(transpose(float3x3(axisX,axisY,axisZ)),rotAndScale);
+    pos -= mul(rotAndScale,pivot);
+    return float4x4(
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
+        float4(0,0,0,1));
+}
+
+float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rot = GetEulerMatrix(radians(angles));
+    return GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,pos);
+}
+
+float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
+{
+    float3x3 rotAndScale = float3x3(axisX,axisY,axisZ);
+    rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(2.0f / size),rotAndScale);
+    pos = pivot - mul(rotAndScale,pos);
+    return float4x4(
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
+        float4(0,0,0,1));
+}
+
+float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
+{
+    float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
+    return (tile + uv) * invDim;
+}
+
+#if USE_FLIPBOOK
+#if USE_FLIPBOOK_INTERPOLATION
+void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float4 uv, out float blend)
+#else
+void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float2 uv)
+#endif
+{
+    float frameBlend = frac(texIndex);
+    float frameIndex = texIndex - frameBlend;
+
+#if USE_FLIPBOOK_INTERPOLATION
+    blend = frameBlend;
+    uv.zw = GetSubUV(frameIndex + 1, uv.xy, flipBookSize, invFlipBookSize);
+#endif
+    uv.xy = GetSubUV(frameIndex, uv.xy, flipBookSize, invFlipBookSize);
+}
+#endif

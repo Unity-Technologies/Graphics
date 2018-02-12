@@ -72,7 +72,18 @@ namespace UnityEditor.VFX
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
         }
 
-        public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options)
+        public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
+        {
+            var models = new HashSet<ScriptableObject>();
+            graph.CollectDependencies(models);
+            var contexts = models.OfType<VFXContext>();
+            if (filterOutInvalidContexts)
+                contexts = contexts.Where(c => c.CanBeCompiled());
+
+            CompileExpressions(contexts, options);
+        }
+
+        public void CompileExpressions(IEnumerable<VFXContext> contexts, VFXExpressionContextOption options)
         {
             Profiler.BeginSample("VFXEditor.CompileExpressionGraph");
 
@@ -82,17 +93,13 @@ namespace UnityEditor.VFX
                 m_FlattenedExpressions.Clear();
                 m_ExpressionsData.Clear();
 
-                var models = new HashSet<Object>();
-                graph.CollectDependencies(models);
-                var contexts = models.OfType<VFXContext>();
-
                 CompileExpressionContext(contexts, options, VFXDeviceTarget.CPU);
                 CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                     {
                         var exp = kvp.Key;
-                        return !exp.Is(VFXExpression.Flags.PerElement);
+                        return !exp.IsAny(VFXExpression.Flags.NotCompilabeOnCPU);
                     }).ToList(); // remove per element expression from flattened data // TODO Remove uniform constants too
 
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));

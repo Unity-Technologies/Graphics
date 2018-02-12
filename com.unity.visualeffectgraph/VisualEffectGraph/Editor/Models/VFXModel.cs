@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Graphing;
 using UnityEngine.Profiling;
 
@@ -45,28 +47,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void CollectDependencies(HashSet<UnityEngine.Object> objs)
+        public virtual void Sanitize() {}
+
+        public virtual void OnUnknownChange()
+        {
+        }
+
+        public virtual void CollectDependencies(HashSet<ScriptableObject> objs)
         {
             foreach (var child in children)
             {
                 objs.Add(child);
                 child.CollectDependencies(objs);
             }
-        }
-
-        public virtual T Clone<T>() where T : VFXModel
-        {
-            T clone = CreateInstance(GetType()) as T;
-
-            foreach (var child in children)
-            {
-                var cloneChild = child.Clone<VFXModel>();
-                clone.AddChild(cloneChild, -1, false);
-            }
-
-            clone.m_UICollapsed = m_UICollapsed;
-            clone.m_UIPosition = m_UIPosition;
-            return clone;
         }
 
         protected virtual void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -186,6 +179,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool superCollapsed
+        {
+            get { return m_UISuperCollapsed; }
+            set
+            {
+                if (m_UISuperCollapsed != value)
+                {
+                    m_UISuperCollapsed = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
         public int GetNbChildren()
         {
             return m_Children.Count;
@@ -194,6 +200,30 @@ namespace UnityEditor.VFX
         public int GetIndex(VFXModel child)
         {
             return m_Children.IndexOf(child);
+        }
+
+        public void SetSettingValue(string name, object value)
+        {
+            SetSettingValue(name, value, true);
+        }
+
+        protected void SetSettingValue(string name, object value, bool notify)
+        {
+            var field = GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field == null)
+            {
+                throw new ArgumentException(string.Format("Unable to find field {0} in {1}", name, GetType().ToString()));
+            }
+
+            var currentValue = field.GetValue(this);
+            if (currentValue != value)
+            {
+                field.SetValue(this, value);
+                if (notify)
+                {
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
         }
 
         public void Invalidate(InvalidationCause cause)
@@ -217,6 +247,50 @@ namespace UnityEditor.VFX
                 m_Parent.Invalidate(model, cause);
         }
 
+        public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
+        {
+            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
+                {
+                    var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
+                    if (attrArray.Length == 1)
+                    {
+                        var attr = attrArray[0] as VFXSettingAttribute;
+                        if (listHidden)
+                            return true;
+
+                        return (attr.visibleFlags & flags) != 0 && !filteredOutSettings.Contains(f.Name);
+                    }
+                    return false;
+                });
+        }
+
+        protected virtual IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        public VisualEffectAsset GetAsset()
+        {
+            var graph = GetGraph();
+            if (graph != null)
+                return graph.visualEffectAsset;
+            return null;
+        }
+
+        public VFXGraph GetGraph()
+        {
+            var graph = this as VFXGraph;
+            if (graph != null)
+                return graph;
+            var parent = GetParent();
+            if (parent != null)
+                return parent.GetGraph();
+            return null;
+        }
+
         [SerializeField]
         protected VFXModel m_Parent;
 
@@ -228,6 +302,8 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         protected bool m_UICollapsed;
+        [SerializeField]
+        protected bool m_UISuperCollapsed;
     }
 
     abstract class VFXModel<ParentType, ChildrenType> : VFXModel

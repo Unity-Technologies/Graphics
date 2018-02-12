@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class BoolPropertyRM : PropertyRM<bool>
     {
-        public BoolPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public BoolPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Toggle =  new Toggle(OnValueChanged);
             Add(m_Toggle);
@@ -23,6 +23,11 @@ namespace UnityEditor.VFX.UI
         {
             m_Value = m_Toggle.on;
             NotifyValueChanged();
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 20;
         }
 
         public override void UpdateGUI()

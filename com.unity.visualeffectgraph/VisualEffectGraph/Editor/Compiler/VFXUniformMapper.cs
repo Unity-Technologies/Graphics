@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -16,11 +16,8 @@ namespace UnityEditor.VFX
 
         private void CollectAndAddUniforms(VFXExpression exp, string name)
         {
-            if (!exp.Is(VFXExpression.Flags.PerElement))
+            if (!exp.IsAny(VFXExpression.Flags.NotCompilabeOnCPU))
             {
-                if (exp.Is(VFXExpression.Flags.InvalidOnCPU))
-                    throw new InvalidOperationException(string.Format("Collected uniform expression is invalid on CPU: {0}", exp));
-
                 string prefix;
                 Dictionary<VFXExpression, string> expressions;
 
@@ -51,7 +48,7 @@ namespace UnityEditor.VFX
                 if (expressions.ContainsKey(exp)) // Only need one name
                     return;
 
-                name = prefix + (name != null ? name : VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count()));
+                name = name != null ? name : prefix + VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count());
                 expressions[exp] = name;
             }
             else
@@ -78,6 +75,34 @@ namespace UnityEditor.VFX
             get
             {
                 return m_UniformToName.Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
+            }
+        }
+
+        // This retrieves expression to name with additional type conversion where suitable
+        public Dictionary<VFXExpression, string> expressionToCode
+        {
+            get
+            {
+                return m_UniformToName.Select(s => {
+                        string code = null;
+                        switch (s.Key.valueType)
+                        {
+                            case VFXValueType.kInt:
+                                code = "asint(" + s.Value + ")";
+                                break;
+                            case VFXValueType.kUint:
+                                code = "asuint(" + s.Value + ")";
+                                break;
+                            case VFXValueType.kBool:
+                                code = "(bool)asuint(" + s.Value + ")";
+                                break;
+                            default:
+                                code = s.Value;
+                                break;
+                        }
+
+                        return new KeyValuePair<VFXExpression, string>(s.Key, code);
+                    }).Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
             }
         }
 

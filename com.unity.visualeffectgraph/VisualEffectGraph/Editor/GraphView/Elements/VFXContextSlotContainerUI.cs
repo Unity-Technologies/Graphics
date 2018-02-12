@@ -9,36 +9,35 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXContextSlotContainerUI : VFXSlotContainerUI
+    class VFXContextSlotContainerUI : VFXNodeUI
     {
         public VFXContextSlotContainerUI()
         {
             forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
-
-            leftContainer.style.alignContent = Align.Stretch;
+            capabilities &= ~Capabilities.Selectable;
 
 
             AddToClassList("VFXContextSlotContainerUI");
         }
 
-        public override NodeAnchor InstantiateNodeAnchor(NodeAnchorPresenter presenter)
+        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            VFXContextDataAnchorPresenter anchorPresenter = presenter as VFXContextDataAnchorPresenter;
+            VFXContextDataAnchorController anchorController = controller as VFXContextDataAnchorController;
 
-            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create<VFXDataEdgePresenter>(anchorPresenter);
+            VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorController, node);
 
-            anchorPresenter.sourceNode.viewPresenter.onRecompileEvent += anchor.OnRecompile;
+            anchorController.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
 
             return anchor;
         }
 
-        protected override void OnAnchorRemoved(NodeAnchor anchor)
+        protected override void OnPortRemoved(Port anchor)
         {
             if (anchor is VFXEditableDataAnchor)
             {
-                var viewPresenter = GetPresenter<VFXSlotContainerPresenter>().viewPresenter;
-                viewPresenter.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
+                var viewController = controller.viewController;
+                viewController.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
 
@@ -47,20 +46,25 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override void OnDataChanged()
+        protected override bool HasPosition()
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXContextSlotContainerPresenter>();
-
-            if (presenter == null)
-                return;
-
-            SetPosition(presenter.position);
+            return false;
         }
 
         public VFXContextUI context
         {
             get {return this.GetFirstAncestorOfType<VFXContextUI>(); }
+        }
+    }
+
+
+    class VFXOwnContextSlotContainerUI : VFXContextSlotContainerUI
+    {
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+
+            visible = inputContainer.childCount > 0 || (settingsContainer != null && settingsContainer.childCount > 0);
         }
     }
 }

@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Graphing;
-using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -14,33 +11,29 @@ namespace UnityEditor.VFX
     {
     }
 
+    // Attribute used to display a float in degrees in the UI
+    [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    public sealed class AngleAttribute : PropertyAttribute
+    {
+    }
+
     [Serializable]
     class VFXPropertyAttribute
     {
-        public static VFXPropertyAttribute[] Create(object[] attributes)
+        private static readonly Dictionary<System.Type, Func<object, VFXPropertyAttribute>> s_RegisteredAttributes = new Dictionary<System.Type, Func<object, VFXPropertyAttribute>>()
         {
-            List<VFXPropertyAttribute> results = new List<VFXPropertyAttribute>();
+            { typeof(RangeAttribute), o => new VFXPropertyAttribute(Type.kRange, (o as RangeAttribute).min, (o as RangeAttribute).max) },
+            { typeof(MinAttribute), o => new VFXPropertyAttribute(Type.kMin, (o as MinAttribute).min) },
+            { typeof(NormalizeAttribute), o => new VFXPropertyAttribute(Type.kNormalize) },
+            { typeof(TooltipAttribute), o => new VFXPropertyAttribute((o as TooltipAttribute).tooltip) },
+            { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
+            { typeof(ShowAsColorAttribute), o => new VFXPropertyAttribute(Type.kColor) },
+        };
 
-            foreach (object attribute in attributes)
-            {
-                RangeAttribute rangeAttribute = attribute as RangeAttribute;
-                if (rangeAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kRange, rangeAttribute.min, rangeAttribute.max));
-
-                MinAttribute minAttribute = attribute as MinAttribute;
-                if (minAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kMin, minAttribute.min));
-
-                NormalizeAttribute normallizeAttribute = attribute as NormalizeAttribute;
-                if (normallizeAttribute != null)
-                    results.Add(new VFXPropertyAttribute(Type.kNormalize));
-
-                TooltipAttribute tooltipAttribute = attribute as TooltipAttribute;
-                if (tooltipAttribute != null)
-                    results.Add(new VFXPropertyAttribute(tooltipAttribute.tooltip));
-            }
-
-            return results.ToArray();
+        public static VFXPropertyAttribute[] Create(params object[] attributes)
+        {
+            return attributes.SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
+                .Select(o => o.Value(a))).ToArray();
         }
 
         public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
@@ -61,6 +54,8 @@ namespace UnityEditor.VFX
                             exp = VFXOperatorUtility.Normalize(exp);
                             break;
                         case Type.kTooltip:
+                        case Type.kAngle:
+                        case Type.kColor:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -90,6 +85,11 @@ namespace UnityEditor.VFX
                         case Type.kTooltip:
                             tooltip = attribute.m_Tooltip;
                             break;
+                        case Type.kAngle:
+                            label += " (Angle)";
+                            break;
+                        case Type.kColor:
+                            break;
                         default:
                             throw new NotImplementedException();
                     }
@@ -101,14 +101,30 @@ namespace UnityEditor.VFX
         {
             if (attributes != null)
             {
-                foreach (VFXPropertyAttribute attribute in attributes)
-                {
-                    if (attribute.m_Type == Type.kRange)
-                        return new Vector2(attribute.m_Min, attribute.m_Max);
-                }
+                VFXPropertyAttribute attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kRange);
+                if (attribute != null)
+                    return new Vector2(attribute.m_Min, attribute.m_Max);
+
+                attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kMin);
+                if (attribute != null)
+                    return new Vector2(attribute.m_Min, Mathf.Infinity);
             }
 
             return Vector2.zero;
+        }
+
+        public static bool IsAngle(VFXPropertyAttribute[] attributes)
+        {
+            if (attributes != null)
+                return attributes.Any(o => o.m_Type == Type.kAngle);
+            return false;
+        }
+
+        public static bool IsColor(VFXPropertyAttribute[] attributes)
+        {
+            if (attributes != null)
+                return attributes.Any(o => o.m_Type == Type.kColor);
+            return false;
         }
 
         private enum Type
@@ -116,7 +132,9 @@ namespace UnityEditor.VFX
             kRange,
             kMin,
             kNormalize,
-            kTooltip
+            kTooltip,
+            kAngle,
+            kColor
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)

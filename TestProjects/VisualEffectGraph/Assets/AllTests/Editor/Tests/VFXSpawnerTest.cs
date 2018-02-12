@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -19,29 +19,37 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateAssetAndComponentSpawner()
         {
             EditorApplication.ExecuteMenuItem("Window/Game");
+
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
-            var blockBurst = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
-            var slotCount = blockBurst.GetInputSlot(0);
+            var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var slotCount = blockConstantRate.GetInputSlot(0);
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
 
             var spawnCountValue = 753.0f;
             slotCount.value = spawnCountValue;
 
-            spawnerContext.AddChild(blockBurst);
+            spawnerContext.AddChild(blockConstantRate);
             graph.AddChild(spawnerContext);
             graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
             spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateAssetAndComponentSpawner");
-            var vfxComponent = gameObj.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+
+            var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -56,6 +64,82 @@ namespace UnityEditor.VFX.Test
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
             UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+        }
+
+        [UnityTest]
+        [Timeout(1000 * 10)]
+        public IEnumerator CreateEventStartAndStop()
+        {
+            EditorApplication.ExecuteMenuItem("Window/Game");
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStart.eventName = "Custom_Start";
+            var eventStop = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStop.eventName = "Custom_Stop";
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var slotCount = blockConstantRate.GetInputSlot(0);
+
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
+
+            var spawnCountValue = 1984.0f;
+            slotCount.value = spawnCountValue;
+
+            spawnerContext.AddChild(blockConstantRate);
+            graph.AddChild(eventStart);
+            graph.AddChild(eventStop);
+            graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
+            spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
+            spawnerContext.LinkFrom(eventStart, 0, 0);
+            spawnerContext.LinkFrom(eventStop, 0, 1);
+
+            graph.visualEffectAsset = new VisualEffectAsset();
+            graph.RecompileIfNeeded();
+
+            var gameObj = new GameObject("CreateEventStartAndStop");
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+
+            var cameraObj = new GameObject("CreateEventStartAndStop_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null; //wait for exactly one more update if visible
+
+            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
+
+            vfxComponent.SendEvent("Custom_Start");
+            for (int i = 0; i < 16; ++i) yield return null;
+
+            spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
+
+            vfxComponent.SendEvent("Custom_Stop");
+            for (int i = 0; i < 16; ++i) yield return null;
+
+            spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
+            Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
 
         /*
@@ -72,13 +156,13 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(blockBurst);
             graph.AddChild(spawnerContext);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
+            graph.visualEffectAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateEventAttributeAndStart");
-            var vfxComponent = gameObj.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             var lifeTimeIn = 28.0f;
             var vfxEventAttr = vfxComponent.CreateVFXEventAttribute();
@@ -110,9 +194,10 @@ namespace UnityEditor.VFX.Test
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
-            blockCustomSpawner.Init(typeof(VFXCustomSpawnerTest));
+            blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerTest)));
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
             var blockSetAttribute = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetAttribute.SetSettingValue("attribute", "lifetime");
             spawnerInit.AddChild(blockSetAttribute);
@@ -123,21 +208,27 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(blockCustomSpawner);
             graph.AddChild(spawnerContext);
             graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
             graph.AddChild(blockAttributeSource);
             blockAttributeSource.outputSlots[0].Link(blockSetAttribute.inputSlots[0]);
 
             spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
 
             var valueTotalTime = 187.0f;
             blockCustomSpawner.GetInputSlot(0).value = valueTotalTime;
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
-            var gameObj = new GameObject("CreateAssetAndComponentSpawner");
-            var vfxComponent = gameObj.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var gameObj = new GameObject("CreateCustomSpawnerAndComponent");
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+
+            var cameraObj = new GameObject("CreateCustomSpawnerAndComponent_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -151,6 +242,9 @@ namespace UnityEditor.VFX.Test
             Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
             Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifetime"));
             Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
         }
 
         /*
@@ -178,13 +272,13 @@ namespace UnityEditor.VFX.Test
             var targetSlot = initBlock.inputSlots.FirstOrDefault(o => o.property.type == attributeVelocity.outputSlots[0].property.type);
             attributeVelocity.outputSlots[0].Link(targetSlot);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
-            graph.vfxAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
+            graph.visualEffectAsset.bounds = new Bounds(Vector3.zero, Vector3.positiveInfinity);
 
             var gameObj = new GameObject("CreateCustomSpawnerLinkedWithSourceAttribute");
-            var vfxComponent = gameObj.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)

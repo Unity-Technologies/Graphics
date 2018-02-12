@@ -10,16 +10,16 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class Preview3DPresenter : SimpleElementPresenter
+    class Preview3DController : SimpleElementPresenter
     {
-        public Preview3DPresenter()
+        public Preview3DController()
         {
             title = "3D Preview";
 
             position = new Rect(100, 100, 300, 300);
         }
 
-        public void OnEnable()
+        public new void OnEnable()
         {
             base.OnEnable();
             capabilities |= Capabilities.Movable | Capabilities.Resizable;
@@ -30,8 +30,6 @@ namespace UnityEditor.VFX.UI
         Label m_Label;
         Element3D m_Element;
 
-
-        public override int layer { get { return 2; } }
 
         public Preview3D()
         {
@@ -58,9 +56,9 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDataChanged();
 
-            Preview3DPresenter presenter = GetPresenter<Preview3DPresenter>();
+            Preview3DController controller = GetPresenter<Preview3DController>();
 
-            m_Label.text = presenter.title;
+            m_Label.text = controller.title;
         }
     }
 }

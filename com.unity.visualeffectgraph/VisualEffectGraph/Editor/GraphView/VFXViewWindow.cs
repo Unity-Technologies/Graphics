@@ -2,7 +2,7 @@ using System;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using UnityEditor;
 namespace  UnityEditor.VFX.UI
 {
     [Serializable]
-    class VFXViewWindow : GraphViewEditorWindow
+    class VFXViewWindow : EditorWindow
     {
         ShortcutHandler m_ShortcutHandler;
 
@@ -23,16 +23,15 @@ namespace  UnityEditor.VFX.UI
                 { Event.KeyboardEvent("a"), view.FrameAll },
                 { Event.KeyboardEvent("f"), view.FrameSelection },
                 { Event.KeyboardEvent("o"), view.FrameOrigin },
-                { Event.KeyboardEvent("delete"), view.DeleteSelection },
-                { Event.KeyboardEvent("#tab"), view.FramePrev },
-                { Event.KeyboardEvent("tab"), view.FrameNext },
-                {Event.KeyboardEvent("c"), view.CloneModels},         // TEST
-                {Event.KeyboardEvent("e"), view.ToggleLogEvent},     // TEST
-                {Event.KeyboardEvent("#r"), view.Resync},
+                { Event.KeyboardEvent("^#>"), view.FramePrev },
+                { Event.KeyboardEvent("^>"), view.FrameNext },
+                {Event.KeyboardEvent("#^r"), view.Resync},
+                {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                {Event.KeyboardEvent("space"), view.ReinitComponents},
+                {Event.KeyboardEvent("#r"), view.ReinitComponents},
+                {Event.KeyboardEvent("F5"), view.ReinitComponents},
             });
         }
 
@@ -44,109 +43,148 @@ namespace  UnityEditor.VFX.UI
             GetWindow<VFXViewWindow>();
         }
 
-        protected override GraphView BuildView()
+        public VFXView graphView
         {
-            BuildPresenters();
-            SetupFramingShortcutHandler(VFXViewPresenter.viewPresenter.View);
-            return VFXViewPresenter.viewPresenter.View;
+            get; private set;
         }
-
-        protected override GraphViewPresenter BuildPresenters()
+        public void LoadAsset(VisualEffectAsset asset)
         {
-            if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
+            if (graphView.controller == null || graphView.controller.model != asset)
             {
-                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
-                VFXViewPresenter.viewPresenter.SetVFXAsset(asset, true);
+                bool differentAsset = asset != m_DisplayedAsset;
+
+                m_AssetName = asset.name;
+                m_DisplayedAsset = asset;
+                graphView.controller = VFXViewController.GetController(asset, true);
+
+                if (differentAsset)
+                {
+                    graphView.FrameNewController();
+                }
             }
-            return VFXViewPresenter.viewPresenter;
         }
 
-        protected new void OnEnable()
+        protected VisualEffectAsset GetCurrentAsset()
         {
-            base.OnEnable();
             var objs = Selection.objects;
 
-            if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
+            VisualEffectAsset selectedAsset = null;
+            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
             {
-                VFXViewPresenter.viewPresenter.SetVFXAsset(objs[0] as VFXAsset, true);
+                selectedAsset = objs[0] as VisualEffectAsset;
             }
-            else if (!string.IsNullOrEmpty(m_DisplayedAssetPath))
+            else if (m_DisplayedAsset != null)
             {
-                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(m_DisplayedAssetPath);
+                selectedAsset = m_DisplayedAsset;
+            }
+            return selectedAsset;
+        }
 
-                VFXViewPresenter.viewPresenter.SetVFXAsset(asset, true);
-            }
-            else
+        protected void OnEnable()
+        {
+            graphView = new VFXView();
+            graphView.StretchToParentSize();
+            SetupFramingShortcutHandler(graphView);
+
+            this.GetRootVisualContainer().Add(graphView);
+
+
+            VisualEffectAsset currentAsset = GetCurrentAsset();
+            if (currentAsset != null)
             {
-                VFXViewPresenter.viewPresenter.SetVFXAsset(VFXViewPresenter.viewPresenter.GetVFXAsset(), true);
+                LoadAsset(currentAsset);
             }
+
+            autoCompile = true;
+
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
 
-            VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
+            VisualElement rootVisualElement = this.GetRootVisualContainer();
             if (rootVisualElement.panel != null)
             {
-                rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
+                rootVisualElement.AddManipulator(m_ShortcutHandler);
                 Debug.Log("View window was already attached to a panel on OnEnable");
             }
 
             currentWindow = this;
+
+            if (m_ViewScale != Vector3.zero)
+            {
+                graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
+            }
         }
 
-        protected new void OnDisable()
+        protected void OnDisable()
         {
-            graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-            VFXViewPresenter.viewPresenter.SetVFXAsset(null, false);
-            base.OnDisable();
+            if (graphView != null)
+            {
+                m_ViewScale = graphView.contentViewContainer.transform.scale;
+                m_ViewPosition = graphView.contentViewContainer.transform.position;
+
+                graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
+                graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+                graphView.controller = null;
+            }
             currentWindow = null;
         }
 
         void OnSelectionChange()
         {
             var objs = Selection.objects;
-            if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
+            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
             {
-                m_DisplayedAssetPath = AssetDatabase.GetAssetPath(objs[0] as VFXAsset);
-                VFXViewPresenter.viewPresenter.SetVFXAsset(objs[0] as VFXAsset, false);
+                VFXViewController controller = graphView.controller;
+
+                if (controller == null || controller.model != objs[0] as VisualEffectAsset)
+                {
+                    LoadAsset(objs[0] as VisualEffectAsset);
+                }
             }
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualElement.parent.AddManipulator(m_ShortcutHandler);
-
-            Debug.Log("VFXViewWindow.OnEnterPanel");
+            rootVisualElement.AddManipulator(m_ShortcutHandler);
         }
 
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             VisualElement rootVisualElement = UIElementsEntryPoint.GetRootVisualContainer(this);
-            rootVisualElement.parent.RemoveManipulator(m_ShortcutHandler);
-
-            Debug.Log("VFXViewWindow.OnLeavePanel");
+            rootVisualElement.RemoveManipulator(m_ShortcutHandler);
         }
+
+        public bool autoCompile {get; set; }
 
         void Update()
         {
-            var graph = VFXViewPresenter.viewPresenter.GetGraph();
-            if (graph != null)
+            VFXViewController controller = graphView.controller;
+            if (controller != null && controller.model != null && controller.graph != null)
             {
-                var filename = System.IO.Path.GetFileName(m_DisplayedAssetPath);
+                var graph = controller.graph;
+                var filename = m_AssetName;
                 if (!graph.saved)
                 {
                     filename += "*";
                 }
                 titleContent.text = filename;
-                graph.RecompileIfNeeded();
+                graph.RecompileIfNeeded(!autoCompile);
+                controller.RecompileExpressionGraphIfNeeded();
             }
-            VFXViewPresenter.viewPresenter.RecompileExpressionGraphIfNeeded();
         }
 
         [SerializeField]
-        private string m_DisplayedAssetPath;
+        private VisualEffectAsset m_DisplayedAsset;
+
+        [SerializeField]
+        Vector3 m_ViewPosition;
+
+        [SerializeField]
+        Vector3 m_ViewScale;
+
+        private string m_AssetName;
     }
 }

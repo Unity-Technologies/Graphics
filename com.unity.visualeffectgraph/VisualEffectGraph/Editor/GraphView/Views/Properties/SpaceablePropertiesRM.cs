@@ -1,24 +1,29 @@
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
+using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
 namespace UnityEditor.VFX.UI
 {
     class SpaceablePropertyRM<T> : PropertyRM<T> where T : ISpaceable
     {
-        public SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Button = new VisualElement() {name = "spacebutton"};
             m_Button.AddManipulator(new Clickable(OnButtonClick));
             Add(m_Button);
             AddToClassList("spaceablepropertyrm");
+        }
+
+        public override float GetPreferredControlWidth()
+        {
+            return 40;
+        }
+
+        public override float GetPreferredLabelWidth()
+        {
+            return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
         void OnButtonClick()
@@ -31,7 +36,8 @@ namespace UnityEditor.VFX.UI
         {
             foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
-                m_Button.RemoveFromClassList("space" + name);
+                if (m_Value.space.ToString() != name)
+                    m_Button.RemoveFromClassList("space" + name);
             }
 
             if (m_Value != null)
@@ -46,11 +52,16 @@ namespace UnityEditor.VFX.UI
             m_Button.SetEnabled(propertyEnabled);
         }
 
+        private float spaceButtonWidth
+        {
+            get { return m_Button != null ? m_Button.layout.width + m_Button.style.marginLeft +  +m_Button.style.marginRight : 28; }
+        }
+
         public override float effectiveLabelWidth
         {
             get
             {
-                return m_labelWidth - (m_Button != null ? m_Button.style.width : 16);
+                return m_labelWidth - spaceButtonWidth;
             }
         }
 
@@ -59,18 +70,23 @@ namespace UnityEditor.VFX.UI
 
     abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : ISpaceable
     {
-        public Vector3SpaceablePropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public Vector3SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_VectorField = new Vector3Field(m_Label);
-            m_VectorField.OnValueChanged = OnValueChanged;
+            m_VectorField = new VFXLabeledField<VFXVector3Field, Vector3>(m_Label);
+            m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
             m_VectorField.AddToClassList("fieldContainer");
 
             Add(m_VectorField);
         }
 
-        public abstract void OnValueChanged();
+        public override float GetPreferredControlWidth()
+        {
+            return 140;
+        }
 
-        protected Vector3Field m_VectorField;
+        public abstract void OnValueChanged(ChangeEvent<Vector3> e);
+
+        protected VFXLabeledField<VFXVector3Field, Vector3> m_VectorField;
 
         protected override void UpdateEnabled()
         {
@@ -83,13 +99,13 @@ namespace UnityEditor.VFX.UI
 
     class VectorPropertyRM : Vector3SpaceablePropertyRM<Vector>
     {
-        public VectorPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public VectorPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
-        public override void OnValueChanged()
+        public override void OnValueChanged(ChangeEvent<Vector3> e)
         {
-            Vector3 newValue = m_VectorField.GetValue();
+            Vector3 newValue = m_VectorField.value;
             if (newValue != m_Value.vector)
             {
                 m_Value.vector = newValue;
@@ -100,19 +116,19 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            m_VectorField.SetValue(m_Value.vector);
+            m_VectorField.value = m_Value.vector;
         }
     }
 
     class PositionPropertyRM : Vector3SpaceablePropertyRM<Position>
     {
-        public PositionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public PositionPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
-        public override void OnValueChanged()
+        public override void OnValueChanged(ChangeEvent<Vector3> e)
         {
-            Vector3 newValue = m_VectorField.GetValue();
+            Vector3 newValue = m_VectorField.value;
             if (newValue != m_Value.position)
             {
                 m_Value.position = newValue;
@@ -123,19 +139,19 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            m_VectorField.SetValue(m_Value.position);
+            m_VectorField.value = m_Value.position;
         }
     }
 
     class DirectionPropertyRM : Vector3SpaceablePropertyRM<DirectionType>
     {
-        public DirectionPropertyRM(IPropertyRMProvider presenter, float labelWidth) : base(presenter, labelWidth)
+        public DirectionPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
-        public override void OnValueChanged()
+        public override void OnValueChanged(ChangeEvent<Vector3> e)
         {
-            Vector3 newValue = m_VectorField.GetValue();
+            Vector3 newValue = m_VectorField.value;
             if (newValue != m_Value.direction)
             {
                 m_Value.direction = newValue;
@@ -146,7 +162,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            m_VectorField.SetValue(m_Value.direction);
+            m_VectorField.value = m_Value.direction;
         }
     }
 }

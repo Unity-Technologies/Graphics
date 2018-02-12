@@ -9,118 +9,106 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBuiltInParameterUI : VFXStandaloneSlotContainerUI
-    {
-    }
-
-    class VFXAttributeParameterUI : VFXStandaloneSlotContainerUI
-    {
-    }
-
     class VFXParameterUI : VFXStandaloneSlotContainerUI
     {
-        private TextField m_ExposedName;
-        private Toggle m_Exposed;
-        VisualElement m_ExposedContainer;
-
-        public void OnNameChanged(string str)
-        {
-            var presenter = GetPresenter<VFXParameterPresenter>();
-
-            presenter.exposedName = m_ExposedName.text;
-        }
-
-        private void ToggleExposed()
-        {
-            var presenter = GetPresenter<VFXParameterPresenter>();
-            presenter.exposed = !presenter.exposed;
-        }
-
         PropertyRM m_Property;
-        PropertyRM[] m_SubProperties;
-        VFXPropertyIM m_PropertyIM;
-        IMGUIContainer m_Container;
+        List<PropertyRM> m_SubProperties;
 
         public VFXParameterUI()
         {
-            m_Exposed = new Toggle(ToggleExposed);
-            m_ExposedName = new TextField();
-
-            m_ExposedName.OnTextChanged += OnNameChanged;
-            m_ExposedName.AddToClassList("value");
-
-            VisualElement exposedLabel = new VisualElement();
-            exposedLabel.text = "exposed";
-            exposedLabel.AddToClassList("label");
-            VisualElement exposedNameLabel = new VisualElement();
-            exposedNameLabel.text = "name";
-            exposedNameLabel.AddToClassList("label");
-
-            m_ExposedContainer = new VisualElement();
-            VisualElement exposedNameContainer = new VisualElement();
-
-            m_ExposedContainer.Add(exposedLabel);
-            m_ExposedContainer.Add(m_Exposed);
-
-            m_ExposedContainer.name = "exposedContainer";
-            exposedNameContainer.name = "exposedNameContainer";
-
-            exposedNameContainer.Add(exposedNameLabel);
-            exposedNameContainer.Add(m_ExposedName);
-
-
-            inputContainer.Add(exposedNameContainer);
-            inputContainer.Add(m_ExposedContainer);
         }
 
-        void OnGUI()
+        public new VFXParameterController controller
         {
-            if (m_PropertyIM != null)
+            get { return base.controller as VFXParameterController; }
+        }
+
+        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        {
+            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
+
+            if (labelWidth < 70)
+                labelWidth = 70;
+
+            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
+
+            foreach (var port in properties)
             {
-                var presenter = GetPresenter<VFXParameterPresenter>();
-                var all = presenter.allChildren.OfType<VFXDataAnchorPresenter>();
-                m_PropertyIM.OnGUI(all.FirstOrDefault());
+                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portControlWidth = port.GetPreferredControlWidth();
+
+                if (labelWidth < portLabelWidth)
+                {
+                    labelWidth = portLabelWidth;
+                }
+                if (controlWidth < portControlWidth)
+                {
+                    controlWidth = portControlWidth;
+                }
             }
         }
 
-        public override void OnDataChanged()
+        public override void ApplyWidths(float labelWidth, float controlWidth)
         {
-            base.OnDataChanged();
-            var presenter = GetPresenter<VFXParameterPresenter>();
-            if (presenter == null)
+            base.ApplyWidths(labelWidth, controlWidth);
+
+            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
+            foreach (var port in properties)
+            {
+                port.SetLabelWidth(labelWidth);
+            }
+        }
+
+        protected override bool syncInput
+        {
+            get { return false; }
+        }
+
+        void CreateSubProperties(List<int> fieldPath)
+        {
+            var subControllers = controller.GetSubControllers(fieldPath);
+
+            var subFieldPath = new List<int>();
+            int cpt = 0;
+            foreach (var subController in subControllers)
+            {
+                PropertyRM prop = PropertyRM.Create(subController, 55);
+                if (prop != null)
+                {
+                    m_SubProperties.Add(prop);
+                    inputContainer.Add(prop);
+                }
+                if (prop == null || !prop.showsEverything)
+                {
+                    subFieldPath.Clear();
+                    subFieldPath.AddRange(fieldPath);
+                    subFieldPath.Add(cpt);
+                    CreateSubProperties(subFieldPath);
+                }
+                ++cpt;
+            }
+        }
+
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+            if (controller == null)
                 return;
 
-            m_ExposedName.style.height = 24.0f;
-            m_Exposed.style.height = 24.0f;
-            m_ExposedName.text = presenter.exposedName == null ? "" : presenter.exposedName;
-            m_Exposed.on = presenter.exposed;
-
-            if (m_Property == null && m_PropertyIM == null)
+            if (m_Property == null)
             {
-                m_Property = PropertyRM.Create(presenter, 55);
+                m_Property = PropertyRM.Create(controller, 55);
                 if (m_Property != null)
                 {
                     inputContainer.Add(m_Property);
-
+                    m_SubProperties = new List<PropertyRM>();
+                    List<int> fieldpath = new List<int>();
                     if (!m_Property.showsEverything)
                     {
-                        int count = presenter.CreateSubPresenters();
-                        m_SubProperties = new PropertyRM[count];
-
-                        for (int i = 0; i < count; ++i)
-                        {
-                            m_SubProperties[i] = PropertyRM.Create(presenter.GetSubPresenter(i), 55);
-                            inputContainer.Add(m_SubProperties[i]);
-                        }
+                        CreateSubProperties(fieldpath);
                     }
                 }
-                else
-                {
-                    m_PropertyIM = VFXPropertyIM.Create(presenter.anchorType, 55);
-
-                    m_Container = new IMGUIContainer(OnGUI) { name = "IMGUI" };
-                    inputContainer.Add(m_Container);
-                }
+                RefreshPorts();
             }
             if (m_Property != null)
                 m_Property.Update();

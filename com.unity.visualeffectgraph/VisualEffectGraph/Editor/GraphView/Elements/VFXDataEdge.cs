@@ -15,168 +15,98 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    internal class VFXDataEdge : VFXEdge
+    internal class VFXDataEdge : VFXEdge, IControlledElement<VFXDataEdgeController>
     {
+        VFXDataEdgeController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXDataEdgeController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != null)
+                {
+                    m_Controller.UnregisterHandler(this);
+                }
+                m_Controller = value;
+                if (m_Controller != null)
+                {
+                    m_Controller.RegisterHandler(this);
+                }
+            }
+        }
         public VFXDataEdge()
         {
+            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
-        public override int layer
+        protected virtual void OnChange(ControllerChangedEvent e)
         {
-            get
+            if (e.controller == controller)
             {
-                return -1;
+                SelfChange();
             }
         }
 
-        public override void OnDisplayChanged()
+        protected virtual void SelfChange()
         {
-            VFXDataEdgePresenter edgePresenter = GetPresenter<VFXDataEdgePresenter>();
-            VFXDataAnchorPresenter outputPresenter = edgePresenter.output as VFXDataAnchorPresenter;
-            VFXDataAnchorPresenter inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
-
-            VFXView view = this.GetFirstAncestorOfType<VFXView>();
-
-            var nodes = view.GetAllNodes().Where(t => (outputPresenter != null && t.presenter == outputPresenter.sourceNode) || (inputPresenter != null && t.presenter == inputPresenter.sourceNode));
-
-            foreach (var node in nodes)
+            if (controller != null)
             {
-                if (node is VFXStandaloneSlotContainerUI)
-                    (node as VFXStandaloneSlotContainerUI).DirtyDrawer();
-                else // node must be from a VFXContext
-                    node.GetFirstAncestorOfType<VFXContextUI>().DirtyDrawer();
-            }
-            //TODO VFXContext dirtydrawer when existing
-        }
+                VFXView view = GetFirstAncestorOfType<VFXView>();
 
-        public override void OnDataChanged()
-        {
-            base.OnDataChanged();
+                var newInput = view.GetDataAnchorByController(controller.input);
 
-            foreach (var cls in VFXTypeDefinition.GetTypeCSSClasses())
-                RemoveFromClassList(cls);
-
-
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
-
-
-            if (outputPresenter == null && inputPresenter == null)
-                return;
-            /*if (outputPresenter != null && panel != null)
-                panel.dataWatch.ForceDirtyNextPoll(outputPresenter);
-
-            if (inputPresenter != null && panel != null)
-                panel.dataWatch.ForceDirtyNextPoll(inputPresenter);*/
-
-            System.Type type = inputPresenter != null ? inputPresenter.anchorType : outputPresenter.anchorType;
-
-            AddToClassList(VFXTypeDefinition.GetTypeCSSClass(type));
-            OnAnchorChanged();
-        }
-
-        public void OnAnchorChanged()
-        {
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            NodeAnchorPresenter inputPresenter = edgePresenter.input;
-
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
-            if (view != null)
-            {
-                VFXDataAnchor outputAnchor = view.GetDataAnchorByPresenter(outputPresenter as VFXDataAnchorPresenter);
-                VFXDataAnchor inputAnchor = view.GetDataAnchorByPresenter(inputPresenter as VFXDataAnchorPresenter);
-
-                VFXEdgeControl edgeControl = this.edgeControl as VFXEdgeControl;
-
-                if (GetPresenter<EdgePresenter>().selected)
+                if (base.input != newInput)
                 {
-                    edgeControl.inputColor = edgeControl.outputColor = selectedColor;
+                    if (base.input != null)
+                    {
+                        base.input.Disconnect(this);
+                    }
+                    base.input = newInput;
+                    base.input.Connect(this);
                 }
-                else
+
+                var newOutput = view.GetDataAnchorByController(controller.output);
+
+                if (base.output != newOutput)
                 {
-                    if (inputAnchor != null)
+                    if (base.output != null)
                     {
-                        edgeControl.inputColor = inputAnchor.anchorColor;
+                        base.output.Disconnect(this);
                     }
-                    else if (outputAnchor != null)
-                    {
-                        edgeControl.inputColor = outputAnchor.anchorColor;
-                    }
-
-                    if (outputAnchor != null)
-                    {
-                        edgeControl.outputColor = outputAnchor.anchorColor;
-                    }
-                    else if (inputAnchor != null)
-                    {
-                        edgeControl.outputColor = inputAnchor.anchorColor;
-                    }
+                    base.output = newOutput;
+                    base.output.Connect(this);
                 }
+
+                edgeControl.UpdateLayout();
             }
         }
 
-        protected override EdgeControl CreateEdgeControl()
+        public new VFXDataAnchor input
         {
-            return new VFXEdgeControl
-            {
-                capRadius = 4,
-                interceptWidth = 3
-            };
+            get { return base.input as VFXDataAnchor; }
         }
-
-        protected override void DrawEdge()
+        public new VFXDataAnchor output
         {
-            UpdateEdgeControl();
+            get { return base.output as VFXDataAnchor; }
         }
 
-#if false
-        protected override void DrawEdge()
+        public override void OnPortChanged(bool isInput)
         {
-            var edgePresenter = GetPresenter<EdgePresenter>();
-
-            NodeAnchorPresenter outputPresenter = edgePresenter.output;
-            VFXDataAnchorPresenter inputPresenter = edgePresenter.input as VFXDataAnchorPresenter;
-
-            if (outputPresenter == null && inputPresenter == null)
-                return;
-
-            Vector2 from = Vector2.zero;
-            Vector2 to = Vector2.zero;
-            GetFromToPoints(ref from, ref to);
-            Color edgeColor = style.borderColor;
-
-            if (inputPresenter != null && inputPresenter.sourceNode is VFXBlockPresenter)
-            {
-                to = to + new Vector2(-10, 0);
-            }
-
-
-            Orientation orientation = Orientation.Horizontal;
-            Vector3[] points, tangents;
-            GetTangents(orientation, from, to, out points, out tangents);
-
-
-            GraphView view = this.GetFirstAncestorOfType<GraphView>();
-
-            float realWidth = edgePresenter.selected ? edgeWidth * 2 : edgeWidth;
-            if (realWidth * view.scale < 1.5f)
-            {
-                realWidth = 1.5f / view.scale;
-            }
-            VFXFlowEdge.RenderBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, realWidth);
-            /*if (edgePresenter.selected)
-            {
-                Handles.DrawBezier(points[0] + Vector3.down, points[1] + Vector3.down , tangents[0] + Vector3.down , tangents[1] + Vector3.down , edgeColor, null, 2f);
-                Handles.DrawBezier(points[0] + Vector3.up , points[1] + Vector3.up , tangents[0] + Vector3.up , tangents[1] + Vector3.up , edgeColor, null, 2f);
-            }
-            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 2f);*/
+            base.OnPortChanged(isInput);
         }
 
-#endif
+        public override void OnSelected()
+        {
+            base.OnSelected();
+        }
+
+        public override void OnUnselected()
+        {
+            base.OnUnselected();
+        }
     }
 }

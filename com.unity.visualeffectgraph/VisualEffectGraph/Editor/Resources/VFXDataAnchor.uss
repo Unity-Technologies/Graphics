@@ -1,33 +1,77 @@
 
-/* Properties */
+
+
+.VFXDataAnchor > #connector.portHighlight #hole #cap{
+    background-color: rgb(220, 220, 220);
+    border-color: rgb(220, 220, 220);
+}
+
 .VFXDataAnchor
 {
-	-background-color:rgba(0,0,255,255);
-	im-border : 4;
-	im-padding : 2;
-	selected-field-background :resource("VFX/SelectedField");
 	flex-direction: row;
-	align-items: stretch;
+	align-items: center;
 	font-style: normal;
 	text-color: #BBB;
 	font-size:11;
 	padding-bottom:0;
 	min-height:17;
-	-margin-left:-17;
+	height:-1;
 	margin-bottom:0;
 	margin-right:6;
 	Visible:true;
 }
 
+.VFXDataAnchor #lineSpacer
+{
+    flex:1;
+}
+.VFXDataAnchor #line
+{
+    align-self:stretch;
+}
 
-.VFXDataAnchor.invisible
+
+.VFXDataAnchor.port #type
+{
+    margin-left:0;
+    margin-right:0;
+}
+
+
+.VFXDataAnchor.port #connector
+{
+    margin-right:0;
+}
+
+.VFXDataAnchor #connector #hole
+{
+	position-type:absolute;
+	position-right:0;
+	position-left:0;
+	position-top:0;
+	position-bottom:0;
+}
+.VFXDataAnchor #connector #hole #cap
+{
+	position-type:absolute;
+	position-right:0;
+	position-left:0;
+	position-top:0;
+	position-bottom:0;
+	width:-1;
+	height:-1;
+}
+
+
+.VFXDataAnchor.hidden
 {
 	max-height:0;
 	min-height:0;
+    height:0;
 	Visible:false;
 }
 
-.VFXDataAnchor.invisible #connector
+.VFXDataAnchor.hidden #connector
 {
 	margin-top:-12;
 	border-left-width:0;
@@ -77,35 +121,6 @@ VFXDataAnchor.Output #type
 	text-alignment: middle-center;
 }
 
-.VFXDataAnchor #connector
-{
-	background-color:rgba(0,0,0,0);
-	position-type:absolute;
-	margin-top:5;
-	padding-top:0;
-	margin-left:0;
-	background-image:resource("VFX/connectors/unconnected-input");
-	border-radius:0;
-	width:10;
-	height:10;
-}
-.VFXDataAnchor.Output #connector
-{
-	border-color:#212121;
-	position-right:10;
-	margin-top:2;
-	background-image:resource("VFX/connectors/unconnected-output");
-}
-
-.VFXDataAnchor #connector.anchorHighlight *
-{
-	background-image:resource("VFX/connectors/highlighted-input");
-}
-.VFXDataAnchor.Output #connector.anchorHighlight *
-{
-	background-image:resource("VFX/connectors/highlighted-output");
-}
-
 .VFXDataAnchor  #IMGUI
 {
 	flex:2;
@@ -122,14 +137,12 @@ VFXOutputDataAnchor
 }
 VFXOutputDataAnchor #icon
 {
-	position-type:Absolute;
-	width:16;
-	height:16;
-	position-right:20;
+    margin-top:6;
+	width:6;
+	height:6;
 }
 VFXOutputDataAnchor #type
 {
-	flex:1;
 	text-color:#c4c4c4;
 	margin-right:12;
 }
@@ -138,38 +151,4 @@ VFXOutputDataAnchor #type
 .VFXDataAnchor.connected > #connector
 {
 	border-color:#787878;
-}
-
-.VFXDataAnchor.connected > #connector
-{
-	background-image: resource("VFX/connectors/default-input");
-}
-
-.VFXDataAnchor.connected.Output > #connector
-{
-	background-image: resource("VFX/connectors/default-output");
-}
-
-
-
-
-
-.node .VFXDataAnchor.selected.connected > #connector
-{
-	background-image: resource("VFX/connectors/selected-input");
-}
-
-.node .VFXDataAnchor.selected.connected.Output > #connector
-{
-	background-image: resource("VFX/connectors/selected-output");
-}
-
-.node.selected .VFXDataAnchor.selected.connected > #connector
-{
-	background-image: resource("VFX/connectors/selected-input-selected");
-}
-
-.node.selected .VFXDataAnchor.selected.connected.Output > #connector
-{
-	background-image: resource("VFX/connectors/selected-output-selected");
 }

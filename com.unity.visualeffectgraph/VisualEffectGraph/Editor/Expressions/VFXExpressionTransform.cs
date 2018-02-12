@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionTRSToMatrix(VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        public VFXExpressionTRSToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.InvalidOnGPU, parents)
         {
         }
 
@@ -44,13 +44,38 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionInverseMatrix : VFXExpression
+    {
+        public VFXExpressionInverseMatrix()
+            : this(VFXValue<Matrix4x4>.Default)
+        {}
+
+        public VFXExpressionInverseMatrix(VFXExpression parent)
+            : base(VFXExpression.Flags.InvalidOnGPU, parent)
+        {}
+
+        public override VFXExpressionOp operation
+        {
+            get
+            {
+                return VFXExpressionOp.kVFXInverseTRSOp;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrix = constParents[0].Get<Matrix4x4>();
+            return VFXValue.Constant(matrix.inverse);
+        }
+    }
+
     class VFXExpressionExtractPositionFromMatrix : VFXExpression
     {
         public VFXExpressionExtractPositionFromMatrix() : this(VFXValue<Matrix4x4>.Default)
         {
         }
 
-        public VFXExpressionExtractPositionFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, new VFXExpression[] { parent })
+        public VFXExpressionExtractPositionFromMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, new VFXExpression[] { parent })
         {
         }
 
