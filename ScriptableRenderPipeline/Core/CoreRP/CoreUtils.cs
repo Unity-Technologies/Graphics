@@ -169,6 +169,22 @@ namespace UnityEngine.Experimental.Rendering
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
+        public static string GetRenderTargetAutoName(int width, int height, RenderTextureFormat format, string name = "", bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+        {
+            string temp;
+            if (enableMSAA)
+                temp = string.Format("RT_{0}x{1}_{2}_{3}{4}", width, height, format, mips ? "_Mips"  : "", msaaSamples.ToString());
+            else
+                temp = string.Format("RT_{0}x{1}_{2}_{3}", width, height, format, mips ? "_Mips" : "");
+
+            if (name != "")
+            {
+                temp = String.Format("{0}_{1}", name, temp);
+            }
+
+            return temp;
+        }
+
         public static void ClearCubemap(CommandBuffer cmd, RenderTexture renderTexture, Color clearColor, bool clearMips = false)
         {
             int mipCount = 1;

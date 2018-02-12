@@ -1,4 +1,5 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -49,15 +50,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Temporary RT used for convolution and compression
                 m_TempRenderTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
+                m_TempRenderTexture.hideFlags = HideFlags.HideAndDontSave;
                 m_TempRenderTexture.dimension = TextureDimension.Cube;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflection", mips : true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
+                m_ConvolutionTargetTexture.hideFlags = HideFlags.HideAndDontSave;
                 m_ConvolutionTargetTexture.dimension = TextureDimension.Cube;
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
+                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflection", mips : true);
                 m_ConvolutionTargetTexture.Create();
 
                 m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial("Hidden/SRP/BlitCubeTextureFace");
@@ -76,15 +81,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Release()
         {
-            if(m_TextureCache != null)
+            if (m_TextureCache != null)
             {
                 m_TextureCache.Release();
                 m_TextureCache = null;
             }
-            if(m_TempRenderTexture != null)
+            if (m_TempRenderTexture != null)
             {
                 m_TempRenderTexture.Release();
                 m_TempRenderTexture = null;
+            }
+            if (m_ConvolutionTargetTexture != null)
+            {
+                m_ConvolutionTargetTexture.Release();
+                m_ConvolutionTargetTexture = null;
             }
             m_ProbeBakingState = null;
         }
@@ -118,8 +128,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTexture convolutionSourceTexture = null;
             if (cubeTexture != null)
             {
-                // if the size if different from the cache probe size or if the input texture format is compressed, we need to convert it 
-                // 1) to a format for which we can generate mip maps 
+                // if the size if different from the cache probe size or if the input texture format is compressed, we need to convert it
+                // 1) to a format for which we can generate mip maps
                 // 2) to the proper reflection probe cache size
                 bool sizeMismatch = cubeTexture.width != m_ProbeSize || cubeTexture.height != m_ProbeSize;
                 bool formatMismatch = cubeTexture.format != TextureFormat.RGBAHalf; // Temporary RT for convolution is always FP16

@@ -60,6 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GgxIblSampleData.autoGenerateMips = false;
                 m_GgxIblSampleData.enableRandomWrite = true;
                 m_GgxIblSampleData.filterMode = FilterMode.Point;
+                m_GgxIblSampleData.name = CoreUtils.GetRenderTargetAutoName(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, RenderTextureFormat.ARGBHalf, "GGXIblSampleData");
                 m_GgxIblSampleData.Create();
 
                 m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
