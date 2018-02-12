@@ -136,15 +136,13 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (category == RTCategory.MSAA)
                         rt.antiAliasing = (int)s_ScaledRTCurrentMSAASamples;
+
+                    rt.name = CoreUtils.GetRenderTargetAutoName(width, height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: s_ScaledRTCurrentMSAASamples);
                     rt.Create();
                 }
             }
         }
 
-        static string GetAutomaticName(int width, int height, RenderTextureFormat format)
-        {
-            return "RenderTarget_" + width + "x" + height + "_" + format.ToString();
-        }
 
         // This method wraps around regular RenderTexture creation.
         // There is no specific logic applied to RenderTextures created this way.
@@ -195,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = name == "" ? GetAutomaticName(width, height, colorFormat) : name
+                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
             };
             rt.Create();
 
@@ -205,6 +203,7 @@ namespace UnityEngine.Experimental.Rendering
             newRT.useScaling = false;
             newRT.m_EnableRandomWrite = enableRandomWrite;
             newRT.m_EnableMSAA = enableMSAA;
+            newRT.m_Name = name;
             return newRT;
         }
 
@@ -396,7 +395,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = name == "" ? GetAutomaticName(width, height, colorFormat) : name
+                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : s_ScaledRTCurrentMSAASamples)
             };
             rt.Create();
 
@@ -405,6 +404,7 @@ namespace UnityEngine.Experimental.Rendering
             rth.m_EnableMSAA = enableMSAA;
             rth.m_EnableRandomWrite = enableRandomWrite;
             rth.useScaling = true;
+            rth.m_Name = name;
             s_AutoSizedRTs.Add(rth);
             return rth;
         }
@@ -436,6 +436,7 @@ namespace UnityEngine.Experimental.Rendering
         RenderTargetIdentifier[]    m_NameIDs = new RenderTargetIdentifier[2];
         bool                        m_EnableMSAA = false;
         bool                        m_EnableRandomWrite = false;
+        string                      m_Name;
 
         Vector2 scaleFactor = Vector2.one;
         ScaleFunc scaleFunc;
@@ -514,7 +515,7 @@ namespace UnityEngine.Experimental.Rendering
                     useDynamicScale = refRT.useDynamicScale,
                     vrUsage = refRT.vrUsage,
                     memorylessMode = refRT.memorylessMode,
-                    name = refRT.name
+                    name = CoreUtils.GetRenderTargetAutoName(refRT.width, refRT.height, refRT.format, m_Name, mips : refRT.useMipMap)
                 };
                 newRT.Create();
 
