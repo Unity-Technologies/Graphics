@@ -1819,6 +1819,7 @@ VFXAsset:
   m_PrefabInternal: {fileID: 0}
   m_Name: CopyPasteTest
   m_Graph: {fileID: 114504534302082020}
+  m_ShaderSources: []
   m_Expressions:
     m_Expressions: []
     m_NeedsLocalToWorld: 0
