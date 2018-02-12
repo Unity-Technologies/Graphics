@@ -438,6 +438,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
                 hdCamera.SetupGlobalParams(cmd);
+                if (m_FrameSettings.enableStereo)
+                    hdCamera.SetupGlobalStereoParams(cmd);
 
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
