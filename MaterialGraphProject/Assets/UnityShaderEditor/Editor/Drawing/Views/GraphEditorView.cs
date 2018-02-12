@@ -256,7 +256,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_Graph.removedNodes)
             {
-                node.onModified -= OnNodeChanged;
+                node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
                 {
@@ -313,7 +313,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeView = new MaterialNodeView { userData = node };
             m_GraphView.AddElement(nodeView);
             nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
-            node.onModified += OnNodeChanged;
+            node.RegisterCallback(OnNodeChanged);
             nodeView.Dirty(ChangeType.Repaint);
 
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
