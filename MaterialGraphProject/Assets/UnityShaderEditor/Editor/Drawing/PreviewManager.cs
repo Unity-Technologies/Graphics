@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Set(m_Identifiers, node.tempId, node.tempId);
             Set(m_RenderDatas, node.tempId, renderData);
             m_DirtyShaders.Add(node.tempId.index);
-            node.onModified += OnNodeModified;
+            node.RegisterCallback(OnNodeModified);
             if (node.RequiresTime())
                 m_TimeDependentPreviews.Add(node.tempId.index);
 
@@ -495,7 +495,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Object.DestroyImmediate(renderData.renderTexture, true);
 
             if (renderData.shaderData != null && renderData.shaderData.node != null)
-                renderData.shaderData.node.onModified -= OnNodeModified;
+                renderData.shaderData.node.UnregisterCallback(OnNodeModified);
         }
 
         void DestroyPreview(Identifier nodeId)

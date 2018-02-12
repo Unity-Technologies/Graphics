@@ -44,12 +44,22 @@ namespace UnityEditor.ShaderGraph
 
         public IGraph owner { get; set; }
 
-        public OnNodeModified onModified { get; set; }
+        OnNodeModified m_OnModified;
+
+        public void RegisterCallback(OnNodeModified callback)
+        {
+            m_OnModified += callback;
+        }
+
+        public void UnregisterCallback(OnNodeModified callback)
+        {
+            m_OnModified -= callback;
+        }
 
         public void Dirty(ModificationScope scope)
         {
-            if (onModified != null)
-                onModified(this, scope);
+            if (m_OnModified != null)
+                m_OnModified(this, scope);
         }
 
         public Guid guid
