@@ -44,14 +44,14 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
             "Capture Settings",
             (s, p, o) => s.isSectionExpandedCaptureSettings,
-            true,
+            FoldoutOption.Indent,
             CED.Action(Drawer_FieldOcclusionCulling),
             CED.Action(Drawer_FieldNormalizedViewPort));
 
         public static readonly CED.IDrawer SectionOutputSettings = CED.FoldoutGroup(
             "Output Settings",
             (s, p, o) => s.isSectionExpandedOutputSettings,
-            true,
+            FoldoutOption.Indent,
 #if ENABLE_MULTIPLE_DISPLAYS
             CED.Action(Drawer_SectionMultiDisplay),
 #endif
@@ -60,17 +60,17 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionXRSettings = CED.FadeGroup(
             (s, d, o, i) => s.isSectionAvailableXRSettings,
-            false,
+            FadeOption.Animate,
             CED.FoldoutGroup(
                 "XR Settings",
                 (s, p, o) => s.isSectionExpandedXRSettings,
-                true,
+                FoldoutOption.Indent,
                 CED.Action(Drawer_FieldVR),
                 CED.Action(Drawer_FieldTargetEye)));
 
         public static readonly CED.IDrawer SectionRenderLoopSettings = CED.FadeGroup(
             (s, d, o, i) => s.isSectionAvailableRenderLoopSettings,
-            false,
+            FadeOption.Animate,
             CED.Select(
                 (s, d, o) => s.frameSettingsUI,
                 (s, d, o) => d.frameSettings,
