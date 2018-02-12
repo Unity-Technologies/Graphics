@@ -307,16 +307,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 PropagateNodeSet(m_DirtyShaders);
 
-                var masterNodes = new List<MasterNode>();
+                var masterNodes = new List<INode>();
                 var uberNodes = new List<INode>();
                 foreach (var index in m_DirtyShaders)
                 {
                     var node = m_Graph.GetNodeFromTempId(m_Identifiers[index]);
                     if (node == null)
                         continue;
-                    var masterNode = node as MasterNode;
+                    var masterNode = node as IMasterNode;
                     if (masterNode != null)
-                        masterNodes.Add(masterNode);
+                        masterNodes.Add(node);
                     else
                         uberNodes.Add(node);
                 }
