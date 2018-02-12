@@ -259,10 +259,10 @@ real ComputeWrappedDiffuseLighting(real NdotL, real w)
 // Helper functions
 //-----------------------------------------------------------------------------
 
-// This abs allow to avoid artifact
-float ClampNdotV(float3 N, float3 V)
+// Ref: "Crafting a Next-Gen Material Pipeline for The Order: 1886".
+float ClampNdotV(float NdotV)
 {
-    return abs(dot(N, V)) + 1e-5f;
+    return max(NdotV, 0.0001);
 }
 
 // Inputs:    normalized normal and view vectors.
