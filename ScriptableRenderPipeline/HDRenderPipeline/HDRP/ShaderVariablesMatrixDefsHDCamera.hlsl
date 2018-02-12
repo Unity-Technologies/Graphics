@@ -5,6 +5,25 @@
 #ifndef UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
 #define UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
 
+#if defined(USING_STEREO_MATRICES)
+
+#define UNITY_MATRIX_M     unity_ObjectToWorld
+#define UNITY_MATRIX_I_M   unity_WorldToObject
+#define UNITY_MATRIX_V     unity_StereoMatrixV[unity_StereoEyeIndex]
+#define UNITY_MATRIX_I_V   unity_StereoMatrixInvV[unity_StereoEyeIndex]
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(unity_StereoMatrixP[unity_StereoEyeIndex])
+// TEMP, use _InvProjMatrixStereo once bound
+#define UNITY_MATRIX_I_P   unity_StereoCameraInvProjection[unity_StereoEyeIndex]
+#define UNITY_MATRIX_VP    unity_StereoMatrixVP[unity_StereoEyeIndex]
+// TEMP - MUST FIX, use _InvViewProjMatrixStereo once bound
+#define UNITY_MATRIX_I_VP  mul(UNITY_MATRIX_I_V, UNITY_MATRIX_I_P)
+#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
+#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
+#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
+#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+
+#else
+
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     _ViewMatrix
@@ -17,5 +36,7 @@
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+
+#endif // USING_STEREO_MATRICES
 
 #endif // UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED

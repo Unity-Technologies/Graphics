@@ -24,6 +24,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
+        public Matrix4x4[] viewMatrixStereo;
+        public Matrix4x4[] projMatrixStereo;
+
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
         {
@@ -56,6 +59,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 nonJitteredViewProjMatrix
         {
             get { return nonJitteredProjMatrix * viewMatrix; }
+        }
+
+        public Matrix4x4 GetViewProjMatrixStereo(uint eyeIndex)
+        {
+            return (projMatrixStereo[eyeIndex] * viewMatrixStereo[eyeIndex]);
         }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
@@ -101,6 +109,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             camera = cam;
             frustumPlanes = new Plane[6];
             frustumPlaneEquations = new Vector4[6];
+
+            viewMatrixStereo = new Matrix4x4[2];
+            projMatrixStereo = new Matrix4x4[2];
+
             postprocessRenderContext = new PostProcessRenderContext();
             m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
@@ -200,6 +212,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var xrDesc = XRSettings.eyeTextureDesc;
                 m_ActualWidth = xrDesc.width;
                 m_ActualHeight = xrDesc.height;
+
+                ConfigureStereoMatrices();
             }
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
@@ -212,6 +226,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
 
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+        }
+
+        void ConfigureStereoMatrices()
+        {
+            // will the matrices work?
+            for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+            {
+                viewMatrixStereo[eyeIndex] = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
+
+                projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
+                projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
+            }
+
+            // TODO: Fetch the single cull matrix stuff
         }
 
         // Warning: different views can use the same camera!
@@ -286,6 +314,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation, taaFrameRotation);
+        }
+
+        public void SetupGlobalStereoParams(CommandBuffer cmd)
+        {
+            var invProjStereo = new Matrix4x4[2];
+            var invViewProjStereo = new Matrix4x4[2];
+
+            for (uint ei = 0; ei < 2; ei++)
+            {
+                var proj = projMatrixStereo[ei];
+                invProjStereo[ei] = proj.inverse;
+
+                var view = viewMatrixStereo[ei];
+                var vp = proj * view;
+                invViewProjStereo[ei] = vp.inverse;
+            }
+
+            cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,
