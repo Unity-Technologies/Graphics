@@ -1354,6 +1354,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 camPosWS = camera.transform.position;
 
+                // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
+                m_CurrentSunLight = null;
+                m_CurrentSunLightShadowIndex = -1;
+
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
@@ -1502,8 +1506,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // will be use...)
                     // The lightLoop is in charge, not the shadow pass.
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
-                    m_CurrentSunLight = null;
-                    m_CurrentSunLightShadowIndex = -1;
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
