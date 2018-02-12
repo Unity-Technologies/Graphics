@@ -260,38 +260,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
-            m_CameraColorBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB : false, enableRandomWrite: true, enableMSAA: true);
-            m_CameraSssDiffuseLightingBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true);
+            m_CameraColorBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB : false, enableRandomWrite: true, enableMSAA: true, name : "CameraColor");
+            m_CameraSssDiffuseLightingBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
 
-            m_CameraDepthStencilBuffer = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true);
+            m_CameraDepthStencilBuffer = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencil");
 
             if (NeedDepthBufferCopy())
             {
-                m_CameraDepthBufferCopy = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true);
+                m_CameraDepthBufferCopy = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencilCopy");
             }
 
             // Technically we won't need this buffer in some cases, but nothing that we can determine at init time.
-            m_CameraStencilBufferCopy = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: RenderTextureFormat.R8, sRGB: false, filterMode: FilterMode.Point, enableMSAA: true); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            m_CameraStencilBufferCopy = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: RenderTextureFormat.R8, sRGB: false, filterMode: FilterMode.Point, enableMSAA: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
             if (m_Asset.renderPipelineSettings.supportSSAO)
             {
-                m_AmbientOcclusionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true);
+                m_AmbientOcclusionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "AmbientOcclusion");
             }
 
             if (m_Asset.renderPipelineSettings.supportMotionVectors)
             {
-                m_VelocityBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBufferSRGBFlag(), enableMSAA: true);
+                m_VelocityBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBufferSRGBFlag(), enableMSAA: true, name: "Velocity");
             }
 
-            m_DistortionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag());
+            m_DistortionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag(), name: "Distortion");
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
-            m_DeferredShadowBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true);
+            m_DeferredShadowBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true, name: "DeferredShadow");
 
             if (Debug.isDebugBuild)
             {
-                m_DebugColorPickerBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false);
-                m_DebugFullScreenTempBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false);
+                m_DebugColorPickerBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugColorPicker");
+                m_DebugFullScreenTempBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugFullScreen");
             }
         }
 
@@ -1094,15 +1094,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(enableShadowMask), m_CameraDepthStencilBuffer);
-                if (m_FrameSettings.enableDBuffer)
-                {
-                    m_DbufferManager.SetHTile(m_GbufferManager.GetBufferCount(enableShadowMask), cmd);
-                }
-                else
-                {
-                    // On PS4 if the UAV is not bound it can cause crashes in some cases so we bind an empty useless UAV
-                    cmd.SetRandomWriteTarget(m_GbufferManager.GetBufferCount(enableShadowMask), CoreUtils.emptyUAV);
-                }
 
                 // Render opaque objects into GBuffer
                 if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
@@ -1116,11 +1107,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
                     RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
-                }
-
-                if (m_FrameSettings.enableDBuffer)
-                {
-                    m_DbufferManager.UnSetHTile(cmd);
                 }
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
@@ -1154,6 +1140,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
                 DecalSystem.instance.Render(renderContext, camera, cmd);
                 m_DbufferManager.UnSetHTile(cmd);
+                m_DbufferManager.SetHTileTexture(cmd);
+
             }
         }
 

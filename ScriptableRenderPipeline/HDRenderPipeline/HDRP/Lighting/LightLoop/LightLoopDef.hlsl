@@ -132,7 +132,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             //_Env2DCaptureVP is in capture space
-            float4 ndc = ComputeClipSpaceCoordinates(texCoord, _Env2DCaptureVP[index]);
+            float4 ndc = ComputeClipSpacePosition(texCoord, _Env2DCaptureVP[index]);
             ndc *= rcp(ndc.w);
             ndc.xy = ndc.xy * 0.5 + 0.5;
 
