@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Dictionary<string, string> renderPipelineAssets = new Dictionary<string, string>()
         {
-            { "HDRP", "HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
+            { "HDRP", "HDRenderPipeline/CommonAssets/RP_Assets/HDRP_Test_Def.asset" },
             { "LWRP", "LightweightPipeline/LightweightPipelineAsset.asset" }
         };
 
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering
                         relativePath = splitPaths.Last(),
                         templatePath = splitPaths.Last(),
                         threshold = 0.02f,
-                        frameWait = 100
+                        frameWait = 5
                     };
 
                     if (fixtureParam)
