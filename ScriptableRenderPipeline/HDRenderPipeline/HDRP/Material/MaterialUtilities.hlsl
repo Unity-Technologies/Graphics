@@ -96,7 +96,12 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
 
-    return (positionCS.xy - previousPositionCS.xy);
+    float2 velocity = (positionCS.xy - previousPositionCS.xy);
+#if UNITY_UV_STARTS_AT_TOP
+    velocity.y = -velocity.y;
+#endif
+    return velocity;
+
 #else
     return float2(0.0, 0.0);
 #endif

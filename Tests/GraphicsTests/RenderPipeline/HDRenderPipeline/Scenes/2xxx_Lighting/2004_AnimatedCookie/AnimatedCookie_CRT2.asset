@@ -3,7 +3,7 @@
 --- !u!86 &8600000
 CustomRenderTexture:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: AnimatedCookie_CRT2
   m_ImageContentsHash:
@@ -11,8 +11,8 @@ CustomRenderTexture:
     Hash: 00000000000000000000000000000000
   m_ForcedFallbackFormat: 4
   m_DownscaleFallback: 0
-  m_Width: 256
-  m_Height: 256
+  m_Width: 64
+  m_Height: 64
   m_AntiAliasing: 1
   m_DepthFormat: 0
   m_ColorFormat: 0

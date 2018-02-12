@@ -58,19 +58,6 @@ namespace UnityEngine.Experimental.Rendering
                 if (additionalCameraData != null)
                 {
                     HDRenderPipelineAsset m_Asset = (HDRenderPipelineAsset) renderPipelines[index];
-                    /*
-
-                    FrameSettings srcFrameSettings;
-
-                    additionalCameraData.UpdateDirtyFrameSettings(true, m_Asset.GetFrameSettings());
-                    srcFrameSettings = additionalCameraData.GetFrameSettings();
-
-                    FrameSettings m_FrameSettings = new FrameSettings();
-
-                    // Get the effective frame settings for this camera taking into account the global setting and camera type
-                    FrameSettings.InitializeFrameSettings(cameraToUse, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref m_FrameSettings);
-                    */
-
                     additionalCameraData.UpdateDirtyFrameSettings(true, m_Asset.GetFrameSettings() );
                 }
             }
