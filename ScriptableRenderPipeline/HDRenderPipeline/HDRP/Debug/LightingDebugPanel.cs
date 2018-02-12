@@ -81,25 +81,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightingDebugModeItem.handler.OnEditorGUI();
                 switch ((DebugLightingMode)lightingDebugModeItem.GetValue())
                 {
-                    case DebugLightingMode.SpecularLighting:
-                        {
-                            EditorGUI.indentLevel++;
-                            DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
-                            overrideSmoothnessItem.handler.OnEditorGUI();
-                            if ((bool)overrideSmoothnessItem.GetValue())
-                            {
-                                m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessValueDebug).handler.OnEditorGUI();
-                            }
-                            EditorGUI.indentLevel--;
-                            break;
-                        }
-                    case DebugLightingMode.DiffuseLighting:
-                        {
-                            EditorGUI.indentLevel++;
-                            m_DebugPanel.GetDebugItem(DebugDisplaySettings.kDebugLightingAlbedo).handler.OnEditorGUI();
-                            EditorGUI.indentLevel--;
-                            break;
-                        }
                     case DebugLightingMode.EnvironmentProxyVolume:
                         {
                             ++EditorGUI.indentLevel;
@@ -108,6 +89,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
                         }
                 }
+
+                DebugItem overrideSmoothnessItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessDebug);
+                overrideSmoothnessItem.handler.OnEditorGUI();
+                if ((bool)overrideSmoothnessItem.GetValue())
+                {
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideSmoothnessValueDebug).handler.OnEditorGUI();
+                }
+
+                DebugItem overrideAlbedoItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideAlbedoDebug);
+                overrideAlbedoItem.handler.OnEditorGUI();
+                if ((bool)overrideAlbedoItem.GetValue())
+                {
+                    m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideAlbedoValueDebug).handler.OnEditorGUI();
+                }
+
+                DebugItem overrideNormalItem = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kOverrideNormalDebug);
+                overrideNormalItem.handler.OnEditorGUI();
 
                 var fullScreenDebugModeHandler = m_DebugPanel.GetDebugItem(DebugDisplaySettings.kFullScreenDebugMode);
                 fullScreenDebugModeHandler.handler.OnEditorGUI();
@@ -126,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                         }
                     default:
-                        fullScreenDebugMipHandler.SetValue(0f);
+                        fullScreenDebugMipHandler.SetValue(0);
                         break;
                 }
 

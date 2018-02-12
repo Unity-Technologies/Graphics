@@ -55,6 +55,10 @@ CBUFFER_START(UnityPerCamera)
     // w = 1 + 1.0/height
     float4 _ScreenParams;
 
+    // x = camera.pixelWidth / RTHandle.maxWidth
+    // y = camera.pixelHeight / RTHandle.maxHeight
+    float4 _ScreenToTargetScale;
+
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1-far/near
     // y = far/near
@@ -191,6 +195,7 @@ CBUFFER_START(UnityPerFrame)
     float2 _TaaFrameRotation; // {x = sin(_TaaFrameIndex * PI/2), y = cos(_TaaFrameIndex * PI/2), z = unused}
     uint   _TaaFrameIndex;    // [0, 7]
     // Volumetric lighting.
+    float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
     float  _GlobalFog_Asymmetry;
     float3 _GlobalFog_Scattering;
     float  _GlobalFog_Extinction;

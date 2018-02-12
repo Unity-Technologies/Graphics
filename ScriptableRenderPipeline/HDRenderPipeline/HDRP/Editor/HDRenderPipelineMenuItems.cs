@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // In case the shader code have change and the inspector have been update with new kind of keywords we need to regenerate the set of keywords use by the material.
         // This script will remove all keyword of a material and trigger the inspector that will re-setup all the used keywords.
         // It require that the inspector of the material have a static function call that update all keyword based on material properties.
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Loaded Materials)", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Reset All Loaded High Definition Materials Keywords", priority = CoreUtils.editMenuPriority3)]
         static void ResetAllMaterialKeywords()
         {
             try
@@ -89,7 +89,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Material Asset's Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority2)]
+        // Don't expose, ResetAllMaterialKeywordsInProjectAndScenes include it anyway
+        //[MenuItem("Edit/Render Pipeline/Reset All Material Asset's Keywords (Materials in Project)", priority = CoreUtils.editMenuPriority3)]
         static void ResetAllMaterialAssetsKeywords()
         {
             try
@@ -102,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade/High Definition/Reset All Materials Keywords (Materials in Project and scenes)", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Reset All Project and Scene High Definition Materials Keywords", priority = CoreUtils.editMenuPriority3)]
         static void ResetAllMaterialKeywordsInProjectAndScenes()
         {
             var openedScenes = new string[EditorSceneManager.loadedSceneCount];
@@ -249,6 +250,64 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        [MenuItem("Internal/HDRenderPipeline/Update/Update material for subsurface")]
+        static void UpdateMaterialForSubsurface()
+        {
+            try
+            {
+                var matIds = AssetDatabase.FindAssets("t:Material");
+
+                for (int i = 0, length = matIds.Length; i < length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+                    EditorUtility.DisplayProgressBar(
+                        "Setup materials Keywords...",
+                        string.Format("{0} / {1} materials subsurface updated.", i, length),
+                        i / (float)(length - 1));
+
+                    bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
+                        mat.shader.name == "HDRenderPipeline/Lit" ||
+                        mat.shader.name == "HDRenderPipeline/LayeredLit" ||
+                        mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                    {
+                        float materialID = mat.GetInt("_MaterialID");
+                        if (materialID != 0.0)
+                            continue;
+
+                        if (mat.HasProperty("_SSSAndTransmissionType"))
+                        {
+                            CheckOutFile(VSCEnabled, mat);
+
+                            int materialSSSAndTransmissionID = mat.GetInt("_SSSAndTransmissionType");
+
+                            // Both;, SSS only, Transmission only
+                            if (materialSSSAndTransmissionID == 2.0)
+                            {
+                                mat.SetInt("_MaterialID", 5);
+                            }
+                            else
+                            {
+                                if (materialSSSAndTransmissionID == 0.0)
+                                    mat.SetFloat("_TransmissionEnable", 1.0f);
+                                else
+                                    mat.SetFloat("_TransmissionEnable", 0.0f);
+                            }
+
+                            EditorUtility.SetDirty(mat);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
         //
         [MenuItem("Internal/HDRenderPipeline/Update/Update Height Maps parametrization")]
         static void UpdateHeightMapParametrization()
@@ -365,7 +424,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Tools/High Definition/Export Sky to Image", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Export Sky to Image", priority = CoreUtils.editMenuPriority3)]
         static void ExportSkyToImage()
         {
             var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -391,7 +450,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/Render Pipeline/High Definition/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Graphics/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateCustomGameObject(MenuCommand menuCommand)
         {
             var sceneSettings = new GameObject("Scene Settings");
@@ -429,7 +488,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> {}
 
-        [MenuItem("Assets/Create/Render Pipeline/High Definition/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Graphics/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");

@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
         [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        
+
         [SerializeField]
         private LightweightPipelineResources m_ResourcesAsset;
 
@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [NonSerialized]
         private LightweightPipelineEditorResources m_EditorResourcesAsset;
 
-        [MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Graphics/Lightweight Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateLightweightPipelineAsset>(),
@@ -83,14 +83,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
 
-        //[MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Graphics/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineResources()
         {
             var instance = CreateInstance<LightweightPipelineResources>();
             AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightPipelineResources).Name));
         }
 
-        //[MenuItem("Assets/Create/Render Pipeline/Lightweight/Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Graphics/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineEditorResources()
         {
             var instance = CreateInstance<LightweightPipelineEditorResources>();
@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
-            
+
             switch (materialType)
             {
                 case DefaultMaterialType.Standard:
