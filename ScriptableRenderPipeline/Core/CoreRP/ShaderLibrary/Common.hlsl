@@ -646,7 +646,7 @@ float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpa
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
 float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
-    return ComputeNormalizedDeviceCoordinatesWithZ(position, clipSpaceTransform);
+    return ComputeNormalizedDeviceCoordinatesWithZ(position, clipSpaceTransform).xy;
 }
 
 float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
