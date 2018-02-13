@@ -12,35 +12,117 @@ public class TextureCombiner
 		get
 		{
 			if (_midGrey == null)
-			{
-				_midGrey = new Texture2D(4, 4, TextureFormat.ARGB32, false, false);
-				_midGrey.SetPixels(new Color[] {
-					Color.gray, Color.gray, Color.gray, Color.gray,
-					Color.gray, Color.gray, Color.gray, Color.gray,
-					Color.gray, Color.gray, Color.gray, Color.gray,
-					Color.gray, Color.gray, Color.gray, Color.gray
-				});
-				_midGrey.Apply();
-			}
+				_midGrey = 	TextureFromColor(Color.grey);
 
 			return _midGrey;
 		}
 	}
 
-	public static Texture GetTextureSafe( Material srcMaterial, string propertyName, int fallback = 0)
+	private static Dictionary<Color, Texture2D> singleColorTextures = new Dictionary<Color, Texture2D>();
+
+	public static Texture2D TextureFromColor(Color color)
 	{
-		Texture tex = srcMaterial.GetTexture(propertyName);
-		if (tex == null)
+		if (color == Color.white) return Texture2D.whiteTexture;
+		if (color == Color.black) return Texture2D.blackTexture;
+
+		bool makeTexture = !singleColorTextures.ContainsKey(color);
+		if (!makeTexture)
+			makeTexture = (singleColorTextures[color] == null);
+
+		if (makeTexture)
 		{
-			switch(fallback)
-			{
-				case 0: tex = Texture2D.whiteTexture; break;
-				case 1: tex = Texture2D.blackTexture; break;
-				case 2: tex = TextureCombiner.midGrey; break;
-			}
+			Texture2D tex = new Texture2D(4, 4, TextureFormat.ARGB32, false, true);
+			tex.SetPixels(new Color[] {
+				color, color, color, color,
+				color, color, color, color,
+				color, color, color, color,
+				color, color, color, color
+			});
+			tex.Apply();
+
+			singleColorTextures[color] = tex;
+		}
+		
+		return singleColorTextures[color];
+	}
+
+	public static Texture GetTextureSafe( Material srcMaterial, string propertyName, int fallback)
+	{
+		switch(fallback)
+		{
+			case 0: return GetTextureSafe( srcMaterial, propertyName, Texture2D.whiteTexture );
+			case 1: return GetTextureSafe( srcMaterial, propertyName, Texture2D.blackTexture );
+			case 2: return GetTextureSafe( srcMaterial, propertyName, TextureCombiner.midGrey );
 		}
 
-		return tex;
+		return null;
+	}
+
+	public static Texture GetTextureSafe( Material srcMaterial, string propertyName, Color fallback)
+	{
+		return GetTextureSafe( srcMaterial, propertyName, TextureFromColor(fallback) );
+	}
+
+	public static Texture GetTextureSafe( Material srcMaterial, string propertyName, Texture fallback)
+	{
+		if (!srcMaterial.HasProperty(propertyName))
+			return fallback;
+
+		Texture tex = srcMaterial.GetTexture(propertyName);
+		if (tex == null)
+			return fallback;
+		else
+			return tex;
+	}
+
+	public static TextureFormat[] TextureFormatsWithouthAlpha = new TextureFormat[]{
+	 TextureFormat.ASTC_RGB_10x10 ,
+	 TextureFormat.ASTC_RGB_12x12 ,
+	 TextureFormat.ASTC_RGB_4x4 ,
+	 TextureFormat.ASTC_RGB_5x5 ,
+	 TextureFormat.ASTC_RGB_6x6 ,
+	 TextureFormat.ASTC_RGB_8x8 ,
+	 TextureFormat.BC4 ,
+	 TextureFormat.BC5 ,
+	 TextureFormat.DXT1 ,
+	 TextureFormat.DXT1Crunched ,
+	 TextureFormat.EAC_R ,
+	 TextureFormat.EAC_R_SIGNED ,
+	 TextureFormat.EAC_RG ,
+	 TextureFormat.EAC_RG_SIGNED ,
+	 TextureFormat.ETC2_RGB ,
+	 TextureFormat.ETC_RGB4 ,
+	 TextureFormat.ETC_RGB4_3DS ,
+	 TextureFormat.ETC_RGB4Crunched ,
+	 TextureFormat.PVRTC_RGB2 ,
+	 TextureFormat.PVRTC_RGB4 ,
+	 TextureFormat.R16 ,
+	 TextureFormat.R8 ,
+	 TextureFormat.RFloat ,
+	 TextureFormat.RG16 ,
+	 TextureFormat.RGB24 ,
+	 TextureFormat.RGB565 ,
+	 TextureFormat.RGB9e5Float ,
+	 TextureFormat.RGFloat ,
+	 TextureFormat.RGHalf ,
+	 TextureFormat.RHalf ,
+	 TextureFormat.YUY2
+	 };
+
+	public static bool TextureHasAlpha ( Texture2D tex )
+	{
+		if (tex == null) return false;
+
+		bool o = true;
+		int i=0;
+
+		while ( i < TextureFormatsWithouthAlpha.Length && o)
+		{
+			o = tex.format != TextureFormatsWithouthAlpha[i];
+			++i;
+		}
+
+		return o;
 	}
 
 	private Texture m_rSource;
@@ -58,7 +140,7 @@ public class TextureCombiner
 
 	private Dictionary<Texture, Texture> m_RawTextures;
 
-	public TextureCombiner( Texture rSource, int rChanel, Texture gSource, int gChanel, Texture bSource, int bChanel, Texture aSource, int achanel, bool bilinearFilter = true )
+	public TextureCombiner( Texture rSource, int rChanel, Texture gSource, int gChanel, Texture bSource, int bChanel, Texture aSource, int aChanel, bool bilinearFilter = true )
 	{
 		m_rSource = rSource;
 		m_gSource = gSource;
@@ -67,7 +149,7 @@ public class TextureCombiner
 		m_rChanel = rChanel;
 		m_gChanel = gChanel;
 		m_bChanel = bChanel;
-		m_aChanel = achanel;
+		m_aChanel = aChanel;
 		m_bilinearFilter = bilinearFilter;
 	}
 
@@ -104,7 +186,7 @@ public class TextureCombiner
 		combinerMaterial.SetFloat("_BChannel", m_bChanel);
 		combinerMaterial.SetFloat("_AChannel", m_aChanel);
 
-		RenderTexture combinedRT =  new RenderTexture(xMin, yMin, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+		RenderTexture combinedRT =  new RenderTexture(xMin, yMin, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.sRGB);
 
 		Graphics.Blit(Texture2D.whiteTexture, combinedRT, combinerMaterial);
 
@@ -115,7 +197,14 @@ public class TextureCombiner
 		combined.Apply();
 		RenderTexture.active = previousActive;
 
-		byte[] bytes = ImageConversion.EncodeToEXR(combined);
+		byte[] bytes = new byte[0];
+
+		if (savePath.EndsWith("png"))
+			bytes = ImageConversion.EncodeToPNG(combined);
+		if (savePath.EndsWith("exr"))
+			bytes = ImageConversion.EncodeToEXR(combined);
+		if (savePath.EndsWith("jpg"))
+			bytes = ImageConversion.EncodeToJPG(combined);
 
 		string systemPath = Path.Combine(Application.dataPath.Remove(Application.dataPath.Length-6), savePath);
 		File.WriteAllBytes(systemPath, bytes);
@@ -127,6 +216,12 @@ public class TextureCombiner
 		TextureImporter combinedImporter = (TextureImporter) AssetImporter.GetAtPath(savePath);
 		combinedImporter.sRGBTexture = false;
 		combinedImporter.SaveAndReimport();
+
+		if (savePath.EndsWith("exr"))
+		{
+			// The options for the platform string are: "Standalone", "iPhone", "Android", "WebGL", "Windows Store Apps", "PSP2", "PS4", "XboxOne", "Nintendo 3DS", "WiiU", "tvOS".
+			combinedImporter.SetPlatformTextureSettings(new TextureImporterPlatformSettings(){name = "Standalone", format = TextureImporterFormat.DXT5, overridden = true });
+		}
 
 		combined = AssetDatabase.LoadAssetAtPath<Texture2D>(savePath);
 
@@ -143,7 +238,7 @@ public class TextureCombiner
 		return combined;
 	}
 
-	private Texture GetRawTexture (Texture original)
+	private Texture GetRawTexture (Texture original, bool sRGB = false)
 	{
 		if (m_RawTextures == null) m_RawTextures = new Dictionary<Texture, Texture>();
 		if (!m_RawTextures.ContainsKey(original))
@@ -160,14 +255,16 @@ public class TextureCombiner
 				Debug.Log("Import raw texture: "+rawPath);
 
 				TextureImporter rawImporter = (TextureImporter) TextureImporter.GetAtPath(rawPath);
+				rawImporter.textureType = TextureImporterType.Default;
 				rawImporter.mipmapEnabled = false;
 				rawImporter.isReadable = true;
 				rawImporter.filterMode = m_bilinearFilter? FilterMode.Bilinear : FilterMode.Point;
 				rawImporter.npotScale = TextureImporterNPOTScale.None;
 				rawImporter.wrapMode = TextureWrapMode.Clamp;
+				rawImporter.sRGBTexture = sRGB;
+				rawImporter.maxTextureSize = 8192;
 
 				rawImporter.textureCompression = TextureImporterCompression.Uncompressed;
-				rawImporter.textureType = TextureImporterType.Default;
 				
 				rawImporter.SaveAndReimport();
 

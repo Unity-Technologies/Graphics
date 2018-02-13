@@ -15,7 +15,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RenameFloat("_Glossiness", "_Smoothness");
             RenameTexture("_BumpMap", "_NormalMap");
             RenameFloat("_BumpScale", "_NormalScale");
-            RenameColor("_EmissionColor", "_EmissiveColor");
+            RenameTexture("_EmissionMap", "_EmissiveColorMap");
+            RenameFloat("_UVSec", "_UVDetail");
+            SetFloat("_LinkDetailsWithBase", 0);
             RenameFloat("_DetailNormalMapScale", "_DetailNormalScale");
             RenameFloat("_Cutoff", "_AlphaCutoff");
             RenameKeywordToFloat("_ALPHATEST_ON", "_AlphaCutoffEnable", 1f, 0f);
@@ -29,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Metallic uses [Gamma] attribute in standard shader but not in Lit.
             // @Seb: Should we convert?
-            RenameFloat("_Metallic", "_Metallic");
+            // RenameFloat("_Metallic", "_Metallic");
 
             //@TODO: Seb. Why do we multiply color by intensity
             //       in shader when we can just store a color?
@@ -44,33 +46,95 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //@TODO: Find a good way of setting up keywords etc from properties.
             // Code should be shared with material UI code.
 
-            //*
-            Texture2D maskMap;
-            TextureCombiner maskMapCombiner = new TextureCombiner(
-                TextureCombiner.GetTextureSafe(srcMaterial, "_MetallicGlossMap", 1), 4,
-                TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", 0), 4,
-                TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", 0), 4,
-                TextureCombiner.GetTextureSafe(srcMaterial, (srcMaterial.GetFloat("_SmoothnessTextureChannel") == 0)?"_MetallicGlossMap": "_MainTex", 2), 3
-            );
-            string maskMapPath = AssetDatabase.GetAssetPath(srcMaterial).Replace(".mat", "_MaskMap.exr");
-            maskMap = maskMapCombiner.Combine( maskMapPath );
-            dstMaterial.SetTexture("_MaskMap", maskMap);
-            // */
+            if ( srcMaterial.GetTexture("_MetallicGlossMap") != null ||
+            srcMaterial.GetTexture("_OcclusionMap") != null ||
+            srcMaterial.GetTexture("_DetailMask") != null)
+            {
+                Texture2D maskMap;
 
-            //*
-            Texture2D detailMap;
-            TextureCombiner detailCombiner = new TextureCombiner(
-                TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", 2), 4,
-                TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 1,
-                TextureCombiner.midGrey, 1,
-                TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 0
-            );
-            string detailMapPath = AssetDatabase.GetAssetPath(srcMaterial).Replace(".mat", "_DetailMap.exr");
-            detailMap = detailCombiner.Combine( detailMapPath );
-            Debug.Log("Coucou");
-            dstMaterial.SetTexture("_DetailMap", detailMap);
-            //*/
+                // Get the Smoothness value that will be passed to the map.
+                string smoothnessTextureChannel = ( srcMaterial.GetFloat("_SmoothnessTextureChannel") == 0)?"_MetallicGlossMap" : "_MainTex";
+                Texture2D smoothnessSource = (Texture2D) srcMaterial.GetTexture( smoothnessTextureChannel );
+                if (smoothnessSource == null || !TextureCombiner.TextureHasAlpha(smoothnessSource))
+                {
+                    smoothnessSource = TextureCombiner.TextureFromColor(Color.white * srcMaterial.GetFloat("_Glossiness"));
+                }
 
+                TextureCombiner maskMapCombiner = new TextureCombiner(
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_MetallicGlossMap", 0), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", 0), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", 0), 4,
+                    smoothnessSource, 3
+                );
+                string maskMapPath = AssetDatabase.GetAssetPath(srcMaterial);
+                maskMapPath = maskMapPath.Remove(maskMapPath.Length-4) + "_MaskMap.png";
+                maskMap = maskMapCombiner.Combine( maskMapPath );
+                dstMaterial.SetTexture("_MaskMap", maskMap);
+            }
+
+            dstMaterial.SetFloat("_AORemapMin", 1f - srcMaterial.GetFloat("_OcclusionStrength"));
+
+            if ( srcMaterial.GetTexture("_DetailAlbedoMap") != null ||
+                srcMaterial.GetTexture("_DetailNormalMap") != null
+            )
+            {
+                Texture2D detailMap;
+                TextureCombiner detailCombiner = new TextureCombiner(
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", 2), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 1,
+                    TextureCombiner.midGrey, 1,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 0
+                );
+                string detailMapPath = AssetDatabase.GetAssetPath(srcMaterial);
+                detailMapPath = detailMapPath.Remove(detailMapPath.Length-4) + "_DetailMap.png";
+                detailMap = detailCombiner.Combine( detailMapPath );
+                dstMaterial.SetTexture("_DetailMap", detailMap);
+            }
+
+
+            // Blend Mode
+            int previousBlendMode = srcMaterial.GetInt("_Mode");
+            switch (previousBlendMode)
+            {
+                case 0: // Opaque
+                    dstMaterial.SetFloat("_SurfaceType", 0);
+                    dstMaterial.SetFloat("_BlendMode", 0);
+                    dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
+
+                    break;
+                case 1: // Cutout
+                    dstMaterial.SetFloat("_SurfaceType", 0);
+                    dstMaterial.SetFloat("_BlendMode", 0);
+                    dstMaterial.SetFloat("_AlphaCutoffEnable", 1);
+                    break;
+                case 2: // Fade -> Alpha
+                    dstMaterial.SetFloat("_SurfaceType", 1);
+                    dstMaterial.SetFloat("_BlendMode", 0);
+                    dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
+                    break;
+                case 3: // Transparent -> alpha pre-multiply
+                    dstMaterial.SetFloat("_SurfaceType", 1);
+                    dstMaterial.SetFloat("_BlendMode", 4);
+                    dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
+                    break;
+            }
+
+            // Emission: Convert the HDR emissive color to ldr color + intensity
+            Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
+            float intensity = Mathf.Max(hdrEmission.r, Mathf.Max(hdrEmission.g, hdrEmission.b));
+            
+            if (intensity > 1f)
+            {
+                hdrEmission.r /= intensity;
+                hdrEmission.g /= intensity;
+                hdrEmission.b /= intensity;
+            }
+            else
+                intensity = 1f;
+            
+            dstMaterial.SetColor("_EmissiveColor", hdrEmission);
+            dstMaterial.SetFloat("_EmissiveIntensity", intensity);
+            
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }
 
