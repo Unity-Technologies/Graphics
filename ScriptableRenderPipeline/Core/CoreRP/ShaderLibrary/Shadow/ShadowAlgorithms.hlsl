@@ -343,9 +343,9 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 	[branch]
 	if( shadowType == GPUSHADOWTYPE_POINT )
 	{
-		sd.rot0           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot0;																					        \
-		sd.rot1           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot1;																					        \
-		sd.rot2           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot2;																					        \
+		sd.rot0           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot0;
+		sd.rot1           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot1;
+		sd.rot2           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot2;
 		sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;
 		sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;
 		sd.slice          = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].slice;
@@ -448,6 +448,16 @@ uint EvalShadow_LoadSplitSpheres( ShadowContext shadowContext, int index, out re
 	return offset + 4;
 }
 
+void EvalShadow_LoadCascadeData( ShadowContext shadowContext, uint index, inout ShadowData sd )
+{
+	sd.shadowToWorld  = shadowContext.shadowDatas[index].shadowToWorld;
+	sd.proj           = shadowContext.shadowDatas[index].proj;
+	sd.pos            = shadowContext.shadowDatas[index].pos;
+	sd.scaleOffset.zw = shadowContext.shadowDatas[index].scaleOffset.zw;
+	sd.slice          = shadowContext.shadowDatas[index].slice;
+	sd.viewBias.w     = shadowContext.shadowDatas[index].viewBias.w;
+}
+
 real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L )
 {
 	// load the right shadow data for the current face
@@ -465,7 +475,8 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 	real border = borders[shadowSplitIndex];
 	real alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
 
-	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+	ShadowData sd = shadowContext.shadowDatas[index];
+	EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );
 
 	// sample the texture
 	uint texIdx, sampIdx;
@@ -501,7 +512,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 
 		if( alpha > 0.0 )
 		{
-			sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+			EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );
 			positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );
 			posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false, false );
 			// sample the texture
@@ -534,7 +545,8 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 		real border = borders[shadowSplitIndex];                                                                                                                                                                    \
 		real alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );                                                                                                                    \
 																																																					\
-		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										                            \
+		ShadowData sd = shadowContext.shadowDatas[index];																										                                                    \
+		EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );                                                                                                                              \
 																																																					\
 		/* normal based bias */																																							                            \
 		real3 orig_pos = positionWS;                                                                                                                                                                                \
@@ -563,7 +575,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 																																																					\
 			if( alpha > 0.0 )                                                                                                                                                                                       \
 			{                                                                                                                                                                                                       \
-				sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										                                \
+				EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );																										                \
 				positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );				                                                                                        \
 				posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false, false );																										                    \
 				/* sample the texture */																																				                            \
@@ -613,7 +625,8 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	real border = borders[shadowSplitIndex];
 	real alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
 
-	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+	ShadowData sd = shadowContext.shadowDatas[index];
+	EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );
 
 	// get texture description
 	uint texIdx, sampIdx;
@@ -638,7 +651,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 
 	if( shadowSplitIndex < nextSplit && step( EvalShadow_hash12( posTC.xy ), alpha ) )
 	{
-		sd         = shadowContext.shadowDatas[index + 1 + nextSplit];
+		EvalShadow_LoadCascadeData( shadowContext, index + 1 + nextSplit, sd );
 		positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );
 		posTC      = EvalShadow_GetTexcoords( sd, positionWS, false );
 	}
@@ -666,7 +679,8 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 		real border = borders[shadowSplitIndex];                                                                                                                                                                    \
 		real alpha  = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );                                                                                                                    \
 																																																					\
-		ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];																										                            \
+		ShadowData sd = shadowContext.shadowDatas[index];																										                                                    \
+		EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );                                                                                                                              \
 																																																					\
 		/* normal based bias */																																							                            \
 		real3 orig_pos = positionWS;                                                                                                                                                                                \
@@ -685,7 +699,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 																																																					\
 		if( shadowSplitIndex != nextSplit && step( EvalShadow_hash12( posTC.xy ), alpha ) )                                                                                                                         \
 		{                                                                                                                                                                                                           \
-			sd         = shadowContext.shadowDatas[index + 1 + nextSplit];                                                                                                                                          \
+			EvalShadow_LoadCascadeData( shadowContext, index + 1 + nextSplit, sd );                                                                                                                                 \
 			positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );                                                                                                          \
 			posTC      = EvalShadow_GetTexcoords( sd, positionWS, false );                                                                                                                                          \
 		}                                                                                                                                                                                                           \

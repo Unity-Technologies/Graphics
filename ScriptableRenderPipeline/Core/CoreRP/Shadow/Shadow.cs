@@ -34,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering
         protected          float[]                    m_TmpBorders = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
         protected          Material                   m_DebugMaterial = null;
+        private            Material                   m_ClearMat;
         private   readonly VectorArray<CachedEntry>.Cleanup         m_Cleanup;
         private   readonly VectorArray<CachedEntry>.Comparator<Key> m_Comparator;
         public             bool                       captureFrame { get; set; }
@@ -111,6 +112,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
+            m_ClearMat = new Material( Shader.Find( "Hidden/ScriptableRenderPipeline/ShadowClear" ) );
+
             m_Cleanup = (CachedEntry entry) => { Free( entry ); };
             m_Comparator = (ref Key k, ref CachedEntry entry) => { return k.id == entry.key.id && k.faceIdx == entry.key.faceIdx; };
 
@@ -128,6 +131,10 @@ namespace UnityEngine.Experimental.Rendering
             m_Shadowmap = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
             CreateShadowmap( m_Shadowmap );
             m_Shadowmap.Create();
+#if false && UNITY_PS4 && !UNITY_EDITOR
+            if( m_Shadowmap != null )
+                UnityEngine.PS4.RenderSettings.DisableDepthBufferCompression( m_Shadowmap );
+#endif
         }
 
         virtual protected void CreateShadowmap( RenderTexture shadowmap )
@@ -538,7 +545,6 @@ namespace UnityEngine.Experimental.Rendering
                 cb.GetTemporaryRT(m_TempDepthId, (int)m_Width, (int)m_Height, (int)m_ShadowmapBits, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Default);
                 cb.SetRenderTarget( new RenderTargetIdentifier( m_TempDepthId ) );
             }
-            cb.ClearRenderTarget( true, !IsNativeDepth(), m_ClearColor );
         }
 
         override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
@@ -590,6 +596,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
+                cbName = "Shadowmap.ClearRect";
+                cmd.BeginSample( cbName );
+                CoreUtils.DrawFullScreen( cmd, m_ClearMat, null, SystemInfo.usesReversedZBuffer ? 0 : 1 );
+                cmd.EndSample( cbName );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
                 cmd.SetGlobalFloat( m_ZClipId, m_EntryCache[i].zclip ? 1.0f : 0.0f );
