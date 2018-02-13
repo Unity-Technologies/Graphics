@@ -132,9 +132,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
             //_Env2DCaptureVP is in capture space
-            float4 ndc = ComputeClipSpacePosition(texCoord, _Env2DCaptureVP[index]);
-            ndc *= rcp(ndc.w);
-            ndc.xy = ndc.xy * 0.5 + 0.5;
+            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0).rgb;
             color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
