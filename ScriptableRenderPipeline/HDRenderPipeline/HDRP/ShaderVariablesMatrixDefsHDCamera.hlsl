@@ -15,10 +15,6 @@
 #define UNITY_MATRIX_I_P   _InvProjMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_VP    unity_StereoMatrixVP[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_VP  _InvViewProjMatrixStereo[unity_StereoEyeIndex]
-#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
-#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
-#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
-#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
 #else
 
@@ -30,10 +26,6 @@
 #define UNITY_MATRIX_I_P   _InvProjMatrix
 #define UNITY_MATRIX_VP    _ViewProjMatrix
 #define UNITY_MATRIX_I_VP  _InvViewProjMatrix
-#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
-#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
-#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
-#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
 #endif // USING_STEREO_MATRICES
 
