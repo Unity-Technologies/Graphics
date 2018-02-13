@@ -24,10 +24,5 @@ namespace UnityEditor.ShaderGraph
             result.Append(")");
             return result.ToString();
         }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("float4 {0}{1}", referenceName, delimiter);
-        }
     }
 }
