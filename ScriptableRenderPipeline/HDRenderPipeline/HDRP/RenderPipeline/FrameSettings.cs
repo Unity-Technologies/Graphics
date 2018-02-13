@@ -164,8 +164,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
             aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && renderPipelineSettings.supportStereo;
-            // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
-            aggregate.enableForwardRenderingOnly = aggregate.enableForwardRenderingOnly || aggregate.enableStereo;
 
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
@@ -173,9 +171,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
-            aggregate.ConfigureMSAADependentSettings();
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
+
+            aggregate.ConfigureMSAADependentSettings();
+            aggregate.ConfigureStereoDependentSettings();
 
             if (camera.cameraType == CameraType.Preview)
             {
@@ -222,6 +222,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableSSR = false;
                 enableSubsurfaceScattering = false;
                 enableTransparentObjects = false; // waiting on depth pyramid generation
+            }
+        }
+
+        public void ConfigureStereoDependentSettings()
+        {
+            if (enableStereo)
+            {
+                // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
+                enableForwardRenderingOnly = true;
+
+                // TODO: The work will be implemented piecemeal to support all passes
+                enableMotionVectors = false;
+                enableDBuffer = false; 
+                enableDistortion = false; 
+                enablePostprocess = false;
+                enableRoughRefraction = false; 
+                enableSSAO = false;
+                enableSSR = false;
+                enableSubsurfaceScattering = false;
+                enableTransparentObjects = false;
             }
         }
 

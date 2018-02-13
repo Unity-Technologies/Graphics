@@ -56,6 +56,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && !aggregateFrameSettings.enableMSAA;
+
+            // disable FPTL for stereo for now
+            aggregate.enableFptlForForwardOpaque = aggregate.enableFptlForForwardOpaque && !aggregateFrameSettings.enableStereo;
+
             // If Deferred, enable Fptl. If we are forward renderer only and not using Fptl for forward opaque, disable Fptl
             aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
         }
