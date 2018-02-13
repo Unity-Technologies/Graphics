@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = isnan(In);
+    Out = (In < 0.0 || In > 0.0 || In == 0.0) ? 0 : 1;
 }
 ";
         }
