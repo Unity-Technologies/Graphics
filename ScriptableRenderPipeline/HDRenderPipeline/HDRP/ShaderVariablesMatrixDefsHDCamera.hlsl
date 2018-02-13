@@ -12,10 +12,8 @@
 #define UNITY_MATRIX_V     unity_StereoMatrixV[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_V   unity_StereoMatrixInvV[unity_StereoEyeIndex]
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(unity_StereoMatrixP[unity_StereoEyeIndex])
-//#define UNITY_MATRIX_I_P   unity_StereoCameraInvProjection[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_P   _InvProjMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_VP    unity_StereoMatrixVP[unity_StereoEyeIndex]
-//#define UNITY_MATRIX_I_VP  mul(UNITY_MATRIX_I_V, UNITY_MATRIX_I_P)
 #define UNITY_MATRIX_I_VP  _InvViewProjMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)

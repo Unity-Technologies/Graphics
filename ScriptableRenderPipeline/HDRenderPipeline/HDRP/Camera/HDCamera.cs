@@ -230,7 +230,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void ConfigureStereoMatrices()
         {
-            // will the matrices work?
             for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
             {
                 viewMatrixStereo[eyeIndex] = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
@@ -321,16 +320,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var invProjStereo = new Matrix4x4[2];
             var invViewProjStereo = new Matrix4x4[2];
 
-            for (uint ei = 0; ei < 2; ei++)
+            for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
             {
-                var proj = projMatrixStereo[ei];
-                invProjStereo[ei] = proj.inverse;
+                var proj = projMatrixStereo[eyeIndex];
+                invProjStereo[eyeIndex] = proj.inverse;
 
-                var view = viewMatrixStereo[ei];
-                var vp = proj * view;
-                invViewProjStereo[ei] = vp.inverse;
+                var vp = proj * viewMatrixStereo[eyeIndex];
+                invViewProjStereo[eyeIndex] = vp.inverse;
             }
 
+            // corresponds to UnityPerPassStereo
+            // TODO: Migrate the other stereo matrices to HDRP-managed UnityPerPassStereo?
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
         }
