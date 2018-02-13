@@ -626,7 +626,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ApplyDebugDisplaySettings(hdCamera, cmd);
                     UpdateShadowSettings();
 
-                    // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
                     ScriptableCullingParameters cullingParams;
                     if (!CullResults.GetCullingParameters(camera, m_FrameSettings.enableStereo, out cullingParams))
                     {
@@ -635,6 +634,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
+                    hdCamera.UpdateStereoDependentState(m_FrameSettings, hdCamera.camera, ref cullingParams);
 
 #if UNITY_EDITOR
                     // emit scene view UI
