@@ -33,6 +33,8 @@ real ComputeCubeToSphereMapSqMagnitude(real3 v)
 
 // texelArea = 4.0 / (resolution * resolution).
 // Ref: http://bpeers.com/blog/?itemid=1017
+// This version is less accurate, but much faster than this one:
+// http://www.rorydriscoll.com/2012/01/15/cubemap-texel-solid-angle/
 real ComputeCubemapTexelSolidAngle(real3 L, real texelArea)
 {
     // Stretch 'L' by (1/d) so that it points at a side of a [-1, 1]^2 cube.
@@ -44,6 +46,16 @@ real ComputeCubemapTexelSolidAngle(real3 L, real texelArea)
     // dw = dA * cosTheta / (dist * dist), cosTheta = 1.0 / dist,
     // where 'dA' is the area of the cube map texel.
     return texelArea * invDist * invDist * invDist;
+}
+
+// Only makes sense for Monte-Carlo integration.
+// Normalize by dividing by the total weight (or the number of samples) in the end.
+// Integrate[6*(u^2+v^2+1)^(-3/2), {u,-1,1},{v,-1,1}] = 4 * Pi
+// Ref: "Stupid Spherical Harmonics Tricks", p. 9.
+real ComputeCubemapTexelSolidAngle(real2 uv)
+{
+    float u = uv.x, v = uv.y;
+    return pow(1 + u * u + v * v, -1.5);
 }
 
 //-----------------------------------------------------------------------------

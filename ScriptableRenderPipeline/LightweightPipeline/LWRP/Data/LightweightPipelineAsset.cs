@@ -157,11 +157,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return new LightweightPipeline(this);
         }
 
-        void OnValidate()
-        {
-            DestroyCreatedInstances();
-        }
-
         private Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR

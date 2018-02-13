@@ -20,7 +20,7 @@ TEXTURE2D(_GaussianPyramidColorTexture);
 TEXTURE2D(_PyramidDepthTexture);
 
 CBUFFER_START(UnityGaussianPyramidParameters)
-float4 _GaussianPyramidColorMipSize;
+float4 _GaussianPyramidColorMipSize; // (x,y) = PyramidToScreenScale, z = lodCount
 float4 _PyramidDepthMipSize;
 CBUFFER_END
 
@@ -814,6 +814,10 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     // Overide debug value output to be more readable
     switch (paramId)
     {
+    case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+        break;
     case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
         result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
@@ -827,6 +831,10 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     // Overide debug value output to be more readable
     switch (paramId)
     {
+    case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+        break;
     case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
         result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
@@ -1705,7 +1713,7 @@ IndirectLighting EvaluateBSDF_SSRefraction(LightLoopContext lightLoopContext,
     }
 
     // Map the roughness to the correct mip map level of the color pyramid
-    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC, preLightData.transparentSSMipLevel).rgb;
+    lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC * _GaussianPyramidColorMipSize.xy, preLightData.transparentSSMipLevel).rgb;
 
     // Beer-Lamber law for absorption
     lighting.specularTransmitted *= preLightData.transparentTransmittance;
