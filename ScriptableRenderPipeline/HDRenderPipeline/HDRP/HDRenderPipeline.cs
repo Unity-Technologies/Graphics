@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Experimental.GlobalIllumination;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -337,6 +338,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsReflectionProbes = true
             };
 
+            Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
+
 #if UNITY_EDITOR
             SceneViewDrawMode.SetupDrawMode();
 #endif
@@ -407,6 +410,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DestroyRenderTextures();
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+
+            Lightmapping.ResetDelegate();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -694,7 +699,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
                     StartStereoRendering(renderContext, hdCamera.camera);
-                        
+
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
