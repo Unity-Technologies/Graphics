@@ -22,6 +22,11 @@ namespace UnityEditor.ShaderGraph
             get { return value; }
         }
 
+        public override string GetPropertyDeclarationString(string delimiter = ";")
+        {
+            return string.Format("float4 {0}{1}", referenceName, delimiter);
+        }
+
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(PropertyType.Vector4)
