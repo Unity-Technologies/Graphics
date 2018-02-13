@@ -20,7 +20,7 @@
 RWTexture2D<float4> _DeferredShadowTextureUAV;
 
 CBUFFER_START(DeferredShadowParameters)
-float   _DirectionalShadowIndex;
+uint    _DirectionalShadowIndex;
 float3  _LightDirection;
 float4  _ScreenSpaceShadowsParameters;
 int     _SampleCount;
@@ -128,7 +128,7 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 #endif
 
 	ShadowContext shadowContext = InitShadowContext();
-	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, nrm, (uint)_DirectionalShadowIndex, _LightDirection);
+	float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, nrm, _DirectionalShadowIndex, _LightDirection);
 
 #ifdef ENABLE_CONTACT_SHADOWS
 	float contactShadow = 1.0f;
