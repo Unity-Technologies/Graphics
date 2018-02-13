@@ -693,8 +693,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
-                    if (m_FrameSettings.enableStereo)
-                        renderContext.StartMultiEye(hdCamera.camera);
+                    StartStereoRendering(renderContext, hdCamera.camera);
                         
                     ClearBuffers(hdCamera, cmd);
 
@@ -723,8 +722,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
-                    if (m_FrameSettings.enableStereo)
-                        renderContext.StopMultiEye(hdCamera.camera);
+                    StopStereoRendering(renderContext, hdCamera.camera);
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                     {
@@ -734,8 +732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        if (m_FrameSettings.enableStereo)
-                            renderContext.StartMultiEye(hdCamera.camera);
+                        StartStereoRendering(renderContext, hdCamera.camera);
 
                         using (new ProfilingSample(cmd, "Render SSAO", CustomSamplerId.RenderSSAO.GetSampler()))
                         {
@@ -759,8 +756,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
-                        if (m_FrameSettings.enableStereo)
-                            renderContext.StopMultiEye(hdCamera.camera);
+                        StopStereoRendering(renderContext, hdCamera.camera);
 
                         GPUFence buildGPULightListsCompleteFence = new GPUFence();
                         if (m_FrameSettings.enableAsyncCompute)
@@ -810,8 +806,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderDeferredLighting(hdCamera, cmd);
 
                         // Might float this higher if we enable stereo w/ deferred
-                        if (m_FrameSettings.enableStereo)
-                            renderContext.StartMultiEye(hdCamera.camera);
+                        StartStereoRendering(renderContext, hdCamera.camera);
 
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
@@ -840,8 +835,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
 
-                        if (m_FrameSettings.enableStereo)
-                            renderContext.StopMultiEye(hdCamera.camera);
+                        StopStereoRendering(renderContext, hdCamera.camera);
 
                         PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.NanTracker);
                         PushColorPickerDebugTexture(cmd, m_CameraColorBuffer, hdCamera);
@@ -849,8 +843,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // The final pass either postprocess of Blit will flip the screen (as it is reverse by default due to Unity openGL legacy)
                         // Postprocess system (that doesn't use cmd.Blit) handle it with configuration (and do not flip in SceneView) or it is automatically done in Blit
 
-                        if (m_FrameSettings.enableStereo)
-                            renderContext.StartMultiEye(hdCamera.camera);
+                        StartStereoRendering(renderContext, hdCamera.camera);
 
                         // Final blit
                         if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
@@ -866,11 +859,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
+                        StopStereoRendering(renderContext, hdCamera.camera);
+                        // Pushes to XR headset and/or display mirror
                         if (m_FrameSettings.enableStereo)
-                        {
-                            renderContext.StopMultiEye(hdCamera.camera);
                             renderContext.StereoEndRender(hdCamera.camera);
-                        }
                     }
 
 
@@ -1668,6 +1660,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 // END TEMP
             }
+        }
+
+        void StartStereoRendering(ScriptableRenderContext renderContext, Camera cam)
+        {
+            if (m_FrameSettings.enableStereo)
+                renderContext.StartMultiEye(cam);
+        }
+
+        void StopStereoRendering(ScriptableRenderContext renderContext, Camera cam)
+        {
+            if (m_FrameSettings.enableStereo)
+                renderContext.StopMultiEye(cam);
         }
     }
 }
