@@ -252,9 +252,10 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		private Material m_BlitMaterial;
 
-		private void OnValidate()
+		protected override void OnValidate()
 		{
-			Build();
+            base.OnValidate();
+            Build();
 		}
 
 		public void Cleanup()

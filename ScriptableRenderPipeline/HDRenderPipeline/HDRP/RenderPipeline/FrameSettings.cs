@@ -73,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableTransparentObjects = true;
 
         public bool enableMSAA = false;
+        public MSAASamples msaaSampleCount { get; private set; }
 
         public bool enableShadowMask = false;
 
@@ -105,7 +106,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enablePostprocess = this.enablePostprocess;
 
             frameSettings.enableStereo = this.enableStereo;
-            frameSettings.enableForwardRenderingOnly = this.enableForwardRenderingOnly;
 
             frameSettings.enableOpaqueObjects = this.enableOpaqueObjects;
             frameSettings.enableTransparentObjects = this.enableTransparentObjects;
@@ -147,13 +147,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe;
+            aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe || renderPipelineSettings.supportForwardOnly;
             aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
             aggregate.enableAlphaTestOnlyInDeferredPrepass = srcFrameSettings.enableAlphaTestOnlyInDeferredPrepass;
 
             aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
-            aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors;
-            aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors;
+            aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
+            aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors && renderPipelineSettings.supportMotionVectors;
             aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
             aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
@@ -163,9 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
-            aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-            // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
-            aggregate.enableForwardRenderingOnly = aggregate.enableForwardRenderingOnly || aggregate.enableStereo;
+            aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && renderPipelineSettings.supportStereo;
 
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
@@ -173,11 +171,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
-            if (QualitySettings.antiAliasing < 1)
-                aggregate.enableMSAA = false;
-            aggregate.ConfigureMSAADependentSettings();
 
             aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
+
+            aggregate.ConfigureMSAADependentSettings();
+            aggregate.ConfigureStereoDependentSettings();
 
             if (camera.cameraType == CameraType.Preview)
             {
@@ -224,6 +222,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableSSR = false;
                 enableSubsurfaceScattering = false;
                 enableTransparentObjects = false; // waiting on depth pyramid generation
+            }
+        }
+
+        public void ConfigureStereoDependentSettings()
+        {
+            if (enableStereo)
+            {
+                // Force forward if we request stereo. TODO: We should not enforce that, users should be able to chose deferred
+                enableForwardRenderingOnly = true;
+
+                // TODO: The work will be implemented piecemeal to support all passes
+                enableMotionVectors = false;
+                enableDBuffer = false; 
+                enableDistortion = false; 
+                enablePostprocess = false;
+                enableRoughRefraction = false; 
+                enableSSAO = false;
+                enableSSR = false;
+                enableSubsurfaceScattering = false;
+                enableTransparentObjects = false;
             }
         }
 

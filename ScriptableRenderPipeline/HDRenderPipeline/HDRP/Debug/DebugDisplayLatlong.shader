@@ -4,7 +4,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
     {
         Pass
         {
-            ZWrite Off
+            ZWrite On
             ZTest Always
             Blend Off
             Cull Off

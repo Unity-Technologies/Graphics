@@ -99,7 +99,7 @@ public class VolumetricLightingModule
     }
     class VBuffer
     {
-        public int                      viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
+        public long                     viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
         public RenderTexture[]          lightingRTEX = null;
         public RenderTargetIdentifier[] lightingRTID = null;
 
@@ -121,7 +121,7 @@ public class VolumetricLightingModule
             return lightingRTID[1 + ((Time.renderedFrameCount + 1) & 1)];
         }
 
-        public void Create(int viewID, int w, int h, int d)
+        public void Create(long viewID, int w, int h, int d)
         {
             Debug.Assert(viewID >= 0);
             Debug.Assert(w > 0 && h > 0 && d > 0);
@@ -140,12 +140,13 @@ public class VolumetricLightingModule
             for (int i = 0; i < n; i++)
             {
                 this.lightingRTEX[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                this.lightingRTEX[i].hideFlags         = HideFlags.HideAndDontSave;
                 this.lightingRTEX[i].filterMode        = FilterMode.Trilinear;   // Custom
                 this.lightingRTEX[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
                 this.lightingRTEX[i].volumeDepth       = d;
                 this.lightingRTEX[i].enableRandomWrite = true;
+                this.lightingRTEX[i].name = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("Volumetric{0}", i));
                 this.lightingRTEX[i].Create();
-
                 this.lightingRTID[i] = new RenderTargetIdentifier(this.lightingRTEX[i]);
             }
         }
@@ -156,7 +157,10 @@ public class VolumetricLightingModule
             {
                 for (int i = 0, n = this.lightingRTEX.Length; i < n; i++)
                 {
-                    this.lightingRTEX[i].Release();
+                    if (this.lightingRTEX[i] != null)
+                    {
+                        this.lightingRTEX[i].Release();
+                    }
                 }
             }
 
@@ -180,7 +184,7 @@ public class VolumetricLightingModule
         if (preset == VolumetricLightingPreset.Off) return;
 
         m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers = new List<VBuffer>(1);
+        m_VBuffers = new List<VBuffer>(0);
     }
 
     public void Cleanup()
@@ -201,7 +205,7 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        int viewID = camera.GetViewID();
+        long viewID = camera.GetViewID();
 
         Debug.Assert(viewID >= 0);
 
@@ -235,7 +239,7 @@ public class VolumetricLightingModule
         vBuffer.Create(viewID, w, h, d);
     }
 
-    VBuffer FindVBuffer(int viewID)
+    VBuffer FindVBuffer(long viewID)
     {
         Debug.Assert(viewID >= 0);
 
@@ -247,7 +251,8 @@ public class VolumetricLightingModule
 
             for (int i = 0; i < n; i++)
             {
-                if (viewID == m_VBuffers[i].viewID)
+                // Check whether domain reload killed it...
+                if (viewID == m_VBuffers[i].viewID && m_VBuffers[i].lightingRTEX != null && m_VBuffers[i].lightingRTEX[0] != null)
                 {
                     vBuffer = m_VBuffers[i];
                 }
@@ -278,9 +283,9 @@ public class VolumetricLightingModule
         switch (preset)
         {
             case VolumetricLightingPreset.Normal:
-                return 128;
+                return 64;
             case VolumetricLightingPreset.Ultra:
-                return 256;
+                return 128;
             case VolumetricLightingPreset.Off:
                 return 0;
             default:
@@ -338,6 +343,22 @@ public class VolumetricLightingModule
         return depthParams;
     }
 
+    void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float asymmetry)
+    {
+        SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(RenderSettings.ambientProbe);
+        ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(asymmetry);
+        SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, phaseZH));
+
+        cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, SphericalHarmonicMath.PackCoefficients(finalSH));
+    }
+
+    float CornetteShanksPhasePartConstant(float asymmetry)
+    {
+        float g = asymmetry;
+
+        return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
+    }
+
     public void PushGlobalParams(HDCamera camera, CommandBuffer cmd)
     {
         if (preset == VolumetricLightingPreset.Off) return;
@@ -348,9 +369,10 @@ public class VolumetricLightingModule
         VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
                                                                             : VolumeProperties.GetNeutralVolumeProperties();
 
+        float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
         cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
         cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
         Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
@@ -358,6 +380,7 @@ public class VolumetricLightingModule
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
 
+        SetPreconvolvedAmbientLightProbe(cmd, asymmetry);
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
@@ -413,7 +436,10 @@ public class VolumetricLightingModule
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
             Debug.Assert(vBuffer != null);
 
-            if (HomogeneousFog.GetGlobalFogComponent() == null)
+            HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
+            float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
+
+            if (globalFogComponent == null)
             {
                 // Clear the render target instead of running the shader.
                 // CoreUtils.SetRenderTarget(cmd, GetVBufferLightingIntegral(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
@@ -474,6 +500,7 @@ public class VolumetricLightingModule
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], rfc);
 
             // TODO: set 'm_VolumetricLightingPreset'.
+            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(asymmetry));
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write

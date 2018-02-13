@@ -140,7 +140,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a05220af15327674cb776279e892d996, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7, type: 2}
+  renderPipelines:
+  - {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7, type: 2}
+  - {fileID: 11400000, guid: e0b837a0b8013cb4380a2f1286170857, type: 2}
+  - {fileID: 11400000, guid: ae88914339ad0504eaca3f858706b8ad, type: 2}
+  - {fileID: 11400000, guid: d206727e1fcd98842b54b98db4dfce28, type: 2}
   cameraToUse: {fileID: 20109210616973140}
   hdr: 1
   msaaSamples: 1

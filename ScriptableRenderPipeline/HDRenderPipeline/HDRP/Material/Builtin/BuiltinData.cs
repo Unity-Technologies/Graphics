@@ -72,9 +72,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return RenderTextureFormat.ARGB32;
         }
 
-        public static RenderTextureReadWrite GetShadowMaskBufferReadWrite()
+        public static bool GetShadowMaskSRGBFlag()
         {
-            return RenderTextureReadWrite.Linear;
+            return false;
         }
 
         public static RenderTextureFormat GetVelocityBufferFormat()
@@ -82,9 +82,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return RenderTextureFormat.RGHalf; // TODO: We should use 16bit normalized instead, better precision // RGInt
         }
 
-        public static RenderTextureReadWrite GetVelocityBufferReadWrite()
+        public static bool GetVelocityBufferSRGBFlag()
         {
-            return RenderTextureReadWrite.Linear;
+            return false;
         }
 
         public static RenderTextureFormat GetDistortionBufferFormat()
@@ -93,9 +93,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return RenderTextureFormat.ARGBHalf;
         }
 
-        public static RenderTextureReadWrite GetDistortionBufferReadWrite()
+        public static bool GetDistortionBufferSRGBFlag()
         {
-            return RenderTextureReadWrite.Linear;
+            return false;
         }
     }
 }
