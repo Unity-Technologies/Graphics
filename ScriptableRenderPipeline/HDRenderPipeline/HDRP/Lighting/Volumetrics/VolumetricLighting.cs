@@ -384,7 +384,7 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        HomogeneousMediumVolume globalVolume = HomogeneousMediumVolume.GetGlobalHomogeneousMediumVolume();
+        HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
 
         // TODO: may want to cache these results somewhere.
         VolumeProperties globalVolumeProperties = (globalVolume != null) ? globalVolume.volumeParameters.GetProperties()
@@ -425,9 +425,9 @@ public class VolumetricLightingModule
         m_VisibleVolumeProperties.Clear();
 
         // Collect all the visible volume data, and upload it to the GPU.
-        HomogeneousMediumVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousMediumVolume)) as HomogeneousMediumVolume[];
+        HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
 
-        foreach (HomogeneousMediumVolume volume in volumes)
+        foreach (HomogeneousDensityVolume volume in volumes)
         {
             // Only test active finite volumes.
             if (volume.enabled && volume.volumeParameters.IsLocalVolume())
@@ -499,7 +499,7 @@ public class VolumetricLightingModule
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
             Debug.Assert(vBuffer != null);
 
-            HomogeneousMediumVolume globalVolume = HomogeneousMediumVolume.GetGlobalHomogeneousMediumVolume();
+            HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
             float asymmetry = globalVolume != null ? globalVolume.volumeParameters.asymmetry : 0;
 
             if (globalVolume == null)
