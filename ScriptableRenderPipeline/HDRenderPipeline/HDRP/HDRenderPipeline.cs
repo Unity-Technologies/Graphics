@@ -342,6 +342,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if UNITY_EDITOR
             SceneViewDrawMode.SetupDrawMode();
+
+            if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
+            {
+                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode");
+            }
 #endif
         }
 

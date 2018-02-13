@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ld.coneAngle = 0.0f;
                         ld.innerConeAngle = 0.0f;
 #if UNITY_EDITOR
-                        ld.shape0 = l.shadows == LightShadows.Soft ? (Mathf.Deg2Rad * l.shadowAngle) : 0.0f;
+                        ld.shape0 = l.shadows != LightShadows.None ? (Mathf.Deg2Rad * l.shadowAngle) : 0.0f;
 #else
                         ld.shape0 = 0.0f;
 #endif
@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ld.coneAngle = l.spotAngle * Mathf.Deg2Rad; // coneAngle is the full angle
                         ld.innerConeAngle = l.spotAngle * Mathf.Deg2Rad * add.GetInnerSpotPercent01();
 #if UNITY_EDITOR
-                        ld.shape0 = l.shadows == LightShadows.Soft ? l.shadowRadius : 0.0f;
+                        ld.shape0 = l.shadows != LightShadows.None ? l.shadowRadius : 0.0f;
 #else
                         ld.shape0 = 0.0f;
 #endif
@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ld.innerConeAngle = 0.0f;
 
 #if UNITY_EDITOR
-                        ld.shape0 = l.shadows == LightShadows.Soft ? l.shadowRadius : 0.0f;
+                        ld.shape0 = l.shadows != LightShadows.None ? l.shadowRadius : 0.0f;
 #else
                         ld.shape0 = 0.0f;
 #endif
@@ -135,7 +135,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ld.shape0 = 0.0f;
                 ld.shape1 = 0.0f;
 #endif
-                ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
+                // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
+                // ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
+                ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Point;
                 ld.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
             }
             else if (add.lightTypeExtent == LightTypeExtent.Line)
