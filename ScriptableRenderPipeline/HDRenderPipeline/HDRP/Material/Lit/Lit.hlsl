@@ -1303,7 +1303,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, saturate(dot(N, V)), attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1392,7 +1392,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, saturate(dot(N, V)), attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1958,7 +1958,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #endif
 
     float roughness         = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(saturate(dot(bsdfData.normalWS, V)), indirectAmbientOcclusion, roughness);
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(preLightData.NdotV), indirectAmbientOcclusion, roughness);
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
 #if GTAO_MULTIBOUNCE_APPROX
