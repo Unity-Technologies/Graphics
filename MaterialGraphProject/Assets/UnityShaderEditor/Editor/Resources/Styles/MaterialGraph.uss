@@ -205,11 +205,13 @@ PortInputView.typeMatrix2 {
     edge-color: #8FC1DF;
 }
 
-PortInputView.typeTexture2D > #container > #slot > #dot {
+PortInputView.typeTexture2D > #container > #slot > #dot, 
+PortInputView.typeCubemap > #container > #slot > #dot {
     background-color: #FF8B8B;
 }
 
-PortInputView.typeTexture2D {
+PortInputView.typeTexture2D,
+PortInputView.typeCubemap {
     edge-color: #FF8B8B;
 }
 
@@ -243,6 +245,14 @@ PortInputView.typeVector1 > #container > #slot > #dot {
 
 PortInputView.typeVector1 {
     edge-color: #84E4E7;
+}
+
+PortInputView.typeBoolean > #container > #slot > #dot {
+    background-color: #9481E6;
+}
+
+PortInputView.typeBoolean {
+    edge-color: #9481E6;
 }
 
 TextureSlotControlView {
@@ -342,10 +352,10 @@ BooleanSlotControlView > Toggle {
     edge-input-color: #8FC1DF;
 }
 
-.edge.fromTexture2D {
+.edge.fromTexture2D, .edge.fromCubemap {
     edge-output-color: #FF8B8B;
 }
-.edge.toTexture2D {
+.edge.toTexture2D, .edge.toCubemap {
     edge-input-color: #FF8B8B;
 }
 
@@ -375,6 +385,13 @@ BooleanSlotControlView > Toggle {
 }
 .edge.toVector1 {
     edge-input-color: #84E4E7;
+}
+
+.edge.fromBoolean {
+    edge-output-color: #9481E6;
+}
+.edge.toBoolean {
+    edge-input-color: #9481E6;
 }
 
 GraphInspectorView {
@@ -1126,6 +1143,11 @@ ShaderPort.typeTexture2D {
     port-color:#FF8B8B;
 }
 
+ShaderPort.typeCubemap {
+	/* Same as typeTexture */
+    port-color:#FF8B8B;
+}
+
 ShaderPort.typeGraphScript {
     /* Todo: there is no such type in Unity atm */
     port-color:#E681BA;
@@ -1165,7 +1187,7 @@ ShaderPort.typeInt64 {
     port-color:#9481E6;
 }
 
-ShaderPort.typeBool {
+ShaderPort.typeBoolean {
     port-color:#9481E6;
 }
 
