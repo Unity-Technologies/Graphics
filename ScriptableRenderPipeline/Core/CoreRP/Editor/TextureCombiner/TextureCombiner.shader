@@ -4,16 +4,16 @@
 	{
 		// Chanels are : r=0, g=1, b=2, a=3, greyscale from rgb = 4
 
-		[NoScaleOffset] _RSource ("R Source", 2D) = "white" {}
+		[Linear][NoScaleOffset] _RSource ("R Source", 2D) = "white" {}
 		_RChannel ("R Channel", float) = 0
 		
-		[NoScaleOffset] _GSource ("G Source", 2D) = "white" {}
+		[Linear][NoScaleOffset] _GSource ("G Source", 2D) = "white" {}
 		_GChannel ("G Channel", float) = 1
 		
-		[NoScaleOffset] _BSource ("B Source", 2D) = "white" {}
+		[Linear][NoScaleOffset] _BSource ("B Source", 2D) = "white" {}
 		_BChannel ("B Channel", float) = 2
 		
-		[NoScaleOffset] _ASource ("A Source", 2D) = "white" {}
+		[Linear][NoScaleOffset] _ASource ("A Source", 2D) = "white" {}
 		_AChannel ("A Channel", float) = 3
 	}
 	SubShader
