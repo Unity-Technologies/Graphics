@@ -2,7 +2,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     [AddComponentMenu("RenderPipeline/High Definition/Homogeneous Medium Volume", -1)]
-    public class HomogeneousMediumVolume : MonoBehaviour
+    public class HomogeneousDensityVolume : MonoBehaviour
     {
         public VolumeParameters volumeParameters = new VolumeParameters();
 
@@ -38,13 +38,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Returns NULL if a global fog component does not exist, or is not enabled.
-        public static HomogeneousMediumVolume GetGlobalHomogeneousMediumVolume()
+        public static HomogeneousDensityVolume GetGlobalHomogeneousDensityVolume()
         {
-            HomogeneousMediumVolume globalVolume = null;
+            HomogeneousDensityVolume globalVolume = null;
 
-            HomogeneousMediumVolume[] volumes = FindObjectsOfType(typeof(HomogeneousMediumVolume)) as HomogeneousMediumVolume[];
+            HomogeneousDensityVolume[] volumes = FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
 
-            foreach (HomogeneousMediumVolume volume in volumes)
+            foreach (HomogeneousDensityVolume volume in volumes)
             {
                 if (volume.enabled && !volume.volumeParameters.IsLocalVolume())
                 {
