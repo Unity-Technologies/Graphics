@@ -2,83 +2,73 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using System.Runtime.CompilerServices;
 
 namespace UnityEditor.VFX
 {
     class VFXExpressionRandom : VFXExpression
     {
-        [Flags]
-        public enum RandomFlags
-        {
-            Fixed = (1 << 0),
-            PerElement = (1 << 1),
+        public VFXExpressionRandom(bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
+        {}
 
-            None = 0
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj);
         }
 
-        public VFXExpressionRandom() : this(RandomFlags.None, VFXValue.Constant(0u)) {}
-
-        public VFXExpressionRandom(RandomFlags flags, VFXExpression seed) : base((flags & RandomFlags.PerElement) != 0 ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None, (seed != null) ? new VFXExpression[] { seed }
-                                                                                 : new VFXExpression[] {})
+        protected override int GetInnerHashCode()
         {
-            m_RandomFlags = flags;
+            return RuntimeHelpers.GetHashCode(this);
         }
 
-        public override VFXExpressionOp operation
-        {
-            get
-            {
-                return VFXExpressionOp.kVFXGenerateRandomOp;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.kFloat;
-            }
-        }
+        public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXGenerateRandomOp; } }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
-            if (constParents.Length > 0)
-            {
-                var oldState = UnityEngine.Random.state;
-                UnityEngine.Random.InitState((int)constParents[0].Get<uint>());
-
-                var result = VFXValue.Constant(UnityEngine.Random.value);
-
-                UnityEngine.Random.state = oldState;
-
-                return result;
-            }
-            else
-            {
-                return VFXValue.Constant(UnityEngine.Random.value);
-            }
+            return VFXValue.Constant(UnityEngine.Random.value);
         }
 
         public override string GetCodeString(string[] parents)
         {
-            if ((m_RandomFlags & RandomFlags.Fixed) != 0)
-            {
-                return string.Format("FIXED_RAND({0})", (parents.Length > 0) ? parents[0] : "0");
-            }
-            else
-            {
-                return string.Format("RAND");
-            }
+            return string.Format("RAND");
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
         {
-            if ((m_RandomFlags & (RandomFlags.Fixed | RandomFlags.PerElement)) == (RandomFlags.Fixed | RandomFlags.PerElement))
-                yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
-            if ((m_RandomFlags & (RandomFlags.Fixed | RandomFlags.PerElement)) == RandomFlags.PerElement)
+            if (Is(Flags.PerElement))
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
         }
+    }
 
-        private RandomFlags m_RandomFlags;
+    class VFXExpressionFixedRandom : VFXExpression
+    {
+        public VFXExpressionFixedRandom() : this(VFXValue<uint>.Default) {}
+        public VFXExpressionFixedRandom(VFXExpression hash, bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None, hash)
+        {}
+
+        public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXGenerateFixedRandomOp; }} // TMP
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var oldState = UnityEngine.Random.state;
+            UnityEngine.Random.InitState((int)constParents[0].Get<uint>());
+
+            var result = VFXValue.Constant(UnityEngine.Random.value);
+
+            UnityEngine.Random.state = oldState;
+
+            return result;
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("FIXED_RAND({0})", parents[0]);
+        }
+
+        public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
+        {
+            if (Is(Flags.PerElement))
+                yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+        }
     }
 }

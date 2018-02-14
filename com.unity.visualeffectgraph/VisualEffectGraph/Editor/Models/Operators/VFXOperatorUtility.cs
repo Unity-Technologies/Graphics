@@ -453,7 +453,7 @@ namespace UnityEditor.VFX
             return combine;
         }
 
-        static public VFXExpression RandomFloatN(VFXExpressionRandom.RandomFlags flags, VFXValueType valueType, params VFXExpression[] seeds)
+        /*static public VFXExpression RandomFloatN(VFXExpressionRandom.RandomFlags flags, VFXValueType valueType, params VFXExpression[] seeds)
         {
             // Combine all seeds
             VFXExpression seed = null;
@@ -478,6 +478,6 @@ namespace UnityEditor.VFX
             if (size > 1)
                 return new VFXExpressionCombine(components);
             return components[0];
-        }
+        }*/
     }
 }

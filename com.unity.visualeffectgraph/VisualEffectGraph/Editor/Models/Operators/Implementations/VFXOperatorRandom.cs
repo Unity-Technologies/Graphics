@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         public enum SeedMode
         {
             PerParticle,
-            PerSystem
+            PerComponent,
         }
 
         public class InputProperties
@@ -20,8 +20,18 @@ namespace UnityEditor.VFX
             public FloatN min = new FloatN(0.0f);
             [Tooltip("The maximum value to be generated.")]
             public FloatN max = new FloatN(1.0f);
-            [Tooltip("An optional additional custom seed.")]
-            public uint customSeed = 0; // TODO - hide this from UI when constant==false
+        }
+
+        public class ConstantInputProperties
+        {
+            [Tooltip("An optional additional hash.")]
+            public uint hash = 0u;
+        }
+
+        public class OutputProperties
+        {
+            [Tooltip("A random number between 0 and 1.")]
+            public float r;
         }
 
         [VFXSetting, Tooltip("Generate a random number for each particle, or one that is shared by the whole system.")]
@@ -31,62 +41,24 @@ namespace UnityEditor.VFX
 
         override public string name { get { return "Random Number"; } }
 
-        private float m_FallbackValue = 0.0f;
-
-        public override void OnEnable()
+        protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
         {
-            base.OnEnable();
-
-            var propertyType = GetType().GetNestedType(GetInputPropertiesTypeName());
-            if (propertyType != null)
+            get
             {
-                var fields = propertyType.GetFields().Where(o => o.IsStatic && o.Name == "FallbackValue");
-                var field = fields.FirstOrDefault(o => o.FieldType == typeof(float));
-                if (field != null)
-                {
-                    m_FallbackValue = (float)field.GetValue(null);
-                }
+                var props = PropertiesFromType("InputProperties");
+                if (constant)
+                    props = props.Concat(PropertiesFromType("ConstantInputProperties"));
+                return props;
             }
-        }
-
-        //Convert automatically input expression with diverging floatN size to floatMax
-        sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
-        {
-            var inputExpression = base.GetInputExpressions();
-            return VFXOperatorUtility.UpcastAllFloatN(inputExpression, m_FallbackValue);
         }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression rand;
-
-            VFXValueType maxValueType = VFXOperatorUtility.FindMaxFloatNValueType(inputExpression);
+            VFXExpression rand = null;
             if (constant)
-            {
-                switch (seed)
-                {
-                    default:
-                    case SeedMode.PerParticle:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed | VFXExpressionRandom.RandomFlags.PerElement, maxValueType, inputExpression[2]);
-                        break;
-                    case SeedMode.PerSystem:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.Fixed, maxValueType, VFXBuiltInExpression.SystemSeed, inputExpression[2]);
-                        break;
-                }
-            }
+                rand = new VFXExpressionFixedRandom(inputExpression[2], seed == SeedMode.PerParticle);
             else
-            {
-                switch (seed)
-                {
-                    default:
-                    case SeedMode.PerParticle:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.PerElement, maxValueType, null);
-                        break;
-                    case SeedMode.PerSystem:
-                        rand = VFXOperatorUtility.RandomFloatN(VFXExpressionRandom.RandomFlags.None, maxValueType, null);
-                        break;
-                }
-            }
+                rand = new VFXExpressionRandom(seed == SeedMode.PerParticle);
 
             return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], rand) };
         }
