@@ -271,6 +271,12 @@ real ComputeWrappedDiffuseLighting(real NdotL, real w)
 // Helper functions
 //-----------------------------------------------------------------------------
 
+// Ref: "Crafting a Next-Gen Material Pipeline for The Order: 1886".
+float ClampNdotV(float NdotV)
+{
+    return max(NdotV, 0.0001);
+}
+
 // Inputs:    normalized normal and view vectors.
 // Outputs:   front-facing normal, and the new non-negative value of the cosine of the view angle.
 // Important: call Orthonormalize() on the tangent and recompute the bitangent afterwards.

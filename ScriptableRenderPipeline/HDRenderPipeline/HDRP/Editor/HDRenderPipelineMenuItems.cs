@@ -450,7 +450,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/Graphics/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateCustomGameObject(MenuCommand menuCommand)
         {
             var sceneSettings = new GameObject("Scene Settings");
@@ -488,7 +488,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> {}
 
-        [MenuItem("Assets/Create/Graphics/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/Diffusion profile Settings", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
