@@ -8,7 +8,7 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData:  static fields
 //
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (10000)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL_WS (10001)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (10001)
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (10002)
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (10003)
 
@@ -61,7 +61,7 @@ void GetGeneratedDecalSurfaceDataDebug(uint paramId, DecalSurfaceData decalsurfa
             result = decalsurfacedata.baseColor.xyz;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL_WS:
+        case DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL:
             result = decalsurfacedata.normalWS.xyz;
             break;
         case DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK:

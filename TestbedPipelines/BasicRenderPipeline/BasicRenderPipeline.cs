@@ -18,7 +18,7 @@ public class BasicRenderPipeline : RenderPipelineAsset
     public bool UseIntermediateRenderTargetBlit;
 
 #if UNITY_EDITOR
-    [UnityEditor.MenuItem("Assets/Create/Graphics/Basic Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
+    [UnityEditor.MenuItem("Assets/Create/Rendering/Basic Render Pipeline", priority = CoreUtils.assetCreateMenuPriority1)]
     static void CreateBasicRenderPipeline()
     {
         var instance = ScriptableObject.CreateInstance<BasicRenderPipeline>();

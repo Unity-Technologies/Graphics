@@ -112,11 +112,8 @@ void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real interv
 
     real x = 1 - exp(-extinction * intervalLength);
 
-    // Avoid division by 0.
-    real rcpExt = (extinction != 0) ? rcp(extinction) : 0;
-
-    weight = x * rcpExt;
-    offset = -log(1 - rndVal * x) * rcpExt;
+    weight = x * rcp(extinction);
+    offset = -log(1 - rndVal * x) * rcp(extinction);
 }
 
 // Implements equiangular light sampling.

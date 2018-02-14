@@ -1,6 +1,6 @@
 #include "Decal.hlsl"
 
-DECLARE_DBUFFER_TEXTURE(_DBufferTexture); 
+DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 DecalData FetchDecal(uint start, uint i)
 {

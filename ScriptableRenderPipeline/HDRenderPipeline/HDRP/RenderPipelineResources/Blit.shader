@@ -10,6 +10,8 @@
         TEXTURE2D(_BlitTexture);
         SamplerState sampler_PointClamp;
         SamplerState sampler_LinearClamp;
+        uniform float4 _BlitScaleBias;
+        uniform float _BlitMipLevel;
 
         struct Attributes
         {
@@ -26,18 +28,18 @@
         {
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
+            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
 
         float4 FragNearest(Varyings input) : SV_Target
         {
-            return SAMPLE_TEXTURE2D(_BlitTexture, sampler_PointClamp, input.texcoord);
+            return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_PointClamp, input.texcoord, _BlitMipLevel);
         }
 
         float4 FragBilinear(Varyings input) : SV_Target
         {
-            return SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, input.texcoord);
+            return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_LinearClamp, input.texcoord, _BlitMipLevel);
         }
 
     ENDHLSL

@@ -530,9 +530,6 @@ float GetMaxHeight(float4 heights)
 // Returns layering blend mask after application of height based blend.
 float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 {
-    // Add offsets for all the layers.
-    heights = heights + float4(_HeightOffset0, _HeightOffset1, _HeightOffset2, _HeightOffset3);
-
     // We need to mask out inactive layers so that their height does not impact the result.
     float4 maskedHeights = heights * blendMask.argb;
 

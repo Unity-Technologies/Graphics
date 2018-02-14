@@ -64,11 +64,9 @@ namespace UnityEditor.Experimental.Rendering
                 if (m_PreviewTexture != null)
                     m_PreviewTexture.Release();
 
-                var baseDesc = m_PreviewHDCamera.renderTextureDesc;
-                baseDesc.width = width;
-                baseDesc.height = height;
-                CoreUtils.UpdateRenderTextureDescriptor(ref baseDesc, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear, 1, true);
-                m_PreviewTexture = new RenderTexture(baseDesc);
+                m_PreviewTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                m_PreviewTexture.enableRandomWrite = true;
+                m_PreviewTexture.Create();
             }
             return m_PreviewTexture;
         }
