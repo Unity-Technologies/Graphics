@@ -65,7 +65,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public enum DoubleSidedNormalMode
         {
             Flip,
-            Mirror
+            Mirror,
+            None
         }
 
         public enum TessellationMode
@@ -363,6 +364,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     case DoubleSidedNormalMode.Flip: // Flip mode (in tangent space)
                         material.SetVector("_DoubleSidedConstants", new Vector4(-1.0f, -1.0f, -1.0f, 0.0f));
+                        break;
+
+                    case DoubleSidedNormalMode.None: // None mode (in tangent space)
+                        material.SetVector("_DoubleSidedConstants", new Vector4(1.0f, 1.0f, 1.0f, 0.0f));
                         break;
                 }
             }
