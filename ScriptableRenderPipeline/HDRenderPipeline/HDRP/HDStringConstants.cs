@@ -184,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _HTile = Shader.PropertyToID("_HTile");
         public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
+        public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
 
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
@@ -200,6 +201,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameIndex    = Shader.PropertyToID("_TaaFrameIndex");
         public static readonly int _TaaFrameRotation = Shader.PropertyToID("_TaaFrameRotation");
+
+        public static readonly int _InvProjMatrixStereo = Shader.PropertyToID("_InvProjMatrixStereo");
+        public static readonly int _InvViewProjMatrixStereo = Shader.PropertyToID("_InvViewProjMatrixStereo");
 
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
         public static readonly int _CameraColorTexture             = Shader.PropertyToID("_CameraColorTexture");

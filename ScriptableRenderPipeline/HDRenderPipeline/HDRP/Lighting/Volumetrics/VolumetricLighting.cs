@@ -140,12 +140,13 @@ public class VolumetricLightingModule
             for (int i = 0; i < n; i++)
             {
                 this.lightingRTEX[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                this.lightingRTEX[i].hideFlags         = HideFlags.HideAndDontSave;
                 this.lightingRTEX[i].filterMode        = FilterMode.Trilinear;   // Custom
                 this.lightingRTEX[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
                 this.lightingRTEX[i].volumeDepth       = d;
                 this.lightingRTEX[i].enableRandomWrite = true;
+                this.lightingRTEX[i].name = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("Volumetric{0}", i));
                 this.lightingRTEX[i].Create();
-
                 this.lightingRTID[i] = new RenderTargetIdentifier(this.lightingRTEX[i]);
             }
         }
