@@ -219,7 +219,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	{
 		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(g_screenSize.x-1, g_screenSize.y-1) );
 #ifdef MSAA_ENABLED
-		for(uint i=0; i<g_iNumSamplesMSAA; i++)
+		for(int i=0; i<g_iNumSamplesMSAA; i++)
 		{
 		const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
 #else

@@ -52,8 +52,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     class VisibleReflectionProbeWrapper : ProbeWrapper
     {
-        static HDAdditionalReflectionData defaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
-
         VisibleReflectionProbe probe;
         HDAdditionalReflectionData additional;
 
@@ -69,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
             if (add == null)
             {
-                add = defaultHDAdditionalReflectionData;
+                add = HDUtils.s_DefaultHDAdditionalReflectionData;
                 add.blendDistancePositive = Vector3.one * probe.blendDistance;
                 add.blendDistanceNegative = add.blendDistancePositive;
                 add.influenceShape = ShapeType.Box;
