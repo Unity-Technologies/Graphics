@@ -108,6 +108,10 @@
 
 #endif // #ifndef real
 
+#ifdef  SHADER_STAGE_COMPUTE
+#define SHADER_TARGET 50 // Not defined otherwise
+#endif
+
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
@@ -349,7 +353,7 @@ real FastATanPos(real x)
 #if (SHADER_TARGET >= 45)
 uint FastLog2(uint x)
 {
-    return firstbithigh(x) - 1u;
+    return firstbithigh(x);
 }
 #endif
 
