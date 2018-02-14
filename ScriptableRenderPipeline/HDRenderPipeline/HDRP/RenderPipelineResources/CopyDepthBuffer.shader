@@ -48,7 +48,7 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
 
             float Frag(Varyings input) : SV_Depth
             {
-                PositionInputs posInputs = GetPositionInput(input.positionCS, _ScreenSize.zw);
+                PositionInputs posInputs = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
                 return LOAD_TEXTURE2D(_InputDepthTexture, posInputs.positionSS).x;
             }
 

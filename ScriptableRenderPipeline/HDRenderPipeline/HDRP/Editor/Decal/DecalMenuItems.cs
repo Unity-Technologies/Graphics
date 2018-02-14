@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class DecalMenuItems
     {
-        [MenuItem("GameObject/Graphics/DecalProjector", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/DecalProjector", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateDecal(MenuCommand menuCommand)
         {
             // Create a custom game object
