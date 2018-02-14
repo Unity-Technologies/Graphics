@@ -293,7 +293,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
     // Since the result is used as a 'depthOffsetVS', it needs to be positive, so we flip the sign. { height = -height + 1 }.
 
     float verticalDisplacement = maxHeight - height * maxHeight;
-    return verticalDisplacement / max(NdotV, 0.001);
+    return verticalDisplacement / ClampNdotV(NdotV);
 #else
     return 0.0;
 #endif

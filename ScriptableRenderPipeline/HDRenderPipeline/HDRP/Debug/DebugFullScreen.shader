@@ -153,7 +153,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     {
                         arrow_coord.y = 1.0 - arrow_coord.y;
                     }
-                    arrow_coord *= _ScreenToTargetScale;
+                    arrow_coord *= _ScreenToTargetScale.xy;
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
 
