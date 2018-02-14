@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Triplanar")]
-    public class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal
+    public class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
         public const int OutputSlotId = 0;
         public const int TextureInputId = 1;
@@ -121,6 +121,10 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , GetVariableNameForNode());
+                    sb.AppendLine("float3x3 {0}_Transform = float3x3(IN.WorldSpaceTangent, IN.WorldSpaceBiTangent, IN.WorldSpaceNormal);", GetVariableNameForNode());
+                    sb.AppendLine("{0}.rgb = TransformWorldToTangent({0}.rgb, {1}_Transform);"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , GetVariableNameForNode());
                     break;
                 default:
                     sb.AppendLine("{0}3 {1}_Blend = pow(abs({2}), {3});", precision, GetVariableNameForNode(),
@@ -162,6 +166,28 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresNormal()
         {
             return CoordinateSpace.World.ToNeededCoordinateSpace();
+        }
+
+        public NeededCoordinateSpace RequiresTangent()
+        {
+            switch(m_TextureType)
+            {
+                case TextureType.Normal:
+                    return CoordinateSpace.World.ToNeededCoordinateSpace();
+                default:
+                    return NeededCoordinateSpace.None;
+            }
+        }
+
+        public NeededCoordinateSpace RequiresBitangent()
+        {
+            switch(m_TextureType)
+            {
+                case TextureType.Normal:
+                    return CoordinateSpace.World.ToNeededCoordinateSpace();
+                default:
+                    return NeededCoordinateSpace.None;
+            }
         }
     }
 }
