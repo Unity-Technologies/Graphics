@@ -1301,6 +1301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DecalSystem.instance.Render(renderContext, camera, cmd, m_LightLoop);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);
+                DecalSystem.instance.SetAtlas(cmd);
             }
         }
 
