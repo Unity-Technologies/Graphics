@@ -2027,6 +2027,18 @@ MonoBehaviour:
   - {fileID: 114896407293017132}
   - {fileID: 114659010518053726}
   - {fileID: 114548877045467682}
+--- !u!114 &114434842630792234
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d01270efd3285ea4a9d6c555cb0a8027, type: 3}
+  m_Name: VFXUI
+  m_EditorClassIdentifier: 
+  groupInfos: []
 --- !u!114 &114439430517760810
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3291,7 +3303,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114838466200305200}
   m_Children: []
-  m_UIPosition: {x: -319.9727, y: 778.2802}
+  m_UIPosition: {x: -475.97958, y: 767.0026}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4183,7 +4195,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_UIInfos: {fileID: 0}
+  m_UIInfos: {fileID: 114434842630792234}
   m_saved: 1
 --- !u!114 &114838918111818644
 MonoBehaviour:
