@@ -14,7 +14,7 @@ CBUFFER_START(DeferredShadowParameters)
 float   _DirectionalShadowIndex;
 float3  _LightDirection;
 float4  _ScreenSpaceShadowsParameters;
-uint	_SampleCount;
+int     _SampleCount;
 CBUFFER_END
 
 #define _ContactShadowLength                _ScreenSpaceShadowsParameters.x
@@ -73,7 +73,7 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
 		float sampleStep = ((i + 1) * step + step * dither);
 
 		// UVs for the current sample
-		float2 sampleUV = startUV + rayUV * sampleStep;
+		float2 sampleUV = (startUV + rayUV * sampleStep) * _ScreenToTargetScale.xy;
 		// Ray depth for this sample
 		float raySampleDepth = startDepth + rayDepth * sampleStep;
 

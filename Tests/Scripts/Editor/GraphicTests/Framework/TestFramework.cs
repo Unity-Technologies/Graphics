@@ -17,6 +17,26 @@ namespace UnityEditor.Experimental.Rendering
         // Change the SRP before a full batch of tests
         public virtual string _SRP_ID { get { return "NONE"; } }
 
+        [MenuItem("Internal/GraphicTest Tools/Set Tests Pipelines",false, 0)]
+        public static void SetTestsPipelines()
+        {
+            _doOnlyFirstRenderPipelineAsset = !EditorUtility.DisplayDialog(
+                "Graphic Tests",
+                "Do you want to run the test(s) on all available Render Pipeline assets or only the first (main) one ?",
+                "Hell YEAH, go for it !",
+                "No thanks, just one please.");
+        }
+
+        private static bool? _doOnlyFirstRenderPipelineAsset;
+        private static bool doOnlyFirstRenderPipelineAsset
+        {
+            get
+            {
+                if (!_doOnlyFirstRenderPipelineAsset.HasValue) SetTestsPipelines();
+                return _doOnlyFirstRenderPipelineAsset.Value;
+            }
+        }
+
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
@@ -27,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering
         [OneTimeTearDown]
         public void OnTimeTearDown()
         {
-            Debug.Log("OnTimeTearDown");
+            //Debug.Log("OneTimeTearDown");
             RestoreRenderPipeAsset();
             RestoreSceneManagerSetup();
         }
@@ -109,62 +129,98 @@ namespace UnityEditor.Experimental.Rendering
 			Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
 			Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
 
-            testSetup.Setup();
+            if (testSetup.renderPipelines == null || testSetup.renderPipelines.Length == 0)
+                yield break;
 
-            for (int i = 0; i < testInfo.frameWait; ++i)
+            for (int r = 0; r < (doOnlyFirstRenderPipelineAsset?1:testSetup.renderPipelines.Length); ++r)
             {
-                yield return null;
-            }
-
-            while (UnityEditor.Lightmapping.isRunning)
-            {
-                yield return null;
-            }
-
-            // Force rendering of all realtime reflection probes
-            ReflectionProbe[] probes = GameObject.FindObjectsOfType<ReflectionProbe>();
-            int[] renderIDs = new int[probes.Length];
-            for (int i=0; i<probes.Length; ++i)
-            {
-                if (probes[i].mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
-                    renderIDs[i] = probes[i].RenderProbe();
+                if (r==0)
+                    testSetup.Setup();
                 else
-                    renderIDs[i] = -1;
-            }
-            for (int i=0; i<probes.Length; ++i)
-            {
-                if (renderIDs[i] != -1)
+                    testSetup.Setup(r);
+
+                for (int i = 0; i < testInfo.frameWait; ++i)
                 {
-                    while (!probes[i].IsFinishedRendering(renderIDs[i])) yield return null;
+                    yield return null;
+                }
+
+                while (UnityEditor.Lightmapping.isRunning)
+                {
+                    yield return null;
+                }
+
+                // Force rendering of all realtime reflection probes
+                ReflectionProbe[] probes = GameObject.FindObjectsOfType<ReflectionProbe>();
+                int[] renderIDs = new int[probes.Length];
+                for (int i = 0; i < probes.Length; ++i)
+                {
+                    if (probes[i].mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
+                        renderIDs[i] = probes[i].RenderProbe();
+                    else
+                        renderIDs[i] = -1;
+                }
+                for (int i = 0; i < probes.Length; ++i)
+                {
+                    if (renderIDs[i] != -1)
+                    {
+                        while (!probes[i].IsFinishedRendering(renderIDs[i])) yield return null;
+                    }
+                }
+
+                testSetup.thingToDoBeforeTest.Invoke();
+
+                // Render the camera
+                Texture2D captured = TestFrameworkTools.RenderSetupToTexture(testSetup);
+
+                // Load the template
+                Texture2D fromDisk = new Texture2D(2, 2);
+                string dumpFileLocation = "";
+                if (!TestFrameworkTools.FindReferenceImage(testInfo, ref fromDisk, captured, ref dumpFileLocation))
+                    Assert.Fail("Template file not found for {0}, creating it at {1}.", testInfo.name, dumpFileLocation);
+
+                // Compare
+                var areEqual = TestFrameworkTools.CompareTextures(fromDisk, captured, testInfo.threshold);
+
+                if (!areEqual)
+                {
+                    var failedPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "SRP_Failed");
+                    Directory.CreateDirectory(failedPath);
+                    var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", testInfo.name, "png"));
+                    var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
+
+                    // Add associated renderpipeline label image if it exists
+                    string rpLabelPath = AssetDatabase.GetAssetPath(testSetup.renderPipelines[r]);
+                    Texture2D rpLabel = AssetDatabase.LoadAssetAtPath<Texture2D>(rpLabelPath.Remove(rpLabelPath.Length - 5)+"png");
+                    if (rpLabel != null)
+                    {
+                        Color[] rpLabelPixels = rpLabel.GetPixels();
+                        Color[] targetPixels = captured.GetPixels(0, 0, rpLabel.width, rpLabel.height);
+
+                        for (int p = 0; p < rpLabelPixels.Length; ++p)
+                        {
+                            targetPixels[p] = Color.Lerp(targetPixels[p], rpLabelPixels[p], rpLabelPixels[p].a);
+                            targetPixels[p].a = 1f;
+                        }
+
+                        captured.SetPixels(0, 0, rpLabel.width, rpLabel.height, targetPixels);
+                        captured.Apply();
+                    }
+
+                    var generated = captured.EncodeToPNG();
+                    File.WriteAllBytes(misMatchLocationResult, generated);
+                    File.Copy(dumpFileLocation, misMatchLocationTemplate, true);
+
+                    Object.DestroyImmediate(captured);
+                }
+
+                Assert.IsTrue(areEqual, "Scene from {0}, did not match .template file.", testInfo.relativePath);
+
+                if (!areEqual) // No need to continue the test on other renderpipelines, it would overwrite the fail capture
+                {
+                    testSetup.TearDown();
+                    yield break;
                 }
             }
-
-            testSetup.thingToDoBeforeTest.Invoke();
-
-            // Render the camera
-            Texture2D captured = TestFrameworkTools.RenderSetupToTexture(testSetup);
-
-            // Load the template
-            Texture2D fromDisk = new Texture2D(2, 2);
-            string dumpFileLocation = "";
-            if ( !TestFrameworkTools.FindReferenceImage( testInfo, ref fromDisk, captured, ref dumpFileLocation) )
-                Assert.Fail("Template file not found for {0}, creating it at {1}.", testInfo.name, dumpFileLocation);
-
-            // Compare
-            var areEqual = TestFrameworkTools.CompareTextures(fromDisk, captured, testInfo.threshold);
-
-            if (!areEqual)
-            {
-                var failedPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "SRP_Failed");
-                Directory.CreateDirectory(failedPath);
-				var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", testInfo.name, "png"));
-				var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", testInfo.name, "png"));
-				var generated = captured.EncodeToPNG();
-                File.WriteAllBytes(misMatchLocationResult, generated);
-                File.Copy(dumpFileLocation, misMatchLocationTemplate, true);
-            }
-
-			Assert.IsTrue(areEqual, "Scene from {0}, did not match .template file.", testInfo.relativePath);
 
             testSetup.TearDown();
         }

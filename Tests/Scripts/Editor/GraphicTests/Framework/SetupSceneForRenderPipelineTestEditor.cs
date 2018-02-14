@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -16,7 +16,7 @@ public class SetupSceneForRenderPipelineTestEditor : Editor
 
         if (GUILayout.Button("Set renderpipe"))
         {
-            GraphicsSettings.renderPipelineAsset = sceneSetup.renderPipeline;
+            GraphicsSettings.renderPipelineAsset = sceneSetup.renderPipelines[0];
         }
     }
 }

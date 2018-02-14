@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Dictionary<string, string> renderPipelineAssets = new Dictionary<string, string>()
         {
-            { "HDRP", "HDRenderPipeline/CommonAssets/HDRP_GraphicTests_Asset.asset" },
+            { "HDRP", "HDRenderPipeline/CommonAssets/RP_Assets/HDRP_Test_Def.asset" },
             { "LWRP", "LightweightPipeline/LightweightPipelineAsset.asset" }
         };
 
@@ -40,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering
         public struct TestInfo
         {
             public string name;
+            public string comment;
             public float threshold;
             public string relativePath;
             public string templatePath;
@@ -48,9 +49,30 @@ namespace UnityEngine.Experimental.Rendering
 
             public override string ToString()
             {
-                return name;
+                if (string.IsNullOrEmpty(comment))
+                    return name;
+                else
+                    return string.Format("{0}: {1}", name, comment);
             }
 
+        }
+
+        // Get additionalSceneInfo
+        public static Dictionary<string, AdditionalTestSceneInfos.AdditionalTestSceneInfo> GetAdditionalInfos ( string path)
+        {
+            Dictionary<string, AdditionalTestSceneInfos.AdditionalTestSceneInfo> o = new Dictionary<string, AdditionalTestSceneInfos.AdditionalTestSceneInfo>();
+
+            AdditionalTestSceneInfos additionalTestSceneInfos = AssetDatabase.LoadAssetAtPath<AdditionalTestSceneInfos>(path);
+
+            if (additionalTestSceneInfos != null)
+            {
+                for (int i=0 ; i<additionalTestSceneInfos.additionalInfos.Length ; ++i)
+                {
+                    o[additionalTestSceneInfos.additionalInfos[i].name] = additionalTestSceneInfos.additionalInfos[i];
+                }
+            }
+
+            return o;
         }
 
         // collect the scenes that we can use
@@ -105,6 +127,9 @@ namespace UnityEngine.Experimental.Rendering
                     playModeScenes.Add(ti.templatePath);
                 }
 
+                // Get the additional infos
+                var additionalInfos = GetAdditionalInfos( "Assets"+Path.Combine(filesPath.Replace(Application.dataPath, ""), "AdditionalTestSceneInfos.asset") );
+
                 // construct all the needed test infos
                 for (int i = 0; i < allPaths_List.Count; ++i)
                 {
@@ -119,13 +144,16 @@ namespace UnityEngine.Experimental.Rendering
                     if (playModeScenes.Contains(splitPaths.Last()))
                         continue;
 
+                    string sceneNum = p.Name.Split("_"[0])[0];
+
                     TestInfo testInfo = new TestInfo()
                     {
                         name = p.Name,
+                        comment = additionalInfos.ContainsKey(sceneNum)? additionalInfos[sceneNum].comment:null,
                         relativePath = splitPaths.Last(),
                         templatePath = splitPaths.Last(),
                         threshold = 0.02f,
-                        frameWait = 100
+                        frameWait = 5
                     };
 
                     if (fixtureParam)
@@ -188,6 +216,9 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else
                 {
+                    // Get the additional infos
+                    var additionalInfos = GetAdditionalInfos( Path.Combine(filesPath, "AdditionalTestSceneInfos.asset") );
+
                     for ( int i=0 ; i<listFile.scenesPath.Length ; ++i)
                     {
                         string path = listFile.scenesPath[i];
@@ -197,9 +228,12 @@ namespace UnityEngine.Experimental.Rendering
                         split = string.Format("{0}{1}", split, Path.DirectorySeparatorChar);
                         var splitPaths = p.FullName.Split(new[] { split }, StringSplitOptions.RemoveEmptyEntries);
 
+                        string sceneNum = p.Name.Split("_"[0])[0];
+
                         TestInfo testInfo = new TestInfo
                         {
                             name = p.Name,
+                            comment = additionalInfos.ContainsKey(sceneNum)? additionalInfos[sceneNum].comment:null,
                             relativePath = p.ToString(),
                             templatePath = splitPaths.Last(),
                             threshold = 0.02f,

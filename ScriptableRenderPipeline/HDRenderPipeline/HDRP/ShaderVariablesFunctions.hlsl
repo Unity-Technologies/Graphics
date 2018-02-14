@@ -53,6 +53,11 @@ float3 TransformObjectToWorldDir(float3 dirOS)
     return normalize(mul((float3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
+float3 TransformWorldToViewDir(float3 dirWS)
+{
+    return mul((float3x3)GetWorldToViewMatrix(), dirWS).xyz;
+}
+
 float3 TransformWorldToObjectDir(float3 dirWS)
 {
     // Normalize to support uniform scaling
@@ -214,6 +219,13 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 
     projMatrix = UNITY_MATRIX_P;
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
+}
+
+// This method should be used for rendering any full screen quad that uses an auto-scaling Render Targets (see RTHandle/HDCamera)
+// It will account for the fact that the textures it samples are not necesarry using the full space of the render texture but only a partial viewport.
+float2 GetNormalizedFullScreenTriangleTexCoord(uint vertexID)
+{
+    return GetFullScreenTriangleTexCoord(vertexID) * _ScreenToTargetScale.xy;
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

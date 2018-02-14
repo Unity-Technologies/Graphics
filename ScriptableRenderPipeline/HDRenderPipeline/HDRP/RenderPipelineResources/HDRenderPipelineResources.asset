@@ -59,8 +59,8 @@ MonoBehaviour:
   combineLighting: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
   cameraMotionVectors: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
   copyStencilBuffer: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
+  copyDepthBuffer: {fileID: 4800000, guid: 42dfcc8fe803ece4096c58630689982f, type: 3}
   blit: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
-  blitFlipMip: {fileID: 4800000, guid: ef092fc4aaa1bb546a9ab4e457c4b07a, type: 3}
   blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
   buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
     type: 3}
