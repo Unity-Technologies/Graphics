@@ -130,7 +130,7 @@ Shader "HDRenderPipeline/Lit"
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
 
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [Enum(Flip, 0, Mirror, 1, None 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
+        [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
