@@ -50,12 +50,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
        }
     }
 
+    // normalToWorld.m03 - total blend factor
+    // normalToWorld.m13 - diffuse texture index in atlas
+    // normalToWorld.m23 - normal texture index in atlas
+    // normalToWorld.m33 - mask texture index in atlas
     [GenerateHLSL]
     public struct DecalData
     {
+        public Matrix4x4 worldToDecal;
         public Matrix4x4 normalToWorld;
-        public int diffuseIndex;
-        public int normalIndex;
-        public int maskIndex;
     };
 }

@@ -4,23 +4,26 @@
 #include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 
+#if defined(UNITY_NO_DXT5nm)
+#define UNPACK_NORMAL_FUNC UnpackNormalRGB
+#else
+#define UNPACK_NORMAL_FUNC UnpackNormalmapRGorAG
+#endif
+
 void GetSurfaceData(float2 texCoordDS, float4x4 decalToWorld, out DecalSurfaceData surfaceData)
 {
 	surfaceData.baseColor = float4(0,0,0,0);
 	surfaceData.normalWS = float4(0,0,0,0);
 	surfaceData.mask = float4(0,0,0,0);
 	surfaceData.HTileMask = 0;
-	float totalBlend = _DecalBlend * clamp(decalToWorld[0][3], 0.0f, 1.0f);
+	float totalBlend = clamp(decalToWorld[0][3], 0.0f, 1.0f);
 #if _COLORMAP
 	surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoordDS.xy);
 	surfaceData.baseColor.w *= totalBlend;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #endif
-	UVMapping texCoord;
-	ZERO_INITIALIZE(UVMapping, texCoord);
-	texCoord.uv = texCoordDS.xy;
 #if _NORMALMAP
-	surfaceData.normalWS.xyz = mul((float3x3)decalToWorld, SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, sampler_NormalMap, texCoord, 1)) * 0.5f + 0.5f;
+	surfaceData.normalWS.xyz = mul((float3x3)decalToWorld, UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoordDS))) * 0.5f + 0.5f;
 	surfaceData.normalWS.w = totalBlend;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
 #endif
@@ -31,3 +34,5 @@ void GetSurfaceData(float2 texCoordDS, float4x4 decalToWorld, out DecalSurfaceDa
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
 #endif
 }
+
+#undef UNPACK_NORMAL_FUNC

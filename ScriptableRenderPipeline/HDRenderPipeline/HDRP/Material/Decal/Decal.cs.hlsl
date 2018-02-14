@@ -38,10 +38,8 @@ struct DecalSurfaceData
 // PackingRules = Exact
 struct DecalData
 {
+	float4x4 worldToDecal;
     float4x4 normalToWorld;
-    int diffuseIndex;
-    int normalIndex;
-    int maskIndex;
 };
 
 //
@@ -50,18 +48,6 @@ struct DecalData
 float4x4 GetNormalToWorld(DecalData value)
 {
 	return value.normalToWorld;
-}
-int GetDiffuseIndex(DecalData value)
-{
-	return value.diffuseIndex;
-}
-int GetNormalIndex(DecalData value)
-{
-	return value.normalIndex;
-}
-int GetMaskIndex(DecalData value)
-{
-	return value.maskIndex;
 }
 
 //

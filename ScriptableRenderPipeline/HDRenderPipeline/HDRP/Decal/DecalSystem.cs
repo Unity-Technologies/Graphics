@@ -45,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         private static readonly int m_NormalToWorldID = Shader.PropertyToID("normalToWorld");
+        private static readonly int m_DecalAtlasID = Shader.PropertyToID("_DecalAtlas");
         private static MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
         private const int kDecalBlockSize = 128;
@@ -64,22 +65,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public Matrix4x4[] m_InstanceNormalToWorld = new Matrix4x4[kDrawIndexedBatchSize];
 		static public float[] m_BoundingDistances = new float[1];
 
-
-        private const int kMaxClusteredDecals = 2048;
-        static public DecalData[] m_ClusteredDecalData = new DecalData[kMaxClusteredDecals];
-        static public int m_TotalClusteredDecals = 0;
-
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
         private TextureCache2D m_DecalAtlas = null;
 
         private class DecalSet
         {
+            private void InitializeMaterialValues()
+            {
+                m_DiffuseTexture = m_Material.GetTexture("_BaseColorMap");
+                m_NormalTexture = m_Material.GetTexture("_NormalMap");
+                m_MaskTexture = m_Material.GetTexture("_MaskMap");
+                m_Blend = m_Material.GetFloat("_DecalBlend");                
+            }
+
             public DecalSet(Material material)
             {
                 m_Material = material;
-                m_DiffuseTexture = material.GetTexture("_BaseColorMap");
-                m_NormalTexture = material.GetTexture("_NormalMap");
-                m_MaskTexture = material.GetTexture("_MaskMap");
+                InitializeMaterialValues();
             }
 
             private BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
@@ -112,9 +114,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_CachedNormalToWorld[decal.CullIndex] = decalRotation;
                 // draw distance can't be more than global draw distance
-                m_CachedDrawDistances[decal.CullIndex].x = decal.m_DrawDistance < DecalSystem.instance.DrawDistance
+                m_CachedDrawDistances[decal.CullIndex].x = decal.m_DrawDistance < instance.DrawDistance
                     ? decal.m_DrawDistance
-                    : DecalSystem.instance.DrawDistance;
+                    : instance.DrawDistance;
                 m_CachedDrawDistances[decal.CullIndex].y = decal.m_FadeScale;
                 m_BoundingSpheres[decal.CullIndex] = GetDecalProjectBoundingSphere(m_CachedTransforms[decal.CullIndex]);
             }
@@ -208,15 +210,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if ((m_DiffuseTexIndex == -1) && (m_DiffuseTexture != null))
                 {
-                    m_DiffuseTexIndex = DecalSystem.instance.TextureAtlas.FetchSlice(cmd, m_DiffuseTexture);
+                    m_DiffuseTexIndex = instance.TextureAtlas.FetchSlice(cmd, m_DiffuseTexture);
                 }
                 if ((m_NormalTexIndex == -1) && (m_NormalTexture != null))
                 {
-                    m_NormalTexIndex = DecalSystem.instance.TextureAtlas.FetchSlice(cmd, m_NormalTexture);
+                    m_NormalTexIndex = instance.TextureAtlas.FetchSlice(cmd, m_NormalTexture);
                 }
                 if ((m_MaskTexIndex == -1) && (m_MaskTexture != null))
                 {
-                    m_MaskTexIndex = DecalSystem.instance.TextureAtlas.FetchSlice(cmd, m_MaskTexture);
+                    m_MaskTexIndex = instance.TextureAtlas.FetchSlice(cmd, m_MaskTexture);
                 }
             }
 
@@ -224,15 +226,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_DiffuseTexture != null)
                 {
-                    DecalSystem.instance.TextureAtlas.RemoveEntryFromSlice(m_DiffuseTexture);
+                    instance.TextureAtlas.RemoveEntryFromSlice(m_DiffuseTexture);
                 }
                 if (m_NormalTexture != null)
                 {
-                    DecalSystem.instance.TextureAtlas.RemoveEntryFromSlice(m_NormalTexture);
+                    instance.TextureAtlas.RemoveEntryFromSlice(m_NormalTexture);
                 }
                 if (m_MaskTexture != null)
                 {
-                    DecalSystem.instance.TextureAtlas.RemoveEntryFromSlice(m_MaskTexture);
+                    instance.TextureAtlas.RemoveEntryFromSlice(m_MaskTexture);
                 }
             }
       
@@ -240,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if(m_NumResults == 0)
                     return;
-
+                InitializeMaterialValues(); // refresh in case they changed in the UI
                 UpdateTextureCache(cmd);
                 var worldToView =  Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.camera.worldToCameraMatrix;
                 int instanceCount = 0;
@@ -255,19 +257,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 					{
 						m_InstanceMatrices[instanceCount] = m_CachedTransforms[decalIndex];
 						m_InstanceNormalToWorld[instanceCount] = m_CachedNormalToWorld[decalIndex];
-                        float fadeFactor = (cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y));
-						m_InstanceNormalToWorld[instanceCount].m03 = fadeFactor; // rotation only matrix so 3rd column can be used to pass some values
+					    float fadeFactor = Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
+						m_InstanceNormalToWorld[instanceCount].m03 = fadeFactor * m_Blend; // rotation only matrix so 3rd column can be used to pass some values
+					    m_InstanceNormalToWorld[instanceCount].m13 = m_DiffuseTexIndex;
+					    m_InstanceNormalToWorld[instanceCount].m23 = m_NormalTexIndex;
+                        m_InstanceNormalToWorld[instanceCount].m33 = m_MaskTexIndex;
 
-					    if (m_TotalClusteredDecals < kMaxClusteredDecals)
-					    {
-                            lightLoop.GetDecalVolumeDataAndBound(m_CachedTransforms[decalIndex], worldToView);
-					        m_ClusteredDecalData[m_TotalClusteredDecals].normalToWorld = m_InstanceNormalToWorld[instanceCount];
-					        m_ClusteredDecalData[m_TotalClusteredDecals].diffuseIndex = m_DiffuseTexIndex;
-					        m_ClusteredDecalData[m_TotalClusteredDecals].normalIndex = m_NormalTexIndex;
-					        m_ClusteredDecalData[m_TotalClusteredDecals].maskIndex = m_MaskTexIndex;
-					        m_TotalClusteredDecals++;
-					    }
+                        DecalData decalData = new DecalData();
+					    decalData.worldToDecal = m_CachedTransforms[decalIndex].inverse;
+					    decalData.normalToWorld = m_InstanceNormalToWorld[instanceCount];
 
+                        lightLoop.GetDecalVolumeDataAndBound(decalData, m_CachedTransforms[decalIndex], worldToView);
+					    
 					    instanceCount++;
 						if (instanceCount == kDrawIndexedBatchSize)
 						{
@@ -314,6 +315,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private Texture m_DiffuseTexture = null;
             private Texture m_NormalTexture = null;
             private Texture m_MaskTexture = null;
+            private float m_Blend = 0;
             private int m_DiffuseTexIndex = -1;
             private int m_NormalTexIndex = -1;
             private int m_MaskTexIndex = -1;
@@ -400,11 +402,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalMesh == null)
                 m_DecalMesh = CoreUtils.CreateCubeMesh(kMin, kMax);
 
-            m_TotalClusteredDecals = 0;
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.Render(renderContext, camera, cmd, lightLoop);
             }            
+        }
+
+        public void SetAtlas(CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(m_DecalAtlasID, m_DecalAtlas.GetTexCache());
         }
     }
 }
