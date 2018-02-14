@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int s_TileSizeClustered = 32;
 
         // feature variants
-        public static int s_NumFeatureVariants = 27;        
+        public static int s_NumFeatureVariants = 27;
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
@@ -269,10 +269,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static Texture2DArray s_DefaultTexture2DArray;
         static Cubemap s_DefaultTextureCube;
-
-        static HDAdditionalReflectionData defaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
-        static HDAdditionalLightData defaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
-        static HDAdditionalCameraData defaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
@@ -769,9 +765,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalLightData.positionWS = light.light.transform.position;
             directionalLightData.color = GetLightColor(light);
 
-            // Caution: This is bad but if additionalData == defaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
-            // So we expect that all light with additionalData == defaultHDAdditionalLightData are currently the one from the preview, light in scene MUST have additionalData
-            directionalLightData.color *= (defaultHDAdditionalLightData == additionalData) ? Mathf.PI : 1.0f;
+            // Caution: This is bad but if additionalData == HDUtils.s_DefaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
+            // So we expect that all light with additionalData == HDUtils.s_DefaultHDAdditionalLightData are currently the one from the preview, light in scene MUST have additionalData
+            directionalLightData.color *= (HDUtils.s_DefaultHDAdditionalLightData == additionalData) ? Mathf.PI : 1.0f;
 
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
             directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
@@ -1356,6 +1352,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 camPosWS = camera.transform.position;
 
+                // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
+                m_CurrentSunLight = null;
+                m_CurrentSunLightShadowIndex = -1;
+
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
                 {
@@ -1407,7 +1407,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         var light = cullResults.visibleLights[lightIndex];
 
-                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning defaultHDAdditionalLightData
+                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(light);
 
                         LightCategory lightCategory = LightCategory.Count;
@@ -1504,8 +1504,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // will be use...)
                     // The lightLoop is in charge, not the shadow pass.
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
-                    m_CurrentSunLight = null;
-                    m_CurrentSunLightShadowIndex = -1;
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
@@ -1524,7 +1522,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(light.light);
 
-                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning defaultHDAdditionalLightData
+                        // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalLightData = GetHDAdditionalLightData(light);
                         var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
 
@@ -1971,7 +1969,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
             if (add == null)
             {
-                add = defaultHDAdditionalReflectionData;
+                add = HDUtils.s_DefaultHDAdditionalReflectionData;
                 add.blendDistancePositive = Vector3.one * probe.blendDistance;
                 add.blendDistanceNegative = add.blendDistancePositive;
                 add.influenceShape = ShapeType.Box;
@@ -1984,7 +1982,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var add = light.light.GetComponent<HDAdditionalLightData>();
             if (add == null)
             {
-                add = defaultHDAdditionalLightData;
+                add = HDUtils.s_DefaultHDAdditionalLightData;
             }
             return add;
         }

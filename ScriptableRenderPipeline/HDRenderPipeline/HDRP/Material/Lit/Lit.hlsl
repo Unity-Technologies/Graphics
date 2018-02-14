@@ -848,8 +848,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 // Precomputed lighting data to send to the various lighting functions
 struct PreLightData
 {
-    // General
-    float clampNdotV; // clamped NdotV
+    float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
 
     // GGX
     float partLambdaV;
@@ -859,29 +858,29 @@ struct PreLightData
     float3 iblR;                     // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblPerceptualRoughness;
 
-    float3 specularFGD;                  // Store preconvoled BRDF for both specular and diffuse
-    float diffuseFGD;
+    float3 specularFGD;              // Store preconvoled BRDF for both specular and diffuse
+    float  diffuseFGD;
 
     // Area lights (17 VGPRs)
     // TODO: 'orthoBasisViewNormal' is just a rotation around the normal and should thus be just 1x VGPR.
-    float3x3 orthoBasisViewNormal; // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
-    float3x3 ltcTransformDiffuse;  // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
-    float3x3 ltcTransformSpecular; // Inverse transformation for GGX                                 (4x VGPRs)
+    float3x3 orthoBasisViewNormal;   // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
+    float3x3 ltcTransformDiffuse;    // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
+    float3x3 ltcTransformSpecular;   // Inverse transformation for GGX                                 (4x VGPRs)
     float    ltcMagnitudeDiffuse;
     float3   ltcMagnitudeFresnel;
 
     // Clear coat
     float    coatPartLambdaV;
     float3   coatIblR;
-    float    coatIblF;                 // Fresnel term for view vector
-    float3x3 ltcTransformCoat;  // Inverse transformation for GGX                                 (4x VGPRs)
+    float    coatIblF;               // Fresnel term for view vector
+    float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
     float    ltcMagnitudeCoatFresnel;
 
     // Refraction
-    float3 transparentRefractV;            // refracted view vector after exiting the shape
-    float3 transparentPositionWS;          // start of the refracted ray after exiting the shape
-    float3 transparentTransmittance;       // transmittance due to absorption
-    float transparentSSMipLevel;           // mip level of the screen space gaussian pyramid for rough refraction
+    float3 transparentRefractV;      // refracted view vector after exiting the shape
+    float3 transparentPositionWS;    // start of the refracted ray after exiting the shape
+    float3 transparentTransmittance; // transmittance due to absorption
+    float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
@@ -890,9 +889,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     ZERO_INITIALIZE(PreLightData, preLightData);
 
     float3 N = bsdfData.normalWS;
-    float  NdotV = saturate(dot(N, V));
-    preLightData.clampNdotV = NdotV; // Caution: The handling of edge cases where N is directed away from the screen is handled during Gbuffer/forward pass, so here do nothing
+    preLightData.NdotV = dot(N, V);
     preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
+
+    float NdotV = ClampNdotV(preLightData.NdotV);
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -977,7 +977,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
     preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
-    preLightData.orthoBasisViewNormal[0] = normalize(V - N * NdotV);
+    preLightData.orthoBasisViewNormal[0] = normalize(V - N * preLightData.NdotV); // Do not clamp NdotV here
     preLightData.orthoBasisViewNormal[2] = N;
     preLightData.orthoBasisViewNormal[1] = cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]);
 
@@ -1143,13 +1143,12 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 {
     float3 N = bsdfData.normalWS;
 
-    float NdotV = preLightData.clampNdotV;
     // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
-
-    float LdotV = dot(L, V);
-    float invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));  // invLenLV = rcp(length(L + V)) - caution about the case where V and L are opposite, it can happen, use max to avoid this
-    float NdotH = saturate((NdotL + NdotV) * invLenLV);
-    float LdotH = saturate(invLenLV * LdotV + invLenLV);
+    float LdotV    = dot(L, V);
+    float invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));            // invLenLV = rcp(length(L + V)), clamp to avoid rsqrt(0) = NaN
+    float NdotH    = saturate((NdotL + preLightData.NdotV) * invLenLV); // Do not clamp NdotV here
+    float LdotH    = saturate(invLenLV * LdotV + invLenLV);
+    float NdotV    = ClampNdotV(preLightData.NdotV);
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     float DV;
@@ -1157,6 +1156,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
         float3 H = (L + V) * invLenLV;
+
         // For anisotropy we must not saturate these values
         float TdotH = dot(bsdfData.tangentWS, H);
         float TdotL = dot(bsdfData.tangentWS, L);
@@ -1303,7 +1303,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.clampNdotV, attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1392,7 +1392,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, preLightData.clampNdotV, attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1958,7 +1958,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #endif
 
     float roughness         = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(preLightData.clampNdotV, indirectAmbientOcclusion, roughness);
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(preLightData.NdotV), indirectAmbientOcclusion, roughness);
     // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
     // Take the min of screenspace specular occlusion and visibility cone specular occlusion
 #if GTAO_MULTIBOUNCE_APPROX

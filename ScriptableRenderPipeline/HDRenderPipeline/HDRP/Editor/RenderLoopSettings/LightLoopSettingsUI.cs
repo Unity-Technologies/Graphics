@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
         public static CED.IDrawer SectionLightLoopSettings = CED.FoldoutGroup(
             "Light Loop Settings",
             (s, p, o) => s.isSectionExpandedLightLoopSettings,
-            true,
+            FoldoutOption.Indent,
             CED.LabelWidth(250, CED.Action(Drawer_SectionLightLoopSettings)));
 
         public AnimBool isSectionExpandedLightLoopSettings { get { return m_AnimBools[0]; } }
