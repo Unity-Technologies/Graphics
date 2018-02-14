@@ -598,7 +598,7 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
                 cbName = "Shadowmap.ClearRect";
                 cmd.BeginSample( cbName );
-                CoreUtils.DrawFullScreen( cmd, m_ClearMat, null, SystemInfo.usesReversedZBuffer ? 0 : 1 );
+                CoreUtils.DrawFullScreen( cmd, m_ClearMat, null, 0 );
                 cmd.EndSample( cbName );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );

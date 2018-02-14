@@ -5,17 +5,13 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowClear"
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
         #include "CoreRP/ShaderLibrary/Common.hlsl"
-
-
-        float4 Frag() : SV_Target { return 0.0.xxxx; }
-
     ENDHLSL
 
     SubShader
     {
         Pass
         {
-            Name "ClearShadow_0"
+            Name "ClearShadow"
             ZTest Always
             Cull Off
             ZWrite On
@@ -27,32 +23,14 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowClear"
 
             float4 Vert_0( uint vertexID : VERTEXID_SEMANTIC ) : SV_POSITION
             {
-                return GetFullScreenTriangleVertexPosition( vertexID, 0.0 );
+                return GetFullScreenTriangleVertexPosition( vertexID, UNITY_RAW_FAR_CLIP_VALUE );
             }
+
+            float4 Frag() : SV_Target{ return 0.0.xxxx; }
+
 
             ENDHLSL
         }
-
-        Pass
-        {
-            Name "ClearShadow_1"
-            ZTest Always
-            Cull Off
-            ZWrite On
-
-            HLSLPROGRAM
-
-            #pragma vertex Vert_1
-            #pragma fragment Frag
-            
-            float4 Vert_1( uint vertexID : VERTEXID_SEMANTIC ) : SV_POSITION
-            {
-                return GetFullScreenTriangleVertexPosition( vertexID, 1.0 );
-            }
-
-            ENDHLSL
-        }
-
     }
     Fallback Off
 }
