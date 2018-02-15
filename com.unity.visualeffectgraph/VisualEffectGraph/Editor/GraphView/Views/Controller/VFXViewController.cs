@@ -529,14 +529,7 @@ namespace UnityEditor.VFX.UI
 
         public void AddGroupNode(Vector2 pos)
         {
-            var ui = graph.UIInfos;
-
-            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(pos, Vector2.one * 100) };
-
-            if (ui.groupInfos != null)
-                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
-            else
-                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+            PrivateAddGroupNode(pos);
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
@@ -1129,6 +1122,29 @@ namespace UnityEditor.VFX.UI
             VFXParameterController controller = null;
             m_ParameterControllers.TryGetValue(parameter, out controller);
             return controller;
+        }
+
+        VFXUI.GroupInfo PrivateAddGroupNode(Vector2 position)
+        {
+            var ui = graph.UIInfos;
+
+            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(position, Vector2.one * 100) };
+
+            if (ui.groupInfos != null)
+                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
+            else
+                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+
+            return ui.groupInfos.Last();
+        }
+
+        public void GroupNodes(IEnumerable<VFXNodeController> nodes)
+        {
+            VFXUI.GroupInfo info = PrivateAddGroupNode(Vector2.zero);
+
+            info.content = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         private VFXGraph m_Graph;

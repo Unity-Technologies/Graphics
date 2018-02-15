@@ -1293,8 +1293,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool canGroupSelection
+        {
+            get
+            {
+                return canCopySelection && !selection.Any(t => t is GroupNode);
+            }
+        }
+
+        void GroupSelection()
+        {
+            controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {
                 evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },
