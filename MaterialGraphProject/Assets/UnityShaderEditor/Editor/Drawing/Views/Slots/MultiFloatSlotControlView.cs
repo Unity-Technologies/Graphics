@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public MultiFloatSlotControlView(INode node, int components, Func<Vector4> get, Action<Vector4> set)
         {
+            AddStyleSheetPath("Styles/Controls/MultiFloatSlotControlView");
             m_Node = node;
             m_Get = get;
             m_Set = set;
