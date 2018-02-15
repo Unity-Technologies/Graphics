@@ -8,18 +8,18 @@ using UnityEditor.VFX;
 namespace UnityEditor
 {
     [InitializeOnLoad]
-    public class VFXAssetEditorUtility
+    public class VisualEffectAssetEditorUtility
     {
         [MenuItem("GameObject/Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             GameObject go = new GameObject("Visual Effect");
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
-            var vfxComp = go.AddComponent<VFXComponent>();
+            var vfxComp = go.AddComponent<VisualEffect>();
 
-            if (Selection.activeObject != null && Selection.activeObject is VFXAsset)
+            if (Selection.activeObject != null && Selection.activeObject is VisualEffectAsset)
             {
-                vfxComp.vfxAsset = Selection.activeObject as VFXAsset;
+                vfxComp.visualEffectAsset = Selection.activeObject as VisualEffectAsset;
                 vfxComp.startSeed = (uint)Random.Range(int.MinValue, int.MaxValue);
             }
 
@@ -27,9 +27,9 @@ namespace UnityEditor
         }
 
         [MenuItem("Assets/Create/VFX", false, 306)]
-        public static void CreateVFXAsset()
+        public static void CreateVisualEffectAsset()
         {
-            VFXAsset asset = new VFXAsset();
+            VisualEffectAsset asset = new VisualEffectAsset();
 
             ProjectWindowUtil.CreateAsset(asset, "New VFX.vfx");
         }

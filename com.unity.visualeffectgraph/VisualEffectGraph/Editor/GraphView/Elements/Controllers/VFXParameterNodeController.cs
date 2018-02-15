@@ -174,7 +174,7 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        public override void DrawGizmos(VFXComponent component)
+        public override void DrawGizmos(VisualEffect component)
         {
             VFXValueGizmo.Draw(this, component);
 

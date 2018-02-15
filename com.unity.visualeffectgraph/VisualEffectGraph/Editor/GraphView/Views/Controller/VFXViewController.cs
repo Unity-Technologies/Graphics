@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
-    internal partial class VFXViewController : Controller<VFXAsset>
+    internal partial class VFXViewController : Controller<VisualEffectAsset>
     {
         private int m_UseCount;
         public int useCount
@@ -884,9 +884,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static Dictionary<VFXAsset, VFXViewController> s_Controllers = new Dictionary<VFXAsset, VFXViewController>();
+        static Dictionary<VisualEffectAsset, VFXViewController> s_Controllers = new Dictionary<VisualEffectAsset, VFXViewController>();
 
-        public static VFXViewController GetController(VFXAsset asset, bool forceUpdate = false)
+        public static VFXViewController GetController(VisualEffectAsset asset, bool forceUpdate = false)
         {
             VFXViewController controller;
             if (!s_Controllers.TryGetValue(asset, out controller))
@@ -914,7 +914,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewController(VFXAsset vfx) : base(vfx)
+        VFXViewController(VisualEffectAsset vfx) : base(vfx)
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 

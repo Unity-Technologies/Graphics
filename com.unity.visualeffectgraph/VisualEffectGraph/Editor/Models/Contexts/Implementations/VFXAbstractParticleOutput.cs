@@ -114,7 +114,7 @@ namespace UnityEditor.VFX
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
-                VFXAsset asset = GetAsset();
+                VisualEffectAsset asset = GetAsset();
                 if (asset != null)
                 {
                     var settings = asset.rendererSettings;

@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
             public Camera camera;
             public Scene scene;
             public RenderTexture texture;
-            public VFXComponent[] vfxComponents;
+            public VisualEffect[] vfxComponents;
             public Animator[] animators;
         }
 
@@ -34,13 +34,13 @@ namespace UnityEditor.VFX.Test
             instance.scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             instance.camera = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Camera>()).First();
 
-            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
+            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VisualEffect>());
             var animator = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<Animator>());
-            var vfxAsset = vfxComponent.Select(o => o.vfxAsset).Where(o => o != null).Distinct();
+            var vfxAsset = vfxComponent.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
 
             foreach (var vfx in vfxAsset)
             {
-                var graph = VFXAssetExtensions.GetOrCreateGraph(vfx);
+                var graph = VisualEffectAssetExtensions.GetOrCreateGraph(vfx);
                 graph.RecompileIfNeeded();
             }
 
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Test
 
         static void StartScene(SceneCaptureInstance instance)
         {
-            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VFXComponent>());
+            var vfxComponent = instance.scene.GetRootGameObjects().SelectMany(o => o.GetComponents<VisualEffect>());
             foreach (var component in vfxComponent)
             {
                 component.pause = false;

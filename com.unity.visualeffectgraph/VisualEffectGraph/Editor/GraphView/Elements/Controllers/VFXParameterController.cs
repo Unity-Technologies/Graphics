@@ -544,7 +544,7 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
-            foreach (var addedController in nodes.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
+            public override void DrawGizmos(VFXComponent component)
             {
                 VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, m_ViewController);
 

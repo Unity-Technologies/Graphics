@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual void DrawGizmos(VFXComponent component)
+        public virtual void DrawGizmos(VisualEffect component)
         {
             foreach (VFXDataAnchorController controller in inputPorts.Cast<VFXDataAnchorController>())
             {
