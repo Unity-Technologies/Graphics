@@ -56,7 +56,10 @@ namespace UnityEditor.VFX
         {
             VFXExpression rand = null;
             if (constant)
-                rand = new VFXExpressionFixedRandom(inputExpression[2], seed == SeedMode.PerParticle);
+            {
+                VFXExpression hash = new VFXExpressionBitwiseXor(inputExpression[2], VFXBuiltInExpression.SystemSeed);
+                rand = new VFXExpressionFixedRandom(hash, seed == SeedMode.PerParticle);
+            }
             else
                 rand = new VFXExpressionRandom(seed == SeedMode.PerParticle);
 

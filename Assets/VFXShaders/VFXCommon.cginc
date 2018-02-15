@@ -6,10 +6,10 @@
 #define RAND2 float2(RAND,RAND)
 #define RAND3 float3(RAND,RAND,RAND)
 #define RAND4 float4(RAND,RAND,RAND,RAND)
-#define FIXED_RAND(h) FixedRand(particleId + systemSeed,h).x
-#define FIXED_RAND2(h) FixedRand(particleId + systemSeed,h).xx
-#define FIXED_RAND3(h) FixedRand(particleId + systemSeed,h).xxx
-#define FIXED_RAND4(h) FixedRand(particleId + systemSeed,h).xxxx
+#define FIXED_RAND(h) FixedRand(particleId ^ systemSeed ^ h)
+#define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
+#define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
+#define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -227,9 +227,9 @@ float Rand(inout uint seed)
     return ToFloat01(seed);
 }
 
-float FixedRand(uint seed,uint hash)
+float FixedRand(uint seed)
 {
-    return ToFloat01(AnotherHash(hash ^ seed));
+    return ToFloat01(AnotherHash(seed));
 }
 
 ///////////////////////////

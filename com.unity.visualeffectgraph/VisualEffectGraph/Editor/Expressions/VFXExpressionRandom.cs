@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
         public VFXExpressionFixedRandom(VFXExpression hash, bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None, hash)
         {}
 
-        public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXGenerateFixedRandomOp; }} // TMP
+        public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXGenerateFixedRandomOp; }}
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("FIXED_RAND({0})", parents[0]);
+            return string.Format("FixedRand(particleId ^ {0})", parents[0]);
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()

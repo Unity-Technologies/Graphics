@@ -452,32 +452,5 @@ namespace UnityEditor.VFX
             var combine = new VFXExpressionCombine(outputComponent);
             return combine;
         }
-
-        /*static public VFXExpression RandomFloatN(VFXExpressionRandom.RandomFlags flags, VFXValueType valueType, params VFXExpression[] seeds)
-        {
-            // Combine all seeds
-            VFXExpression seed = null;
-            if (seeds != null)
-            {
-                seed = seeds[0];
-                for (int i = 0; i < seeds.Length; i++)
-                    seed = new VFXExpressionBitwiseXor(seed, seeds[i]);
-
-                // We only use the first 23 bits in the RNG, so combine the 32 bits of the user seed into the 23 used bits
-                // (userSeed >> 9) ^ (userSeed & 0x1ff)
-                VFXExpression shifted = new VFXExpressionBitwiseRightShift(seed, VFXValue.Constant<uint>(9));
-                VFXExpression anded = new VFXExpressionBitwiseAnd(seed, VFXValue.Constant<uint>(0x1ff));
-                seed = new VFXExpressionBitwiseXor(shifted, anded);
-            }
-
-            // Generate floats 0-1
-            int size = VFXExpression.TypeToSize(valueType);
-            VFXExpression[] components = new VFXExpression[size];
-            for (int i = 0; i < size; i++)
-                components[i] = new VFXExpressionRandom(flags, seed);
-            if (size > 1)
-                return new VFXExpressionCombine(components);
-            return components[0];
-        }*/
     }
 }
