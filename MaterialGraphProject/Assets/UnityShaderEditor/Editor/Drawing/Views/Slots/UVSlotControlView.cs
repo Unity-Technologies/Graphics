@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public UVSlotControlView(UVMaterialSlot slot)
         {
+            AddStyleSheetPath("Styles/Controls/UVSlotControlView");
             m_Slot = slot;
             var enumField = new EnumField(slot.channel);
             enumField.OnValueChanged(OnValueChanged);

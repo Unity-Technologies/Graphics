@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public PortInputView(MaterialSlot slot)
         {
+            AddStyleSheetPath("Styles/PortInputView");
             pickingMode = PickingMode.Ignore;
             ClearClassList();
             m_Slot = slot;
