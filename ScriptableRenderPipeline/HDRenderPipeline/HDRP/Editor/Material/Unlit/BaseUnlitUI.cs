@@ -47,6 +47,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent transparentPrepassText = new GUIContent("Pre Refraction Pass", "Render objects before the refraction pass");
 
+            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("Enable MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
+
             public static string advancedText = "Advanced Options";
         }
 
@@ -120,6 +122,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
         protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
 
+        protected MaterialProperty enableMotionVectorForVertexAnimation = null;
+        protected const string kEnableMotionVectorForVertexAnimation = "_EnableMotionVectorForVertexAnimation";
+
         protected const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
         protected const string kZTestModeDistortion = "_ZTestModeDistortion";
 
@@ -174,6 +179,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent, props, false);
             enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);
+
+            enableMotionVectorForVertexAnimation = FindProperty(kEnableMotionVectorForVertexAnimation, props, false);
         }
 
         void SurfaceTypePopup()
@@ -579,7 +586,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-
+            if (material.HasProperty(kEnableMotionVectorForVertexAnimation))
+            {
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, material.GetFloat(kEnableMotionVectorForVertexAnimation) > 0.0f);
+            }
         }
 
         // Dedicated to emissive - for emissive Enlighten/PVR
