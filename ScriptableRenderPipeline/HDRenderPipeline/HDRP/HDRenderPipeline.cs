@@ -338,7 +338,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsReflectionProbes = true
             };
 
-            //Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
+            Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
 #if UNITY_EDITOR
             SceneViewDrawMode.SetupDrawMode();
