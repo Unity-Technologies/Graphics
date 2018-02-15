@@ -520,7 +520,10 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.positionWS);
-    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.positionWS, inputData.shadowCoord);
+
+#ifdef _SHADOWS_ENABLED
+    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.shadowCoord);
+#endif
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
@@ -543,7 +546,9 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.positionWS);
-    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.positionWS, inputData.shadowCoord);
+#ifdef _SHADOWS_ENABLED
+    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.shadowCoord);
+#endif
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;

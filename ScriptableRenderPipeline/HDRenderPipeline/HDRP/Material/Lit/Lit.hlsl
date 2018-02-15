@@ -139,6 +139,11 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 26 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
+// Additional bits set in 'bsdfData.materialFeatures' to save registers and simplify feature tracking.
+#define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
+#define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
+#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN            ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
+
 uint FeatureFlagsToTileVariant(uint featureFlags)
 {
     for (int i = 0; i < NUM_FEATURE_VARIANTS; i++)
@@ -229,7 +234,8 @@ void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData
     bsdfData.diffusionProfile = diffusionProfile;
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
     bsdfData.subsurfaceMask = subsurfaceMask;
-    // Note: ApplySubsurfaceScatteringTexturingMode also test the diffusionProfile for updating diffuseColor based on SSS
+    bsdfData.materialFeatures |= MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
+    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(bsdfData.diffusionProfile) << MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
 // Assume that bsdfData.diffusionProfile is init
@@ -253,20 +259,21 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
                                                             bsdfData.thickness);
 #endif
 
-    bsdfData.useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+    bsdfData.materialFeatures |= useThinObjectMode ? MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN : 0;
 
-    if (bsdfData.useThickObjectMode)
+    if (useThinObjectMode)
+    {
+        // Apply no displacement.
+        bsdfData.thickness = 0;
+    }
+    else
     {
         // Compute the thickness in world units along the normal.
         float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
         float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
 
         bsdfData.thickness = thicknessInUnits;
-    }
-    else
-    {
-        // Apply no displacement.
-        bsdfData.thickness = 0;
     }
 
 }
@@ -1037,7 +1044,8 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData,
 {
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
-        bsdfData.diffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
+        uint   texturingMode  = (bsdfData.materialFeatures >> MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
+        bsdfData.diffuseColor = ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
     }
 
 #ifdef DEBUG_DISPLAY
@@ -1075,11 +1083,9 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // Subsurface Scattering functions
 //-----------------------------------------------------------------------------
 
-bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
+bool ShouldOutputSplitLighting(BSDFData bsdfData)
 {
-    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
-    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
-    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID && bsdfData.subsurfaceMask != 0 && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+    return HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING);
 }
 
 //-----------------------------------------------------------------------------
@@ -1248,7 +1254,8 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
     float negatedNdotL = -NdotL;
 
     // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
-    float backNdotL = bsdfData.useThickObjectMode ? negatedNdotL : wrappedNdotL;
+    bool  useThinObjectMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN);
+    float backNdotL         = useThinObjectMode ? wrappedNdotL : negatedNdotL;
 
     // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1973,13 +1980,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                                 lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 #endif
 
-    float3 modifiedDiffuseColor;
-    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
-    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING) && bsdfData.subsurfaceMask != 0)
-        modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(bsdfData.diffuseColor, bsdfData.diffusionProfile);
-    else
-        modifiedDiffuseColor = bsdfData.diffuseColor;
+    uint   texturingMode        = (bsdfData.materialFeatures >> MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
+    float3 modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLigthing().
