@@ -1,0 +1,89 @@
+GraphInspectorView {
+    background-color: rgb(56, 56, 56);
+    flex-direction: column;
+    justify-content: space-between;
+    position-type: absolute;
+    position-right: 0;
+    position-top: 0;
+    width: 400;
+    min-width: 300;
+}
+
+GraphInspectorView * {
+    font-size: 11;
+}
+
+GraphInspectorView > #top > #header {
+    background-color: rgb(64, 64, 64);
+    border-color: rgb(79, 79, 79);
+    border-bottom-width: 1;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+GraphInspectorView > #top > #header > #title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+    padding-left: 16;
+    padding-right: 16;
+    padding-top: 10;
+    padding-bottom: 10;
+}
+
+GraphInspectorView > #top > #content > #selectionCount {
+    text-color: rgb(180, 180, 180);
+    padding-left: 16;
+    padding-right: 16;
+    padding-top: 10;
+    padding-bottom: 10;
+}
+
+GraphInspectorView > #bottom {
+    margin-bottom: 20;
+}
+
+GraphInspectorView > #bottom > #preview {
+    max-height: 400;
+    background-color: rgb(79, 79, 79);
+}
+
+GraphInspectorView > #top > #properties {
+    border-color: rgb(41, 41, 41);
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    margin-top: 8;
+    margin-bottom: 8;
+    margin-left: 8;
+    margin-right: 8;
+}
+
+GraphInspectorView > #top > #properties > #header {
+    border-color: rgb(41, 41, 41);
+    border-bottom-width: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+GraphInspectorView > #top > #properties > #header > #title {
+    text-color: rgb(180, 180, 180);
+    font-style: bold;
+    padding-top: 8;
+    padding-bottom: 8;
+    padding-left: 8;
+    padding-right: 8;
+}
+
+GraphInspectorView > #top > #properties > #header > #addButton {
+    height: 24;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 8;
+}
+
+GraphInspectorView > #top > #properties > #items {
+    padding-bottom: 4;
+}

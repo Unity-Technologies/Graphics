@@ -15,6 +15,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView, IDropTarget
     {
+        public MaterialGraphView()
+        {
+            AddStyleSheetPath("Styles/MaterialGraphView");
+            serializeGraphElements = SerializeGraphElementsImplementation;
+            canPasteSerializedData = CanPasteSerializedDataImplementation;
+            unserializeAndPaste = UnserializeAndPasteImplementation;
+            deleteSelection = DeleteSelectionImplementation;
+        }
+
+        public MaterialGraphView(AbstractMaterialGraph graph) : this()
+        {
+            this.graph = graph;
+        }
+
         public AbstractMaterialGraph graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
 
@@ -180,19 +194,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
 
         public OnSelectionChanged onSelectionChanged;
-
-        public MaterialGraphView()
-        {
-            serializeGraphElements = SerializeGraphElementsImplementation;
-            canPasteSerializedData = CanPasteSerializedDataImplementation;
-            unserializeAndPaste = UnserializeAndPasteImplementation;
-            deleteSelection = DeleteSelectionImplementation;
-        }
-
-        public MaterialGraphView(AbstractMaterialGraph graph) : this()
-        {
-            this.graph = graph;
-        }
 
         void SelectionChanged()
         {

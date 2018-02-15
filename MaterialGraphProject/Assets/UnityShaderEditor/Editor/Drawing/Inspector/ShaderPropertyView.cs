@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             this.graph = graph;
             this.property = property;
-
+            AddStyleSheetPath("Styles/ShaderPropertyView");
 
             var displayNameField = new TextField { name = "displayName", value = property.displayName };
             displayNameField.OnValueChanged(OnDisplayNameChanged);

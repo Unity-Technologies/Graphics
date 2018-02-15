@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             this.clippingOptions = ClippingOptions.ClipAndCacheContents;
             m_Graph = graph;
 
-            AddStyleSheetPath("Styles/MaterialGraph");
+            AddStyleSheetPath("Styles/MasterPreviewView");
 
             m_PreviewRenderHandle = previewManager.masterRenderData;
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
