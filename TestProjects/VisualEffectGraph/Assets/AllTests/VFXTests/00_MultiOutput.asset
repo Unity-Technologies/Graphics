@@ -2641,7 +2641,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 0}
   m_saved: 1
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -3104,7 +3104,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 22
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: b1a24d92f82550d438a893565db0bc05, type: 3}
+      processor: {fileID: 7200000, guid: 839d35ebaa898804f99bd957e7a0d056, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -3119,7 +3119,7 @@ VFXAsset:
       - index: 32
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: 870df579db5689e4aab1e0a661955c70, type: 3}
+      processor: {fileID: 7200000, guid: a1954f41258935041b49506c38771974, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3130,7 +3130,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 78ffc7f5c501d8543bbd2774cd488fc0, type: 3}
+      processor: {fileID: 4800000, guid: 87a0615d5ba52fd4daf3338100bb9c46, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3143,7 +3143,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 76b5d835ad9d9fe48941cd47e50ffff0, type: 3}
+      processor: {fileID: 4800000, guid: d404edba195e88a48aef55e66a3e7bdf, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3158,7 +3158,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a18bc148b93c33843b87a69ae2b9af81, type: 3}
+      processor: {fileID: 4800000, guid: c0afe8e5dd3015a42850a6d489746e5d, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -3175,7 +3175,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c093017640392bb4897e4a3e9a2a3c49, type: 3}
+      processor: {fileID: 4800000, guid: 6655d6b69e20da7468eb49115b693651, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
