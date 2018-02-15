@@ -97,8 +97,8 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
-    o.shadowCoord = ComputeShadowCoord(o.posWS.xyz);
+#ifdef _SHADOWS_ENABLED
+    o.shadowCoord = ComputeScreenPos(o.clipPos);
 #endif
 
     return o;

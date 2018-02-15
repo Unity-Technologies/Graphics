@@ -26,10 +26,13 @@ CBUFFER_END
 // helper functions
 // ----------------------------------------------------------------------------
 
-// Returns the modified albedo (diffuse color) for materials with subsurface scattering.
-// Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
-float3 ApplySubsurfaceScatteringTexturingMode(float3 color, int diffusionProfile)
+// 0: [ albedo = albedo ]
+// 1: [ albedo = 1 ]
+// 2: [ albedo = sqrt(albedo) ]
+uint GetSubsurfaceScatteringTexturingMode(int diffusionProfile)
 {
+    uint texturingMode = 0;
+
 #if defined(SHADERPASS) && (SHADERPASS == SHADERPASS_SUBSURFACE_SCATTERING)
     // If the SSS pass is executed, we know we have SSS enabled.
     bool enableSss = true;
@@ -37,25 +40,37 @@ float3 ApplySubsurfaceScatteringTexturingMode(float3 color, int diffusionProfile
     bool enableSss = _EnableSubsurfaceScattering != 0;
 #endif
 
-    // We can enter in this function even if SSS is not enabled in case of material classification per tile
-    // (If there is SSS inside the tile we need to enable the feature for the whole tile with neutral value)
-    // thus why we test != DIFFUSION_PROFILE_NEUTRAL_ID here, to be sure neutral profile don't affect the scene
-    if (enableSss && diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID)
+    if (enableSss)
     {
         bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
 
         if (performPostScatterTexturing)
         {
             // Post-scatter texturing mode: the albedo is only applied during the SSS pass.
-        #if !defined(SHADERPASS) || (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
-            color = float3(1, 1, 1);
+        #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SUBSURFACE_SCATTERING)
+            texturingMode = 1;
         #endif
         }
         else
         {
             // Pre- and post- scatter texturing mode.
-            color = sqrt(color);
+            texturingMode = 2;
         }
+    }
+
+    return texturingMode;
+}
+
+// Returns the modified albedo (diffuse color) for materials with subsurface scattering.
+// See GetSubsurfaceScatteringTexturingMode() above for more details.
+// Ref: Advanced Techniques for Realistic Real-Time Skin Rendering.
+float3 ApplySubsurfaceScatteringTexturingMode(uint texturingMode, float3 color)
+{
+    switch (texturingMode)
+    {
+        case 2:  color = sqrt(color); break;
+        case 1:  color = 1;           break;
+        default: color = color;       break;
     }
 
     return color;
