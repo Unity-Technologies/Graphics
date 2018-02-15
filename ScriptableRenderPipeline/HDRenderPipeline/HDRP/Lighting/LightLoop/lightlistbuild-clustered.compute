@@ -25,6 +25,7 @@ float4x4 g_mInvScrProjection;
 float4x4 g_mScrProjection;
 uint g_isOrthographic;
 int _EnvLightIndexShift;
+int _DensityVolumeIndexShift;
 
 float g_fClustScale;
 float g_fClustBase;
@@ -353,9 +354,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// to make it work correctly
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DensityVolumeIndexShift;
 
-	int categoryListCount[LIGHTCATEGORY_COUNT]; // direct light count and reflection lights
+	int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes and density volumes
 	ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)
@@ -373,7 +375,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 			{
 				uint lightCategory = _LightVolumeData[coarseList[l]].lightCategory;
 				++categoryListCount[lightCategory];
-				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
+				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];
 			}
 		}
 
