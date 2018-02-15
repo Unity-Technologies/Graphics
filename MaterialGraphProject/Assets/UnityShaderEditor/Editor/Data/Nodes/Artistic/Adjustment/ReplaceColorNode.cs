@@ -21,17 +21,15 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] ColorRGB From,
             [Slot(2, Binding.None)] ColorRGB To,
             [Slot(3, Binding.None)] Vector1 Range,
+            [Slot(5, Binding.None)] Vector1 Fuzziness,
             [Slot(4, Binding.None)] out Vector3 Out)
         {
-            Out = Vector2.zero;
+            Out = Vector3.zero;
             return
                 @"
 {
-    {precision}3 col = In;
     {precision} Distance = distance(From, In);
-    if(Distance <= Range)
-        col = To;
-    Out = col;
+    Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));
 }";
         }
     }

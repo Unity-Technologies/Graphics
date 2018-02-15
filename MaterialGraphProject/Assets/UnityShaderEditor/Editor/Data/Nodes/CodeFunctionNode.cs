@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderGraph
                 case Binding.MeshUV3:
                     return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV3);
                 case Binding.ScreenPosition:
-                    return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName);
+                    return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName, ScreenSpaceType.Default);
                 case Binding.ObjectSpaceViewDirection:
                     return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object);
                 case Binding.ViewSpaceViewDirection:

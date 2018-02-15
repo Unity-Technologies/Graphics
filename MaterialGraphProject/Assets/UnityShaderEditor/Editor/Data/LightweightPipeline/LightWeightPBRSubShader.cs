@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,12 +6,20 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class LightWeightPBRSubShader
+    [Serializable]
+    public class LightWeightPBRSubShader : IPBRSubShader
     {
-        Pass m_ForwardPassMetallic = new Pass()
+        struct Pass
+        {
+            public string Name;
+            public List<int> VertexShaderSlots;
+            public List<int> PixelShaderSlots;
+        }
+
+        Pass m_ForwardPassMetallic = new Pass
         {
             Name = "LightweightForward",
-            PixelShaderSlots = new List<int>()
+            PixelShaderSlots = new List<int>
             {
                 PBRMasterNode.AlbedoSlotId,
                 PBRMasterNode.NormalSlotId,
@@ -22,14 +31,7 @@ namespace UnityEditor.ShaderGraph
                 PBRMasterNode.AlphaThresholdSlotId
             }
         };
-
-        struct Pass
-        {
-            public string Name;
-            public List<int> VertexShaderSlots;
-            public List<int> PixelShaderSlots;
-        }
-
+        
         Pass m_ForwardPassSpecular = new Pass()
         {
             Name = "LightweightForward",
@@ -198,15 +200,16 @@ namespace UnityEditor.ShaderGraph
             return resultPass;
         }
 
-        public IEnumerable<string> GetSubshader(PBRMasterNode masterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
         {
+            var masterNode = inMasterNode as PBRMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = MasterNode.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
+            var materialOptions = ShaderGenerator.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
@@ -227,7 +230,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-            return new[] { subShader.GetShaderString(0) };
+            return subShader.GetShaderString(0);
         }
     }
 }

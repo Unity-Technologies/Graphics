@@ -1,3 +1,5 @@
+artifacts/**
+build/**
 MaterialGraphProject/.vs
 MaterialGraphProject/.vscode
 MaterialGraphProject/Library
