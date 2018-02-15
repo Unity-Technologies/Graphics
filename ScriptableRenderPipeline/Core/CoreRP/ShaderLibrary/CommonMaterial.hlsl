@@ -30,7 +30,7 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 // Note: making the constant too small results in aliasing.
 real ClampRoughnessForAnalyticalLights(real roughness)
 {
-    return max(roughness, 1.0/1024.0);
+    return max(roughness, 1.0 / 1024.0);
 }
 
 void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)
@@ -141,7 +141,7 @@ real3 ComputeTriplanarWeights(real3 normal)
     // Determine the blend weights for the 3 planar projections.
     real3 blendWeights = abs(normal);
     // Tighten up the blending zone
-    blendWeights = (blendWeights - 0.2) * 7.0;
+    blendWeights = (blendWeights - 0.2);
     blendWeights = blendWeights * blendWeights * blendWeights; // pow(blendWeights, 3);
     // Force weights to sum to 1.0 (very important!)
     blendWeights = max(blendWeights, real3(0.0, 0.0, 0.0));
