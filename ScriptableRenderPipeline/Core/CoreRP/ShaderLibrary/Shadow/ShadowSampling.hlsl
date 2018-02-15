@@ -35,14 +35,13 @@ real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffse
 //
 //					3x3 tent PCF sampling (4 taps)
 //
-real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadOffset, real4 textureSize, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp?
-	real4 shadowMapTexture_TexelSize = real4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -59,14 +58,13 @@ real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadO
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOffset, real4 textureSize, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp?
-	real4 shadowMapTexture_TexelSize = real4(texelSizeRcp.xy, rcp(texelSizeRcp.xy));
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -86,14 +84,13 @@ real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOf
 //
 //					5x5 tent PCF sampling (9 taps)
 //
-real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadOffset, real4 textureSize, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp?
-	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp( texelSizeRcp.xy ) );
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -110,14 +107,13 @@ real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadO
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOffset, real4 textureSize, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp
-	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp(texelSizeRcp.xy ) );
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -130,7 +126,7 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 
 
 #if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
-	// the loops are only there to prevent the compiler form coalescing all 16 texture fetches which increases register usage
+	// the loops are only there to prevent the compiler form coalescing all 9 texture fetches which increases register usage
 	int i;
 	[loop]
 	for( i = 0; i < 1; i++ )
@@ -163,14 +159,13 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 //
 //					7x7 tent PCF sampling (16 taps)
 //
-real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadOffset, real4 textureSize, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp
-	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp(texelSizeRcp.xy ) );
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -188,14 +183,13 @@ real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadO
 	return shadow;
 }
 
-real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOffset, real4 textureSize, real4 texelSizeRcp, real3 coord, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real2 params     = asfloat( shadowContext.payloads[payloadOffset].xy );
 	real  depthBias  = params.x;
 	payloadOffset++;
 
-	// TODO move this to shadow data to avoid the rcp
-	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, rcp( texelSizeRcp.xy ) );
+	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
 	// add the depth bias
 	coord.z += depthBias;
@@ -519,9 +513,9 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
 	{
 	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
-	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
+	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_VSM				: return SampleShadow_VSM_1tap(  shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx );
 	case GPUSHADOWALGORITHM_EVSM_2			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, false );
 	case GPUSHADOWALGORITHM_EVSM_4			: return SampleShadow_EVSM_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, texIdx, sampIdx, true );
@@ -538,9 +532,9 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
 	{
 	case GPUSHADOWALGORITHM_PCF_1TAP		: return SampleShadow_PCF_1tap( shadowContext, payloadOffset, posTC, shadowData.slice, tex, compSamp );
 	case GPUSHADOWALGORITHM_PCF_9TAP		: return SampleShadow_PCF_9tap_Adaptive( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
-	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_3X3	: return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_5X5	: return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
+	case GPUSHADOWALGORITHM_PCF_TENT_7X7	: return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
 
 	default: return 1.0;
 	}
