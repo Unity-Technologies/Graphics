@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public IntegerControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
+            AddStyleSheetPath("Styles/Controls/IntegerControlView");
             m_Node = node;
             m_PropertyInfo = propertyInfo;
             if (propertyInfo.PropertyType != typeof(int))

@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             m_Graph = graph;
 
-            AddStyleSheetPath("Styles/MaterialGraph");
+            AddStyleSheetPath("Styles/GraphInspectorView");
 
             var topContainer = new VisualElement {name = "top"};
             {

@@ -55,6 +55,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
+            AddStyleSheetPath("Styles/Controls/ToggleControlView");
+
             if (propertyInfo.PropertyType != typeof(Toggle))
                 throw new ArgumentException("Property must be a Toggle.", "propertyInfo");
             
