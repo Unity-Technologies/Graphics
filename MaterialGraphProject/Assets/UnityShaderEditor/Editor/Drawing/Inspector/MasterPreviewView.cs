@@ -153,6 +153,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewRenderHandle.renderTexture.Release();
             Object.DestroyImmediate(m_PreviewRenderHandle.renderTexture);
             m_PreviewRenderHandle.renderTexture = new RenderTexture(descriptor);
+
+            DirtyMasterNode(ModificationScope.Node);
         }
 
         public void UpdateRenderTextureOnNextLayoutChange()
