@@ -3497,7 +3497,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 35
+    - op: 36
       valueIndex: 10
       data[0]: 4
       data[1]: -1
@@ -3509,7 +3509,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 12
       data[0]: 4
       data[1]: -1
@@ -3533,7 +3533,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 16
       data[0]: 4
       data[1]: -1
@@ -3593,7 +3593,7 @@ VisualEffectAsset:
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 38
       valueIndex: 26
       data[0]: 18
       data[1]: 21
@@ -3611,13 +3611,13 @@ VisualEffectAsset:
       data[1]: 17
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 38
       valueIndex: 32
       data[0]: 20
       data[1]: 21
       data[2]: -1
       data[3]: -1
-    - op: 38
+    - op: 39
       valueIndex: 36
       data[0]: 19
       data[1]: -1
@@ -3743,7 +3743,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 62
       data[0]: 22
       data[1]: -1
@@ -3755,13 +3755,13 @@ VisualEffectAsset:
       data[1]: 11
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 64
       data[0]: 22
       data[1]: -1
       data[2]: 2
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 65
       data[0]: 22
       data[1]: -1
@@ -3773,19 +3773,19 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 67
       data[0]: 25
       data[1]: -1
       data[2]: 1
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 68
       data[0]: 25
       data[1]: -1
       data[2]: 0
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 69
       data[0]: 25
       data[1]: -1
@@ -4411,3 +4411,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

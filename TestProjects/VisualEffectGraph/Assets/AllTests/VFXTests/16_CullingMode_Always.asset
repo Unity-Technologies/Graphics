@@ -4481,7 +4481,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 38
       valueIndex: 46
       data[0]: 25
       data[1]: 21
@@ -4505,13 +4505,13 @@ VisualEffectAsset:
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 53
       data[0]: 26
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 36
+    - op: 37
       valueIndex: 54
       data[0]: 30
       data[1]: 29
@@ -4553,7 +4553,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 63
       data[0]: 32
       data[1]: -1
@@ -4571,7 +4571,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 66
       data[0]: 26
       data[1]: -1
@@ -4595,13 +4595,13 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 70
       data[0]: 32
       data[1]: -1
       data[2]: 1
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 71
       data[0]: 32
       data[1]: -1
@@ -5076,3 +5076,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 0
+  m_RuntimeVersion: 1

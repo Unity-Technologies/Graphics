@@ -7343,13 +7343,13 @@ VisualEffectAsset:
       data[1]: 18
       data[2]: -1
       data[3]: 1
-    - op: 39
+    - op: 40
       valueIndex: 22
       data[0]: 17
       data[1]: -1
       data[2]: -1
       data[3]: 0
-    - op: 39
+    - op: 40
       valueIndex: 23
       data[0]: 15
       data[1]: -1
@@ -7673,7 +7673,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 7
-    - op: 38
+    - op: 39
       valueIndex: 104
       data[0]: 66
       data[1]: -1
@@ -8297,3 +8297,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

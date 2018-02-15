@@ -3192,7 +3192,7 @@ VisualEffectAsset:
       data[1]: 6
       data[2]: -1
       data[3]: 3
-    - op: 44
+    - op: 45
       valueIndex: 22
       data[0]: 8
       data[1]: 9
@@ -3204,7 +3204,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 6
-    - op: 35
+    - op: 36
       valueIndex: 24
       data[0]: 13
       data[1]: -1
@@ -3216,19 +3216,19 @@ VisualEffectAsset:
       data[1]: 11
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 26
       data[0]: 13
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 27
       data[0]: 10
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 28
       data[0]: 10
       data[1]: -1
@@ -3264,13 +3264,13 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 34
       data[0]: 10
       data[1]: -1
       data[2]: 0
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 35
       data[0]: 13
       data[1]: -1
@@ -3282,7 +3282,7 @@ VisualEffectAsset:
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 44
+    - op: 45
       valueIndex: 37
       data[0]: 15
       data[1]: 9
@@ -3294,7 +3294,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 44
+    - op: 45
       valueIndex: 39
       data[0]: 21
       data[1]: 9
@@ -3348,7 +3348,7 @@ VisualEffectAsset:
       data[1]: 27
       data[2]: -1
       data[3]: 1
-    - op: 58
+    - op: 59
       valueIndex: 48
       data[0]: -1
       data[1]: -1
@@ -3360,7 +3360,7 @@ VisualEffectAsset:
       data[1]: 23
       data[2]: -1
       data[3]: 1
-    - op: 59
+    - op: 60
       valueIndex: 50
       data[0]: 29
       data[1]: -1
@@ -4004,3 +4004,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

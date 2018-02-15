@@ -4878,19 +4878,19 @@ VisualEffectAsset:
       data[1]: 4
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 12
       data[0]: 7
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 13
       data[0]: 7
       data[1]: -1
       data[2]: 1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 14
       data[0]: 7
       data[1]: -1
@@ -4980,7 +4980,7 @@ VisualEffectAsset:
       data[1]: 18
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 36
       data[0]: 19
       data[1]: -1
@@ -4998,19 +4998,19 @@ VisualEffectAsset:
       data[1]: 24
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 41
       data[0]: 19
       data[1]: -1
       data[2]: 1
       data[3]: 2
-    - op: 35
+    - op: 36
       valueIndex: 42
       data[0]: 27
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 43
       data[0]: 27
       data[1]: -1
@@ -5064,13 +5064,13 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 52
       data[0]: 27
       data[1]: -1
       data[2]: 0
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 53
       data[0]: 24
       data[1]: -1
@@ -5100,7 +5100,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 58
       data[0]: 24
       data[1]: -1
@@ -5124,7 +5124,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 62
       data[0]: 24
       data[1]: -1
@@ -5334,7 +5334,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 39
+    - op: 40
       valueIndex: 115
       data[0]: 46
       data[1]: -1
@@ -5758,3 +5758,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1
