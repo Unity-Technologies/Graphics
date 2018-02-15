@@ -28,10 +28,10 @@ GraphEditorView > #content > #inspector {
     edge-input-color: #8FC1DF;
 }
 
-.edge.fromTexture2D {
+.edge.fromTexture2D, .edge.fromCubemap {
     edge-output-color: #FF8B8B;
 }
-.edge.toTexture2D {
+.edge.toTexture2D, .edge.toCubemap {
     edge-input-color: #FF8B8B;
 }
 
@@ -61,6 +61,13 @@ GraphEditorView > #content > #inspector {
 }
 .edge.toVector1 {
     edge-input-color: #84E4E7;
+}
+
+.edge.fromBoolean {
+    edge-output-color: #9481E6;
+}
+.edge.toBoolean {
+    edge-input-color: #9481E6;
 }
 
 #resizeBorderFrame > .resize {
