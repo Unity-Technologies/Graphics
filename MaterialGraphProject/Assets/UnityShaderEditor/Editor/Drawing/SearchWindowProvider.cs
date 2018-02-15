@@ -56,15 +56,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             var nodeEntries = new List<NodeEntry>();
-            foreach (var type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))) && type != typeof(PropertyNode))
+                foreach (var type in assembly.GetTypes())
                 {
-                    var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                    if (attrs != null && attrs.Length > 0)
+                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))) && type != typeof(PropertyNode))
                     {
-                        var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                        AddEntries(node, attrs[0].title, nodeEntries);
+                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
+                        if (attrs != null && attrs.Length > 0)
+                        {
+                            var node = (AbstractMaterialNode)Activator.CreateInstance(type);
+                            AddEntries(node, attrs[0].title, nodeEntries);
+                        }
                     }
                 }
             }
