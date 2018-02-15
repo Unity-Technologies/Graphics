@@ -141,7 +141,7 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 
 #define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
 #define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
-#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THICK           ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
+#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN            ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
 {
@@ -234,7 +234,7 @@ void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
     bsdfData.subsurfaceMask = subsurfaceMask;
     bsdfData.materialFeatures |= (_EnableSubsurfaceScattering != 0) ? MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING : 0;
-    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfile) << MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET;
+    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(bsdfData.diffusionProfile) << MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
 // Assume that bsdfData.diffusionProfile is init
@@ -258,20 +258,21 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
                                                             bsdfData.thickness);
 #endif
 
-    bsdfData.useThickObjectMode = !IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+    bsdfData.materialFeatures |= useThinObjectMode ? MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN : 0;
 
-    if (bsdfData.useThickObjectMode)
+    if (useThinObjectMode)
+    {
+        // Apply no displacement.
+        bsdfData.thickness = 0;
+    }
+    else
     {
         // Compute the thickness in world units along the normal.
         float thicknessInMeters = bsdfData.thickness * METERS_PER_MILLIMETER;
         float thicknessInUnits  = thicknessInMeters * _WorldScales[bsdfData.diffusionProfile].y;
 
         bsdfData.thickness = thicknessInUnits;
-    }
-    else
-    {
-        // Apply no displacement.
-        bsdfData.thickness = 0;
     }
 
 }
@@ -1246,7 +1247,8 @@ float3 EvaluateTransmission(BSDFData bsdfData, float NdotL, float NdotV, float a
     float negatedNdotL = -NdotL;
 
     // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
-    float backNdotL = bsdfData.useThickObjectMode ? negatedNdotL : wrappedNdotL;
+    bool  useThinObjectMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN);
+    float backNdotL         = useThinObjectMode ? wrappedNdotL : negatedNdotL;
 
     // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
