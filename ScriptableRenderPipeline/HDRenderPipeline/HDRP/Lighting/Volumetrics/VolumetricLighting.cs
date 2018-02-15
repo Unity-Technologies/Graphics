@@ -392,9 +392,9 @@ public class VolumetricLightingModule
                                                                             : VolumeProperties.GetNeutralVolumeProperties();
 
         float asymmetry = globalVolume != null ? globalVolume.volumeParameters.asymmetry : 0;
-        cmd.SetGlobalVector(HDShaderIDs._Global_Scattering, globalVolumeProperties.scattering);
-        cmd.SetGlobalFloat( HDShaderIDs._Global_Extinction, globalVolumeProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._Global_Asymmetry,  asymmetry);
+        cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, globalVolumeProperties.scattering);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, globalVolumeProperties.extinction);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
         ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
