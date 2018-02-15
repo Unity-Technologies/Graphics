@@ -1,13 +1,14 @@
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 3x3")]
     public class Matrix3Node : AbstractMaterialNode, IGeneratesBodyCode
     {
-        const int kOutputSlotId = 0;
+        public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";
 
         [SerializeField]
@@ -45,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             if (value == row)
                 return;
             row = value;
-            Dirty(ModificationScope.Graph);
+            Dirty(ModificationScope.Node);
         }
 
         public Matrix3Node()
@@ -56,67 +57,84 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Matrix3MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+            AddSlot(new Matrix3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public string propertyName
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            get { return string.Format("{0}_{1}_Uniform", name, GetVariableNameForNode()); }
-        }
+            if (!generationMode.IsPreview())
+                return;
 
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return propertyName;
+            properties.AddShaderProperty(new Vector3ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_m0", GetVariableNameForNode()),
+                generatePropertyBlock = false,
+                value = m_Row0
+            });
+
+            properties.AddShaderProperty(new Vector3ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_m1", GetVariableNameForNode()),
+                generatePropertyBlock = false,
+                value = m_Row1
+            });
+
+            properties.AddShaderProperty(new Vector3ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_m2", GetVariableNameForNode()),
+                generatePropertyBlock = false,
+                value = m_Row2
+            });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            //if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-            //    return;
-
-            visitor.AddShaderChunk(precision + "3x3 " + propertyName + " = " + precision + "3x3 (" + m_Row0.x + ", " + m_Row0.y + ", " + m_Row0.z + ", " + m_Row1.x + ", " + m_Row1.y + ", " + m_Row1.z + ", " + m_Row2.x + ", " + m_Row2.y + ", " + m_Row2.z + ");", true);
-        }
-
-        [SerializeField]
-        string m_Description = string.Empty;
-
-        public string description
-        {
-            get
+            var sb = new ShaderStringBuilder();
+            if (!generationMode.IsPreview())
             {
-                return string.IsNullOrEmpty(m_Description) ? name : m_Description;
+                sb.AppendLine("{0}3 _{1}_m0 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), 
+                    NodeUtils.FloatToShaderValue(m_Row0.x), 
+                    NodeUtils.FloatToShaderValue(m_Row0.y), 
+                    NodeUtils.FloatToShaderValue(m_Row0.z));
+                sb.AppendLine("{0}3 _{1}_m1 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), 
+                    NodeUtils.FloatToShaderValue(m_Row1.x), 
+                    NodeUtils.FloatToShaderValue(m_Row1.y), 
+                    NodeUtils.FloatToShaderValue(m_Row1.z));
+                sb.AppendLine("{0}3 _{1}_m2 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), 
+                    NodeUtils.FloatToShaderValue(m_Row2.x), 
+                    NodeUtils.FloatToShaderValue(m_Row2.y), 
+                    NodeUtils.FloatToShaderValue(m_Row2.z));
             }
-            set { m_Description = value; }
+            sb.AppendLine("{0}3x3 {1} = {0}3x3 (_{1}_m0.x, _{1}_m0.y, _{1}_m0.z, _{1}_m1.x, _{1}_m1.y, _{1}_m1.z, _{1}_m2.x, _{1}_m2.y, _{1}_m2.z);",
+                precision, GetVariableNameForNode());
+            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
-        // TODO - Remove Property entries everywhere?
-        // Matrix cant be a shader property
-        /*public override PropertyType propertyType
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            get { return PropertyType.Matrix2; }
-        }*/
-
-        /*public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
-        }*/
-
-        /*public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk(precision + "2 " + propertyName + ";", true);
-        }*/
-
-        /*public override PreviewProperty GetPreviewProperty()
-        {
-            return new PreviewProperty
+            properties.Add(new PreviewProperty(PropertyType.Vector3)
             {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Vector2,
-                m_Vector3 = m_Value
-            };
-        }*/
+                name = string.Format("_{0}_m0", GetVariableNameForNode()),
+                vector4Value = m_Row0
+            });
+
+            properties.Add(new PreviewProperty(PropertyType.Vector3)
+            {
+                name = string.Format("_{0}_m1", GetVariableNameForNode()),
+                vector4Value = m_Row1
+            });
+
+            properties.Add(new PreviewProperty(PropertyType.Vector3)
+            {
+                name = string.Format("_{0}_m2", GetVariableNameForNode()),
+                vector4Value = m_Row2
+            });
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return GetVariableNameForNode();
+        }
     }
 }

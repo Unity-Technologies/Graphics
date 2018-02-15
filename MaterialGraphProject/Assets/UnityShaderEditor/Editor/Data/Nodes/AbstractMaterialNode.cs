@@ -243,29 +243,21 @@ namespace UnityEditor.ShaderGraph
             return inputSlot.GetDefaultValue(generationMode);
         }
 
-        private static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
+        public static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
             if (from == to)
                 return true;
 
             var fromCount = SlotValueHelper.GetChannelCount(from);
             var toCount = SlotValueHelper.GetChannelCount(to);
-
-
-            // can convert from v1 vectors :)
-            if (from == ConcreteSlotValueType.Vector1 && toCount > 0)
+            
+            if (toCount > 0 && fromCount > 0)
                 return true;
-
-            if (toCount == 0)
-                return false;
-
-            if (toCount <= fromCount)
-                return true;
-
+            
             return false;
         }
 
-        private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
+        public virtual ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
 
@@ -285,6 +277,26 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
             return ConcreteSlotValueType.Vector1;
+        }
+
+        public virtual ConcreteSlotValueType ConvertDynamicMatrixInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
+        {
+            var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
+
+            var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
+            switch (inputTypesDistinct.Count)
+            {
+                case 0:
+                    return ConcreteSlotValueType.Matrix2;
+                case 1:
+                    return inputTypesDistinct.FirstOrDefault();
+                default:
+                    var ordered = inputTypesDistinct.OrderByDescending(x => x);
+                    if (ordered.Any())
+                        return ordered.FirstOrDefault();
+                    break;
+            }
+            return ConcreteSlotValueType.Matrix2;
         }
 
         public virtual void ValidateNode()
@@ -317,6 +329,9 @@ namespace UnityEditor.ShaderGraph
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
 
+            var dynamicMatrixInputSlotsToCompare = DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Get();
+            var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
+
             // iterate the input slots
             s_TempSlots.Clear();
             GetInputSlots(s_TempSlots);
@@ -328,6 +343,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (inputSlot is DynamicVectorMaterialSlot)
                         skippedDynamicSlots.Add(inputSlot as DynamicVectorMaterialSlot);
+                    if (inputSlot is DynamicMatrixMaterialSlot)
+                        skippedDynamicMatrixSlots.Add(inputSlot as DynamicMatrixMaterialSlot);
                     continue;
                 }
 
@@ -356,6 +373,11 @@ namespace UnityEditor.ShaderGraph
                     dynamicInputSlotsToCompare.Add((DynamicVectorMaterialSlot)inputSlot, outputConcreteType);
                     continue;
                 }
+                else if (inputSlot is DynamicMatrixMaterialSlot)
+                {
+                    dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
+                    continue;
+                }
 
                 // if we have a standard connection... just check the types work!
                 if (!ImplicitConversionExists(outputConcreteType, inputSlot.concreteValueType))
@@ -369,6 +391,13 @@ namespace UnityEditor.ShaderGraph
                 dynamicKvP.Key.SetConcreteType(dynamicType);
             foreach (var skippedSlot in skippedDynamicSlots)
                 skippedSlot.SetConcreteType(dynamicType);
+
+            // and now dynamic matrices
+            var dynamicMatrixType = ConvertDynamicMatrixInputTypeToConcrete(dynamicMatrixInputSlotsToCompare.Values);
+            foreach (var dynamicKvP in dynamicMatrixInputSlotsToCompare)
+                dynamicKvP.Key.SetConcreteType(dynamicMatrixType);
+            foreach (var skippedSlot in skippedDynamicMatrixSlots)
+                skippedSlot.SetConcreteType(dynamicMatrixType);
 
             s_TempSlots.Clear();
             GetInputSlots(s_TempSlots);
@@ -395,6 +424,11 @@ namespace UnityEditor.ShaderGraph
                     (outputSlot as DynamicVectorMaterialSlot).SetConcreteType(dynamicType);
                     continue;
                 }
+                else if (outputSlot is DynamicMatrixMaterialSlot)
+                {
+                    (outputSlot as DynamicMatrixMaterialSlot).SetConcreteType(dynamicMatrixType);
+                    continue;
+                }
             }
 
             isInError |= inputError;
@@ -411,9 +445,12 @@ namespace UnityEditor.ShaderGraph
 
             ListPool<DynamicVectorMaterialSlot>.Release(skippedDynamicSlots);
             DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Release(dynamicInputSlotsToCompare);
+
+            ListPool<DynamicMatrixMaterialSlot>.Release(skippedDynamicMatrixSlots);
+            DictionaryPool<DynamicMatrixMaterialSlot, ConcreteSlotValueType>.Release(dynamicMatrixInputSlotsToCompare);
         }
 
-        public int version { get; private set; }
+        public int version { get; set; }
 
         //True if error
         protected virtual bool CalculateNodeHasError()

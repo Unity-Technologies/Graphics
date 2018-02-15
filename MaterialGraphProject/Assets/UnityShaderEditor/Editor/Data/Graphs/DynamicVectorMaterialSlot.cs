@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
             return new MultiFloatSlotControlView(owner, components, () => value, (newValue) => value = newValue);
         }
 
-        public override SlotValueType valueType { get { return SlotValueType.Dynamic; } }
+        public override SlotValueType valueType { get { return SlotValueType.DynamicVector; } }
 
         public override ConcreteSlotValueType concreteValueType
         {

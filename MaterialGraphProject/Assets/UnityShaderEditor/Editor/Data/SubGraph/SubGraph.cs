@@ -66,6 +66,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var node in activeNodes)
             {
+                node.ValidateNode();
                 if (node is IGeneratesFunction)
                     (node as IGeneratesFunction).GenerateNodeFunction(registry, generationMode);
             }

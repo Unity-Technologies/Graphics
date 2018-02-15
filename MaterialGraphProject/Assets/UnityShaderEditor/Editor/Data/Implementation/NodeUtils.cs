@@ -193,11 +193,11 @@ namespace UnityEditor.Graphing
                 case ConcreteSlotValueType.Cubemap:
                     return "Cubemap";
                 case ConcreteSlotValueType.Matrix2:
-                    return "Matrix2x2";
+                    return p + "2x2";
                 case ConcreteSlotValueType.Matrix3:
-                    return "Matrix3x3";
+                    return p + "3x3";
                 case ConcreteSlotValueType.Matrix4:
-                    return "Matrix4x4";
+                    return p + "4x4";
                 case ConcreteSlotValueType.SamplerState:
                     return "SamplerState";
                 default:
