@@ -286,7 +286,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public List<LightData> lights;
             public List<EnvLightData> envLights;
             public List<ShadowData> shadows;
-            public List<DecalData> decals;
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
@@ -298,7 +297,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights.Clear();
                 envLights.Clear();
                 shadows.Clear();
-                decals.Clear();
 
                 bounds.Clear();
                 lightVolumes.Clear();
@@ -310,7 +308,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
                 shadows = new List<ShadowData>();
-                decals = new List<DecalData>();
 
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
@@ -1261,15 +1258,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
         
-        public void GetDecalVolumeDataAndBound(DecalData decalData, Matrix4x4 decalToWorld, Matrix4x4 worldToView)
+        public void GetDecalVolumeDataAndBound(DecalData decalData, Matrix4x4 worldToView)
         {
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
 
-            var influenceX = decalToWorld.GetColumn(0) * 0.5f;
-            var influenceY = decalToWorld.GetColumn(1) * 0.5f;
-            var influenceZ = decalToWorld.GetColumn(2) * 0.5f;
-            var pos = decalToWorld.GetColumn(3) - influenceY; // decal cube mesh pivot is at 0,0,0, with bottom face at -1 on the y plane
+            // worldToDecal is actually decalToWorld when it first gets passed in
+            var influenceX = decalData.worldToDecal.GetColumn(0) * 0.5f;
+            var influenceY = decalData.worldToDecal.GetColumn(1) * 0.5f;
+            var influenceZ = decalData.worldToDecal.GetColumn(2) * 0.5f;
+            var pos = decalData.worldToDecal.GetColumn(3) - influenceY; // decal cube mesh pivot is at 0,0,0, with bottom face at -1 on the y plane
 
             Vector3 influenceExtents = new Vector3();
             influenceExtents.x = influenceX.magnitude;
@@ -1305,8 +1303,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_lightList.bounds.Add(bound);
             m_lightList.lightVolumes.Add(lightVolumeData);
-            m_lightList.decals.Add(decalData);
-            m_lightCount++;
         }
       
         public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
@@ -1410,6 +1406,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
+
+                var worldToView = WorldToCamera(camera);
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
@@ -1562,8 +1560,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
-                    var worldToView = WorldToCamera(camera);
-
+                    
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -1743,11 +1740,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
+                // add decals to the list
+                foreach(var decalData in DecalSystem.m_DecalDataList)
+                {
+                    GetDecalVolumeDataAndBound(decalData, worldToView);
+                }
+
+                DecalSystem.instance.InvertDecalDataWorldToDecal();
+
+                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + DecalSystem.m_DecalDataList.Count;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
-//                UpdateDataBuffers();
+                UpdateDataBuffers();
 
                 m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
@@ -2010,13 +2015,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PushGlobalParams(hdCamera, cmd);
         }
 
-        public void UpdateDataBuffers()
+        void UpdateDataBuffers()
         {
             s_DirectionalLightDatas.SetData(m_lightList.directionalLights);
             s_LightDatas.SetData(m_lightList.lights);
             s_EnvLightDatas.SetData(m_lightList.envLights);
             s_shadowDatas.SetData(m_lightList.shadows);
-            s_DecalDatas.SetData(m_lightList.decals);
+            s_DecalDatas.SetData(DecalSystem.m_DecalDataList);
 
             // These two buffers have been set in Rebuild()
             s_ConvexBoundsBuffer.SetData(m_lightList.bounds);
@@ -2069,7 +2074,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, s_DecalDatas);
-                cmd.SetGlobalInt(HDShaderIDs._DecalCount, m_lightList.decals.Count);
+                cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDataList.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(hdCamera));
