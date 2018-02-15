@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.SceneManagement;
 using UnityEngine.Events;
 
 namespace UnityEngine.Experimental.Rendering
@@ -16,7 +17,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         private Texture2D templateImage;
         private Texture2D resultImage;
-        private GUIContent diffContent;
+
+        private string tmpPath;
 
         private Material diffMaterial;
         private float minDiff = 0.45f;
@@ -39,8 +41,23 @@ namespace UnityEngine.Experimental.Rendering
         private GUIContent wipeResultContent = new GUIContent() {text = "Wipe ⎚", tooltip = "Wipe results."};
         private GUIContent deleteTemplateContent = new GUIContent() {text = "Delete 🗑", tooltip = "Delete template."};
 
-        private TestResultTreeView testResultTreeView;
-        private TestResultViewItem testResultViewItem;
+        // pouet
+
+        private TestResultTreeView _testResultTreeView;
+
+        private TestResultTreeView testResultTreeView
+        {
+            get
+            {
+                if (_testResultTreeView == null)
+                {
+                    _testResultTreeView = new TestResultTreeView(new TreeViewState());
+                    _testResultTreeView.onSceneSelect += Reload;
+                }
+
+                return _testResultTreeView;
+            }
+        }
 
         [MenuItem("Internal/GraphicTest Tools/Result Window")]
         public static void OpenWindow()
@@ -53,17 +70,15 @@ namespace UnityEngine.Experimental.Rendering
             TestResultWindow window = GetWindow<TestResultWindow>();
             window.minSize = new Vector2(800f, 800f);
 
-            window.testResultTreeView = new TestResultTreeView(new TreeViewState());
-            window.testResultTreeView.onSceneSelect += window.Reload;
             window.Reload(_sceneAsset);
         }
 
-        private void Reload(string name)
+        public static SceneAsset FindScene(string name)
         {
-            string[] guids = AssetDatabase.FindAssets(name.Remove(name.Length-6, 6));
+            string[] guids = AssetDatabase.FindAssets(name.Remove(name.Length - 6, 6));
             if (guids.Length < 1)
             {
-                Reload();
+                return null;
             }
             else
             {
@@ -76,46 +91,39 @@ namespace UnityEngine.Experimental.Rendering
                     scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
                     i++;
                 }
-                
-                Reload(scene);
+
+                return scene;
             }
         }
 
-        private void Reload(SceneAsset _sceneAsset = null)
+        private void Reload(string name)
         {
-            sceneAsset = _sceneAsset;
+            Reload(FindScene(name));
+        }
 
-            if (sceneAsset == null) return;
+        private void CheckDataObjects()
+        {
+            if (diffMaterial == null) GetDiffMaterial();
+            if (templateImage == null) GetTemplateImage();
+            if (resultImage == null) GetResultImage();
+        }
 
-            if (templateImage != null) DestroyImmediate(templateImage);
-            string tmp = "";
+        private void GetTemplateImage()
+        {
             if (sceneAsset != null)
             {
-                templateImage = TestFrameworkTools.GetTemplateImage(sceneAsset, ref tmp);
+                templateImage = TestFrameworkTools.GetTemplateImage(sceneAsset, ref tmpPath);
                 templateImage.filterMode = FilterMode.Point;
                 templateImage.mipMapBias = -10;
                 templateImage.hideFlags = HideFlags.HideAndDontSave;
                 DontDestroyOnLoad(templateImage);
             }
+            else
+                templateImage = Texture2D.whiteTexture;
+        }
 
-
-            string templatePath = Path.Combine( TestFrameworkTools.s_RootPath, "ImageTemplates");
-            templateLocation = Path.Combine(templatePath, string.Format("{0}.{1}", tmp, "png"));
-
-            if (diffContent == null) diffContent = new GUIContent();
-
-            diffContent.image = templateImage;
-
-            if (diffMaterial == null)
-            {
-                diffMaterial = new Material(Shader.Find("GraphicTests/ComparerShader"));
-                diffMaterial.hideFlags = HideFlags.HideAndDontSave;
-                DontDestroyOnLoad(diffMaterial);
-                diffMaterial.SetFloat("_CorrectGamma", 1f);
-                diffMaterial.SetFloat("_FlipV2", 0f);
-            }
-
-            // Search for fail image if it exists.
+        private void GetResultImage()
+        {
             var failedPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "SRP_Failed");
             misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.unity.png", sceneAsset.name));
             misMatchLocationTemplate = misMatchLocationResult.Insert(misMatchLocationResult.Length - 10, ".template");
@@ -144,18 +152,47 @@ namespace UnityEngine.Experimental.Rendering
                 minDiff = 1f;
                 maxDiff = 1f;
             }
+        }
 
-            ApplyValues();
+        private void GetDiffMaterial()
+        {
+            if (diffMaterial == null)
+            {
+                diffMaterial = new Material(Shader.Find("GraphicTests/ComparerShader"));
+                diffMaterial.hideFlags = HideFlags.HideAndDontSave;
+                DontDestroyOnLoad(diffMaterial);
+            }
+        }
+
+        private void Reload(SceneAsset _sceneAsset = null)
+        {
+            sceneAsset = _sceneAsset;
+
+            if (sceneAsset == null) return;
+
+            if (templateImage != null && templateImage != Texture2D.whiteTexture) DestroyImmediate(templateImage);
+            tmpPath = "";
+            GetTemplateImage();
+
+            string templatePath = Path.Combine( TestFrameworkTools.s_RootPath, "ImageTemplates");
+            templateLocation = Path.Combine(templatePath, string.Format("{0}.{1}", tmpPath, "png"));
+
+            GetDiffMaterial();
+
+            // Search for fail image if it exists.
+            GetResultImage();
 
             diffMaterial.SetTexture("_CompareTex", resultImage);
+
+            ApplyValues();
 
             testResultTreeView.Reload();
         }
 
         private void OnDisable()
         {
-            DestroyImmediate(templateImage);
-            DestroyImmediate(resultImage);
+            if (templateImage != null && templateImage != Texture2D.whiteTexture) DestroyImmediate(templateImage);
+            if (resultImage != null && resultImage != Texture2D.blackTexture) DestroyImmediate(resultImage);
             DestroyImmediate(diffMaterial);
         }
 
@@ -230,6 +267,18 @@ namespace UnityEngine.Experimental.Rendering
 
                         GUILayout.FlexibleSpace();
 
+                        bool b = GUI.enabled;
+                        GUI.enabled = true;
+                        if (GUILayout.Button("Open Scene"))
+                        {
+                            EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
+                            EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(sceneAsset), OpenSceneMode.Single);
+                        }
+
+                        GUI.enabled = b;
+
+                        GUILayout.FlexibleSpace();
+
                         GUILayout.Label("Diff. type: ");
                         diffStyle = EditorGUILayout.IntPopup(diffStyle, diffStylesList, diffStylesValues,
                             GUILayout.Width(200f));
@@ -259,8 +308,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 GUILayout.EndArea();
 
-                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth,
-                    position.height - topBarHeight * 3);
+                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth,position.height - topBarHeight * 3);
+                GUI.enabled = true;
+
+                CheckDataObjects();
                 EditorGUI.DrawPreviewTexture(textureRect, templateImage, diffMaterial, ScaleMode.ScaleToFit, 0, 0);
             }
         }
@@ -274,14 +325,14 @@ namespace UnityEngine.Experimental.Rendering
             diffMaterial.SetFloat("_Split", split);
             diffMaterial.SetFloat("_ResultSplit", resultSplit);
             diffMaterial.SetInt("_Mode", diffStyle);
+            diffMaterial.SetFloat("_CorrectGamma", 1f);
+            diffMaterial.SetFloat("_FlipV2", 0f);
         }
 
         public class TestResultTreeView : TreeView
         {
             public delegate void OnSceneSelect(string name);
             public OnSceneSelect onSceneSelect;
-
-            delegate void OnNewSceneSelect(SceneAsset newScene);
 
             public TestResultTreeView(TreeViewState state) : base(state)
             {
@@ -385,6 +436,12 @@ namespace UnityEngine.Experimental.Rendering
                 //if (testItem!=null) Debug.Log(item.displayName+" : "+testItem.sceneObject);
 
                 onSceneSelect(item.displayName);
+            }
+
+            protected override void DoubleClickedItem(int id)
+            {
+                EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
+                EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(FindScene(FindItem(id, rootItem).displayName)), OpenSceneMode.Single);
             }
         }
 

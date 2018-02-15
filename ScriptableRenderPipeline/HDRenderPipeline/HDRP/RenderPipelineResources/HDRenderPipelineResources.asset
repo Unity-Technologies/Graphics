@@ -28,7 +28,7 @@ MonoBehaviour:
   debugColorPickerShader: {fileID: 4800000, guid: 8137b807709e178498f22ed710864bb0,
     type: 3}
   deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
-  gaussianPyramidCS: {fileID: 7200000, guid: 6dba4103d23a7904fbc49099355aff3e, type: 3}
+  gaussianPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
   depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
   copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
   applyDistortionCS: {fileID: 7200000, guid: 2fa6c0e3fe6dc3145a4156f21913fe5c, type: 3}
@@ -59,8 +59,8 @@ MonoBehaviour:
   combineLighting: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
   cameraMotionVectors: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
   copyStencilBuffer: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
+  copyDepthBuffer: {fileID: 4800000, guid: 42dfcc8fe803ece4096c58630689982f, type: 3}
   blit: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
-  blitFlipMip: {fileID: 4800000, guid: ef092fc4aaa1bb546a9ab4e457c4b07a, type: 3}
   blitCubemap: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
   buildProbabilityTables: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
     type: 3}

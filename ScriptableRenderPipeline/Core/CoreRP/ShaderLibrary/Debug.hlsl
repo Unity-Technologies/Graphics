@@ -214,27 +214,27 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
     return GetDebugMipColor(originalColor, tex, texelSize, uv);
 }
 
+// mipInfo :
+// x = quality setings minStreamingMipLevel
+// y = original mip count for texture
+// z = desired on screen mip level
+// w = 0
 float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
 {
+    float3 outColor = float3(1.0, 0.0, 1.0); // Can't calculate without original mip count - return magenta
+
     uint originalTextureMipCount = uint(mipInfo.y);
     if (originalTextureMipCount != 0)
     {
-        // mipInfo :
-        // x = quality setings minStreamingMipLevel
-        // y = original mip count for texture
-        // z = desired on screen mip level
-        // w = 0
-
         // Mip count has been reduced but the texelSize was not updated to take that into account
         uint mipCount = GetMipCount(tex);
         uint mipReductionLevel = originalTextureMipCount - mipCount;
 
         float mipCol = float(mipReductionLevel) / 12.0;
-        return float3(0, mipCol, 0);
+        outColor = float3(0, mipCol, 0);
     }
 
-    // Can't calculate without original mip count - return magenta
-    return float3(1.0, 0.0, 1.0);
+    return outColor;
 }
 
 // Convert an arbitrary range to color base on threshold provide to the function, threshold must be in growing order

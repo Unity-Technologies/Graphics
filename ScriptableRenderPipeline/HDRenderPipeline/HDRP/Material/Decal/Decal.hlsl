@@ -1,4 +1,5 @@
-﻿#include "Decal.cs.hlsl"
+﻿#include "CoreRP/ShaderLibrary/Debug.hlsl"
+#include "Decal.cs.hlsl"
 
 #define DBufferType0 float4
 #define DBufferType1 float4
@@ -94,6 +95,7 @@ UNITY_INSTANCING_BUFFER_START(Decal)
 UNITY_INSTANCING_BUFFER_END(matrix)       
 
 RW_TEXTURE2D(float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
+TEXTURE2D(_DecalHTileTexture); 
 
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,

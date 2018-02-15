@@ -221,6 +221,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (m_LightShape != LightShape.Directional)
                 settings.DrawRange(false);
 
+            EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
+
             // LightShape is HD specific, it need to drive LightType from the original LightType
             // when it make sense, so the GI is still in sync with the light shape
             switch (m_LightShape)
@@ -292,6 +294,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 default:
                     Debug.Assert(false, "Not implemented light type");
                     break;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
         }
 
@@ -371,6 +378,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             settings.DrawLightmapping();
 
+            EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
+
             // No cookie with area light (maybe in future textured area light ?)
             if (m_LightShape != LightShape.Rectangle && m_LightShape != LightShape.Line)
             {
@@ -397,6 +406,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_AdditionalLightData.lightDimmer, s_Styles.lightDimmer);
                 EditorGUILayout.PropertyField(m_AdditionalLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
                 EditorGUI.indentLevel--;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
         }
 
