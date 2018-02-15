@@ -30,9 +30,7 @@ struct LightweightVertexOutput
     half3 viewDir                   : TEXCOORD6;
     half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
 
-#ifdef _SHADOWS_ENABLED
     float4 shadowCoord               : TEXCOORD8;
-#endif
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -55,11 +53,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.viewDirectionWS = normalize(IN.viewDir);
 #endif
 
-#ifdef _SHADOWS_ENABLED
     inputData.shadowCoord = IN.shadowCoord;
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
 
     inputData.fogCoord = IN.fogFactorAndVertexLight.x;
     inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
@@ -96,10 +90,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half3 vertexLight = VertexLighting(o.posWS, o.normal);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-
-#ifdef _SHADOWS_ENABLED
     o.shadowCoord = ComputeScreenPos(o.clipPos);
-#endif
 
     return o;
 }

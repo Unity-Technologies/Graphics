@@ -74,7 +74,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            #pragma multi_compile _ _SHADOWS_ENABLED
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
@@ -88,12 +87,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-
-            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
-            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
-            #ifdef DIRLIGHTMAP_COMBINED
-            #define LIGHTMAP_ON
-            #endif
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimple

@@ -343,6 +343,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         ShadowCollectPass(visibleLights, ref context, ref lightData);
                 }
 
+                if (!shadows)
+                {
+                    var setRT = CommandBufferPool.Get("Generate Small Shadow Buffer");
+                    setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+                    setRT.Blit(Texture2D.whiteTexture, m_ScreenSpaceShadowMapRT);
+                    context.ExecuteCommandBuffer(setRT);
+                }
+
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
                 var cmd = CommandBufferPool.Get("After Camera Render");
@@ -376,8 +384,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // There's no way to map shadow light indices. We need to pass in the original unsorted index.
                     // If no additional lights then no light sorting is performed and the indices match.
                     int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
-                    bool shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight,
-                            shadowOriginalIndex, ref context);
+                    bool shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight, shadowOriginalIndex, ref context);
                     if (shadowsRendered)
                     {
                         lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS)
@@ -1082,6 +1089,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //TIM: Not used in shader for V1 to reduce keywords
             CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_SPOT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
 
+            //TIM: Not used in shader for V1 to reduce keywords
             CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", lightData.shadowMapSampleType != LightShadows.None);
 
             //TIM: Not used in shader for V1 to reduce keywords

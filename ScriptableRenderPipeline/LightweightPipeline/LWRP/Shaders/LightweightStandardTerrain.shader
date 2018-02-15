@@ -43,7 +43,6 @@ Shader "LightweightPipeline/Standard Terrain"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            #pragma multi_compile _ _SHADOWS_ENABLED
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
@@ -55,12 +54,6 @@ Shader "LightweightPipeline/Standard Terrain"
             #pragma multi_compile _ LIGHTMAP_ON
 
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
-
-            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
-            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
-            #ifdef DIRLIGHTMAP_COMBINED
-            #define LIGHTMAP_ON
-            #endif
 
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
@@ -108,11 +101,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
                 half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
                 float3 positionWS               : TEXCOORD7;
-
-#ifdef _SHADOWS_ENABLED
-                float4 shadowCoord               : TEXCOORD8;
-#endif
-
+                float4 shadowCoord              : TEXCOORD8;
                 float4 clipPos                  : SV_POSITION;
             };
 
@@ -128,10 +117,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
 
                 input.viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
-
-#ifdef _SHADOWS_ENABLED
                 input.shadowCoord = IN.shadowCoord;
-#endif
 
                 input.fogCoord = IN.fogFactorAndVertexLight.x;
 
@@ -195,10 +181,7 @@ Shader "LightweightPipeline/Standard Terrain"
                 o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
                 o.positionWS = positionWS;
                 o.clipPos = clipPos;
-
-#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
-                o.shadowCoord = ComputeShadowCoord(o.positionWS.xyz);
-#endif
+                o.shadowCoord = ComputeScreenPos(o.clipPos);
 
                 return o;
             }
