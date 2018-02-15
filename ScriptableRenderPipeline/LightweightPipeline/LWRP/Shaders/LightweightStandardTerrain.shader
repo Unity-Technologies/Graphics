@@ -43,9 +43,7 @@ Shader "LightweightPipeline/Standard Terrain"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            #pragma multi_compile _MAIN_LIGHT_DIRECTIONAL _MAIN_LIGHT_SPOT
             #pragma multi_compile _ _SHADOWS_ENABLED
-            #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
