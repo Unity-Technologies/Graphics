@@ -1,7 +1,7 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    [AddComponentMenu("RenderPipeline/High Definition/Homogeneous Density Volume", -1)]
+    [AddComponentMenu("Rendering/Homogeneous Density Volume", 1100)]
     public class HomogeneousDensityVolume : MonoBehaviour
     {
         public VolumeParameters volumeParameters = new VolumeParameters();
