@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -18,7 +17,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         PreviewTextureView m_PreviewTextureView;
 
         AbstractMaterialGraph m_Graph;
-        MasterNode m_MasterNode;
         PreviewRenderData m_PreviewRenderHandle;
 
         Vector2 m_PreviewScrollPosition;

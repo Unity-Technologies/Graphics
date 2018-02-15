@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 

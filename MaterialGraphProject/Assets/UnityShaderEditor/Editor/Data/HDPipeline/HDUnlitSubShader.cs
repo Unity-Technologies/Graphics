@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     public class HDUnlitSubShader : IUnlitSubShader
     {
         struct Pass
@@ -170,8 +172,9 @@ namespace UnityEditor.ShaderGraph
             return resultPass;
         }
 
-        public string GetSubshader(UnlitMasterNode masterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
         {
+            var masterNode = inMasterNode as UnlitMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
