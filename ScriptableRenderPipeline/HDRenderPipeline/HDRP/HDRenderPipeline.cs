@@ -646,8 +646,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // decal system needs to be updated with current camera
                     if (m_FrameSettings.enableDBuffer)
+                    {
+                        DecalSystem.instance.UpdateCachedMaterialData(cmd);
                         DecalSystem.instance.BeginCull(camera);
-
+                    }
                     ReflectionSystem.PrepareCull(camera, m_ReflectionProbeCullResults);
 
                     using (new ProfilingSample(cmd, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
@@ -714,11 +716,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
-                    RenderDBuffer(hdCamera, renderContext, cmd);
+                    RenderDBuffer(hdCamera, cmd);
 
-                    m_LightLoop.UpdateDataBuffers();
-
-                    RenderGBuffer(m_CullResults, hdCamera, renderContext, cmd);
+					RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
@@ -1148,7 +1148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(HDCamera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera camera, CommandBuffer cmd)
         {
             if (!m_FrameSettings.enableDBuffer)
                 return;
@@ -1173,7 +1173,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
-                DecalSystem.instance.Render(renderContext, camera, cmd, m_LightLoop);
+                DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);
                 DecalSystem.instance.SetAtlas(cmd);
