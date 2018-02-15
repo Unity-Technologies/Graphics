@@ -139,6 +139,7 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 26 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
+// Additional bits set in 'bsdfData.materialFeatures' to save registers and simplify feature tracking.
 #define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
 #define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
 #define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN            ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
@@ -233,7 +234,7 @@ void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData
     bsdfData.diffusionProfile = diffusionProfile;
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
     bsdfData.subsurfaceMask = subsurfaceMask;
-    bsdfData.materialFeatures |= (_EnableSubsurfaceScattering != 0) ? MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING : 0;
+    bsdfData.materialFeatures |= MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
     bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(bsdfData.diffusionProfile) << MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
@@ -1082,11 +1083,9 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // Subsurface Scattering functions
 //-----------------------------------------------------------------------------
 
-bool PixelHasSubsurfaceScattering(BSDFData bsdfData)
+bool ShouldOutputSplitLighting(BSDFData bsdfData)
 {
-    // bsdfData.subsurfaceMask != 0 allow if sss is enabled for this pixels (i.e like per pixels feature) as in deferred case MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING alone is not sufficient
-    // but keep testing MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING for forward case
-    return bsdfData.diffusionProfile != DIFFUSION_PROFILE_NEUTRAL_ID && bsdfData.subsurfaceMask != 0 && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+    return HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING);
 }
 
 //-----------------------------------------------------------------------------
