@@ -1,6 +1,6 @@
 #include "Decal.hlsl"
 
-DECLARE_DBUFFER_TEXTURE(_DBufferTexture); 
+DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 void AddDecalContribution(uint2 unPositionSS, inout SurfaceData surfaceData)
 {
@@ -10,7 +10,7 @@ void AddDecalContribution(uint2 unPositionSS, inout SurfaceData surfaceData)
 		FETCH_DBUFFER(DBuffer, _DBufferTexture, unPositionSS);
 		DecalSurfaceData decalSurfaceData;
 		DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
-		uint mask = UnpackByte(_DecalHTile[unPositionSS / 8]); 
+		uint mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, unPositionSS / 8).x);
 
 		// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 		if(mask & DBUFFERHTILEBIT_DIFFUSE)

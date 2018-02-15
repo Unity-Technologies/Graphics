@@ -24,6 +24,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 viewParam;
         public PostProcessRenderContext postprocessRenderContext;
 
+        public Matrix4x4[] viewMatrixStereo;
+        public Matrix4x4[] projMatrixStereo;
+
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
         {
@@ -35,6 +38,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // This is the size actually used for this camera (as it can be altered by VR for example)
+        int m_ActualWidth;
+        int m_ActualHeight;
+        // This is the scale and bias of the camera viewport compared to the reference size of our Render Targets (RHandle.maxSize)
+        Vector2 m_CameraScaleBias;
+        // Current mssa sample
+        MSAASamples m_msaaSamples;
+
+        public int actualWidth { get { return m_ActualWidth; } }
+        public int actualHeight { get { return m_ActualHeight; } }
+        public Vector2 scaleBias { get { return m_CameraScaleBias; } }
+        public MSAASamples msaaSamples { get { return m_msaaSamples; } }
+
         public Matrix4x4 viewProjMatrix
         {
             get { return projMatrix * viewMatrix; }
@@ -45,7 +61,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return nonJitteredProjMatrix * viewMatrix; }
         }
 
-        public RenderTextureDescriptor renderTextureDesc { get; private set; }
+        public Matrix4x4 GetViewProjMatrixStereo(uint eyeIndex)
+        {
+            return (projMatrixStereo[eyeIndex] * viewMatrixStereo[eyeIndex]);
+        }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
@@ -87,11 +106,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public HDCamera(Camera cam)
         {
-            camera                   = cam;
-            m_AdditionalCameraData   = cam.GetComponent<HDAdditionalCameraData>();
-            frustum                  = new Frustum();
-            frustumPlaneEquations    = new Vector4[6];
+            camera = cam;
+            frustum = new Frustum();
+            frustumPlaneEquations = new Vector4[6];
+
+            viewMatrixStereo = new Matrix4x4[2];
+            projMatrixStereo = new Matrix4x4[2];
+
             postprocessRenderContext = new PostProcessRenderContext();
+            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
             Reset();
         }
 
@@ -169,35 +192,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LastFrameActive = Time.frameCount;
 
-            RenderTextureDescriptor tempDesc;
+            m_ActualWidth = camera.pixelWidth;
+            m_ActualHeight = camera.pixelHeight;
+            var screenWidth = m_ActualWidth;
+            var screenHeight = m_ActualHeight;
             if (frameSettings.enableStereo)
             {
-                screenSize = new Vector4(XRSettings.eyeTextureWidth, XRSettings.eyeTextureHeight, 1.0f / XRSettings.eyeTextureWidth, 1.0f / XRSettings.eyeTextureHeight);
-                tempDesc = XRSettings.eyeTextureDesc;
-            }
-            else
-            {
-                screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
-                tempDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                screenWidth = XRSettings.eyeTextureWidth;
+                screenHeight = XRSettings.eyeTextureHeight;
+
+                var xrDesc = XRSettings.eyeTextureDesc;
+                m_ActualWidth = xrDesc.width;
+                m_ActualHeight = xrDesc.height;
+
+                ConfigureStereoMatrices();
             }
 
-            if (frameSettings.enableMSAA)
-            {
-                // this is already pre-validated to be a valid sample count by InitializeFrameSettings
-                var sampleCount = (int)frameSettings.msaaSampleCount; 
-                tempDesc.msaaSamples = sampleCount;
-            }
-            else
-            {
-                tempDesc.msaaSamples = 1;
-            }
-            tempDesc.depthBufferBits = 0;
-            tempDesc.autoGenerateMips = false;
-            tempDesc.useMipMap = false;
-            tempDesc.enableRandomWrite = false;
-            tempDesc.memoryless = RenderTextureMemoryless.None;
+            // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
+            m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
+            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
 
-            renderTextureDesc = tempDesc;
+            int maxWidth = RTHandle.maxWidth;
+            int maxHeight = RTHandle.maxHeight;
+            m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
+            m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
+
+            screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+        }
+
+        void ConfigureStereoMatrices()
+        {
+            for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+            {
+                viewMatrixStereo[eyeIndex] = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
+
+                projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
+                projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
+            }
+
+            // TODO: Fetch the single cull matrix stuff
         }
 
         // Warning: different views can use the same camera!
@@ -267,10 +300,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ViewParam, viewParam);
             cmd.SetGlobalVector(HDShaderIDs._InvProjParam, invProjParam);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, scaleBias);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
             cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation, taaFrameRotation);
+        }
+
+        public void SetupGlobalStereoParams(CommandBuffer cmd)
+        {
+            var invProjStereo = new Matrix4x4[2];
+            var invViewProjStereo = new Matrix4x4[2];
+
+            for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+            {
+                var proj = projMatrixStereo[eyeIndex];
+                invProjStereo[eyeIndex] = proj.inverse;
+
+                var vp = proj * viewMatrixStereo[eyeIndex];
+                invViewProjStereo[eyeIndex] = vp.inverse;
+            }
+
+            // corresponds to UnityPerPassStereo
+            // TODO: Migrate the other stereo matrices to HDRP-managed UnityPerPassStereo?
+            cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
         }
 
         // TODO: We should set all the value below globally and not let it under the control of Unity,
