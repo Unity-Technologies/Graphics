@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering
         public void AddDebugItem<DebugItemType>(string debugPanelName, string name, Func<object> getter, Action<object> setter = null, DebugItemFlag flags = DebugItemFlag.None, DebugItemHandler handler = null)
         {
             DebugPanel debugPanel = GetDebugPanel(debugPanelName);
-            // If the menu does not exist, create a generic one. This way, users don't have to explicitely create a new DebugMenu class if they don't need any particular overriding of default behavior.
+            // If the menu does not exist, create a generic one. This way, users don't have to explicitly create a new DebugMenu class if they don't need any particular overriding of default behavior.
             if(debugPanel == null)
             {
                 debugPanel = new DebugPanel<DebugPanelUI>(debugPanelName);
