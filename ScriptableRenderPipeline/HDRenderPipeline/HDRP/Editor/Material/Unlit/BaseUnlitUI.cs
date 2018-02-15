@@ -415,13 +415,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (material.HasProperty(kDistortionEnable))
             {
                 bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
-                if (distortionDepthTest)
+                if (material.HasProperty(kZTestModeDistortion))
                 {
-                    material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
-                }
-                else
-                {
-                    material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.Always);
+                    if (distortionDepthTest)
+                    {
+                        material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                    }
+                    else
+                    {
+                        material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.Always);
+                    }
                 }
 
                 var distortionBlendMode = material.GetInt(kDistortionBlendMode);
