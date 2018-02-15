@@ -76,6 +76,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendSeparator();
                     evt.menu.AppendAction("Open Documentation", SeeDocumentation, SeeDocumentationStatus);
                 }
+                if (selection.OfType<MaterialNodeView>().Count() == 1 && selection.OfType<MaterialNodeView>().First().node is SubGraphNode)
+                {
+                    evt.menu.AppendSeparator();
+                    evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, ContextualMenu.MenuAction.AlwaysEnabled);
+                }
             }
             else if (evt.target is BlackboardField)
             {
@@ -112,6 +117,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var node = selection.OfType<MaterialNodeView>().First().node;
             if (node.documentationURL != null)
                 System.Diagnostics.Process.Start(node.documentationURL);
+        }
+
+        void OpenSubGraph(EventBase evt)
+        {
+            SubGraphNode subgraphNode = selection.OfType<MaterialNodeView>().First().node as SubGraphNode;
+
+            var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
+            ShaderGraphImporterEditor.ShowGraphEditWindow(path);
         }
 
         ContextualMenu.MenuAction.StatusFlags SeeDocumentationStatus(EventBase eventBase)
