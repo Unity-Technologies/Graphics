@@ -1,4 +1,4 @@
-void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float3 V, PositionInputs posInput, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
+void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
     // Builtin Data
     builtinData.opacity = alpha;
@@ -9,7 +9,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float3 V, Positio
 
     // It is safe to call this function here as surfaceData have been filled
     // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(V, posInput.positionSS, surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap

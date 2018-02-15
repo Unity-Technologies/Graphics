@@ -9,7 +9,7 @@
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(float3 V, uint2 positionSS, SurfaceData data)
+BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 {
     BSDFData output;
     output.color = data.color;

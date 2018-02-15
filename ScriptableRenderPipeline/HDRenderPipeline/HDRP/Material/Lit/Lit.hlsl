@@ -199,7 +199,7 @@ float3 EvalSensitivity(float opd, float shift)
 // Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
 float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
 {
-    eta_1 = 1.0; // air is 1.0 but for clear coat should be 1.5
+    // thicknessIridescence unit is micrometer for this equation here. Mean 0.5 is 500nm.
     float Dinc = 2.0 * bsdfData.iorIridescence * bsdfData.thicknessIridescence;
 
     // Force eta_2 -> eta_1 when Dinc -> 0.0
@@ -226,7 +226,7 @@ float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
     // Compound terms
     float3 R123 = R12 * R23;
     float3 r123 = sqrt(R123);
-    float3 Rs = Sq(T121) * R23 / (float3(1.0, 1.0, 1.0) - R123);   
+    float3 Rs = Sq(T121) * R23 / (float3(1.0, 1.0, 1.0) - R123);
 
     // Reflectance term for m = 0 (DC term amplitude)
     float3 C0 = R12 + Rs;
@@ -243,7 +243,7 @@ float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
     }
 
     // Convert back to RGB reflectance
-    //I = clamp(mul(I, XYZ_TO_RGB), float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 1.0)); 
+    //I = clamp(mul(I, XYZ_TO_RGB), float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 1.0));
     //I = mul(XYZ_TO_RGB, I);
 
     return I;
@@ -357,18 +357,10 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float3 V, float coatMask, float ior, float thickness, inout BSDFData bsdfData)
+void FillMaterialIridescence(float ior, float thickness, inout BSDFData bsdfData)
 {
     bsdfData.iorIridescence = ior;
     bsdfData.thicknessIridescence = thickness;
-
-    float topIor = lerp(1.0, CLEAR_COAT_IOR, coatMask);
-
-    // HACK: Use the reflected direction to specify the Fresnel coefficient for pre-convolved envmaps
-    // TODO: Take into account roughness for peak ?
-    // TODO: take into account clear coat...
-    float NdotV = sqrt(1.0 + Sq(1.0 / ior) * (Sq(dot(bsdfData.normalWS, V)) - 1.0));
-    bsdfData.fresnel0 = EvalIridescence(topIor, NdotV, bsdfData);
 }
 
 // Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
@@ -382,10 +374,6 @@ void FillMaterialClearCoatData(float coatMask, inout BSDFData bsdfData)
     float coatRoughnessScale = Sq(ieta);
     float sigma = RoughnessToVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness));
     bsdfData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
-    // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
-    // but here we go from clear coat (1.5) to material, we need to update fresnel0
-    // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
-    bsdfData.fresnel0 = lerp(bsdfData.fresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0), coatMask);
 }
 
 void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, float3 transmittanceColor, float atDistance, float thickness, float transmittanceMask, inout BSDFData bsdfData)
@@ -483,7 +471,7 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(float3 V, uint2 positionSS, SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
@@ -528,13 +516,12 @@ BSDFData ConvertSurfaceDataToBSDFData(float3 V, uint2 positionSS, SurfaceData su
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        // Modify fresnel0
-        FillMaterialIridescence(V, surfaceData.coatMask, surfaceData.iorIridescence, surfaceData.thicknessIridescence, bsdfData);
+        FillMaterialIridescence(surfaceData.iorIridescence, surfaceData.thicknessIridescence, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        // Modify fresnel0 and perceptualRoughness
+        // Modify perceptualRoughness
         FillMaterialClearCoatData(surfaceData.coatMask, bsdfData);
     }
 
@@ -603,8 +590,9 @@ BSDFData ConvertSurfaceDataToBSDFData(float3 V, uint2 positionSS, SurfaceData su
 
 // Encode SurfaceData (BSDF parameters) into GBuffer
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
-void EncodeIntoGBuffer( float3 V, uint2 positionSS, SurfaceData surfaceData,
+void EncodeIntoGBuffer( SurfaceData surfaceData,
                         float3 bakeDiffuseLighting,
+                        uint2 positionSS,
                         out GBufferType0 outGBuffer0,
                         out GBufferType1 outGBuffer1,
                         out GBufferType2 outGBuffer2,
@@ -715,7 +703,7 @@ void EncodeIntoGBuffer( float3 V, uint2 positionSS, SurfaceData surfaceData,
 // If you're not using the feature classification system, pass UINT_MAX.
 // Also, see comment in TileVariantToFeatureFlags. When we are the worse case (i.e last variant), we read the featureflags
 // from the structured buffer use to generate the indirect draw call. It allow to not go through all branch and the branch is scalar (not VGPR)
-uint DecodeFromGBuffer(float3 V, uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
+uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsdfData, out float3 bakeDiffuseLighting)
 {
     // Note: we have ZERO_INITIALIZE the struct, so bsdfData.diffusionProfile == DIFFUSION_PROFILE_NEUTRAL_ID,
     // bsdfData.anisotropy == 0, bsdfData.subsurfaceMask == 0, etc...
@@ -872,14 +860,13 @@ uint DecodeFromGBuffer(float3 V, uint2 positionSS, uint tileFeatureFlags, out BS
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
         // Range of IOR is 1..2.5
-        // Modify fresnel0
-        FillMaterialIridescence(V, coatMask, RemapIor01to25(inGBuffer2.r), inGBuffer2.g, bsdfData);
+        FillMaterialIridescence(RemapIor01to25(inGBuffer2.r), inGBuffer2.g, bsdfData);
     }
 
     // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        // Modify fresnel0 and perceptualRoughness
+        // Modify perceptualRoughness
         FillMaterialClearCoatData(coatMask, bsdfData);
     }
 
@@ -901,7 +888,7 @@ uint MaterialFeatureFlagsFromGBuffer(uint2 positionSS)
     float3 unused;
     // Call the regular function, compiler will optimized out everything not used.
     // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
-    return DecodeFromGBuffer(float3(0.0, 0.0, 1.0), positionSS, UINT_MAX, bsdfData, unused);
+    return DecodeFromGBuffer(positionSS, UINT_MAX, bsdfData, unused);
 }
 
 //-----------------------------------------------------------------------------
@@ -996,7 +983,7 @@ struct PreLightData
     float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
 };
 
-PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
@@ -1007,8 +994,31 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfDat
 
     float NdotV = ClampNdotV(preLightData.NdotV);
 
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    {
+        float viewAngle = NdotV;
+        float topIor = 1.0; // Default is air
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+        {
+            topIor = lerp(1.0, CLEAR_COAT_IOR, bsdfData.coatMask);
+            // HACK: Use the reflected direction to specify the Fresnel coefficient for pre-convolved envmaps
+            viewAngle = sqrt(1.0 + Sq(1.0 / topIor) * (Sq(dot(bsdfData.normalWS, V)) - 1.0));
+        }
+
+        // TEMP
+        if (bsdfData.thicknessIridescence != 0.0)
+        {
+            bsdfData.fresnel0 = EvalIridescence(topIor, viewAngle, bsdfData);
+        }
+    }
+
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
+        // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
+        // but here we go from clear coat (1.5) to material, we need to update fresnel0
+        // Note: Schlick is a poor approximation of Fresnel when ieta is 1 (1.5 / 1.5), schlick target 1.4 to 2.2 IOR.
+        bsdfData.fresnel0 = lerp(bsdfData.fresnel0, ConvertF0ForAirInterfaceToF0ForClearCoat15(bsdfData.fresnel0), bsdfData.coatMask);
+
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask;
