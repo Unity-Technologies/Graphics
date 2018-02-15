@@ -509,7 +509,7 @@ namespace UnityEditor.VFX.UI
                 return model.GetOutputSlot(0).property.type;
             }
         }
-        public void DrawGizmos(VFXComponent component)
+        public void DrawGizmos(VisualEffect component)
         {
             if (m_SubControllers != null)
             {
@@ -544,7 +544,7 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
-            public override void DrawGizmos(VFXComponent component)
+            foreach (var addedController in nodes.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
             {
                 VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, m_ViewController);
 
