@@ -196,9 +196,9 @@ CBUFFER_START(UnityPerFrame)
     uint   _TaaFrameIndex;    // [0, 7]
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-    float  _Global_Asymmetry;
-    float3 _Global_Scattering;
-    float  _Global_Extinction;
+    float  _GlobalAsymmetry;
+    float3 _GlobalScattering;
+    float  _GlobalExtinction;
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
     float4 _VBufferDepthEncodingParams; // See the call site for description
