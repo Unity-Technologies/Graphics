@@ -1,9 +1,26 @@
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
 {
+    [Flags]
+    public enum FoldoutOption
+    {
+        None = 0,
+        Indent = 1 << 0,
+        Animate = 1 << 1
+    }
+
+    [Flags]
+    public enum FadeOption
+    {
+        None = 0,
+        Indent = 1 << 0,
+        Animate = 1 << 1
+    }
+
     public static class CoreEditorDrawer<TUIState, TData>
     {
         public interface IDrawer
@@ -44,14 +61,14 @@ namespace UnityEditor.Experimental.Rendering
             return new ActionDrawerInternal(drawers);
         }
 
-        public static IDrawer FadeGroup(AnimBoolItemGetter fadeGetter, bool indent, params IDrawer[] groupDrawers)
+        public static IDrawer FadeGroup(AnimBoolItemGetter fadeGetter, FadeOption options, params IDrawer[] groupDrawers)
         {
-            return new FadeGroupsDrawerInternal(fadeGetter, indent, groupDrawers);
+            return new FadeGroupsDrawerInternal(fadeGetter, options, groupDrawers);
         }
 
-        public static IDrawer FoldoutGroup(string title, AnimBoolGetter root, bool indent, params IDrawer[] bodies)
+        public static IDrawer FoldoutGroup(string title, AnimBoolGetter root, FoldoutOption options, params IDrawer[] bodies)
         {
-            return new FoldoutDrawerInternal(title, root, indent, bodies);
+            return new FoldoutDrawerInternal(title, root, options, bodies);
         }
 
         public static IDrawer Select<T2UIState, T2Data>(
@@ -118,15 +135,18 @@ namespace UnityEditor.Experimental.Rendering
 
         class FadeGroupsDrawerInternal : IDrawer
         {
-            IDrawer[] groupDrawers;
-            AnimBoolItemGetter getter;
-            bool indent;
+            IDrawer[] m_GroupDrawers;
+            AnimBoolItemGetter m_Getter;
+            FadeOption m_Options;
 
-            public FadeGroupsDrawerInternal(AnimBoolItemGetter getter, bool indent, params IDrawer[] groupDrawers)
+            bool indent { get { return (m_Options & FadeOption.Indent) != 0; } }
+            bool animate { get { return (m_Options & FadeOption.Animate) != 0; } }
+
+            public FadeGroupsDrawerInternal(AnimBoolItemGetter getter, FadeOption options, params IDrawer[] groupDrawers)
             {
-                this.groupDrawers = groupDrawers;
-                this.getter = getter;
-                this.indent = indent;
+                m_GroupDrawers = groupDrawers;
+                m_Getter = getter;
+                m_Options = options;
             }
 
             void IDrawer.Draw(TUIState s, TData p, Editor owner)
@@ -134,18 +154,20 @@ namespace UnityEditor.Experimental.Rendering
                 // We must start with a layout group here
                 // Otherwise, nested FadeGroup won't work
                 GUILayout.BeginVertical();
-                for (var i = 0; i < groupDrawers.Length; ++i)
+                for (var i = 0; i < m_GroupDrawers.Length; ++i)
                 {
-                    var b = getter(s, p, owner, i);
-                    if (EditorGUILayout.BeginFadeGroup(b.faded))
+                    var b = m_Getter(s, p, owner, i);
+                    if (animate && EditorGUILayout.BeginFadeGroup(b.faded)
+                        || !animate && b.target)
                     {
                         if (indent)
                             ++EditorGUI.indentLevel;
-                        groupDrawers[i].Draw(s, p, owner);
+                        m_GroupDrawers[i].Draw(s, p, owner);
                         if (indent)
                             --EditorGUI.indentLevel;
                     }
-                    EditorGUILayout.EndFadeGroup();
+                    if (animate)
+                        EditorGUILayout.EndFadeGroup();
                 }
                 GUILayout.EndVertical();
             }
@@ -153,37 +175,43 @@ namespace UnityEditor.Experimental.Rendering
 
         class FoldoutDrawerInternal : IDrawer
         {
-            IDrawer[] bodies;
-            AnimBoolGetter isExpanded;
-            string title;
-            bool indent;
+            IDrawer[] m_Bodies;
+            AnimBoolGetter m_IsExpanded;
+            string m_Title;
+            FoldoutOption m_Options;
+            bool m_Animate;
 
-            public FoldoutDrawerInternal(string title, AnimBoolGetter isExpanded, bool indent, params IDrawer[] bodies)
+            bool animate { get { return (m_Options & FoldoutOption.Animate) != 0; } }
+            bool indent { get { return (m_Options & FoldoutOption.Indent) != 0; } }
+
+            public FoldoutDrawerInternal(string title, AnimBoolGetter isExpanded, FoldoutOption options, params IDrawer[] bodies)
             {
-                this.title = title;
-                this.isExpanded = isExpanded;
-                this.bodies = bodies;
-                this.indent = indent;
+                m_Title = title;
+                m_IsExpanded = isExpanded;
+                m_Bodies = bodies;
+                m_Options = options;
             }
 
             public void Draw(TUIState s, TData p, Editor owner)
             {
-                var r = isExpanded(s, p, owner);
+                var r = m_IsExpanded(s, p, owner);
                 CoreEditorUtils.DrawSplitter();
-                r.target = CoreEditorUtils.DrawHeaderFoldout(title, r.target);
+                r.target = CoreEditorUtils.DrawHeaderFoldout(m_Title, r.target);
                 // We must start with a layout group here
                 // Otherwise, nested FadeGroup won't work
                 GUILayout.BeginVertical();
-                if (EditorGUILayout.BeginFadeGroup(r.faded))
+                if (animate && EditorGUILayout.BeginFadeGroup(r.faded)
+                    || !animate && r.target)
                 {
                     if (indent)
                         ++EditorGUI.indentLevel;
-                    for (var i = 0; i < bodies.Length; i++)
-                        bodies[i].Draw(s, p, owner);
+                    for (var i = 0; i < m_Bodies.Length; i++)
+                        m_Bodies[i].Draw(s, p, owner);
                     if (indent)
                         --EditorGUI.indentLevel;
                 }
-                EditorGUILayout.EndFadeGroup();
+                if (animate)
+                    EditorGUILayout.EndFadeGroup();
                 GUILayout.EndVertical();
             }
         }

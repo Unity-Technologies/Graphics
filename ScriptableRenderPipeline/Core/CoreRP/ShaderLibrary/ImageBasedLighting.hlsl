@@ -321,7 +321,7 @@ void ImportanceSampleAnisoGGX(real2   u,
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
 real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
 {
-    real NdotV     = saturate(dot(N, V));
+    real NdotV     = ClampNdotV(dot(N, V));
     real4 acc      = real4(0.0, 0.0, 0.0, 0.0);
     // Add some jittering on Hammersley2d
     real2 randNum  = InitRandom(V.xy * 0.5 + 0.5);

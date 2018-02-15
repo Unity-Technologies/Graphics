@@ -59,7 +59,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "../ShaderVariables.hlsl"
+            #ifdef DEBUG_DISPLAY
             #include "../Debug/DebugDisplay.hlsl"
+            #endif
             #include "../Lighting/Lighting.hlsl" // This include Material.hlsl
 
             //-------------------------------------------------------------------------------------
