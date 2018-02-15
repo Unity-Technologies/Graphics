@@ -4,12 +4,13 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    public class UnlitMasterNode : MasterNode
+    public class UnlitMasterNode : MasterNode, IHasSettings
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -99,6 +100,20 @@ namespace UnityEditor.ShaderGraph
 
             configuredTextures = shaderProperties.GetConfiguredTexutres();
             return finalShader.GetShaderString(0);
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            VisualElement rowView = new VisualElement();
+
+            rowView.AddToClassList("row");
+
+            Label label = new Label("Unlit");
+
+            label.AddToClassList("rowLabel");
+            rowView.Add(label);
+            
+            return rowView;
         }
     }
 }

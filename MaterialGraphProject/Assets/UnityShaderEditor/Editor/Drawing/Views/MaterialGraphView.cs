@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView, IDropTarget
     {
+        NodeSettingsView m_NodeSettingsView;
         public MaterialGraphView()
         {
             AddStyleSheetPath("Styles/MaterialGraphView");
@@ -27,6 +28,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public MaterialGraphView(AbstractMaterialGraph graph) : this()
         {
             this.graph = graph;
+            MaterialGraph mg = (MaterialGraph)graph;
+            var node = mg.masterNode;
+            m_NodeSettingsView = new NodeSettingsView();
+            m_NodeSettingsView.visible = false;
+            Add(m_NodeSettingsView);
         }
 
         public AbstractMaterialGraph graph { get; private set; }
@@ -197,9 +203,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SelectionChanged()
         {
+            m_NodeSettingsView.Clear();
             var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
-            if (onSelectionChanged != null)
-                onSelectionChanged(selectedNodes.Select(x => x.userData as INode));
+
+            //if (selectedNodes.Count() == 1)
+            //{
+            //    INode node = (INode)selectedNodes.First().userData;
+            //    var settings = node as IHasSettings;
+            //    if (settings != null)
+            //    {
+            //        m_NodeSettingsView.Add(settings.CreateSettingsElement());
+            //        m_NodeSettingsView.visible = true;
+            //    }
+            //    else
+            //        m_NodeSettingsView.visible = false;
+            //}
+            //else
+            //    m_NodeSettingsView.visible = false;
         }
 
         public override void AddToSelection(ISelectable selectable)

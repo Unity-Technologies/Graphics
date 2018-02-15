@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,7 +18,7 @@ namespace UnityEditor.ShaderGraph
 
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode
+    public class PBRMasterNode : MasterNode, IHasSettings
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -48,7 +50,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Model m_Model = Model.Metallic;
 
-        [EnumControl("")]
+        //[EnumControl("")]
         public Model model
         {
             get { return m_Model; }
@@ -66,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private AlphaMode m_AlphaMode;
 
-        [EnumControl("")]
+        //[EnumControl("")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -151,6 +153,11 @@ namespace UnityEditor.ShaderGraph
 
             configuredTextures = shaderProperties.GetConfiguredTexutres();
             return finalShader.GetShaderString(0);
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return new PBRSettingsView(this);
         }
     }
 }

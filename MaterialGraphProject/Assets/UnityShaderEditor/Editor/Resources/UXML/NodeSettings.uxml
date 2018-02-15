@@ -1,0 +1,9 @@
+﻿<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
+    <ui:VisualElement name="mainContainer">
+        <Style path="Styles/NodeSettings"/>
+        <ui:Label name="title" text="Node Settings"/>
+		<ui:VisualElement name="contentContainer">
+		</ui:VisualElement>
+    </ui:VisualElement>   
+</UXML>
+

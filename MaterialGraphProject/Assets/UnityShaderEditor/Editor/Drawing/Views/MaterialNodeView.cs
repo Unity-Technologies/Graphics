@@ -22,6 +22,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
         VisualElement m_PortInputContainer;
+        VisualElement m_SettingsContainer;
+        bool m_ShowSettings = false;
+        VisualElement m_SettingsButton;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -138,6 +141,47 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PortInputContainer.SendToBack();
             if (node.hasPreview)
                 m_PreviewFiller.BringToFront();
+
+            var buttonContainer = new VisualElement();
+            buttonContainer.name = "button-container";
+            VisualElement collapseButton = this.Q("collapse-button");
+            VisualElement parent = collapseButton.parent;
+
+            parent.Add(buttonContainer);
+            
+            m_SettingsContainer = new VisualElement { name = "settings-container" };
+            Add(m_SettingsContainer);
+            m_SettingsContainer.SendToBack();
+
+            var settings = node as IHasSettings;
+            if (settings != null)
+            {
+                
+                m_SettingsButton = new VisualElement {name = "settings-button"};
+                //if(!m_ShowSettings)
+                m_SettingsButton.Add(new VisualElement { name = "icon" });
+                //else
+                //    settingsButton.Add(new VisualElement { name = "icon-clicked" });
+
+                m_SettingsButton.AddManipulator(new Clickable(() =>
+                {
+                    //var graph = (AbstractMaterialGraph)node.owner;
+                    // martintt have to add this to the node to the right of it.
+                    
+                    UpdateSettingsExpandedState(settings);
+                    /*
+                    if (m_ShowSettings)
+                    {
+                        m_SettingsContainer.Add(settings.CreateSettingsElement());
+                    }
+                    else
+                        m_SettingsContainer.RemoveAt(0);
+                    */
+                }));
+                buttonContainer.Add(m_SettingsButton);
+                //Add(settings.CreateSettingsElement());
+            }
+            buttonContainer.Add(collapseButton);
         }
 
         public AbstractMaterialNode node { get; private set; }
@@ -189,6 +233,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var graph = (AbstractMaterialGraph)node.owner;
                 GUIUtility.systemCopyBuffer = graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
+            }
+        }
+
+        void UpdateSettingsExpandedState(IHasSettings settings)
+        {
+            m_ShowSettings = !m_ShowSettings;
+            if (m_ShowSettings)
+            {
+                m_SettingsContainer.Add(settings.CreateSettingsElement());
+                m_SettingsButton.AddToClassList("clicked");
+            }
+            else
+            {
+                m_SettingsContainer.RemoveAt(0);
+                m_SettingsButton.RemoveFromClassList("clicked");
             }
         }
 
