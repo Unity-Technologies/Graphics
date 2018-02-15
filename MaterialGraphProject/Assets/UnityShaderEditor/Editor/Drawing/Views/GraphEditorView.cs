@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
         {
             m_Graph = graph;
-            AddStyleSheetPath("Styles/MaterialGraph");
+            AddStyleSheetPath("Styles/GraphEditorView");
             m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
 

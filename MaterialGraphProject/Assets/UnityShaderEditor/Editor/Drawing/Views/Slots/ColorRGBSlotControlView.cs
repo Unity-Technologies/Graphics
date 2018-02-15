@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public ColorRGBSlotControlView(ColorRGBMaterialSlot slot)
         {
+            AddStyleSheetPath("Styles/Controls/ColorRGBSlotControlView");
             m_Slot = slot;
             var colorField = new ColorField { value = new Color(slot.value.x, slot.value.y, slot.value.z, 0),
                 showEyeDropper = false, showAlpha = false };

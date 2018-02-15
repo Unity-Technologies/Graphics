@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     sealed class ShaderPort : Port
     {
         ShaderPort(Orientation portOrientation, Direction portDirection, Type type)
-            : base(portOrientation, portDirection, type) { }
+            : base(portOrientation, portDirection, type) { AddStyleSheetPath("Styles/ShaderPort"); }
 
         MaterialSlot m_Slot;
 
