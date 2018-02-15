@@ -18,7 +18,6 @@ uniform float4x4 g_mScrProjection;
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform uint g_isOrthographic;
-uniform int _EnvLightIndexShift;
 
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);

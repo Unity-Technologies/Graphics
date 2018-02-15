@@ -838,6 +838,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         continue;
                     }
 
+                    // Frustum cull density volumes on CPU.
+                    DensityVolumeList densityVolumes = m_VolumetricLightingModule.PrepareVisibleDensityVolumeList(hdCamera, cmd);
+
                     // Note: Legacy Unity behave like this for ShadowMask
                     // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
                     // However there is no C# function that we can query to know what mode have been select in Lighting Panel and it will be wrong anyway. Lighting Panel setup what will be the next bake mode. But until light is bake, it is wrong.
@@ -847,7 +850,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, camera) && m_FrameSettings.enableShadowMask;
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, camera, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, densityVolumes) && m_FrameSettings.enableShadowMask;
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
@@ -875,7 +878,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSkyEnvironment(hdCamera, cmd);
 
                     RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
-
 
                     if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                     {
@@ -945,7 +947,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         // The pass only requires the volume properties, and can run async.
-                        m_VolumetricLightingModule.VoxelizeDensityVolumes(hdCamera, cmd);
+                        //
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
