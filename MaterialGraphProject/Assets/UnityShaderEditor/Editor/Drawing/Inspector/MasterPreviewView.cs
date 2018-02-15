@@ -61,8 +61,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 middleContainer.AddManipulator(new Scrollable(OnScroll));
             }
             Add(middleContainer);
-
-            EditorApplication.playmodeStateChanged += RefreshRenderTextureSize;
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -139,31 +137,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void RefreshRenderTextureSize()
         {
+            RenderTextureDescriptor descriptor = m_PreviewRenderHandle.renderTexture.descriptor;
+
             var targetWidth = m_PreviewTextureView.contentRect.width;
             var targetHeight = m_PreviewTextureView.contentRect.height;
 
-            RenderTextureDescriptor descriptor;
-
-            if (m_PreviewRenderHandle.renderTexture)
+            if (Mathf.Approximately(descriptor.width, targetHeight) && Mathf.Approximately(descriptor.height, targetWidth))
             {
-                descriptor = m_PreviewRenderHandle.renderTexture.descriptor;
-                descriptor.width = (int)m_PreviewTextureView.contentRect.width;
-                descriptor.height = (int)m_PreviewTextureView.contentRect.height;
-
-                if (Mathf.Approximately(descriptor.width, descriptor.height) && Mathf.Approximately(descriptor.height, descriptor.height))
-                {
-                    return;
-                }
-
-                m_PreviewRenderHandle.renderTexture.Release();
-                Object.DestroyImmediate(m_PreviewRenderHandle.renderTexture);
-            }
-            else
-            {
-                descriptor = new RenderTextureDescriptor((int)targetWidth, (int)targetHeight, RenderTextureFormat.ARGB32, 16);
+                return;
             }
 
+            descriptor.width = (int)m_PreviewTextureView.contentRect.width;
+            descriptor.height = (int)m_PreviewTextureView.contentRect.height;
+
+            m_PreviewRenderHandle.renderTexture.Release();
+            Object.DestroyImmediate(m_PreviewRenderHandle.renderTexture);
             m_PreviewRenderHandle.renderTexture = new RenderTexture(descriptor) { hideFlags = HideFlags.HideAndDontSave };
+
             DirtyMasterNode(ModificationScope.Node);
         }
 
