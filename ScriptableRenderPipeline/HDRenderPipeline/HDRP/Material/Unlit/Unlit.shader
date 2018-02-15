@@ -41,7 +41,7 @@ Shader "HDRenderPipeline/Unlit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
+        [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 0.0
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
@@ -115,12 +115,11 @@ Shader "HDRenderPipeline/Unlit"
 
     SubShader
     {
-        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
+        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not be the meta pass.
 
-        // Unlit shader always render in forward
         Pass
         {
-            Name ""
+            Name "Depth prepass"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
@@ -141,7 +140,7 @@ Shader "HDRenderPipeline/Unlit"
         // Unlit shader always render in forward
         Pass
         {
-            Name "ForwardUnlit"
+            Name "Forward Unlit"
             Tags { "LightMode" = "ForwardOnly" }
 
             Blend [_SrcBlend] [_DstBlend]
@@ -226,7 +225,7 @@ Shader "HDRenderPipeline/Unlit"
 
             Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOp Add, [_DistortionBlurBlendOp]
-            ZTest [_ZTestMode]
+            ZTest [_ZTestModeDistortion]
             ZWrite off
             Cull [_CullMode]
 

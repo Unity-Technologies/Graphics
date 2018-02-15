@@ -120,6 +120,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
         protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
 
+        protected const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
+        protected const string kZTestModeDistortion = "_ZTestModeDistortion";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -346,6 +348,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
             CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
+            // If the material use the kZTestDepthEqualForOpaque it mean it require depth equal test for opaque but transparent are not affected
+            if (material.HasProperty(kZTestDepthEqualForOpaque))
+            {
+                if (surfaceType == SurfaceType.Opaque)
+                    material.SetInt(kZTestDepthEqualForOpaque, (int)UnityEngine.Rendering.CompareFunction.Equal);
+                else
+                    material.SetInt(kZTestDepthEqualForOpaque, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+            }
+
             if (surfaceType == SurfaceType.Opaque)
             {
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
@@ -406,11 +417,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
                 if (distortionDepthTest)
                 {
-                    material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                    material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
                 }
                 else
                 {
-                    material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                    material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.Always);
                 }
 
                 var distortionBlendMode = material.GetInt(kDistortionBlendMode);
