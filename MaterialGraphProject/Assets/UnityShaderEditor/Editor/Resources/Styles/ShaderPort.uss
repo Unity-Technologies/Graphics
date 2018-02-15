@@ -1,3 +1,5 @@
+/* THIS FILE IS FROM GRAPHVIEW BUT CONTAINS MODIFICATIONS */
+
 ShaderPort {
     height: 24;
     align-items: center;
@@ -84,6 +86,11 @@ ShaderPort.typeTexture2D {
     port-color:#FF8B8B;
 }
 
+ShaderPort.typeCubemap {
+	/* Same as typeTexture */
+    port-color:#FF8B8B;
+}
+
 ShaderPort.typeGraphScript {
     /* Todo: there is no such type in Unity atm */
     port-color:#E681BA;
@@ -124,7 +131,7 @@ ShaderPort.typeInt64 {
     port-color:#9481E6;
 }
 
-ShaderPort.typeBool {
+ShaderPort.typeBoolean {
     port-color:#9481E6;
 }
 
