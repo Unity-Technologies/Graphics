@@ -4281,7 +4281,7 @@ MonoBehaviour:
   m_LinkedSlots:
   - {fileID: 114635141660832184}
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -5019,7 +5019,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 62
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 7f9b2cbb0954c994bac300b7dc6ab8b9, type: 3}
+      processor: {fileID: 7200000, guid: 7dc803a57323fb74f89d66fc0cc12189, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5046,7 +5046,7 @@ VFXAsset:
       - index: 59
         nameId: LifetimeLoss_c
       params: []
-      processor: {fileID: 7200000, guid: 73939a5b1c582fe41a4bd179a2a9dbe3, type: 3}
+      processor: {fileID: 7200000, guid: 1446f179d08782c4b90036df4dfe7a34, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5061,7 +5061,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3bcdff2ca6ba55c4882d30e35e227139, type: 3}
+      processor: {fileID: 4800000, guid: 05ccd04d959cc0241b996af755c68ab9, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

@@ -1234,7 +1234,7 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -1712,7 +1712,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 28
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 3d0080bf1b3c07a498a51dd51217050d, type: 3}
+      processor: {fileID: 7200000, guid: fb1a2a26e20f03044827d96d00bbc80b, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1723,7 +1723,7 @@ VFXAsset:
       - index: 20
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: f76bdf7a8f2455742adb86d28bb68805, type: 3}
+      processor: {fileID: 7200000, guid: c32d61c7cc2b308489a8acd6d91f6508, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1738,7 +1738,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 6268d8e91e8bcca45a77b75a962ad2e4, type: 3}
+      processor: {fileID: 4800000, guid: 80cdc3ef499f32748851650c39502033, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

@@ -244,7 +244,14 @@ namespace UnityEditor.VFX
             var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);
             foreach (var model in objs.OfType<VFXModel>())
-                model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+                try
+                {
+                    model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2}", model.name, model.GetType(), e.StackTrace));
+                }
 
             m_GraphSanitized = true;
         }
