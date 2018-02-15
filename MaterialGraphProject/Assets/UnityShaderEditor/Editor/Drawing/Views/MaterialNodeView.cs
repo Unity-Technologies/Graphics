@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnSubGraphDoubleClick(MouseDownEvent evt)
         {
-            if (evt.clickCount == 2)
+            if (evt.clickCount == 2 && evt.button == 0)
             {
                 SubGraphNode subgraphNode = node as SubGraphNode;
 
