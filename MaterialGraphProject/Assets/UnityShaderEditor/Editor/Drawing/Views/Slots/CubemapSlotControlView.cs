@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public CubemapSlotControlView(CubemapInputMaterialSlot slot)
         {
+            AddStyleSheetPath("Styles/Controls/CubemapSlotControlView");
             m_Slot = slot;
             var objectField = new ObjectField { objectType = typeof(Cubemap), value = m_Slot.cubemap };
             objectField.OnValueChanged(OnValueChanged);

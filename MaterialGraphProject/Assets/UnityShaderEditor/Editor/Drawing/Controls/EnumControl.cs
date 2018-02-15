@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public EnumControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
+            AddStyleSheetPath("Styles/Controls/EnumControlView");
             m_Node = node;
             m_PropertyInfo = propertyInfo;
             if (!propertyInfo.PropertyType.IsEnum)
