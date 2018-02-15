@@ -6,7 +6,7 @@
 #define RAND2 float2(RAND,RAND)
 #define RAND3 float3(RAND,RAND,RAND)
 #define RAND4 float4(RAND,RAND,RAND,RAND)
-#define FIXED_RAND(h) FixedRand(particleId ^ systemSeed ^ h)
+#define FIXED_RAND(h) FixedRand(particleId ^ asuint(systemSeed) ^ h)
 #define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))

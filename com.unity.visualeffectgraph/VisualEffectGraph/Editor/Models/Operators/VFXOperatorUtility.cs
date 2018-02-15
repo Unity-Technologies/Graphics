@@ -452,5 +452,16 @@ namespace UnityEditor.VFX
             var combine = new VFXExpressionCombine(outputComponent);
             return combine;
         }
+
+        static public VFXExpression FixedRandom(uint hash, bool perElement)
+        {
+            return FixedRandom(VFXValue.Constant<uint>(hash), perElement);
+        }
+
+        static public VFXExpression FixedRandom(VFXExpression hash, bool perElement)
+        {
+            VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
+            return new VFXExpressionFixedRandom(seed, perElement);
+        }
     }
 }
