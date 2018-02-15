@@ -30,7 +30,6 @@ namespace UnityEngine.Experimental.Rendering
         protected          uint[]                     m_TmpWidths  = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
         protected          uint[]                     m_TmpHeights = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
         protected          Vector4[]                  m_TmpSplits  = new Vector4[k_MaxCascadesInShader];
-        protected          float[]                    m_TmpScales  = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          float[]                    m_TmpBorders = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
         protected          Material                   m_DebugMaterial = null;
@@ -343,7 +342,6 @@ namespace UnityEngine.Experimental.Rendering
                             int face = (int)key.faceIdx;
                             texelSizeX = 2.0f / ce.current.proj.m00;
                             texelSizeY = 2.0f / ce.current.proj.m11;
-                            m_TmpScales[face] = Mathf.Max( texelSizeX, texelSizeY );
                             m_TmpBorders[face] = cascadeBorders[face];
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
                         }
@@ -423,7 +421,7 @@ namespace UnityEngine.Experimental.Rendering
         // Returns how many entries will be written into the payload buffer per light.
         virtual protected uint ReservePayload( ShadowRequest sr )
         {
-            uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? (k_MaxCascadesInShader + ((uint)m_TmpScales.Length / 4) + ((uint)m_TmpBorders.Length / 4)) : 0;
+            uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? (1 + k_MaxCascadesInShader + ((uint)m_TmpBorders.Length / 4)) : 0;
                  payloadSize += ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) == ShadowAlgorithm.PCF ? 1u : 0;
             return payloadSize;
         }
@@ -460,18 +458,18 @@ namespace UnityEngine.Experimental.Rendering
             ShadowPayload sp = new ShadowPayload();
             if( sr.shadowType == GPUShadowType.Directional )
             {
+                uint first = k_MaxCascadesInShader, second = k_MaxCascadesInShader;
                 for( uint i = 0; i < k_MaxCascadesInShader; i++, payloadOffset++ )
                 {
+                    first  = (first  == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : first;
+                    second = (second == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : second;
                     sp.Set( m_TmpSplits[i] );
                     payload[payloadOffset] = sp;
                 }
 
-                for( int i = 0; i < m_TmpScales.Length; i += 4 )
-                {
-                    sp.Set( m_TmpScales[i+0], m_TmpScales[i+1], m_TmpScales[i+2], m_TmpScales[i+3] );
-                    payload[payloadOffset] = sp;
-                    payloadOffset++;
-                }
+                sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
+                payload[payloadOffset] = sp;
+                payloadOffset++;
 
                 for( int i = 0; i < m_TmpBorders.Length; i += 4 )
                 {
