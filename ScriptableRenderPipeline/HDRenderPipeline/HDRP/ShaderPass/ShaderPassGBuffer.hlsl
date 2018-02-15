@@ -51,13 +51,13 @@ void Frag(  PackedVaryingsToPS packedInput,
     ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
 #endif
 
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(V, posInput.positionSS, surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 
-    ENCODE_INTO_GBUFFER(V, posInput.positionSS, surfaceData, bakeDiffuseLighting, outGBuffer);
+    ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, posInput.positionSS, outGBuffer);
     ENCODE_SHADOWMASK_INTO_GBUFFER(float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3), outShadowMaskBuffer);
 
 #ifdef _DEPTHOFFSET_ON

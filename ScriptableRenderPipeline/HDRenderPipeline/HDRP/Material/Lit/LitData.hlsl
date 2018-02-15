@@ -232,7 +232,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
-    GetBuiltinData(input, surfaceData, V, posInput, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
 #include "LitDataMeshModification.hlsl"
