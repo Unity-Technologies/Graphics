@@ -293,12 +293,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Result1 = Shader.PropertyToID("_Result1");
 
         public static readonly int _AmbientProbeCoeffs         = Shader.PropertyToID("_AmbientProbeCoeffs");
-        public static readonly int _GlobalFog_Extinction       = Shader.PropertyToID("_GlobalFog_Extinction");
-        public static readonly int _GlobalFog_Scattering       = Shader.PropertyToID("_GlobalFog_Scattering");
-        public static readonly int _GlobalFog_Asymmetry        = Shader.PropertyToID("_GlobalFog_Asymmetry");
+        public static readonly int _GlobalExtinction           = Shader.PropertyToID("_GlobalExtinction");
+        public static readonly int _GlobalScattering           = Shader.PropertyToID("_GlobalScattering");
+        public static readonly int _GlobalAsymmetry            = Shader.PropertyToID("_GlobalAsymmetry");
         public static readonly int _CornetteShanksConstant     = Shader.PropertyToID("_CornetteShanksConstant");
         public static readonly int _VBufferResolution          = Shader.PropertyToID("_VBufferResolution");
-        public static readonly int _VBufferScaleAndSliceCount  = Shader.PropertyToID("_VBufferScaleAndSliceCount");
+        public static readonly int _VBufferSliceCount          = Shader.PropertyToID("_VBufferSliceCount");
         public static readonly int _VBufferDepthEncodingParams = Shader.PropertyToID("_VBufferDepthEncodingParams");
         public static readonly int _VBufferDepthDecodingParams = Shader.PropertyToID("_VBufferDepthDecodingParams");
         public static readonly int _VBufferCoordToViewDirWS    = Shader.PropertyToID("_VBufferCoordToViewDirWS");
