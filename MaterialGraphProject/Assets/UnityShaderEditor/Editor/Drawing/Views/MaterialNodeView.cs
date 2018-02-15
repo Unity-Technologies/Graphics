@@ -127,13 +127,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
 
-            if (node is PreviewNode)
+            /*if (node is PreviewNode)
             {
                 var resizeHandle = new Label { name = "resize", text = "" };
                 resizeHandle.AddManipulator(new Draggable(OnResize));
                 Add(resizeHandle);
                 UpdateSize();
-            }
+            }*/
 
             m_PortInputContainer.SendToBack();
             if (node.hasPreview)
