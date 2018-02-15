@@ -7,16 +7,18 @@ namespace UnityEditor.ShaderGraph
     public enum SlotValueType
     {
         SamplerState,
+        DynamicMatrix,
         Matrix4,
         Matrix3,
         Matrix2,
         Texture2D,
         Cubemap,
-        Dynamic,
+        DynamicVector,
         Vector4,
         Vector3,
         Vector2,
         Vector1,
+        Dynamic,
         Boolean
     }
 
@@ -51,6 +53,34 @@ namespace UnityEditor.ShaderGraph
                     return 1;
                 default:
                     return 0;
+            }
+        }
+
+        public static int GetMatrixDimension(ConcreteSlotValueType type)
+        {
+            switch (type)
+            {
+                case ConcreteSlotValueType.Matrix4:
+                    return 4;
+                case ConcreteSlotValueType.Matrix3:
+                    return 3;
+                case ConcreteSlotValueType.Matrix2:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        public static ConcreteSlotValueType ConvertMatrixToVectorType(ConcreteSlotValueType matrixType)
+        {
+            switch(matrixType)
+            {
+                case ConcreteSlotValueType.Matrix4:
+                    return ConcreteSlotValueType.Vector4;
+                case ConcreteSlotValueType.Matrix3:
+                    return ConcreteSlotValueType.Vector3;
+                default:
+                    return ConcreteSlotValueType.Vector2;
             }
         }
 

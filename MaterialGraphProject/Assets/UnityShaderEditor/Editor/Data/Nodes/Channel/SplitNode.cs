@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
     [Title("Channel", "Split")]
     public class SplitNode : AbstractMaterialNode, IGeneratesBodyCode
     {
-        const string kInputSlotName = "Input";
+        const string kInputSlotName = "In";
         const string kOutputSlotRName = "R";
         const string kOutputSlotGName = "G";
         const string kOutputSlotBName = "B";

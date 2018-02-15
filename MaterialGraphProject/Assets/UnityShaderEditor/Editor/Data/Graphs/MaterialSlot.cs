@@ -113,6 +113,8 @@ namespace UnityEditor.ShaderGraph
             {
                 case SlotValueType.SamplerState:
                     return new SamplerStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                case SlotValueType.DynamicMatrix:
+                    return new DynamicMatrixMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Matrix4:
                     return new Matrix4MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.Matrix3:
@@ -127,7 +129,7 @@ namespace UnityEditor.ShaderGraph
                     return slotType == SlotType.Input
                         ? new CubemapInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
                         : new CubemapMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
-                case SlotValueType.Dynamic:
+                case SlotValueType.DynamicVector:
                     return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector4:
                     return new Vector4MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
@@ -137,6 +139,8 @@ namespace UnityEditor.ShaderGraph
                     return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector1:
                     return new Vector1MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue.x, shaderStage, hidden);
+                case SlotValueType.Dynamic:
+                    return new DynamicValueMaterialSlot(slotId, displayName, shaderOutputName, slotType, new Matrix4x4(defaultValue, Vector4.zero, Vector4.zero, Vector4.zero), shaderStage, hidden);
                 case SlotValueType.Boolean:
                     return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStage, hidden);
             }
@@ -225,20 +229,27 @@ namespace UnityEditor.ShaderGraph
             {
                 case SlotValueType.SamplerState:
                     return inputType == SlotValueType.SamplerState;
+                case SlotValueType.DynamicMatrix:
                 case SlotValueType.Matrix4:
                     return inputType == SlotValueType.Matrix4
                         || inputType == SlotValueType.Matrix3
-                        || inputType == SlotValueType.Matrix2;
+                        || inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix
+                        || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Matrix3:
                     return inputType == SlotValueType.Matrix3
-                        || inputType == SlotValueType.Matrix2;
+                        || inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix
+                        || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Matrix2:
-                    return inputType == SlotValueType.Matrix2;
+                    return inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix
+                        || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Texture2D:
                     return inputType == SlotValueType.Texture2D;
                 case SlotValueType.Cubemap:
                     return inputType == SlotValueType.Cubemap;
-                case SlotValueType.Dynamic:
+                case SlotValueType.DynamicVector:
                 case SlotValueType.Vector4:
                 case SlotValueType.Vector3:
                 case SlotValueType.Vector2:
@@ -247,6 +258,18 @@ namespace UnityEditor.ShaderGraph
                         || inputType == SlotValueType.Vector3
                         || inputType == SlotValueType.Vector2
                         || inputType == SlotValueType.Vector1
+                        || inputType == SlotValueType.DynamicVector
+                        || inputType == SlotValueType.Dynamic;
+                case SlotValueType.Dynamic:
+                    return inputType == SlotValueType.Matrix4
+                        || inputType == SlotValueType.Matrix3
+                        || inputType == SlotValueType.Matrix2
+                        || inputType == SlotValueType.DynamicMatrix
+                        || inputType == SlotValueType.Vector4
+                        || inputType == SlotValueType.Vector3
+                        || inputType == SlotValueType.Vector2
+                        || inputType == SlotValueType.Vector1
+                        || inputType == SlotValueType.DynamicVector
                         || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Boolean:
                     return inputType == SlotValueType.Boolean;
