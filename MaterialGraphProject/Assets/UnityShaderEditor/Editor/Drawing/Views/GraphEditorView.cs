@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public WindowDockingLayout previewLayout = new WindowDockingLayout();
         public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
+        public WindowDockingLayout nodeSettingsLayout = new WindowDockingLayout();
     }
 
     public class GraphEditorView : VisualElement, IDisposable
