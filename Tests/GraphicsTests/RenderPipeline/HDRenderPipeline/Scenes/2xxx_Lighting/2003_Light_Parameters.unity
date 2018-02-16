@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.07321005, g: 0.0769269, b: 0.08504323, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -278,7 +278,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -287,9 +287,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -306,6 +308,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -420,6 +426,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -458,18 +465,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -1027,7 +1039,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -1036,9 +1048,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -1055,6 +1069,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -1169,6 +1187,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -1207,18 +1226,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -1843,7 +1867,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -1852,9 +1876,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -1871,6 +1897,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -1985,6 +2015,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -2023,18 +2054,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -2058,7 +2094,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -2067,9 +2103,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -2086,6 +2124,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -2200,6 +2242,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -2238,18 +2281,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -2400,7 +2448,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -2409,9 +2457,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -2428,6 +2478,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -2542,6 +2596,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -2580,18 +2635,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -2750,7 +2810,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -2759,9 +2819,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -2778,6 +2840,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -2892,6 +2958,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -2930,18 +2997,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -3508,8 +3580,8 @@ Transform:
   m_Children:
   - {fileID: 1868899143}
   - {fileID: 215803839}
-  - {fileID: 1127871495}
   - {fileID: 820356348}
+  - {fileID: 1127871495}
   m_Father: {fileID: 1889969955}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 8, y: 0, z: 0}
@@ -3755,7 +3827,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -3764,9 +3836,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -3783,6 +3857,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -3897,6 +3975,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -3935,18 +4014,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -4664,8 +4748,8 @@ Transform:
   m_Children:
   - {fileID: 1205012118}
   - {fileID: 454123623}
-  - {fileID: 1904714931}
   - {fileID: 809605258}
+  - {fileID: 1904714931}
   m_Father: {fileID: 1889969955}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 16, y: 0, z: 0}
@@ -5020,7 +5104,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -5029,9 +5113,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -5048,6 +5134,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -5162,6 +5252,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -5200,18 +5291,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -5253,8 +5349,8 @@ Transform:
   m_Children:
   - {fileID: 1259138953}
   - {fileID: 1854552206}
-  - {fileID: 1258941678}
   - {fileID: 726664563}
+  - {fileID: 1258941678}
   m_Father: {fileID: 1889969955}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 24, y: 0, z: 0}
@@ -5509,7 +5605,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -5518,9 +5614,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -5537,6 +5635,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -5651,6 +5753,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -5689,18 +5792,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -5951,7 +6059,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 653675747}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &726664564
 MonoBehaviour:
@@ -6390,7 +6498,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 618687962}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &809605259
 MonoBehaviour:
@@ -6525,7 +6633,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 484353044}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &820356349
 MonoBehaviour:
@@ -7071,7 +7179,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1294129010}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &997690614
 MonoBehaviour:
@@ -7715,7 +7823,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -7724,9 +7832,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -7743,6 +7853,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -7857,6 +7971,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -7895,18 +8010,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -7930,7 +8050,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -7939,9 +8059,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -7958,6 +8080,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -8072,6 +8198,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -8110,18 +8237,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -8637,8 +8769,8 @@ Transform:
   m_Children:
   - {fileID: 2092164471}
   - {fileID: 640169246}
-  - {fileID: 587970605}
   - {fileID: 997690613}
+  - {fileID: 587970605}
   m_Father: {fileID: 1889969955}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -8779,7 +8911,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -8788,9 +8920,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -8807,6 +8941,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -8921,6 +9059,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -8959,18 +9098,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -9066,7 +9210,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -9075,9 +9219,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -9094,6 +9240,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -9208,6 +9358,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -9246,18 +9397,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -9391,7 +9547,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -9400,9 +9556,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -9419,6 +9577,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -9533,6 +9695,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -9571,18 +9734,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -9657,7 +9825,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -9666,9 +9834,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -9685,6 +9855,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -9799,6 +9973,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -9837,18 +10012,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -9944,7 +10124,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -9953,9 +10133,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -9972,6 +10154,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -10086,6 +10272,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -10124,18 +10311,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -10265,7 +10457,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -10274,9 +10466,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -10293,6 +10487,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -10407,6 +10605,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -10445,18 +10644,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -10552,7 +10756,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -10561,9 +10765,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -10580,6 +10786,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -10694,6 +10904,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -10732,18 +10943,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -11274,7 +11490,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -11283,9 +11499,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -11302,6 +11520,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -11416,6 +11638,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -11454,18 +11677,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -11489,7 +11717,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -11498,9 +11726,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -11517,6 +11747,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -11631,6 +11865,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -11669,18 +11904,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -12169,7 +12409,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -12178,9 +12418,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -12197,6 +12439,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -12311,6 +12557,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -12349,18 +12596,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -12570,7 +12822,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -12579,9 +12831,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -12598,6 +12852,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -12712,6 +12970,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -12750,18 +13009,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -12945,7 +13209,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -12954,9 +13218,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -12973,6 +13239,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -13087,6 +13357,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -13125,18 +13396,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -13160,7 +13436,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -13169,9 +13445,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -13188,6 +13466,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -13302,6 +13584,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -13340,18 +13623,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
@@ -13375,7 +13663,7 @@ Material:
   m_Name: HDRP_Default_Material(Clone)(Clone)
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _ENABLE_FOG_ON_TRANSPARENT
-    _MAPPING_PLANAR _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+    _MAPPING_PLANAR _MATERIAL_FEATURE_CLEAR_COAT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -13384,9 +13672,11 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
+  - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -13403,6 +13693,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMapOS:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -13517,6 +13811,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _EnergyConservingSpecularColor: 1
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -13555,18 +13850,23 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
+    - _SupportDBuffer: 1
     - _SurfaceType: 1
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 4
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}

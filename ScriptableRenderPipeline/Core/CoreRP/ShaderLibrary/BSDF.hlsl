@@ -65,6 +65,14 @@ real3 F_Transm_Schlick(real3 f0, real u)
     return F_Transm_Schlick(f0, 1.0, u);        // sub mul mul mad mad*3
 }
 
+// Ref: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
+// Fresnel dieletric / dielectric
+real F_Fresnel(real ior, real u)
+{
+    float g = sqrt(Sq(ior) + Sq(u) - 1.0);
+    return 0.5 * Sq((g - u) / (g + u)) * (1.0 + Sq(((g + u) * u - 1.0) / ((g - u) * u + 1.0)));
+}
+
 //-----------------------------------------------------------------------------
 // Specular BRDF
 //-----------------------------------------------------------------------------
