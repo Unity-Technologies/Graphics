@@ -355,7 +355,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var results = m_Graph.GetUberPreviewShader();
                         m_OutputIdName = results.outputIdProperty.referenceName;
                         ShaderUtil.UpdateShaderAsset(m_UberShader, results.shader);
+                        #if UNITY_SHADER_GRAPH_DEVMODE
                         File.WriteAllText(Application.dataPath + "/../UberShader.shader", (results.shader ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
+                        #endif
                         bool uberShaderHasError = false;
                         if (MaterialGraphAsset.ShaderHasError(m_UberShader))
                         {
@@ -463,7 +465,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderData.shaderString = m_Graph.GetPreviewShader(node).shader;
             }
 
+            #if UNITY_SHADER_GRAPH_DEVMODE
             File.WriteAllText(Application.dataPath + "/../GeneratedShader.shader", (shaderData.shaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
+            #endif
 
             if (string.IsNullOrEmpty(shaderData.shaderString))
             {
@@ -488,7 +492,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Debug output
+            #if UNITY_SHADER_GRAPH_DEVMODE
             var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + shaderData.shaderString;
+            #endif
             if (MaterialGraphAsset.ShaderHasError(shaderData.shader))
             {
                 shaderData.hasError = true;
