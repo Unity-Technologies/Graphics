@@ -634,7 +634,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
-                    hdCamera.UpdateStereoDependentState(m_FrameSettings, hdCamera.camera, ref cullingParams);
+                    hdCamera.UpdateStereoDependentState(m_FrameSettings, ref cullingParams);
 
 #if UNITY_EDITOR
                     // emit scene view UI
