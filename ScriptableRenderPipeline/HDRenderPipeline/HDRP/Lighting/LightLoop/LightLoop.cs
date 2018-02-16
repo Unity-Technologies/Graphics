@@ -689,24 +689,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 8 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
-        // TODO: Add proper stereo support
-        public void AllocResolutionDependentBuffers(int width, int height)
+        public void AllocResolutionDependentBuffers(int width, int height, bool stereoEnabled)
         {
+            var nrStereoLayers = stereoEnabled ? 2 : 1;
+
             var nrTilesX = (width + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTilesY = (height + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
-            var nrTiles = nrTilesX * nrTilesY;
+            var nrTiles = nrTilesX * nrTilesY * nrStereoLayers;
             const int capacityUShortsPerTile = 32;
             const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1;        // room for 31 lights and a nrLights value.
 
             s_LightList = new ComputeBuffer((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
             s_TileList = new ComputeBuffer((int)LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint));
-            s_TileFeatureFlags = new ComputeBuffer(nrTilesX * nrTilesY, sizeof(uint));
+            s_TileFeatureFlags = new ComputeBuffer(nrTiles, sizeof(uint));
 
             // Cluster
             {
                 var nrClustersX = (width + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
                 var nrClustersY = (height + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
-                var nrClusterTiles = nrClustersX * nrClustersY;
+                var nrClusterTiles = nrClustersX * nrClustersY * nrStereoLayers;
 
                 s_PerVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint));
                 s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint));
@@ -721,7 +722,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var nrBigTilesX = (width + 63) / 64;
                 var nrBigTilesY = (height + 63) / 64;
-                var nrBigTiles = nrBigTilesX * nrBigTilesY;
+                var nrBigTiles = nrBigTilesX * nrBigTilesY * nrStereoLayers;
                 s_BigTileLightList = new ComputeBuffer(LightDefinitions.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint));
             }
         }

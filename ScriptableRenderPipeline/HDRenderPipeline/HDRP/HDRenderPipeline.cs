@@ -432,7 +432,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                     m_LightLoop.ReleaseResolutionDependentBuffers();
 
-                m_LightLoop.AllocResolutionDependentBuffers(hdCamera.actualWidth, hdCamera.actualHeight);
+                m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, m_FrameSettings.enableStereo);
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
