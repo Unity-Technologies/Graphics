@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var guid = selectedGuid;
                     selectedGuid = null;
-                    ChangeSelection(guid);
+                    Initialize(guid);
                 }
 
                 if (graphObject == null)
@@ -415,18 +415,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void ChangeSelection(string newSelectionGuid)
+        public void Initialize(string assetGuid)
         {
             try
             {
-                var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(newSelectionGuid));
+                m_ColorSpace = PlayerSettings.colorSpace;
+
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(assetGuid));
                 if (asset == null)
                     return;
 
                 if (!EditorUtility.IsPersistent(asset))
                     return;
 
-                if (selectedGuid == newSelectionGuid)
+                if (selectedGuid == assetGuid)
                     return;
 
                 var path = AssetDatabase.GetAssetPath(asset);
@@ -444,7 +446,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
                 }
 
-                selectedGuid = newSelectionGuid;
+                selectedGuid = assetGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
                 graphObject = CreateInstance<GraphObject>();
