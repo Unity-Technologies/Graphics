@@ -33,13 +33,12 @@ float4 EvalShadow_WorldToShadow( ShadowData sd, real3 positionWS, bool perspProj
 	return mul( proj, float4( positionWS, 1.0 ) );
 }
 // function called by spot, point and directional eval routines to calculate shadow coordinates
-real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real3 posNDC, bool clampToRect, bool perspProj )
+real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real3 posNDC, bool perspProj )
 {
 	real4 posCS = EvalShadow_WorldToShadow( sd, positionWS, perspProj );
 	posNDC = perspProj ? (posCS.xyz / posCS.w) : posCS.xyz;
 	// calc TCs
 	real3 posTC = real3( posNDC.xy * 0.5 + 0.5, posNDC.z );
-	posTC.xy = clampToRect ? clamp( posTC.xy, sd.texelSizeRcp.zw*0.5, 1.0.xx - sd.texelSizeRcp.zw*0.5 ) : posTC.xy;
 	posTC.xy = posTC.xy * sd.scaleOffset.xy + sd.scaleOffset.zw;
 
 	return posTC;
@@ -48,7 +47,7 @@ real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real3 posNDC
 real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, bool perspProj )
 {
 	real3 ndc;
-	return EvalShadow_GetTexcoords( sd, positionWS, ndc, false, perspProj );
+	return EvalShadow_GetTexcoords( sd, positionWS, ndc, perspProj );
 }
 
 uint2 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real2 closestSampleNDC, bool perspProj )
@@ -486,8 +485,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 	positionWS = EvalShadow_ReceiverBias( sd, positionWS, normalWS, L, 1.0, recvBiasWeight, false );
 
 	// get shadowmap texcoords
-	real3 posNDC;
-	real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true, false );
+	real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );
 	// evaluate the first cascade
 	real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );
 	real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
@@ -502,7 +500,8 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 		{
 			EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );
 			positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );
-			posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false, false );
+	        real3 posNDC;
+			posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false );
 			// sample the texture
 			sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );
 
@@ -536,8 +535,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 		positionWS = EvalShadow_ReceiverBias( sd, positionWS, normalWS, L, 1.0, recvBiasWeight, false );                                                                                                            \
 																																																					\
 		/* get shadowmap texcoords */																																					                            \
-		real3 posNDC;                                                                                                                                                                                               \
-		real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true, false );																											                    \
+		real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );																											                                    \
 		/* evalute the first cascade */																																					                            \
 		real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );                                                                                                                                             \
 		real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp );                                                      \
@@ -552,7 +550,8 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 			{                                                                                                                                                                                                       \
 				EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );																										                \
 				positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );				                                                                                        \
-				posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false, false );																										                    \
+		        real3 posNDC;                                                                                                                                                                                       \
+				posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false );																										                            \
 				/* sample the texture */																																				                            \
 				sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );																																			\
 																																																					\
@@ -607,8 +606,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	real  recvBiasWeight = EvalShadow_ReceiverBiasWeight( shadowContext, shadowAlgorithm, sd, texIdx, sampIdx, positionWS, normalWS, L, 1.0, false );
 	positionWS = EvalShadow_ReceiverBias( sd, positionWS, normalWS, L, 1.0, recvBiasWeight, false );
 	// get shadowmap texcoords
-	real3 posNDC;
-	real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true, false );
+	real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );
 
 	int nextSplit = min( shadowSplitIndex+1, kMaxShadowCascades-1 );
 
@@ -643,8 +641,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 		real  recvBiasWeight = EvalShadow_ReceiverBiasWeight( sd, tex, samp, positionWS, normalWS, L, 1.0, false );                                                                                                 \
 		positionWS = EvalShadow_ReceiverBias( sd, positionWS, normalWS, L, 1.0, recvBiasWeight, false );                                                                                                            \
 		/* get shadowmap texcoords */																																					                            \
-		real3 posNDC;                                                                                                                                                                                               \
-		real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, true, false );																											                    \
+		real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );																											                                    \
 																																																					\
 		int nextSplit = min( shadowSplitIndex+1, kMaxShadowCascades-1 );                                                                                                                                            \
 																																																					\
