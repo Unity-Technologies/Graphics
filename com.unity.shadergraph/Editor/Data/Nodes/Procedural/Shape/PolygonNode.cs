@@ -32,8 +32,7 @@ namespace UnityEditor.ShaderGraph
     {precision} pCoord = atan2(uv.x, uv.y);
     {precision} r = tau / Sides;
     {precision} distance = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
-    {precision} value = 1 - step(1, smoothstep(0, 1, distance));
-    Out = value;
+    Out = saturate((1 - distance) / fwidth(distance));
 }
 ";
         }
