@@ -10,26 +10,30 @@
 //
 //					1 tap PCF sampling
 //
-real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, uint texIdx, uint sampIdx )
+real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 coord, float slice, uint texIdx, uint sampIdx )
 {
 	real depthBias = asfloat( shadowContext.payloads[payloadOffset].x );
 	payloadOffset++;
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
-	tcs.z += depthBias;
+	coord.z += depthBias;
+#endif
 	// sample the texture
-	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, slice ).x;
+	return SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, coord, slice ).x;
 }
 
-real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
+real SampleShadow_PCF_1tap( ShadowContext shadowContext, inout uint payloadOffset, real3 coord, float slice, Texture2DArray tex, SamplerComparisonState compSamp )
 {
 	real depthBias = asfloat( shadowContext.payloads[payloadOffset].x );
 	payloadOffset++;
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
-	tcs.z += depthBias;
+	coord.z += depthBias;
+#endif
 	// sample the texture
-	return SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, tcs, slice );
+	return SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, compSamp, coord, slice );
 }
 
 //
@@ -43,8 +47,10 @@ real SampleShadow_PCF_Tent_3x3( ShadowContext shadowContext, inout uint payloadO
 
 	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	coord.z += depthBias;
+#endif
 
 	real shadow = 0.0;
 	real fetchesWeights[4];
@@ -66,8 +72,10 @@ real SampleShadow_PCF_Tent_3x3(ShadowContext shadowContext, inout uint payloadOf
 
 	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	coord.z += depthBias;
+#endif
 
 	real shadow = 0.0;
 	real fetchesWeights[4];
@@ -92,8 +100,10 @@ real SampleShadow_PCF_Tent_5x5( ShadowContext shadowContext, inout uint payloadO
 
 	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	coord.z += depthBias;
+#endif
 
 	real shadow = 0.0;
 	real fetchesWeights[9];
@@ -115,8 +125,10 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 
 	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	coord.z += depthBias;
+#endif
 
 	real shadow = 0.0;
 	real fetchesWeights[9];
@@ -167,8 +179,10 @@ real SampleShadow_PCF_Tent_7x7( ShadowContext shadowContext, inout uint payloadO
 
 	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	coord.z += depthBias;
+#endif
 
 	real shadow = 0.0;
 	real fetchesWeights[16];
@@ -191,8 +205,10 @@ real SampleShadow_PCF_Tent_7x7(ShadowContext shadowContext, inout uint payloadOf
 
 	real4 shadowMapTexture_TexelSize = real4( texelSizeRcp.xy, textureSize.xy );
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	coord.z += depthBias;
+#endif
 
 	real shadow = 0.0;
 	real fetchesWeights[16];
@@ -257,8 +273,10 @@ real SampleShadow_PCF_9tap_Adaptive( ShadowContext shadowContext, inout uint pay
 
 	texelSizeRcp *= filterSize;
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	tcs.z += depthBias;
+#endif
 
 	// Terms0 are weights for the individual samples, the other terms are offsets in texel space
 	real4 vShadow3x3PCFTerms0 = real4( 20.0 / 267.0, 33.0 / 267.0, 55.0 / 267.0, 0.0 );
@@ -300,8 +318,10 @@ real SampleShadow_PCF_9tap_Adaptive(ShadowContext shadowContext, inout uint payl
 
 	texelSizeRcp *= filterSize;
 
+#if SHADOW_USE_DEPTH_BIAS == 1
 	// add the depth bias
 	tcs.z += depthBias;
+#endif
 
 	// Terms0 are weights for the individual samples, the other terms are offsets in texel space
 	real4 vShadow3x3PCFTerms0 = real4(20.0 / 267.0, 33.0 / 267.0, 55.0 / 267.0, 0.0);
