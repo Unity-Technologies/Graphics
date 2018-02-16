@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 8
+  serializedVersion: 9
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -23,7 +23,7 @@ RenderSettings:
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientIntensity: 0
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
@@ -35,10 +35,11 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
+  m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -566,9 +567,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -607,8 +615,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0.5
   shapeWidth: 0.5
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -694,9 +702,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 1024
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0
@@ -745,8 +760,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -1034,9 +1049,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 1024
   shadowDimmer: 1
   shadowFadeDistance: 10
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1075,8 +1097,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -1332,9 +1354,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  enableContactShadows: 0
+  contactShadowLength: 0
+  contactShadowDistanceScaleFactor: 0.5
+  contactShadowMaxDistance: 50
+  contactShadowFadeDistance: 5
+  contactShadowSampleCount: 8
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1373,8 +1402,8 @@ MonoBehaviour:
   affectSpecular: 1
   lightTypeExtent: 0
   spotLightShape: 0
-  shapeLength: 0
   shapeWidth: 0
+  shapeHeight: 0.5
   aspectRatio: 1
   shapeRadius: 0
   maxSmoothness: 1
@@ -1720,6 +1749,7 @@ MonoBehaviour:
   m_LookSpeedController: 120
   m_LookSpeedMouse: 10
   m_MoveSpeed: 50
+  m_MoveSpeedIncrement: 2.5
   m_Turbo: 10
 --- !u!114 &1769631034
 MonoBehaviour:
