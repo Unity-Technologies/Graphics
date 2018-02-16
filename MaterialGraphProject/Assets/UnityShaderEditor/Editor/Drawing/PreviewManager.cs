@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Texture2D m_ErrorTexture;
         Shader m_UberShader;
         string m_OutputIdName;
+        Vector2? m_NewMasterPreviewSize;
 
         public PreviewRenderData masterRenderData
         {
@@ -51,9 +52,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 renderTexture = new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
             };
+            m_MasterRenderData.renderTexture.Create();
 
             foreach (var node in m_Graph.GetNodes<INode>())
                 AddPreview(node);
+        }
+
+        public void ResizeMasterPreview(Vector2 newSize)
+        {
+            m_NewMasterPreviewSize = newSize;
+            m_DirtyPreviews.Add(masterRenderData.shaderData.node.tempId.index);
         }
 
         public PreviewRenderData GetPreview(AbstractMaterialNode node)
@@ -72,6 +80,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 shaderData = shaderData,
                 renderTexture = new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave }
             };
+            renderData.renderTexture.Create();
             Set(m_Identifiers, node.tempId, node.tempId);
             Set(m_RenderDatas, node.tempId, renderData);
             m_DirtyShaders.Add(node.tempId.index);
@@ -276,6 +285,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             var renderMasterPreview = masterRenderData.shaderData != null && m_DirtyPreviews.Contains(masterRenderData.shaderData.node.tempId.index);
             if (renderMasterPreview)
             {
+                if (m_NewMasterPreviewSize.HasValue)
+                {
+                    if (masterRenderData.renderTexture != null)
+                        Object.DestroyImmediate(masterRenderData.renderTexture, true);
+                    masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                    masterRenderData.renderTexture.Create();
+                    masterRenderData.texture = masterRenderData.renderTexture;
+                    m_NewMasterPreviewSize = null;
+                }
                 var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
                 var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
                 var scale = m_Graph.previewData.scale;

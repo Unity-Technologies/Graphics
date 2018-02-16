@@ -16,12 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public WindowDockingLayout previewLayout = new WindowDockingLayout();
         public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
-
-        [NonSerialized]
-        public WindowDockingLayout defaultPreviewLayout = new WindowDockingLayout();
-
-        [NonSerialized]
-        public WindowDockingLayout defaultBlackboardLayout = new WindowDockingLayout();
+        public Vector2 masterPreviewSize = new Vector2(400, 400);
     }
 
     public class GraphEditorView : VisualElement, IDisposable
@@ -37,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         EdgeConnectorListener m_EdgeConnectorListener;
         BlackboardProvider m_BlackboardProvider;
 
-        string m_FloatingWindowsLayoutKey;
+        const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
         public Action saveRequested { get; set; }
@@ -67,6 +62,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddStyleSheetPath("Styles/GraphEditorView");
             m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
+            string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
+            if (!string.IsNullOrEmpty(serializedWindowLayout))
+            {
+                m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+                if (m_FloatingWindowsLayout.masterPreviewSize.x > 0f && m_FloatingWindowsLayout.masterPreviewSize.y > 0f)
+                    previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+            }
+            previewManager.RenderPreviews();
 
             var toolbar = new IMGUIContainer(() =>
             {
@@ -81,14 +84,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (showInProjectRequested != null)
                         showInProjectRequested();
-                }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Reset Layout", EditorStyles.toolbarButton))
-                {
-                    m_MasterPreviewView.layout = m_FloatingWindowsLayout.defaultPreviewLayout.GetLayout(layout);
-                    m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.defaultBlackboardLayout.GetLayout(layout);
-                    m_MasterPreviewView.UpdateRenderTextureOnNextLayoutChange();
-                    UpdateSerializedWindowLayout();
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
@@ -464,36 +459,29 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             UnregisterCallback<PostLayoutEvent>(ApplySerializewindowLayouts);
 
-            m_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout";
-            string serializedWindowLayout = EditorUserSettings.GetConfigValue(m_FloatingWindowsLayoutKey);
-
-            if (!String.IsNullOrEmpty(serializedWindowLayout))
+            if (m_FloatingWindowsLayout != null)
             {
-                m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
-
-                m_FloatingWindowsLayout.defaultPreviewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
-                m_FloatingWindowsLayout.defaultBlackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
-
                 m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout.GetLayout(layout);
                 m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(layout);
 
-                m_MasterPreviewView.UpdateRenderTextureOnNextLayoutChange();
+                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
             else
             {
                 m_FloatingWindowsLayout = new FloatingWindowsLayout();
-                m_FloatingWindowsLayout.defaultPreviewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
-                m_FloatingWindowsLayout.defaultBlackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
             }
         }
 
         void UpdateSerializedWindowLayout()
         {
+            if (m_FloatingWindowsLayout == null)
+                m_FloatingWindowsLayout = new FloatingWindowsLayout();
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
             m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
+            m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.Q("preview").layout.size;
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
-            EditorUserSettings.SetConfigValue(m_FloatingWindowsLayoutKey, serializedWindowLayout);
+            EditorUserSettings.SetConfigValue(k_FloatingWindowsLayoutKey, serializedWindowLayout);
 
             m_MasterPreviewView.RefreshRenderTextureSize();
         }

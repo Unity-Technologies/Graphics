@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using System.Linq;
 
 namespace UnityEditor.ShaderGraph

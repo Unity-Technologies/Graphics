@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,16 +6,18 @@ using UnityEngine;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public class MasterPreviewView : VisualElement
     {
+        PreviewManager m_PreviewManager;
         AbstractMaterialGraph m_Graph;
 
         PreviewRenderData m_PreviewRenderHandle;
-        PreviewTextureView m_PreviewTextureView;
+        Image m_PreviewTextureView;
 
         Vector2 m_PreviewScrollPosition;
         ObjectField m_PreviewMeshPicker;
@@ -32,12 +33,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public MasterPreviewView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             this.clippingOptions = ClippingOptions.ClipAndCacheContents;
+            m_PreviewManager = previewManager;
             m_Graph = graph;
 
             AddStyleSheetPath("Styles/MasterPreviewView");
 
             m_PreviewRenderHandle = previewManager.masterRenderData;
-            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
 
             var topContainer = new VisualElement() { name = "top" };
             {
@@ -48,19 +49,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             var middleContainer = new VisualElement {name = "middle"};
             {
-                m_PreviewTextureView = new PreviewTextureView { name = "preview", image = Texture2D.blackTexture };
-                m_PreviewTextureView.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
-                m_PreviewTextureView.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
-
-                middleContainer.Add(m_PreviewTextureView);
-
+                m_PreviewTextureView = CreatePreview(Texture2D.blackTexture);
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
-
                 middleContainer.Add(m_PreviewTextureView);
-
                 middleContainer.AddManipulator(new Scrollable(OnScroll));
             }
+            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
             Add(middleContainer);
+        }
+
+        Image CreatePreview(Texture texture)
+        {
+            var image = new Image { name = "preview", image = StyleValue<Texture>.Create(m_PreviewRenderHandle.texture ?? texture) };
+            image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
+            image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
+            return image;
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -89,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewChanged()
         {
-            m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.image = StyleValue<Texture>.Create(m_PreviewRenderHandle.texture ?? Texture2D.blackTexture);
             m_PreviewTextureView.Dirty(ChangeType.Repaint);
         }
 
@@ -137,24 +140,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void RefreshRenderTextureSize()
         {
-            RenderTextureDescriptor descriptor = m_PreviewRenderHandle.renderTexture.descriptor;
+            var currentWidth = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.width : -1;
+            var currentHeight = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.height : -1;
 
             var targetWidth = m_PreviewTextureView.contentRect.width;
             var targetHeight = m_PreviewTextureView.contentRect.height;
 
-            if (Mathf.Approximately(descriptor.width, targetHeight) && Mathf.Approximately(descriptor.height, targetWidth))
-            {
+            if (Mathf.Approximately(currentWidth, targetHeight) && Mathf.Approximately(currentHeight, targetWidth))
                 return;
-            }
 
-            descriptor.width = (int)m_PreviewTextureView.contentRect.width;
-            descriptor.height = (int)m_PreviewTextureView.contentRect.height;
-
-            m_PreviewRenderHandle.renderTexture.Release();
-            Object.DestroyImmediate(m_PreviewRenderHandle.renderTexture);
-            m_PreviewRenderHandle.renderTexture = new RenderTexture(descriptor) { hideFlags = HideFlags.HideAndDontSave };
-
-            DirtyMasterNode(ModificationScope.Node);
+            m_PreviewManager.ResizeMasterPreview(m_PreviewTextureView.contentRect.size);
         }
 
         public void UpdateRenderTextureOnNextLayoutChange()

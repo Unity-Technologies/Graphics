@@ -1,8 +1,4 @@
-using System.Linq;
-using NUnit.Framework;
 using UnityEngine;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {

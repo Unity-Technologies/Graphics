@@ -107,13 +107,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (dropTarget == null || !dropTarget.CanAcceptDrop(selection))
                 return;
 
-            var propagation = EventPropagation.Continue;
             if (evt.imguiEvent.type == EventType.DragUpdated)
-                propagation = dropTarget.DragUpdated(evt, selection, dropTarget);
+                dropTarget.DragUpdated(evt, selection, dropTarget);
             else if (evt.imguiEvent.type == EventType.DragPerform)
-                propagation = dropTarget.DragPerform(evt, selection, dropTarget);
+                dropTarget.DragPerform(evt, selection, dropTarget);
             else if (evt.imguiEvent.type == EventType.DragExited)
-                propagation = dropTarget.DragExited();
+                dropTarget.DragExited();
 
 //            if (propagation == EventPropagation.Stop)
 //                evt.StopPropagation();

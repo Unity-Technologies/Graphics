@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
-using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
