@@ -60,7 +60,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionXRSettings = CED.FadeGroup(
             (s, d, o, i) => s.isSectionAvailableXRSettings,
-            FadeOption.Animate,
+            FadeOption.None,
             CED.FoldoutGroup(
                 "XR Settings",
                 (s, p, o) => s.isSectionExpandedXRSettings,
@@ -70,7 +70,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionRenderLoopSettings = CED.FadeGroup(
             (s, d, o, i) => s.isSectionAvailableRenderLoopSettings,
-            FadeOption.Animate,
+            FadeOption.None,
             CED.Select(
                 (s, d, o) => s.frameSettingsUI,
                 (s, d, o) => d.frameSettings,
