@@ -50,6 +50,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
 
                 m_frameSettingsIsDirty = false;
+
+                // In Editor we can have plenty of camera that are not render at the same time as SceneView.
+                // It is really tricky to keep in sync with them. To have a coherent state. When a change is done
+                // on HDRenderPipelineAsset, we tag all camera as dirty so we are sure that they will get the
+                // correct default FrameSettings when the camera will be in the HDRenderPipeline.Render() call
+                // otherwise, as SceneView and Game camera are not in the same call Render(), Game camera that use default
+                // will not be update correctly.
+                #if UNITY_EDITOR
+                Camera[] cameras = Camera.allCameras;
+                foreach (Camera camera in cameras)
+                {
+                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    if (additionalCameraData)
+                    {
+                        // Call OnAfterDeserialize that set dirty on FrameSettings
+                        additionalCameraData.OnAfterDeserialize();
+                    }
+                }
+                #endif
             }
         }
 

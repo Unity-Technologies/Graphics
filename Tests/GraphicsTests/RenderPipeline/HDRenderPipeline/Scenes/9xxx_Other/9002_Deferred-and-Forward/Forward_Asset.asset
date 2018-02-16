@@ -54,7 +54,7 @@ MonoBehaviour:
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     supportDBuffer: 1
-    supportMSAA: 0
+    msaaSampleCount: 1
     lightLoopSettings:
       spotCookieSize: 128
       cookieTexArraySize: 16

@@ -150,12 +150,13 @@ public class VolumetricLightingModule
             for (int i = 0; i < n; i++)
             {
                 this.lightingRTEX[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                this.lightingRTEX[i].hideFlags         = HideFlags.HideAndDontSave;
                 this.lightingRTEX[i].filterMode        = FilterMode.Trilinear;   // Custom
                 this.lightingRTEX[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
                 this.lightingRTEX[i].volumeDepth       = d;
                 this.lightingRTEX[i].enableRandomWrite = true;
+                this.lightingRTEX[i].name = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("Volumetric{0}", i));
                 this.lightingRTEX[i].Create();
-
                 this.lightingRTID[i] = new RenderTargetIdentifier(this.lightingRTEX[i]);
             }
         }
@@ -397,9 +398,9 @@ public class VolumetricLightingModule
                                                                                 : DensityVolumeProperties.GetNeutralProperties();
 
         float asymmetry = globalVolume != null ? globalVolume.parameters.asymmetry : 0;
-        cmd.SetGlobalVector(HDShaderIDs._Global_Scattering, globalVolumeProperties.scattering);
-        cmd.SetGlobalFloat( HDShaderIDs._Global_Extinction, globalVolumeProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._Global_Asymmetry,  asymmetry);
+        cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, globalVolumeProperties.scattering);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, globalVolumeProperties.extinction);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
         ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);

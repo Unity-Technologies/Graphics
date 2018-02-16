@@ -108,6 +108,18 @@
 
 #endif // #ifndef real
 
+// Target in compute shader are supported in 2018.2, for now define ours
+// (Note only 45 and above support compute shader)
+#ifdef  SHADER_STAGE_COMPUTE
+#   ifndef SHADER_TARGET
+#       if defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
+#       define SHADER_TARGET 45
+#       else
+#       define SHADER_TARGET 50
+#       endif
+#   endif
+#endif
+
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
@@ -349,7 +361,7 @@ real FastATanPos(real x)
 #if (SHADER_TARGET >= 45)
 uint FastLog2(uint x)
 {
-    return firstbithigh(x) - 1u;
+    return firstbithigh(x);
 }
 #endif
 
@@ -594,21 +606,50 @@ static const float4x4 k_identity4x4 = {1, 0, 0, 0,
                                        0, 0, 1, 0,
                                        0, 0, 0, 1};
 
-// Use case examples:
-// (position = positionCS) => (clipSpaceTransform = use default)
-// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
-// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
-float4 ComputeClipSpaceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
 {
-    float4 positionCS = mul(clipSpaceTransform, float4(position, 1.0));
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
 
 #if UNITY_UV_STARTS_AT_TOP
-    // Our clip space is correct, but the NDC is flipped.
-    // Conceptually, it should be (positionNDC.y = 1.0 - positionNDC.y), but this is more efficient.
+    // Our world space, view space, screen space and NDC space are Y-up.
+    // Our clip space is flipped upside-down due to poor legacy Unity design.
+    // The flip is baked into the projection matrix, so we only have to flip
+    // manually when going from CS to NDC and back.
     positionCS.y = -positionCS.y;
 #endif
 
     return positionCS;
+}
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    return mul(clipSpaceTransform, float4(position, 1.0));
+}
+
+// Use case examples:
+// (position = positionCS) => (clipSpaceTransform = use default)
+// (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
+// (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
+float3 ComputeNormalizedDeviceCoordinatesWithZ(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
+{
+    float4 positionCS = ComputeClipSpacePosition(position, clipSpaceTransform);
+
+#if UNITY_UV_STARTS_AT_TOP
+    // Our world space, view space, screen space and NDC space are Y-up.
+    // Our clip space is flipped upside-down due to poor legacy Unity design.
+    // The flip is baked into the projection matrix, so we only have to flip
+    // manually when going from CS to NDC and back.
+    positionCS.y = -positionCS.y;
+#endif
+
+    positionCS *= rcp(positionCS.w);
+    positionCS.xy = positionCS.xy * 0.5 + 0.5;
+
+    return positionCS.xyz;
 }
 
 // Use case examples:
@@ -617,22 +658,7 @@ float4 ComputeClipSpaceCoordinates(float3 position, float4x4 clipSpaceTransform 
 // (position = positionWS) => (clipSpaceTransform = UNITY_MATRIX_VP)
 float2 ComputeNormalizedDeviceCoordinates(float3 position, float4x4 clipSpaceTransform = k_identity4x4)
 {
-    float4 positionCS = ComputeClipSpaceCoordinates(position, clipSpaceTransform);
-
-    return positionCS.xy * (rcp(positionCS.w) * 0.5) + 0.5;
-}
-
-float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
-{
-    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
-
-#if UNITY_UV_STARTS_AT_TOP
-    // Our clip space is correct, but the NDC is flipped.
-    // Conceptually, it should be (positionNDC.y = 1.0 - positionNDC.y), but this is more efficient.
-    positionCS.y = -positionCS.y;
-#endif
-
-    return positionCS;
+    return ComputeNormalizedDeviceCoordinatesWithZ(position, clipSpaceTransform).xy;
 }
 
 float3 ComputeViewSpacePosition(float2 positionNDC, float deviceDepth, float4x4 invProjMatrix)
@@ -658,11 +684,11 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 struct PositionInputs
 {
     float3 positionWS;  // World space position (could be camera-relative)
-    float2 positionNDC; // Normalized screen UVs          : [0, 1) (with the half-pixel offset)
-    uint2  positionSS;  // Screen space pixel coordinates : [0, NumPixels)
-    uint2  tileCoord;   // Screen tile coordinates        : [0, NumTiles)
-    float  deviceDepth; // Depth from the depth buffer    : [0, 1] (typically reversed)
-    float  linearDepth; // View space Z coordinate        : [Near, Far]
+    float2 positionNDC; // Normalized screen coordinates within the viewport    : [0, 1) (with the half-pixel offset)
+    uint2  positionSS;  // Screen space pixel coordinates                       : [0, NumPixels)
+    uint2  tileCoord;   // Screen tile coordinates                              : [0, NumTiles)
+    float  deviceDepth; // Depth from the depth buffer                          : [0, 1] (typically reversed)
+    float  linearDepth; // View space Z coordinate                              : [Near, Far]
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.

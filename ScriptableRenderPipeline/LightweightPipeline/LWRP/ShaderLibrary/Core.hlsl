@@ -6,27 +6,6 @@
 #include "Input.hlsl"
 
 ///////////////////////////////////////////////////////////////////////////////
-// Light Classification defines                                              //
-//                                                                           //
-// In order to reduce shader variations main light keywords were combined    //
-// here we define main light type keywords.                                  //
-// Main light is either a shadow casting light or the brighest directional.  //
-// Lightweight pipeline doesn't support point light shadows so they can't be //
-// classified as main light.                                                 //
-///////////////////////////////////////////////////////////////////////////////
-#if defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT) || defined(_MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT)
-#define _MAIN_LIGHT_DIRECTIONAL
-#endif
-
-#if defined(_MAIN_LIGHT_SPOT_SHADOW) || defined(_MAIN_LIGHT_SPOT_SHADOW_SOFT)
-#define _MAIN_LIGHT_SPOT
-#endif
-
-// In case no shadow casting light we classify main light as directional
-#if !defined(_MAIN_LIGHT_DIRECTIONAL) && !defined(_MAIN_LIGHT_SPOT)
-#define _MAIN_LIGHT_DIRECTIONAL
-#endif
-
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
 #else
@@ -88,6 +67,15 @@ half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, h
 {
     half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
     return normalize(mul(normalTangent, tangentToWorld));
+}
+
+// TODO: A similar function should be already available in SRP lib on master. Use that instead
+float4 ComputeScreenPos(float4 positionCS)
+{
+    float4 o = positionCS * 0.5f;
+    o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w;
+    o.zw = positionCS.zw;
+    return o;
 }
 
 half ComputeFogFactor(float z)

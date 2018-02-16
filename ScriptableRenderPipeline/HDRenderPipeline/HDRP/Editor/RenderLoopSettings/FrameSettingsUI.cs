@@ -28,23 +28,23 @@ namespace UnityEditor.Experimental.Rendering
         public static CED.IDrawer SectionRenderingPasses = CED.FoldoutGroup(
             "Rendering Passes",
             (s, p, o) => s.isSectionExpandedRenderingPasses,
-            true,
+            FoldoutOption.Indent,
             CED.LabelWidth(200, CED.Action(Drawer_SectionRenderingPasses))
             );
 
         public static CED.IDrawer SectionRenderingSettings = CED.FoldoutGroup(
             "Rendering Settings",
             (s, p, o) => s.isSectionExpandedRenderingSettings,
-            true,
+            FoldoutOption.Indent,
             CED.LabelWidth(300,
                 CED.Action(Drawer_FieldForwardRenderingOnly),
                 CED.FadeGroup(
                     (s, d, o, i) => s.isSectionExpandedUseForwardOnly,
-                    false,
+                    FadeOption.None,
                     CED.Action(Drawer_FieldUseDepthPrepassWithDefferedRendering),
                     CED.FadeGroup(
                         (s, d, o, i) => s.isSectionExpandedUseDepthPrepass,
-                        true,
+                        FadeOption.Indent,
                         CED.Action(Drawer_FieldRenderAlphaTestOnlyInDeferredPrepass))),
                 CED.Action(Drawer_SectionOtherRenderingSettings)
             )
@@ -52,17 +52,17 @@ namespace UnityEditor.Experimental.Rendering
 
         public static CED.IDrawer SectionXRSettings = CED.FadeGroup(
             (s, d, o, i) => s.isSectionExpandedXRSupported,
-            false,
+            FadeOption.None,
             CED.FoldoutGroup(
                 "XR Settings",
                 (s, p, o) => s.isSectionExpandedXRSettings,
-                true,
+                FoldoutOption.Indent,
                 CED.LabelWidth(200, CED.Action(Drawer_FieldStereoEnabled))));
 
         public static CED.IDrawer SectionLightingSettings = CED.FoldoutGroup(
             "Lighting Settings",
             (s, p, o) => s.isSectionExpandedLightingSettings,
-            true,
+            FoldoutOption.Indent,
             CED.LabelWidth(250, CED.Action(Drawer_SectionLightingSettings)));
 
         public AnimBool isSectionExpandedRenderingPasses { get { return m_AnimBools[0]; } }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
@@ -166,13 +167,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
         public RenderTexture NewRenderTarget(PlanarReflectionProbe probe)
         {
-            var desc = GetRenderHDCamera(probe).renderTextureDesc;
-            desc.width = m_Parameters.planarReflectionProbeSize;
-            desc.height = m_Parameters.planarReflectionProbeSize;
-            desc.colorFormat = RenderTextureFormat.ARGBHalf;
-            desc.useMipMap = true;
-            var rt = new RenderTexture(desc);
-            rt.name = "PlanarProbeRT " + probe.name;
+            var rt = new RenderTexture(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, 0, RenderTextureFormat.ARGBHalf);
+            // No hide and don't save for this one
+            rt.useMipMap = true;
+            rt.autoGenerateMips = false;
+            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
+            rt.Create();
             return rt;
         }
 
