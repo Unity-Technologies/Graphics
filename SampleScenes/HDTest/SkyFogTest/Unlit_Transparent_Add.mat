@@ -178,6 +178,7 @@ Material:
     - _VertexDisplacementObjectScale: 1
     - _VertexDisplacementTilingScale: 1
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 0, b: 0, a: 0.741}
