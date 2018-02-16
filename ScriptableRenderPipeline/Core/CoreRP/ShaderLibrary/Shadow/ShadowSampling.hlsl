@@ -125,7 +125,7 @@ real SampleShadow_PCF_Tent_5x5(ShadowContext shadowContext, inout uint payloadOf
 	SampleShadow_ComputeSamples_Tent_5x5( shadowMapTexture_TexelSize, coord.xy, fetchesWeights, fetchesUV );
 
 
-#if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
+#if SHADOW_OPTIMIZE_REGISTER_USAGE == 1 && SHADOW_USE_SAMPLE_BIASING == 0
 	// the loops are only there to prevent the compiler form coalescing all 9 texture fetches which increases register usage
 	int i;
 	[loop]

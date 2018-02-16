@@ -225,7 +225,12 @@ float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 nor
 
 float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )
 {
-	float3 nrm = mul( (float3x3) sd.shadowToWorld, normalWS );
+	float3x3 view = float3x3( sd.rot0, sd.rot1, sd.rot2 );
+	float3 nrm = mul( view, normalWS );
+
+	nrm.x /= sd.proj[0];
+	nrm.y /= sd.proj[1];
+	nrm.z /= sd.proj[2];
 
 	nrm.x *= sd.scaleOffset.y;
 	nrm.y *= sd.scaleOffset.x;
