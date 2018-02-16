@@ -39,7 +39,7 @@ public class ShaderGraphImporterEditor : ScriptedImporterEditor
         {
             var window = CreateInstance<MaterialGraphEditWindow>();
             window.Show();
-            window.ChangeSelection(guid);
+            window.Initialize(guid);
         }
         return true;
     }
