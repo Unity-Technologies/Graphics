@@ -1,6 +1,6 @@
 NodeSettingsView > #mainContainer > #title {
     font-style: bold;
-	font-color: rgb(200,0,200);
+	font-color: rgb(0, 177, 200);
 	background-color: #F0F0F0;
 	width: 200;
 }
