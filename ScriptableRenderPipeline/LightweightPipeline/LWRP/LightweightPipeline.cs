@@ -321,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bool shadows = ShadowPass(visibleLights, ref context, ref lightData);
 
                 FrameRenderingConfiguration frameRenderingConfiguration;
-                SetupFrameRenderingConfiguration(out frameRenderingConfiguration, shadows, stereoEnabled);
+                SetupFrameRenderingConfiguration(out frameRenderingConfiguration, shadows, stereoEnabled, sceneViewCamera);
                 SetupIntermediateResources(frameRenderingConfiguration, ref context);
 
                 // SetupCameraProperties does the following:
@@ -353,7 +353,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
+
                 var cmd = CommandBufferPool.Get("After Camera Render");
+#if UNITY_EDITOR
+                if (sceneViewCamera)
+                    CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
+#endif
                 cmd.ReleaseTemporaryRT(m_ShadowMapRTID);
                 cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowMapRTID);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depthCopy);
@@ -586,7 +591,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool shadows, bool stereoEnabled)
+        private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool shadows, bool stereoEnabled, bool sceneViewCamera)
         {
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
@@ -621,6 +626,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         m_RequireCopyColor = true;
                 }
             }
+
+            if (sceneViewCamera)
+                m_RequireDepthTexture = true;
 
             if (shadows)
             {
@@ -1424,9 +1432,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material copyMaterial)
+        private void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material copyMaterial, bool forceBlit = false)
         {
-            if (m_CopyTextureSupport != CopyTextureSupport.None)
+            if (m_CopyTextureSupport != CopyTextureSupport.None && !forceBlit)
                 cmd.CopyTexture(sourceRT, destRT);
             else
                 cmd.Blit(sourceRT, destRT, copyMaterial);
