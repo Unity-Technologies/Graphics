@@ -126,7 +126,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var sceneName = Path.GetFileNameWithoutExtension(scenePath);
                     var description = string.Format("{0} {1}/{2} - ", sceneName, i + 1, scenes.Length);
 
-                    ResetAllLoadedMaterialKeywords(description, scale, scale * i);
+                    if (ResetAllLoadedMaterialKeywords(description, scale, scale * i))
+                    {
+                        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
+                    }
                 }
 
                 ResetAllMaterialAssetsKeywords(scale, scale * (scenes.Length - 1));
@@ -519,11 +522,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        static void ResetAllLoadedMaterialKeywords(string descriptionPrefix, float progressScale, float progressOffset)
+        static bool ResetAllLoadedMaterialKeywords(string descriptionPrefix, float progressScale, float progressOffset)
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
 
             bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+
+            bool anyMaterialDirty = false; // Will be true if any material is dirty.
 
             for (int i = 0, length = materials.Length; i < length; i++)
             {
@@ -533,8 +538,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     (i / (float)(length - 1)) * progressScale + progressOffset);
 
                 CheckOutFile(VSCEnabled, materials[i]);
-                HDEditorUtils.ResetMaterialKeywords(materials[i]);
+                anyMaterialDirty = anyMaterialDirty || HDEditorUtils.ResetMaterialKeywords(materials[i]);
             }
+
+            return anyMaterialDirty;
         }
 
         class UnityContextualLogHandler : ILogHandler
