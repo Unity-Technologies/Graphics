@@ -24,24 +24,22 @@ public struct VolumeProperties
 [Serializable]
 public class VolumeParameters
 {
-    public Bounds bounds;       // Position and dimensions in meters
+    public bool   isLocal;      // Enables voxelization
     public Color  albedo;       // Single scattering albedo [0, 1]
     public float  meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
     public float  asymmetry;    // Single global parameter for all volumes. TODO: UX
 
     public VolumeParameters()
     {
-        bounds       = new Bounds(Vector3.zero, Vector3.positiveInfinity);
+        isLocal      = true;
         albedo       = new Color(0.5f, 0.5f, 0.5f);
         meanFreePath = 10.0f;
         asymmetry    = 0.0f;
     }
 
-    public bool IsVolumeUnbounded()
+    public bool IsLocalVolume()
     {
-        return bounds.size.x == float.PositiveInfinity &&
-               bounds.size.y == float.PositiveInfinity &&
-               bounds.size.z == float.PositiveInfinity;
+        return isLocal;
     }
 
     public Vector3 GetAbsorptionCoefficient()
@@ -66,8 +64,6 @@ public class VolumeParameters
 
     public void Constrain()
     {
-        bounds.size = Vector3.Max(bounds.size, Vector3.zero);
-
         albedo.r = Mathf.Clamp01(albedo.r);
         albedo.g = Mathf.Clamp01(albedo.g);
         albedo.b = Mathf.Clamp01(albedo.b);
@@ -102,6 +98,8 @@ public class VolumetricLightingModule
         public long                     viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
         public RenderTexture[]          lightingRTEX = null;
         public RenderTargetIdentifier[] lightingRTID = null;
+        public RenderTexture            densityRTEX  = null;
+        public RenderTargetIdentifier   densityRTID  =   -1; // RenderTargetIdentifier cannot be NULL
 
         public RenderTargetIdentifier GetLightingIntegralBuffer() // Of the current frame
         {
@@ -119,6 +117,12 @@ public class VolumetricLightingModule
         {
             Debug.Assert(viewID > 0); // Game View only
             return lightingRTID[1 + ((Time.renderedFrameCount + 1) & 1)];
+        }
+
+        public RenderTargetIdentifier GetDensityBuffer()
+        {
+            Debug.Assert(viewID >= 0);
+            return densityRTID;
         }
 
         public void Create(long viewID, int w, int h, int d)
@@ -174,17 +178,29 @@ public class VolumetricLightingModule
 
     ComputeShader m_VolumetricLightingCS = null;
 
-    List<VBuffer> m_VBuffers         = null;
-    float         m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
-    float         m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
-    const float   k_LogScale         = 0.5f;
+    List<VBuffer>          m_VBuffers                = null;
+    List<OrientedBBox>     m_VisibleVolumes          = null;
+    List<VolumeProperties> m_VisibleVolumeProperties = null;
+    public const int       k_MaxVisibleVolumeCount   = 512;
+
+    // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
+    static ComputeBuffer s_VisibleVolumesBuffer          = null;
+    static ComputeBuffer s_VisibleVolumePropertiesBuffer = null;
+
+    float       m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
+    float       m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
+    const float k_LogScale         = 0.5f;
 
     public void Build(HDRenderPipelineAsset asset)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers = new List<VBuffer>(0);
+        m_VolumetricLightingCS          = asset.renderPipelineResources.volumetricLightingCS;
+        m_VBuffers                      = new List<VBuffer>();
+        m_VisibleVolumes                = new List<OrientedBBox>();
+        m_VisibleVolumeProperties       = new List<VolumeProperties>();
+        s_VisibleVolumesBuffer          = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
+        s_VisibleVolumePropertiesBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(VolumeProperties)));
     }
 
     public void Cleanup()
@@ -198,7 +214,12 @@ public class VolumetricLightingModule
             m_VBuffers[i].Destroy();
         }
 
-        m_VBuffers = null;
+        m_VBuffers                = null;
+        m_VisibleVolumes          = null;
+        m_VisibleVolumeProperties = null;
+
+        CoreUtils.SafeRelease(s_VisibleVolumesBuffer);
+        CoreUtils.SafeRelease(s_VisibleVolumePropertiesBuffer);
     }
 
     public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
@@ -297,6 +318,7 @@ public class VolumetricLightingModule
     // Since a single voxel corresponds to a tile (e.g. 8x8) of pixels,
     // the VBuffer can potentially extend past the boundaries of the viewport.
     // The function returns the fraction of the {width, height} of the VBuffer visible on screen.
+    // Note: for performance reasons, scale is unused (implicitly 1). The error is typically under 1%.
     static Vector2 ComputeVBufferResolutionAndScale(VolumetricLightingPreset preset,
                                                     int screenWidth, int screenHeight,
                                                     ref int w, ref int h, ref int d)
@@ -363,29 +385,71 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
+        HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
 
         // TODO: may want to cache these results somewhere.
-        VolumeProperties globalFogProperties = (globalFogComponent != null) ? globalFogComponent.volumeParameters.GetProperties()
+        VolumeProperties globalVolumeProperties = (globalVolume != null) ? globalVolume.volumeParameters.GetProperties()
                                                                             : VolumeProperties.GetNeutralVolumeProperties();
 
-        float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
-        cmd.SetGlobalVector(HDShaderIDs._GlobalFog_Scattering, globalFogProperties.scattering);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Extinction, globalFogProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalFog_Asymmetry,  asymmetry);
+        float asymmetry = globalVolume != null ? globalVolume.volumeParameters.asymmetry : 0;
+        cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, globalVolumeProperties.scattering);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, globalVolumeProperties.extinction);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  asymmetry);
 
         int w = 0, h = 0, d = 0;
-        Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
+        ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
 
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
 
         SetPreconvolvedAmbientLightProbe(cmd, asymmetry);
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
-        cmd.SetGlobalVector( HDShaderIDs._VBufferScaleAndSliceCount,  new Vector4(scale.x, scale.y, d, 1.0f / d));
+        cmd.SetGlobalVector( HDShaderIDs._VBufferSliceCount,          new Vector4(d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams, ComputeLogarithmicDepthDecodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,            vBuffer.GetLightingIntegralBuffer());
+    }
+
+    public void VoxelizeDensityVolumes(HDCamera camera, CommandBuffer cmd)
+    {
+        if (preset == VolumetricLightingPreset.Off) return;
+
+        Vector3 camPosition = camera.camera.transform.position;
+        Vector3 camOffset   = Vector3.zero; // World-origin-relative
+
+        if (ShaderConfig.s_CameraRelativeRendering != 0)
+        {
+            camOffset = -camPosition; // Camera-relative
+        }
+
+        m_VisibleVolumes.Clear();
+        m_VisibleVolumeProperties.Clear();
+
+        // Collect all the visible volume data, and upload it to the GPU.
+        HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
+
+        foreach (HomogeneousDensityVolume volume in volumes)
+        {
+            // Only test active finite volumes.
+            if (volume.enabled && volume.volumeParameters.IsLocalVolume())
+            {
+                // TODO: cache these?
+                var obb = OrientedBBox.Create(volume.transform);
+
+                // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                if (GeometryUtils.Overlap(obb, camOffset, camera.frustum, 6, 8))
+                {
+                    // TODO: cache these?
+                    var properties = volume.volumeParameters.GetProperties();
+
+                    m_VisibleVolumes.Add(obb);
+                    m_VisibleVolumeProperties.Add(properties);
+                }
+            }
+        }
+
+        s_VisibleVolumesBuffer.SetData(m_VisibleVolumes);
+        s_VisibleVolumePropertiesBuffer.SetData(m_VisibleVolumeProperties);
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
@@ -436,10 +500,10 @@ public class VolumetricLightingModule
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
             Debug.Assert(vBuffer != null);
 
-            HomogeneousFog globalFogComponent = HomogeneousFog.GetGlobalFogComponent();
-            float asymmetry = globalFogComponent != null ? globalFogComponent.volumeParameters.asymmetry : 0;
+            HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
+            float asymmetry = globalVolume != null ? globalVolume.volumeParameters.asymmetry : 0;
 
-            if (globalFogComponent == null)
+            if (globalVolume == null)
             {
                 // Clear the render target instead of running the shader.
                 // CoreUtils.SetRenderTarget(cmd, GetVBufferLightingIntegral(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
@@ -468,13 +532,12 @@ public class VolumetricLightingModule
             }
 
             int w = 0, h = 0, d = 0;
-            Vector2 scale = ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
-            float   vFoV  = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
 
             // Compose the matrix which allows us to compute the world space view direction.
-            // Compute it using the scaled resolution to account for the visible area of the VBuffer.
-            Vector4   scaledRes = new Vector4(w * scale.x, h * scale.y, 1.0f / (w * scale.x), 1.0f / (h * scale.y));
-            Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, scaledRes, camera.viewMatrix, false);
+            float     vFoV       = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
+            Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
 
             camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
 
