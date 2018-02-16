@@ -35,8 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [ColorUsage(false, true)]
         public Color            scatteringDistance;         // Per color channel (no meaningful units)
-        [ColorUsage(false)]
-        public Color            transmissionTint;           // Color, 0 to 1
+        [ColorUsage(false, true)]
+        public Color            transmissionTint;           // HDR color
         public TexturingMode    texturingMode;
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)

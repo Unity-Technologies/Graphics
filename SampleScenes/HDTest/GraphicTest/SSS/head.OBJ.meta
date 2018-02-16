@@ -1,9 +1,7 @@
 fileFormatVersion: 2
 guid: c567c8ceaf4b2a640926180289847290
-timeCreated: 1494507413
-licenseType: Pro
 ModelImporter:
-  serializedVersion: 21
+  serializedVersion: 22
   fileIDToRecycleName:
     100000: Group12
     100002: Group14
@@ -72,10 +70,78 @@ ModelImporter:
     4300020: Group4
     4300022: Group5
     4300024: Group7
+    2186277476908879412: ImportLogs
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group12Mat
+    second: {fileID: 2100000, guid: 30f21721af7ebd0448be0dcfec0074f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group14Mat
+    second: {fileID: 2100000, guid: 2ee351eaf894bd84ea7b01943fbe0563, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group19Mat
+    second: {fileID: 2100000, guid: 3cebc5e48633f5945902c68cf16bf096, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group24Mat
+    second: {fileID: 2100000, guid: 3c9dc1f55aa963c44b6666d154356723, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group26Mat
+    second: {fileID: 2100000, guid: 50b1d4b20bf986149bc42528026f4305, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group28Mat
+    second: {fileID: 2100000, guid: 91dd7c7f3843b724fa99ff46c33ffd03, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group2Mat
+    second: {fileID: 2100000, guid: 1dba3e60230b9724eb0cc8bb6aed491a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group33Mat
+    second: {fileID: 2100000, guid: 28d8c86f3603f79489848d863b9cbee0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group35Mat
+    second: {fileID: 2100000, guid: bf6c40b91880c51499ed7632da19afec, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group39Mat
+    second: {fileID: 2100000, guid: e7b64b2987ce9d44d924bc4a614cce75, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group4Mat
+    second: {fileID: 2100000, guid: 3eb5f7c7baae8484cb76fd9dcd65709c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group5Mat
+    second: {fileID: 2100000, guid: ab0ed2eee715f5a40899e5948c2f78bd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Group7Mat
+    second: {fileID: 2100000, guid: b76a948b681a8ec488d8ccdcc4173f4c, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -88,6 +154,8 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
@@ -112,6 +180,8 @@ ModelImporter:
     optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
