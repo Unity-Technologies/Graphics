@@ -5340,7 +5340,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 50
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 3e80cbbc4bd8f9e40b7adb212e44d9f4, type: 3}
+      processor: {fileID: 7200000, guid: 82c7b8c9235343442a7aa767612ef5eb, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5357,7 +5357,7 @@ VFXAsset:
       - index: 60
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: 8f6051851cf58a04ba05570a207fcd63, type: 3}
+      processor: {fileID: 7200000, guid: fa07e96a99ee1a44e8370a5d8facf7a2, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5378,7 +5378,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a13c6099fee67bb42a96c20db3e5b543, type: 3}
+      processor: {fileID: 4800000, guid: 58ea75c92f2971a478d0aa6afcca31f5, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5403,7 +5403,7 @@ VFXAsset:
         nameId: sortPriority
       - index: 1
         nameId: indirectDraw
-      processor: {fileID: 4800000, guid: 6cb4ddb3c1fc1594ab9bd9f252c6b8da, type: 3}
+      processor: {fileID: 4800000, guid: edfd3b6f9d445704a8beabde74aaecb9, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5426,7 +5426,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3d10b245d5936164bad520620c8e52f1, type: 3}
+      processor: {fileID: 4800000, guid: 550bbd416dcc3924d855c2a1b02d41c4, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5447,7 +5447,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 16848d56cfec7404ea50326751b62ae3, type: 3}
+      processor: {fileID: 4800000, guid: 66365d2251d59314299cabc9616ed6b5, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

@@ -1493,7 +1493,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"d2038625ec9188f4985a51186be54f66","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"14aef6944f9b0ed418932bcd373facf9","type":3}}'
   m_Property:
     name: mainTexture
     m_serializedType:
@@ -2955,7 +2955,7 @@ VFXAsset:
     m_NamedObject:
       m_Array:
       - m_ExpressionIndex: 20
-        m_Value: {fileID: 2800000, guid: d2038625ec9188f4985a51186be54f66, type: 3}
+        m_Value: {fileID: 2800000, guid: 14aef6944f9b0ed418932bcd373facf9, type: 3}
       - m_ExpressionIndex: 23
         m_Value: {fileID: 0}
       - m_ExpressionIndex: 29
@@ -3104,7 +3104,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 22
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: bc909fe921841b8458f75a31ff1e96b2, type: 3}
+      processor: {fileID: 7200000, guid: 338bdf7dffd4fb04fac1d4667567cfca, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -3119,7 +3119,7 @@ VFXAsset:
       - index: 32
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: bfec54f06795e5846a22b59e48b8c1af, type: 3}
+      processor: {fileID: 7200000, guid: eb7a03ed4c493e140bf4d0773a7a2b37, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3130,7 +3130,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 983e460ec394c2f45a3d1af64d20a624, type: 3}
+      processor: {fileID: 4800000, guid: 77dd43934b17e8648baa8f37fb85ca39, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3143,7 +3143,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: ced71070159309846924418db1653978, type: 3}
+      processor: {fileID: 4800000, guid: f7b8f859d9b8a1b4bae8d8206622a72c, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -3158,7 +3158,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 4680757e79c83b84cbbc08b16399990e, type: 3}
+      processor: {fileID: 4800000, guid: fc69ce4b2d153974f8a1037dc18153e1, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -3175,7 +3175,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: c892cf8a89d019849b63c85a753d98e1, type: 3}
+      processor: {fileID: 4800000, guid: 0d347abf3dbccd54d89f70dc98e6a328, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
