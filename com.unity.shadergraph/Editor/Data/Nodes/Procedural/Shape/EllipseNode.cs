@@ -25,9 +25,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    UV = (UV * 2.0 - 1.0);
-    UV = UV / {precision}2(Width, Height);
-    Out = step(length(UV), 1);
+    {precision} d = length((UV * 2 - 1) / {precision}2(Width, Height));
+    Out = saturate((1 - d) / fwidth(d));
 }";
         }
     }
