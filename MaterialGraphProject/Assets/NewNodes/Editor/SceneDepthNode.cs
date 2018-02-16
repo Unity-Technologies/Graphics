@@ -1,7 +1,4 @@
-using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEditor.ShaderGraph.Drawing.Controls;
-using System.Collections.Generic;
 
 /*namespace UnityEditor.ShaderGraph
 {

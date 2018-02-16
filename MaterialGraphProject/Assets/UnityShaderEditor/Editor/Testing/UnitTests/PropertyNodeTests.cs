@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using NUnit.Framework;
 using UnityEngine;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {

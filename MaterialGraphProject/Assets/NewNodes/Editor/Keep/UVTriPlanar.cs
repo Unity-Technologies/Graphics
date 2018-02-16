@@ -1,7 +1,3 @@
-using UnityEditor.Graphing;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace UnityEditor.ShaderGraph
 {
     /* [Title("UV", "Tri-Planar Mapping")]

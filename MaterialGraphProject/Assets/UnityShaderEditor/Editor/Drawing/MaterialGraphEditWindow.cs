@@ -4,13 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 

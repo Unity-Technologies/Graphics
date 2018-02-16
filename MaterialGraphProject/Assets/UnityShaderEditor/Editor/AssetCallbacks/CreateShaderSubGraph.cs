@@ -1,6 +1,5 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {

@@ -1,6 +1,5 @@
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {

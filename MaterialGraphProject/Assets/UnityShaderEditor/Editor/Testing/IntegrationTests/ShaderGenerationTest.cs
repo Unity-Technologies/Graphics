@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEditor.ShaderGraph;
 using Object = UnityEngine.Object;
 using System.Text;
 using UnityEditor.ShaderGraph.Drawing;
