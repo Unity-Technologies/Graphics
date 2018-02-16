@@ -44,6 +44,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public DecalData[] DecalDatas
+        {
+            get
+            {
+                BuildDecalDatas();
+                return m_DecalDatas;
+            }
+        }
+
         private static readonly int m_NormalToWorldID = Shader.PropertyToID("normalToWorld");
         private static readonly int m_DecalAtlasID = Shader.PropertyToID("_DecalAtlas");
         private static MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
@@ -64,6 +73,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //        static public Matrix4x4[] m_InstanceMatrices = new Matrix4x4[kDrawIndexedBatchSize];
         //        static public Matrix4x4[] m_InstanceNormalToWorld = new Matrix4x4[kDrawIndexedBatchSize];
         static public List<DecalData> m_DecalDataList = new List<DecalData>();
+        DecalData[] m_DecalDatas = new DecalData[kDecalBlockSize];
+//        static public Matrix4x4[] m_DecalToWorld = new Matrix4x4[kDecalBlockSize];
 		static public float[] m_BoundingDistances = new float[1];
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
@@ -239,7 +250,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
                 }
-            } 
+            }
+
+            public void BuildDecalDatas()
+            {
+                
+            }
 
             public void EndCull()
             {
@@ -326,49 +342,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_PropertyBlock.SetMatrixArray(m_NormalToWorldID, m_NormalToWorld[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
-                }
-                /*
-                var worldToView =  Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.camera.worldToCameraMatrix;
-                int instanceCount = 0;
-				Vector3 cameraPos = camera.cameraPos;
-                for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
-                {
-                    int decalIndex = m_ResultIndices[resultIndex];
-					// do additional culling based on individual decal draw distances
-					float distanceToDecal = (cameraPos - m_BoundingSpheres[decalIndex].position).magnitude;
-					float cullDistance = m_CachedDrawDistances[decalIndex].x + m_BoundingSpheres[decalIndex].radius;
-					if (distanceToDecal < cullDistance)
-					{
-						m_InstanceMatrices[instanceCount] = m_CachedTransforms[decalIndex];
-						m_InstanceNormalToWorld[instanceCount] = m_CachedNormalToWorld[decalIndex];
-					    float fadeFactor = Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
-						m_InstanceNormalToWorld[instanceCount].m03 = fadeFactor * m_Blend; // rotation only matrix so 3rd column can be used to pass some values
-					    m_InstanceNormalToWorld[instanceCount].m13 = m_DiffuseTexIndex;
-					    m_InstanceNormalToWorld[instanceCount].m23 = m_NormalTexIndex;
-                        m_InstanceNormalToWorld[instanceCount].m33 = m_MaskTexIndex;
-
-                        DecalData decalData = new DecalData();
-					    decalData.worldToDecal = m_CachedTransforms[decalIndex].inverse;
-					    decalData.normalToWorld = m_InstanceNormalToWorld[instanceCount];
-
-                        lightLoop.GetDecalVolumeDataAndBound(decalData, m_CachedTransforms[decalIndex], worldToView);
-					    
-					    instanceCount++;
-						if (instanceCount == kDrawIndexedBatchSize)
-						{
-							m_PropertyBlock.SetMatrixArray(m_NormalToWorldID, m_InstanceNormalToWorld);
-							cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_InstanceMatrices, kDrawIndexedBatchSize, m_PropertyBlock);
-							instanceCount = 0;
-						}
-					}
-                }
-                if (instanceCount > 0)
-                {
-                    m_PropertyBlock.SetMatrixArray(m_NormalToWorldID, m_InstanceNormalToWorld);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_InstanceMatrices, instanceCount, m_PropertyBlock);                    
-                }*/
+                }                
             }
-
            
             public Material KeyMaterial
             {
@@ -516,6 +491,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DecalData decalData = m_DecalDataList[i];
                 decalData.worldToDecal = decalData.worldToDecal.inverse;
                 m_DecalDataList[i] = decalData;
+            }
+        }
+
+        void BuildDecalDatas()
+        {
+            foreach (var pair in m_DecalSets)
+            {
+                pair.Value.BuildDecalDatas();
             }
         }
     }

@@ -257,10 +257,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxDirectionalLightsOnScreen = 4;
         public const int k_MaxPunctualLightsOnScreen    = 512;
         public const int k_MaxAreaLightsOnScreen        = 64;
-        public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen;
+        public const int k_MaxDecalsOnScreen = 2048;
+        public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxDecalsOnScreen;
         public const int k_MaxEnvLightsOnScreen = 64;
         public const int k_MaxShadowOnScreen = 16;
-        public const int k_MaxDecalsOnScreen = 10;
         public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
         static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
