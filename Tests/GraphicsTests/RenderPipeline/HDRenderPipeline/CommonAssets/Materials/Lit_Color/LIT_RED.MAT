@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Lit_Red
+  m_Name: LIT_RED
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 4
@@ -16,10 +16,10 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
@@ -192,6 +192,7 @@ Material:
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
@@ -199,7 +200,9 @@ Material:
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _ZTestDepthEqualForOpaque: 3
     - _ZTestMode: 4
+    - _ZTestModeDistortion: 4
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 0, b: 0, a: 1}

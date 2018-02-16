@@ -12,9 +12,10 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - DistortionVectors
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -27,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 8400000, guid: 40917f8844ec4c448851685142cd8774, type: 2}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _UnlitColorMap:
@@ -42,17 +43,17 @@ Material:
     - _Cutoff: 0.5
     - _DistortionBlendMode: 0
     - _DistortionBlurBlendMode: 0
-    - _DistortionBlurDstBlend: 0
+    - _DistortionBlurDstBlend: 1
     - _DistortionBlurRemapMax: 1
     - _DistortionBlurRemapMin: 0
     - _DistortionBlurScale: 1
-    - _DistortionBlurSrcBlend: 0
+    - _DistortionBlurSrcBlend: 1
     - _DistortionDepthTest: 1
-    - _DistortionDstBlend: 0
+    - _DistortionDstBlend: 1
     - _DistortionEnable: 0
     - _DistortionOnly: 0
     - _DistortionScale: 1
-    - _DistortionSrcBlend: 0
+    - _DistortionSrcBlend: 1
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
@@ -68,6 +69,7 @@ Material:
     - _SurfaceType: 0
     - _TransparentSortPriority: 0
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 4
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
