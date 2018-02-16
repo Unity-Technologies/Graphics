@@ -67,12 +67,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             return image;
         }
 
-        void OnScroll(float scrollValue)
-        {
-            float rescaleAmount = -scrollValue * .03f;
-            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
-        }
-
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             foreach (var primitiveTypeName in Enum.GetNames(typeof(PrimitiveType)))
@@ -168,6 +162,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             UnregisterCallback<PostLayoutEvent>(AdaptRenderTextureOnLayoutChange);
             RefreshRenderTextureSize();
+        }
+
+        void OnScroll(float scrollValue)
+        {
+            float rescaleAmount = -scrollValue * .03f;
+            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
+
+            DirtyMasterNode(ModificationScope.Node);
         }
 
         void OnMouseDragPreviewMesh(Vector2 deltaMouse)
