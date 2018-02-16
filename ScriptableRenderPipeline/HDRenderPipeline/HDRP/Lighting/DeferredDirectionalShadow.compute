@@ -11,6 +11,10 @@
 #   define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
 #endif
 
+#ifdef SHADER_API_PSSL
+#   pragma argument( scheduler=minpressure )
+#endif
+
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../ShaderVariables.hlsl"
 #include "Lighting.hlsl" 
