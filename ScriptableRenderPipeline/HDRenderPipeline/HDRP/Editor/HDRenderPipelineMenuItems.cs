@@ -538,7 +538,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     (i / (float)(length - 1)) * progressScale + progressOffset);
 
                 CheckOutFile(VSCEnabled, materials[i]);
-                anyMaterialDirty = anyMaterialDirty || HDEditorUtils.ResetMaterialKeywords(materials[i]);
+
+                if (HDEditorUtils.ResetMaterialKeywords(materials[i]))
+                {
+                    anyMaterialDirty = true;
+                }
             }
 
             return anyMaterialDirty;
