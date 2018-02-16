@@ -161,20 +161,23 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
 
 // Draw a signed integer
 // Can't display more than 16 digit
-void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
+// The two following parameter are for float representation
+// leading0 is used when drawing frac part of a float to draw the leading 0 (call is in charge of it)
+// forceNegativeSign is used to force to display a negative sign as -0 is not recognize
+void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color, int leading0, bool forceNegativeSign)
 {
     const uint maxStringSize = 16;
 
     uint absIntValue = abs(intValue);
 
     // 1. Get size of the number of display
-    int numEntries = min((intValue == 0 ? 0 : log10(absIntValue)) + (intValue < 0 ? 1 : 0), maxStringSize);
+    int numEntries = min((intValue == 0 ? 0 : log10(absIntValue)) + ((intValue < 0 || forceNegativeSign) ? 1 : 0) + leading0, maxStringSize);
 
     // 2. Shift curseur to last location as we will go reverse
     fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_SCALE_WIDTH;
 
     // 3. Display the number
-    for (uint i = 0; i < maxStringSize; ++i)
+    for (uint j = 0; j < maxStringSize; ++j)
     {
         // Numeric value incurrent font start on the second row at 0
         DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
@@ -183,14 +186,25 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
         absIntValue /= 10;
     }
 
-    // 4. Display sign
-    if (intValue < 0)
+    // 4. Display leading 0
+    for (int i = 0; i < leading0; ++i)
+    {
+        DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
+    }
+
+    // 5. Display sign
+    if (intValue < 0 || forceNegativeSign)
     {
         DrawCharacter('-', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
     }
 
-    // 5. Reset cursor at end location
+    // 6. Reset cursor at end location
     fixedUnormCoord.x += (numEntries + 2) * DEBUG_FONT_TEXT_SCALE_WIDTH;
+}
+
+void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
+{
+    DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, 0, false);
 }
 
 void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
@@ -204,10 +218,12 @@ void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inou
     else
     {
         int intValue = int(floatValue);
-        DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        bool forceNegativeSign = floatValue >= 0.0f ? false : true;
+        DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, 0, forceNegativeSign);
         DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
-        int fracValue = int(frac(floatValue) * 1e6); // 6 digit
-        DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        int fracValue = int(frac(abs(floatValue)) * 1e6); // 6 digit
+        int leading0 = 6 - (int(log10(fracValue)) + 1); // Counting leading0 to add in front of the float
+        DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, leading0, false);
     }
 }
 

@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4 screenSize;
-        public Plane[] frustumPlanes;
+        public Frustum frustum;
         public Vector4[] frustumPlaneEquations;
         public Camera camera;
         public uint taaFrameIndex;
@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDCamera(Camera cam)
         {
             camera = cam;
-            frustumPlanes = new Plane[6];
+            frustum = new Frustum();
             frustumPlaneEquations = new Vector4[6];
 
             viewMatrixStereo = new Matrix4x4[2];
@@ -182,21 +182,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
-            // Warning: near and far planes appear to be broken (or rather far plane seems broken)
-            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
+            frustum = Frustum.Create(viewProjMatrix, true, true);
 
-            for (int i = 0; i < 4; i++)
+            // Left, right, top, bottom, near, far.
+            for (int i = 0; i < 6; i++)
             {
-                // Left, right, top, bottom.
-                frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
+                frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
             }
-
-            // Near, far.
-            Vector4 forward = (camera.cameraType == CameraType.Reflection) ? camera.worldToCameraMatrix.GetRow(2) : new Vector4(camera.transform.forward.x, camera.transform.forward.y, camera.transform.forward.z, 0.0f);
-            // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
-            forward = viewParam.x < 0.0f ? forward : -forward;
-            frustumPlaneEquations[4] = new Vector4( forward.x,  forward.y,  forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
-            frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z,  Vector3.Dot(forward, relPos) + camera.farClipPlane);
 
             m_LastFrameActive = Time.frameCount;
 
