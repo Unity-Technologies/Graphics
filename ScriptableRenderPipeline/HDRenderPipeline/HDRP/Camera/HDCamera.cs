@@ -220,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
         }
 
-        public void UpdateStereoDependentState(FrameSettings frameSettings, Camera camera, ref ScriptableCullingParameters cullingParams)
+        public void UpdateStereoDependentState(FrameSettings frameSettings, ref ScriptableCullingParameters cullingParams)
         {
             if (!frameSettings.enableStereo)
                 return;
@@ -239,14 +239,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: I really should be calculating my own combined view/proj in the Update code
 
             var stereoCombinedViewMatrix = cullingParams.cullStereoView;
-            var pos = camera.transform.position;
-            var relPos = pos; // World-origin-relative
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 // Zero out the translation component.
                 stereoCombinedViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
-                relPos = Vector3.zero; // Camera-relative
             }
 
             viewMatrix = stereoCombinedViewMatrix;
@@ -255,21 +252,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
 
-            // Warning: near and far planes appear to be broken (or rather far plane seems broken)
-            GeometryUtility.CalculateFrustumPlanes(viewProjMatrix, frustumPlanes);
+            frustum = Frustum.Create(viewProjMatrix, true, true);
 
-            for (int i = 0; i < 4; i++)
+            // Left, right, top, bottom, near, far.
+            for (int i = 0; i < 6; i++)
             {
-                // Left, right, top, bottom.
-                frustumPlaneEquations[i] = new Vector4(frustumPlanes[i].normal.x, frustumPlanes[i].normal.y, frustumPlanes[i].normal.z, frustumPlanes[i].distance);
+                frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
             }
-
-            // Near, far.
-            Vector4 forward = new Vector4(camera.transform.forward.x, camera.transform.forward.y, camera.transform.forward.z, 0.0f);
-            // We need to switch forward direction based on handness (Reminder: Regular camera have a negative determinant in Unity and reflection probe follow DX convention and have a positive determinant)
-            forward = viewParam.x < 0.0f ? forward : -forward;
-            frustumPlaneEquations[4] = new Vector4(forward.x, forward.y, forward.z, -Vector3.Dot(forward, relPos) - camera.nearClipPlane);
-            frustumPlaneEquations[5] = new Vector4(-forward.x, -forward.y, -forward.z, Vector3.Dot(forward, relPos) + camera.farClipPlane);
         }
 
         void ConfigureStereoMatrices()
