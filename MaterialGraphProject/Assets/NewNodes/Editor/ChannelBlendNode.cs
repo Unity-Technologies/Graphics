@@ -1,7 +1,3 @@
-using UnityEditor.Graphing;
-using System.Linq;
-using System.Collections;
-
 namespace UnityEditor.ShaderGraph
 {
     /*  [Title("Art", "ChannelBlend")]

@@ -1,9 +1,6 @@
 ﻿﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

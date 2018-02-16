@@ -1,9 +1,6 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
-using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Drawing.Slots;
-using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {

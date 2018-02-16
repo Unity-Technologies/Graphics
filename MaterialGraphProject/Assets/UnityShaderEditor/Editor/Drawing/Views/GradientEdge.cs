@@ -1,7 +1,6 @@
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
