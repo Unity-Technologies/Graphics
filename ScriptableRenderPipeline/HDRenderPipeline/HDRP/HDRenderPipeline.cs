@@ -647,9 +647,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // decal system needs to be updated with current camera
                     if (m_FrameSettings.enableDBuffer)
                     {
+                        DecalSystem.instance.CurrentCamera = camera;
                         DecalSystem.instance.UpdateCachedMaterialData(cmd);
-                        DecalSystem.instance.BeginCull(camera);
+                        DecalSystem.instance.BeginCull();
                     }
+
                     ReflectionSystem.PrepareCull(camera, m_ReflectionProbeCullResults);
 
                     using (new ProfilingSample(cmd, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
@@ -664,6 +666,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         m_DbufferManager.vsibleDecalCount = DecalSystem.instance.QueryCullResults();
                         DecalSystem.instance.EndCull();
+                        DecalSystem.instance.CreateDrawData();
                     }
 
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
