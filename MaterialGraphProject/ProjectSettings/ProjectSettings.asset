@@ -3,10 +3,11 @@
 --- !u!129 &1
 PlayerSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 14
+  serializedVersion: 15
   productGUID: 918d4c17ff3414942ad7fbe59f853890
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
+  AndroidEnableSustainedPerformanceMode: 0
   defaultScreenOrientation: 4
   targetDevice: 2
   useOnDemandResources: 0
@@ -64,7 +65,6 @@ PlayerSettings:
   preserveFramebufferAlpha: 0
   disableDepthAndStencilBuffers: 0
   androidBlitType: 0
-  defaultIsFullScreen: 1
   defaultIsNativeResolution: 1
   macRetinaSupport: 0
   runInBackground: 0
@@ -72,6 +72,8 @@ PlayerSettings:
   muteOtherAudioSources: 0
   Prepare IOS For Recording: 0
   Force IOS Speakers When Recording: 0
+  deferSystemGesturesMode: 0
+  hideHomeButton: 0
   submitAnalytics: 1
   usePlayerLog: 1
   bakeCollisionMeshes: 0
@@ -99,6 +101,8 @@ PlayerSettings:
   n3dsEnableSharedListOpt: 1
   n3dsEnableVSync: 0
   xboxOneResolution: 0
+  xboxOneSResolution: 0
+  xboxOneXResolution: 3
   xboxOneMonoLoggingLevel: 0
   xboxOneLoggingLevel: 1
   xboxOneDisableEsram: 0
@@ -106,15 +110,6 @@ PlayerSettings:
   videoMemoryForVertexBuffers: 0
   psp2PowerMode: 0
   psp2AcquireBGM: 1
-  wiiUTVResolution: 0
-  wiiUGamePadMSAA: 1
-  wiiUSupportsNunchuk: 0
-  wiiUSupportsClassicController: 0
-  wiiUSupportsBalanceBoard: 0
-  wiiUSupportsMotionPlus: 0
-  wiiUSupportsProController: 0
-  wiiUAllowScreenCapture: 1
-  wiiUControllerCount: 0
   m_SupportedAspectRatios:
     4:3: 1
     5:4: 1
@@ -141,6 +136,11 @@ PlayerSettings:
       maximumSupportedHeadTracking: 1
     hololens:
       depthFormat: 1
+      depthBufferSharingEnabled: 0
+    enable360StereoCapture: 0
+    oculus:
+      sharedDepthBuffer: 0
+      dashSupport: 0
   protectGraphicsMemory: 0
   useHDRDisplay: 0
   m_ColorGamuts: 00000000
@@ -164,11 +164,9 @@ PlayerSettings:
   APKExpansionFiles: 0
   keepLoadedShadersAlive: 0
   StripUnusedMeshComponents: 0
-  VertexChannelCompressionMask:
-    serializedVersion: 2
-    m_Bits: 238
+  VertexChannelCompressionMask: 214
   iPhoneSdkVersion: 988
-  iOSTargetOSVersionString: 7.0
+  iOSTargetOSVersionString: 8.0
   tvOSSdkVersion: 0
   tvOSRequireExtendedGameController: 0
   tvOSTargetOSVersionString: 9.0
@@ -184,6 +182,8 @@ PlayerSettings:
   iPhone47inSplashScreen: {fileID: 0}
   iPhone55inPortraitSplashScreen: {fileID: 0}
   iPhone55inLandscapeSplashScreen: {fileID: 0}
+  iPhone58inPortraitSplashScreen: {fileID: 0}
+  iPhone58inLandscapeSplashScreen: {fileID: 0}
   iPadPortraitSplashScreen: {fileID: 0}
   iPadHighResPortraitSplashScreen: {fileID: 0}
   iPadLandscapeSplashScreen: {fileID: 0}
@@ -229,8 +229,11 @@ PlayerSettings:
   tvOSManualSigningProvisioningProfileID: 
   appleEnableAutomaticSigning: 0
   iOSRequireARKit: 0
+  appleEnableProMotion: 0
   clonedFromGUID: 00000000000000000000000000000000
-  AndroidTargetDevice: 0
+  templatePackageId: 
+  templateDefaultScene: 
+  AndroidTargetArchitectures: 5
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
   AndroidKeystoreName: 
@@ -247,6 +250,7 @@ PlayerSettings:
   androidGamepadSupportLevel: 0
   resolutionDialogBanner: {fileID: 0}
   m_BuildTargetIcons: []
+  m_BuildTargetPlatformIcons: []
   m_BuildTargetBatching: []
   m_BuildTargetGraphicsAPIs: []
   m_BuildTargetVRSettings: []
@@ -265,25 +269,8 @@ PlayerSettings:
     m_EncodingQuality: 1
   - m_BuildTarget: PS4
     m_EncodingQuality: 1
-  wiiUTitleID: 0005000011000000
-  wiiUGroupID: 00010000
-  wiiUCommonSaveSize: 4096
-  wiiUAccountSaveSize: 2048
-  wiiUOlvAccessKey: 0
-  wiiUTinCode: 0
-  wiiUJoinGameId: 0
-  wiiUJoinGameModeMask: 0000000000000000
-  wiiUCommonBossSize: 0
-  wiiUAccountBossSize: 0
-  wiiUAddOnUniqueIDs: []
-  wiiUMainThreadStackSize: 3072
-  wiiULoaderThreadStackSize: 1024
-  wiiUSystemHeapSize: 128
-  wiiUTVStartupScreen: {fileID: 0}
-  wiiUGamePadStartupScreen: {fileID: 0}
-  wiiUDrcBufferDisabled: 0
-  wiiUProfilerLibPath: 
   playModeTestRunnerEnabled: 0
+  runPlayModeTestAsEditModeTest: 0
   actionOnDotNetUnhandledException: 1
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
@@ -530,7 +517,6 @@ PlayerSettings:
   psp2InfoBarOnStartup: 0
   psp2InfoBarColor: 0
   psp2ScriptOptimizationLevel: 0
-  psmSplashimage: {fileID: 0}
   splashScreenBackgroundSourceLandscape: {fileID: 0}
   splashScreenBackgroundSourcePortrait: {fileID: 0}
   spritePackerPolicy: 
@@ -544,10 +530,10 @@ PlayerSettings:
   webGLTemplate: APPLICATION:Default
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
-  webGLUseWasm: 0
   webGLCompressionFormat: 1
+  webGLLinkerTarget: 0
   scriptingDefineSymbols:
-    1: UNITY_POST_PROCESSING_STACK_V2
+    1: UNITY_POST_PROCESSING_STACK_V2;UNITY_SHADER_GRAPH_DEVMODE
     4: UNITY_POST_PROCESSING_STACK_V2
     7: UNITY_POST_PROCESSING_STACK_V2
     13: UNITY_POST_PROCESSING_STACK_V2
@@ -563,7 +549,9 @@ PlayerSettings:
     27: UNITY_POST_PROCESSING_STACK_V2
   platformArchitecture: {}
   scriptingBackend: {}
+  il2cppCompilerConfiguration: {}
   incrementalIl2cppBuild: {}
+  allowUnsafeCode: 0
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 0
   apiCompatibilityLevelPerPlatform: {}
@@ -636,6 +624,7 @@ PlayerSettings:
   XboxOneSplashScreen: {fileID: 0}
   XboxOneAllowedProductIds: []
   XboxOnePersistentLocalStorageSize: 0
+  XboxOneXTitleMemory: 8
   xboxOneScriptCompiler: 0
   vrEditorSettings:
     daydream:
