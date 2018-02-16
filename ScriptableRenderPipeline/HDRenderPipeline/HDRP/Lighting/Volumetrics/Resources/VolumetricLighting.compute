@@ -60,7 +60,7 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval 
 CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;              // {x, y, z}, w = rendered frame count
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
-    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_Global_Asymmetry)
+    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_GlobalAsymmetry)
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -371,8 +371,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
 
-    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.w); // Prevent unrolling...
-
 #ifdef LIGHTLOOP_TILE_PASS
     // Our voxel is not necessarily completely inside a single light cluster.
     // Note that Z-binning can solve this problem, as we can iterate over all Z-bins
@@ -383,11 +381,22 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     clusterDepths[0]  = GetLightClusterMinLinearDepth(posInput.tileCoord, clusterIndices[0]);
 #endif // LIGHTLOOP_TILE_PASS
 
+#if defined(SHADER_API_METAL)
+    [fastopt]
+    for (uint slice = 0; slice < VBUFFER_SLICE_COUNT; slice++)
+#else
+    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.w); // Prevent unrolling...
+
     // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
     for (uint slice = 0; slice < sliceCountHack; slice++)
+#endif
     {
         float e1 = slice * de + de; // (slice + 1) / sliceCount
+#if defined(SHADER_API_METAL)
+        float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthDecodingParams);
+#else
         float z1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDepthDecodingParams);
+#endif
         float t1 = ray.strataDirInvViewZ * z1; // Convert view space Z to distance along the stratified ray
         float dt = t1 - t0;
 
@@ -405,9 +414,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         // TODO: piecewise linear.
-        float3 scattering = _Global_Scattering;
-        float  extinction = max(_Global_Extinction, FLT_MIN); // Avoid NaNs
-        float  asymmetry  = _Global_Asymmetry;
+        float3 scattering = _GlobalScattering;
+        float  extinction = max(_GlobalExtinction, FLT_MIN); // Avoid NaNs
+        float  asymmetry  = _GlobalAsymmetry;
         
         // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
         // which allows procedural definition of extinction and scattering.

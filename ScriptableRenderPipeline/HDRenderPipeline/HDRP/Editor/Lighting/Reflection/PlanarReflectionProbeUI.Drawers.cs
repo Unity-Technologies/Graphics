@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionFoldoutInfluenceSettings = CED.FoldoutGroup(
             "Influence Settings",
             (s, d, o) => s.isSectionExpandedInfluenceSettings,
-            true,
+            FoldoutOption.Indent,
             CED.Action(Drawer_SectionInfluenceSettings)
         );
 
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SectionFoldoutCaptureSettings = CED.FoldoutGroup(
                 "Capture Settings",
                 (s, d, o) => s.isSectionExpandedCaptureSettings,
-                true,
+                FoldoutOption.Indent,
                 CED.Action(Drawer_SectionCaptureSettings),
                 CED.FadeGroup(
                     (s, d, o, i) =>
@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             case 1: return s.isSectionExpandedCaptureStaticSettings;
                         }
                     },
-                    false,
+                    FadeOption.None,
                     SectionCaptureMirrorSettings,
                     SectionCaptureStaticSettings)
             );
@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldCaptureType),
                 CED.FadeGroup(
                     (s, d, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
-                    true,
+                    FadeOption.Indent,
                     SectionProbeModeBakedSettings,
                     SectionProbeModeRealtimeSettings,
                     SectionProbeModeCustomSettings

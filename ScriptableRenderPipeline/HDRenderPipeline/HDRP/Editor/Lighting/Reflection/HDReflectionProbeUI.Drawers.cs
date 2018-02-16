@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering
         
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
-                true,
+                FadeOption.Indent,
                 CED.noop,                                      // Baked
                 CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
                 CED.Action(Drawer_ModeSettingsCustom)         // Custom
@@ -50,10 +50,10 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
             "Influence volume settings",
             (s, p, o) => s.isSectionExpandedInfluenceVolume,
-            true,
+            FoldoutOption.Indent,
             CED.FadeGroup(
                 (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
-                false,
+                FadeOption.None,
                 CED.Action(Drawer_InfluenceBoxSettings),      // Box
                 CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
             )/*,
@@ -62,14 +62,14 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionSeparateProjectionVolumeSettings = CED.FadeGroup(
             (s, p, o, i) => s.isSectionExpandedSeparateProjection,
-            false,
+            FadeOption.None,
             CED.FoldoutGroup(
                 "Reprojection volume settings",
                 (s, p, o) => s.isSectionExpandedSeparateProjection,
-                true,
+                FoldoutOption.Indent,
                 CED.FadeGroup(
                     (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
-                    false,
+                    FadeOption.None,
                     CED.Action(Drawer_ProjectionBoxSettings), // Box
                     CED.Action(Drawer_ProjectionSphereSettings) // Sphere
                 )
@@ -79,14 +79,14 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
             "Capture settings",
             (s, p, o) => s.isSectionExpandedCaptureSettings,
-            true,
+            FoldoutOption.Indent,
             CED.Action(Drawer_CaptureSettings)
         );
 
         public static readonly CED.IDrawer SectionAdditionalSettings = CED.FoldoutGroup(
             "Additional settings",
             (s, p, o) => s.isSectionExpandedAdditional,
-            true,
+            FoldoutOption.Indent,
             CED.Action(Drawer_AdditionalSettings)
         );
 

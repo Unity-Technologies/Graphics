@@ -72,9 +72,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
 
 #if UNITY_EDITOR
+        [NonSerialized]
         private LightweightPipelineEditorResources m_EditorResourcesAsset;
 
-        [MenuItem("Assets/Create/Graphics/Lightweight Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Lightweight Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateLightweightPipelineAsset>(),
@@ -82,14 +83,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
 
-        //[MenuItem("Assets/Create/Graphics/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineResources()
         {
             var instance = CreateInstance<LightweightPipelineResources>();
             AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightPipelineResources).Name));
         }
 
-        //[MenuItem("Assets/Create/Graphics/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineEditorResources()
         {
             var instance = CreateInstance<LightweightPipelineEditorResources>();
@@ -155,11 +156,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         protected override IRenderPipeline InternalCreatePipeline()
         {
             return new LightweightPipeline(this);
-        }
-
-        void OnValidate()
-        {
-            DestroyCreatedInstances();
         }
 
         private Material GetMaterial(DefaultMaterialType materialType)
@@ -340,6 +336,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader CopyDepthShader
         {
             get { return resources != null ? resources.CopyDepthShader : null; }
+        }
+        public Shader ScreenSpaceShadowShader
+        {
+            get { return resources != null ? resources.ScreenSpaceShadowShader : null; }
         }
     }
 }

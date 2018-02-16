@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
         public static CED.IDrawer SectionLightLoopSettings = CED.FoldoutGroup(
             "Light Loop Settings",
             (s, p, o) => s.isSectionExpandedLightLoopSettings,
-            true,
+            FoldoutOption.Indent,
             CED.LabelWidth(250, CED.Action(Drawer_SectionLightLoopSettings)));
 
         public AnimBool isSectionExpandedLightLoopSettings { get { return m_AnimBools[0]; } }
@@ -34,15 +34,14 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.enableTileAndCluster, _.GetContent("Enable Tile And Cluster"));
             GUILayout.BeginVertical();
-            if (EditorGUILayout.BeginFadeGroup(s.isSectionExpandedEnableTileAndCluster.faded))
+            if (s.isSectionExpandedEnableTileAndCluster.target)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(p.isFptlEnabled, _.GetContent("Enable FPTL"));
                 EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
                 EditorGUILayout.PropertyField(p.enableBigTilePrepass, _.GetContent("Enable Big Tile Prepass"));
                 EditorGUILayout.PropertyField(p.enableComputeLightEvaluation, _.GetContent("Enable Compute Light Evaluation"));
                 GUILayout.BeginVertical();
-                if (EditorGUILayout.BeginFadeGroup(s.isSectionExpandedComputeLightEvaluation.faded))
+                if (s.isSectionExpandedComputeLightEvaluation.target)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(p.enableComputeLightVariants, _.GetContent("Enable Compute Light Variants"));

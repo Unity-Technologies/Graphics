@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -28,13 +29,23 @@ namespace UnityEngine.Experimental.Rendering
     [AttributeUsage(AttributeTargets.Field)]
     public class SurfaceDataAttributes : System.Attribute
     {
-        public string displayName;
+        public string[] displayNames;
         public bool isDirection;
         public bool sRGBDisplay;
 
         public SurfaceDataAttributes(string displayName = "", bool isDirection = false, bool sRGBDisplay = false)
         {
-            this.displayName = displayName;
+            displayNames = new string[1];
+            displayNames[0] = displayName;
+            this.isDirection = isDirection;
+            this.sRGBDisplay = sRGBDisplay;
+        }
+
+        // We allow users to add several names for one field, so user can override the auto behavior and do something else with the same data
+        // typical example is normal that you want to draw in view space or world space. So user can override view space case and do the transform.
+        public SurfaceDataAttributes(string[] displayName, bool isDirection = false, bool sRGBDisplay = false)
+        {
+            displayNames = displayName;
             this.isDirection = isDirection;
             this.sRGBDisplay = sRGBDisplay;
         }

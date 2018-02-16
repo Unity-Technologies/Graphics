@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldShapeType),
                 CED.FadeGroup(
                     (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
-                    true,
+                    FadeOption.Indent,
                     SectionShapeBox,
                     SectionShapeSphere
                 )
@@ -31,11 +31,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.FoldoutGroup(
                     "Influence Volume",
                     (s, d, o) => s.isSectionExpandedShape,
-                    true,
+                    FoldoutOption.Indent,
                     CED.Action(Drawer_FieldShapeType),
                     CED.FadeGroup(
                         (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
-                        false,
+                        FadeOption.None,
                         SectionShapeBox,
                         SectionShapeSphere
                     )

@@ -59,7 +59,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "../ShaderVariables.hlsl"
+            #ifdef DEBUG_DISPLAY
             #include "../Debug/DebugDisplay.hlsl"
+            #endif
             #include "../Lighting/Lighting.hlsl" // This include Material.hlsl
 
             //-------------------------------------------------------------------------------------
@@ -122,7 +124,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 Outputs outputs;
 
             #ifdef OUTPUT_SPLIT_LIGHTING
-                if (_EnableSubsurfaceScattering != 0 && PixelHasSubsurfaceScattering(bsdfData))
+                if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
                 {
                     outputs.specularLighting = float4(specularLighting, 1.0);
                     outputs.diffuseLighting  = TagLightingForSSS(diffuseLighting);
