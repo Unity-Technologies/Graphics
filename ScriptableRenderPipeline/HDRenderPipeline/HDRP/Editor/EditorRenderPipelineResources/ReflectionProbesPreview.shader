@@ -1,6 +1,4 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-Shader "Debug/ReflectionProbePreview"
+﻿Shader "Debug/ReflectionProbePreview"
 {
 	Properties
 	{
@@ -13,60 +11,64 @@ Shader "Debug/ReflectionProbePreview"
 		SubShader
 	{
 		Tags{ "RenderType" = "Opaque" "Queue" = "Transparent" }
-		LOD 100
 		ZWrite On
 		Cull Back
-		LOD 100
 
 		Pass
-	{
-		Name "ForwardUnlit"
-		Tags{ "LightMode" = "Forward" }
+	    {
+		    Name "ForwardUnlit"
+		    Tags{ "LightMode" = "Forward" }
 
-		CGPROGRAM
-#pragma vertex vert
-#pragma fragment frag
+		    HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
 
-#include "UnityCG.cginc"
+            #include "CoreRP/ShaderLibrary/common.hlsl"
+            #include "HDRP/ShaderVariables.hlsl"
 
+		    struct appdata
+	        {
+		        float4 positionOS : POSITION;
+		        float3 normalOS : NORMAL;
+	        };
 
-		struct appdata
-	{
-		float4 vertex : POSITION;
-		float3 normal : NORMAL;
-	};
+	        struct v2f
+	        {
+		        float4 positionCS : SV_POSITION;
+		        float3 normalWS : NORMAL;
+		        float3 positionWS : TEXCOORD0;
+	        };
 
-	struct v2f
-	{
-		float4 vertex : SV_POSITION;
-		float3 normal : NORMAL;
-		float3 worldpos : TEXCOORD0;
-	};
+            TEXTURECUBE(_Cubemap);
+            SAMPLER(sampler_Cubemap);
 
-	samplerCUBE _Cubemap;
-	float3 _CameraWorldPosition;
-	float _MipLevel;
-	float _Exposure;
+	        float3 _CameraWorldPosition;
+	        float _MipLevel;
+	        float _Exposure;
 
-	v2f vert(appdata v)
-	{
-		v2f o;
-		o.vertex = UnityObjectToClipPos(v.vertex);
-		o.worldpos = mul(unity_ObjectToWorld, v.vertex);
-		o.normal = mul(unity_ObjectToWorld, float4(v.normal, 0)).xyz;
-		return o;
-	}
+	        v2f vert(appdata v)
+	        {
+		        v2f o;
+                // Transform local to world before custom vertex code
+                o.positionWS = TransformObjectToWorld(v.positionOS.xyz);
+                o.positionWS = GetCameraRelativePositionWS(o.positionWS);
+                o.positionCS = TransformWorldToHClip(o.positionWS);
+                o.normalWS = TransformObjectToWorldNormal(v.normalOS);
 
-	float4 frag(v2f i) : SV_Target
-	{
-		//float3 view = normalize(i.worldpos - _CameraWorldPosition);
-		float3 view = normalize(i.worldpos - _WorldSpaceCameraPos);
-		float3 reflected = reflect(view, i.normal);
-		float4 col = texCUBElod(_Cubemap,float4(reflected,_MipLevel));
-		col = col*exp2(_Exposure);
-		return col;
-	}
-		ENDCG
-	}
+		        return o;
+	        }
+
+	        float4 frag(v2f i) : SV_Target
+	        {
+		        //float3 view = normalize(i.worldpos - _CameraWorldPosition);
+		        float3 V = normalize(i.positionWS - GetPrimaryCameraPosition());
+		        float3 R = reflect(V, i.normalWS);
+		        float4 color = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, R, _MipLevel).rgba;
+                color = color * exp2(_Exposure);
+
+		        return float4(color);
+	        }
+		    ENDHLSL
+	    }
 	}
 }
