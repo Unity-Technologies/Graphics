@@ -533,6 +533,7 @@ Material:
     - _Thickness1: 1
     - _Thickness2: 1
     - _Thickness3: 1
+    - _TransmissionEnable: 1
     - _TransparentSortPriority: 0
     - _UVBase0: 0
     - _UVBase1: 0
@@ -556,6 +557,7 @@ Material:
     - _UseMainLayerInfluence: 0
     - _VertexColorHeightFactor: 0.3
     - _VertexColorMode: 0
+    - _ZTestDepthEqualForOpaque: 3
     - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
