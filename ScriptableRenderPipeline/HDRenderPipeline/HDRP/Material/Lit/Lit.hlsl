@@ -208,9 +208,12 @@ float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
     // term and there is no "neutral" value in this unlike in the original paper.
     // We use Iridescence mask here to allow to have neutral value
 
+    // Hack: In order to use only one parameter (DInc), we deduced the ior of iridescence from current Dinc thicknessIridescence
+    // and we use mask instead to fade out the effect
+    float eta_2 = lerp(2.0, 1.0, bsdfData.thicknessIridescence);
+    // Following line from original code is not needed for us, it create a discontinuity
     // Force eta_2 -> eta_1 when Dinc -> 0.0
-    float eta2 = lerp(2.0, 1.1, bsdfData.thicknessIridescence);
-    float eta_2 = lerp(eta_1, eta2, smoothstep(0.0, 0.03, Dinc));
+    // float eta_2 = lerp(eta_1, eta_2, smoothstep(0.0, 0.03, Dinc));
     // Evaluate the cosTheta on the base layer (Snell law)
     float cosTheta2 = sqrt(1.0 - Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1)));
 
@@ -1274,8 +1277,17 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float NdotV    = ClampNdotV(preLightData.NdotV);
 
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-    float DV;
 
+    // Note: Here we are suppose to call EvalIridescence with LdotH
+    // This is to expensive for our need, so instead we use the NdotV
+    // Moreover, the bsdfData.fresnel0 here already contain the evaluation of F_Schlick
+    // in the context of iridescence, so if iridescence is enabled, don't apply schlick a second time
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    {
+        F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
+    }
+
+    float DV;
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
         float3 H = (L + V) * invLenLV;
