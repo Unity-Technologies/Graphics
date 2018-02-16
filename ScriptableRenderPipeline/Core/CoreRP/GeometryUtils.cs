@@ -71,12 +71,18 @@ namespace UnityEngine.Experimental.Rendering
         {
             OrientedBBox obb = new OrientedBBox();
 
+            Vector3 vecX = t.localToWorldMatrix.GetColumn(0);
+            Vector3 vecY = t.localToWorldMatrix.GetColumn(1);
+            Vector3 vecZ = t.localToWorldMatrix.GetColumn(2);
+
             obb.center  = t.position;
-            obb.right   = t.right;
-            obb.up      = t.up;
-            obb.extentX = 0.5f * t.localScale.x;
-            obb.extentY = 0.5f * t.localScale.y;
-            obb.extentZ = 0.5f * t.localScale.z;
+            obb.right   = vecX * 1.0f / (vecX.magnitude);
+            obb.up      = vecY * 1.0f / (vecY.magnitude);
+
+            obb.extentX = 0.5f * vecX.magnitude;
+            obb.extentY = 0.5f * vecY.magnitude;
+            obb.extentZ = 0.5f * vecZ.magnitude;
+
 
             return obb;
         }
