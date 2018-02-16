@@ -61,6 +61,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessMapText = new GUIContent("Thickness map (R)", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.");
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
+            // Iridescence
+            public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Control intensity of the iridescence");
+            public static GUIContent thicknessIridescenceText = new GUIContent("Iridescence Thickness");
+            public static GUIContent thicknessMapIridescenceText = new GUIContent("Iridescence Thickness map");
+            public static GUIContent thicknessRemapIridescenceText = new GUIContent("Iridescence Thickness remap");
+
             // Clear Coat
             public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect (similar to change to IOR of 1");
 
@@ -82,7 +88,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             public static string refractionModeText = "Refraction Mode";
-            public static GUIContent refractionIORText = new GUIContent("Index of refraction", "Index of refraction");
+            public static GUIContent refractionIorText = new GUIContent("Index of refraction", "Index of refraction");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
             public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier (m)", "Thickness multiplier");
             public static GUIContent refractionThicknessMapText = new GUIContent("Refraction Thickness Map (R)", "Thickness multiplier");
@@ -234,6 +240,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
 
+        protected MaterialProperty iridescenceMask = null;
+        protected const string kIridescenceMask = "_IridescenceMask";
+        protected MaterialProperty iridescenceMaskMap = null;
+        protected const string kIridescenceMaskMap = "_IridescenceMaskMap";
+        protected MaterialProperty thicknessIridescence = null;
+        protected const string kThicknessIridescence = "_ThicknessIridescence";
+        protected MaterialProperty thicknessMapIridescence = null;
+        protected const string kThicknessMapIridescence = "_ThicknessMapIridescence";
+        protected MaterialProperty thicknessRemapIridescence = null;
+        protected const string kThicknessRemapIridescence = "_ThicknessRemapIridescence";
+
         protected MaterialProperty coatMask = null;
         protected const string kCoatMask = "_CoatMask";
         protected MaterialProperty coatMaskMap = null;
@@ -261,7 +278,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // transparency params
         protected MaterialProperty ior = null;
-        protected const string kIOR = "_IOR";
+        protected const string kIor = "_Ior";
         protected MaterialProperty transmittanceColor = null;
         protected const string kTransmittanceColor = "_TransmittanceColor";
         protected MaterialProperty transmittanceColorMap = null;
@@ -367,6 +384,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
+            // Iridescence
+            iridescenceMask = FindProperty(kIridescenceMask, props);
+            iridescenceMaskMap = FindProperty(kIridescenceMaskMap, props);
+            thicknessIridescence = FindProperty(kThicknessIridescence, props);
+            thicknessMapIridescence = FindProperty(kThicknessMapIridescence, props);
+            thicknessRemapIridescence = FindProperty(kThicknessRemapIridescence, props);
+
             // clear coat
             coatMask = FindProperty(kCoatMask, props);
             coatMaskMap = FindProperty(kCoatMaskMap, props);
@@ -377,7 +401,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             transmittanceColorMap = FindProperty(kTransmittanceColorMap, props, false);
             atDistance = FindProperty(kATDistance, props, false);
             thicknessMultiplier = FindProperty(kThicknessMultiplier, props, false);
-            ior = FindProperty(kIOR, props, false);
+            ior = FindProperty(kIor, props, false);
             // We reuse thickness from SSS
         }
 
@@ -463,6 +487,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
         }
+        protected void ShaderIridescenceInputGUI()
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
+
+            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapIridescenceText, thicknessMapIridescence);
+            if (thicknessMapIridescence.textureValue != null)
+            {
+                // Display the remap of texture values.
+                Vector2 remap = thicknessRemapIridescence.vectorValue;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.MinMaxSlider(Styles.thicknessRemapIridescenceText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    thicknessRemapIridescence.vectorValue = remap;
+                }
+            }
+            else
+            {
+                // Allow the user to set the constant value of thickness if no thickness map is provided.
+                m_MaterialEditor.ShaderProperty(thicknessIridescence, Styles.thicknessIridescenceText);
+            }
+        }
 
         protected void ShaderClearCoatInputGUI()
         {
@@ -527,7 +573,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
-            if ((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitStandard || (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitAniso)
+            if ((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitStandard ||
+                (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitAniso ||
+                (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitIridescence)
             {
                 m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
             }
@@ -643,6 +691,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case BaseLitGUI.MaterialId.LitSpecular:
                     ShaderSpecularColorInputGUI(material);
                     break;
+                case BaseLitGUI.MaterialId.LitIridescence:
+                    ShaderIridescenceInputGUI();
+                    break;
 
                 default:
                     Debug.Assert(false, "Encountered an unsupported MaterialID.");
@@ -750,7 +801,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var mode = (Lit.RefractionMode)refractionMode.floatValue;
                     if (mode != Lit.RefractionMode.None)
                     {
-                        m_MaterialEditor.ShaderProperty(ior, Styles.refractionIORText);
+                        m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
                         blendMode.floatValue = (float)BlendMode.Alpha;
 
@@ -880,6 +931,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
+            CoreUtils.SetKeyword(material, "_THICKNESSMAP_IRIDESCENCE", material.GetTexture(kThicknessMapIridescence));
             CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;

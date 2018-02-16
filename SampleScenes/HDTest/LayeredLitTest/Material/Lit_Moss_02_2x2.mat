@@ -17,10 +17,10 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - DistortionVectors
+  - TransparentBackfaceDebugDisplay
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - TransparentBackfaceDebugDisplay
   - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
@@ -285,6 +285,7 @@ Material:
     - _ThicknessMultiplier: 1
     - _Tiling: 1
     - _TilingDetail: 4
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
@@ -294,7 +295,9 @@ Material:
     - _UVEmissive: 0
     - _UVMappingPlanar: 1
     - _UVSec: 0
+    - _ZTestDepthEqualForOpaque: 3
     - _ZTestMode: 8
+    - _ZTestModeDistortion: 8
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

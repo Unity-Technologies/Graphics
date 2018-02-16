@@ -1,12 +1,14 @@
 {
     "name": "com.unity.render-pipelines.core.Editor",
     "references": [
-      "com.unity.render-pipelines.core.Runtime",
-      "com.unity.postprocessing.Runtime",
-      "com.unity.postprocessing.Editor"
+        "com.unity.render-pipelines.core.Runtime",
+        "com.unity.postprocessing.Runtime",
+        "com.unity.postprocessing.Editor"
     ],
+    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
 }
