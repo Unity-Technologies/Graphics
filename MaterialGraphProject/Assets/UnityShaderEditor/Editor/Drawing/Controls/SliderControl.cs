@@ -27,7 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
     public class SliderControlView : VisualElement, INodeModificationListener
     {
-        GUIContent m_Label;
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
         bool m_DisplayMinMax;
@@ -37,8 +36,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         VisualElement m_SliderPanel;
         Slider m_Slider;
         FloatField m_SliderInput;
-        FloatField m_MinField;
-        FloatField m_MaxField;
 
         public SliderControlView(string label, bool displayMinMax, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -49,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             if (propertyInfo.PropertyType != typeof(Vector3))
                 throw new ArgumentException("Property must be of type Vector3.", "propertyInfo");
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
+            new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             m_Value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
 
             m_SliderPanel = new VisualElement { name = "SliderPanel" };
@@ -65,8 +62,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if(m_DisplayMinMax)
             {
                 var fieldsPanel = new VisualElement { name = "FieldsPanel" };
-                m_MinField = AddField(fieldsPanel, "Min", 1, m_Value);
-                m_MaxField = AddField(fieldsPanel, "Max", 2, m_Value);
+                AddField(fieldsPanel, "Min", 1, m_Value);
+                AddField(fieldsPanel, "Max", 2, m_Value);
                 Add(fieldsPanel);
             }
         }
