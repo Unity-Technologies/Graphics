@@ -355,6 +355,9 @@ namespace UnityEngine.Experimental.Rendering
                         Matrix4x4 translation = Matrix4x4.Translate(camPosWS);
                         ce.current.view *= translation;
                         vp *= translation;
+                        translation.SetColumn( 3, -camPosWS );
+                        translation[15] = 1.0f;
+                        invvp = translation * invvp;
                         if (sr.shadowType == GPUShadowType.Directional)
                         {
                             m_TmpSplits[key.faceIdx].x -= camPosWS.x;
