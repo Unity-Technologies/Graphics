@@ -86,8 +86,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Iridescence
             [SurfaceDataAttributes("Thickness of Iridescence")]
             public float thicknessIridescence;
-            [SurfaceDataAttributes("Index of refraction of Iridescence")]
-            public float iorIridescence;
+            [SurfaceDataAttributes("Iridescence Mask")]
+            public float iridescenceMask;
 
             // Forward property only
 
@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Iridescence
             public float thicknessIridescence;
-            public float iorIridescence;
+            public float iridescenceMask;
 
             // ClearCoat
             public float coatRoughness; // Automatically fill
