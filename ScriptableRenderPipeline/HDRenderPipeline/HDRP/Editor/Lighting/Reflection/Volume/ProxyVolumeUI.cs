@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldShapeType),
                 CED.FadeGroup(
                     (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
-                    FadeOption.Animate | FadeOption.Indent,
+                    FadeOption.Indent,
                     SectionShapeBox,
                     SectionShapeSphere
                 )
