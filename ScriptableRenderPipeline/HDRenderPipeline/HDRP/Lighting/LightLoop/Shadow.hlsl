@@ -6,6 +6,7 @@
 
 #define SHADOW_USE_VIEW_BIAS_SCALING            1   // Enable view bias scaling to mitigate light leaking across edges. Uses the light vector if SHADOW_USE_ONLY_VIEW_BASED_BIASING is defined, otherwise uses the normal.
 #define SHADOW_USE_SAMPLE_BIASING               1   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
+#define SHADOW_USE_DEPTH_BIAS                   0   // Enable clip space z biasing
 
 #include "ShadowContext.hlsl"
 

@@ -22,6 +22,7 @@
 #define SHADOW_USE_VIEW_BIAS_SCALING            0   // Enable view bias scaling to mitigate light leaking across edges. Uses the light vector if SHADOW_USE_ONLY_VIEW_BASED_BIASING is defined, otherwise uses the normal.
 #define SHADOW_USE_ONLY_VIEW_BASED_BIASING      0   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
 #define SHADOW_USE_SAMPLE_BIASING               0   // Enable per sample biasing for wide multi-tap PCF filters. Incompatible with SHADOW_USE_ONLY_VIEW_BASED_BIASING.
+#define SHADOW_USE_DEPTH_BIAS                   0   // Enable clip space z biasing
 // #define SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL      // Enable custom implementations of GetPunctualShadowAttenuation. If not defined, a default implementation will be used.
 // #define SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL   // Enable custom implementations of GetDirectionalShadowAttenuation. If not defined, a default implementation will be used.
 */
@@ -41,6 +42,9 @@
 #endif
 #ifndef SHADOW_USE_SAMPLE_BIAS
 #   define SHADOW_USE_SAMPLE_BIAS           0
+#endif
+#ifndef SHADOW_USE_DEPTH_BIAS
+#   define SHADOW_USE_DEPTH_BIAS            0
 #endif
 
 #if SHADOW_USE_ONLY_VIEW_BASED_BIASING != 0
