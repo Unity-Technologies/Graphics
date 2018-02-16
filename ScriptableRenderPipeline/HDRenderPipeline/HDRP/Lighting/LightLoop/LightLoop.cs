@@ -262,7 +262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxEnvLightsOnScreen = 64;
         public const int k_MaxShadowOnScreen = 16;
         public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
-        static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
+        public static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
         static ComputeBuffer s_DirectionalLightDatas = null;
@@ -733,7 +733,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        static Matrix4x4 WorldToCamera(Camera camera)
+        public static Matrix4x4 WorldToCamera(Camera camera)
         {
             // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS
             // We need to flip it to work with transforms
@@ -1258,53 +1258,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
         
-        public void GetDecalVolumeDataAndBound(DecalData decalData, Matrix4x4 worldToView)
-        {
-            var bound = new SFiniteLightBound();
-            var lightVolumeData = new LightVolumeData();
-
-            // worldToDecal is actually decalToWorld when it first gets passed in
-            var influenceX = decalData.worldToDecal.GetColumn(0) * 0.5f;
-            var influenceY = decalData.worldToDecal.GetColumn(1) * 0.5f;
-            var influenceZ = decalData.worldToDecal.GetColumn(2) * 0.5f;
-            var pos = decalData.worldToDecal.GetColumn(3) - influenceY; // decal cube mesh pivot is at 0,0,0, with bottom face at -1 on the y plane
-
-            Vector3 influenceExtents = new Vector3();
-            influenceExtents.x = influenceX.magnitude;
-            influenceExtents.y = influenceY.magnitude;
-            influenceExtents.z = influenceZ.magnitude;
-
-            // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-            var influenceRightVS = worldToView.MultiplyVector(influenceX / influenceExtents.x);
-            var influenceUpVS = worldToView.MultiplyVector(influenceY / influenceExtents.y);
-            var influenceForwardVS = worldToView.MultiplyVector(influenceZ / influenceExtents.z);
-            var influencePositionVS = worldToView.MultiplyPoint(pos); // place the mesh pivot in the center
-
-			lightVolumeData.lightCategory = (uint)LightCategory.Decal;
-            lightVolumeData.lightVolume = (uint)LightVolumeType.Box;
-			lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
-
-            bound.center = influencePositionVS;
-            bound.boxAxisX = influenceRightVS * influenceExtents.x;
-            bound.boxAxisY = influenceUpVS * influenceExtents.y;
-            bound.boxAxisZ = influenceForwardVS * influenceExtents.z;
-            bound.scaleXY.Set(1.0f, 1.0f);
-            bound.radius = influenceExtents.magnitude;
-
-            // The culling system culls pixels that are further
-            //   than a threshold to the box influence extents.
-            // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
-            lightVolumeData.lightPos = influencePositionVS;
-            lightVolumeData.lightAxisX = influenceRightVS;
-            lightVolumeData.lightAxisY = influenceUpVS;
-            lightVolumeData.lightAxisZ = influenceForwardVS;
-            lightVolumeData.boxInnerDist = influenceExtents - k_BoxCullingExtentThreshold;
-            lightVolumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
-
-            m_lightList.bounds.Add(bound);
-            m_lightList.lightVolumes.Add(lightVolumeData);
-        }
-      
+             
         public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
         {
             var bound = new SFiniteLightBound();
@@ -1406,8 +1360,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
-
-                var worldToView = WorldToCamera(camera);
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
@@ -1560,7 +1512,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LigthVolumeData and rendering)
-                    
+                    var worldToView = WorldToCamera(camera);
+
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -1740,14 +1693,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                // add decals to the list
-                foreach(var decalData in DecalSystem.m_DecalDataList)
-                {
-                    GetDecalVolumeDataAndBound(decalData, worldToView);
-                }
-
-                DecalSystem.instance.InvertDecalDataWorldToDecal();
-
+                m_lightList.bounds.AddRange(DecalSystem.m_Bounds);
+                m_lightList.lightVolumes.AddRange(DecalSystem.m_LightVolumes);
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + DecalSystem.m_DecalDataList.Count;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
