@@ -3,8 +3,6 @@ using System.Reflection;
 using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEditor.ShaderGraph;
 using Color = UnityEditor.ShaderGraph.ColorNode.Color;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls

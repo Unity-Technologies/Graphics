@@ -1,6 +1,5 @@
 using System;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEditor.Graphing;
 
 namespace UnityEditor.Graphing.Util
 {

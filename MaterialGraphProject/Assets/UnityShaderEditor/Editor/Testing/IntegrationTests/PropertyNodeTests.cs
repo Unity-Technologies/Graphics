@@ -1,11 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using NUnit.Framework;
 using UnityEngine;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.IntegrationTests
 {
