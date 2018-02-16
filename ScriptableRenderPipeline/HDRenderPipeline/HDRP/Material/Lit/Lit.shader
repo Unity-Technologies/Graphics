@@ -63,7 +63,8 @@ Shader "HDRenderPipeline/Lit"
         _ThicknessIridescence("Thickness sridescence", Range(0.0, 1.0)) = 1.0
         _ThicknessMapIridescence("Thickness Map Iridescence", 2D) = "white" {}
         _ThicknessRemapIridescence("Thickness Remap Iridescence", Vector) = (0, 1, 0, 0)
-        _IorIridescence("Indice Of Refraction Iridescence", Range(1.0, 2.5)) = 1.0
+        _IridescenceMask("Iridescence Mask", Range(0.0, 1.0)) = 1.0
+        _IridescenceMaskMap("Iridescence Mask Map", 2D) = "white" {}
 
         _CoatMask("Coat Mask", Range(0.0, 1.0)) = 0.0
         _CoatMaskMap("CoatMaskMap", 2D) = "white" {}

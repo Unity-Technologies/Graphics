@@ -129,12 +129,12 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 19 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 20 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
-    // Standard with clear coat and Iridescence
-    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 24 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 25 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    // Standard with Iridescence
+    /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 24 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 25 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     /* 26 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
@@ -183,6 +183,7 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 // Iridescence
 //-----------------------------------------------------------------------------
 
+// Ref: https://belcour.github.io/blog/research/2017/05/01/brdf-thin-film.html
 // Evaluation XYZ sensitivity curves in Fourier space
 float3 EvalSensitivity(float opd, float shift)
 {
@@ -200,10 +201,16 @@ float3 EvalSensitivity(float opd, float shift)
 float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
 {
     // thicknessIridescence unit is micrometer for this equation here. Mean 0.5 is 500nm.
-    float Dinc = 2.0 * bsdfData.iorIridescence * bsdfData.thicknessIridescence;
+    float Dinc = 3.0 * bsdfData.thicknessIridescence;
+
+    // Note: Unlike the code provide with the paper, here we use schlick approximation
+    // Schlick is a very poor approximation when dealing with iridescence to the Fresnel
+    // term and there is no "neutral" value in this unlike in the original paper.
+    // We use Iridescence mask here to allow to have neutral value
 
     // Force eta_2 -> eta_1 when Dinc -> 0.0
-    float eta_2 = lerp(eta_1, bsdfData.iorIridescence, smoothstep(0.0, 0.03, Dinc));
+    float eta2 = lerp(2.0, 1.1, bsdfData.thicknessIridescence);
+    float eta_2 = lerp(eta_1, eta2, smoothstep(0.0, 0.03, Dinc));
     // Evaluate the cosTheta on the base layer (Snell law)
     float cosTheta2 = sqrt(1.0 - Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1)));
 
@@ -357,9 +364,9 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float ior, float thickness, inout BSDFData bsdfData)
+void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.iorIridescence = ior;
+    bsdfData.iridescenceMask = mask;
     bsdfData.thicknessIridescence = thickness;
 }
 
@@ -516,7 +523,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(surfaceData.iorIridescence, surfaceData.thicknessIridescence, bsdfData);
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.thicknessIridescence, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
@@ -661,8 +668,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         materialFeatureId = GBUFFER_LIT_IRIDESCENCE;
 
-        // Range of IOR is 1..2.5, so remap to 0..1
-        outGBuffer2.rgb = float3(RemapIor25to01(surfaceData.iorIridescence), surfaceData.thicknessIridescence,
+        outGBuffer2.rgb = float3(surfaceData.iridescenceMask, surfaceData.thicknessIridescence,
                                  PackFloatInt8bit(surfaceData.metallic, 0, 8));
     }
     else // Standard
@@ -857,10 +863,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         FillMaterialAnisotropy(anisotropy, frame[0], frame[1], bsdfData);
     }
 
+    // The neutral value of iridescenceMask is 0 (handled by ZERO_INITIALIZE).
     if (HasFeatureFlag(pixelFeatureFlags, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        // Range of IOR is 1..2.5
-        FillMaterialIridescence(RemapIor01to25(inGBuffer2.r), inGBuffer2.g, bsdfData);
+        FillMaterialIridescence(inGBuffer2.r, inGBuffer2.g, bsdfData);
     }
 
     // The neutral value of coatMask is 0 (handled by ZERO_INITIALIZE).
@@ -909,9 +915,6 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES:
         result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
-    case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION_OF_IRIDESCENCE:
-        result = RemapIor25to01(surfaceData.iorIridescence).xxx;
-        break;
     case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
         result = RemapIor25to01(surfaceData.ior).xxx;
         break;
@@ -931,9 +934,6 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         break;
     case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_FEATURES:
         result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
-        break;
-    case DEBUGVIEW_LIT_BSDFDATA_IOR_IRIDESCENCE:
-        result = RemapIor25to01(bsdfData.iorIridescence).xxx;
         break;
     case DEBUGVIEW_LIT_BSDFDATA_IOR:
         result = RemapIor25to01(bsdfData.ior).xxx;
@@ -994,6 +994,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float NdotV = ClampNdotV(preLightData.NdotV);
 
+    // We modify the bsdfData.fresnel0 here for iridescence
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
         float viewAngle = NdotV;
@@ -1005,13 +1006,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             viewAngle = sqrt(1.0 + Sq(1.0 / topIor) * (Sq(dot(bsdfData.normalWS, V)) - 1.0));
         }
 
-        // TEMP
-        if (bsdfData.thicknessIridescence != 0.0)
+        if (bsdfData.iridescenceMask > 0.0)
         {
-            bsdfData.fresnel0 = EvalIridescence(topIor, viewAngle, bsdfData);
+            bsdfData.fresnel0 = lerp(bsdfData.fresnel0, EvalIridescence(topIor, viewAngle, bsdfData), bsdfData.iridescenceMask);
         }
     }
 
+    // We modify the bsdfData.fresnel0 here for clearCoat
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Fresnel0 is deduced from interface between air and material (Assume to be 1.5 in Unity, or a metal).
@@ -1437,7 +1438,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+        lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
 
@@ -1526,7 +1527,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
-        lighting.diffuse = color * intensity * lightData.diffuseScale;;
+        lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
 

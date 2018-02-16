@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Iridescence
-            public static GUIContent iorIridescenceText = new GUIContent("Iridescence IOR", "Controls the number of color fringes with increasing angle (view dependent): Smaller mean more fringe. Also modify intensity and saturation of color fringes: Higher value mean more intense and saturate.");
+            public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Control intensity of the iridescence");
             public static GUIContent thicknessIridescenceText = new GUIContent("Iridescence Thickness");
             public static GUIContent thicknessMapIridescenceText = new GUIContent("Iridescence Thickness map");
             public static GUIContent thicknessRemapIridescenceText = new GUIContent("Iridescence Thickness remap");
@@ -240,8 +240,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty anisotropyMap = null;
         protected const string kAnisotropyMap = "_AnisotropyMap";
 
-        protected MaterialProperty iorIridescence = null;
-        protected const string kIorIridescence = "_IorIridescence";
+        protected MaterialProperty iridescenceMask = null;
+        protected const string kIridescenceMask = "_IridescenceMask";
+        protected MaterialProperty iridescenceMaskMap = null;
+        protected const string kIridescenceMaskMap = "_IridescenceMaskMap";
         protected MaterialProperty thicknessIridescence = null;
         protected const string kThicknessIridescence = "_ThicknessIridescence";
         protected MaterialProperty thicknessMapIridescence = null;
@@ -383,7 +385,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
             // Iridescence
-            iorIridescence = FindProperty(kIorIridescence, props);
+            iridescenceMask = FindProperty(kIridescenceMask, props);
+            iridescenceMaskMap = FindProperty(kIridescenceMaskMap, props);
             thicknessIridescence = FindProperty(kThicknessIridescence, props);
             thicknessMapIridescence = FindProperty(kThicknessMapIridescence, props);
             thicknessRemapIridescence = FindProperty(kThicknessRemapIridescence, props);
@@ -486,7 +489,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         protected void ShaderIridescenceInputGUI()
         {
-            m_MaterialEditor.ShaderProperty(iorIridescence, Styles.iorIridescenceText);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapIridescenceText, thicknessMapIridescence);
             if (thicknessMapIridescence.textureValue != null)
