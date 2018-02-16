@@ -135,9 +135,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateSize();
             }*/
 
+            if (node is SubGraphNode)
+            {
+                RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
+            }
+
             m_PortInputContainer.SendToBack();
             if (node.hasPreview)
                 m_PreviewFiller.BringToFront();
+        }
+
+        void OnSubGraphDoubleClick(MouseDownEvent evt)
+        {
+            if (evt.clickCount == 2 && evt.button == 0)
+            {
+                SubGraphNode subgraphNode = node as SubGraphNode;
+
+                var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
+                ShaderGraphImporterEditor.ShowGraphEditWindow(path);
+            }
         }
 
         public AbstractMaterialNode node { get; private set; }
