@@ -206,8 +206,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
-		// Skip density volumes. TODO: improve data locality
-		if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { continue; }
+		// Skip density volumes (lights are sorted by category). TODO: improve data locality
+		if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { break; }
 
 		const float3 vMi = g_vBoundsBuffer[l];
 		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
