@@ -25,6 +25,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsContainer;
         bool m_ShowSettings = false;
         VisualElement m_SettingsButton;
+        VisualElement m_SettingsDivider;
+        VisualElement m_Settings;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -149,37 +151,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             parent.Add(buttonContainer);
             
-            m_SettingsContainer = new VisualElement { name = "settings-container" };
-            Add(m_SettingsContainer);
-            m_SettingsContainer.SendToBack();
+            
+            //m_SettingsContainer.SendToBack();
 
             var settings = node as IHasSettings;
             if (settings != null)
             {
-                
-                m_SettingsButton = new VisualElement {name = "settings-button"};
-                //if(!m_ShowSettings)
-                m_SettingsButton.Add(new VisualElement { name = "icon" });
-                //else
-                //    settingsButton.Add(new VisualElement { name = "icon-clicked" });
+                m_SettingsContainer = new VisualElement { name = "settings-container" };
+                contents.Add(m_SettingsContainer);
+                if (node.hasPreview)
+                    m_SettingsContainer.PlaceBehind(m_PreviewFiller);
 
+                
+
+
+                m_SettingsButton = new VisualElement {name = "settings-button"};
+                m_SettingsButton.Add(new VisualElement { name = "icon" });
                 m_SettingsButton.AddManipulator(new Clickable(() =>
-                {
-                    //var graph = (AbstractMaterialGraph)node.owner;
-                    // martintt have to add this to the node to the right of it.
-                    
+                {  
                     UpdateSettingsExpandedState(settings);
-                    /*
-                    if (m_ShowSettings)
-                    {
-                        m_SettingsContainer.Add(settings.CreateSettingsElement());
-                    }
-                    else
-                        m_SettingsContainer.RemoveAt(0);
-                    */
                 }));
                 buttonContainer.Add(m_SettingsButton);
-                //Add(settings.CreateSettingsElement());
             }
             buttonContainer.Add(collapseButton);
         }
@@ -241,12 +233,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ShowSettings = !m_ShowSettings;
             if (m_ShowSettings)
             {
-                m_SettingsContainer.Add(settings.CreateSettingsElement());
+                m_SettingsDivider = new VisualElement { name = "divider" };
+                m_SettingsDivider.AddToClassList("horizontal");
+                m_SettingsContainer.Add(m_SettingsDivider);
+
+                m_Settings = settings.CreateSettingsElement();
+                m_SettingsContainer.Add(m_Settings);
+
                 m_SettingsButton.AddToClassList("clicked");
             }
             else
             {
-                m_SettingsContainer.RemoveAt(0);
+                m_SettingsDivider.RemoveFromHierarchy();
+                m_Settings.RemoveFromHierarchy();
+
                 m_SettingsButton.RemoveFromClassList("clicked");
             }
         }

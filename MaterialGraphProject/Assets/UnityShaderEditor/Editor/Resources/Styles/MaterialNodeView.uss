@@ -113,10 +113,7 @@ MaterialNodeView > #portInputContainer {
 }
 
 MaterialNodeView > #settings-container {
-	position-type : absolute;
-	width : 200;
 	background-color : rgb(245, 155, 225);
-	position-left : 200;
 }
 
 MaterialNodeView > #node-border > #title > #button-container{
@@ -132,7 +129,6 @@ MaterialNodeView  > #node-border > #title > #button-container > #settings-button
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button:hover{
 	background-color: #2B2B2B;
 }
-
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button.clicked{
 	background-color: #2B2B2B;

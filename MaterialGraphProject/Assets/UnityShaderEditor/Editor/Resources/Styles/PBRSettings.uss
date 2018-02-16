@@ -1,15 +1,8 @@
 PBRSettingsView > #container{
-    font-style: bold;
-	text-color: rgb(200,0,200);
-	background-color: #F0F0F0;
-}
-PBRSettingsView > #container > #nodename {
-    font-style: bold;
-	text-color: rgb(200,0,200);
-	background-color: #F0F0F0;
+	background-color: rgb(167, 142, 142);
 }
 
 PBRSettingsView > #container > .enumcontainer{
-	text-color: rgb(245, 155, 225);
+	text-color: rgb(155, 245, 245);
 }
 
