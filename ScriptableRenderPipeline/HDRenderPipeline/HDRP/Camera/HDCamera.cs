@@ -137,6 +137,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
             var pos = camera.transform.position;
+
+            // TODO: Delete this?
             var relPos = pos; // World-origin-relative
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -272,6 +274,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
             {
                 viewMatrixStereo[eyeIndex] = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    // Zero out the translation component.
+                    viewMatrixStereo[eyeIndex].SetColumn(3, new Vector4(0, 0, 0, 1));
+                }
+
 
                 projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
                 projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
@@ -356,6 +364,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)
         {
+            var viewProjStereo = new Matrix4x4[2];
+            var invViewStereo = new Matrix4x4[2];
             var invProjStereo = new Matrix4x4[2];
             var invViewProjStereo = new Matrix4x4[2];
 
@@ -364,12 +374,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var proj = projMatrixStereo[eyeIndex];
                 invProjStereo[eyeIndex] = proj.inverse;
 
-                var vp = proj * viewMatrixStereo[eyeIndex];
-                invViewProjStereo[eyeIndex] = vp.inverse;
+                var view = viewMatrixStereo[eyeIndex];
+                invViewStereo[eyeIndex] = view.inverse;
+
+                viewProjStereo[eyeIndex] = proj * view;
+                invViewProjStereo[eyeIndex] = viewProjStereo[eyeIndex].inverse;
             }
 
             // corresponds to UnityPerPassStereo
             // TODO: Migrate the other stereo matrices to HDRP-managed UnityPerPassStereo?
+            cmd.SetGlobalMatrixArray(HDShaderIDs._ViewMatrixStereo, viewMatrixStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._ViewProjMatrixStereo, viewProjStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewMatrixStereo, invViewStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
         }
