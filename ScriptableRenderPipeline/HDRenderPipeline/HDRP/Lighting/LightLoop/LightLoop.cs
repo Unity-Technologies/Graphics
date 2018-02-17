@@ -1349,8 +1349,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_lightList.Clear();
 
-                Vector3 camPosWS = camera.transform.position;
-
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
@@ -1380,6 +1378,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         //TODO: Do not call ToArray here to avoid GC, refactor API
                         int[]   shadowRequests = m_ShadowRequests.ToArray();
                         int[]   shadowDataIndices;
+                        
+                        // Stereo: The usage of camera seems to be for the camera world space position.
+                        // For stereo, this is fine as long as this matches the head position, along with
+                        // our unified V/P/VP matrices working from that head position.
                         m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, ShaderConfig.s_CameraRelativeRendering != 0, cullResults.visibleLights,
                             ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
@@ -1505,8 +1507,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
                     // 2. Go through all lights, convert them to GPU format.
-                    // Create simultaneously data for culling (LigthVolumeData and rendering)
+                    // Create simultaneously data for culling (LightVolumeData and rendering)
                     var worldToView = WorldToCamera(camera);
+                    Vector3 camPosWS = camera.transform.position;
+
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {

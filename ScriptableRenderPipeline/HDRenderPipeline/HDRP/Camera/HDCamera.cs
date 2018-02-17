@@ -236,7 +236,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // _FrustumPlanes -  Also used for generating tesselation factors.  Should be fine to use the combined stereo VP
             //                   to calculate frustum planes.
 
-            // TODO: I really should be calculating my own combined view/proj in the Update code
+            // TODO: Would it be worth calculating my own combined view/proj matrix in Update?
+            // In engine, we modify the view and proj matrices accordingly in order to generate the single cull
+            // * Get the center eye view matrix, and pull it back to cover both eyes
+            // * Generated an expanded projection matrix (one method - max bound of left/right proj matrices)
+            //   and move near/far planes to match near/far locations of proj matrices located at eyes.
+            // I think using the cull matrices is valid, as long as I only use them for tess factors in shader.
+            // Using them for other calculations (like light list generation) could be problematic.
 
             var stereoCombinedViewMatrix = cullingParams.cullStereoView;
 
