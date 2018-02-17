@@ -262,6 +262,10 @@ CBUFFER_END
 #if defined(USING_STEREO_MATRICES)
 
 CBUFFER_START(UnityPerPassStereo)
+float4x4 _ViewMatrixStereo[2];
+// Proj not needed...yet?
+float4x4 _ViewProjMatrixStereo[2];
+float4x4 _InvViewMatrixStereo[2];
 float4x4 _InvProjMatrixStereo[2];
 float4x4 _InvViewProjMatrixStereo[2];
 CBUFFER_END
