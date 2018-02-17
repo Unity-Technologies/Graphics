@@ -1695,7 +1695,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_lightList.bounds.AddRange(DecalSystem.m_Bounds);
                 m_lightList.lightVolumes.AddRange(DecalSystem.m_LightVolumes);
-                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + DecalSystem.m_DecalDataList.Count;
+                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + DecalSystem.m_DecalDatasCount;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
@@ -1968,7 +1968,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_LightDatas.SetData(m_lightList.lights);
             s_EnvLightDatas.SetData(m_lightList.envLights);
             s_shadowDatas.SetData(m_lightList.shadows);
-            s_DecalDatas.SetData(DecalSystem.m_DecalDataList);
+            s_DecalDatas.SetData(DecalSystem.m_DecalDatas);
 
             // These two buffers have been set in Rebuild()
             s_ConvexBoundsBuffer.SetData(m_lightList.bounds);
@@ -2021,7 +2021,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, s_EnvLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, s_DecalDatas);
-                cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDataList.Count);
+                cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
                 cmd.SetGlobalBuffer(HDShaderIDs._ShadowDatas, s_shadowDatas);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(hdCamera));
