@@ -54,7 +54,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 	if(_EnableDBuffer)
 	{
 		DecalSurfaceData decalSurfaceData;		
-		uint mask = 0;
+		int mask = 0;
 		// the code in the macros, gets moved inside the conditionals by the compiler
 		FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
 

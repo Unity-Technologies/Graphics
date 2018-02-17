@@ -662,13 +662,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ReflectionProbeCullResults.Cull();
 
                     m_DbufferManager.vsibleDecalCount = 0;
-                    if (m_FrameSettings.enableDBuffer)
+                    using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                     {
-                        m_DbufferManager.vsibleDecalCount = DecalSystem.instance.QueryCullResults();
-                        DecalSystem.instance.EndCull();
-                        DecalSystem.instance.CreateDrawData();
+                        if (m_FrameSettings.enableDBuffer)
+                        {                            
+                            DecalSystem.instance.EndCull();                            
+                            DecalSystem.instance.CreateDrawData();
+                            m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
+                        }
                     }
-
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
@@ -1156,7 +1158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_FrameSettings.enableDBuffer)
                 return;
 
-            using (new ProfilingSample(cmd, "DBuffer", CustomSamplerId.DBuffer.GetSampler()))
+            using (new ProfilingSample(cmd, "DBufferRender", CustomSamplerId.DBufferRender.GetSampler()))
             {
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);

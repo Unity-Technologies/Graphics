@@ -74,9 +74,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public Mesh m_DecalMesh = null;
 
         // clustered draw data
-        static public List<DecalData> m_DecalDataList = new List<DecalData>();
-        static public List<SFiniteLightBound> m_Bounds = new List<SFiniteLightBound>();
-        static public List<LightVolumeData> m_LightVolumes = new List<LightVolumeData>();
+        static public DecalData[] m_DecalDatas = new DecalData[kDecalBlockSize];
+        static public SFiniteLightBound[] m_Bounds = new SFiniteLightBound[kDecalBlockSize];
+        static public LightVolumeData[] m_LightVolumes = new LightVolumeData[kDecalBlockSize];
+        static public int m_DecalDatasCount = 0;
 
 		static public float[] m_BoundingDistances = new float[1];
 
@@ -85,6 +86,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // current camera
         private Camera m_Camera;
+
+        static public int m_DecalsVisibleThisFrame = 0;
 
         private class DecalSet
         {
@@ -214,8 +217,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             private void GetDecalVolumeDataAndBound(Matrix4x4 decalToWorld, Matrix4x4 worldToView)
             {
-                var bound = new SFiniteLightBound();
-                var lightVolumeData = new LightVolumeData();
 
                 var influenceX = decalToWorld.GetColumn(0) * 0.5f;
                 var influenceY = decalToWorld.GetColumn(1) * 0.5f;
@@ -233,29 +234,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var influenceForwardVS = worldToView.MultiplyVector(influenceZ / influenceExtents.z);
                 var influencePositionVS = worldToView.MultiplyPoint(pos); // place the mesh pivot in the center
 
-                lightVolumeData.lightCategory = (uint)LightCategory.Decal;
-                lightVolumeData.lightVolume = (uint)LightVolumeType.Box;
-                lightVolumeData.featureFlags = (uint)LightFeatureFlags.Env;
-
-                bound.center = influencePositionVS;
-                bound.boxAxisX = influenceRightVS * influenceExtents.x;
-                bound.boxAxisY = influenceUpVS * influenceExtents.y;
-                bound.boxAxisZ = influenceForwardVS * influenceExtents.z;
-                bound.scaleXY.Set(1.0f, 1.0f);
-                bound.radius = influenceExtents.magnitude;
+                m_Bounds[m_DecalDatasCount].center = influencePositionVS;
+                m_Bounds[m_DecalDatasCount].boxAxisX = influenceRightVS * influenceExtents.x;
+                m_Bounds[m_DecalDatasCount].boxAxisY = influenceUpVS * influenceExtents.y;
+                m_Bounds[m_DecalDatasCount].boxAxisZ = influenceForwardVS * influenceExtents.z;
+                m_Bounds[m_DecalDatasCount].scaleXY.Set(1.0f, 1.0f);
+                m_Bounds[m_DecalDatasCount].radius = influenceExtents.magnitude;
 
                 // The culling system culls pixels that are further
                 //   than a threshold to the box influence extents.
                 // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
-                lightVolumeData.lightPos = influencePositionVS;
-                lightVolumeData.lightAxisX = influenceRightVS;
-                lightVolumeData.lightAxisY = influenceUpVS;
-                lightVolumeData.lightAxisZ = influenceForwardVS;
-                lightVolumeData.boxInnerDist = influenceExtents - LightLoop.k_BoxCullingExtentThreshold;
-                lightVolumeData.boxInvRange.Set(1.0f / LightLoop.k_BoxCullingExtentThreshold.x, 1.0f /LightLoop. k_BoxCullingExtentThreshold.y, 1.0f / LightLoop.k_BoxCullingExtentThreshold.z);
-
-                m_Bounds.Add(bound);
-                m_LightVolumes.Add(lightVolumeData);
+                m_LightVolumes[m_DecalDatasCount].lightCategory = (uint)LightCategory.Decal;
+                m_LightVolumes[m_DecalDatasCount].lightVolume = (uint)LightVolumeType.Box;
+                m_LightVolumes[m_DecalDatasCount].featureFlags = (uint)LightFeatureFlags.Env;
+                m_LightVolumes[m_DecalDatasCount].lightPos = influencePositionVS;
+                m_LightVolumes[m_DecalDatasCount].lightAxisX = influenceRightVS;
+                m_LightVolumes[m_DecalDatasCount].lightAxisY = influenceUpVS;
+                m_LightVolumes[m_DecalDatasCount].lightAxisZ = influenceForwardVS;
+                m_LightVolumes[m_DecalDatasCount].boxInnerDist = influenceExtents - LightLoop.k_BoxCullingExtentThreshold;
+                m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / LightLoop.k_BoxCullingExtentThreshold.x, 1.0f /LightLoop. k_BoxCullingExtentThreshold.y, 1.0f / LightLoop.k_BoxCullingExtentThreshold.z);
             }
 
             private void AssignCurrentBatches(ref Matrix4x4[] decalToWorldBatch, ref Matrix4x4[] normalToWorldBatch, int batchCount)
@@ -305,13 +302,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         normalToWorldBatch[instanceCount].m23 = m_NormalTexIndex;
                         normalToWorldBatch[instanceCount].m33 = m_MaskTexIndex;
 
-                        // clustered forward data
-                        DecalData decalData = new DecalData();
-                        decalData.worldToDecal = decalToWorldBatch[instanceCount].inverse; 
-                        decalData.normalToWorld = normalToWorldBatch[instanceCount];
-                        m_DecalDataList.Add(decalData);
+                        
+                        // clustered forward data                        
+                        m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse; 
+                        m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                         GetDecalVolumeDataAndBound(decalToWorldBatch[instanceCount], worldToView);
-
+                        m_DecalDatasCount++;
+                        
                         instanceCount++;
                         if (instanceCount == kDrawIndexedBatchSize)
                         {
@@ -489,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-		public int QueryCullResults()
+		private int QueryCullResults()
 		{
 		    int totalVisibleDecals = 0;
             foreach (var pair in m_DecalSets)
@@ -501,7 +498,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void EndCull()
         {
-            m_DecalDataList.Clear();
+            m_DecalsVisibleThisFrame = QueryCullResults();
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.EndCull();
@@ -536,9 +533,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CreateDrawData()
         {
-            m_DecalDataList.Clear();
-            m_Bounds.Clear();
-            m_LightVolumes.Clear();
+            m_DecalDatasCount = 0;           
+            // reallocate if needed
+            if (m_DecalsVisibleThisFrame > m_DecalDatas.Length)
+            {
+                int newDecalDatasSize = ((m_DecalsVisibleThisFrame + kDecalBlockSize - 1) / kDecalBlockSize) * kDecalBlockSize;
+                m_DecalDatas = new DecalData[newDecalDatasSize];
+                m_Bounds = new  SFiniteLightBound[newDecalDatasSize];
+                m_LightVolumes = new LightVolumeData[newDecalDatasSize];
+            }
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.CreateDrawData();
