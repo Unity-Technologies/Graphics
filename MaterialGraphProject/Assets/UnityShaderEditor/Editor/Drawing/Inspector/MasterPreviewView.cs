@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         IMasterNode masterNode
         {
-            get { return m_PreviewRenderHandle.shaderData.node as IMasterNode; }
+            get { return m_PreviewRenderHandle.shaderData != null ? m_PreviewRenderHandle.shaderData.node as IMasterNode : null; }
         }
 
         void DirtyMasterNode(ModificationScope scope)
