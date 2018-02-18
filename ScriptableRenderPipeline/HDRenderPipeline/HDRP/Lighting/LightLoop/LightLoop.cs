@@ -1378,10 +1378,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         //TODO: Do not call ToArray here to avoid GC, refactor API
                         int[]   shadowRequests = m_ShadowRequests.ToArray();
                         int[]   shadowDataIndices;
-                        
+
                         // Stereo: The usage of camera seems to be for the camera world space position.
-                        // For stereo, this is fine as long as this matches the head position, along with
-                        // our unified V/P/VP matrices working from that head position.
+                        // which corresponds to the 'center eye' position. There might be some dissonance
+                        // with the combined view pullback position.
+                        // It is used in ShadowAtlas.Reserve, for camera relative rendering, 
+                        // and ShadowManager.PruneShadowCasters.  The uses seem appropriate, but worth keeping an eye on.
                         m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, ShaderConfig.s_CameraRelativeRendering != 0, cullResults.visibleLights,
                             ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
