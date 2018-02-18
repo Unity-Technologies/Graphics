@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DrawGizmo(VFXComponent component)
+        public void DrawGizmo(VisualEffect component)
         {
             VFXValueGizmo.Draw(this, component);
         }

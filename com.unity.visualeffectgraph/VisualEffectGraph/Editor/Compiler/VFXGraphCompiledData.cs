@@ -463,7 +463,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VFXAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void SaveShaderFiles(VisualEffectAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -642,15 +642,15 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.ToArray();
                 expressionSheet.exposed = exposedParameterDescs.ToArray();
 
-                m_Graph.vfxAsset.ClearPropertyData();
-                m_Graph.vfxAsset.SetExpressionSheet(expressionSheet);
+                m_Graph.visualEffectAsset.ClearPropertyData();
+                m_Graph.visualEffectAsset.SetExpressionSheet(expressionSheet);
 
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 7 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 8 / nbSteps);
-                SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
+                SaveShaderFiles(m_Graph.visualEffectAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
@@ -687,18 +687,19 @@ namespace UnityEditor.VFX
                 }
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
-                m_Graph.vfxAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
+                m_Graph.visualEffectAsset.MarkRuntimeVersion();
             }
             catch (Exception e)
             {
                 Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
 
                 // Cleaning
-                if (m_Graph.vfxAsset != null)
+                if (m_Graph.visualEffectAsset != null)
                 {
-                    m_Graph.vfxAsset.ClearPropertyData();
-                    m_Graph.vfxAsset.SetSystems(null, null, null, null);
+                    m_Graph.visualEffectAsset.ClearPropertyData();
+                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -749,16 +750,16 @@ namespace UnityEditor.VFX
                 }
             }
 
-            m_Graph.vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
+            m_Graph.visualEffectAsset.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
-        public VFXAsset vfxAsset
+        public VisualEffectAsset visualEffectAsset
         {
             get
             {
                 if (m_Graph != null)
                 {
-                    return m_Graph.vfxAsset;
+                    return m_Graph.visualEffectAsset;
                 }
                 return null;
             }

@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
 
         public static readonly Dictionary<int, VFXExpression> TauExpression = new Dictionary<int, VFXExpression>
         {
-            { 1, VFXValue.Constant( 2.0f * Mathf.PI) },
+            { 1, VFXValue.Constant(2.0f * Mathf.PI) },
             { 2, VFXValue.Constant(Vector2.one * 2.0f * Mathf.PI) },
             { 3, VFXValue.Constant(Vector3.one * 2.0f * Mathf.PI) },
             { 4, VFXValue.Constant(Vector4.one * 2.0f * Mathf.PI) },
@@ -68,14 +68,14 @@ namespace UnityEditor.VFX
         // unified binary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1)
         {
-            var unifiedExp = VFXOperatorUtility.UnifyFloatLevel(new VFXExpression[2] {e0, e1}).ToArray();
+            var unifiedExp = VFXOperatorUtility.UpcastAllFloatN(new VFXExpression[2] {e0, e1}).ToArray();
             return f(unifiedExp[0], unifiedExp[1]);
         }
 
         // unified ternary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1, VFXExpression e2)
         {
-            var unifiedExp = VFXOperatorUtility.UnifyFloatLevel(new VFXExpression[3] {e0, e1, e2}).ToArray();
+            var unifiedExp = VFXOperatorUtility.UpcastAllFloatN(new VFXExpression[3] {e0, e1, e2}).ToArray();
             return f(unifiedExp[0], unifiedExp[1], unifiedExp[2]);
         }
 
@@ -379,15 +379,20 @@ namespace UnityEditor.VFX
             return components;
         }
 
-        static public IEnumerable<VFXExpression> UnifyFloatLevel(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
+        static public VFXValueType FindMaxFloatNValueType(IEnumerable<VFXExpression> inputExpression)
+        {
+            return inputExpression.Select(o => o.valueType).OrderBy(t => VFXExpression.IsFloatValueType(t) ? VFXExpression.TypeToSize(t) : 0).Last();
+        }
+
+        static public IEnumerable<VFXExpression> UpcastAllFloatN(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
         {
             if (inputExpression.Count() <= 1)
             {
                 return inputExpression;
             }
 
-            var maxValueType = inputExpression.Select(o => o.valueType).OrderBy(t => VFXExpression.TypeToSize(t)).Last();
-            var newVFXExpression = inputExpression.Select(o => CastFloat(o, maxValueType, defaultValue));
+            var maxValueType = FindMaxFloatNValueType(inputExpression);
+            var newVFXExpression = inputExpression.Select(o => VFXExpression.IsFloatValueType(o.valueType) ? CastFloat(o, maxValueType, defaultValue) : o);
             return newVFXExpression.ToArray();
         }
 
@@ -446,6 +451,17 @@ namespace UnityEditor.VFX
 
             var combine = new VFXExpressionCombine(outputComponent);
             return combine;
+        }
+
+        static public VFXExpression FixedRandom(uint hash, bool perElement)
+        {
+            return FixedRandom(VFXValue.Constant<uint>(hash), perElement);
+        }
+
+        static public VFXExpression FixedRandom(VFXExpression hash, bool perElement)
+        {
+            VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
+            return new VFXExpressionFixedRandom(seed, perElement);
         }
     }
 }

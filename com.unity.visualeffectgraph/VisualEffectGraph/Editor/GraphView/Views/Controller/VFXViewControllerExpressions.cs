@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXViewController : Controller<VFXAsset>
+    partial class VFXViewController : Controller<VisualEffectAsset>
     {
         public event System.Action onRecompileEvent;
         public void RecompileExpressionGraphIfNeeded()

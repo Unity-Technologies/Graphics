@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             //round(frac(x*F))
-            var expression = inputExpression[0]* inputExpression[1];
+            var expression = inputExpression[0] * inputExpression[1];
             return new[] { VFXOperatorUtility.Round(VFXOperatorUtility.Frac(expression)) };
         }
     }

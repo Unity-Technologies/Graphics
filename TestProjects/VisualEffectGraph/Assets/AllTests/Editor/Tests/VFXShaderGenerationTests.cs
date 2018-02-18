@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(float4);
             graph.AddChild(length);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             attributeParameter.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.Test
                 initContext.AddChild(initBlock);
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
         }
 

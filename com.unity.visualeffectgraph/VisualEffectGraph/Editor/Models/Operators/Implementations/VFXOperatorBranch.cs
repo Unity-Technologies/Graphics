@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
             var inputExpression = GetRawInputExpressions();
 
             yield return inputExpression.First();
-            var branches = VFXOperatorUtility.UnifyFloatLevel(inputExpression.Skip(1));
+            var branches = VFXOperatorUtility.UpcastAllFloatN(inputExpression.Skip(1));
             foreach (var b in branches)
                 yield return b;
         }

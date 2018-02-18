@@ -4822,7 +4822,7 @@ MonoBehaviour:
       m_SerializableType: 
     m_SerializableObject: 
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -4878,19 +4878,19 @@ VFXAsset:
       data[1]: 4
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 12
       data[0]: 7
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 13
       data[0]: 7
       data[1]: -1
       data[2]: 1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 14
       data[0]: 7
       data[1]: -1
@@ -4980,7 +4980,7 @@ VFXAsset:
       data[1]: 18
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 36
       data[0]: 19
       data[1]: -1
@@ -4998,19 +4998,19 @@ VFXAsset:
       data[1]: 24
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 41
       data[0]: 19
       data[1]: -1
       data[2]: 1
       data[3]: 2
-    - op: 35
+    - op: 36
       valueIndex: 42
       data[0]: 27
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 43
       data[0]: 27
       data[1]: -1
@@ -5064,13 +5064,13 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 52
       data[0]: 27
       data[1]: -1
       data[2]: 0
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 53
       data[0]: 24
       data[1]: -1
@@ -5100,7 +5100,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 58
       data[0]: 24
       data[1]: -1
@@ -5124,7 +5124,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 62
       data[0]: 24
       data[1]: -1
@@ -5334,7 +5334,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 39
+    - op: 40
       valueIndex: 115
       data[0]: 46
       data[1]: -1
@@ -5646,7 +5646,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 68
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: ebe672251cd8bec44bd757e6f56cb78e, type: 3}
+      processor: {fileID: 7200000, guid: ff58beca08671604d9375ef5108f1b8e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5673,7 +5673,7 @@ VFXAsset:
       - index: 84
         nameId: gradient_d
       params: []
-      processor: {fileID: 7200000, guid: f0c0f7c4a8ef88c4bb7d3f2ebf46fd1c, type: 3}
+      processor: {fileID: 7200000, guid: e34ed59fc876af847a8574fa07541fd3, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5686,7 +5686,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a121abdde9dab39469e551c561e95655, type: 3}
+      processor: {fileID: 4800000, guid: a00c566623062fb44811c622daba6e6f, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5703,7 +5703,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a20b1cbdf77ecf04096e1adccb91c6d1, type: 3}
+      processor: {fileID: 4800000, guid: cb4200a40c968334ebce9db6dcc20d8d, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5722,7 +5722,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: a011a05b46e65294b95f3e480a9cc006, type: 3}
+      processor: {fileID: 4800000, guid: 9715555be13f05f40b174fca925feb6b, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5743,7 +5743,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 774316646c79aaa48ba0ff9137064b14, type: 3}
+      processor: {fileID: 4800000, guid: aba6d558ba54b4d4b8b7143a0ec06d26, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5758,3 +5758,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

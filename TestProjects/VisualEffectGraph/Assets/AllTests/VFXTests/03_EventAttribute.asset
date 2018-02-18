@@ -3453,7 +3453,7 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -3497,7 +3497,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 35
+    - op: 36
       valueIndex: 10
       data[0]: 4
       data[1]: -1
@@ -3509,7 +3509,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 12
       data[0]: 4
       data[1]: -1
@@ -3533,7 +3533,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 16
       data[0]: 4
       data[1]: -1
@@ -3593,7 +3593,7 @@ VFXAsset:
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 38
       valueIndex: 26
       data[0]: 18
       data[1]: 21
@@ -3611,13 +3611,13 @@ VFXAsset:
       data[1]: 17
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 38
       valueIndex: 32
       data[0]: 20
       data[1]: 21
       data[2]: -1
       data[3]: -1
-    - op: 38
+    - op: 39
       valueIndex: 36
       data[0]: 19
       data[1]: -1
@@ -3743,7 +3743,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 62
       data[0]: 22
       data[1]: -1
@@ -3755,13 +3755,13 @@ VFXAsset:
       data[1]: 11
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 64
       data[0]: 22
       data[1]: -1
       data[2]: 2
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 65
       data[0]: 22
       data[1]: -1
@@ -3773,19 +3773,19 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 67
       data[0]: 25
       data[1]: -1
       data[2]: 1
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 68
       data[0]: 25
       data[1]: -1
       data[2]: 0
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 69
       data[0]: 25
       data[1]: -1
@@ -4368,7 +4368,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 66
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 09a91db511a946840a18296ca1faeeb3, type: 3}
+      processor: {fileID: 7200000, guid: 86e11a874a1118f459d8d083f9e7ad81, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4379,7 +4379,7 @@ VFXAsset:
       - index: 59
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 50a6994334634e3488dd42f42364ff30, type: 3}
+      processor: {fileID: 7200000, guid: b7d0ffeaeac27ff4c86276e7f8fab469, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4396,7 +4396,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 5ec2eb391f2405448b978d67d0e59fe3, type: 3}
+      processor: {fileID: 4800000, guid: 7f7942f870f9d5c4097ed1cd60734805, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 0000000001000000
@@ -4411,3 +4411,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

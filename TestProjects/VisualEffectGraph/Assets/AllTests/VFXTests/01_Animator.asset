@@ -1328,7 +1328,7 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -1670,7 +1670,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 18
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 0253d127108897f499e052c6f40d37c5, type: 3}
+      processor: {fileID: 7200000, guid: 6e4e5df40023a4741811f59345789c34, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -1681,7 +1681,7 @@ VFXAsset:
       - index: 16
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: e88d053321f132b46918eadf4930551c, type: 3}
+      processor: {fileID: 7200000, guid: a7aed93864822b34d9d16eb47e6e17ea, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -1694,7 +1694,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 328d3468b8195e941802512aafa2c2c7, type: 3}
+      processor: {fileID: 4800000, guid: b7cacbdcbe783334e96ea4cd6aff6db1, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1709,3 +1709,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

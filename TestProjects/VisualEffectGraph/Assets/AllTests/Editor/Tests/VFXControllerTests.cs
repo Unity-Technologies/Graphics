@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void CreateTestAsset()
         {
-            VFXAsset asset = new VFXAsset();
+            VisualEffectAsset asset = new VisualEffectAsset();
 
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
