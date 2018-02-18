@@ -26,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Matrix4x4[] viewMatrixStereo;
         public Matrix4x4[] projMatrixStereo;
+        public Vector4 centerEyeTranslationOffset;
 
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
@@ -136,16 +137,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
+            // In stereo, this corresponds to the center eye position
             var pos = camera.transform.position;
-
-            // TODO: Delete this?
-            var relPos = pos; // World-origin-relative
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 // Zero out the translation component.
                 gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-                relPos = Vector3.zero; // Camera-relative
             }
 
             var gpuVP = gpuNonJitteredProj * gpuView;
@@ -250,8 +248,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                // Zero out the translation component.
-                stereoCombinedViewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+                // This is pulled back from the center eye, so set the offset
+                var translation = stereoCombinedViewMatrix.GetColumn(3);
+                translation += centerEyeTranslationOffset;
+                stereoCombinedViewMatrix.SetColumn(3, translation);
             }
 
             viewMatrix = stereoCombinedViewMatrix;
@@ -274,15 +274,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
             {
                 viewMatrixStereo[eyeIndex] = camera.GetStereoViewMatrix((Camera.StereoscopicEye)eyeIndex);
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    // Zero out the translation component.
-                    viewMatrixStereo[eyeIndex].SetColumn(3, new Vector4(0, 0, 0, 1));
-                }
-
 
                 projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
                 projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
+            }
+
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                var leftTranslation = viewMatrixStereo[0].GetColumn(3);
+                var rightTranslation = viewMatrixStereo[1].GetColumn(3);
+                var centerTranslation = (leftTranslation + rightTranslation) / 2;
+                var centerOffset = -centerTranslation;
+                centerOffset.w = 0;
+
+                // TODO: Grabbing the CenterEye transform would be preferable, but XRNode.CenterEye
+                // doesn't always seem to be valid.
+
+                for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+                {
+                    var translation = viewMatrixStereo[eyeIndex].GetColumn(3);
+                    translation += centerOffset;
+                    viewMatrixStereo[eyeIndex].SetColumn(3, translation);
+                }
+
+                centerEyeTranslationOffset = centerOffset;
             }
 
             // TODO: Fetch the single cull matrix stuff
