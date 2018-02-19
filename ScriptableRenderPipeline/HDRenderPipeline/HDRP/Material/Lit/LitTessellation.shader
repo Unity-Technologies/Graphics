@@ -60,7 +60,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _IridescenceThickness("Thickness sridescence", Range(0.0, 1.0)) = 1.0
+        _IridescenceThickness("Iridescence Thickness", Range(0.0, 1.0)) = 1.0
         _IridescenceThicknessMap("Iridescence Thickness Map", 2D) = "white" {}
         _IridescenceThicknessRemap("Iridescence Thickness Remap", Vector) = (0, 1, 0, 0)
         _IridescenceMask("Iridescence Mask", Range(0.0, 1.0)) = 1.0
