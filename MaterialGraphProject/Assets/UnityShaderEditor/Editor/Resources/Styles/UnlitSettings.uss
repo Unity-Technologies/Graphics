@@ -1,4 +1,4 @@
-PBRSettingsView > #container{
+UnlitSettingsView > #container{
 	padding-top: 4;
 	padding-left: 4;
 	padding-right: 4;
@@ -6,7 +6,7 @@ PBRSettingsView > #container{
 	background-color: rgb(63, 63, 63);
 }
 
-PBRSettingsView > #container > .enumcontainer{
+UnlitSettingsView > #container > .enumcontainer{
 	margin-left: 4;
 	margin-right: 4;
 	margin-top: 4;

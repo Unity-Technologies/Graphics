@@ -151,9 +151,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             parent.Add(buttonContainer);
             
-            
-            //m_SettingsContainer.SendToBack();
-
             var settings = node as IHasSettings;
             if (settings != null)
             {
@@ -161,9 +158,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 contents.Add(m_SettingsContainer);
                 if (node.hasPreview)
                     m_SettingsContainer.PlaceBehind(m_PreviewFiller);
-
-                
-
 
                 m_SettingsButton = new VisualElement {name = "settings-button"};
                 m_SettingsButton.Add(new VisualElement { name = "icon" });

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -24,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private AlphaMode m_AlphaMode;
 
-        [EnumControl("")]
+        //[EnumControl("")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -104,16 +105,7 @@ namespace UnityEditor.ShaderGraph
 
         public VisualElement CreateSettingsElement()
         {
-            VisualElement rowView = new VisualElement();
-
-            rowView.AddToClassList("row");
-
-            Label label = new Label("Unlit");
-
-            label.AddToClassList("rowLabel");
-            rowView.Add(label);
-            
-            return rowView;
+            return new UnlitSettingsView(this);
         }
     }
 }
