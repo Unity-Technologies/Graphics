@@ -28,7 +28,7 @@ public class VFXMigration
         {
             if (Path.GetExtension(path) == ".asset")
             {
-                if (AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.VFX.VFXAsset>(path) != null)
+                if (AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.VFX.VisualEffectAsset>(path) != null)
                 {
                     string pathWithoutExtension = Path.GetDirectoryName(path) + "/" + Path.GetFileNameWithoutExtension(path);
 
@@ -71,7 +71,7 @@ public class VFXMigration
         {
             if (Path.GetExtension(path) == ".vfx")
             {
-                var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.VFX.VFXAsset>(path);
+                var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.VFX.VisualEffectAsset>(path);
                 if (asset != null)
                 {
                     try
