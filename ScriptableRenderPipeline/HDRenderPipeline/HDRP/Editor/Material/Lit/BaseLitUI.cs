@@ -23,8 +23,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "Displacement mapping will take the absolute value of the scale of the object into account.");
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock with height map tiling rate", "Displacement mapping will take the absolute value of the tiling rate of the height map into account.");
 
-            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("Enable MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
-
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material type", "Select a material feature to enable on top of regular material");
             public static GUIContent transmissionEnableText = new GUIContent("Enable Transmission", "Enable Transmission for getting  back lighting");
@@ -123,9 +121,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty displacementLockTilingScale = null;
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
-        protected MaterialProperty enableMotionVectorForVertexAnimation = null;
-        protected const string kEnableMotionVectorForVertexAnimation = "_EnableMotionVectorForVertexAnimation";
-
         // Per pixel displacement params
         protected MaterialProperty ppdMinSamples = null;
         protected const string kPpdMinSamples = "_PPDMinSamples";
@@ -189,8 +184,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             displacementMode = FindProperty(kDisplacementMode, props);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
             displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props);
-
-            enableMotionVectorForVertexAnimation = FindProperty(kEnableMotionVectorForVertexAnimation, props);
 
             // Per pixel displacement
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
@@ -264,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
 
-            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseLit.enableMotionVectorForVertexAnimationText);
+            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseUnlit.enableMotionVectorForVertexAnimationText);
 
             EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
@@ -423,8 +416,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static public void SetupBaseLitMaterialPass(Material material)
         {
             SetupBaseUnlitMaterialPass(material);
-
-            material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, material.GetFloat(kEnableMotionVectorForVertexAnimation) > 0.0f);
         }
     }
 } // namespace UnityEditor

@@ -364,7 +364,8 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     // divergence of execution across the warp.
     float maxDistInPixels = maxDistance * max(pixelsPerMm.x, pixelsPerMm.y);
 
-    float3 albedo = ApplySubsurfaceScatteringTexturingMode(sssData.diffuseColor, profileID);
+    uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileID);
+    float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
     [branch] if (distScale == 0 || maxDistInPixels < 1)
     {
