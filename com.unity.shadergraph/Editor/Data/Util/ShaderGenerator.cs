@@ -91,7 +91,8 @@ namespace UnityEditor.ShaderGraph
             var path = new List<string>
             {
                 Application.dataPath,
-                "UnityShaderEditor",
+                "ShaderGraph",
+                "com.unity.shadergraph",
                 "Editor",
                 "Templates"
             };
