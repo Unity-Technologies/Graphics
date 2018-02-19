@@ -63,9 +63,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Iridescence
             public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Control intensity of the iridescence");
-            public static GUIContent thicknessIridescenceText = new GUIContent("Iridescence Thickness");
-            public static GUIContent thicknessMapIridescenceText = new GUIContent("Iridescence Thickness map");
-            public static GUIContent thicknessRemapIridescenceText = new GUIContent("Iridescence Thickness remap");
+            public static GUIContent iridescenceThicknessText = new GUIContent("Iridescence Thickness");
+            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Thickness map");
+            public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Thickness remap");
 
             // Clear Coat
             public static GUIContent coatMaskText = new GUIContent("Coat Mask", "Attenuate the coating effect (similar to change to IOR of 1");
@@ -244,12 +244,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kIridescenceMask = "_IridescenceMask";
         protected MaterialProperty iridescenceMaskMap = null;
         protected const string kIridescenceMaskMap = "_IridescenceMaskMap";
-        protected MaterialProperty thicknessIridescence = null;
-        protected const string kThicknessIridescence = "_ThicknessIridescence";
-        protected MaterialProperty thicknessMapIridescence = null;
-        protected const string kThicknessMapIridescence = "_ThicknessMapIridescence";
-        protected MaterialProperty thicknessRemapIridescence = null;
-        protected const string kThicknessRemapIridescence = "_ThicknessRemapIridescence";
+        protected MaterialProperty iridescenceThickness = null;
+        protected const string kIridescenceThickness = "_IridescenceThickness";
+        protected MaterialProperty iridescenceThicknessMap = null;
+        protected const string kIridescenceThicknessMap = "_IridescenceThicknessMap";
+        protected MaterialProperty iridescenceThicknessRemap = null;
+        protected const string kIridescenceThicknessRemap = "_IridescenceThicknessRemap";
 
         protected MaterialProperty coatMask = null;
         protected const string kCoatMask = "_CoatMask";
@@ -387,9 +387,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Iridescence
             iridescenceMask = FindProperty(kIridescenceMask, props);
             iridescenceMaskMap = FindProperty(kIridescenceMaskMap, props);
-            thicknessIridescence = FindProperty(kThicknessIridescence, props);
-            thicknessMapIridescence = FindProperty(kThicknessMapIridescence, props);
-            thicknessRemapIridescence = FindProperty(kThicknessRemapIridescence, props);
+            iridescenceThickness = FindProperty(kIridescenceThickness, props);
+            iridescenceThicknessMap = FindProperty(kIridescenceThicknessMap, props);
+            iridescenceThicknessRemap = FindProperty(kIridescenceThicknessRemap, props);
 
             // clear coat
             coatMask = FindProperty(kCoatMask, props);
@@ -491,22 +491,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapIridescenceText, thicknessMapIridescence);
-            if (thicknessMapIridescence.textureValue != null)
+            m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
+            if (iridescenceThicknessMap.textureValue != null)
             {
                 // Display the remap of texture values.
-                Vector2 remap = thicknessRemapIridescence.vectorValue;
+                Vector2 remap = iridescenceThicknessRemap.vectorValue;
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.thicknessRemapIridescenceText, ref remap.x, ref remap.y, 0.0f, 1.0f);
+                EditorGUILayout.MinMaxSlider(Styles.iridescenceThicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    thicknessRemapIridescence.vectorValue = remap;
+                    iridescenceThicknessRemap.vectorValue = remap;
                 }
             }
             else
             {
                 // Allow the user to set the constant value of thickness if no thickness map is provided.
-                m_MaterialEditor.ShaderProperty(thicknessIridescence, Styles.thicknessIridescenceText);
+                m_MaterialEditor.ShaderProperty(iridescenceThickness, Styles.iridescenceThicknessText);
             }
         }
 
@@ -931,7 +931,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
-            CoreUtils.SetKeyword(material, "_THICKNESSMAP_IRIDESCENCE", material.GetTexture(kThicknessMapIridescence));
+            CoreUtils.SetKeyword(material, "_IRIDESCENCE_THICKNESSMAP", material.GetTexture(kIridescenceThickness));
             CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
             bool needUV2 = (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;

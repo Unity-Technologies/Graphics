@@ -348,16 +348,16 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
-    #ifdef _THICKNESSMAP_IRIDESCENCE
-    surfaceData.thicknessIridescence = SAMPLE_UVMAPPING_TEXTURE2D(_ThicknessMapIridescence, sampler_ThicknessMapIridescence, layerTexCoord.base).r;
-    surfaceData.thicknessIridescence = _ThicknessRemapIridescence.x + _ThicknessRemapIridescence.y * surfaceData.thicknessIridescence;
+    #ifdef _IRIDESCENCE_THICKNESSMAP
+    surfaceData.iridescenceThickness = SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceThicknessMap, sampler_IridescenceThicknessMap, layerTexCoord.base).r;
+    surfaceData.iridescenceThickness = _IridescenceThicknessRemap.x + _IridescenceThicknessRemap.y * surfaceData.iridescenceThickness;
     #else
-    surfaceData.thicknessIridescence = _ThicknessIridescence;
+    surfaceData.iridescenceThickness = _IridescenceThickness;
     #endif
     surfaceData.iridescenceMask = _IridescenceMask;
     surfaceData.iridescenceMask *= SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceMaskMap, sampler_IridescenceMaskMap, layerTexCoord.base).r;
 #else
-    surfaceData.thicknessIridescence = 0.0;
+    surfaceData.iridescenceThickness = 0.0;
     surfaceData.iridescenceMask = 0.0;
 #endif
 
@@ -373,7 +373,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.thicknessIridescence = 0.0;
+    surfaceData.iridescenceThickness = 0.0;
     surfaceData.iridescenceMask = 0.0;
     surfaceData.coatMask = 0.0;
 
