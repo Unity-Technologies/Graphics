@@ -1,12 +1,12 @@
 NodeSettingsView > #mainContainer {
 	/*width: 200;*/
 	
-	/*background-color: #e8596e;*/
+	/*background-color: #e8596e;
 	border-color: #e8596e;
 	border-style: solid;
 	border-top-width: 5px;
 	border-right-width: 25px;
-	border-top-right-radius: 6px;
+	border-top-right-radius: 6px;*/
 }
 
 NodeSettingsView > #mainContainer > #title {

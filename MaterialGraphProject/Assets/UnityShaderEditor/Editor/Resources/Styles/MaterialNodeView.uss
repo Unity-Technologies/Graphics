@@ -113,7 +113,7 @@ MaterialNodeView > #portInputContainer {
 }
 
 MaterialNodeView > #settings-container {
-	background-color : rgb(245, 155, 225);
+	background-color : rgb(63, 63, 63);
 }
 
 MaterialNodeView > #node-border > #title > #button-container{
@@ -123,20 +123,23 @@ MaterialNodeView > #node-border > #title > #button-container{
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button{
 	align-self : center;
-	width : 16;
+	width : 12;
 }
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button:hover{
-	background-color: #2B2B2B;
+    background-color: #2B2B2B;
+    background-image : resource("Icons/SettingsIcons_hover");
+    width : 12;
+	height : 12;
 }
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button.clicked{
-	background-color: #2B2B2B;
+	/*background-color: #2B2B2B;*/
 }
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button > #icon{
 	align-self : center;
-	background-image : resource("Icons/settingsbutton");
-	width : 16;
-	height : 16;
+	background-image : resource("Icons/SettingsIcons");
+	width : 12;
+	height : 12;
 }
