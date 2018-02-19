@@ -565,7 +565,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected void DoLayerGUI(Material material, int layerIndex, bool isLayeredLit)
+        protected void DoLayerGUI(Material material, int layerIndex, bool isLayeredLit, bool showHeightMap)
         {
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
@@ -633,7 +633,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
-            if(displaceMode != DisplacementMode.None)
+            if(displaceMode != DisplacementMode.None || showHeightMap)
             {
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
@@ -870,7 +870,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            DoLayerGUI(material, 0, false);
+            DoLayerGUI(material, 0, false, false);
             DoEmissiveGUI(material);
             // The parent Base.ShaderPropertiesGUI will call DoEmissionArea
         }
