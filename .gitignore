@@ -1,21 +1,9 @@
 artifacts/**
 build/**
-MaterialGraphProject/.vs
-MaterialGraphProject/.vscode
-MaterialGraphProject/Library
-MaterialGraphProject/obj
-MaterialGraphProject/MaterialGraphProject.CSharp.csproj
-MaterialGraphProject/MaterialGraphProject.sln.DotSettings.user
-*.csproj
-MaterialGraphProject/MaterialGraphProject.sln
-MaterialGraphProject/Temp
-MaterialGraphProject/MaterialGraphProject.userprefs
-MaterialGraphProject/.idea
-MaterialGraphProject/Assets/Plugins*
+.vs
+.vscode
+.idea
 .DS_Store
-MaterialGraphProject/Assets/_MingWai/New Custom Texture.asset.meta
-MaterialGraphProject/Packages/*
-MaterialGraphProject/GeneratedShader.shader
-MaterialGraphProject/UberShader.shader
-!MaterialGraphProject/Packages/manifest.json
 .npmrc
+DebugOutput.meta
+DebugOutput/**
