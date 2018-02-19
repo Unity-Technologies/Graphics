@@ -62,7 +62,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
             
             //Fetch shadow coordinates for cascade.
-            float4 coords  = ComputeShadowCoord(wpos);
+            float4 coords  = ComputeScreenSpaceShadowCoords(wpos);
 
             return SampleShadowmap(coords);
         }
