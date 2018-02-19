@@ -69,15 +69,11 @@ namespace UnityEditor.VFX.UI
             base.SelfChange();
 
             visible = inputContainer.childCount > 0 || (settingsContainer != null && settingsContainer.childCount > 0);
+        }
 
-            var content = this.Q("contents");
-
-            if (content.ElementAt(0).name != "divider")
-            {
-                Debug.LogError("own context divider hack broken");
-            }
-
-            content.ElementAt(0).visible = false;
+        public override bool hasSettingDivider
+        {
+            get { return false; }
         }
     }
 }
