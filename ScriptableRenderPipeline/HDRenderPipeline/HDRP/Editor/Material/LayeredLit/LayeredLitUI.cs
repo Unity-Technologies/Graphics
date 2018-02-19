@@ -147,6 +147,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] showLayer = new MaterialProperty[kMaxLayerCount];
         const string kShowLayer = "_ShowLayer";
 
+        bool m_UseHeightBasedBlend;
+
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
             base.FindMaterialLayerProperties(props);
@@ -351,7 +353,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
             }
 
-            DoLayerGUI(material, layerIndex, true);
+            DoLayerGUI(material, layerIndex, true, m_UseHeightBasedBlend);
 
             if (layerIndex == 0)
                 EditorGUILayout.Space();
@@ -409,13 +411,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
-            bool enabled = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
+            m_UseHeightBasedBlend = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
             if (EditorGUI.EndChangeCheck())
             {
-                useHeightBasedBlend.floatValue = enabled ? 1.0f : 0.0f;
+                useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
             }
 
-            if (enabled)
+            if (m_UseHeightBasedBlend)
             {
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
