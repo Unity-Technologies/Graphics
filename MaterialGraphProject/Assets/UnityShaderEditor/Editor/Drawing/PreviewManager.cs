@@ -61,7 +61,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ResizeMasterPreview(Vector2 newSize)
         {
             m_NewMasterPreviewSize = newSize;
-            m_DirtyPreviews.Add(masterRenderData.shaderData.node.tempId.index);
+            if (masterRenderData.shaderData != null)
+                m_DirtyPreviews.Add(masterRenderData.shaderData.node.tempId.index);
         }
 
         public PreviewRenderData GetPreview(AbstractMaterialNode node)
