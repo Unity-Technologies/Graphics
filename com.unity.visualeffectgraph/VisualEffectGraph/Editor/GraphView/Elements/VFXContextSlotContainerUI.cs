@@ -60,11 +60,24 @@ namespace UnityEditor.VFX.UI
 
     class VFXOwnContextSlotContainerUI : VFXContextSlotContainerUI
     {
+        public VFXOwnContextSlotContainerUI()
+        {
+        }
+
         protected override void SelfChange()
         {
             base.SelfChange();
 
             visible = inputContainer.childCount > 0 || (settingsContainer != null && settingsContainer.childCount > 0);
+
+            var content = this.Q("contents");
+
+            if (content.ElementAt(0).name != "divider")
+            {
+                Debug.LogError("own context divider hack broken");
+            }
+
+            content.ElementAt(0).visible = false;
         }
     }
 }

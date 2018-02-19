@@ -48,6 +48,7 @@ namespace UnityEditor.VFX.UI
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
         public VFXNodeUI()
         {
+            AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
             RegisterCallback<ControllerChangedEvent>(OnChange);
             clippingOptions = ClippingOptions.ClipContents;

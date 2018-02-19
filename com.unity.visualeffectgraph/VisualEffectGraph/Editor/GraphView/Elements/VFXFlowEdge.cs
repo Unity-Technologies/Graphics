@@ -10,6 +10,7 @@ namespace UnityEditor.VFX.UI
     {
         public VFXFlowEdge()
         {
+            AddStyleSheetPath("VFXFlowEdge");
             RegisterCallback<ControllerChangedEvent>(OnChange);
 
             edgeControl.inputOrientation = Orientation.Vertical;
