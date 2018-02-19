@@ -469,8 +469,10 @@ namespace UnityEngine.Experimental.Rendering
                     sp.Set( m_TmpSplits[i] );
                     payload[payloadOffset] = sp;
                 }
-
-                sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
+                if( second != k_MaxCascadesInShader )
+                    sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
+                else
+                    sp.Set( 0.0f, 0.0f, 0.0f, 0.0f );
                 payload[payloadOffset] = sp;
                 payloadOffset++;
 
