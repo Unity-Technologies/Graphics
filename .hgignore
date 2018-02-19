@@ -1,8 +1,0 @@
-syntax: glob
-UnityProject/Library
-UnityProject/Temp
-UnityProject/obj
-UnityProject/UnityProject.v12.suo
-UnityProject/UnityProject.sln
-UnityProject/Assembly-CSharp-Editor.csproj
-UnityProject/Assembly-CSharp.csproj
