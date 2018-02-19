@@ -64,16 +64,10 @@ real VarianceToRoughness(real variance)
     return sqrt(2.0 / (variance + 2.0));
 }
 
-// ior is a value between 1.0 and 2.5
-// Assume air interface for top
-real IorToFresnel0(real ior)
+// ior is a value between 1.0 and 3.0. 1.0 is air interface
+real IorToFresnel0(real transmittedIor, real incidentIor = 1.0)
 {
-    return Sq((ior - 1.0) / (ior + 1.0));
-}
-
-real IorToFresnel0(real baseIor, real topIor)
-{
-    return Sq((baseIor - topIor) / (baseIor + topIor));
+    return Sq((transmittedIor - incidentIor) / (transmittedIor + incidentIor));
 }
 
 // Assume air interface for top

@@ -178,87 +178,6 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-
-//-----------------------------------------------------------------------------
-// Iridescence
-//-----------------------------------------------------------------------------
-
-// Ref: https://belcour.github.io/blog/research/2017/05/01/brdf-thin-film.html
-// Evaluation XYZ sensitivity curves in Fourier space
-float3 EvalSensitivity(float opd, float shift)
-{
-    // Use Gaussian fits, given by 3 parameters: val, pos and var
-    float phase = 2.0 * PI * opd * 1e-6;
-    float3 val = float3(5.4856e-13, 4.4201e-13, 5.2481e-13);
-    float3 pos = float3(1.6810e+06, 1.7953e+06, 2.2084e+06);
-    float3 var = float3(4.3278e+09, 9.3046e+09, 6.6121e+09);
-    float3 xyz = val * sqrt(2.0 * PI * var) * cos(pos * phase + shift) * exp(-var * phase * phase);
-    xyz.x += 9.7470e-14 * sqrt(2.0 * PI * 4.5282e+09) * cos(2.2399e+06 * phase + shift) * exp(-4.5282e+09 * phase * phase);
-    return xyz / 1.0685e-7;
-}
-
-// Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
-float3 EvalIridescence(float eta_1, float cosTheta1, BSDFData bsdfData)
-{
-    // thicknessIridescence unit is micrometer for this equation here. Mean 0.5 is 500nm.
-    float Dinc = 3.0 * bsdfData.thicknessIridescence;
-
-    // Note: Unlike the code provide with the paper, here we use schlick approximation
-    // Schlick is a very poor approximation when dealing with iridescence to the Fresnel
-    // term and there is no "neutral" value in this unlike in the original paper.
-    // We use Iridescence mask here to allow to have neutral value
-
-    // Hack: In order to use only one parameter (DInc), we deduced the ior of iridescence from current Dinc thicknessIridescence
-    // and we use mask instead to fade out the effect
-    float eta_2 = lerp(2.0, 1.0, bsdfData.thicknessIridescence);
-    // Following line from original code is not needed for us, it create a discontinuity
-    // Force eta_2 -> eta_1 when Dinc -> 0.0
-    // float eta_2 = lerp(eta_1, eta_2, smoothstep(0.0, 0.03, Dinc));
-    // Evaluate the cosTheta on the base layer (Snell law)
-    float cosTheta2 = sqrt(1.0 - Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1)));
-
-    // First interface
-    float R0 = IorToFresnel0(eta_2, eta_1);
-    float R12 = F_Schlick(R0, cosTheta1);
-    float R21 = R12;
-    float T121 = 1.0 - R12;
-    float phi12 = 0.0;
-    float phi21 = PI - phi12;
-
-    // Second interface
-    float3 R23 = F_Schlick(bsdfData.fresnel0, cosTheta2);
-    float  phi23 = 0.0;
-
-    // Phase shift
-    float OPD = Dinc * cosTheta2;
-    float phi = phi21 + phi23;
-
-    // Compound terms
-    float3 R123 = R12 * R23;
-    float3 r123 = sqrt(R123);
-    float3 Rs = Sq(T121) * R23 / (float3(1.0, 1.0, 1.0) - R123);
-
-    // Reflectance term for m = 0 (DC term amplitude)
-    float3 C0 = R12 + Rs;
-    float3 I = C0;
-
-    // Reflectance term for m > 0 (pairs of diracs)
-    float3 Cm = Rs - T121;
-    for (int m = 1; m <= 2; ++m)
-    {
-        Cm *= r123;
-        float3 Sm = 2.0 * EvalSensitivity(m * OPD, m * phi);
-        //vec3 SmP = 2.0 * evalSensitivity(m*OPD, m*phi2.y);
-        I += Cm * Sm;
-    }
-
-    // Convert back to RGB reflectance
-    //I = clamp(mul(I, XYZ_TO_RGB), float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 1.0));
-    //I = mul(XYZ_TO_RGB, I);
-
-    return I;
-}
-
 #if HAS_REFRACTION
 # include "CoreRP/ShaderLibrary/Refraction.hlsl"
 
@@ -370,7 +289,7 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
 void FillMaterialIridescence(float mask, float thickness, inout BSDFData bsdfData)
 {
     bsdfData.iridescenceMask = mask;
-    bsdfData.thicknessIridescence = thickness;
+    bsdfData.iridescenceThickness = thickness;
 }
 
 // Note: this modify the parameter perceptualRoughness and fresnel0, so they need to be setup
@@ -397,17 +316,6 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
     bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance);
     bsdfData.transmittanceMask = transmittanceMask;
     bsdfData.thickness = max(thickness, 0.0001);
-}
-
-// Remap IOR in range 1..2.5 to 0..1
-float RemapIor25to01(float ior)
-{
-    return saturate((ior - 1.0) / 1.5);
-}
-
-float RemapIor01to25(float ior)
-{
-    return ior * 1.5 + 1.0;
 }
 
 // For image based lighting, a part of the BSDF is pre-integrated.
@@ -526,7 +434,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.thicknessIridescence, bsdfData);
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, bsdfData);
     }
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
@@ -671,7 +579,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         materialFeatureId = GBUFFER_LIT_IRIDESCENCE;
 
-        outGBuffer2.rgb = float3(surfaceData.iridescenceMask, surfaceData.thicknessIridescence,
+        outGBuffer2.rgb = float3(surfaceData.iridescenceMask, surfaceData.iridescenceThickness,
                                  PackFloatInt8bit(surfaceData.metallic, 0, 8));
     }
     else // Standard
@@ -919,7 +827,7 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
         result = (surfaceData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
     case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
-        result = RemapIor25to01(surfaceData.ior).xxx;
+        result = saturate((surfaceData.ior - 1.0) / 1.5).xxx;
         break;
     }
 }
@@ -939,7 +847,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         result = (bsdfData.materialFeatures.xxx) / 255.0; // Aloow to read with color picker debug mode
         break;
     case DEBUGVIEW_LIT_BSDFDATA_IOR:
-        result = RemapIor25to01(bsdfData.ior).xxx;
+        result = saturate((bsdfData.ior - 1.0) / 1.5).xxx;
         break;
     }
 }
@@ -1011,7 +919,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
         if (bsdfData.iridescenceMask > 0.0)
         {
-            bsdfData.fresnel0 = lerp(bsdfData.fresnel0, EvalIridescence(topIor, viewAngle, bsdfData), bsdfData.iridescenceMask);
+            bsdfData.fresnel0 = lerp(bsdfData.fresnel0, EvalIridescence(topIor, viewAngle, bsdfData.iridescenceThickness, bsdfData.fresnel0), bsdfData.iridescenceMask);
         }
     }
 
@@ -1276,15 +1184,18 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
     float NdotV    = ClampNdotV(preLightData.NdotV);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-
-    // Note: Here we are suppose to call EvalIridescence with LdotH
-    // This is to expensive for our need, so instead we use the NdotV
-    // Moreover, the bsdfData.fresnel0 here already contain the evaluation of F_Schlick
-    // in the context of iridescence, so if iridescence is enabled, don't apply schlick a second time
+    float3 F;
+    // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
+    // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
+    // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
+    // Thus why we shouldn't apply a second time Fresnel on the value if iridescence is enabled.
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
         F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
+    }
+    else
+    {
+        F = F_Schlick(bsdfData.fresnel0, LdotH);
     }
 
     float DV;
