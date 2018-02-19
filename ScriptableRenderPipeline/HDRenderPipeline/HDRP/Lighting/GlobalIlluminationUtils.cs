@@ -22,6 +22,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ld.instanceID = l.GetInstanceID();
             ld.color = add.affectDiffuse ? LinearColor.Convert(l.color, l.intensity) : LinearColor.Black();
             ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
+
+            // For HDRP we need to divide the analytic light color by PI (HDRP do explicit PI division for Lambert, but built in Unity and the GI don't)
+            // We apply it on both direct and indirect are they are separated, seems that direct is no used if we used mixed mode with indirect or shadowmask bake.
+            ld.color.red /= Mathf.PI;
+            ld.color.green /= Mathf.PI;
+            ld.color.blue /= Mathf.PI;
+
+            ld.indirectColor.red /= Mathf.PI;
+            ld.indirectColor.green /= Mathf.PI;
+            ld.indirectColor.blue /= Mathf.PI;
+
+            // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
+
 #if UNITY_EDITOR
             ld.mode = LightmapperUtils.Extract(l.lightmapBakeType);
 #else

@@ -338,7 +338,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsReflectionProbes = true
             };
 
-            //Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
+            Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
 #if UNITY_EDITOR
             SceneViewDrawMode.SetupDrawMode();
@@ -808,6 +808,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_LightLoop.BuildGPULightLists(hdCamera, cmd, m_CameraDepthStencilBuffer, m_CameraStencilBufferCopy, m_SkyManager.IsSkyValid());
                             }
                         }
+
+                        // The pass only requires the volume properties, and can run async.
+                        m_VolumetricLightingModule.VoxelizeDensityVolumes(hdCamera, cmd);
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
@@ -1332,8 +1335,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
 
                     var passNames = m_FrameSettings.enableForwardRenderingOnly ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
-                    // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
                 }
                 else
                 {

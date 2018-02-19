@@ -261,7 +261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
         static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
-        // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
+        // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         static ComputeBuffer s_DirectionalLightDatas = null;
         static ComputeBuffer s_LightDatas = null;
         static ComputeBuffer s_EnvLightDatas = null;
