@@ -602,6 +602,8 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
                 cbName = "Shadowmap.ClearRect";
                 cmd.BeginSample( cbName );
+                if( m_ClearMat == null )
+                    m_ClearMat = new Material( Shader.Find( "Hidden/ScriptableRenderPipeline/ShadowClear" ) );
                 CoreUtils.DrawFullScreen( cmd, m_ClearMat, null, 0 );
                 cmd.EndSample( cbName );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
