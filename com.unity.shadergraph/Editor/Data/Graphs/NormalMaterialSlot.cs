@@ -5,7 +5,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal
+    public class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal, IMayRequireTangent
     {
         public NormalMaterialSlot()
         {}
@@ -26,6 +26,12 @@ namespace UnityEditor.ShaderGraph
         }
 
         public NeededCoordinateSpace RequiresNormal()
+        {
+            if (isConnected)
+                return NeededCoordinateSpace.None;
+            return space.ToNeededCoordinateSpace();
+        }
+        public NeededCoordinateSpace RequiresTangent()
         {
             if (isConnected)
                 return NeededCoordinateSpace.None;
