@@ -47,8 +47,8 @@ SAMPLER(sampler_SubsurfaceMaskMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER(sampler_ThicknessMap);
 
-TEXTURE2D(_ThicknessMapIridescence);
-SAMPLER(sampler_ThicknessMapIridescence);
+TEXTURE2D(_IridescenceThicknessMap);
+SAMPLER(sampler_IridescenceThicknessMap);
 
 TEXTURE2D(_IridescenceMaskMap);
 SAMPLER(sampler_IridescenceMaskMap);
@@ -180,8 +180,8 @@ float _Thickness;
 float4 _ThicknessRemap;
 
 
-float _ThicknessIridescence;
-float4 _ThicknessRemapIridescence;
+float _IridescenceThickness;
+float4 _IridescenceThicknessRemap;
 float _IridescenceMask;
 
 float _CoatMask;
