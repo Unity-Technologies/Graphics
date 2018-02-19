@@ -356,9 +356,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var results = m_Graph.GetUberPreviewShader();
                         m_OutputIdName = results.outputIdProperty.referenceName;
                         ShaderUtil.UpdateShaderAsset(m_UberShader, results.shader);
-                        #if UNITY_SHADER_GRAPH_DEVMODE
-                        File.WriteAllText(Application.dataPath + "/../UberShader.shader", (results.shader ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
-                        #endif
+                        var debugOutputPath = DefaultShaderIncludes.GetDebugOutputPath();
+                        if (debugOutputPath != null)
+                            File.WriteAllText(debugOutputPath + "/UberShader.shader", (results.shader ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
                         bool uberShaderHasError = false;
                         if (MaterialGraphAsset.ShaderHasError(m_UberShader))
                         {
@@ -466,9 +466,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderData.shaderString = m_Graph.GetPreviewShader(node).shader;
             }
 
-            #if UNITY_SHADER_GRAPH_DEVMODE
-            File.WriteAllText(Application.dataPath + "/../GeneratedShader.shader", (shaderData.shaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
-            #endif
+            var debugOutputPath = DefaultShaderIncludes.GetDebugOutputPath();
+            if (debugOutputPath != null)
+                File.WriteAllText(debugOutputPath + "/GeneratedShader.shader", (shaderData.shaderString ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
 
             if (string.IsNullOrEmpty(shaderData.shaderString))
             {
@@ -493,13 +493,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Debug output
-            #if UNITY_SHADER_GRAPH_DEVMODE
-            var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + shaderData.shaderString;
-            #endif
             if (MaterialGraphAsset.ShaderHasError(shaderData.shader))
             {
                 shaderData.hasError = true;
-                Debug.LogWarning(message);
+                if (debugOutputPath != null)
+                {
+                    var message = "RecreateShader: " + node.GetVariableNameForNode() + Environment.NewLine + shaderData.shaderString;
+                    Debug.LogWarning(message);
+                }
                 ShaderUtil.ClearShaderErrors(shaderData.shader);
                 Object.DestroyImmediate(shaderData.shader, true);
                 shaderData.shader = null;
