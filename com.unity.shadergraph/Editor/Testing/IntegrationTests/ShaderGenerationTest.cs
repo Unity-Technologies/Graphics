@@ -14,14 +14,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
 {
     public class ShaderGenerationTest
     {
-        private static readonly string[] s_Path =
-        {
-            "UnityShaderEditor",
-            "Editor",
-            "Testing",
-            "IntegrationTests",
-            "Graphs"
-        };
+        static readonly string s_Path = Path.Combine(Path.Combine(Path.Combine(DefaultShaderIncludes.GetRepositoryPath(), "Testing"), "IntegrationTests"), "Graphs");
 
         public struct TestInfo
         {
@@ -41,8 +34,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
             {
                 get
                 {
-                    var absoluteGraphsPath = s_Path.Aggregate(Application.dataPath, Path.Combine);
-                    var filePaths = Directory.GetFiles(absoluteGraphsPath).Select(x => new FileInfo(x))
+                    var filePaths = Directory.GetFiles(s_Path).Select(x => new FileInfo(x))
                         .Where(x => x.Extension == ".ShaderGraph");
 
                     foreach (var p in filePaths)
@@ -83,8 +75,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
         public void ShaderGeneratorOutput(TestInfo testInfo)
         {
             var file = testInfo.info;
-            var prjRelativeGraphsPath = s_Path.Aggregate("Assets", Path.Combine);
-            var filePath = Path.Combine(prjRelativeGraphsPath, file.Name);
+            var filePath = Path.Combine(s_Path, file.Name);
 
             var textGraph = File.ReadAllText(filePath, Encoding.UTF8);
             var graph = JsonUtility.FromJson<ShaderGraph.MaterialGraph>(textGraph);
@@ -103,8 +94,8 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
             var shaderString = String.Empty;
             //graph.masterNode.GetFullShader(GenerationMode.ForReals, Path.GetFileNameWithoutExtension(filePath), out configuredTextures);
 
-            var rootPath = Directory.GetParent(Directory.GetParent(Application.dataPath).ToString());
-            var shaderTemplatePath = Path.Combine(rootPath.ToString(), "ShaderTemplates");
+            var rootPath = Path.Combine(Path.Combine(DefaultShaderIncludes.GetRepositoryPath(), "Testing"), "IntegrationTests");
+            var shaderTemplatePath = Path.Combine(rootPath, "ShaderTemplates");
             Directory.CreateDirectory(shaderTemplatePath);
 
             var textTemplateFilePath = Path.Combine(shaderTemplatePath, string.Format("{0}.{1}", file.Name, "shader"));
@@ -120,7 +111,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
 
                 if (0 != textsAreEqual)
                 {
-                    var failedPath = Path.Combine(rootPath.ToString(), "Failed");
+                    var failedPath = Path.Combine(rootPath, "Failed");
                     Directory.CreateDirectory(failedPath);
                     var misMatchLocationResult = Path.Combine(failedPath, string.Format("{0}.{1}", file.Name, "shader"));
                     var misMatchLocationTemplate = Path.Combine(failedPath, string.Format("{0}.template.{1}", file.Name, "shader"));
