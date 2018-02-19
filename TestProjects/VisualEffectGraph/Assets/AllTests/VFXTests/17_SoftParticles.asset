@@ -4977,7 +4977,7 @@ MonoBehaviour:
       m_SerializableType: 
     m_SerializableObject: 
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -5033,19 +5033,19 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 12
       data[0]: 6
       data[1]: -1
       data[2]: 1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 13
       data[0]: 6
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 14
       data[0]: 6
       data[1]: -1
@@ -5123,7 +5123,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 30
       data[0]: 20
       data[1]: -1
@@ -5153,19 +5153,19 @@ VFXAsset:
       data[1]: 24
       data[2]: -1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 41
       data[0]: 27
       data[1]: -1
       data[2]: 1
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 42
       data[0]: 27
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 43
       data[0]: 20
       data[1]: -1
@@ -5219,25 +5219,25 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 52
       data[0]: 27
       data[1]: -1
       data[2]: 0
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 53
       data[0]: 24
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 54
       data[0]: 24
       data[1]: -1
       data[2]: 0
       data[3]: 3
-    - op: 35
+    - op: 36
       valueIndex: 55
       data[0]: 24
       data[1]: -1
@@ -5507,7 +5507,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 39
+    - op: 40
       valueIndex: 110
       data[0]: 47
       data[1]: -1
@@ -5865,7 +5865,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 84
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 8dd0e81e9d21ccd4a9417212ca61f20f, type: 3}
+      processor: {fileID: 7200000, guid: 6c637d20a5cd90e44a1d5d439f4e827b, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5892,7 +5892,7 @@ VFXAsset:
       - index: 87
         nameId: gradient_d
       params: []
-      processor: {fileID: 7200000, guid: 2339217f2d00a7c4785eb85b214a44b9, type: 3}
+      processor: {fileID: 7200000, guid: cdae1daf971f5ce499adeb890ebaac88, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5905,7 +5905,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 28a8e6c4f293f634394544c096464dae, type: 3}
+      processor: {fileID: 4800000, guid: e299b7969684b724dac9b5f3b45eeaaf, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5924,7 +5924,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: e8bbbb015ae477f408fb33d2fb6260eb, type: 3}
+      processor: {fileID: 4800000, guid: a9043ae7157f06d4088b855e6bee17ac, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5945,7 +5945,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3e8f5365938c9d74db2831ceff176e70, type: 3}
+      processor: {fileID: 4800000, guid: 042756cbfd02ebc46bdc28a4e5c54251, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5968,7 +5968,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3c45f89666e584e4b85f4a8793a265bc, type: 3}
+      processor: {fileID: 4800000, guid: afa86ff1df294a747bbfbc069fbcff1d, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5983,3 +5983,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

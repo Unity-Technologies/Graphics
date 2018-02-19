@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] output = new VFXExpression[] {
-                VFXBuiltInExpression.TotalTime + (VFXBuiltInExpression.DeltaTime * new VFXAttributeExpression(VFXAttribute.Phase)),
+                VFXBuiltInExpression.TotalTime + (VFXBuiltInExpression.DeltaTime * VFXOperatorUtility.FixedRandom(0xc43388e9, true)),
             };
             return output;
         }

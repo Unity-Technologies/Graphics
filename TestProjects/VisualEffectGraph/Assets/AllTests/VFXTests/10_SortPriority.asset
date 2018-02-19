@@ -3319,7 +3319,7 @@ MonoBehaviour:
   preRefraction: 0
   useGeometryShader: 0
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -4151,7 +4151,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 52
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: f95c96594eec0cb4db5fe2a81202abce, type: 3}
+      processor: {fileID: 7200000, guid: bd46d725a464aa14fbb4a6aabd494715, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4162,7 +4162,7 @@ VFXAsset:
       - index: 73
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: d5953b4bc3b42d141a5a910b915ebe18, type: 3}
+      processor: {fileID: 7200000, guid: 26f0e0675c60f7a4da760346ba17c513, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4177,7 +4177,7 @@ VFXAsset:
       params:
       - index: 2
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 7cca4791e70f32949b72571963c3fea8, type: 3}
+      processor: {fileID: 4800000, guid: db2e2182a208aad48ad8b295e30d144b, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
@@ -4222,7 +4222,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 70
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: c8ab09118182ac742b5c2cc5d832ac84, type: 3}
+      processor: {fileID: 7200000, guid: f6afd6b69d325d34880fd2a4f9fc1f6f, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -4233,7 +4233,7 @@ VFXAsset:
       - index: 73
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: b3862dfe2e732e041bb41cb47ecfd155, type: 3}
+      processor: {fileID: 7200000, guid: 281a9182a4e9fe34c98272b57fa56574, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -4248,7 +4248,7 @@ VFXAsset:
       params:
       - index: 1
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 71fcc35380c8ca94db067397a8cc0ad5, type: 3}
+      processor: {fileID: 4800000, guid: 89c86f4dc90a6e44084a164c3e031cdf, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
@@ -4291,7 +4291,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 67
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: abcf8aff1a9150d4bb48a367eb04cb3c, type: 3}
+      processor: {fileID: 7200000, guid: c9a6b8536c5d53043b8991ef1876b8ae, type: 3}
     - type: 805306368
       buffers:
       - index: 8
@@ -4302,7 +4302,7 @@ VFXAsset:
       - index: 73
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 3b80bee7fd7f4b24e9304681f76c41a7, type: 3}
+      processor: {fileID: 7200000, guid: 28914e42d58a1f74bbd224a8027d8a00, type: 3}
     - type: 1073741826
       buffers:
       - index: 8
@@ -4317,7 +4317,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: b3a3d2a0be3e69945928ea57cd71d8f7, type: 3}
+      processor: {fileID: 4800000, guid: 2c83f507cbae51c4a95dc3852bf282d3, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -4332,3 +4332,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

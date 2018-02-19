@@ -14,6 +14,7 @@ namespace UnityEditor.VFX
         }
 
         sealed public override VFXExpressionOp operation { get { return m_Operation; } }
+        sealed protected override int[] additionnalOperands { get { return new int[1] { 1 }; } } // TODO only handle size of 1 atm
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {

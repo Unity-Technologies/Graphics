@@ -646,6 +646,7 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
                 m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
+                m_Graph.visualEffectAsset.MarkRuntimeVersion();
             }
             catch (Exception e)
             {
