@@ -70,8 +70,10 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         ENDHLSL
 
         Pass
-        {
-            ZTest Always ZWrite Off
+        {           
+            ZTest Always
+            ZWrite Off
+            Cull Off
 
             HLSLPROGRAM
             #pragma multi_compile _ _SHADOWS_SOFT
