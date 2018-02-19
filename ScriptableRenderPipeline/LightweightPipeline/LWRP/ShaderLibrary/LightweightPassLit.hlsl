@@ -90,7 +90,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half3 vertexLight = VertexLighting(o.posWS, o.normal);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-    o.shadowCoord = ComputeScreenPos(o.clipPos);
+    o.shadowCoord = ComputeShadowCoord(o.clipPos);
 
     return o;
 }
