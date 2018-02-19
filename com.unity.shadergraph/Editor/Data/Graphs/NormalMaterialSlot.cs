@@ -1,11 +1,12 @@
 using System;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal, IMayRequireTangent
+    public class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal
     {
         public NormalMaterialSlot()
         {}
@@ -26,12 +27,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public NeededCoordinateSpace RequiresNormal()
-        {
-            if (isConnected)
-                return NeededCoordinateSpace.None;
-            return space.ToNeededCoordinateSpace();
-        }
-        public NeededCoordinateSpace RequiresTangent()
         {
             if (isConnected)
                 return NeededCoordinateSpace.None;
