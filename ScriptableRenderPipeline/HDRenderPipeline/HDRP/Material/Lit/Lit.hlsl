@@ -1184,7 +1184,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
     float NdotV    = ClampNdotV(preLightData.NdotV);
 
-    float3 F;
+    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
     // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
     // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
     // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
@@ -1192,10 +1192,6 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
     {
         F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
-    }
-    else
-    {
-        F = F_Schlick(bsdfData.fresnel0, LdotH);
     }
 
     float DV;
