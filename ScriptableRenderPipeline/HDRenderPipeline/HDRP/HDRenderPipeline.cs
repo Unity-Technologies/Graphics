@@ -1644,7 +1644,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear depth/stencil and init buffers
                 using (new ProfilingSample(cmd, "Clear Depth/Stencil", CustomSamplerId.ClearDepthStencil.GetSampler()))
                 {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Depth);
+                    if (hdCamera.clearDepth)
+                    {
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Depth);
+                    }
+                }
+
+                // Clear the HDR target
+                using (new ProfilingSample(cmd, "Clear HDR target", CustomSamplerId.ClearHDRTarget.GetSampler()))
+                {
+                    if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.BackgroundColor ||
+                        // If we want the sky but the sky don't exist, still clear with background color
+                        (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsSkyValid()))
+                    {
+                        Color clearColor = hdCamera.backgroundColorHDR;
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
+                    }
                 }
 
                 // Clear the diffuse SSS lighting target
@@ -1654,13 +1669,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // TODO: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
-
-                // Clear the HDR target
-                using (new ProfilingSample(cmd, "Clear HDR target", CustomSamplerId.ClearHDRTarget.GetSampler()))
-                {
-                    Color clearColor = hdCamera.camera.backgroundColor.linear; // Need it in linear because we clear a linear fp16 texture.
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
-                }
 
                 // Clear GBuffers
                 if (!m_FrameSettings.enableForwardRenderingOnly)
