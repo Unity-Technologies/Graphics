@@ -200,9 +200,9 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXMapping(sortPriority, "sortPriority");
+                yield return new VFXMapping("sortPriority", sortPriority);
                 if (HasIndirectDraw())
-                    yield return new VFXMapping(1, "indirectDraw");
+                    yield return new VFXMapping("indirectDraw", 1);
             }
         }
     }
