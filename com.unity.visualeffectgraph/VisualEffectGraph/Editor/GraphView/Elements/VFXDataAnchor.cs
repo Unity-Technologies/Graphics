@@ -44,7 +44,9 @@ namespace UnityEditor.VFX.UI
 
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
+            AddStyleSheetPath("VFXDataAnchor");
             AddToClassList("VFXDataAnchor");
+            AddStyleSheetPath("VFXTypeColor");
 
             m_ConnectorHighlight = new VisualElement();
 

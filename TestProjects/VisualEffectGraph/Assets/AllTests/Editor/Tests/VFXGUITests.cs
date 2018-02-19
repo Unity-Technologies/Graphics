@@ -112,11 +112,11 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        public VFXAsset m_Asset;
+        public VisualEffectAsset m_Asset;
 
         public void CreateTestAsset(string name)
         {
-            m_Asset = new VFXAsset();
+            m_Asset = new VisualEffectAsset();
 
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);

@@ -210,6 +210,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXContextUI()
         {
+            AddStyleSheetPath("VFXContext");
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
             forceNotififcationOnAdd = true;
 

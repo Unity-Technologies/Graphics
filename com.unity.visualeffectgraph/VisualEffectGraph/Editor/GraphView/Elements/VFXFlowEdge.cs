@@ -10,10 +10,11 @@ namespace UnityEditor.VFX.UI
     {
         public VFXFlowEdge()
         {
+            AddStyleSheetPath("VFXFlowEdge");
             RegisterCallback<ControllerChangedEvent>(OnChange);
 
-
-            edgeControl.orientation = Orientation.Vertical;
+            edgeControl.inputOrientation = Orientation.Vertical;
+            edgeControl.outputOrientation = Orientation.Vertical;
         }
 
         protected virtual void OnChange(ControllerChangedEvent e)

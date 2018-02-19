@@ -184,6 +184,15 @@ namespace UnityEditor.VFX.UI
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
+            AddStyleSheetPath("PropertyRM");
+            if (EditorGUIUtility.isProSkin)
+            {
+                AddStyleSheetPath("PropertyRMDark");
+            }
+            else
+            {
+                AddStyleSheetPath("PropertyRMLight");
+            }
             m_Provider = provider;
             m_labelWidth = labelWidth;
 

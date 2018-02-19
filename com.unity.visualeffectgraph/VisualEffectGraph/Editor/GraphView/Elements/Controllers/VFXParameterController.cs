@@ -307,48 +307,71 @@ namespace UnityEditor.VFX.UI
             return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Any(u => u.inputSlot == slot)).Value;
         }
 
+        public string MakeNameUnique(string name)
+        {
+            HashSet<string> allNames = new HashSet<string>(m_ViewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
+
+            return MakeNameUnique(name, allNames);
+        }
+
+        public static string MakeNameUnique(string name, HashSet<string> allNames)
+        {
+            string candidateName = name.Trim();
+            if (candidateName.Length < 1)
+            {
+                return null;
+            }
+            string candidateMainPart = null;
+            int cpt = 0;
+            while (allNames.Contains(candidateName))
+            {
+                if (candidateMainPart == null)
+                {
+                    int spaceIndex = candidateName.LastIndexOf(' ');
+                    if (spaceIndex == -1)
+                    {
+                        candidateMainPart = candidateName;
+                    }
+                    else
+                    {
+                        if (int.TryParse(candidateName.Substring(spaceIndex + 1), out cpt)) // spaceIndex can't be last char because of Trim()
+                        {
+                            candidateMainPart = candidateName.Substring(0, spaceIndex);
+                        }
+                        else
+                        {
+                            candidateMainPart = candidateName;
+                        }
+                    }
+                }
+                ++cpt;
+
+                candidateName = string.Format("{0} {1}", candidateMainPart, cpt);
+            }
+
+            return candidateName;
+        }
+
+        public void CheckNameUnique(HashSet<string> allNames)
+        {
+            string candidateName = MakeNameUnique(model.exposedName, allNames);
+            if (candidateName != model.exposedName)
+            {
+                parameter.SetSettingValue("m_exposedName", candidateName);
+            }
+        }
+
         public string exposedName
         {
             get { return parameter.exposedName; }
 
             set
             {
-                HashSet<string> allNames = new HashSet<string>(m_ViewController.parameterControllers.Where(t => t != this).Select(t => t.exposedName));
-
-                string candidateName = value.Trim();
-                if (candidateName.Length < 1)
+                string candidateName = MakeNameUnique(value);
+                if (candidateName != null && candidateName != parameter.exposedName)
                 {
-                    return;
+                    parameter.SetSettingValue("m_exposedName", candidateName);
                 }
-                string candidateMainPart = null;
-                int cpt = 0;
-                while (allNames.Contains(candidateName))
-                {
-                    if (candidateMainPart == null)
-                    {
-                        int spaceIndex = candidateName.LastIndexOf(' ');
-                        if (spaceIndex == -1)
-                        {
-                            candidateMainPart = candidateName;
-                        }
-                        else
-                        {
-                            if (int.TryParse(candidateName.Substring(spaceIndex + 1), out cpt)) // spaceIndex can't be last char because of Trim()
-                            {
-                                candidateMainPart = candidateName.Substring(0, spaceIndex);
-                            }
-                            else
-                            {
-                                candidateMainPart = candidateName;
-                            }
-                        }
-                    }
-                    ++cpt;
-
-                    candidateName = string.Format("{0} {1}", candidateMainPart, cpt);
-                }
-
-                parameter.SetSettingValue("m_exposedName", candidateName);
             }
         }
         public bool exposed
@@ -509,7 +532,7 @@ namespace UnityEditor.VFX.UI
                 return model.GetOutputSlot(0).property.type;
             }
         }
-        public void DrawGizmos(VFXComponent component)
+        public void DrawGizmos(VisualEffect component)
         {
             if (m_SubControllers != null)
             {

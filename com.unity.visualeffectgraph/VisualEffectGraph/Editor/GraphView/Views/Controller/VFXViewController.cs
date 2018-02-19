@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
-    internal partial class VFXViewController : Controller<VFXAsset>
+    internal partial class VFXViewController : Controller<VisualEffectAsset>
     {
         private int m_UseCount;
         public int useCount
@@ -529,14 +529,7 @@ namespace UnityEditor.VFX.UI
 
         public void AddGroupNode(Vector2 pos)
         {
-            var ui = graph.UIInfos;
-
-            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(pos, Vector2.one * 100) };
-
-            if (ui.groupInfos != null)
-                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
-            else
-                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+            PrivateAddGroupNode(pos);
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
@@ -884,9 +877,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static Dictionary<VFXAsset, VFXViewController> s_Controllers = new Dictionary<VFXAsset, VFXViewController>();
+        static Dictionary<VisualEffectAsset, VFXViewController> s_Controllers = new Dictionary<VisualEffectAsset, VFXViewController>();
 
-        public static VFXViewController GetController(VFXAsset asset, bool forceUpdate = false)
+        public static VFXViewController GetController(VisualEffectAsset asset, bool forceUpdate = false)
         {
             VFXViewController controller;
             if (!s_Controllers.TryGetValue(asset, out controller))
@@ -914,7 +907,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewController(VFXAsset vfx) : base(vfx)
+        VFXViewController(VisualEffectAsset vfx) : base(vfx)
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
@@ -999,6 +992,28 @@ namespace UnityEditor.VFX.UI
             {
                 AddControllersFromModel(m);
                 changed = true;
+            }
+
+            // Iterate through graph.children to preserve add order.
+
+            VFXParameter[] parameters = graph.children.OfType<VFXParameter>().ToArray();
+
+            var existingNames = new HashSet<string>();
+
+            existingNames.Add(parameters[0].exposedName);
+
+            for (int i = 1; i < parameters.Length; ++i)
+            {
+                var controller = m_ParameterControllers[parameters[i]];
+
+                controller.CheckNameUnique(existingNames);
+
+                existingNames.Add(parameters[i].exposedName);
+            }
+            foreach (var parameter in graph.children.OfType<VFXParameter>())
+            {
+                var controller = m_ParameterControllers[parameter];
+                controller.exposedName = parameter.exposedName;
             }
 
             // make sure every parameter instance is created before we look for edges
@@ -1129,6 +1144,29 @@ namespace UnityEditor.VFX.UI
             VFXParameterController controller = null;
             m_ParameterControllers.TryGetValue(parameter, out controller);
             return controller;
+        }
+
+        VFXUI.GroupInfo PrivateAddGroupNode(Vector2 position)
+        {
+            var ui = graph.UIInfos;
+
+            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(position, Vector2.one * 100) };
+
+            if (ui.groupInfos != null)
+                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
+            else
+                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+
+            return ui.groupInfos.Last();
+        }
+
+        public void GroupNodes(IEnumerable<VFXNodeController> nodes)
+        {
+            VFXUI.GroupInfo info = PrivateAddGroupNode(Vector2.zero);
+
+            info.content = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         private VFXGraph m_Graph;

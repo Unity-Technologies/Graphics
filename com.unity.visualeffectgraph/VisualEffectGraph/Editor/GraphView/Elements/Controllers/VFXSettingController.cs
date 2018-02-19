@@ -80,11 +80,6 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public string tooltip
-        {
-            get { return null; }
-        }
-
         public VFXPropertyAttribute[] attributes
         {
             get
