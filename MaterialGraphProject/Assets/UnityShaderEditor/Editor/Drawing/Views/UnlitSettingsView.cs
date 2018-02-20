@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -15,18 +16,26 @@ namespace UnityEditor.ShaderGraph.Drawing
         UnlitMasterNode m_Node;
         public UnlitSettingsView(INode node)
         {
+            AddStyleSheetPath("Styles/UnlitSettings");
             m_Node = (UnlitMasterNode)node;
-            var uxml = Resources.Load<VisualTreeAsset>("UXML/UnlitSettings");
-            uxml.CloneTree(this, null);
+            this.Add(new VisualElement{ name="container" }, (container) =>
+            {
+                container.Add( new VisualElement(), (row) =>
+                {
+                    row.AddToClassList("row");
+                    row.Add(new Label { text = "Alpha Mode"}, (label) =>
+                    {
+                        label.AddToClassList("label");
+                    });
 
-            m_Container = this.Q("container");
-
-            m_AlphaMode = new EnumField(m_Node.alphaMode);
-            m_AlphaMode.AddToClassList("enumcontainer");
-
-            m_Container.Add(m_AlphaMode);
-
-            m_AlphaMode.OnValueChanged(ChangeAlphaMode);
+                    row.Add(new EnumField(AlphaMode.AdditiveBlend), (enumField) =>
+                    {
+                        enumField.AddToClassList("enumcontainer");
+                        enumField.value = m_Node.alphaMode;
+                        enumField.OnValueChanged(ChangeAlphaMode);
+                    });
+                });
+            } );
         }
 
         void ChangeAlphaMode(ChangeEvent<Enum> evt)
