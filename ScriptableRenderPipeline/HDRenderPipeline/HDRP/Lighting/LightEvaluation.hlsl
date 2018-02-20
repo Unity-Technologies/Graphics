@@ -38,7 +38,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
 
-    [branch] if (lightData.cookieIndex >= 0)
+    UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
         float3 lightToSample = positionWS - lightData.positionWS;
         float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
@@ -52,7 +52,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    [branch] if (lightData.shadowIndex >= 0)
+    UNITY_BRANCH if (lightData.shadowIndex >= 0)
     {
 #ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
@@ -90,7 +90,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     float4 cookie;
 
-    [branch] if (lightType == GPULIGHTTYPE_POINT)
+    UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
         cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
         cookie.a   = 1;
@@ -130,11 +130,11 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
     float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
-    attenuation *= TransmittanceHomogeneousMedium(_GlobalFog_Extinction, distVol);
+    attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
 #endif
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
-    [branch] if (lightData.cookieIndex >= 0)
+    UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
 
@@ -148,12 +148,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    [branch] if (lightData.shadowIndex >= 0)
+    UNITY_BRANCH if (lightData.shadowIndex >= 0)
     {
         // TODO: make projector lights cast shadows.
-        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float4 L_dist = float4(L, distances.x);
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS + offset, N, lightData.shadowIndex, L_dist, posInput.positionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).

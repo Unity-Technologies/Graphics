@@ -72,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
 
 #if UNITY_EDITOR
+        [NonSerialized]
         private LightweightPipelineEditorResources m_EditorResourcesAsset;
 
         [MenuItem("Assets/Create/Rendering/Lightweight Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
@@ -335,6 +336,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader CopyDepthShader
         {
             get { return resources != null ? resources.CopyDepthShader : null; }
+        }
+        public Shader ScreenSpaceShadowShader
+        {
+            get { return resources != null ? resources.ScreenSpaceShadowShader : null; }
         }
     }
 }

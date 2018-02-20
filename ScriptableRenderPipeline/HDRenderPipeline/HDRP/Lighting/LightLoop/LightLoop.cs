@@ -114,8 +114,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
             bool useGlobalOverrides = true;
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
-            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V4, ShadowPrecision.High, useGlobalOverrides );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides );
+            m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides );
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides );
 
             m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
@@ -264,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
         public static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
-        // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
+        // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         static ComputeBuffer s_DirectionalLightDatas = null;
         static ComputeBuffer s_LightDatas = null;
         static ComputeBuffer s_EnvLightDatas = null;
@@ -352,6 +352,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static int s_deferredDirectionalShadowKernel;
         static int s_deferredDirectionalShadow_Contact_Kernel;
+        static int s_deferredDirectionalShadow_Normals_Kernel;
+        static int s_deferredDirectionalShadow_Contact_Normals_Kernel;
 
         static ComputeBuffer s_LightVolumeDataBuffer = null;
         static ComputeBuffer s_ConvexBoundsBuffer = null;
@@ -484,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D();
-            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.spotCookieSize, gLightLoopSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.cookieSize, gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
             m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true);
 
@@ -523,6 +525,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_deferredDirectionalShadowKernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow");
             s_deferredDirectionalShadow_Contact_Kernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow_Contact");
+            s_deferredDirectionalShadow_Normals_Kernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow_Normals");
+            s_deferredDirectionalShadow_Contact_Normals_Kernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow_Contact_Normals");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -2079,7 +2083,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 AdditionalShadowData asd = m_CurrentSunLight.GetComponent<AdditionalShadowData>();
 
                 bool enableContactShadows = m_FrameSettings.enableContactShadows && asd.enableContactShadows && asd.contactShadowLength > 0.0f;
-                int kernel = enableContactShadows ? s_deferredDirectionalShadow_Contact_Kernel : s_deferredDirectionalShadowKernel;
+                int kernel;
+                if (enableContactShadows)
+                    kernel = m_FrameSettings.enableForwardRenderingOnly ? s_deferredDirectionalShadow_Contact_Kernel : s_deferredDirectionalShadow_Contact_Normals_Kernel;
+                else
+                    kernel = m_FrameSettings.enableForwardRenderingOnly ? s_deferredDirectionalShadowKernel : s_deferredDirectionalShadow_Normals_Kernel;
 
                 m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, kernel);
 
@@ -2093,7 +2101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, (int)asd.contactShadowSampleCount);
                 }
 
-                cmd.SetComputeFloatParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, (float)m_CurrentSunLightShadowIndex);
+                cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, m_CurrentSunLightShadowIndex);
                 cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, -m_CurrentSunLight.transform.forward);
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);

@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering
     {
         public SerializedProperty root;
 
-        public SerializedProperty spotCookieSize;
+        public SerializedProperty cookieSize;
         public SerializedProperty cookieTexArraySize;
         public SerializedProperty pointCookieSize;
         public SerializedProperty cubeCookieTexArraySize;
@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             this.root = root;
 
-            spotCookieSize = root.Find((GlobalLightLoopSettings s) => s.spotCookieSize);
+            cookieSize = root.Find((GlobalLightLoopSettings s) => s.cookieSize);
             cookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cookieTexArraySize);
             pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
             cubeCookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cubeCookieTexArraySize);

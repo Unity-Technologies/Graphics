@@ -47,6 +47,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent transparentPrepassText = new GUIContent("Pre Refraction Pass", "Render objects before the refraction pass");
 
+            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("Enable MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
+
             public static string advancedText = "Advanced Options";
         }
 
@@ -120,6 +122,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty enableBlendModePreserveSpecularLighting = null;
         protected const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
 
+        protected MaterialProperty enableMotionVectorForVertexAnimation = null;
+        protected const string kEnableMotionVectorForVertexAnimation = "_EnableMotionVectorForVertexAnimation";
+
+        protected const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
+        protected const string kZTestModeDistortion = "_ZTestModeDistortion";
 
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
@@ -172,6 +179,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent, props, false);
             enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting, props, false);
+
+            enableMotionVectorForVertexAnimation = FindProperty(kEnableMotionVectorForVertexAnimation, props, false);
         }
 
         void SurfaceTypePopup()
@@ -346,6 +355,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
             CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
+            // If the material use the kZTestDepthEqualForOpaque it mean it require depth equal test for opaque but transparent are not affected
+            if (material.HasProperty(kZTestDepthEqualForOpaque))
+            {
+                if (surfaceType == SurfaceType.Opaque)
+                    material.SetInt(kZTestDepthEqualForOpaque, (int)UnityEngine.Rendering.CompareFunction.Equal);
+                else
+                    material.SetInt(kZTestDepthEqualForOpaque, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+            }
+
             if (surfaceType == SurfaceType.Opaque)
             {
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
@@ -404,13 +422,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (material.HasProperty(kDistortionEnable))
             {
                 bool distortionDepthTest = material.GetFloat(kDistortionDepthTest) > 0.0f;
-                if (distortionDepthTest)
+                if (material.HasProperty(kZTestModeDistortion))
                 {
-                    material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
-                }
-                else
-                {
-                    material.SetInt("_ZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                    if (distortionDepthTest)
+                    {
+                        material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                    }
+                    else
+                    {
+                        material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.Always);
+                    }
                 }
 
                 var distortionBlendMode = material.GetInt(kDistortionBlendMode);
@@ -565,7 +586,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-
+            if (material.HasProperty(kEnableMotionVectorForVertexAnimation))
+            {
+                material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, material.GetFloat(kEnableMotionVectorForVertexAnimation) > 0.0f);
+            }
         }
 
         // Dedicated to emissive - for emissive Enlighten/PVR
