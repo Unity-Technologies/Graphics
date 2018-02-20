@@ -285,6 +285,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
+            public List<SFiniteLightBound> rightEyeBounds;
+            public List<LightVolumeData> rightEyeLightVolumes;
 
             public void Clear()
             {
@@ -295,6 +297,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bounds.Clear();
                 lightVolumes.Clear();
+                rightEyeBounds.Clear();
+                rightEyeLightVolumes.Clear();
             }
 
             public void Allocate()
@@ -306,6 +310,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
+
+                rightEyeBounds = new List<SFiniteLightBound>();
+                rightEyeLightVolumes = new List<LightVolumeData>();
             }
         }
 
@@ -734,6 +741,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.worldToCameraMatrix;
         }
 
+        static Matrix4x4 WorldToViewStereo(Camera camera, Camera.StereoscopicEye eyeIndex)
+        {
+            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.GetStereoViewMatrix(eyeIndex);
+        }
+
         // For light culling system, we need non oblique projection matrices
         static Matrix4x4 CameraProjectionNonObliqueLHS(HDCamera camera)
         {
@@ -992,7 +1004,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
         public void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
-                                               VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView)
+                                               VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView,
+                                               bool rightEyeTarget = false)
         {
             // Then Culling side
             var range = lightDimensions.z;
@@ -1160,8 +1173,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
             }
 
-            m_lightList.bounds.Add(bound);
-            m_lightList.lightVolumes.Add(lightVolumeData);
+            if (rightEyeTarget == false)
+            {
+                m_lightList.bounds.Add(bound);
+                m_lightList.lightVolumes.Add(lightVolumeData);
+            }
+            else
+            {
+                m_lightList.rightEyeBounds.Add(bound);
+                m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
+            }
         }
 
 
@@ -1253,7 +1274,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView)
+        public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, bool rightEyeTarget = false)
         {
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1313,8 +1334,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            m_lightList.bounds.Add(bound);
-            m_lightList.lightVolumes.Add(lightVolumeData);
+            if (rightEyeTarget == false)
+            {
+                m_lightList.bounds.Add(bound);
+                m_lightList.lightVolumes.Add(lightVolumeData);
+            }
+            else
+            {
+                m_lightList.rightEyeBounds.Add(bound);
+                m_lightList.rightEyeLightVolumes.Add(lightVolumeData);
+            }
         }
 
         public int GetCurrentShadowCount()
@@ -1340,7 +1369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, ReflectionProbeCullResults reflectionProbeCullResults, Camera camera)
+        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, ReflectionProbeCullResults reflectionProbeCullResults, Camera camera, FrameSettings frameSettings)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1352,6 +1381,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
+
+                var stereoEnabled = m_FrameSettings.enableStereo;
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Count != 0 || cullResults.visibleReflectionProbes.Count != 0)
@@ -1510,9 +1541,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Create simultaneously data for culling (LightVolumeData and rendering)
-                    var worldToView = WorldToCamera(camera);
                     Vector3 camPosWS = camera.transform.position;
 
+                    var worldToView = WorldToCamera(camera);
+                    var rightEyeWorldToView = Matrix4x4.identity;
+                    if (stereoEnabled)
+                    {
+                        worldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Left);
+                        rightEyeWorldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Right);
+                    }
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1572,6 +1609,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
+                            if (stereoEnabled)
+                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, true);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -1676,6 +1715,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (GetEnvLightData(cmd, camera, probeWrapper))
                         {
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
+                            if (stereoEnabled)
+                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, true);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -1696,6 +1737,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
+                if (stereoEnabled)
+                {
+                    Debug.Assert(m_lightList.rightEyeBounds.Count == m_lightCount);
+                    Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_lightCount);
+                }
 
                 UpdateDataBuffers();
 
