@@ -417,6 +417,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     // Compute the indices used to access the individual components of the float4 of the kernel.
     uint iR = useNearFieldKernel ? 0 : 2; // radius
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
+    uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
 
     float  centerRadius = _FilterKernels[profileID][0][iR];
     float  centerRcpPdf = _FilterKernels[profileID][0][iP];
@@ -426,10 +427,10 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     float3 totalIrradiance = centerWeight * centerIrradiance;
     float3 totalWeight     = centerWeight;
 
-    int i, n; // Declare once to avoid the warning from the Unity shader compiler.
+    uint i; // Declare once to avoid the warning from the Unity shader compiler.
 
     [unroll]
-    for (i = 1, n = SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
+    for (i = 1; i < SSS_N_SAMPLES_FAR_FIELD; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
@@ -445,7 +446,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     }
 
     [unroll]
-    for (i = SSS_N_SAMPLES_FAR_FIELD, n = SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
+    for (i = SSS_N_SAMPLES_FAR_FIELD; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
