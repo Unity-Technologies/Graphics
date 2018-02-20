@@ -64,34 +64,6 @@ real VarianceToRoughness(real variance)
     return sqrt(2.0 / (variance + 2.0));
 }
 
-// ior is a value between 1.0 and 2.5
-// Assume air interface for top
-real IorToFresnel0(real ior)
-{
-    return Sq((ior - 1.0) / (ior + 1.0));
-}
-
-real IorToFresnel0(real baseIor, real topIor)
-{
-    return Sq((baseIor - topIor) / (baseIor + topIor));
-}
-
-// Assume air interface for top
-// Note: Don't handle the case fresnel0 == 1
-real Fresnel0ToIor(real fresnel0)
-{
-    real sqrtF0 = sqrt(fresnel0);
-    return (1.0 + sqrtF0) / (1.0 - sqrtF0);
-}
-
-// This function is a coarse approximation of computing fresnel0 for a different top than air (here clear coat of IOR 1.5) when we only have fresnel0 with air interface
-// This function is equivalent to IorToFresnel0(Fresnel0ToIor(fresnel0), 1.5)
-// mean
-// real sqrtF0 = sqrt(fresnel0);
-// return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);
-// Optimization: Fit of the function (3 mad) for range [0.04 (should return 0), 1 (should return 1)]
-TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)) )
-
 // same as regular refract except there is not the test for total internal reflection + the vector is flipped for processing
 real3 CoatRefract(real3 X, real3 N, real ieta)
 {
