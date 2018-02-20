@@ -32,6 +32,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Unlit  // Hard coded path
         };
 
+        public enum ClearColorMode
+        {
+            Sky,
+            BackgroundColor,
+            None
+        };
+
+        public ClearColorMode clearColorMode = ClearColorMode.Sky;
+        [ColorUsage(true, true)]
+        public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
+        public bool clearDepth = true;
+
         public RenderingPath    renderingPath;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask        volumeLayerMask = -1;
