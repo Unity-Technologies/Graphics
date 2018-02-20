@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Get & automatically add additional HD data if not present
             var lightData = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets);
-            var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets);
+            var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
             m_SerializedAdditionalLightData = new SerializedObject(lightData);
             m_SerializedAdditionalShadowData = new SerializedObject(shadowData);
 
