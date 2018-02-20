@@ -39,13 +39,13 @@ namespace UnityEngine.Experimental.Rendering
         public float viewBiasMax        = 10.0f;
         [Range(0.0F, 15.0F)]
         public float viewBiasScale      = 1.0f;
-        public float nrmlBiasMin        = 0.2f;
-        public float nrmlBiasMax        = 4.0f;
+        public float normalBiasMin      = 0.2f;
+        public float normalBiasMax      = 4.0f;
         [Range(0.0F, 10.0F)]
-        public float nrmlBiasScale      = 1.0f;
+        public float normalBiasScale    = 1.0f;
         public bool sampleBiasScale     = true;
         public bool edgeLeakFixup       = true;
-        public bool edgeToleranceNrml   = true;
+        public bool edgeToleranceNormal = true;
         [Range(0.0F, 1.0F)]
         public float edgeTolerance      = 1.0f;
 
