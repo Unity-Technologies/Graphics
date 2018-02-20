@@ -208,21 +208,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return result;
         }
 
-        public void RenderSky(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, CommandBuffer cmd)
+        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, CommandBuffer cmd)
         {
-            if (skyContext.IsValid())
+            if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
             {
                 using (new ProfilingSample(cmd, "Sky Pass"))
                 {
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(camera.camera.fieldOfView * Mathf.Deg2Rad, camera.screenSize, camera.viewMatrix, false);
-                    m_BuiltinParameters.invViewProjMatrix = camera.viewProjMatrix.inverse;
-                    m_BuiltinParameters.screenSize = camera.screenSize;
-                    m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(hdCamera.camera.fieldOfView * Mathf.Deg2Rad, hdCamera.screenSize, hdCamera.viewMatrix, false);
+                    m_BuiltinParameters.invViewProjMatrix = hdCamera.viewProjMatrix.inverse;
+                    m_BuiltinParameters.screenSize = hdCamera.screenSize;
+                    m_BuiltinParameters.cameraPosWS = hdCamera.camera.transform.position;
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
-                    m_BuiltinParameters.hdCamera = camera;
+                    m_BuiltinParameters.hdCamera = hdCamera;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
                     skyContext.renderer.RenderSky(m_BuiltinParameters, false);

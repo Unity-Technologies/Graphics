@@ -727,7 +727,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
     surfaceData.coatMask = 0.0;
-    surfaceData.thicknessIridescence = 0.0;
+    surfaceData.iridescenceThickness = 0.0;
     surfaceData.iridescenceMask = 0.0;
 
     // Transparency parameters
