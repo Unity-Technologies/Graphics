@@ -52,7 +52,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 0}
   m_saved: 1
 --- !u!2058629509 &8926484044824476616
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -115,3 +115,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 1

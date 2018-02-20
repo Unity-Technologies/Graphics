@@ -4318,7 +4318,7 @@ MonoBehaviour:
   m_LinkedSlots:
   - {fileID: 114635141660832184}
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -4365,9 +4365,7 @@ VFXAsset:
       \       float3 direction = float3(0,0,1);\r\n        float age = (float)0;\r\n
       \       bool alive = (bool)true;\r\n        \r\n\r\n\t\t\t\t\r\n#if VFX_USE_PARTICLEID_CURRENT\r\n\t\tparticleId
       = particleIndex;\r\n#endif\r\n#if VFX_USE_SEED_CURRENT\r\n\t\tseed = WangHash(particleIndex
-      ^ systemSeed);\r\n#endif\r\n#if VFX_USE_PHASE_CURRENT\r\n#if !VFX_USE_SEED_CURRENT
-      // TODO Quite bad\r\n\t\tuint seed = WangHash(particleIndex ^ systemSeed);\r\n#endif\r\n\t\tphase
-      = randLcg(seed);\r\n#endif\r\n\t\t\r\n        SetAttribute_48F87EB1(/*inout*/lifetime,
+      ^ systemSeed);\r\n#endif\r\n\t\t\r\n        SetAttribute_48F87EB1(/*inout*/lifetime,
       Lifetime_b);\r\n        SetAttribute_5E351D5B(/*inout*/color, Color_c);\r\n
       \       SetAttribute_9AB89B11(/*inout*/position, Position_d);\r\n        VelocityRandomize(/*inout*/seed,
       /*inout*/velocity, /*inout*/direction, Speed_e, DirectionBlend_e);\r\n        \r\n\r\n\r\n#if
@@ -4418,7 +4416,8 @@ VFXAsset:
       \   if(age > lifetime)\r\n    {\r\n        alive = false;\r\n    }\r\n}\r\n\r\n\r\n\r\nRWByteAddressBuffer
       attributeBuffer;\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\nAppendStructuredBuffer<uint>
       deadListOut;\r\n#endif\r\n\r\n#if VFX_HAS_INDIRECT_DRAW\r\nAppendStructuredBuffer<uint>
-      indirectBuffer;\r\n#endif\r\n\r\nCBUFFER_START(updateParams)\r\n    uint nbMax;\r\nCBUFFER_END\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
+      indirectBuffer;\r\n#endif\r\n\r\nCBUFFER_START(updateParams)\r\n    uint nbMax;\r\n\tuint
+      systemSeed;\r\nCBUFFER_END\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
       CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)\r\n{\r\n
       \   uint index = id.x;\r\n\tif (id.x < nbMax)\r\n\t{\r\n#if VFX_USE_ALIVE_CURRENT\r\n\t\tbool
       alive = (attributeBuffer.Load((index * 0x4 + 0x50003) << 2));\r\n\t\t\r\n\r\n\t\tif
@@ -4494,9 +4493,9 @@ VFXAsset:
       = -viewRot[2].xyz;\r\n\t\t    \r\n\t\t}\r\n\t\t\r\n\r\n\t\t\r\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
       (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\r\n\t\t#define IS_TRANSPARENT_PARTICLE
       (!IS_OPAQUE_PARTICLE)\r\n\t\t\r\n\t\tByteAddressBuffer attributeBuffer;\t\r\n\t\t\r\n\t\t#if
-      VFX_HAS_INDIRECT_DRAW\r\n\t\tStructuredBuffer<uint> indirectBuffer;\t\r\n\t\t#endif\t\r\n\t\t\r\n\t\tCBUFFER_START(outputParams)\t\r\n\t\t\tfloat
-      nbMax;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\t\tENDHLSL\r\n\t\t\r\n\r\n\t\t// Forward
-      pass\r\n\t\tPass\r\n\t\t{\t\t\r\n\t\t\tTags { \"LightMode\"=\"ForwardBase\"
+      VFX_HAS_INDIRECT_DRAW\r\n\t\tStructuredBuffer<uint> indirectBuffer;\t\r\n\t\t#endif\t\r\n\t\t\r\n\t\tCBUFFER_START(outputParams)\r\n\t\t\tfloat
+      nbMax;\r\n\t\t\tfloat systemSeed;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\t\tENDHLSL\r\n\t\t\r\n\r\n\t\t//
+      Forward pass\r\n\t\tPass\r\n\t\t{\t\t\r\n\t\t\tTags { \"LightMode\"=\"ForwardBase\"
       }\r\n\t\t\t\r\n\t\t\tHLSLPROGRAM\r\n\t\t\t#pragma target 4.5\r\n\t\t\t\r\n\t\t\tstruct
       ps_input\r\n\t\t\t{\r\n\t\t\t\tfloat4 pos : SV_POSITION;\r\n\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\r\n\t\t\t\tfloat4
       uv : TEXCOORD0;\r\n\t\t\t\t#else\r\n\t\t\t\tfloat2 uv : TEXCOORD0;\t\r\n\t\t\t\t#endif\r\n\t\t\t\t#if
@@ -4749,7 +4748,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 38
       valueIndex: 46
       data[0]: 25
       data[1]: 21
@@ -4773,13 +4772,13 @@ VFXAsset:
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 53
       data[0]: 26
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 36
+    - op: 37
       valueIndex: 54
       data[0]: 30
       data[1]: 29
@@ -4821,7 +4820,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 63
       data[0]: 32
       data[1]: -1
@@ -4839,7 +4838,7 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 66
       data[0]: 26
       data[1]: -1
@@ -4863,13 +4862,13 @@ VFXAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 36
       valueIndex: 70
       data[0]: 32
       data[1]: -1
       data[2]: 1
       data[3]: 4
-    - op: 35
+    - op: 36
       valueIndex: 71
       data[0]: 32
       data[1]: -1
@@ -5344,3 +5343,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 0
+  m_RuntimeVersion: 1
