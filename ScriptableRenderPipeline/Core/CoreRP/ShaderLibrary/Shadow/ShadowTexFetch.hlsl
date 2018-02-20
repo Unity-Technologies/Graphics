@@ -18,11 +18,11 @@
 		real4 SampleCompShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, real3 tcs, real slice )					    \
 		{																														\
 			real4 res = 1.0.xxxx;																								\
-			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
+			UNITY_UNROLL for( uint i = 0; i < _Tex2DArraySlots; i++ )															\
 			{																													\
-				[unroll] for( uint j = 0; j < _SamplerCompSlots; j++ )															\
+				UNITY_UNROLL for( uint j = 0; j < _SamplerCompSlots; j++ )														\
 				{																												\
-					[branch] if( i == texIdx && j == sampIdx )																	\
+					UNITY_BRANCH if( i == texIdx && j == sampIdx )																\
 					{																											\
 						res = SAMPLE_TEXTURE2D_ARRAY_SHADOW( ctxt.tex2DArray[i], ctxt.compSamplers[j], tcs, slice );			\
 						break;																									\
@@ -36,11 +36,11 @@
 		real4 SampleShadow_T2DA( ShadowContext ctxt, uint texIdx, uint sampIdx, real2 tcs, real slice, real lod = 0.0 )		    \
 		{																														\
 			real4 res = 1.0.xxxx;																								\
-			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
+			UNITY_UNROLL for( uint i = 0; i < _Tex2DArraySlots; i++ )															\
 			{																													\
-				[unroll] for( uint j = 0; j < _SamplerSlots; j++ )																\
+				UNITY_UNROLL for( uint j = 0; j < _SamplerSlots; j++ )															\
 				{																												\
-					[branch] if( i == texIdx && j == sampIdx )																	\
+					UNITY_BRANCH if( i == texIdx && j == sampIdx )																\
 					{																											\
 						res = SAMPLE_TEXTURE2D_ARRAY_LOD( ctxt.tex2DArray[i], ctxt.samplers[j], tcs, slice, lod );				\
 						break;																									\
@@ -54,9 +54,9 @@
 		real LoadShadow_T2DA( ShadowContext ctxt, uint texIdx, uint2 tcs, uint slice, uint lod = 0 )		                    \
 		{																														\
 			real res = 1.0;																								        \
-			[unroll] for( uint i = 0; i < _Tex2DArraySlots; i++ )																\
+			UNITY_UNROLL for( uint i = 0; i < _Tex2DArraySlots; i++ )															\
 			{																													\
-				[branch] if( i == texIdx )																	                    \
+				UNITY_BRANCH if( i == texIdx )																	                \
 				{																											    \
 					res = LOAD_TEXTURE2D_ARRAY_LOD( ctxt.tex2DArray[i], tcs, slice, lod ).x;				                    \
 					break;																									    \
@@ -70,11 +70,11 @@
 		real4 SampleCompShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, real4 tcs, real cubeIdx )					\
 		{																														\
 			real4 res = 1.0.xxxx;																								\
-			[unroll] for( uint i = 0; i < _TexCubeArraySlots; i++ )																\
+			UNITY_UNROLL for( uint i = 0; i < _TexCubeArraySlots; i++ )															\
 			{																													\
-				[unroll] for( uint j = 0; j < _SamplerCompSlots; j++ )															\
+				UNITY_UNROLL for( uint j = 0; j < _SamplerCompSlots; j++ )														\
 				{																												\
-					[branch] if( i == texIdx && j == sampIdx )																	\
+					UNITY_BRANCH if( i == texIdx && j == sampIdx )																\
 					{																											\
 						res = SAMPLE_TEXTURECUBE_ARRAY_SHADOW( ctxt.texCubeArray[i], ctxt.compSamplers[j], tcs, cubeIdx );		\
 						break;																									\
@@ -88,11 +88,11 @@
 		real4 SampleShadow_TCA( ShadowContext ctxt, uint texIdx, uint sampIdx, real3 tcs, real cubeIdx, real lod = 0.0 )	    \
 		{																														\
 			real4 res = 1.0.xxxx;																								\
-			[unroll] for( uint i = 0; i < _TexCubeArraySlots; i++ )																\
+			UNITY_UNROLL for( uint i = 0; i < _TexCubeArraySlots; i++ )															\
 			{																													\
-				[unroll] for( uint j = 0; j < _SamplerSlots; j++ )																\
+				UNITY_UNROLL for( uint j = 0; j < _SamplerSlots; j++ )															\
 				{																												\
-					[branch] if( i == texIdx && j == sampIdx )																	\
+					UNITY_BRANCH if( i == texIdx && j == sampIdx )																\
 					{																											\
 						res = SAMPLE_TEXTURECUBE_ARRAY_LOD( ctxt.texCubeArray[i], ctxt.samplers[j], tcs, cubeIdx, lod );		\
 						break;																									\

@@ -98,7 +98,7 @@ void OnChipDeferredCalculateLightParams (
 
 		float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
 		colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
-		[branch]if (_useLegacyCookies) {
+        UNITY_BRANCH if (_useLegacyCookies) {
 			colorCookie.xyz = 1;
 		}
 
@@ -121,7 +121,7 @@ void OnChipDeferredCalculateLightParams (
 
 		#if defined (DIRECTIONAL_COOKIE)
 		colorCookie = tex2Dlod (_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xy, 0, 0));
-		[branch]if (_useLegacyCookies) {
+        UNITY_BRANCH if (_useLegacyCookies) {
 			colorCookie.xyz = 1;
 		}
 		atten *= colorCookie.w;
@@ -141,7 +141,7 @@ void OnChipDeferredCalculateLightParams (
 
 		#if defined (POINT_COOKIE)
 			colorCookie = texCUBElod(_LightTexture0, float4(mul(unity_WorldToLight, float4(wpos,1)).xyz, 0));
-			[branch]if (_useLegacyCookies) {
+            UNITY_BRANCH if (_useLegacyCookies) {
 				colorCookie.xyz = 1;
 			}
 			atten *= colorCookie.w;

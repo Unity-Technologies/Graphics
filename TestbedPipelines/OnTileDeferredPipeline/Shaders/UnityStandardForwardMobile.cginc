@@ -305,7 +305,7 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
   			float atten = 1;
 
 	  		int shadowIdx = gPerLightData[lightIndex].y;
-			[branch]
+			UNITY_BRANCH
 			if (shadowIdx >= 0 && _transparencyShadows)
 			{
 				float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, -gLightDirection[lightIndex].xyz);
@@ -316,12 +316,12 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 			float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vPw,1));
             float2 cookCoord = uvCookie.xy / uvCookie.w;
 			const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
-            [branch]if(bHasCookie)
+            UNITY_BRANCH if(bHasCookie)
             {
        			cookieColor = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
        			atten *= cookieColor.w;
             }
-            [branch]if(_useLegacyCookies)
+            UNITY_BRANCH if(_useLegacyCookies)
             {
             	cookieColor.xyz = 1;
             }
@@ -346,20 +346,20 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
 
             float4 cookieColor = float4(1,1,1,1);
             const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
-            [branch]if(bHasCookie)
+            UNITY_BRANCH if(bHasCookie)
             {
             	float4 uvCookie = mul (gLightMatrix[lightIndex], float4(vLw,1));
             	float3 cookieCoord = -uvCookie.xyz / uvCookie.w;
                 cookieColor = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(_pointCookieTextures, float4(cookieCoord, gPerLightData[lightIndex].z), 0.0);
                 atten *= cookieColor.w;
             }
-            [branch]if(_useLegacyCookies)
+            UNITY_BRANCH if(_useLegacyCookies)
             {
             	cookieColor.xyz = 1;
             }
 
 			int shadowIdx = gPerLightData[lightIndex].y;
-			[branch]
+			UNITY_BRANCH
 			if (shadowIdx >= 0 && _transparencyShadows)
 			{
 				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw, dist);
@@ -390,18 +390,18 @@ float3 RenderLightList(uint start, uint numLights, float3 vPw, float3 Vworld)
             float d0 = 0.65;
             float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(2*cookCoord-1)));
             const bool bHasCookie = gPerLightData[lightIndex].z >= 0;
-            [branch]if(bHasCookie)
+            UNITY_BRANCH if(bHasCookie)
             {
                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, gPerLightData[lightIndex].z), 0.0);
             }
-            [branch]if(_useLegacyCookies)
+            UNITY_BRANCH if(_useLegacyCookies)
             {
             	angularAtt.xyz = 1;
             }
             atten *= angularAtt.w*(-uvCookie.w>0.0);                           // finally apply this to the dist att.
 
 			int shadowIdx = gPerLightData[lightIndex].y;
-			[branch]
+			UNITY_BRANCH
 			if (shadowIdx >= 0 && _transparencyShadows)
 			{
 				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw, dist);

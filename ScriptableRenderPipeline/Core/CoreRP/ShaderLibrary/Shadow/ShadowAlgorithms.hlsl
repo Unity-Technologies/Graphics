@@ -96,7 +96,7 @@ real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgo
 {
 	real weight = 1.0;
 
-	[branch]
+	UNITY_BRANCH
 	if( shadowAlgorithm <= GPUSHADOWALGORITHM_PCF_TENT_7X7 )
 	{
 		real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.normalBias.w ) );
@@ -316,7 +316,7 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
 
 	// load the right shadow data for the current face
-	[branch]
+	UNITY_BRANCH
 	if( shadowType == GPUSHADOWTYPE_POINT )
 	{
 		sd.rot0           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot0;
@@ -351,8 +351,8 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 		UnpackShadowType( sd.shadowType, shadowType );																									                                            \
 																																																	\
 		/* load the right shadow data for the current face */																															            \
-		[branch]																																										            \
-		if( shadowType == GPUSHADOWTYPE_POINT )																																			            \
+		UNITY_BRANCH                                                                                                                                                                                \
+		if( shadowType == GPUSHADOWTYPE_POINT )																																		                \
 		{                                                                                                                                                                                           \
 			sd.rot0           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot0;																					                \
 			sd.rot1           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot1;																					                \
@@ -472,12 +472,12 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 		{
 			EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );
 			positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );
-	        real3 posNDC;
+			real3 posNDC;
 			posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false );
 			// sample the texture
 			sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );
 
-			[branch]
+			UNITY_BRANCH
 			if( all( abs( posNDC.xy ) <= (1.0 - sd.texelSizeRcp.zw * 0.5) ) )
 				shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
 		}
@@ -522,12 +522,12 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 			{                                                                                                                                                                                                       \
 				EvalShadow_LoadCascadeData( shadowContext, index + 1 + shadowSplitIndex, sd );																										                \
 				positionWS = EvalShadow_ReceiverBias( sd, orig_pos, normalWS, L, 1.0, recvBiasWeight, false );				                                                                                        \
-		        real3 posNDC;                                                                                                                                                                                       \
+				real3 posNDC;                                                                                                                                                                                       \
 				posTC = EvalShadow_GetTexcoords( sd, positionWS, posNDC, false );																										                            \
 				/* sample the texture */																																				                            \
 				sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );																																			\
 																																																					\
-				[branch]                                                                                                                                                                                            \
+				UNITY_BRANCH                                                                                                                                                                                        \
 				if( all( abs( posNDC.xy ) <= (1.0 - sd.texelSizeRcp.zw * 0.5) ) )                                                                                                                                   \
 					shadow1 = SampleShadow_SelectAlgorithm( shadowContext, sd, orig_payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp );                                              \
 			}                                                                                                                                                                                                       \
