@@ -12,12 +12,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             shadowData.viewBiasMin          = 0.2f;
             shadowData.viewBiasMax          = 10.0f;
             shadowData.viewBiasScale        = 1.0f;
-            shadowData.nrmlBiasMin          = 0.5f;
-            shadowData.nrmlBiasMax          = 0.5f;
-            shadowData.nrmlBiasScale        = 1.0f;
+            shadowData.normalBiasMin        = 0.5f;
+            shadowData.normalBiasMax        = 0.5f;
+            shadowData.normalBiasScale      = 1.0f;
             shadowData.sampleBiasScale      = false;
             shadowData.edgeLeakFixup        = true;
-            shadowData.edgeToleranceNrml    = true;
+            shadowData.edgeToleranceNormal  = true;
             shadowData.edgeTolerance        = 1.0f;
         }
     }
