@@ -1,7 +1,8 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel DeferredDirectionalShadow				DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
-#pragma kernel DeferredDirectionalShadow_Contact		DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact	ENABLE_CONTACT_SHADOWS
-#pragma kernel DeferredDirectionalShadow_Normals		DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Normals  ENABLE_NORMALS
+#pragma kernel DeferredDirectionalShadow				    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
+#pragma kernel DeferredDirectionalShadow_Contact		    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact	        ENABLE_CONTACT_SHADOWS
+#pragma kernel DeferredDirectionalShadow_Normals		    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Normals          ENABLE_NORMALS
+#pragma kernel DeferredDirectionalShadow_Contact_Normals	DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact_Normals  ENABLE_CONTACT_SHADOWS ENABLE_NORMALS
 
 #ifdef ENABLE_NORMALS
 #   define LIGHTLOOP_TILE_PASS 1
@@ -12,7 +13,7 @@
 #endif
 
 #ifdef SHADER_API_PSSL
-#   pragma argument( scheduler=minpressure )
+#   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
 #endif
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"

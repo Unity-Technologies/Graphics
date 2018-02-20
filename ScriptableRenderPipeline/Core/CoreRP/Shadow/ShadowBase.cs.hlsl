@@ -33,7 +33,6 @@
 // PackingRules = Exact
 struct ShadowData
 {
-    float4x4 shadowToWorld;
     float4 proj;
     float3 pos;
     float3 rot0;
@@ -46,18 +45,16 @@ struct ShadowData
     uint shadowType;
     uint payloadOffset;
     float slice;
-    float edgeTolerance;
     float4 viewBias;
-    float4 nrmlBias;
+    float4 normalBias;
+    float edgeTolerance;
+    float3 _pad;
+    float4x4 shadowToWorld;
 };
 
 //
 // Accessors for UnityEngine.Experimental.Rendering.ShadowData
 //
-float4x4 GetShadowToWorld(ShadowData value)
-{
-	return value.shadowToWorld;
-}
 float4 GetProj(ShadowData value)
 {
 	return value.proj;
@@ -106,17 +103,25 @@ float GetSlice(ShadowData value)
 {
 	return value.slice;
 }
-float GetEdgeTolerance(ShadowData value)
-{
-	return value.edgeTolerance;
-}
 float4 GetViewBias(ShadowData value)
 {
 	return value.viewBias;
 }
-float4 GetNrmlBias(ShadowData value)
+float4 GetNormalBias(ShadowData value)
 {
-	return value.nrmlBias;
+	return value.normalBias;
+}
+float GetEdgeTolerance(ShadowData value)
+{
+	return value.edgeTolerance;
+}
+float3 Get_pad(ShadowData value)
+{
+	return value._pad;
+}
+float4x4 GetShadowToWorld(ShadowData value)
+{
+	return value.shadowToWorld;
 }
 
 

@@ -398,7 +398,6 @@ namespace UnityEngine.Experimental.Rendering
     public struct ShadowData
     {
         // shadow texture related params (need to be set by ShadowmapBase and derivatives)
-        public Matrix4x4     shadowToWorld;  // from light space matrix
         public Vector4       proj;           // projection matrix value _00, _11, _22, _23
         public Vector3       pos;            // view matrix light position
         public Vector3       rot0;           // first column of view matrix rotation
@@ -411,9 +410,11 @@ namespace UnityEngine.Experimental.Rendering
         public uint          shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data
         public uint          payloadOffset;  // if this shadow type requires additional data it can be fetched from a global Buffer<uint> at payloadOffset.
         public float         slice;          // shadowmap slice
-        public float         edgeTolerance;  // specifies the offset along either the normal or view vector used for calculating the edge leak fixup
         public Vector4       viewBias;       // x = min, y = max, z = scale, w = shadowmap texel size in world space at distance 1 from light
-        public Vector4       nrmlBias;       // x = min, y = max, z = scale, w = enable/disable sample biasing
+        public Vector4       normalBias;     // x = min, y = max, z = scale, w = enable/disable sample biasing
+        public float         edgeTolerance;  // specifies the offset along either the normal or view vector used for calculating the edge leak fixup
+        public Vector3       _pad;           // 16 byte padding
+        public Matrix4x4     shadowToWorld;  // from light space matrix
 
         public void PackShadowmapId( uint texIdx, uint sampIdx )
         {
