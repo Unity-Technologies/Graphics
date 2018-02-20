@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     row.AddToClassList("row");
 
-                    row.Add(new Label("Alpha mode"), (label) =>
+                    row.Add(new Label("Alpha Mode"), (label) =>
                     {
                         label.AddToClassList("label");
                     });

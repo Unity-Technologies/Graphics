@@ -1,5 +1,0 @@
-﻿<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
-	<ui:VisualElement name="container">
-        <Style path="Styles/UnlitSettings"/>
-    </ui:VisualElement>   
-</UXML>

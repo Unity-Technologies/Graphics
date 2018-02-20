@@ -1,12 +1,22 @@
 UnlitSettingsView > #container{
+	flex-grow: 1;
 	padding-top: 4;
 	padding-left: 4;
 	padding-right: 4;
 	padding-bottom: 4;
-	background-color: rgb(63, 63, 63);
+	background-color: rgba(0, 0, 0, 0.7);
 }
 
-UnlitSettingsView > #container > .enumcontainer{
+UnlitSettingsView > #container > .row {
+	flex-direction: row;
+}
+
+UnlitSettingsView > #container > .row > .label {
+	width: 75;
+}
+
+UnlitSettingsView > #container > .row > .enumcontainer{
+	flex-grow: 1;
 	margin-left: 4;
 	margin-right: 4;
 	margin-top: 4;
