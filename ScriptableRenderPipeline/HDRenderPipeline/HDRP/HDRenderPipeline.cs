@@ -699,7 +699,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, camera) && m_FrameSettings.enableShadowMask;
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, camera, m_FrameSettings) && m_FrameSettings.enableShadowMask;
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
