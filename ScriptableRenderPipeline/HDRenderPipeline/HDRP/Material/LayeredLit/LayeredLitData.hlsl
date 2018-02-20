@@ -470,7 +470,7 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
     // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
     float weightsSum = 0.0;
 
-    [unroll]
+    UNITY_UNROLL
     for (int i = _LAYER_COUNT - 1; i >= 0; --i)
     {
         outWeights[i] = min(masks[i], (1.0 - weightsSum));

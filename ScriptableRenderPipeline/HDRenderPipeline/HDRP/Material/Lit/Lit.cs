@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
 
             // Iridescence
-            [SurfaceDataAttributes("Iridescence Thickness")]
+            [SurfaceDataAttributes("Iridescence Layer Thickness")]
             public float iridescenceThickness;
             [SurfaceDataAttributes("Iridescence Mask")]
             public float iridescenceMask;

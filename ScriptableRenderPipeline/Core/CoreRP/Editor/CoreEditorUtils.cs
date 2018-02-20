@@ -291,7 +291,7 @@ namespace UnityEditor.Experimental.Rendering
             material.shaderKeywords = null;
         }
 
-        public static T[] GetAdditionalData<T>(params UnityEngine.Object[] targets)
+        public static T[] GetAdditionalData<T>(UnityEngine.Object[] targets, Action<T> initDefault = null)
             where T : Component
         {
             // Handles multi-selection
@@ -302,7 +302,13 @@ namespace UnityEditor.Experimental.Rendering
             for (int i = 0; i < data.Length; i++)
             {
                 if (data[i] == null)
+                {
                     data[i] = Undo.AddComponent<T>(((Component)targets[i]).gameObject);
+                    if (initDefault != null)
+                    {
+                        initDefault(data[i]);
+                    }
+                }
             }
 
             return data;

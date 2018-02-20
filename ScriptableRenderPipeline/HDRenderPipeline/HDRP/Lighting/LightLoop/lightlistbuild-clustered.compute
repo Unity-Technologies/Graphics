@@ -511,7 +511,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		const int idxCoarse = coarseList[l];
-		[branch]if (_LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		UNITY_BRANCH if (_LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 
