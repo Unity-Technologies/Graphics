@@ -324,13 +324,13 @@ namespace UnityEngine.Experimental.Rendering
                     if( sr.shadowType == GPUShadowType.Point )
                     {
                         // calculate the fov bias
-                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( 90.0f, ce.current.viewport.width, GetFilterWidthInTexels( sr, asd ), asd.nrmlBiasMax, 79.0f );
+                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( 90.0f, ce.current.viewport.width, GetFilterWidthInTexels( sr, asd ), asd.normalBiasMax, 79.0f );
                         vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     }
                     else if( sr.shadowType == GPUShadowType.Spot )
                     {
                         float spotAngle = lights[sr.index].spotAngle;
-                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( spotAngle, ce.current.viewport.width,  GetFilterWidthInTexels( sr, asd ), asd.nrmlBiasMax, 180.0f - spotAngle );
+                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( spotAngle, ce.current.viewport.width,  GetFilterWidthInTexels( sr, asd ), asd.normalBiasMax, 180.0f - spotAngle );
                         vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData );
                     }
                     else if( sr.shadowType == GPUShadowType.Directional )
@@ -368,12 +368,12 @@ namespace UnityEngine.Experimental.Rendering
 
                     // extract texel size in world space
                     int flags = 0;
-                    flags |= asd.sampleBiasScale    ? (1 << 0) : 0;
-                    flags |= asd.edgeLeakFixup      ? (1 << 1) : 0;
-                    flags |= asd.edgeToleranceNrml  ? (1 << 2) : 0;
+                    flags |= asd.sampleBiasScale     ? (1 << 0) : 0;
+                    flags |= asd.edgeLeakFixup       ? (1 << 1) : 0;
+                    flags |= asd.edgeToleranceNormal ? (1 << 2) : 0;
                     sd.edgeTolerance = asd.edgeTolerance;
-                    sd.viewBias = new Vector4( asd.viewBiasMin, asd.viewBiasMax, asd.viewBiasScale, 2.0f / ce.current.proj.m00 / ce.current.viewport.width * 1.4142135623730950488016887242097f );
-                    sd.nrmlBias = new Vector4( asd.nrmlBiasMin, asd.nrmlBiasMax, asd.nrmlBiasScale, ShadowUtils.Asfloat( flags ) );
+                    sd.viewBias   = new Vector4( asd.viewBiasMin, asd.viewBiasMax, asd.viewBiasScale, 2.0f / ce.current.proj.m00 / ce.current.viewport.width * 1.4142135623730950488016887242097f );
+                    sd.normalBias = new Vector4( asd.normalBiasMin, asd.normalBiasMax, asd.normalBiasScale, ShadowUtils.Asfloat( flags ) );
                     
                     // write :(
                     ce.current.shadowAlgo = (GPUShadowAlgorithm) shadowAlgo;
