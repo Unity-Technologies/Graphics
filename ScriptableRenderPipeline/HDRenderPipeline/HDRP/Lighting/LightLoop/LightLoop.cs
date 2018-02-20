@@ -436,22 +436,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int GetNumTileFtplX(HDCamera hdCamera)
         {
-            return (hdCamera.actualWidth + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
+            return ((int)hdCamera.screenSize.x + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
         }
 
         int GetNumTileFtplY(HDCamera hdCamera)
         {
-            return (hdCamera.actualHeight + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
+            return ((int)hdCamera.screenSize.y + (LightDefinitions.s_TileSizeFptl - 1)) / LightDefinitions.s_TileSizeFptl;
         }
 
         int GetNumTileClusteredX(HDCamera hdCamera)
         {
-            return (hdCamera.actualWidth + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
+            return ((int)hdCamera.screenSize.x + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
         }
 
         int GetNumTileClusteredY(HDCamera hdCamera)
         {
-            return (hdCamera.actualHeight + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
+            return ((int)hdCamera.screenSize.y + (LightDefinitions.s_TileSizeClustered - 1)) / LightDefinitions.s_TileSizeClustered;
         }
 
         public bool GetFeatureVariantsEnabled()
@@ -1832,8 +1832,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var camera = hdCamera.camera;
             cmd.BeginSample("Build Light List");
 
-            var w = camera.pixelWidth;
-            var h = camera.pixelHeight;
+            var w = (int)hdCamera.screenSize.x;
+            var h = (int)hdCamera.screenSize.y;
             s_TempIntArray[0] = w;
             s_TempIntArray[1] = h;
             var numBigTilesX = (w + 63) / 64;
