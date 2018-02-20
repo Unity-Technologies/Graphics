@@ -12,23 +12,15 @@ DecalData FetchDecal(uint start, uint i)
     return _DecalDatas[j];
 }
 
-#if defined(UNITY_NO_DXT5nm)
-#define UNPACK_NORMAL_FUNC UnpackNormalRGB
-#else
-#define UNPACK_NORMAL_FUNC UnpackNormalmapRGorAG
-#endif
-
 void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float3x3 decalToWorld, float blend)
 {
 	float4 src;
-	src.xyz =  mul(decalToWorld, UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex))) * 0.5f + 0.5f;
+	src.xyz =  mul(decalToWorld, DECAL_UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex))) * 0.5f + 0.5f;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
 	matMask |= mapMask;
 }
-
-#undef UNPACK_NORMAL_FUNC
 
 void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float blend)
 {
@@ -58,7 +50,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 		// the code in the macros, gets moved inside the conditionals by the compiler
 		FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
 
-#ifdef _SURFACE_TYPE_TRANSPARENT
+#ifdef _SURFACE_TYPE_TRANSPARENT	// forward transparent using clustered decals
         uint decalCount, decalStart;
 		DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
 		DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -81,7 +73,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			int diffuseIndex = decalData.normalToWorld[1][3];
 			int normalIndex = decalData.normalToWorld[2][3];
 			int maskIndex = decalData.normalToWorld[3][3];
-			if((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
+			if((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) // clip to decal space
 			{
 				if(diffuseIndex != -1)
 				{
@@ -121,3 +113,5 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 		}
 	}
 }
+
+

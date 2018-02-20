@@ -58,7 +58,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
-        public static readonly int _DecalIndexShift = Shader.PropertyToID("_DecalIndexShift");
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
         public static readonly int g_mScrProjection = Shader.PropertyToID("g_mScrProjection");
@@ -108,8 +107,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _EnvLightCount = Shader.PropertyToID("_EnvLightCount");
         public static readonly int _EnvProxyCount = Shader.PropertyToID("_EnvProxyCount");
         public static readonly int _ShadowDatas = Shader.PropertyToID("_ShadowDatas");
-        public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
-        public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
         public static readonly int _NumTileFtplX = Shader.PropertyToID("_NumTileFtplX");
         public static readonly int _NumTileFtplY = Shader.PropertyToID("_NumTileFtplY");
         public static readonly int _NumTileClusteredX = Shader.PropertyToID("_NumTileClusteredX");
@@ -187,9 +184,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
 
+        // all decal properties
         public static readonly int _NormalToWorldID = Shader.PropertyToID("_NormalToWorld");
         public static readonly int _DecalAtlasID = Shader.PropertyToID("_DecalAtlas");
         public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
+        public static readonly int _DecalIndexShift = Shader.PropertyToID("_DecalIndexShift");
+        public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
+        public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
 
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
