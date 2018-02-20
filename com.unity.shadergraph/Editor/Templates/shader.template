@@ -7,6 +7,5 @@ ${ShaderPropertiesHeader}
 	
 ${SubShader}
 
-	FallBack "Diffuse"
-	CustomEditor "LegacyIlluminShaderGUI"
+    FallBack "Hidden/InternalErrorShader"
 }
