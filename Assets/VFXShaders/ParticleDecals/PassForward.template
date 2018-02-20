@@ -20,15 +20,16 @@ Pass
 		#endif
 		#if USE_ALPHA_TEST || USE_FLIPBOOK
 		// x: alpha threshold
-		// y: flipbook size
-		// z: inverse flipbook size
-		// w: texture index
-		nointerpolation float4 builtInInterpolants : TEXCOORD0;
+		// y: texture index
+		nointerpolation float2 builtInInterpolants : TEXCOORD0;
+		#if USE_FLIPBOOK
+		nointerpolation float4 flipbookSize : TEXCOORD1;
+		#endif
 		#endif
 		
-		nointerpolation float4 screenToDecal0 : TEXCOORD1;
-		nointerpolation float4 screenToDecal1 : TEXCOORD2;
-		nointerpolation float4 screenToDecal2 : TEXCOORD3;
+		nointerpolation float4 screenToDecal0 : TEXCOORD2;
+		nointerpolation float4 screenToDecal1 : TEXCOORD3;
+		nointerpolation float4 screenToDecal2 : TEXCOORD4;
 	};
 	
 	struct ps_output
@@ -42,9 +43,9 @@ Pass
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
-#define VFX_VARYING_FLIPBOOKSIZE builtInInterpolants.y
-#define VFX_VARYING_INVFLIPBOOKSIZE builtInInterpolants.z
-#define VFX_VARYING_TEXINDEX builtInInterpolants.w
+#define VFX_VARYING_TEXINDEX builtInInterpolants.y
+#define VFX_VARYING_FLIPBOOKSIZE flipbookSize.xy
+#define VFX_VARYING_INVFLIPBOOKSIZE flipbookSize.zw
 				
 	${VFXBegin:VFXVertexAdditionalProcess}
 float4x4 screenToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
