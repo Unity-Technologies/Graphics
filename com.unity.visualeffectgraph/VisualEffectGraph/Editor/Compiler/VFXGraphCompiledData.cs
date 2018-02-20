@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
+        private static void CollectExposedDesc(List<VFXMapping> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
             var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
             if (expression != null)
@@ -143,10 +143,10 @@ namespace UnityEditor.VFX
                 if (exprIndex == -1)
                     throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
 
-                outExposedParameters.Add(new VFXExposedDesc()
+                outExposedParameters.Add(new VFXMapping()
                 {
                     name = name,
-                    expressionIndex = (uint)exprIndex
+                    index = exprIndex
                 });
             }
             else
@@ -158,7 +158,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
+        private static void FillExposedDescs(List<VFXMapping> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
             foreach (var parameter in parameters)
             {
@@ -598,7 +598,7 @@ namespace UnityEditor.VFX
                     contextToCompiledData[context] = contextData;
                 }
 
-                var exposedParameterDescs = new List<VFXExposedDesc>();
+                var exposedParameterDescs = new List<VFXMapping>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models.OfType<VFXParameter>());
                 var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);

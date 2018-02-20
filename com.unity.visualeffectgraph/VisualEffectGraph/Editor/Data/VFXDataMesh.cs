@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
 
             var mappings = new List<VFXMapping>();
             foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                mappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                mappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
             var task = new VFXTaskDesc()
             {
@@ -60,9 +60,9 @@ namespace UnityEditor.VFX
             int transformIndex = transformExp != null ? expressionGraph.GetFlattenedIndex(transformExp) : -1;
 
             if (meshIndex != -1)
-                mappings.Add(new VFXMapping(meshIndex, "mesh"));
+                mappings.Add(new VFXMapping("mesh", meshIndex));
             if (transformIndex != -1)
-                mappings.Add(new VFXMapping(transformIndex, "transform"));
+                mappings.Add(new VFXMapping("transform", transformIndex));
 
             outSystemDescs.Add(new VFXSystemDesc()
             {
