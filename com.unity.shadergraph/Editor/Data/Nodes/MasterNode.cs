@@ -84,6 +84,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var subShader in m_SubShaders)
                 finalShader.AddShaderChunk(subShader.GetSubshader(this, mode), true);
 
+            finalShader.AddShaderChunk(@"FallBack ""Hidden/InternalErrorShader""", false);
             finalShader.Deindent();
             finalShader.AddShaderChunk("}", false);
 
