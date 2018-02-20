@@ -30,9 +30,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.graph = graph;
             MaterialGraph mg = (MaterialGraph)graph;
             var node = mg.masterNode;
-            m_NodeSettingsView = new NodeSettingsView();
-            m_NodeSettingsView.visible = false;
-            Add(m_NodeSettingsView);
         }
 
         public AbstractMaterialGraph graph { get; private set; }
@@ -203,23 +200,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SelectionChanged()
         {
-            m_NodeSettingsView.Clear();
             var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
-
-            //if (selectedNodes.Count() == 1)
-            //{
-            //    INode node = (INode)selectedNodes.First().userData;
-            //    var settings = node as IHasSettings;
-            //    if (settings != null)
-            //    {
-            //        m_NodeSettingsView.Add(settings.CreateSettingsElement());
-            //        m_NodeSettingsView.visible = true;
-            //    }
-            //    else
-            //        m_NodeSettingsView.visible = false;
-            //}
-            //else
-            //    m_NodeSettingsView.visible = false;
         }
 
         public override void AddToSelection(ISelectable selectable)

@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public NodeSettingsView()
         {
+            AddStyleSheetPath("Styles/NodeSettings");
             var uxml = Resources.Load<VisualTreeAsset>("UXML/NodeSettings");
             uxml.CloneTree(this, null);
             // Get the element we want to use as content container
