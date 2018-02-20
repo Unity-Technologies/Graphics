@@ -468,23 +468,14 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
             {
-                var currentCacheFolder = baseCacheFolder;
                 var assetPath = AssetDatabase.GetAssetPath(asset);
-                if (asset != null)
-                {
-                    string path = assetPath.Replace("Assets", "");
-                    path = path.Replace(".asset", "");
-                    currentCacheFolder += path;
-                }
-
-                System.IO.Directory.CreateDirectory(currentCacheFolder);
 
                 VFXShaderSourceDesc[] descs = new VFXShaderSourceDesc[generatedCodeData.Count];
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
-                    var fileName = string.Format("Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                    var fileName = string.Format("Temp_{1}_{0}_{2}_{3}.{1}",  VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
 
                     descs[i].source = generated.content.ToString();
                     descs[i].name = fileName;
@@ -619,7 +610,7 @@ namespace UnityEditor.VFX
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Importing shaders", 7 / nbSteps);
                 SaveShaderFiles(m_Graph.visualEffectAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
