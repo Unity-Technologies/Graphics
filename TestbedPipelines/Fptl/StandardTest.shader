@@ -47,6 +47,34 @@ Shader "Experim/StdShader"
 
     CGINCLUDE
         #define UNITY_SETUP_BRDF_INPUT MetallicSetup
+
+        #define CUBEMAPFACE_POSITIVE_X 0
+        #define CUBEMAPFACE_NEGATIVE_X 1
+        #define CUBEMAPFACE_POSITIVE_Y 2
+        #define CUBEMAPFACE_NEGATIVE_Y 3
+        #define CUBEMAPFACE_POSITIVE_Z 4
+        #define CUBEMAPFACE_NEGATIVE_Z 5
+
+        float CubeMapFaceID(float3 dir)
+        {
+            float faceID;
+
+            if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
+            {
+                faceID = (dir.z < 0.0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+            }
+            else if (abs(dir.y) >= abs(dir.x))
+            {
+                faceID = (dir.y < 0.0) ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
+            }
+            else
+            {
+                faceID = (dir.x < 0.0) ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
+            }
+
+            return faceID;
+        }
+
     ENDCG
 
     SubShader
