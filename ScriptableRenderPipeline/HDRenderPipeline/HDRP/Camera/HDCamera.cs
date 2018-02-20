@@ -100,6 +100,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // happen, but you never know...
         int m_LastFrameActive;
 
+        public bool clearDepth
+        {
+            get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clearDepth : camera.clearFlags != CameraClearFlags.Nothing; }
+        }
+
+        public HDAdditionalCameraData.ClearColorMode clearColorMode
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                {
+                    return m_AdditionalCameraData.clearColorMode;
+                }
+
+                if (camera.clearFlags == CameraClearFlags.Skybox)
+                    return HDAdditionalCameraData.ClearColorMode.Sky;
+                else if (camera.clearFlags == CameraClearFlags.SolidColor)
+                    return HDAdditionalCameraData.ClearColorMode.BackgroundColor;
+                else // None
+                    return HDAdditionalCameraData.ClearColorMode.None;
+            }
+        }
+
+        public Color backgroundColorHDR
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                {
+                    return m_AdditionalCameraData.backgroundColorHDR;
+                }
+
+                // The scene view has no additional data so this will correctly pick the editor preference backround color here.
+                return camera.backgroundColor.linear;
+            }
+        }        
+
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
 
