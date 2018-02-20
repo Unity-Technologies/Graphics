@@ -103,6 +103,13 @@ StructuredBuffer<DecalData> _DecalDatas;
 TEXTURE2D_ARRAY(_DecalAtlas);          
 SAMPLER(sampler_DecalAtlas);
 
+// define these specifically for decal normal map sampling to not be dependent on surface gradient
+#if defined(UNITY_NO_DXT5nm)
+#define DECAL_UNPACK_NORMAL_FUNC UnpackNormalRGB
+#else
+#define DECAL_UNPACK_NORMAL_FUNC UnpackNormalmapRGorAG
+#endif
+
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,
                         out DBufferType0 outDBuffer0,
