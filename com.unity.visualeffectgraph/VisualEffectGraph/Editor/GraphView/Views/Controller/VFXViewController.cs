@@ -995,25 +995,21 @@ namespace UnityEditor.VFX.UI
             }
 
             // Iterate through graph.children to preserve add order.
-
             VFXParameter[] parameters = graph.children.OfType<VFXParameter>().ToArray();
-
-            var existingNames = new HashSet<string>();
-
-            existingNames.Add(parameters[0].exposedName);
-
-            for (int i = 1; i < parameters.Length; ++i)
+            if (parameters.Length > 0)
             {
-                var controller = m_ParameterControllers[parameters[i]];
+                var existingNames = new HashSet<string>();
 
-                controller.CheckNameUnique(existingNames);
+                existingNames.Add(parameters[0].exposedName);
 
-                existingNames.Add(parameters[i].exposedName);
-            }
-            foreach (var parameter in graph.children.OfType<VFXParameter>())
-            {
-                var controller = m_ParameterControllers[parameter];
-                controller.exposedName = parameter.exposedName;
+                for (int i = 1; i < parameters.Length; ++i)
+                {
+                    var controller = m_ParameterControllers[parameters[i]];
+
+                    controller.CheckNameUnique(existingNames);
+
+                    existingNames.Add(parameters[i].exposedName);
+                }
             }
 
             // make sure every parameter instance is created before we look for edges
