@@ -17,6 +17,10 @@
 // and that on the C# side the shadowContext bindDelegate binds the correct resource to the correct texture id.
 
 
+// Caution: When updating algorithm here, think to update Lightloop.ShadowSetup() function
+// (the various m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point, ShadowAlgorithm.PCF, ShadowVariant.V1, ShadowPrecision.High, useGlobalOverrides ));
+// The enum value for the variant is in GPUShadowAlgorithm and is express like: PCF_tent_3x3 = ShadowAlgorithm.PCF << 3 | ShadowVariant.V2
+
 //#define SHADOW_DISPATCH_USE_SEPARATE_CASCADE_ALGOS  // enables separate cascade sampling variants for each cascade
 //#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	    // enables separate resources and algorithms for spot and point lights
 
@@ -31,15 +35,15 @@
 // point
 #define SHADOW_DISPATCH_POINT_TEX 3
 #define SHADOW_DISPATCH_POINT_SMP 0
-#define SHADOW_DISPATCH_POINT_ALG GPUSHADOWALGORITHM_PCF_1TAP
+#define SHADOW_DISPATCH_POINT_ALG GPUSHADOWALGORITHM_PCF_TENT_3X3
 // spot
 #define SHADOW_DISPATCH_SPOT_TEX 3
 #define SHADOW_DISPATCH_SPOT_SMP 0
-#define SHADOW_DISPATCH_SPOT_ALG GPUSHADOWALGORITHM_PCF_9TAP
+#define SHADOW_DISPATCH_SPOT_ALG GPUSHADOWALGORITHM_PCF_TENT_3X3
 //punctual
 #define SHADOW_DISPATCH_PUNC_TEX 3
 #define SHADOW_DISPATCH_PUNC_SMP 0
-#define SHADOW_DISPATCH_PUNC_ALG GPUSHADOWALGORITHM_PCF_9TAP
+#define SHADOW_DISPATCH_PUNC_ALG GPUSHADOWALGORITHM_PCF_TENT_3X3
 
 // example of overriding directional lights
 #ifdef  SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
