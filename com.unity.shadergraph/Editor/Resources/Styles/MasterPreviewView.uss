@@ -1,0 +1,49 @@
+MasterPreviewView {
+    flex-direction: column;
+    position-type: absolute;
+    position-right: 0;
+    position-bottom: 0;
+    background-color: rgb(79, 79, 79);
+    justify-content: flex-start;
+    min-width: 200;
+    min-height: 200;
+    border-radius: 6;
+    border-top-width: 1;
+    border-bottom-width: 1;
+    border-left-width: 1;
+    border-right-width: 1;
+    border-color: rgb(25,25,25);
+
+}
+
+MasterPreviewView > #top {
+    background-color: rgb(64, 64, 64);
+    padding-top: 8;
+    padding-bottom: 8;
+    padding-left: 8;
+    padding-right: 8;
+    border-top-left-radius: 6;
+    border-top-right-radius: 6;
+}
+
+MasterPreviewView > #top > #title {
+    font-size: 12;
+    text-color: rgb(180, 180, 180);
+    padding-top: 1;
+    padding-bottom: 2;
+    padding-left: 2;
+    padding-right: 2;
+}
+
+MasterPreviewView > #middle {
+    flex-grow: 1;
+    border-width: 10;
+    flex-direction: row;
+    border-color: rgb(0,10,190);
+}
+
+MasterPreviewView > #middle > #preview {
+    flex-grow: 1;
+    border-width: 10;
+    border-color: rgb(200,10,190);
+}
