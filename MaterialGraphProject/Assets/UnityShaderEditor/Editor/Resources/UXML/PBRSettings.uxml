@@ -1,6 +1,19 @@
-﻿<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
+﻿<UXML xmlns:ui="UnityEngine.Experimental.UIElements"
+      xmlns:sg="UnityEditor.ShaderGraph.Drawing">
     <ui:VisualElement name="container">
         <Style path="Styles/PBRSettings"/>
+        <ui:VisualElement class="row" pickingMode="Ignore">
+            <!-- <ui:VisualElement name="itemContainer" pickingMode="Ignore" /> -->
+            <ui:Label class="label" name="typeLabel" text = "Plopp" pickingMode="Ignore" />
+            <ui:Label text="im an enum" pickingMode="Ignore" />
+            <ui:VisualElement name="itemContainer" pickingMode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement class="row" pickingMode="Ignore">
+            <!-- <ui:VisualElement name="itemContainer" pickingMode="Ignore" /> -->
+            <ui:Label class="label" name="typeLabel" text = "Plopp" pickingMode="Ignore" />
+            <sg:EnumElement />
+            <ui:VisualElement name="itemContainer" pickingMode="Ignore" />
+        </ui:VisualElement>
     </ui:VisualElement>   
 </UXML>
 

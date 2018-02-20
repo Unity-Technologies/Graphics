@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -9,30 +10,47 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public class PBRSettingsView : VisualElement
     {
-        VisualElement m_Container;
-
-        EnumField m_Model;
-        EnumField m_AlphaMode;
         PBRMasterNode m_Node;
         public PBRSettingsView(INode node)
         {
+            AddStyleSheetPath("Styles/PBRSettings");
             m_Node = (PBRMasterNode)node;
-            var uxml = Resources.Load<VisualTreeAsset>("UXML/PBRSettings");
-            uxml.CloneTree(this, null);
 
-            m_Container = this.Q("container");
+            this.Add(new VisualElement { name = "container" }, (container) =>
+            {
+                container.Add(new VisualElement(), (row) =>
+                {
+                    row.AddToClassList("row");
 
-            m_Model = new EnumField(m_Node.model);
-            m_AlphaMode = new EnumField(m_Node.alphaMode);
+                    row.Add(new Label("Model"), (label) =>
+                    {
+                        label.AddToClassList("label");
+                    });
 
-            m_Model.AddToClassList("enumcontainer");
-            m_AlphaMode.AddToClassList("enumcontainer");
+                    row.Add(new EnumField(PBRMasterNode.Model.Metallic), (enumField) =>
+                    {
+                        enumField.value = m_Node.model;
+                        enumField.OnValueChanged(ChangeModel);
+                        enumField.AddToClassList("enumcontainer");
+                    });
+                });
 
-            m_Container.Add(m_Model);
-            m_Container.Add(m_AlphaMode);
-            
-            m_Model.OnValueChanged(ChangeModel);
-            m_AlphaMode.OnValueChanged(ChangeAlphaMode);
+                container.Add(new VisualElement(), (row) =>
+                {
+                    row.AddToClassList("row");
+
+                    row.Add(new Label("Alpha mode"), (label) =>
+                    {
+                        label.AddToClassList("label");
+                    });
+                    row.Add(new EnumField(AlphaMode.AdditiveBlend), (enumField) =>
+                    {
+                        enumField.value = m_Node.alphaMode;
+                        enumField.OnValueChanged(ChangeAlphaMode);
+                        enumField.AddToClassList("enumcontainer");
+                    });
+                });
+            });
         }
 
         void ChangeModel(ChangeEvent<Enum> evt)

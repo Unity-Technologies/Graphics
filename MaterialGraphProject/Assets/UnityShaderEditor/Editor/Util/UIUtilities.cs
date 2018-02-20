@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing.Util
 {
@@ -42,6 +43,13 @@ namespace UnityEditor.Graphing.Util
         public static IEnumerable<T> ToEnumerable<T>(this T item)
         {
             yield return item;
+        }
+
+        public static void Add<T>(this VisualElement visualElement, T elementToAdd, Action<T> action)
+            where T : VisualElement
+        {
+            visualElement.Add(elementToAdd);
+            action(elementToAdd);
         }
     }
 }

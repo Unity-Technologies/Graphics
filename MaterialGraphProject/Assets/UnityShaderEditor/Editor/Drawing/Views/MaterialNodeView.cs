@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsButton;
         VisualElement m_SettingsDivider;
         VisualElement m_Settings;
+        VisualElement m_NodeSettingsView;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -150,19 +151,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             VisualElement parent = collapseButton.parent;
 
             parent.Add(buttonContainer);
-            
+
+            m_NodeSettingsView = new NodeSettingsView();
+            m_NodeSettingsView.visible = false;
+            Add(m_NodeSettingsView);
+
             var settings = node as IHasSettings;
             if (settings != null)
             {
-                m_SettingsContainer = new VisualElement { name = "settings-container" };
-                contents.Add(m_SettingsContainer);
-                if (node.hasPreview)
-                    m_SettingsContainer.PlaceBehind(m_PreviewFiller);
-
                 m_SettingsButton = new VisualElement {name = "settings-button"};
                 m_SettingsButton.Add(new VisualElement { name = "icon" });
                 m_SettingsButton.AddManipulator(new Clickable(() =>
-                {  
+                {
                     UpdateSettingsExpandedState(settings);
                 }));
                 buttonContainer.Add(m_SettingsButton);
@@ -227,20 +227,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ShowSettings = !m_ShowSettings;
             if (m_ShowSettings)
             {
-                m_SettingsDivider = new VisualElement { name = "divider" };
-                m_SettingsDivider.AddToClassList("horizontal");
-                m_SettingsContainer.Add(m_SettingsDivider);
-
                 m_Settings = settings.CreateSettingsElement();
-                m_SettingsContainer.Add(m_Settings);
+                m_NodeSettingsView.Add(m_Settings);
+                m_NodeSettingsView.visible = true;
 
                 m_SettingsButton.AddToClassList("clicked");
             }
             else
             {
-                m_SettingsDivider.RemoveFromHierarchy();
                 m_Settings.RemoveFromHierarchy();
 
+                m_NodeSettingsView.visible = false;
                 m_SettingsButton.RemoveFromClassList("clicked");
             }
         }
