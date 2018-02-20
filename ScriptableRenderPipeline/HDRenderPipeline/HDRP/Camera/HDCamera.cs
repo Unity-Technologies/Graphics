@@ -131,6 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return m_AdditionalCameraData.backgroundColorHDR;
                 }
 
+                // The scene view has no additional data so this will correctly pick the editor preference backround color here.
                 return camera.backgroundColor.linear;
             }
         }        
