@@ -98,7 +98,7 @@ void OnChipDeferredCalculateLightParams (
 
 		float4 uvCookie = mul (unity_WorldToLight, float4(wpos,1));
 		colorCookie = tex2Dlod (_LightTexture0, float4(uvCookie.xy / uvCookie.w, 0, 0));
-		[branch]if (_useLegacyCookies) {
+        UNITY_BRANCH if (_useLegacyCookies) {
 			colorCookie.xyz = 1;
 		}
 
@@ -109,7 +109,7 @@ void OnChipDeferredCalculateLightParams (
 		atten *= tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
 		if (_LightIndexForShadowMatrixArray >= 0)
-			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, float4(lightDir, dist));
+			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, lightDir, dist);
 
 	// directional light case
 	#elif defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
@@ -117,11 +117,11 @@ void OnChipDeferredCalculateLightParams (
 		float atten = 1.0;
 
 		if (_LightIndexForShadowMatrixArray >= 0)
-			atten *= GetDirectionalShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, 0.0.xxx);
+			atten *= GetDirectionalShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, lightDir);
 
 		#if defined (DIRECTIONAL_COOKIE)
 		colorCookie = tex2Dlod (_LightTexture0, float4(mul(unity_WorldToLight, half4(wpos,1)).xy, 0, 0));
-		[branch]if (_useLegacyCookies) {
+        UNITY_BRANCH if (_useLegacyCookies) {
 			colorCookie.xyz = 1;
 		}
 		atten *= colorCookie.w;
@@ -137,11 +137,11 @@ void OnChipDeferredCalculateLightParams (
 		float atten = tex2D (_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
 		if (_LightIndexForShadowMatrixArray >= 0)
-			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, float4(lightDir, dist));
+			atten *= GetPunctualShadowAttenuation(shadowContext, wpos, 0.0.xxx, _LightIndexForShadowMatrixArray, lightDir, dist);
 
 		#if defined (POINT_COOKIE)
 			colorCookie = texCUBElod(_LightTexture0, float4(mul(unity_WorldToLight, float4(wpos,1)).xyz, 0));
-			[branch]if (_useLegacyCookies) {
+            UNITY_BRANCH if (_useLegacyCookies) {
 				colorCookie.xyz = 1;
 			}
 			atten *= colorCookie.w;

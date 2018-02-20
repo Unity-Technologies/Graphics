@@ -122,7 +122,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         float planeHeight;
 
         // Perform a POM in each direction and modify appropriate texture coordinate
-        [branch] if (layerTexCoord.triplanarWeights.x >= 0.001)
+        UNITY_BRANCH if (layerTexCoord.triplanarWeights.x >= 0.001)
         {
             ppdParam.uv      = layerTexCoord.base.uvZY;
             float3 viewDirTS = float3(uvZY, abs(V.x));
@@ -138,7 +138,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             NdotV  += layerTexCoord.triplanarWeights.x * viewDirTS.z;
         }
 
-        [branch] if (layerTexCoord.triplanarWeights.y >= 0.001)
+        UNITY_BRANCH if (layerTexCoord.triplanarWeights.y >= 0.001)
         {
             ppdParam.uv      = layerTexCoord.base.uvXZ;
             float3 viewDirTS = float3(uvXZ, abs(V.y));
@@ -153,7 +153,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
             NdotV  += layerTexCoord.triplanarWeights.y * viewDirTS.z;
         }
 
-        [branch] if (layerTexCoord.triplanarWeights.z >= 0.001)
+        UNITY_BRANCH if (layerTexCoord.triplanarWeights.z >= 0.001)
         {
             ppdParam.uv      = layerTexCoord.base.uvXY;
             float3 viewDirTS = float3(uvXY, abs(V.z));
