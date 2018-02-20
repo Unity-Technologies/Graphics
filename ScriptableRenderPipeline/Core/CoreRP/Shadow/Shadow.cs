@@ -30,10 +30,10 @@ namespace UnityEngine.Experimental.Rendering
         protected          uint[]                     m_TmpWidths  = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
         protected          uint[]                     m_TmpHeights = new uint[ShadowmapBase.ShadowRequest.k_MaxFaceCount];
         protected          Vector4[]                  m_TmpSplits  = new Vector4[k_MaxCascadesInShader];
-        protected          float[]                    m_TmpScales  = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          float[]                    m_TmpBorders = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
         protected          Material                   m_DebugMaterial = null;
+        private            Material                   m_ClearMat;
         private   readonly VectorArray<CachedEntry>.Cleanup         m_Cleanup;
         private   readonly VectorArray<CachedEntry>.Comparator<Key> m_Comparator;
         public             bool                       captureFrame { get; set; }
@@ -105,12 +105,14 @@ namespace UnityEngine.Experimental.Rendering
 #endif
             public int Default() { return ShadowUtils.Asint( ValScale * ValDef ); }
         }
-        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.05f, 1.0f, 000.1f );
+        readonly ValRange m_DefPCF_DepthBias = new ValRange( "Depth Bias", 0.0f, 0.0f, 1.0f, 000.1f );
         readonly ValRange m_DefPCF_FilterSize = new ValRange( "Filter Size", 1.0f, 1.0f, 10.0f, 1.0f );
 
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
+            m_ClearMat = new Material( Shader.Find( "Hidden/ScriptableRenderPipeline/ShadowClear" ) );
+
             m_Cleanup = (CachedEntry entry) => { Free( entry ); };
             m_Comparator = (ref Key k, ref CachedEntry entry) => { return k.id == entry.key.id && k.faceIdx == entry.key.faceIdx; };
 
@@ -128,6 +130,10 @@ namespace UnityEngine.Experimental.Rendering
             m_Shadowmap = new RenderTexture( (int) m_Width, (int) m_Height, (int) m_ShadowmapBits, m_ShadowmapFormat, RenderTextureReadWrite.Linear );
             CreateShadowmap( m_Shadowmap );
             m_Shadowmap.Create();
+#if false && UNITY_PS4 && !UNITY_EDITOR
+            if( m_Shadowmap != null )
+                UnityEngine.PS4.RenderSettings.DisableDepthBufferCompression( m_Shadowmap );
+#endif
         }
 
         virtual protected void CreateShadowmap( RenderTexture shadowmap )
@@ -267,28 +273,23 @@ namespace UnityEngine.Experimental.Rendering
             float   nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
             GPUShadowAlgorithm sanitizedAlgo = ShadowUtils.ClearPrecision( sr.shadowAlgorithm );
+            AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
+            if( !asd )
+                return false;
 
-            int     cascadeCnt = 0;
+
+            int cascadeCnt = 0;
             float[] cascadeRatios = null;
             float[] cascadeBorders = null;
             if( sr.shadowType == GPUShadowType.Directional )
             {
-                AdditionalShadowData asd = lights[sr.index].light.GetComponent<AdditionalShadowData>();
-                if( !asd )
-                    return false;
-
                 asd.GetShadowCascades( out cascadeCnt, out cascadeRatios, out cascadeBorders );
             }
 
 
+            uint multiFaceIdx = key.shadowDataIdx;
             if( multiFace )
             {
-                // For lights with multiple faces, the first shadow data contains
-                // per light information, so not all fields contain valid data.
-                // Shader code must make sure to read per face data from per face entries.
-                sd.texelSizeRcp = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / widths[0], 1.0f / heights[0] );
-                sd.PackShadowType( sr.shadowType, sanitizedAlgo );
-                sd.payloadOffset = payload.Count();
                 entries.AddUnchecked( sd );
                 key.shadowDataIdx++;
             }
@@ -319,27 +320,34 @@ namespace UnityEngine.Experimental.Rendering
                     ce.zclip = sr.shadowType != GPUShadowType.Directional;
 
                     // modify
-                    Matrix4x4 vp, invvp;
+                    Matrix4x4 vp, invvp, devproj;
                     if( sr.shadowType == GPUShadowType.Point )
-                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, 2.0f, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    {
+                        // calculate the fov bias
+                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( 90.0f, ce.current.viewport.width, GetFilterWidthInTexels( sr, asd ), asd.normalBiasMax, 79.0f );
+                        vp = ShadowUtils.ExtractPointLightMatrix( lights[sr.index], key.faceIdx, guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    }
                     else if( sr.shadowType == GPUShadowType.Spot )
-                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    {
+                        float spotAngle = lights[sr.index].spotAngle;
+                        float guardAngle = ShadowUtils.CalcGuardAnglePerspective( spotAngle, ce.current.viewport.width,  GetFilterWidthInTexels( sr, asd ), asd.normalBiasMax, 180.0f - spotAngle );
+                        vp = ShadowUtils.ExtractSpotLightMatrix( lights[sr.index], guardAngle, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData );
+                    }
                     else if( sr.shadowType == GPUShadowType.Directional )
                     {
-                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out invvp, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
+                        vp = ShadowUtils.ExtractDirectionalLightMatrix( lights[sr.index], key.faceIdx, cascadeCnt, cascadeRatios, nearPlaneOffset, width, height, out ce.current.view, out ce.current.proj, out devproj, out invvp, out ce.current.lightDir, out ce.current.splitData, m_CullResults, (int) sr.index );
                         m_TmpSplits[key.faceIdx]    = ce.current.splitData.cullingSphere;
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                         {
                             int face = (int)key.faceIdx;
                             texelSizeX = 2.0f / ce.current.proj.m00;
                             texelSizeY = 2.0f / ce.current.proj.m11;
-                            m_TmpScales[face] = Mathf.Max( texelSizeX, texelSizeY );
                             m_TmpBorders[face] = cascadeBorders[face];
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
                         }
                     }
                     else
-                        vp = invvp = Matrix4x4.identity; // should never happen, though
+                        vp = invvp = devproj = Matrix4x4.identity; // should never happen, though
 
                     if (cameraRelativeRendering)
                     {
@@ -347,6 +355,9 @@ namespace UnityEngine.Experimental.Rendering
                         Matrix4x4 translation = Matrix4x4.Translate(camPosWS);
                         ce.current.view *= translation;
                         vp *= translation;
+                        translation.SetColumn( 3, -camPosWS );
+                        translation[15] = 1.0f;
+                        invvp = translation * invvp;
                         if (sr.shadowType == GPUShadowType.Directional)
                         {
                             m_TmpSplits[key.faceIdx].x -= camPosWS.x;
@@ -355,20 +366,43 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
 
+                    // extract texel size in world space
+                    int flags = 0;
+                    flags |= asd.sampleBiasScale     ? (1 << 0) : 0;
+                    flags |= asd.edgeLeakFixup       ? (1 << 1) : 0;
+                    flags |= asd.edgeToleranceNormal ? (1 << 2) : 0;
+                    sd.edgeTolerance = asd.edgeTolerance;
+                    sd.viewBias   = new Vector4( asd.viewBiasMin, asd.viewBiasMax, asd.viewBiasScale, 2.0f / ce.current.proj.m00 / ce.current.viewport.width * 1.4142135623730950488016887242097f );
+                    sd.normalBias = new Vector4( asd.normalBiasMin, asd.normalBiasMax, asd.normalBiasScale, ShadowUtils.Asfloat( flags ) );
+                    
                     // write :(
                     ce.current.shadowAlgo = (GPUShadowAlgorithm) shadowAlgo;
                     m_EntryCache[ceIdx] = ce;
 
-                    sd.worldToShadow = vp.transpose; // apparently we need to transpose matrices that are sent to HLSL
+                    if (sr.shadowType == GPUShadowType.Directional)
+                        sd.pos = new Vector3( ce.current.view.m03, ce.current.view.m13, ce.current.view.m23 );
+                    else
+                        sd.pos = cameraRelativeRendering ? (lights[sr.index].light.transform.position - camera.transform.position) : lights[sr.index].light.transform.position;
+
                     sd.shadowToWorld = invvp.transpose;
+                    sd.proj          = new Vector4( devproj.m00, devproj.m11, devproj.m22, devproj.m23 );
+                    sd.rot0          = new Vector3( ce.current.view.m00, ce.current.view.m01, ce.current.view.m02 );
+                    sd.rot1          = new Vector3( ce.current.view.m10, ce.current.view.m11, ce.current.view.m12 );
+                    sd.rot2          = new Vector3( ce.current.view.m20, ce.current.view.m21, ce.current.view.m22 );
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x, ce.current.viewport.y );
                     sd.textureSize   = new Vector4( m_Width, m_Height, ce.current.viewport.width, ce.current.viewport.height );
                     sd.texelSizeRcp  = new Vector4( m_WidthRcp, m_HeightRcp, 1.0f / ce.current.viewport.width, 1.0f / ce.current.viewport.height );
-                    sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
+                    sd.PackShadowmapId( m_TexSlot, m_SampSlot );
+                    sd.slice         = ce.current.slice;
                     sd.PackShadowType( sr.shadowType, sanitizedAlgo );
                     sd.payloadOffset = originalPayloadCount;
                     entries.AddUnchecked( sd );
 
+                    if( multiFace )
+                    {
+                        entries[multiFaceIdx] = sd;
+                        multiFace = false;
+                    }
                     resIdx++;
                     facecnt--;
                     key.shadowDataIdx++;
@@ -390,9 +424,35 @@ namespace UnityEngine.Experimental.Rendering
         // Returns how many entries will be written into the payload buffer per light.
         virtual protected uint ReservePayload( ShadowRequest sr )
         {
-            uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? (k_MaxCascadesInShader + ((uint)m_TmpScales.Length / 4) + ((uint)m_TmpBorders.Length / 4)) : 0;
+            uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? (1 + k_MaxCascadesInShader + ((uint)m_TmpBorders.Length / 4)) : 0;
                  payloadSize += ShadowUtils.ExtractAlgorithm( sr.shadowAlgorithm ) == ShadowAlgorithm.PCF ? 1u : 0;
             return payloadSize;
+        }
+
+        virtual protected float GetFilterWidthInTexels( ShadowRequest sr, AdditionalShadowData asd )
+        {
+            ShadowAlgorithm algo;
+            ShadowVariant   vari;
+            ShadowPrecision prec;
+            ShadowUtils.Unpack( sr.shadowAlgorithm, out algo, out vari, out prec );
+
+            if( algo != ShadowAlgorithm.PCF )
+                return 1.0f;
+
+            switch( vari )
+            {
+                case ShadowVariant.V0: return 1;
+                case ShadowVariant.V1:
+                    {
+                        int shadowDataFormat;
+                        int[] shadowData = asd.GetShadowData( out shadowDataFormat );
+                        return ShadowUtils.Asfloat( shadowData[1] );
+                    }
+                case ShadowVariant.V2: return 3;
+                case ShadowVariant.V3: return 5;
+                case ShadowVariant.V4: return 7;
+                default: return 1.0f;
+            }
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
@@ -401,18 +461,20 @@ namespace UnityEngine.Experimental.Rendering
             ShadowPayload sp = new ShadowPayload();
             if( sr.shadowType == GPUShadowType.Directional )
             {
+                uint first = k_MaxCascadesInShader, second = k_MaxCascadesInShader;
                 for( uint i = 0; i < k_MaxCascadesInShader; i++, payloadOffset++ )
                 {
+                    first  = (first  == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : first;
+                    second = (second == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : second;
                     sp.Set( m_TmpSplits[i] );
                     payload[payloadOffset] = sp;
                 }
-
-                for( int i = 0; i < m_TmpScales.Length; i += 4 )
-                {
-                    sp.Set( m_TmpScales[i+0], m_TmpScales[i+1], m_TmpScales[i+2], m_TmpScales[i+3] );
-                    payload[payloadOffset] = sp;
-                    payloadOffset++;
-                }
+                if( second != k_MaxCascadesInShader )
+                    sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
+                else
+                    sp.Set( 0.0f, 0.0f, 0.0f, 0.0f );
+                payload[payloadOffset] = sp;
+                payloadOffset++;
 
                 for( int i = 0; i < m_TmpBorders.Length; i += 4 )
                 {
@@ -466,7 +528,8 @@ namespace UnityEngine.Experimental.Rendering
                     ShadowData sd = entries[ce.key.shadowDataIdx];
                     // update the shadow data with the actual result of the layouting step
                     sd.scaleOffset   = new Vector4( ce.current.viewport.width * m_WidthRcp, ce.current.viewport.height * m_HeightRcp, ce.current.viewport.x * m_WidthRcp, ce.current.viewport.y * m_HeightRcp );
-                    sd.PackShadowmapId( m_TexSlot, m_SampSlot, ce.current.slice );
+                    sd.PackShadowmapId( m_TexSlot, m_SampSlot );
+                    sd.slice = ce.current.slice;
                     // write back the correct results
                     entries[ce.key.shadowDataIdx] = sd;
                 }
@@ -486,7 +549,6 @@ namespace UnityEngine.Experimental.Rendering
                 cb.GetTemporaryRT(m_TempDepthId, (int)m_Width, (int)m_Height, (int)m_ShadowmapBits, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Default);
                 cb.SetRenderTarget( new RenderTargetIdentifier( m_TempDepthId ) );
             }
-            cb.ClearRenderTarget( true, !IsNativeDepth(), m_ClearColor );
         }
 
         override public void Update( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights)
@@ -538,6 +600,12 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
+                cbName = "Shadowmap.ClearRect";
+                cmd.BeginSample( cbName );
+                if( m_ClearMat == null )
+                    m_ClearMat = new Material( Shader.Find( "Hidden/ScriptableRenderPipeline/ShadowClear" ) );
+                CoreUtils.DrawFullScreen( cmd, m_ClearMat, null, 0 );
+                cmd.EndSample( cbName );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
                 cmd.SetGlobalVector( "g_vLightDirWs", m_EntryCache[i].current.lightDir );
                 cmd.SetGlobalFloat( m_ZClipId, m_EntryCache[i].zclip ? 1.0f : 0.0f );
@@ -946,6 +1014,11 @@ namespace UnityEngine.Experimental.Rendering
             case ShadowAlgorithm.MSM : return cnt + 1;
             default: return cnt;
             }
+        }
+
+        override protected float GetFilterWidthInTexels( ShadowRequest sr, AdditionalShadowData asd )
+        {
+            return 1.0f;
         }
 
         // Writes additional per light data into the payload vector. Make sure to call base.WritePerLightPayload first.
@@ -1409,9 +1482,6 @@ namespace UnityEngine.Experimental.Rendering
 
                 // set light specific values that are not related to the shadowmap
                 GPUShadowType shadowtype = GetShadowLightType(l);
-                // current bias value range is way too large, so scale by 0.01 for now until we've decided  whether to actually keep this value or not.
-                sd.bias = 0.01f * (SystemInfo.usesReversedZBuffer ? l.shadowBias : -l.shadowBias);
-                sd.normalBias = 2.0f * l.shadowNormalBias;
 
                 shadowIndices.AddUnchecked( (int) shadowDatas.Count() );
 
@@ -1462,9 +1532,9 @@ namespace UnityEngine.Experimental.Rendering
             int offset = (m_TmpRequests[index].facecount > 1 ) ? 1 : 0;
             VectorArray<ShadowData> shadowDatas = m_ShadowCtxt.shadowDatas;
             ShadowData faceData = shadowDatas[(uint)(m_ShadowIndices[index] + offset + faceIndex)];
-            uint texID, samplerID, slice;
-            faceData.UnpackShadowmapId(out texID, out samplerID, out slice);
-            m_Shadowmaps[texID].DisplayShadowMap(cmd, faceData.scaleOffset, slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            uint texID, samplerID;
+            faceData.UnpackShadowmapId(out texID, out samplerID);
+            m_Shadowmaps[texID].DisplayShadowMap(cmd, faceData.scaleOffset, (uint) faceData.slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         public override void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
