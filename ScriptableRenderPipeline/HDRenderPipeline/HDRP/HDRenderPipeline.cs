@@ -1655,7 +1655,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.BackgroundColor ||
                         // If we want the sky but the sky don't exist, still clear with background color
-                        (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsSkyValid()))
+                        (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsSkyValid()) ||
+                        // Special handling for Preview we force to clear with background color (i.e black)
+                        // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
+                        hdCamera.camera.cameraType == CameraType.Preview
+                        )
                     {
                         Color clearColor = hdCamera.backgroundColorHDR;
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
