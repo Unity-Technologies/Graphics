@@ -136,7 +136,7 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_FieldBackgroundColorHDR(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.backgroundColorHDR, _.GetContent("Background Color|The BackgroundColor use to clear screen when selecting BackgrounColor before rendering."));
+            EditorGUILayout.PropertyField(p.backgroundColorHDR, _.GetContent("Background Color|The BackgroundColor used to clear the screen when selecting BackgrounColor before rendering."));
         }
 
         static void Drawer_FieldVolumeLayerMask(HDCameraUI s, SerializedHDCamera p, Editor owner)
