@@ -128,6 +128,12 @@ def prepare(logger):
         with open(package_path, 'w') as file:
             json.dump(sub_package, file, indent=4, sort_keys=True)
 
+    import unity_package_build
+    for name in publish_order:
+        package_path = os.path.join(sub_package_folders[name])
+        unity_package_build.copy_file_to_project("LICENSE.md", ".", package_path, logger)
+        unity_package_build.copy_file_to_project("CHANGELOG.md", ".", package_path, logger)
+
 def cleanup(logger):
     logger.info("Removing temporary files:")
     files = []
