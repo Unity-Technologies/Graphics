@@ -60,7 +60,7 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval 
 CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;              // {x, y, z}, w = rendered frame count
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
-    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_GlobalFog_Asymmetry)
+    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_GlobalAsymmetry)
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -414,9 +414,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         // TODO: piecewise linear.
-        float3 scattering = _GlobalFog_Scattering;
-        float  extinction = max(_GlobalFog_Extinction, FLT_MIN); // Avoid NaNs
-        float  asymmetry  = _GlobalFog_Asymmetry;
+        float3 scattering = _GlobalScattering;
+        float  extinction = max(_GlobalExtinction, FLT_MIN); // Avoid NaNs
+        float  asymmetry  = _GlobalAsymmetry;
         
         // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
         // which allows procedural definition of extinction and scattering.
@@ -442,7 +442,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
         float4 reprojValue  = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_trilinear_clamp_sampler),
                                             false, reprojPosNDC, reprojZ,
-                                            _VBufferScaleAndSliceCount,
+                                            _VBufferSliceCount.xy,
                                             _VBufferDepthEncodingParams,
                                             _VBufferDepthDecodingParams);
 
@@ -564,7 +564,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
         tileCoord = WaveReadFirstLane(tileCoord);
     }
 
-    [branch] if (voxelCoord.x >= (uint)_VBufferResolution.x ||
+    UNITY_BRANCH if (voxelCoord.x >= (uint)_VBufferResolution.x ||
                  voxelCoord.y >= (uint)_VBufferResolution.y)
     {
         return;

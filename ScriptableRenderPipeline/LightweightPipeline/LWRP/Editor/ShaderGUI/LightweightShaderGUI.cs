@@ -62,6 +62,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
                 material.DisableKeyword("_ALPHABLEND_ON");
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = -1;
+                material.SetShaderPassEnabled("ShadowCaster", true);
                 break;
             case BlendMode.Cutout:
                 material.SetOverrideTag("RenderType", "TransparentCutout");
@@ -72,6 +73,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
                 material.DisableKeyword("_ALPHABLEND_ON");
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                material.SetShaderPassEnabled("ShadowCaster", true);
                 break;
             case BlendMode.Fade:
                 material.SetOverrideTag("RenderType", "Transparent");
@@ -82,6 +84,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
                 material.EnableKeyword("_ALPHABLEND_ON");
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                material.SetShaderPassEnabled("ShadowCaster", false);
                 break;
             case BlendMode.Transparent:
                 material.SetOverrideTag("RenderType", "Transparent");
@@ -92,6 +95,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
                 material.DisableKeyword("_ALPHABLEND_ON");
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                material.SetShaderPassEnabled("ShadowCaster", false);
                 break;
         }
     }

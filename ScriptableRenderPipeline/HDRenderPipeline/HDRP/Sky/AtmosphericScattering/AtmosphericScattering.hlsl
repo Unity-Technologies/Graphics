@@ -68,7 +68,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 	float4 volFog = SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
 															  posInput.positionNDC, posInput.linearDepth,
 															  _VBufferResolution,
-															  _VBufferScaleAndSliceCount,
+															  _VBufferSliceCount.xy,
 															  _VBufferDepthEncodingParams,
 															  _VBufferDepthDecodingParams);
 	fogColor = volFog.rgb;

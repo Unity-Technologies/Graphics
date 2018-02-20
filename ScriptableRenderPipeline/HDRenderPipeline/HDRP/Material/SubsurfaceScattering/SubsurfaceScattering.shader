@@ -126,7 +126,8 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float  halfRcpVariance = _HalfRcpWeightedVariances[profileID].a;
             #endif
 
-            float3 albedo = ApplySubsurfaceScatteringTexturingMode(sssData.diffuseColor, profileID);
+            uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileID);
+            float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
             #ifndef SSS_FILTER_HORIZONTAL_AND_COMBINE
                 albedo = float3(1, 1, 1);
@@ -142,7 +143,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 // We use the value of 1 instead of 0.5 as an optimization.
                 float maxDistInPixels = maxDistance * max(pixelsPerCm.x, pixelsPerCm.y);
 
-                [branch]
+                UNITY_BRANCH
                 if (distScale == 0 || maxDistInPixels < 1)
                 {
                     #if SSS_DEBUG_LOD
@@ -160,7 +161,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 float3 totalIrradiance = sampleWeight * sampleIrradiance;
                 float3 totalWeight     = sampleWeight;
 
-                [unroll]
+                UNITY_UNROLL
                 for (int i = 1; i < SSS_BASIC_N_SAMPLES; i++)
                 {
                     samplePosition   = posInput.positionSS + rotatedDirection * _FilterKernelsBasic[profileID][i].a;

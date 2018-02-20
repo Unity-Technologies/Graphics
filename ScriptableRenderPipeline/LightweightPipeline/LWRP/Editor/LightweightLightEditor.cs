@@ -175,6 +175,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             ShadowsGUI();
 
+            /* Tim: Disable cookie for v1 to save on shader combinations
             using (var group = new EditorGUILayout.FadeGroupScope(animShowRuntimeOptions.faded))
                 if (group.visible)
                     DrawCookie();
@@ -183,6 +184,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             using (var group = new EditorGUILayout.FadeGroupScope(animShowRuntimeOptions.faded * animShowDirOptions.faded))
                 if (group.visible)
                     DrawCookieSize();
+           */
 
             settings.DrawRenderMode();
             settings.DrawCullingMask();

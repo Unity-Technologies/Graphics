@@ -87,15 +87,17 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float4 inputColor)
 // Alpha test replacement
 //-----------------------------------------------------------------------------
 
-// This function must be use instead of clip instruction. It allow to manage in which case the clip is perform
+// This function must be use instead of clip instruction. It allow to manage in which case the clip is perform for optimization purpose
 void DoAlphaTest(float alpha, float alphaCutoff)
 {
     // For Deferred:
-    // If we have a prepass, we need to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4) - SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
-    // For Forward (Lit or Unlit)
-    // Opaque geometry always has a depth pre-pass so we never want to do the clip here. For transparent we perform the clip as usual.
+    // If we have a prepass, we  may want to remove the clip from the GBuffer pass (otherwise HiZ does not work on PS4) - SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+    // For Forward Opaque:
+    // If we have a prepass, we may want to remove the clip from the forward pass (otherwise HiZ does not work on PS4) - SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+    // For Forward Transparent
     // Also no alpha test for light transport
-#if !(SHADERPASS == SHADERPASS_FORWARD && !defined(_SURFACE_TYPE_TRANSPARENT)) && !(SHADERPASS == SHADERPASS_FORWARD_UNLIT && !defined(_SURFACE_TYPE_TRANSPARENT)) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+    // Note: If SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST or SHADERPASS_FORWARD_BYPASS_ALPHA_TEST are used, it mean that we must use ZTest depth equal for the pass (Need to use _ZTestDepthEqualForOpaque property).
+#if !defined(SHADERPASS_FORWARD_BYPASS_ALPHA_TEST) && !defined(SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST) && !(SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
     clip(alpha - alphaCutoff);
 #endif
 }
@@ -133,8 +135,6 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 #include "Lit/Lit.hlsl"
 #elif defined(UNITY_MATERIAL_UNLIT)
 #include "Unlit/Unlit.hlsl"
-#elif defined(UNITY_MATERIAL_IRIDESCENCE)
-//#include "Iridescence/Iridescence.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------

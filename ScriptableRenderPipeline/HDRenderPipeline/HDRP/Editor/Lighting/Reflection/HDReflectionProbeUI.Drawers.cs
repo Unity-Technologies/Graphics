@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering
         
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
-                FadeOption.Indent | FadeOption.Animate,
+                FadeOption.Indent,
                 CED.noop,                                      // Baked
                 CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
                 CED.Action(Drawer_ModeSettingsCustom)         // Custom
@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental.Rendering
             FoldoutOption.Indent,
             CED.FadeGroup(
                 (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
-                FadeOption.Animate,
+                FadeOption.None,
                 CED.Action(Drawer_InfluenceBoxSettings),      // Box
                 CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
             )/*,
@@ -62,14 +62,14 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionSeparateProjectionVolumeSettings = CED.FadeGroup(
             (s, p, o, i) => s.isSectionExpandedSeparateProjection,
-            FadeOption.Animate,
+            FadeOption.None,
             CED.FoldoutGroup(
                 "Reprojection volume settings",
                 (s, p, o) => s.isSectionExpandedSeparateProjection,
                 FoldoutOption.Indent,
                 CED.FadeGroup(
                     (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
-                    FadeOption.Animate,
+                    FadeOption.None,
                     CED.Action(Drawer_ProjectionBoxSettings), // Box
                     CED.Action(Drawer_ProjectionSphereSettings) // Sphere
                 )
