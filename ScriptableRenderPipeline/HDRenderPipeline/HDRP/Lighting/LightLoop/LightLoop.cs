@@ -478,7 +478,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D();
-            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.spotCookieSize, gLightLoopSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.cookieSize, gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
             m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true);
 
