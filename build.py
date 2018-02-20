@@ -10,7 +10,7 @@ def packages_list():
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
     import unity_package_build
-    unity_package_build.copy_path_to_project("TestAssets", repo_path, project_path, logger)
+    unity_package_build.copy_path_to_project("TestbedAssets", repo_path, project_path, logger)
     unity_package_build.copy_path_to_project("Testing", repo_path, project_path, logger)
 
 if __name__ == "__main__":
