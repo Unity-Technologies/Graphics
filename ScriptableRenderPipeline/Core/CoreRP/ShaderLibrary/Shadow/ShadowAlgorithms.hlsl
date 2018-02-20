@@ -60,34 +60,6 @@ uint2 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real2 closes
 	return uint2( (posTC * sd.scaleOffset.xy + sd.scaleOffset.zw) * sd.textureSize.xy );
 }
 
-int EvalShadow_GetCubeFaceID( real3 sampleToLight )
-{
-	real3 lightToSample = -sampleToLight; // TODO: pass the correct (flipped) direction
-
-#ifdef INTRINSIC_CUBEMAP_FACE_ID
-	return (int)CubeMapFaceID(lightToSample);
-#else
-	// TODO: use CubeMapFaceID() defined in Common.hlsl for all pipelines on all platforms.
-	real3 dir  = sampleToLight;
-	real3 adir = abs(dir);
-
-	// +Z -Z
-	int faceIndex = dir.z > 0.0 ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
-
-	// +X -X
-	if (adir.x > adir.y && adir.x > adir.z)
-	{
-		faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
-	}
-	// +Y -Y
-	else if (adir.y > adir.x && adir.y > adir.z)
-	{
-		faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
-	}
-	return faceIndex;
-#endif
-}
-
 
 //
 //	Biasing functions
@@ -127,18 +99,18 @@ real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgo
 	[branch]
 	if( shadowAlgorithm <= GPUSHADOWALGORITHM_PCF_TENT_7X7 )
 	{
-		real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.nrmlBias.w ) );
+		real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.normalBias.w ) );
 		real3 tcs = EvalShadow_GetTexcoords( sd, pos, perspProj );
 		weight = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, sd.slice ).x;
 	}
 	
-	return lerp( 1.0, weight, EvalShadow_ReceiverBiasWeightFlag( sd.nrmlBias.w ) );
+	return lerp( 1.0, weight, EvalShadow_ReceiverBiasWeightFlag( sd.normalBias.w ) );
 }
 
 real EvalShadow_ReceiverBiasWeight( ShadowData sd, Texture2DArray tex, SamplerComparisonState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj )
 {
-	real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.nrmlBias.w ) );
-	return lerp( 1.0, SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, samp, EvalShadow_GetTexcoords( sd, pos, perspProj ), sd.slice ).x, EvalShadow_ReceiverBiasWeightFlag( sd.nrmlBias.w ) );
+	real3 pos = EvalShadow_ReceiverBiasWeightPos( positionWS, normalWS, L, EvalShadow_WorldTexelSize( sd, L_dist, perspProj ), sd.edgeTolerance, EvalShadow_ReceiverBiasWeightUseNormalFlag( sd.normalBias.w ) );
+	return lerp( 1.0, SAMPLE_TEXTURE2D_ARRAY_SHADOW( tex, samp, EvalShadow_GetTexcoords( sd, pos, perspProj ), sd.slice ).x, EvalShadow_ReceiverBiasWeightFlag( sd.normalBias.w ) );
 }
 
 real EvalShadow_ReceiverBiasWeight( ShadowData sd, Texture2DArray tex, SamplerState samp, real3 positionWS, real3 normalWS, real3 L, real L_dist, bool perspProj )
@@ -162,14 +134,14 @@ float3 EvalShadow_ReceiverBias( ShadowData sd, float3 positionWS, float3 normalW
 	float viewBiasMin   = sd.viewBias.x;
 	float viewBiasMax   = sd.viewBias.y;
 	float viewBiasScale = sd.viewBias.z;
-	float nrmlBiasMin   = sd.nrmlBias.x;
-	float nrmlBiasMax   = sd.nrmlBias.y;
-	float nrmlBiasScale = sd.nrmlBias.z;
+	float normalBiasMin   = sd.normalBias.x;
+	float normalBiasMax   = sd.normalBias.y;
+	float normalBiasScale = sd.normalBias.z;
 
 	float  NdotL       = dot( normalWS, L );
 	float  sine        = sqrt( saturate( 1.0 - NdotL * NdotL ) );
 	float  tangent     = abs( NdotL ) > 0.0 ? (sine / NdotL) : 0.0;
-		   sine        = clamp( sine    * nrmlBiasScale, nrmlBiasMin, nrmlBiasMax );
+		   sine        = clamp( sine    * normalBiasScale, normalBiasMin, normalBiasMax );
 		   tangent     = clamp( tangent * viewBiasScale * lightviewBiasWeight, viewBiasMin, viewBiasMax );
 	float3 view_bias   = L        * tangent;
 	float3 normal_bias = normalWS * sine;
@@ -219,7 +191,7 @@ float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 nor
 	float3 nrm     = cross( p1.xyz - tcs, p2.xyz - tcs );
 		   nrm.xy /= -nrm.z;
 
-	return isfinite( nrm.xy ) ? (EvalShadow_SampleBiasFlag( sd.nrmlBias.w ) * nrm.xy) : 0.0.xx;
+	return isfinite( nrm.xy ) ? (EvalShadow_SampleBiasFlag( sd.normalBias.w ) * nrm.xy) : 0.0.xx;
 }
 
 float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )
@@ -237,7 +209,7 @@ float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )
 
 	nrm.xy /= -nrm.z;
 
-	return isfinite( nrm.xy ) ? (EvalShadow_SampleBiasFlag( sd.nrmlBias.w ) * nrm.xy) : 0.0.xx;
+	return isfinite( nrm.xy ) ? (EvalShadow_SampleBiasFlag( sd.normalBias.w ) * nrm.xy) : 0.0.xx;
 }
 #else // SHADOW_USE_SAMPLE_BIASING != 0
 float2 EvalShadow_SampleBias_Persp( ShadowData sd, float3 positionWS, float3 normalWS, float3 tcs ) { return 0.0.xx; }
@@ -250,7 +222,7 @@ float2 EvalShadow_SampleBias_Ortho( ShadowData sd, float3 normalWS )            
 //
 real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )
 {
-	ShadowData sd = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1];
+	ShadowData sd = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1];
 	// get the algorithm
 	uint shadowType, shadowAlgorithm;
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
@@ -272,7 +244,7 @@ real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3
 #define EvalShadow_PointDepth_( _samplerType )																																			        \
 	real EvalShadow_PointDepth( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L, real L_dist )	\
 	{																																													        \
-		ShadowData sd = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1];                                                                                                   \
+		ShadowData sd = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1];                                                                                                             \
 		/* bias the world position */                                                                                                                                                           \
 		real recvBiasWeight = EvalShadow_ReceiverBiasWeight( sd, tex, samp, positionWS, normalWS, L, L_dist, true );                                                                            \
 		positionWS = EvalShadow_ReceiverBias( sd, positionWS, normalWS, L, L_dist, recvBiasWeight, true );	                                                                                    \
@@ -347,12 +319,12 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 	[branch]
 	if( shadowType == GPUSHADOWTYPE_POINT )
 	{
-		sd.rot0           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot0;
-		sd.rot1           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot1;
-		sd.rot2           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot2;
-		sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;
-		sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;
-		sd.slice          = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].slice;
+		sd.rot0           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot0;
+		sd.rot1           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot1;
+		sd.rot2           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot2;
+		sd.shadowToWorld  = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].shadowToWorld;
+		sd.scaleOffset.zw = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].scaleOffset.zw;
+		sd.slice          = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].slice;
 	}
 	
 	uint texIdx, sampIdx;
@@ -382,12 +354,12 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 		[branch]																																										            \
 		if( shadowType == GPUSHADOWTYPE_POINT )																																			            \
 		{                                                                                                                                                                                           \
-			sd.rot0           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot0;																					        \
-			sd.rot1           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot1;																					        \
-			sd.rot2           = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].rot2;																					        \
-			sd.shadowToWorld  = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].shadowToWorld;																					\
-			sd.scaleOffset.zw = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].scaleOffset.zw;                                                                                \
-			sd.slice          = shadowContext.shadowDatas[index + EvalShadow_GetCubeFaceID( L ) + 1].slice;                                                                                         \
+			sd.rot0           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot0;																					                \
+			sd.rot1           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot1;																					                \
+			sd.rot2           = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].rot2;																					                \
+			sd.shadowToWorld  = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].shadowToWorld;																					        \
+			sd.scaleOffset.zw = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].scaleOffset.zw;                                                                                          \
+			sd.slice          = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].slice;                                                                                                   \
 		}                                                                                                                                                                                           \
 																																																	\
 		/* bias the world position */                                                                                                                                                               \
@@ -676,7 +648,7 @@ real3 EvalShadow_GetClosestSample_Point( ShadowContext shadowContext, real3 posi
 	// get the algorithm
 	ShadowData sd = shadowContext.shadowDatas[index];
 	// load the right shadow data for the current face
-	int faceIndex = EvalShadow_GetCubeFaceID( L ) + 1;
+	int faceIndex = CubeMapFaceID( -L ) + 1;
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
@@ -698,7 +670,7 @@ real3 EvalShadow_GetClosestSample_Point( ShadowContext shadowContext, Texture2DA
 	// get the algorithm
 	ShadowData sd = shadowContext.shadowDatas[index];
 	// load the right shadow data for the current face
-	int faceIndex = EvalShadow_GetCubeFaceID( L ) + 1;
+	int faceIndex = CubeMapFaceID( -L ) + 1;
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
@@ -754,7 +726,7 @@ real3 EvalShadow_GetClosestSample_Punctual( ShadowContext shadowContext, real3 p
 	uint shadowType;
 	UnpackShadowType( sd.shadowType, shadowType );
 	// load the right shadow data for the current face
-	int faceIndex = shadowType == GPUSHADOWTYPE_POINT ? (EvalShadow_GetCubeFaceID( L ) + 1) : 0;
+	int faceIndex = shadowType == GPUSHADOWTYPE_POINT ? (CubeMapFaceID( -L ) + 1) : 0;
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
@@ -777,7 +749,7 @@ real3 EvalShadow_GetClosestSample_Punctual( ShadowContext shadowContext, Texture
 	uint shadowType;
 	UnpackShadowType( sd.shadowType, shadowType );
 	// load the right shadow data for the current face
-	int faceIndex = shadowType == GPUSHADOWTYPE_POINT ? (EvalShadow_GetCubeFaceID( L ) + 1) : 0;
+	int faceIndex = shadowType == GPUSHADOWTYPE_POINT ? (CubeMapFaceID( -L ) + 1) : 0;
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };

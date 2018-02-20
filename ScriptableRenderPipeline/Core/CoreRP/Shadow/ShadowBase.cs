@@ -411,7 +411,7 @@ namespace UnityEngine.Experimental.Rendering
         public uint          payloadOffset;  // if this shadow type requires additional data it can be fetched from a global Buffer<uint> at payloadOffset.
         public float         slice;          // shadowmap slice
         public Vector4       viewBias;       // x = min, y = max, z = scale, w = shadowmap texel size in world space at distance 1 from light
-        public Vector4       nrmlBias;       // x = min, y = max, z = scale, w = enable/disable sample biasing
+        public Vector4       normalBias;     // x = min, y = max, z = scale, w = enable/disable sample biasing
         public float         edgeTolerance;  // specifies the offset along either the normal or view vector used for calculating the edge leak fixup
         public Vector3       _pad;           // 16 byte padding
         public Matrix4x4     shadowToWorld;  // from light space matrix
