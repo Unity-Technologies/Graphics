@@ -28,5 +28,18 @@ public class VisualEffectAssetEditor : Editor
         }
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
+
+        foreach (var shaderSource in asset.shaderSources)
+        {
+            if (shaderSource.shader != null)
+            {
+                var errors = shaderSource.compute ? ShaderUtil.GetComputeShaderErrors(shaderSource.shader as ComputeShader) : ShaderUtil.GetShaderErrors(shaderSource.shader as Shader);
+
+                foreach (var error in errors)
+                {
+                    GUILayout.Label(new GUIContent(error.message, string.Format("{0} line:{1} shader:{2}", error.messageDetails, error.line, shaderSource.name)));
+                }
+            }
+        }
     }
 }
