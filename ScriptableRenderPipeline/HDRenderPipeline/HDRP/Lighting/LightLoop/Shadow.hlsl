@@ -72,7 +72,7 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 	uint shadowType;
 	UnpackShadowType( sd.shadowType, shadowType );
 
-	[branch]
+	UNITY_BRANCH
 	if( shadowType == GPUSHADOWTYPE_POINT )
 	{
 		Texture2DArray			tex      = shadowContext.tex2DArray[SHADOW_DISPATCH_POINT_TEX];

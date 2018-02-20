@@ -1428,7 +1428,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    [branch] if (intensity > 0.0)
+    UNITY_BRANCH if (intensity > 0.0)
     {
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
 
@@ -1436,7 +1436,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    UNITY_BRANCH if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
@@ -1510,7 +1510,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
-    [branch] if (intensity > 0.0)
+    UNITY_BRANCH if (intensity > 0.0)
     {
         // Simulate a sphere light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
@@ -1525,7 +1525,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    UNITY_BRANCH if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
@@ -1611,7 +1611,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
 
-    [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    UNITY_BRANCH if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Flip the view vector and the normal. The bitangent stays the same.
         float3x3 flipMatrix = float3x3(-1,  0,  0,
@@ -1744,7 +1744,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
 
-    [branch] if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    UNITY_BRANCH if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // Flip the view vector and the normal. The bitangent stays the same.
         float3x3 flipMatrix = float3x3(-1,  0,  0,

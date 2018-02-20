@@ -117,7 +117,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
     ind.diffuse = 0;
     ind.specular = 0;
 
-	ShadowContext shadowContext = InitShadowContext();
+    ShadowContext shadowContext = InitShadowContext();
 
     float3 ints = 0;
 
@@ -129,13 +129,13 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
         UnityLight light;
         light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.lightAxisZ).xyz;
 
-		int shadowIdx = asint(lightData.shadowLightIndex);
-		[branch]
-		if (shadowIdx >= 0)
-		{
-			float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz));
-			atten *= shadow;
-		}
+        int shadowIdx = asint(lightData.shadowLightIndex);
+        UNITY_BRANCH
+        if (shadowIdx >= 0)
+        {
+            float shadow = GetDirectionalShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz));
+            atten *= shadow;
+        }
 
         light.color.xyz = lightData.color.xyz * atten;
 
@@ -170,7 +170,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             const bool bHasCookie = (lgtDat.flags&IS_CIRCULAR_SPOT_SHAPE)==0;       // all square spots have cookies
             float d0 = 0.65;
             float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(cookCoord)));
-            [branch]if(bHasCookie)
+            UNITY_BRANCH if(bHasCookie)
             {
                 cookCoord = cookCoord*0.5 + 0.5;
                 angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.sliceIndex), 0.0);
@@ -180,13 +180,13 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             UnityLight light;
             light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
 
-			int shadowIdx = asint(lgtDat.shadowLightIndex);
-			[branch]
-			if (shadowIdx >= 0)
-			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz), dist);
-				atten *= shadow;
-			}
+            int shadowIdx = asint(lgtDat.shadowLightIndex);
+            UNITY_BRANCH
+            if (shadowIdx >= 0)
+            {
+                float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, normalize(light.dir.xyz), dist);
+                atten *= shadow;
+            }
 
             light.color.xyz = lgtDat.color.xyz*atten*angularAtt.xyz;
 
@@ -213,20 +213,20 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             float4 cookieColor = float4(1,1,1,1);
 
             const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
-            [branch]if(bHasCookie)
+            UNITY_BRANCH if(bHasCookie)
             {
                 float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
                 cookieColor = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.sliceIndex), 0.0);
                 atten *= cookieColor.w;
             }
 
-			int shadowIdx = asint(lgtDat.shadowLightIndex);
-			[branch]
-			if (shadowIdx >= 0)
-			{
-				float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw, dist);
-				atten *= shadow;
-			}
+            int shadowIdx = asint(lgtDat.shadowLightIndex);
+            UNITY_BRANCH
+            if (shadowIdx >= 0)
+            {
+                float shadow = GetPunctualShadowAttenuation(shadowContext, vPw, 0.0.xxx, shadowIdx, vLw, dist);
+                atten *= shadow;
+            }
 
             UnityLight light;
             light.color.xyz = lgtDat.color.xyz*atten*cookieColor.xyz;

@@ -73,7 +73,7 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 
         real e = sinSqSigma * cosOmega;
 
-        [branch]
+        UNITY_BRANCH
         if (omega < HALF_PI - sigma)
         {
             // No horizon occlusion (case #1).
@@ -98,7 +98,7 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
     #else // Ref: Moving Frostbite to Physically Based Rendering, page 47 (2015, optimized).
         real cosSqOmega = cosOmega * cosOmega;                     // y^2
 
-        [branch]
+        UNITY_BRANCH
         if (cosSqOmega > sinSqSigma)                                // (y^2)>x
         {
             return saturate(sinSqSigma * cosOmega);                 // Clip[x*y,{0,1}]
@@ -127,7 +127,7 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 real PolygonIrradiance(real4x3 L)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    [unroll]
+    UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
@@ -135,7 +135,7 @@ real PolygonIrradiance(real4x3 L)
 
     real3 F = real3(0, 0, 0);
 
-    [unroll]
+    UNITY_UNROLL
     for (uint edge = 0; edge < 4; edge++)
     {
         real3 V1 = L[edge];
