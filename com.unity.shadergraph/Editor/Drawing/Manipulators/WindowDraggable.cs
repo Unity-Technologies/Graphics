@@ -1,4 +1,5 @@
 ﻿﻿using System;
+ using UnityEditor.Experimental.UIElements.GraphView;
  using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -6,8 +7,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public class WindowDraggable : MouseManipulator
     {
-        bool m_ResizeWithParentWindow;
-
         bool m_Active;
 
         WindowDockingLayout m_WindowDockingLayout;
@@ -16,13 +15,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         Rect m_PreviousParentRect;
 
         VisualElement m_Handle;
+        GraphView m_GraphView;
 
         public Action OnDragFinished;
 
-        public WindowDraggable(VisualElement handle = null, bool resizeWithParentwindow = false)
+        public WindowDraggable(VisualElement handle = null)
         {
             m_Handle = handle;
-            m_ResizeWithParentWindow = resizeWithParentwindow;
             m_Active = false;
             m_PreviousParentRect = new Rect(0f, 0f, 0f, 0f);
             m_WindowDockingLayout = new WindowDockingLayout();
@@ -43,6 +42,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Handle.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
             m_Handle.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
             m_Handle.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
+            target.UnregisterCallback<PostLayoutEvent>(InitialLayoutSetup);
+            target.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
+            if (m_GraphView != null)
+                m_GraphView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
         }
 
         void OnMouseDown(MouseDownEvent evt)
@@ -91,6 +94,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             target.UnregisterCallback<PostLayoutEvent>(InitialLayoutSetup);
             target.RegisterCallback<PostLayoutEvent>(OnPostLayout);
 
+            VisualElement parent = target.parent;
+            while (parent != null && !(parent is GraphView))
+                parent = parent.parent;
+            m_GraphView = parent as GraphView;
+            if (m_GraphView != null)
+                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+
             m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
         }
 
@@ -114,28 +124,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             Vector2 distanceFromParentEdge = Vector2.zero;
             distanceFromParentEdge.x = m_WindowDockingLayout.dockingLeft ? target.layout.x : (m_PreviousParentRect.width - target.layout.x - target.layout.width);
-            distanceFromParentEdge.y = m_WindowDockingLayout.dockingTop ? target.layout.y: (m_PreviousParentRect.height - target.layout.y - target.layout.height);
+            distanceFromParentEdge.y = m_WindowDockingLayout.dockingTop ? target.layout.y : (m_PreviousParentRect.height - target.layout.y - target.layout.height);
 
-            Vector2 normalizedDistanceFromEdge = distanceFromParentEdge / m_PreviousParentRect.size;
-
-            if (m_ResizeWithParentWindow)
-            {
-                if (scaling.x > 1f)
-                {
-                    scaling.x = target.parent.layout.width * .33f < minSize.x ? 1f : scaling.x;
-                }
-
-                if (scaling.y > 1f)
-                {
-                    scaling.y = target.parent.layout.height * .33f < minSize.y ? 1f : scaling.y;
-                }
-
-                windowRect.size *= scaling;
-            }
-            else
-            {
-                normalizedDistanceFromEdge = distanceFromParentEdge / target.parent.layout.size;
-            }
+            Vector2 normalizedDistanceFromEdge = distanceFromParentEdge / target.parent.layout.size;
 
             if (m_WindowDockingLayout.dockingLeft)
             {
