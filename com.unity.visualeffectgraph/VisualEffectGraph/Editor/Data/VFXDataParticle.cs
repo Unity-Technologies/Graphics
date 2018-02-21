@@ -423,14 +423,14 @@ namespace UnityEditor.VFX
 
             if (attributeSourceBufferIndex != -1)
             {
-                systemBufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                systemBufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
             }
 
             var systemFlag = VFXSystemFlag.kVFXSystemDefault;
             if (eventGPUFrom != -1)
             {
                 systemFlag |= VFXSystemFlag.kVFXSystemReceivedEventGPU;
-                systemBufferMappings.Add(new VFXMapping(eventGPUFrom, "eventList"));
+                systemBufferMappings.Add(new VFXMapping("eventList", eventGPUFrom));
             }
 
             if (hasKill)
@@ -448,7 +448,7 @@ namespace UnityEditor.VFX
 
             var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => nnew VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
+                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[owners.First()].cpuMapper;
@@ -494,7 +494,7 @@ namespace UnityEditor.VFX
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
                 if (eventGPUFrom != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXMapping(eventGPUFrom, "eventList"));
+                    bufferMappings.Add(new VFXMapping("eventList", eventGPUFrom));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
                     bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn", deadListBufferIndex));
 
@@ -517,7 +517,7 @@ namespace UnityEditor.VFX
                 for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
-                    bufferMappings.Add(new VFXMapping(gpuTarget[indexTarget], string.Format("eventListOut_{0}", prefix)));
+                    bufferMappings.Add(new VFXMapping(string.Format("eventListOut_{0}", prefix), gpuTarget[indexTarget]));
                 }
 
                 uniformMappings.Clear();
