@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.UI
 
             foreach (var panel in panels)
             {
-                if (panel.isEditorOnly)
+                if (panel.isEditorOnly || panel.children.Count(x => !x.isEditorOnly) == 0)
                     continue;
 
                 var go = Instantiate(panelPrefab, transform, false).gameObject;
