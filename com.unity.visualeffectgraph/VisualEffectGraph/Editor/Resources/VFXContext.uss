@@ -118,7 +118,6 @@ VFXOwnContextSlotContainerUI:hover #selection-border
 {
     border-color: rgba(0,0,0,0);
 }
-
 VFXOwnContextSlotContainerUI #contents > #top > #input
 {
     background-color: rgba(0,0,0,0);
@@ -278,6 +277,7 @@ VFXContextUI *
 VFXContextUI VFXOwnContextSlotContainerUI.VFXNodeUI #title
 {
 	max-height:0;
+	height:0;
 }
 
 
