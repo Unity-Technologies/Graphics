@@ -30,6 +30,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             atlasInit.baseInit.maxPayloadCount        = 0;
             atlasInit.baseInit.shadowSupport          = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
             atlasInit.shaderKeyword                   = null;
+            atlasInit.shadowClearShader               = Shader.Find("Hidden/ScriptableRenderPipeline/ShadowClear");
 
             m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit) };
 
@@ -255,7 +256,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
             if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
-            if (m_CubeToPanoMaterial) DestroyImmediate(m_CubeToPanoMaterial);            
+            if (m_CubeToPanoMaterial) DestroyImmediate(m_CubeToPanoMaterial);
 
             m_CookieTexArray.Release();
             m_CubeCookieTexArray.Release();

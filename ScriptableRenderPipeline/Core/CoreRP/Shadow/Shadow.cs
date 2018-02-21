@@ -83,8 +83,10 @@ namespace UnityEngine.Experimental.Rendering
 
         public struct AtlasInit
         {
-            public BaseInit baseInit;           // the base class's initializer
-            public string   shaderKeyword;      // the global shader keyword to use when rendering the shadowmap
+            public BaseInit         baseInit;           // the base class's initializer
+            public string           shaderKeyword;      // the global shader keyword to use when rendering the shadowmap
+            public Shader           shadowClearShader;
+            public ComputeShader    shadowBlurMoments;
         }
 
         // UI stuff
@@ -110,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public ShadowAtlas( ref AtlasInit init ) : base( ref init.baseInit )
         {
-            m_ClearMat = new Material( Shader.Find( "Hidden/ScriptableRenderPipeline/ShadowClear" ) );
+            m_ClearMat = CoreUtils.CreateEngineMaterial(init.shadowClearShader);
 
             m_Cleanup = (CachedEntry entry) => { Free( entry ); };
             m_Comparator = (ref Key k, ref CachedEntry entry) => { return k.id == entry.key.id && k.faceIdx == entry.key.faceIdx; };
@@ -210,7 +212,9 @@ namespace UnityEngine.Experimental.Rendering
         public void Dispose()
         {
             if( m_Shadowmap != null )
-                m_Shadowmap.Release();            
+                m_Shadowmap.Release();
+
+            CoreUtils.Destroy(m_ClearMat);
         }
 
         override public bool Reserve( FrameId frameId, Camera camera, bool cameraRelativeRendering, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
@@ -370,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering
                     sd.edgeTolerance = asd.edgeTolerance;
                     sd.viewBias   = new Vector4( asd.viewBiasMin, asd.viewBiasMax, asd.viewBiasScale, 2.0f / ce.current.proj.m00 / ce.current.viewport.width * 1.4142135623730950488016887242097f );
                     sd.normalBias = new Vector4( asd.normalBiasMin, asd.normalBiasMax, asd.normalBiasScale, ShadowUtils.Asfloat( flags ) );
-                    
+
                     // write :(
                     ce.current.shadowAlgo = (GPUShadowAlgorithm) shadowAlgo;
                     m_EntryCache[ceIdx] = ce;
@@ -598,8 +602,6 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetViewport( m_EntryCache[i].current.viewport );
                 cbName = "Shadowmap.ClearRect";
                 cmd.BeginSample( cbName );
-                if( m_ClearMat == null )
-                    m_ClearMat = new Material( Shader.Find( "Hidden/ScriptableRenderPipeline/ShadowClear" ) );
                 CoreUtils.DrawFullScreen( cmd, m_ClearMat, null, 0 );
                 cmd.EndSample( cbName );
                 cmd.SetViewProjectionMatrices( m_EntryCache[i].current.view, m_EntryCache[i].current.proj );
@@ -806,7 +808,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Flags |= SystemInfo.usesReversedZBuffer ? Flags.reversed_z : 0;
 
             m_SampleCount  = sampleCount <= 0 ? 1 : (sampleCount > k_MaxSampleCount ? k_MaxSampleCount : sampleCount);
-            m_MomentBlurCS = Resources.Load<ComputeShader>( "ShadowBlurMoments" );
+            m_MomentBlurCS = init.shadowBlurMoments;
 
             if( m_MomentBlurCS )
             {

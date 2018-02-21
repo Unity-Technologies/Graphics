@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return shadowType;
         }
 
-        public ShadowSetup(ShadowInitParameters shadowInit, ShadowSettings shadowSettings, out IShadowManager shadowManager)
+        public ShadowSetup(RenderPipelineResources resources, ShadowInitParameters shadowInit, ShadowSettings shadowSettings, out IShadowManager shadowManager)
         {
             s_ShadowDataBuffer      = new ComputeBuffer( k_MaxShadowDataSlots, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowData ) ) );
             s_ShadowPayloadBuffer   = new ComputeBuffer( k_MaxShadowDataSlots * k_MaxPayloadSlotsPerShadowData, System.Runtime.InteropServices.Marshal.SizeOf( typeof( ShadowPayload ) ) );
@@ -56,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             atlasInit.baseInit.maxPayloadCount = 0;
             atlasInit.baseInit.shadowSupport   = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
             atlasInit.shaderKeyword            = null;
+            atlasInit.shadowClearShader         = resources.shadowClearShader;
+            atlasInit.shadowBlurMoments         = resources.shadowBlurMoments;
 
             var varianceInit = atlasInit;
             varianceInit.baseInit.shadowmapFormat = ShadowVariance.GetFormat( false, false, true );
@@ -416,9 +418,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         List<int>               m_ShadowRequests = new List<int>();
         Dictionary<int, int>    m_ShadowIndices = new Dictionary<int, int>();
 
-        void InitShadowSystem(ShadowInitParameters initParam, ShadowSettings shadowSettings)
+        void InitShadowSystem(HDRenderPipelineAsset hdAsset, ShadowSettings shadowSettings)
         {
-            m_ShadowSetup = new ShadowSetup(initParam, shadowSettings, out m_ShadowMgr);
+            m_ShadowSetup = new ShadowSetup(hdAsset.renderPipelineResources, hdAsset.GetRenderPipelineSettings().shadowInitParams, shadowSettings, out m_ShadowMgr);
         }
 
         void DeinitShadowSystem()
@@ -574,7 +576,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
             s_DefaultTextureCube.Apply();
 
-            InitShadowSystem(hdAsset.GetRenderPipelineSettings().shadowInitParams, shadowSettings);
+            InitShadowSystem(hdAsset, shadowSettings);
         }
 
         public void Cleanup()
