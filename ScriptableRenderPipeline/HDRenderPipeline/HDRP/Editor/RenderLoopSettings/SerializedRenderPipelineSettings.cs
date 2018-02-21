@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportForwardOnly;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportStereo;
+        public SerializedProperty enableUltraQualitySSS;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedShadowInitParameters shadowInitParams;
@@ -35,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering
             supportForwardOnly = root.Find((RenderPipelineSettings s) => s.supportForwardOnly);
             supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportStereo = root.Find((RenderPipelineSettings s) => s.supportStereo);
+            enableUltraQualitySSS = root.Find((RenderPipelineSettings s) => s.enableUltraQualitySSS);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             shadowInitParams = new SerializedShadowInitParameters(root.Find((RenderPipelineSettings s) => s.shadowInitParams));

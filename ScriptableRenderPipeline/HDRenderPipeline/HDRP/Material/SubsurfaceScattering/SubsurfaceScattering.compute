@@ -4,6 +4,9 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+#pragma kernel SubsurfaceScatteringQualityNormal SubsurfaceScattering=SubsurfaceScatteringQualityNormal SSS_ENABLE_NEAR_FIELD=0
+#pragma kernel SubsurfaceScatteringQualityUltra  SubsurfaceScattering=SubsurfaceScatteringQualityUltra  SSS_ENABLE_NEAR_FIELD=1
+
 // #pragma enable_d3d11_debug_symbols
 // TODO: use sharp load hoisting on PS4.
 
@@ -11,7 +14,6 @@
 #define SSS_BILATERAL_FILTER  1
 #define SSS_USE_LDS_CACHE     1
 #define SSS_RANDOM_ROTATION   1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
-#define SSS_ENABLE_NEAR_FIELD 0 // Greatly increases the number of samples. Comes at a high cost.
 #define SSS_USE_TANGENT_PLANE 0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
 #define SSS_CLAMP_ARTIFACT    0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
 #define SSS_DEBUG_LOD         0
@@ -213,8 +215,6 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
     _CameraColorTexture[pixelCoord]    += float4(irradiance, 0);
 #endif
 }
-
-#pragma kernel SubsurfaceScattering
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
 void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
