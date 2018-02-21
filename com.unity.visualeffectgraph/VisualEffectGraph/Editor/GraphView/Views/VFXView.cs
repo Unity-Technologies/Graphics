@@ -395,6 +395,9 @@ namespace UnityEditor.VFX.UI
             m_Blackboard = new VFXBlackboard();
 
             Add(m_Blackboard);
+
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
+            RegisterCallback<DragPerformEvent>(OnDragPerform);
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -1352,6 +1355,28 @@ namespace UnityEditor.VFX.UI
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
 
             return true;
+        }
+
+        void OnDragUpdated(DragUpdatedEvent e)
+        {
+            if (selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                e.StopPropagation();
+            }
+        }
+
+        void OnDragPerform(DragPerformEvent e)
+        {
+            var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
+            if (rows.Length > 0)
+            {
+                Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+                foreach (var row in rows)
+                {
+                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller);
+                }
+            }
         }
     }
 }
