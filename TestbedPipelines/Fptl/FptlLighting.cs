@@ -30,6 +30,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             atlasInit.baseInit.maxPayloadCount        = 0;
             atlasInit.baseInit.shadowSupport          = ShadowmapBase.ShadowSupport.Directional | ShadowmapBase.ShadowSupport.Point | ShadowmapBase.ShadowSupport.Spot;
             atlasInit.shaderKeyword                   = null;
+            atlasInit.shadowClearShader               = Shader.Find("Hidden/ScriptableRenderPipeline/ShadowClear");
 
             m_Shadowmaps = new ShadowmapBase[] { new ShadowAtlas(ref atlasInit) };
 
@@ -247,6 +248,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
 
         private Material m_BlitMaterial;
         private Material m_DebugLightBoundsMaterial;
+        private Material m_CubeToPanoMaterial;
 
         public void Cleanup()
         {
@@ -254,6 +256,7 @@ namespace UnityEngine.Experimental.Rendering.Fptl
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
             if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
+            if (m_CubeToPanoMaterial) DestroyImmediate(m_CubeToPanoMaterial);
 
             m_CookieTexArray.Release();
             m_CubeCookieTexArray.Release();
@@ -356,12 +359,14 @@ namespace UnityEngine.Experimental.Rendering.Fptl
                 buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
             }
 
+            m_CubeToPanoMaterial = new Material(Shader.Find("Hidden/CubeToPano")) { hideFlags = HideFlags.HideAndDontSave };
+
             m_CookieTexArray = new TextureCache2D();
             m_CubeCookieTexArray = new TextureCacheCubemap();
             m_CubeReflTexArray = new TextureCacheCubemap();
             m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-            m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true);
+            m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true, m_CubeToPanoMaterial);
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
