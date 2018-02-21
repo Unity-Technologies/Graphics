@@ -5,6 +5,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
+// TODO: use sharp load hoisting on PS4.
 
 // Tweak parameters.
 #define SSS_BILATERAL_FILTER  1
