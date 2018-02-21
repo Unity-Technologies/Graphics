@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(currentAttribute, Composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
                 if (SampleMode == AttributeMapSampleMode.Sequential) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
                 if (SampleMode == AttributeMapSampleMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                if (SampleMode == AttributeMapSampleMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.Phase, VFXAttributeMode.Read);
+                if (SampleMode == AttributeMapSampleMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
             }
         }
 
@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.Block
                         case AttributeMapSampleMode.Index: samplePos = "index % count"; break;
                         case AttributeMapSampleMode.Sequential: samplePos = "particleId % count"; break;
                         case AttributeMapSampleMode.Random: samplePos = "RAND * count"; break;
-                        case AttributeMapSampleMode.RandomUniformPerParticle: samplePos = "phase * count"; break;
+                        case AttributeMapSampleMode.RandomUniformPerParticle: samplePos = "FIXED_RAND(0x8ef09666) * count"; break; // TODO expose hash
                     }
 
                     output += string.Format(@"

@@ -24,12 +24,12 @@ namespace UnityEditor.VFX
         [MenuItem("VFX Editor/Build VFXCache")]
         public static void Build()
         {
-            var vfxAssets = new List<VFXAsset>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VFXAsset");
+            var vfxAssets = new List<VisualEffectAsset>();
+            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
             foreach (var guid in vfxAssetsGuid)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(assetPath);
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
                 if (vfxAsset != null)
                 {
                     vfxAssets.Add(vfxAsset);
@@ -48,13 +48,13 @@ namespace UnityEditor.VFX
 #endif
 
 
-    public class VFXAssetPostProcessor : AssetPostprocessor
+    public class VisualEffectAssetPostProcessor : AssetPostprocessor
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var path in importedAssets)
             {
-                VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
                 if (asset != null)
                 {
                     asset.GetOrCreateGraph();
@@ -63,14 +63,14 @@ namespace UnityEditor.VFX
         }
     }
 
-    public class VFXAssetModicationProcessor : UnityEditor.AssetModificationProcessor
+    public class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         static string[] OnWillSaveAssets(string[] paths)
         {
-            Profiler.BeginSample("VFXAssetModicationProcessor.OnWillSaveAssets");
+            Profiler.BeginSample("VisualEffectAssetModicationProcessor.OnWillSaveAssets");
             foreach (string path in paths)
             {
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VFXAsset>(path);
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
                 if (vfxAsset != null)
                 {
                     var graph = vfxAsset.GetOrCreateGraph();
@@ -82,9 +82,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    static class VFXAssetExtensions
+    static class VisualEffectAssetExtensions
     {
-        public static VFXGraph GetOrCreateGraph(this VFXAsset asset)
+        public static VFXGraph GetOrCreateGraph(this VisualEffectAsset asset)
         {
             ScriptableObject g = asset.graph;
             if (g == null)
@@ -97,11 +97,11 @@ namespace UnityEditor.VFX
             }
 
             VFXGraph graph = (VFXGraph)g;
-            graph.vfxAsset = asset;
+            graph.visualEffectAsset = asset;
             return graph;
         }
 
-        public static void UpdateSubAssets(this VFXAsset asset)
+        public static void UpdateSubAssets(this VisualEffectAsset asset)
         {
             asset.GetOrCreateGraph().UpdateSubAssets();
         }
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
 
     class VFXGraph : VFXModel
     {
-        public VFXAsset vfxAsset
+        public VisualEffectAsset visualEffectAsset
         {
             get
             {
@@ -244,7 +244,14 @@ namespace UnityEditor.VFX
             var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);
             foreach (var model in objs.OfType<VFXModel>())
-                model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+                try
+                {
+                    model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2}", model.name, model.GetType(), e.StackTrace));
+                }
 
             m_GraphSanitized = true;
         }
@@ -282,7 +289,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(visualEffectAsset));
             }
         }
 
@@ -299,9 +306,9 @@ namespace UnityEditor.VFX
         {
             bool modified = false;
 
-            if (!EditorUtility.IsPersistent(this) && (this.vfxAsset != null && EditorUtility.IsPersistent(this.vfxAsset)))
+            if (!EditorUtility.IsPersistent(this) && (this.visualEffectAsset != null && EditorUtility.IsPersistent(this.visualEffectAsset)))
             {
-                string assetPath = AssetDatabase.GetAssetPath(this.vfxAsset);
+                string assetPath = AssetDatabase.GetAssetPath(this.visualEffectAsset);
                 AssetDatabase.AddObjectToAsset(this, assetPath);
             }
 
@@ -430,11 +437,11 @@ namespace UnityEditor.VFX
 
             if (considerGraphDirty || m_ExpressionValuesDirty)
             {
-                foreach (var component in VFXComponent.GetAllActive())
+                foreach (var component in VisualEffect.GetAllActive())
                 {
-                    if (component.vfxAsset == compiledData.vfxAsset)
+                    if (component.visualEffectAsset == compiledData.visualEffectAsset)
                     {
-                        component.SetVfxAssetDirty(considerGraphDirty);
+                        component.SetVisualEffectAssetDirty(considerGraphDirty);
                     }
                 }
             }
@@ -469,6 +476,6 @@ namespace UnityEditor.VFX
 
         public bool saved { get { return m_saved; } }
 
-        private VFXAsset m_Owner;
+        private VisualEffectAsset m_Owner;
     }
 }

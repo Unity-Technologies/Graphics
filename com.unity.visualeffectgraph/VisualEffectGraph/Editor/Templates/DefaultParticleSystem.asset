@@ -1234,7 +1234,7 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -1242,199 +1242,199 @@ VFXAsset:
   m_Graph: {fileID: 114348003522140610}
   m_Expressions:
     m_Expressions:
-    - op: 0
+    - op: 1
       valueIndex: 0
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 1
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 2
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 3
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 4
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 5
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 6
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 7
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 13
-    - op: 0
+    - op: 1
       valueIndex: 8
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 14
-    - op: 0
+    - op: 1
       valueIndex: 9
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 10
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 32
+    - op: 26
       valueIndex: 11
       data[0]: 1
       data[1]: 0
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 12
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 13
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 14
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 15
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 16
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 17
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 18
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 38
+    - op: 40
       valueIndex: 19
       data[0]: 7
       data[1]: -1
       data[2]: -1
       data[3]: 0
-    - op: 13
+    - op: 6
       valueIndex: 23
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 24
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 25
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
-    - op: 39
+    - op: 41
       valueIndex: 27
       data[0]: 8
       data[1]: -1
       data[2]: -1
       data[3]: 0
-    - op: 2
+    - op: 3
       valueIndex: 28
       data[0]: 4
       data[1]: 5
       data[2]: 6
       data[3]: -1
-    - op: 32
+    - op: 26
       valueIndex: 31
       data[0]: 14
       data[1]: 0
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 32
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 33
       data[0]: 3
       data[1]: 2
       data[2]: 10
       data[3]: -1
-    - op: 2
+    - op: 3
       valueIndex: 36
       data[0]: 16
       data[1]: 17
       data[2]: 18
       data[3]: -1
-    - op: 31
+    - op: 25
       valueIndex: 39
       data[0]: 11
       data[1]: 9
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 40
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 41
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 42
       data[0]: 15
       data[1]: 12
@@ -1653,92 +1653,92 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - index: 1
-      nameId: spawner_output
+    - nameId: spawner_output
+      index: 1
     values: []
     tasks:
     - type: 268435456
       buffers: []
       values:
-      - index: 25
-        nameId: Rate
+      - nameId: Rate
+        index: 25
       params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
     capacity: 65536
     buffers:
-    - index: 0
-      nameId: attributeBuffer
-    - index: 1
-      nameId: sourceAttributeBuffer
-    - index: 2
-      nameId: deadList
-    - index: 3
-      nameId: deadListCount
-    - index: 1
-      nameId: spawner_input
+    - nameId: attributeBuffer
+      index: 0
+    - nameId: sourceAttributeBuffer
+      index: 1
+    - nameId: deadList
+      index: 2
+    - nameId: deadListCount
+      index: 3
+    - nameId: spawner_input
+      index: 1
     values:
-    - index: 32
-      nameId: bounds_center
-    - index: 28
-      nameId: bounds_size
+    - nameId: bounds_center
+      index: 32
+    - nameId: bounds_size
+      index: 28
     tasks:
     - type: 536870912
       buffers:
-      - index: 0
-        nameId: attributeBuffer
-      - index: 2
-        nameId: deadListIn
-      - index: 3
-        nameId: deadListCount
-      - index: 1
-        nameId: sourceAttributeBuffer
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListIn
+        index: 2
+      - nameId: deadListCount
+        index: 3
+      - nameId: sourceAttributeBuffer
+        index: 1
       values:
-      - index: 24
-        nameId: Velocity_b
-      - index: 27
-        nameId: ArcSphere_sphere_center_c
-      - index: 26
-        nameId: ArcSphere_sphere_radius_c
-      - index: 29
-        nameId: ArcSphere_arc_c
-      - index: 30
-        nameId: Min_d
-      - index: 21
-        nameId: Max_d
+      - nameId: Velocity_b
+        index: 24
+      - nameId: ArcSphere_sphere_center_c
+        index: 27
+      - nameId: ArcSphere_sphere_radius_c
+        index: 26
+      - nameId: ArcSphere_arc_c
+        index: 29
+      - nameId: Min_d
+        index: 30
+      - nameId: Max_d
+        index: 21
       params:
-      - index: 32
-        nameId: bounds_center
-      - index: 28
-        nameId: bounds_size
-      processor: {fileID: 7200000, guid: 3d0080bf1b3c07a498a51dd51217050d, type: 3}
+      - nameId: bounds_center
+        index: 32
+      - nameId: bounds_size
+        index: 28
+      processor: {fileID: 7200000, guid: fb1a2a26e20f03044827d96d00bbc80b, type: 3}
     - type: 805306368
       buffers:
-      - index: 0
-        nameId: attributeBuffer
-      - index: 2
-        nameId: deadListOut
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListOut
+        index: 2
       values:
-      - index: 20
-        nameId: deltaTime_b
+      - nameId: deltaTime_b
+        index: 20
       params: []
-      processor: {fileID: 7200000, guid: f76bdf7a8f2455742adb86d28bb68805, type: 3}
+      processor: {fileID: 7200000, guid: c32d61c7cc2b308489a8acd6d91f6508, type: 3}
     - type: 1073741826
       buffers:
-      - index: 0
-        nameId: attributeBuffer
+      - nameId: attributeBuffer
+        index: 0
       values:
-      - index: 19
-        nameId: curve_b
-      - index: 23
-        nameId: gradient_c
-      - index: 22
-        nameId: mainTexture
+      - nameId: curve_b
+        index: 19
+      - nameId: gradient_c
+        index: 23
+      - nameId: mainTexture
+        index: 22
       params:
-      - index: 0
-        nameId: sortPriority
-      processor: {fileID: 4800000, guid: 6268d8e91e8bcca45a77b75a962ad2e4, type: 3}
+      - nameId: sortPriority
+        index: 0
+      processor: {fileID: 4800000, guid: 80cdc3ef499f32748851650c39502033, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1753,3 +1753,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 2

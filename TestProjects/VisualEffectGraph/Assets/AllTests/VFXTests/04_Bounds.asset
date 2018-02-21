@@ -791,7 +791,7 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -799,109 +799,109 @@ VFXAsset:
   m_Graph: {fileID: 114189742656582804}
   m_Expressions:
     m_Expressions:
-    - op: 0
+    - op: 1
       valueIndex: 0
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 1
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 2
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 3
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 4
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 5
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 6
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 7
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 8
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 9
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 10
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 11
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 12
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
-    - op: 13
+    - op: 6
       valueIndex: 14
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 32
+    - op: 26
       valueIndex: 15
       data[0]: 8
       data[1]: 7
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 16
       data[0]: 9
       data[1]: 10
       data[2]: 6
       data[3]: -1
-    - op: 2
+    - op: 3
       valueIndex: 19
       data[0]: 5
       data[1]: 4
       data[2]: 3
       data[3]: -1
-    - op: 2
+    - op: 3
       valueIndex: 22
       data[0]: 2
       data[1]: 1
@@ -1040,80 +1040,80 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - index: 1
-      nameId: spawner_output
+    - nameId: spawner_output
+      index: 1
     values: []
     tasks:
     - type: 268435456
       buffers: []
       values:
-      - index: 14
-        nameId: Rate
+      - nameId: Rate
+        index: 14
       params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
     capacity: 20
     buffers:
-    - index: 0
-      nameId: attributeBuffer
-    - index: 1
-      nameId: sourceAttributeBuffer
-    - index: 2
-      nameId: deadList
-    - index: 3
-      nameId: deadListCount
-    - index: 1
-      nameId: spawner_input
+    - nameId: attributeBuffer
+      index: 0
+    - nameId: sourceAttributeBuffer
+      index: 1
+    - nameId: deadList
+      index: 2
+    - nameId: deadListCount
+      index: 3
+    - nameId: spawner_input
+      index: 1
     values:
-    - index: 15
-      nameId: bounds_center
-    - index: 17
-      nameId: bounds_size
+    - nameId: bounds_center
+      index: 15
+    - nameId: bounds_size
+      index: 17
     tasks:
     - type: 536870912
       buffers:
-      - index: 0
-        nameId: attributeBuffer
-      - index: 2
-        nameId: deadListIn
-      - index: 3
-        nameId: deadListCount
-      - index: 1
-        nameId: sourceAttributeBuffer
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListIn
+        index: 2
+      - nameId: deadListCount
+        index: 3
+      - nameId: sourceAttributeBuffer
+        index: 1
       values:
-      - index: 16
-        nameId: Velocity_b
-      - index: 11
-        nameId: Lifetime_c
+      - nameId: Velocity_b
+        index: 16
+      - nameId: Lifetime_c
+        index: 11
       params:
-      - index: 15
-        nameId: bounds_center
-      - index: 17
-        nameId: bounds_size
-      processor: {fileID: 7200000, guid: fa0569d1725cd39438ffe43d38c62fba, type: 3}
+      - nameId: bounds_center
+        index: 15
+      - nameId: bounds_size
+        index: 17
+      processor: {fileID: 7200000, guid: 02379bec7b06d2845b5db65e8120486e, type: 3}
     - type: 805306368
       buffers:
-      - index: 0
-        nameId: attributeBuffer
-      - index: 2
-        nameId: deadListOut
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListOut
+        index: 2
       values:
-      - index: 13
-        nameId: deltaTime_b
+      - nameId: deltaTime_b
+        index: 13
       params: []
-      processor: {fileID: 7200000, guid: e5a319a8d4c9b8a4a9482288f2cf1b4c, type: 3}
+      processor: {fileID: 7200000, guid: f56d690985471a04fbab7e6a4bf31ab6, type: 3}
     - type: 1073741826
       buffers:
-      - index: 0
-        nameId: attributeBuffer
+      - nameId: attributeBuffer
+        index: 0
       values:
-      - index: 12
-        nameId: mainTexture
+      - nameId: mainTexture
+        index: 12
       params:
-      - index: 0
-        nameId: sortPriority
-      processor: {fileID: 4800000, guid: 37f1ccc4e0fd3e040ba1460fa54d456e, type: 3}
+      - nameId: sortPriority
+        index: 0
+      processor: {fileID: 4800000, guid: f97e1876917032d44aaac7bcc80f3e38, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1128,3 +1128,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
+  m_RuntimeVersion: 2

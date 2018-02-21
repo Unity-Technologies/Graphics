@@ -3492,7 +3492,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114666356760348520}
-  m_expressionOp: 14
+  m_expressionOp: 7
 --- !u!114 &114804482592104900
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4130,7 +4130,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114842515788520476}
-  m_expressionOp: 14
+  m_expressionOp: 7
 --- !u!114 &114958484243509836
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4281,7 +4281,7 @@ MonoBehaviour:
   m_LinkedSlots:
   - {fileID: 114635141660832184}
 --- !u!2058629509 &8926484042661614526
-VFXAsset:
+VisualEffectAsset:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -4289,427 +4289,427 @@ VFXAsset:
   m_Graph: {fileID: 114288032893002184}
   m_Expressions:
     m_Expressions:
-    - op: 0
+    - op: 1
       valueIndex: 0
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 1
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 3
-    - op: 2
+    - op: 3
       valueIndex: 4
       data[0]: 0
       data[1]: 0
       data[2]: 0
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 7
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 14
+    - op: 7
       valueIndex: 8
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 9
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 29
+    - op: 23
       valueIndex: 10
       data[0]: 3
       data[1]: 4
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 11
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 12
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 29
+    - op: 23
       valueIndex: 13
       data[0]: 6
       data[1]: 7
       data[2]: -1
       data[3]: 1
-    - op: 28
+    - op: 22
       valueIndex: 14
       data[0]: 4
       data[1]: 5
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 15
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 18
+    - op: 11
       valueIndex: 16
       data[0]: 9
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 28
+    - op: 22
       valueIndex: 17
       data[0]: 10
       data[1]: 8
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 18
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 32
+    - op: 26
       valueIndex: 19
       data[0]: 13
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 20
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 21
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 3
-    - op: 0
+    - op: 1
       valueIndex: 24
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 25
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 26
       data[0]: 12
       data[1]: 12
       data[2]: 12
       data[3]: -1
-    - op: 31
+    - op: 25
       valueIndex: 29
       data[0]: 15
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 27
+    - op: 21
       valueIndex: 30
       data[0]: 20
       data[1]: 17
       data[2]: -1
       data[3]: 3
-    - op: 2
+    - op: 3
       valueIndex: 33
       data[0]: 19
       data[1]: 19
       data[2]: 19
       data[3]: -1
-    - op: 32
+    - op: 26
       valueIndex: 36
       data[0]: 4
       data[1]: 18
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 37
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 14
-    - op: 27
+    - op: 21
       valueIndex: 38
       data[0]: 22
       data[1]: 23
       data[2]: -1
       data[3]: 3
-    - op: 0
+    - op: 1
       valueIndex: 41
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 42
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 31
+    - op: 25
       valueIndex: 43
       data[0]: 24
       data[1]: 5
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 44
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 13
-    - op: 0
+    - op: 1
       valueIndex: 45
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 37
+    - op: 39
       valueIndex: 46
       data[0]: 25
       data[1]: 21
       data[2]: -1
       data[3]: -1
-    - op: 32
+    - op: 26
       valueIndex: 50
       data[0]: 28
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 51
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 32
+    - op: 26
       valueIndex: 52
       data[0]: 31
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 5
       valueIndex: 53
       data[0]: 26
       data[1]: -1
       data[2]: 2
       data[3]: 3
-    - op: 36
+    - op: 38
       valueIndex: 54
       data[0]: 30
       data[1]: 29
       data[2]: -1
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 55
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 56
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 57
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 58
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 59
       data[0]: 27
       data[1]: 27
       data[2]: 27
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 62
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 5
       valueIndex: 63
       data[0]: 32
       data[1]: -1
       data[2]: 0
       data[3]: 4
-    - op: 0
+    - op: 1
       valueIndex: 64
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 65
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 5
       valueIndex: 66
       data[0]: 26
       data[1]: -1
       data[2]: 1
       data[3]: 3
-    - op: 0
+    - op: 1
       valueIndex: 67
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 68
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 69
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 35
+    - op: 5
       valueIndex: 70
       data[0]: 32
       data[1]: -1
       data[2]: 1
       data[3]: 4
-    - op: 35
+    - op: 5
       valueIndex: 71
       data[0]: 32
       data[1]: -1
       data[2]: 2
       data[3]: 4
-    - op: 0
+    - op: 1
       valueIndex: 72
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 73
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 32
+    - op: 26
       valueIndex: 74
       data[0]: 34
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 75
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 0
+    - op: 1
       valueIndex: 76
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
-    - op: 0
+    - op: 1
       valueIndex: 78
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 31
+    - op: 25
       valueIndex: 79
       data[0]: 35
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 80
       data[0]: 44
       data[1]: 51
       data[2]: 52
       data[3]: -1
-    - op: 32
+    - op: 26
       valueIndex: 83
       data[0]: 43
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 84
       data[0]: 45
       data[1]: 46
       data[2]: 48
       data[3]: -1
-    - op: 2
+    - op: 3
       valueIndex: 87
       data[0]: 37
       data[1]: 50
       data[2]: 53
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 90
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 31
+    - op: 25
       valueIndex: 91
       data[0]: 33
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 32
+    - op: 26
       valueIndex: 92
       data[0]: 41
       data[1]: 14
       data[2]: -1
       data[3]: 1
-    - op: 2
+    - op: 3
       valueIndex: 93
       data[0]: 49
       data[1]: 47
       data[2]: 36
       data[3]: -1
-    - op: 0
+    - op: 1
       valueIndex: 96
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 13
+    - op: 6
       valueIndex: 97
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 2
+    - op: 3
       valueIndex: 98
       data[0]: 39
       data[1]: 40
@@ -4718,10 +4718,10 @@ VFXAsset:
     m_NeedsLocalToWorld: 0
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions:
-  - name: phase_axis
-    expressionIndex: 3
-  - name: position_x
-    expressionIndex: 49
+  - nameId: phase_axis
+    index: 3
+  - nameId: position_x
+    index: 49
   m_PropertySheet:
     m_Float:
       m_Array:
@@ -4962,106 +4962,106 @@ VFXAsset:
     flags: 0
     capacity: 0
     buffers:
-    - index: 1
-      nameId: spawner_output
+    - nameId: spawner_output
+      index: 1
     values: []
     tasks:
     - type: 268435456
       buffers: []
       values:
-      - index: 66
-        nameId: Rate
+      - nameId: Rate
+        index: 66
       params: []
       processor: {fileID: 0}
   - type: 1
     flags: 1
     capacity: 65536
     buffers:
-    - index: 0
-      nameId: attributeBuffer
-    - index: 1
-      nameId: sourceAttributeBuffer
-    - index: 2
-      nameId: deadList
-    - index: 3
-      nameId: deadListCount
-    - index: 1
-      nameId: spawner_input
+    - nameId: attributeBuffer
+      index: 0
+    - nameId: sourceAttributeBuffer
+      index: 1
+    - nameId: deadList
+      index: 2
+    - nameId: deadListCount
+      index: 3
+    - nameId: spawner_input
+      index: 1
     values:
-    - index: 63
-      nameId: bounds_center
-    - index: 62
-      nameId: bounds_size
+    - nameId: bounds_center
+      index: 63
+    - nameId: bounds_size
+      index: 62
     tasks:
     - type: 536870912
       buffers:
-      - index: 0
-        nameId: attributeBuffer
-      - index: 2
-        nameId: deadListIn
-      - index: 3
-        nameId: deadListCount
-      - index: 1
-        nameId: sourceAttributeBuffer
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListIn
+        index: 2
+      - nameId: deadListCount
+        index: 3
+      - nameId: sourceAttributeBuffer
+        index: 1
       values:
-      - index: 54
-        nameId: Lifetime_b
-      - index: 60
-        nameId: Color_c
-      - index: 67
-        nameId: Position_d
-      - index: 64
-        nameId: Speed_e
-      - index: 65
-        nameId: DirectionBlend_e
+      - nameId: Lifetime_b
+        index: 54
+      - nameId: Color_c
+        index: 60
+      - nameId: Position_d
+        index: 67
+      - nameId: Speed_e
+        index: 64
+      - nameId: DirectionBlend_e
+        index: 65
       params:
-      - index: 63
-        nameId: bounds_center
-      - index: 62
-        nameId: bounds_size
-      processor: {fileID: 7200000, guid: 7f9b2cbb0954c994bac300b7dc6ab8b9, type: 3}
+      - nameId: bounds_center
+        index: 63
+      - nameId: bounds_size
+        index: 62
+      processor: {fileID: 7200000, guid: 7dc803a57323fb74f89d66fc0cc12189, type: 3}
     - type: 805306368
       buffers:
-      - index: 0
-        nameId: attributeBuffer
-      - index: 2
-        nameId: deadListOut
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListOut
+        index: 2
       values:
-      - index: 1
-        nameId: uniform_b
-      - index: 2
-        nameId: uniform_c
-      - index: 42
-        nameId: uniform_d
-      - index: 69
-        nameId: deltaTime_b
-      - index: 70
-        nameId: Sphere_center_c
-      - index: 68
-        nameId: Sphere_radius_c
-      - index: 61
-        nameId: Elasticity_c
-      - index: 55
-        nameId: Friction_c
-      - index: 59
-        nameId: LifetimeLoss_c
+      - nameId: uniform_b
+        index: 1
+      - nameId: uniform_c
+        index: 2
+      - nameId: uniform_d
+        index: 42
+      - nameId: deltaTime_b
+        index: 69
+      - nameId: Sphere_center_c
+        index: 70
+      - nameId: Sphere_radius_c
+        index: 68
+      - nameId: Elasticity_c
+        index: 61
+      - nameId: Friction_c
+        index: 55
+      - nameId: LifetimeLoss_c
+        index: 59
       params: []
-      processor: {fileID: 7200000, guid: 73939a5b1c582fe41a4bd179a2a9dbe3, type: 3}
+      processor: {fileID: 7200000, guid: 1446f179d08782c4b90036df4dfe7a34, type: 3}
     - type: 1073741826
       buffers:
-      - index: 0
-        nameId: attributeBuffer
+      - nameId: attributeBuffer
+        index: 0
       values:
-      - index: 58
-        nameId: SizeX_b
-      - index: 56
-        nameId: SizeX_c
-      - index: 57
-        nameId: mainTexture
+      - nameId: SizeX_b
+        index: 58
+      - nameId: SizeX_c
+        index: 56
+      - nameId: mainTexture
+        index: 57
       params:
-      - index: 0
-        nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3bcdff2ca6ba55c4882d30e35e227139, type: 3}
+      - nameId: sortPriority
+        index: 0
+      processor: {fileID: 4800000, guid: 05ccd04d959cc0241b996af755c68ab9, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5076,3 +5076,4 @@ VFXAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 0
+  m_RuntimeVersion: 2

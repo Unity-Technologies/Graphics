@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
 
             var mappings = new List<VFXMapping>();
             foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                mappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                mappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
             var task = new VFXTaskDesc()
             {
@@ -55,14 +55,18 @@ namespace UnityEditor.VFX
             // TODO Factorize that
             var meshExp = mapper.FromNameAndId("mesh", -1);
             var transformExp = mapper.FromNameAndId("transform", -1);
+            var subMaskExp = mapper.FromNameAndId("subMeshMask", -1);
 
             int meshIndex = meshExp != null ? expressionGraph.GetFlattenedIndex(meshExp) : -1;
             int transformIndex = transformExp != null ? expressionGraph.GetFlattenedIndex(transformExp) : -1;
+            int subMaskIndex = subMaskExp != null ? expressionGraph.GetFlattenedIndex(subMaskExp) : -1;
 
             if (meshIndex != -1)
-                mappings.Add(new VFXMapping(meshIndex, "mesh"));
+                mappings.Add(new VFXMapping("mesh", meshIndex));
             if (transformIndex != -1)
-                mappings.Add(new VFXMapping(transformIndex, "transform"));
+                mappings.Add(new VFXMapping("transform", transformIndex));
+            if (subMaskIndex != -1)
+                mappings.Add(new VFXMapping("subMeshMask", subMaskIndex));
 
             outSystemDescs.Add(new VFXSystemDesc()
             {
