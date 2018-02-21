@@ -51,6 +51,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 return queryPath.GetHashCode();
             }
+
+            public void RemoveSelf()
+            {
+                if (parent != null)
+                    parent.children.Remove(this);
+            }
         }
 
         // Any widget that can holds other widgets must implement this interface
