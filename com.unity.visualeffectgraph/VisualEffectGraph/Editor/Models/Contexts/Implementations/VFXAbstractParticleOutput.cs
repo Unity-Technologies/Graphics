@@ -9,8 +9,6 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleOutput : VFXContext
     {
-        private readonly static bool HDRP = false;
-
         public enum BlendMode
         {
             Additive,

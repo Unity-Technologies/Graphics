@@ -919,7 +919,7 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation ReinitComponents()
         {
-            foreach (var component in VisualEffect.GetAllActive())
+            foreach (var component in VFXManager.GetComponents())
                 component.Reinit();
             return EventPropagation.Stop;
         }
