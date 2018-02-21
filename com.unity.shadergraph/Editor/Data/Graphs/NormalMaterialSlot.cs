@@ -1,7 +1,6 @@
 using System;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -18,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new BoundInputVectorControlView(space + " Space");
+            return new LabelSlotControlView(space + " Space");
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)

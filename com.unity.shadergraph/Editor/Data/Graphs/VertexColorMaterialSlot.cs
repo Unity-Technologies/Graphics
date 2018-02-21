@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new BoundInputVectorControlView("Vertex Color");
+            return new LabelSlotControlView("Vertex Color");
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)
