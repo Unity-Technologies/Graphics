@@ -18,7 +18,8 @@
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
-#define LIGHTCATEGORY_COUNT (3)
+#define LIGHTCATEGORY_DECAL (3)
+#define LIGHTCATEGORY_COUNT (4)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.LightFeatureFlags:  static fields
