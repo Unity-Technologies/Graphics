@@ -1705,11 +1705,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
+                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count;
+                Debug.Assert(m_lightList.bounds.Count == m_lightCount);
+                Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
+
                 m_lightList.bounds.AddRange(DecalSystem.m_Bounds);
                 m_lightList.lightVolumes.AddRange(DecalSystem.m_LightVolumes);
-                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + DecalSystem.m_DecalDatasCount;
-                //Debug.Assert(m_lightList.bounds.Count == m_lightCount);
-                //Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
+                m_lightCount += DecalSystem.m_DecalDatasCount;
 
                 UpdateDataBuffers();
 
