@@ -17,7 +17,7 @@ void GetSurfaceData(float2 texCoordDS, float4x4 decalToWorld, out DecalSurfaceDa
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #endif
 #if _NORMALMAP
-	surfaceData.normalWS.xyz = mul((float3x3)decalToWorld, DECAL_UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoordDS))) * 0.5f + 0.5f;
+	surfaceData.normalWS.xyz = mul((float3x3)decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoordDS))) * 0.5f + 0.5f;
 	surfaceData.normalWS.w = totalBlend;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
 #endif
