@@ -425,16 +425,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DrawBakedShadowParameters();
 
             // There is currently no additional settings for shadow on directional light
-            if (m_AdditionalLightData.showAdditionalSettings.boolValue && settings.lightType.enumValueIndex != (int)LightType.Directional)
+            if (m_AdditionalLightData.showAdditionalSettings.boolValue)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
 
-                if (settings.lightType.enumValueIndex == (int)LightType.Point || settings.lightType.enumValueIndex == (int)LightType.Spot)
+                if (settings.lightType.enumValueIndex != (int)LightType.Directional)
+                {
                     EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
-
-                EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
+                }
 
                 EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasMin, 0.0f, 5.0f, s_Styles.viewBiasMin);
                 //EditorGUILayout.PropertyField(m_AdditionalShadowData.viewBiasMax, s_Styles.viewBiasMax);
@@ -449,8 +450,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 //EditorGUILayout.PropertyField(m_AdditionalShadowData.normalBiasScale, s_Styles.normalBiasScale);
                 //EditorGUILayout.PropertyField(m_AdditionalShadowData.sampleBiasScale, s_Styles.sampleBiasScale);
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.edgeLeakFixup, s_Styles.edgeLeakFixup);
-                //EditorGUILayout.PropertyField(m_AdditionalShadowData.edgeToleranceNormal, s_Styles.edgeToleranceNormal);
-                //EditorGUILayout.PropertyField(m_AdditionalShadowData.edgeTolerance, s_Styles.edgeTolerance);
+                if (m_AdditionalShadowData.edgeLeakFixup.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.edgeToleranceNormal, s_Styles.edgeToleranceNormal);
+                    EditorGUILayout.Slider(m_AdditionalShadowData.edgeTolerance, 0.0f, 1.0f, s_Styles.edgeTolerance);
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUI.indentLevel--;
             }
         }
