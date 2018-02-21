@@ -259,6 +259,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxEnvLightsOnScreen = 64;
         public const int k_MaxShadowOnScreen = 16;
         public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
+        public const int k_MaxStereoEyes = 2;
         static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
@@ -499,9 +500,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
-            s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnScreen, 3 * sizeof(float));
-            s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-            s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+            // The bounds and light volumes are view-dependent, and AABB is additionally projection dependent.
+            // The view and proj matrices are per eye in stereo. This means we have to double the size of these buffers.
+            // TODO: Maybe in stereo, we will only support half as many lights total, in order to minimize buffer size waste.
+            // Alternatively, we could re-size these buffers if any stereo camera is active, instead of unilaterally increasing buffer size.
+            s_AABBBoundsBuffer = new ComputeBuffer(k_MaxStereoEyes * 2 * k_MaxLightsOnScreen, 3 * sizeof(float));
+            s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxStereoEyes* k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
+            s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxStereoEyes* k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
             s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.s_NumFeatureVariants * 3, sizeof(uint), ComputeBufferType.IndirectArguments);
 
             // Cluster
@@ -1887,20 +1892,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                //var projh = temp * proj;
-                var projh = temp * projArr[0];
-                var invProjh = projh.inverse;
 
-                // TODO: Array these
+                var projhArr = new Matrix4x4[2];
+                var invProjhArr = new Matrix4x4[2];
+                if (m_FrameSettings.enableStereo)
+                {
+                    for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+                    {
+                        projhArr[eyeIndex] = temp * projArr[eyeIndex];
+                        invProjhArr[eyeIndex] = projhArr[eyeIndex].inverse;
+                    }
+                }
+                else
+                {
+                    projhArr[0] = temp * projArr[0];
+                    invProjhArr[0] = projhArr[0].inverse;
+                }
 
                 cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
+
+                // In the stereo case, we have two sets of light bounds to iterate over (bounds are in per-eye view space)
                 cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                cmd.SetComputeMatrixParam(buildScreenAABBShader, HDShaderIDs.g_mProjection, projh);
-                cmd.SetComputeMatrixParam(buildScreenAABBShader, HDShaderIDs.g_mInvProjection, invProjh);
+                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mProjectionArr, projhArr);
+                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mInvProjectionArr, invProjhArr);
+
+                // In stereo, we output two sets of AABB bounds
                 cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-                cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (m_lightCount + 7) / 8, 1, 1);
+
+                // double the thread groups for stereo
+                int tgY = m_FrameSettings.enableStereo ? 2 : 1;
+                cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (m_lightCount + 7) / 8, tgY, 1);
             }
 
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
