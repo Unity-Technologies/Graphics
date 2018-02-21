@@ -1,16 +1,10 @@
 using System;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     public class LightLoopSettings
     {
-        public static string kEnableFptlForForwardOpaque = "Enable Fptl for Forward Opaque";
-        public static string kEnableTileCluster = "Enable Tile/Cluster";
-        public static string kEnableBigTile = "Enable Big Tile";
-        public static string kEnableComputeLighting = "Enable Compute Lighting";
-        public static string kEnableLightclassification = "Enable Light Classification";
-        public static string kEnableMaterialClassification = "Enable Material Classification";
-
         // Setup by the users
         public bool enableTileAndCluster = true;
         public bool enableComputeLightEvaluation = true;
@@ -23,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Setup by system
         public bool isFptlEnabled = true;
+
+        static DebugUI.Widget[] s_DebugEntries;
 
         public void CopyTo(LightLoopSettings lightLoopSettings)
         {
@@ -64,23 +60,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
         }
 
-        static public void RegisterDebug(String menuName, LightLoopSettings lightLoopSettings)
+        public static void RegisterDebug(string menuName, LightLoopSettings lightLoopSettings)
         {
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableFptlForForwardOpaque, () => lightLoopSettings.enableFptlForForwardOpaque, (value) => lightLoopSettings.enableFptlForForwardOpaque = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTileCluster, () => lightLoopSettings.enableTileAndCluster, (value) => lightLoopSettings.enableTileAndCluster = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableBigTile, () => lightLoopSettings.enableBigTilePrepass, (value) => lightLoopSettings.enableBigTilePrepass = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableComputeLighting, () => lightLoopSettings.enableComputeLightEvaluation, (value) => lightLoopSettings.enableComputeLightEvaluation = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableLightclassification, () => lightLoopSettings.enableComputeLightVariants, (value) => lightLoopSettings.enableComputeLightVariants = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableMaterialClassification, () => lightLoopSettings.enableComputeMaterialVariants, (value) => lightLoopSettings.enableComputeMaterialVariants = (bool)value);
+            s_DebugEntries = new DebugUI.Widget[]
+            {
+                new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => lightLoopSettings.enableFptlForForwardOpaque, setter = value => lightLoopSettings.enableFptlForForwardOpaque = value },
+                new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => lightLoopSettings.enableTileAndCluster, setter = value => lightLoopSettings.enableTileAndCluster = value },
+                new DebugUI.BoolField { displayName = "Enable Big Tile", getter = () => lightLoopSettings.enableBigTilePrepass, setter = value => lightLoopSettings.enableBigTilePrepass = value },
+                new DebugUI.BoolField { displayName = "Enable Compute Lighting", getter = () => lightLoopSettings.enableComputeLightEvaluation, setter = value => lightLoopSettings.enableComputeLightEvaluation = value },
+                new DebugUI.BoolField { displayName = "Enable Light Classification", getter = () => lightLoopSettings.enableComputeLightVariants, setter = value => lightLoopSettings.enableComputeLightVariants = value },
+                new DebugUI.BoolField { displayName = "Enable Material Classification", getter = () => lightLoopSettings.enableComputeMaterialVariants, setter = value => lightLoopSettings.enableComputeMaterialVariants = value }
+            };
+
+            var panel = DebugManager.instance.GetPanel(menuName, true);
+            panel.children.Add(s_DebugEntries);
         }
 
-        static public void UnRegisterDebug(String menuName)
+        public static void UnRegisterDebug(string menuName)
         {
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTileCluster);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableBigTile);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableComputeLighting);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableLightclassification);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableMaterialClassification);
+            var panel = DebugManager.instance.GetPanel(menuName);
+
+            if (panel != null)
+                panel.children.Remove(s_DebugEntries);
         }
     }
 }
