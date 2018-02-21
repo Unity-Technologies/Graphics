@@ -389,6 +389,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             base.Dispose();
 
+            m_DebugDisplaySettings.UnregisterDebug();
+
             m_LightLoop.Cleanup();
 
             // For debugging
