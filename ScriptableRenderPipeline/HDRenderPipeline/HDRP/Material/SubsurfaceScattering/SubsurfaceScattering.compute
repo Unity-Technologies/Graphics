@@ -133,15 +133,25 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 #if SSS_USE_TANGENT_PLANE
     // Both 'xy2' and 'z' require conversion to millimeters.
     float r = sqrt(xy2 + z * z) * mmPerUnit;
+    float p = sqrt(xy2) * mmPerUnit;
 #else
     // Only 'z' requires conversion to millimeters.
     float r = sqrt(xy2 + (z * mmPerUnit) * (z * mmPerUnit));
+    float p = sqrt(xy2);
+#endif
+
+    float area = rcpPdf;
+
+#if 0
+    // Boost the area associated with the sample by the ratio between the sample-center distance
+    // and its orthogonal projection onto the integration plane (disk).
+    area *= r / p;
 #endif
 
 #if SSS_CLAMP_ARTIFACT
-    return saturate(DisneyProfilePolar(r, S) * rcpPdf);
+    return saturate(DisneyProfilePolar(r, S) * area);
 #else
-    return DisneyProfilePolar(r, S) * rcpPdf;
+    return DisneyProfilePolar(r, S) * area;
 #endif
 }
 
