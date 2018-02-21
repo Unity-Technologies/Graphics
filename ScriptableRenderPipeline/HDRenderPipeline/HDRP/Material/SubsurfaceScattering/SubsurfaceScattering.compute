@@ -217,18 +217,13 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 #pragma kernel SubsurfaceScattering
 
 [numthreads(GROUP_SIZE_2D, 1, 1)]
-void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
-                          uint  groupThreadId    : SV_GroupThreadID)
+void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
+                          uint  groupThreadId : SV_GroupThreadID)
 {
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;
     uint quadIndex = laneIndex / 4;
-
-    // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
-    // Therefore, we need to reorder. TODO: macrotile order.
-    uint2 groupQuad = DeinterleaveQuad(reorderedGroupId.x);
-    uint2 groupId   = uint2(reorderedGroupId.y * 2 + groupQuad.x, reorderedGroupId.z * 2 + groupQuad.y);
 
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
     uint2 groupCoord  = DecodeMorton2D(groupThreadId);
