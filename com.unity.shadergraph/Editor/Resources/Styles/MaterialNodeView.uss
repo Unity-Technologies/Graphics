@@ -134,7 +134,10 @@ MaterialNodeView  > #node-border > #title > #button-container > #settings-button
 }
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button.clicked{
-	/*background-color: #2B2B2B;*/
+    background-color: #2B2B2B;
+    background-image : resource("Icons/SettingsIcons_hover");
+    width : 12;
+	height : 12;
 }
 
 MaterialNodeView  > #node-border > #title > #button-container > #settings-button > #icon{

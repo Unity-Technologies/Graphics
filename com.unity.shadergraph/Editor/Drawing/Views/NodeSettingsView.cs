@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public NodeSettingsView()
         {
+            pickingMode = PickingMode.Ignore;
             AddStyleSheetPath("Styles/NodeSettings");
             var uxml = Resources.Load<VisualTreeAsset>("UXML/NodeSettings");
             uxml.CloneTree(this, null);
