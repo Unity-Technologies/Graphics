@@ -20,12 +20,6 @@ namespace UnityEditor.VFX
             public Texture2D mainTexture;
         }
 
-        public class InputPropertiesFlipbook
-        {
-            public Texture2D mainTexture;
-            public Vector2 flipBookSize = new Vector2(5, 5);
-        }
-
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))

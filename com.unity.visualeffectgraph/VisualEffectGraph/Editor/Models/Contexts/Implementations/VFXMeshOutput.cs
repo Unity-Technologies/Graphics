@@ -72,18 +72,6 @@ namespace UnityEditor.VFX
             public uint subMeshMask = 0xffffffff;
         }
 
-        public class InputPropertiesFlipbook
-        {
-            [Tooltip("Texture to be applied to the mesh.")]
-            public Texture2D mainTexture;
-            [Tooltip("Mesh to be used for particle rendering.")]
-            public Mesh mesh;
-            [Tooltip("Define a bitmask to control which submeshes are rendered.")]
-            public uint subMeshMask = 0xffffffff;
-            [Tooltip("Specify the number of frames in the flipbook texture.")]
-            public Vector2 flipBookSize = new Vector2(5, 5);
-        }
-
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var mapper = base.GetExpressionMapper(target);
