@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.UI;
 
 namespace UnityEngine.Experimental.Rendering.UI
@@ -42,6 +43,10 @@ namespace UnityEngine.Experimental.Rendering.UI
         void ChangeValue(bool fast, int multiplier)
         {
             long value = m_Field.GetValue();
+
+            if (value == 0 && multiplier < 0)
+                return;
+
             value += m_Field.incStep * (fast ? m_Field.intStepMult : 1) * multiplier;
             m_Field.SetValue((uint)value);
             UpdateValueLabel();
