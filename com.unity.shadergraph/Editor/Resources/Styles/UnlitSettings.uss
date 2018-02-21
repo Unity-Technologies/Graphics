@@ -4,7 +4,6 @@ UnlitSettingsView > #container{
 	padding-left: 4;
 	padding-right: 4;
 	padding-bottom: 4;
-	background-color: rgba(0, 0, 0, 0.7);
 }
 
 UnlitSettingsView > #container > .row {
