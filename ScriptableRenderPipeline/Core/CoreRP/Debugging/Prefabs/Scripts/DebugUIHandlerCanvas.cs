@@ -188,9 +188,10 @@ namespace UnityEngine.Experimental.Rendering.UI
             }
             else
             {
-                m_CurrentQueryPath = m_SelectedWidget != null
-                    ? m_SelectedWidget.GetWidget().queryPath
-                    : string.Empty;
+                if (m_SelectedWidget == null || m_SelectedWidget.GetWidget() == null)
+                    m_CurrentQueryPath = string.Empty;
+                else
+                    m_CurrentQueryPath = m_SelectedWidget.GetWidget().queryPath;
             }
         }
 
