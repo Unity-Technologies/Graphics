@@ -251,8 +251,9 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 		private Material m_ReflectionNearAndFarClipMaterial;
 
 		private Material m_BlitMaterial;
+        private Material m_CubeToPanoMaterial;
 
-		protected override void OnValidate()
+        protected override void OnValidate()
 		{
             base.OnValidate();
             Build();
@@ -260,7 +261,8 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 
 		public void Cleanup()
 		{
-			if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
+            if (m_CubeToPanoMaterial) DestroyImmediate(m_CubeToPanoMaterial);
+            if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
 			if (m_DirectionalDeferredLightingMaterial) DestroyImmediate(m_DirectionalDeferredLightingMaterial);
 			if (m_FiniteDeferredLightingMaterial) DestroyImmediate(m_FiniteDeferredLightingMaterial);
 			if (m_FiniteNearDeferredLightingMaterial) DestroyImmediate(m_FiniteNearDeferredLightingMaterial);
@@ -356,12 +358,14 @@ namespace UnityEngine.Experimental.Rendering.OnTileDeferredRenderPipeline
 			m_ReflectionNearAndFarClipMaterial.SetInt("_CullMode", (int)CullMode.Off);
 			m_ReflectionNearAndFarClipMaterial.SetInt("_CompareFunc", (int)CompareFunction.Always);
 
-			m_CookieTexArray = new TextureCache2D();
+            m_CubeToPanoMaterial = new Material(Shader.Find("Hidden/CubeToPano")) { hideFlags = HideFlags.HideAndDontSave };
+
+            m_CookieTexArray = new TextureCache2D();
 			m_CubeCookieTexArray = new TextureCacheCubemap();
 			m_CubeReflTexArray = new TextureCacheCubemap();
 			m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-			m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-			m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true);
+			m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+			m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureCache.GetPreferredHDRCompressedTextureFormat, true, m_CubeToPanoMaterial);
 
 			s_LightDataBuffer = new ComputeBuffer(k_MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
 

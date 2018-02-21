@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader debugViewTilesShader;
         public Shader debugFullScreenShader;
         public Shader debugColorPickerShader;
+        public Shader debugShadowMapShader;
 
         // Lighting resources
         public Shader deferredShader;
@@ -53,7 +54,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Shader skyboxCubemap;
 
-        // Utilities
+        // Utilities / Core
         public ComputeShader encodeBC6HCS;
+        public Shader cubeToPanoShader;
+        public Shader blitCubeTextureFace;
     }
 }

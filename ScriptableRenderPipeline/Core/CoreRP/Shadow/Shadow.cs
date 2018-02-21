@@ -32,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering
         protected          Vector4[]                  m_TmpSplits  = new Vector4[k_MaxCascadesInShader];
         protected          float[]                    m_TmpBorders = new float[((k_MaxCascadesInShader+3)/4)*4];
         protected          ShadowAlgoVector           m_SupportedAlgorithms = new ShadowAlgoVector( 0, false );
-        protected          Material                   m_DebugMaterial = null;
         private            Material                   m_ClearMat;
         private   readonly VectorArray<CachedEntry>.Cleanup         m_Cleanup;
         private   readonly VectorArray<CachedEntry>.Comparator<Key> m_Comparator;
@@ -195,7 +194,6 @@ namespace UnityEngine.Experimental.Rendering
         public void Initialize( AtlasInit init )
         {
             m_ShaderKeyword = init.shaderKeyword;
-            m_DebugMaterial = new Material(Shader.Find("Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap")) { hideFlags = HideFlags.HideAndDontSave };
         }
 
         override public void ReserveSlots( ShadowContextStorage sc )
@@ -212,9 +210,7 @@ namespace UnityEngine.Experimental.Rendering
         public void Dispose()
         {
             if( m_Shadowmap != null )
-                m_Shadowmap.Release();
-
-            Object.DestroyImmediate(m_DebugMaterial);
+                m_Shadowmap.Release();            
         }
 
         override public bool Reserve( FrameId frameId, Camera camera, bool cameraRelativeRendering, ref ShadowData shadowData, ShadowRequest sr, uint width, uint height, ref VectorArray<ShadowData> entries, ref VectorArray<ShadowPayload> payload, List<VisibleLight> lights)
@@ -732,7 +728,7 @@ namespace UnityEngine.Experimental.Rendering
             m_EntryPool.Add( ce );
         }
 
-        override public void DisplayShadowMap(CommandBuffer debugCB, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        override public void DisplayShadowMap(CommandBuffer debugCB, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
@@ -742,7 +738,7 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             propertyBlock.SetVector("_ValidRange", validRange);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
-            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
+            debugCB.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
     }
 
@@ -1182,7 +1178,7 @@ namespace UnityEngine.Experimental.Rendering
            cb.EndSample("VSM conversion");
         }
 
-        override public void DisplayShadowMap(CommandBuffer debugCB, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        override public void DisplayShadowMap(CommandBuffer debugCB, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
@@ -1192,7 +1188,7 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             propertyBlock.SetVector("_ValidRange", validRange);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
-            debugCB.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, m_DebugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
+            debugCB.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
     }
 // -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1523,7 +1519,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public override void DisplayShadow(CommandBuffer cmd, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public override void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (m_ShadowIndices.Count() == 0)
                 return;
@@ -1534,16 +1530,16 @@ namespace UnityEngine.Experimental.Rendering
             ShadowData faceData = shadowDatas[(uint)(m_ShadowIndices[index] + offset + faceIndex)];
             uint texID, samplerID;
             faceData.UnpackShadowmapId(out texID, out samplerID);
-            m_Shadowmaps[texID].DisplayShadowMap(cmd, faceData.scaleOffset, (uint) faceData.slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            m_Shadowmaps[texID].DisplayShadowMap(cmd, debugMaterial, faceData.scaleOffset, (uint) faceData.slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
-        public override void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public override void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if(m_Shadowmaps.Length == 0)
                 return;
 
             uint index = Math.Max(0, Math.Min((uint)(m_Shadowmaps.Length - 1), shadowMapIndex));
-            m_Shadowmaps[index].DisplayShadowMap(cmd, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            m_Shadowmaps[index].DisplayShadowMap(cmd, debugMaterial, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         public override void SyncData()
