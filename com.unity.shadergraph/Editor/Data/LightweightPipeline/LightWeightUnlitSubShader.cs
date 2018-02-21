@@ -206,8 +206,11 @@ namespace UnityEditor.ShaderGraph
 
             var extraPassesTemplateLocation = ShaderGenerator.GetTemplatePath("lightweightUnlitExtraPasses.template");
             if (File.Exists(extraPassesTemplateLocation))
-                subShader.AddShaderChunk(File.ReadAllText(extraPassesTemplateLocation), true);
-
+            {
+                var extraPassesTemplate = File.ReadAllText(extraPassesTemplateLocation);
+                extraPassesTemplate = extraPassesTemplate.Replace("${Culling}", materialOptions.cullMode.ToString());
+                subShader.AddShaderChunk(extraPassesTemplate, true);
+            }
 
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
