@@ -407,7 +407,7 @@ namespace UnityEditor.VFX
 
             if (attributeBufferIndex != -1)
             {
-                systemBufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+                systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
             if (m_ownAttributeSourceBuffer && m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
@@ -439,16 +439,16 @@ namespace UnityEditor.VFX
 
                 deadListBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
-                systemBufferMappings.Add(new VFXMapping(deadListBufferIndex, "deadList"));
+                systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
 
                 deadListCountIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
-                systemBufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
+                systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
             }
 
             var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
+                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => nnew VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[owners.First()].cpuMapper;
@@ -461,8 +461,8 @@ namespace UnityEditor.VFX
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
-                    systemValueMappings.Add(new VFXMapping(boundsCenterIndex, "bounds_center"));
-                    systemValueMappings.Add(new VFXMapping(boundsSizeIndex, "bounds_size"));
+                    systemValueMappings.Add(new VFXMapping("bounds_center", boundsCenterIndex));
+                    systemValueMappings.Add(new VFXMapping("bounds_size", boundsSizeIndex));
                 }
             }
 
@@ -473,7 +473,7 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.kVFXSystemHasIndirectBuffer;
                 indirectBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
-                systemBufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
+                systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
             }
 
             var taskDescs = new List<VFXTaskDesc>();
@@ -492,23 +492,23 @@ namespace UnityEditor.VFX
                 bufferMappings.Clear();
 
                 if (attributeBufferIndex != -1)
-                    bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+                    bufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
                 if (eventGPUFrom != -1 && context.contextType == VFXContextType.kInit)
                     bufferMappings.Add(new VFXMapping(eventGPUFrom, "eventList"));
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
-                    bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+                    bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn", deadListBufferIndex));
 
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
+                    bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                    bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
 
                 if (indirectBufferIndex != -1 &&
                     (context.contextType == VFXContextType.kUpdate ||
                      (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
                 {
-                    bufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
+                    bufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
                 }
 
                 var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
@@ -522,10 +522,10 @@ namespace UnityEditor.VFX
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                    uniformMappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                    uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
                 // Retrieve all cpu mappings at context level (-1)
-                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(expressionGraph.GetFlattenedIndex(exp.exp), exp.name));
+                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp)));
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
