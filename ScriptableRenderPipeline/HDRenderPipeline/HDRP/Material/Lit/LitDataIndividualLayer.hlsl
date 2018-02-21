@@ -320,10 +320,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #if HAS_REFRACTION
-    surfaceData.ior = _IOR;
+    surfaceData.ior = _Ior;
     surfaceData.transmittanceColor = _TransmittanceColor;
     #ifdef _TRANSMITTANCECOLORMAP
-    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_TransmittanceColorMap), ADD_ZERO_IDX(sampler_TransmittanceColorMap), ADD_IDX(layerTexCoord.base)).rgb;
+    surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(_TransmittanceColorMap, sampler_TransmittanceColorMap, ADD_IDX(layerTexCoord.base)).rgb;
     #endif
 
     surfaceData.atDistance = _ATDistance;
@@ -347,8 +347,19 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.coatMask = 0.0;
 #endif
 
-
-    surfaceData.thicknessIrid = 0.0;
+#ifdef _MATERIAL_FEATURE_IRIDESCENCE
+    #ifdef _IRIDESCENCE_THICKNESSMAP
+    surfaceData.iridescenceThickness = SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceThicknessMap, sampler_IridescenceThicknessMap, layerTexCoord.base).r;
+    surfaceData.iridescenceThickness = _IridescenceThicknessRemap.x + _IridescenceThicknessRemap.y * surfaceData.iridescenceThickness;
+    #else
+    surfaceData.iridescenceThickness = _IridescenceThickness;
+    #endif
+    surfaceData.iridescenceMask = _IridescenceMask;
+    surfaceData.iridescenceMask *= SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceMaskMap, sampler_IridescenceMaskMap, layerTexCoord.base).r;
+#else
+    surfaceData.iridescenceThickness = 0.0;
+    surfaceData.iridescenceMask = 0.0;
+#endif
 
 #else // #if !defined(LAYERED_LIT_SHADER)
 
@@ -362,7 +373,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = float3(0.0, 0.0, 0.0);
     surfaceData.anisotropy = 0.0;
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-    surfaceData.thicknessIrid = 0.0;
+    surfaceData.iridescenceThickness = 0.0;
+    surfaceData.iridescenceMask = 0.0;
     surfaceData.coatMask = 0.0;
 
     // Transparency

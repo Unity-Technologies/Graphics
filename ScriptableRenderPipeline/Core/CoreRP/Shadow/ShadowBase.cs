@@ -398,32 +398,35 @@ namespace UnityEngine.Experimental.Rendering
     public struct ShadowData
     {
         // shadow texture related params (need to be set by ShadowmapBase and derivatives)
-        public Matrix4x4     worldToShadow;  // to light space matrix
-        public Matrix4x4     shadowToWorld;  // from light space matrix
+        public Vector4       proj;           // projection matrix value _00, _11, _22, _23
+        public Vector3       pos;            // view matrix light position
+        public Vector3       rot0;           // first column of view matrix rotation
+        public Vector3       rot1;           // second column of view matrix rotation
+        public Vector3       rot2;           // third column of view matrix rotation
         public Vector4       scaleOffset;    // scale and offset of shadowmap in atlas
         public Vector4       textureSize;    // the shadowmap's size in x and y. xy is texture relative, zw is viewport relative.
         public Vector4       texelSizeRcp;   // reciprocal of the shadowmap's texel size in x and y. xy is texture relative, zw is viewport relative.
         public uint          id;             // packed texture id, sampler id and slice idx
         public uint          shadowType;     // determines the shadow algorithm, i.e. which map to sample and how to interpret the data
         public uint          payloadOffset;  // if this shadow type requires additional data it can be fetched from a global Buffer<uint> at payloadOffset.
+        public float         slice;          // shadowmap slice
+        public Vector4       viewBias;       // x = min, y = max, z = scale, w = shadowmap texel size in world space at distance 1 from light
+        public Vector4       normalBias;     // x = min, y = max, z = scale, w = enable/disable sample biasing
+        public float         edgeTolerance;  // specifies the offset along either the normal or view vector used for calculating the edge leak fixup
+        public Vector3       _pad;           // 16 byte padding
+        public Matrix4x4     shadowToWorld;  // from light space matrix
 
-        // light related params (need to be set via ShadowMgr and derivatives)
-        public float        bias;           // bias setting
-        public float        normalBias;     // bias based on the normal
-
-        public void PackShadowmapId( uint texIdx, uint sampIdx, uint slice )
+        public void PackShadowmapId( uint texIdx, uint sampIdx )
         {
             Debug.Assert( texIdx  <= 0xff   );
             Debug.Assert( sampIdx <= 0xff   );
-            Debug.Assert( slice   <= 0xffff );
-            id = texIdx << 24 | sampIdx << 16 | slice;
+            id = texIdx << 24 | sampIdx << 16;
         }
 
-        public void UnpackShadowmapId(out uint texIdx, out uint sampIdx, out uint slice)
+        public void UnpackShadowmapId( out uint texIdx, out uint sampIdx )
         {
             texIdx = (id >> 24) & 0xff;
             sampIdx = (id >> 16) & 0xff;
-            slice = (id & 0xffff);
         }
 
         public void PackShadowType( GPUShadowType type, GPUShadowAlgorithm algorithm )
@@ -764,7 +767,7 @@ namespace UnityEngine.Experimental.Rendering
         abstract public void Fill( ShadowContextStorage cs );
         abstract public void CreateShadowmap();
         abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
-        abstract public void DisplayShadowMap(CommandBuffer cmd, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        abstract public void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
     }
 
     public interface IShadowManager
@@ -782,8 +785,8 @@ namespace UnityEngine.Experimental.Rendering
         // Renders all shadows for lights the were deemed shadow casters after the last call to ProcessShadowRequests
         void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
         // Debug function to display a shadow at the screen coordinate
-        void DisplayShadow(CommandBuffer cmd, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
-        void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
@@ -805,8 +808,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         public  abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
-        public  abstract void DisplayShadow(CommandBuffer cmd, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
-        public  abstract void DisplayShadowMap(CommandBuffer cmd, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        public  abstract void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        public  abstract void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
         public  abstract void SyncData();
         public  abstract void BindResources( CommandBuffer cmd, ComputeShader computeShader, int computeKernel);
         public  abstract void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );

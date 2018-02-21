@@ -74,13 +74,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
-            // Lightweight combines light classification and shadows keywords to reduce shader variants.
-            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
-            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
-            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
-            #pragma multi_compile _ _MAIN_LIGHT_DIRECTIONAL_SHADOW _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE _MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT _MAIN_LIGHT_SPOT_SHADOW _MAIN_LIGHT_SPOT_SHADOW_SOFT
-            #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
@@ -88,17 +81,12 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-
-            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
-            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
-            #ifdef DIRLIGHTMAP_COMBINED
-            #define LIGHTMAP_ON
-            #endif
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimple
@@ -110,19 +98,28 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
         {
             Tags{"Lightmode" = "ShadowCaster"}
 
-            ZWrite On ZTest LEqual
+            ZWrite On
+            ZTest LEqual
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma target 2.0
+            
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
             #pragma vertex ShadowPassVertex
-            #pragma fragment ShadowPassFragment
+            #pragma fragment LitPassFragmentSimpleNull
 
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
@@ -139,20 +136,23 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma target 2.0
-            #pragma vertex vert
-            #pragma fragment frag
 
-            #include "LWRP/ShaderLibrary/Core.hlsl"
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION
 
-            float4 vert(float4 pos : POSITION) : SV_POSITION
-            {
-                return TransformObjectToHClip(pos.xyz);
-            }
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
-            half4 frag() : SV_TARGET
-            {
-                return 0;
-            }
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragmentSimpleNull
+        
+            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
 

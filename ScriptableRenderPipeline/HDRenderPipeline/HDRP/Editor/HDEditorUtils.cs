@@ -15,7 +15,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             { "HDRenderPipeline/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
             { "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass },
             { "HDRenderPipeline/LitTessellation", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRenderPipeline/Unlit", UnlitGUI.SetupMaterialKeywordsAndPass }
+            { "HDRenderPipeline/Unlit", UnlitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRenderPipeline/Decal", DecalUI.SetupMaterialKeywordsAndPass }
         };
 
         // Note: This function returns null if used with a package setup.

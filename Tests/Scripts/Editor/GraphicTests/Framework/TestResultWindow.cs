@@ -160,6 +160,26 @@ namespace UnityEngine.Experimental.Rendering
             {
                 diffMaterial = new Material(Shader.Find("GraphicTests/ComparerShader"));
                 diffMaterial.hideFlags = HideFlags.HideAndDontSave;
+
+                switch(TestFrameworkTools.comparisonMethod)
+                {
+                    case TestFrameworkTools.ComparisonMethod.RMSE:
+                        diffMaterial.EnableKeyword("Comparison_RGB");
+                        diffMaterial.DisableKeyword("Comparison_Lab");
+                        diffMaterial.DisableKeyword("Comparison_Jab");
+                    break;
+                    case TestFrameworkTools.ComparisonMethod.Lab:
+                        diffMaterial.DisableKeyword("Comparison_RGB");
+                        diffMaterial.EnableKeyword("Comparison_Lab");
+                        diffMaterial.DisableKeyword("Comparison_Jab");
+                    break;
+                    case TestFrameworkTools.ComparisonMethod.Jzazbz:
+                        diffMaterial.DisableKeyword("Comparison_RGB");
+                        diffMaterial.DisableKeyword("Comparison_Lab");
+                        diffMaterial.EnableKeyword("Comparison_Jab");
+                    break;
+                }
+
                 DontDestroyOnLoad(diffMaterial);
             }
         }

@@ -389,6 +389,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             base.Dispose();
 
+            m_DebugDisplaySettings.UnregisterDebug();
+
             m_LightLoop.Cleanup();
 
             // For debugging
@@ -643,10 +645,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
                     }
 #endif
-
-                    // decal system needs to be updated with current camera
+                    
                     if (m_FrameSettings.enableDBuffer)
-                        DecalSystem.instance.BeginCull(camera);
+                    {
+                        // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
+                        DecalSystem.instance.CurrentCamera = camera;
+                        DecalSystem.instance.BeginCull();
+                    }
 
                     ReflectionSystem.PrepareCull(camera, m_ReflectionProbeCullResults);
 
@@ -658,12 +663,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ReflectionProbeCullResults.Cull();
 
                     m_DbufferManager.vsibleDecalCount = 0;
-                    if (m_FrameSettings.enableDBuffer)
+                    using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                     {
-                        m_DbufferManager.vsibleDecalCount = DecalSystem.instance.QueryCullResults();
-                        DecalSystem.instance.EndCull();
+                        if (m_FrameSettings.enableDBuffer)
+                        {                            
+                            DecalSystem.instance.EndCull();               
+                            m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
+                            DecalSystem.instance.UpdateCachedMaterialData(cmd);     // textures, alpha or fade distances could've changed                                       
+                            DecalSystem.instance.CreateDrawData();                  // prepare data is separate from draw              
+                        }
                     }
-
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
@@ -714,9 +723,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
-                    RenderDBuffer(hdCamera, renderContext, cmd);
+                    RenderDBuffer(hdCamera, cmd);
 
-                    RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
+					RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
@@ -808,6 +817,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 m_LightLoop.BuildGPULightLists(hdCamera, cmd, m_CameraDepthStencilBuffer, m_CameraStencilBufferCopy, m_SkyManager.IsSkyValid());
                             }
                         }
+
+                        // The pass only requires the volume properties, and can run async.
+                        m_VolumetricLightingModule.VoxelizeDensityVolumes(hdCamera, cmd);
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
@@ -1088,18 +1100,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
                     // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
                 else // Deferred rendering with partial depth prepass
                 {
                     // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
+                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
 
                     // Render Alpha test only if requested
                     if (addAlphaTestedOnly)
                     {
                         var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange, m_DepthStateOpaque);
+                        RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
                     }
                 }
             }
@@ -1146,12 +1158,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(HDCamera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera camera, CommandBuffer cmd)
         {
             if (!m_FrameSettings.enableDBuffer)
                 return;
 
-            using (new ProfilingSample(cmd, "DBuffer", CustomSamplerId.DBuffer.GetSampler()))
+            using (new ProfilingSample(cmd, "DBufferRender", CustomSamplerId.DBufferRender.GetSampler()))
             {
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);
@@ -1171,10 +1183,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
-                DecalSystem.instance.Render(renderContext, camera, cmd);
+                DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
-                m_DbufferManager.SetHTileTexture(cmd);
-
+                m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values               
             }
         }
 
@@ -1191,12 +1202,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
+                    // we must override the state here.
+
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.All, CoreUtils.clearColorAllBlack);
                     // Render Opaque forward
-                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardOpaquePassNames, m_currentRendererConfigurationBakedLighting);
+                    RenderOpaqueRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllForwardOpaquePassNames, m_currentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque);
 
                     // Render forward transparent
-                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting);
+                    RenderTransparentRenderList(cull, hdCamera.camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque);
                 }
             }
 
@@ -1313,7 +1327,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                     if (m_FrameSettings.enableSubsurfaceScattering)
                     {
-                        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
+                        RenderTargetIdentifier[] m_MRTWithSSS =
+                            new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
                         m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
                         m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
                         for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
@@ -1328,16 +1343,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
                     }
 
-                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] = HDShaderPassNames.s_ForwardOnlyName;
+                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
+                        HDShaderPassNames.s_ForwardOnlyName;
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
 
-                    var passNames = m_FrameSettings.enableForwardRenderingOnly ? m_ForwardAndForwardOnlyPassNames : m_ForwardOnlyPassNames;
-                    // Forward opaque material always have a prepass (whether or not we use deferred, whether or not there is option like alpha test only) so we pass the right depth state here.
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting, null, m_DepthStateOpaqueWithPrepass);
+                    var passNames = m_FrameSettings.enableForwardRenderingOnly
+                        ? m_ForwardAndForwardOnlyPassNames
+                        : m_ForwardOnlyPassNames;
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
                 }
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                    if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    { 
+                        DecalSystem.instance.SetAtlas(cmd); // for clustered decals
+                    }
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
                 }
             }
@@ -1465,8 +1486,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.GetTemporaryRT(HDShaderIDs._CameraDepthTexture, hdcamera.actualWidth, hdcamera.actualHeight, m_CameraDepthStencilBuffer.rt.depth, FilterMode.Point, m_CameraDepthStencilBuffer.rt.format);
                     m_CopyDepth.SetTexture(HDShaderIDs._InputDepth, m_CameraDepthStencilBuffer);
                     cmd.Blit(null, HDShaderIDs._CameraDepthTexture, m_CopyDepth);
-                    cmd.GetTemporaryRT(HDShaderIDs._CameraMotionVectorsTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_VelocityBuffer.rt.format);
-                    HDUtils.BlitCameraTexture(cmd, hdcamera, m_VelocityBuffer, HDShaderIDs._CameraMotionVectorsTexture);
+                    if (m_VelocityBuffer != null)
+                    {
+                        cmd.GetTemporaryRT(HDShaderIDs._CameraMotionVectorsTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_VelocityBuffer.rt.format);
+                        HDUtils.BlitCameraTexture(cmd, hdcamera, m_VelocityBuffer, HDShaderIDs._CameraMotionVectorsTexture);
+                    }
                     cmd.GetTemporaryRT(HDShaderIDs._CameraColorTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_CameraColorBuffer.rt.format);
                     HDUtils.BlitCameraTexture(cmd, hdcamera, m_CameraColorBuffer, HDShaderIDs._CameraColorTexture);
                     source = HDShaderIDs._CameraColorTexture;
@@ -1642,7 +1666,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear depth/stencil and init buffers
                 using (new ProfilingSample(cmd, "Clear Depth/Stencil", CustomSamplerId.ClearDepthStencil.GetSampler()))
                 {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Depth);
+                    if (hdCamera.clearDepth)
+                    {
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Depth);
+                    }
+                }
+
+                // Clear the HDR target
+                using (new ProfilingSample(cmd, "Clear HDR target", CustomSamplerId.ClearHDRTarget.GetSampler()))
+                {
+                    if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.BackgroundColor ||
+                        // If we want the sky but the sky don't exist, still clear with background color
+                        (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsSkyValid()) ||
+                        // Special handling for Preview we force to clear with background color (i.e black)
+                        // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
+                        hdCamera.camera.cameraType == CameraType.Preview
+                        )
+                    {
+                        Color clearColor = hdCamera.backgroundColorHDR;
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
+                    }
                 }
 
                 // Clear the diffuse SSS lighting target
@@ -1652,13 +1695,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // TODO: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
-
-                // Clear the HDR target
-                using (new ProfilingSample(cmd, "Clear HDR target", CustomSamplerId.ClearHDRTarget.GetSampler()))
-                {
-                    Color clearColor = hdCamera.camera.backgroundColor.linear; // Need it in linear because we clear a linear fp16 texture.
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
-                }
 
                 // Clear GBuffers
                 if (!m_FrameSettings.enableForwardRenderingOnly)
