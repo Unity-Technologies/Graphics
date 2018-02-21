@@ -264,9 +264,9 @@ namespace UnityEditor.Experimental.Rendering
                 s_Styles = new Styles();
 
             var panels = DebugManager.instance.panels;
-            int containerCount = panels.Count(x => !x.isRuntimeOnly);
+            int itemCount = panels.Count(x => !x.isRuntimeOnly && x.children.Count(w => !w.isRuntimeOnly) > 0);
 
-            if (containerCount == 0)
+            if (itemCount == 0)
             {
                 EditorGUILayout.HelpBox("No debug item found.", MessageType.Info);
                 return;
@@ -292,7 +292,7 @@ namespace UnityEditor.Experimental.Rendering
                         m_Settings.selectedPanel = 0;
 
                     // Validate container id
-                    while (panels[m_Settings.selectedPanel].isRuntimeOnly)
+                    while (panels[m_Settings.selectedPanel].isRuntimeOnly || panels[m_Settings.selectedPanel].children.Count(x => !x.isRuntimeOnly) == 0)
                     {
                         m_Settings.selectedPanel++;
 
@@ -306,6 +306,9 @@ namespace UnityEditor.Experimental.Rendering
                         var panel = panels[i];
 
                         if (panel.isRuntimeOnly)
+                            continue;
+
+                        if (panel.children.Count(x => !x.isRuntimeOnly) == 0)
                             continue;
 
                         var elementRect = GUILayoutUtility.GetRect(CoreEditorUtils.GetContent(panel.displayName), s_Styles.sectionElement, GUILayout.ExpandWidth(true));
@@ -328,7 +331,7 @@ namespace UnityEditor.Experimental.Rendering
                 // Main section - traverse current container
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
-                    using (var vscope = new EditorGUILayout.VerticalScope())
+                    using (new EditorGUILayout.VerticalScope())
                     {
                         var selectedPanel = panels[m_Settings.selectedPanel];
 
