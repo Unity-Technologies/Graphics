@@ -173,7 +173,7 @@ namespace UnityEditor.ShaderGraph
             if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
                 defines.AddShaderChunk("#define _AlphaClip 1", true);
 
-            if(masterNode.alphaMode == AlphaMode.Transparent)
+            if(masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
                 defines.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON 1", true);
 
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = ShaderGenerator.GetMaterialOptions(masterNode.alphaMode, masterNode.twoSided.isOn);
+            var materialOptions = ShaderGenerator.GetMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
