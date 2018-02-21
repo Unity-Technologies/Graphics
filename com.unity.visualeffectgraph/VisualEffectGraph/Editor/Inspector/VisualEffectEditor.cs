@@ -431,6 +431,10 @@ public class VisualEffectEditor : Editor
         {
             effect.pause = false;
         }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
+        {
+            effect.pause = !effect.pause;
+        }
         if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step)))
         {
             effect.pause = true;
@@ -440,10 +444,6 @@ public class VisualEffectEditor : Editor
         {
             effect.Reinit();
             effect.pause = false;
-        }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
-        {
-            effect.pause = !effect.pause;
         }
         GUILayout.EndHorizontal();
 
