@@ -758,6 +758,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return camera.nonObliqueProjMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
         }
 
+        static Matrix4x4 CameraProjectionStereoLHS(Camera camera, Camera.StereoscopicEye eyeIndex)
+        {
+            return camera.GetStereoProjectionMatrix(eyeIndex) * Matrix4x4.Scale(new Vector3(1, 1, -1));
+        }
+
         public Vector3 GetLightColor(VisibleLight light)
         {
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
@@ -1745,6 +1750,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Debug.Assert(m_lightList.rightEyeBounds.Count == m_lightCount);
                     Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_lightCount);
+
+                    // TODO: Is this bad for the GC?
+                    m_lightList.bounds.AddRange(m_lightList.rightEyeBounds);
+                    m_lightList.lightVolumes.AddRange(m_lightList.rightEyeLightVolumes);
                 }
 
                 UpdateDataBuffers();
@@ -1831,7 +1840,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled, FrameSettings frameSettings)
         {
             var camera = hdCamera.camera;
             cmd.BeginSample("Build Light List");
@@ -1843,16 +1852,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
 
-            // camera to screen matrix (and it's inverse)
-            var proj = CameraProjectionNonObliqueLHS(hdCamera);
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
             temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            var projscr = temp * proj;
-            var invProjscr = projscr.inverse;
             bool isOrthographic = camera.orthographic;
+
+            // camera to screen matrix (and it's inverse)
+            var projArr = new Matrix4x4[2];
+            var projscrArr = new Matrix4x4[2];
+            var invProjscrArr = new Matrix4x4[2];
+            if (frameSettings.enableStereo)
+            {
+                for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+                {
+                    projArr[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);
+                    projscrArr[eyeIndex] = temp * projArr[eyeIndex];
+                    invProjscrArr[eyeIndex] = projscrArr[eyeIndex].inverse;
+                }
+            }
+            else
+            {
+                projArr[0] = CameraProjectionNonObliqueLHS(hdCamera);
+                projscrArr[0] = temp * projArr[0];
+                invProjscrArr[0] = projscrArr[0].inverse;
+            }
+
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (m_lightCount != 0)
@@ -1861,8 +1887,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                var projh = temp * proj;
+                //var projh = temp * proj;
+                var projh = temp * projArr[0];
                 var invProjh = projh.inverse;
+
+                // TODO: Array these
 
                 cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
@@ -1881,8 +1910,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
-                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
+                //cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
+                //cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
+                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
+                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fFarPlane, camera.farClipPlane);
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_vLightList, s_BigTileLightList);
@@ -1909,8 +1940,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
-                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
+                //cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
+                //cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
+                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
+                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
                 cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_vLightList, s_LightList);
                 if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
@@ -1939,7 +1972,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-            VoxelLightListGeneration(cmd, hdCamera, projscr, invProjscr, cameraDepthBufferRT);
+            //VoxelLightListGeneration(cmd, hdCamera, projscr, invProjscr, cameraDepthBufferRT);
+            VoxelLightListGeneration(cmd, hdCamera, projscrArr[0], invProjscrArr[0], cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {
@@ -1980,20 +2014,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.EndSample("Build Light List");
         }
 
-        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled, FrameSettings frameSettings)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled, frameSettings);
             PushGlobalParams(hdCamera, cmd);
         }
 
-        public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
+        public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled, FrameSettings frameSettings)
         {
             var cmd = CommandBufferPool.Get("Build light list");
             cmd.WaitOnGPUFence(startFence);
 
-            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled, frameSettings);
             GPUFence completeFence = cmd.CreateGPUFence();
             renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
             CommandBufferPool.Release(cmd);
