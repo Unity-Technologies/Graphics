@@ -46,6 +46,7 @@ namespace UnityEditor.VFX.UI
             if (m_DataHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+                m_DataHandle = null;
             }
 
             base.OnDisable();
@@ -61,6 +62,8 @@ namespace UnityEditor.VFX.UI
 
         protected void DataChanged(UnityEngine.Object obj)
         {
+            if (m_DataHandle == null)
+                return;
             NotifyChange(AnyThing);
         }
 

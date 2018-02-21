@@ -106,7 +106,6 @@ namespace  UnityEditor.VFX.UI
             if (rootVisualElement.panel != null)
             {
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
-                Debug.Log("View window was already attached to a panel on OnEnable");
             }
 
             currentWindow = this;

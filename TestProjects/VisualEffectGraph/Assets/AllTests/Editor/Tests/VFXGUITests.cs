@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
             foreach (var param in parameters)
             {
-                VFXParameterController paramController = m_ViewController.allChildren.OfType<VFXParameterController>().First(t => t.model == param);
+                VFXParameterNodeController paramController = m_ViewController.allChildren.OfType<VFXParameterNodeController>().First(t => t.model == param);
 
                 VFXDataAnchorController outputAnchor = paramController.outputPorts.First() as VFXDataAnchorController;
                 System.Type type = outputAnchor.portType;

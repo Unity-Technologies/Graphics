@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        public Vector2 position
+        public virtual Vector2 position
         {
             get
             {
@@ -93,6 +93,11 @@ namespace UnityEditor.VFX.UI
         public override IEnumerable<Controller> allChildren
         {
             get { return inputPorts.Cast<Controller>().Concat(outputPorts.Cast<Controller>()); }
+        }
+
+        public virtual int id
+        {
+            get {return 0; }
         }
     }
 }

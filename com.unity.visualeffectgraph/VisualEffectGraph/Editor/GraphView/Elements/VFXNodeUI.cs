@@ -10,20 +10,17 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, IControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, ISettableControlledElement<VFXNodeController>
     {
         VFXSlotContainerController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        VFXNodeController IControlledElement<VFXNodeController>.controller
+        VFXNodeController ISettableControlledElement<VFXNodeController>.controller
         {
             get { return m_Controller; }
-            set
-            {
-                controller = value as VFXSlotContainerController;
-            }
+            set { controller = value as VFXSlotContainerController; }
         }
         public override void UpdatePresenterPosition()
         {
@@ -51,6 +48,7 @@ namespace UnityEditor.VFX.UI
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
         public VFXNodeUI()
         {
+            AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
             RegisterCallback<ControllerChangedEvent>(OnChange);
             clippingOptions = ClippingOptions.ClipContents;
@@ -73,23 +71,36 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        VisualElement m_SettingsDivider;
-        VisualElement m_Content;
+        protected VisualElement m_SettingsDivider;
+        VisualElement           m_Content;
 
-        protected void SyncSettings()
+
+        public virtual bool hasSettingDivider
+        {
+            get { return true; }
+        }
+
+        protected virtual void SyncSettings()
         {
             if (settingsContainer == null && controller.settings != null)
             {
                 object settings = controller.settings;
 
                 settingsContainer = new VisualElement { name = "settings" };
-                m_SettingsDivider = new VisualElement() {name = "divider"};
-                m_SettingsDivider.AddToClassList("horizontal");
+
+                if (hasSettingDivider)
+                {
+                    m_SettingsDivider = new VisualElement() { name = "divider" };
+                    m_SettingsDivider.AddToClassList("horizontal");
+                }
 
                 m_Content = mainContainer.Q("contents");
-                m_Content.Insert(0, m_SettingsDivider);
 
-                m_Content.Insert(1, settingsContainer);
+                int idx = 0;
+                if (hasSettingDivider)
+                    m_Content.Insert(idx++, m_SettingsDivider);
+
+                m_Content.Insert(idx++, settingsContainer);
 
                 foreach (var setting in controller.settings)
                 {
@@ -114,18 +125,21 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if (hasSettings)
+                if (m_SettingsDivider != null)
                 {
-                    if (m_SettingsDivider.parent == null)
+                    if (hasSettings)
                     {
-                        m_Content.Insert(0, m_SettingsDivider);
+                        if (m_SettingsDivider.parent == null)
+                        {
+                            m_Content.Insert(0, m_SettingsDivider);
+                        }
                     }
-                }
-                else
-                {
-                    if (m_SettingsDivider.parent != null)
+                    else
                     {
-                        m_SettingsDivider.RemoveFromHierarchy();
+                        if (m_SettingsDivider.parent != null)
+                        {
+                            m_SettingsDivider.RemoveFromHierarchy();
+                        }
                     }
                 }
             }
@@ -162,7 +176,7 @@ namespace UnityEditor.VFX.UI
             foreach (var newController in newAnchors)
             {
                 var newElement = InstantiateDataAnchor(newController, this);
-                (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
+                (newElement as VFXDataAnchor).controller = newController;
 
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;

@@ -27,6 +27,55 @@ namespace UnityEditor.VFX.UI
         void ExpandPath();
     }
 
+
+    class SimplePropertyRMProvider<T> : IPropertyRMProvider
+    {
+        System.Func<T> m_Getter;
+        System.Action<T> m_Setter;
+        string m_Name;
+
+        public SimplePropertyRMProvider(string name, System.Func<T> getter, System.Action<T> setter)
+        {
+            m_Getter = getter;
+            m_Setter = setter;
+            m_Name = name;
+        }
+
+        bool IPropertyRMProvider.expanded { get { return false; } }
+        bool IPropertyRMProvider.expandable { get { return false; } }
+        object IPropertyRMProvider.value
+        {
+            get
+            {
+                return m_Getter();
+            }
+
+            set
+            {
+                m_Setter((T)value);
+            }
+        }
+        string IPropertyRMProvider.name
+        {
+            get { return m_Name; }
+        }
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[0]; } }
+        object[] IPropertyRMProvider.customAttributes { get { return null; } }
+        Type IPropertyRMProvider.portType
+        {
+            get
+            {
+                return typeof(T);
+            }
+        }
+        int IPropertyRMProvider.depth { get { return 0; } }
+        bool IPropertyRMProvider.editable { get { return true; } }
+        void IPropertyRMProvider.RetractPath()
+        {}
+        void IPropertyRMProvider.ExpandPath()
+        {}
+    }
+
     abstract class PropertyRM : VisualElement
     {
         public abstract void SetValue(object obj);
@@ -135,6 +184,15 @@ namespace UnityEditor.VFX.UI
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
+            AddStyleSheetPath("PropertyRM");
+            if (EditorGUIUtility.isProSkin)
+            {
+                AddStyleSheetPath("PropertyRMDark");
+            }
+            else
+            {
+                AddStyleSheetPath("PropertyRMLight");
+            }
             m_Provider = provider;
             m_labelWidth = labelWidth;
 

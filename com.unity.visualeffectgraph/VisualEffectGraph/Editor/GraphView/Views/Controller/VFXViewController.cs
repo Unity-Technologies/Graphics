@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
         List<VFXFlowAnchorController> m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
         // Model / Controller synchronization
-        private Dictionary<VFXModel, VFXNodeController> m_SyncedModels = new Dictionary<VFXModel, VFXNodeController>();
+        private Dictionary<VFXModel, List<VFXNodeController>> m_SyncedModels = new Dictionary<VFXModel, List<VFXNodeController>>();
 
         List<VFXDataEdgeController> m_DataEdges = new List<VFXDataEdgeController>();
         List<VFXFlowEdgeController> m_FlowEdges = new List<VFXFlowEdgeController>();
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
         }
 
         public override void ApplyChanges()
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                var operatorControllers = m_SyncedModels.Values.OfType<VFXSlotContainerController>();
+                var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXSlotContainerController>();
                 var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXSlotContainerController>();
                 var contextSlotContainers = contexts.Select(t => t.slotContainerController).Where(t => t != null).Cast<VFXSlotContainerController>();
 
@@ -109,13 +109,30 @@ namespace UnityEditor.VFX.UI
                 unusedEdges.Add(e);
             }
 
-            var allLinkables = AllSlotContainerControllers.ToArray();
-            foreach (var operatorController in allLinkables)
+            foreach (var operatorControllers in m_SyncedModels.Values)
             {
-                var slotContainer = operatorController.slotContainer;
-                foreach (var input in slotContainer.inputSlots)
+                foreach (var nodeController in operatorControllers)
                 {
-                    changed |= RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, input);
+                    foreach (var input in nodeController.inputPorts)
+                    {
+                        changed |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
+                    }
+                    if (nodeController is VFXContextController)
+                    {
+                        VFXContextController contextController = nodeController as VFXContextController;
+                        foreach (var input in contextController.slotContainerController.inputPorts)
+                        {
+                            changed |= RecreateInputSlotEdge(unusedEdges, contextController.slotContainerController, input);
+                        }
+
+                        foreach (var block in contextController.blockControllers)
+                        {
+                            foreach (var input in block.inputPorts)
+                            {
+                                changed |= RecreateInputSlotEdge(unusedEdges, block, input);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -141,19 +158,41 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXSlotContainerController[] allLinkables, IVFXSlotContainer slotContainer, VFXSlot input)
+        public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
             bool changed = false;
-            input.CleanupLinkedSlots();
+            input.model.CleanupLinkedSlots();
+
+            VFXSlot inputSlot = input.model;
             if (input.HasLink())
             {
-                var operatorControllerFrom = allLinkables.FirstOrDefault(t => input.refSlot.owner == t.slotContainer);
-                var operatorControllerTo = allLinkables.FirstOrDefault(t => slotContainer == t.slotContainer);
+                VFXNodeController operatorControllerFrom = null;
+
+                IVFXSlotContainer targetSlotContainer = inputSlot.refSlot.owner;
+                if (targetSlotContainer == null)
+                {
+                    return false;
+                }
+                if (targetSlotContainer is VFXParameter)
+                {
+                    VFXParameterController controller = m_ParameterControllers[targetSlotContainer as VFXParameter];
+                    operatorControllerFrom = controller.GetParameterForLink(inputSlot);
+                }
+                else if (targetSlotContainer is VFXBlock)
+                {
+                    VFXBlock block = targetSlotContainer as VFXBlock;
+                    operatorControllerFrom = (m_SyncedModels[block.GetParent()][0] as VFXContextController).blockControllers.First(t => t.model == block);
+                }
+                else
+                {
+                    operatorControllerFrom = m_SyncedModels[targetSlotContainer as VFXModel][0];
+                }
+                var operatorControllerTo = slotContainer;
 
                 if (operatorControllerFrom != null && operatorControllerTo != null)
                 {
-                    var anchorFrom = operatorControllerFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorController).model == input.refSlot);
-                    var anchorTo = operatorControllerTo.inputPorts.FirstOrDefault(o => (o as VFXDataAnchorController).model == input);
+                    var anchorFrom = operatorControllerFrom.outputPorts.FirstOrDefault(o => (o as VFXDataAnchorController).model == inputSlot.refSlot);
+                    var anchorTo = input;
 
                     var edgController = m_DataEdges.FirstOrDefault(t => t.input == anchorTo && t.output == anchorFrom);
 
@@ -173,9 +212,13 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            foreach (VFXSlot subSlot in input.children)
+            foreach (VFXSlot subSlot in inputSlot.children)
             {
-                changed |= RecreateInputSlotEdge(unusedEdges, allLinkables, slotContainer, subSlot);
+                VFXDataAnchorController subAnchor = slotContainer.inputPorts.FirstOrDefault(t => t.model == subSlot);
+                if (subAnchor != null) // Can be null for example for hidden values from Vector3Spaceables
+                {
+                    changed |= RecreateInputSlotEdge(unusedEdges, slotContainer, subAnchor);
+                }
             }
 
             return changed;
@@ -183,11 +226,11 @@ namespace UnityEditor.VFX.UI
 
         public IEnumerable<VFXContextController> contexts
         {
-            get { return m_SyncedModels.Values.OfType<VFXContextController>(); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).OfType<VFXContextController>(); }
         }
         public IEnumerable<VFXNodeController> nodes
         {
-            get { return m_SyncedModels.Values; }
+            get { return m_SyncedModels.Values.SelectMany(t => t); }
         }
 
         public void FlowEdgesMightHaveChanged()
@@ -273,20 +316,30 @@ namespace UnityEditor.VFX.UI
             get { return m_FlowEdges.AsReadOnly(); }
         }
 
+        public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
+        {
+            var slotInput = input != null ? input.model : null;
+            var slotOutput = output != null ? output.model : null;
+            if (slotInput.Link(slotOutput))
+            {
+                VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
+
+                if (fromController != null)
+                {
+                    fromController.infos.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput });
+                }
+                DataEdgesMightHaveChanged();
+                return true;
+            }
+            return false;
+        }
+
         public void AddElement(VFXDataEdgeController edge)
         {
             var fromAnchor = edge.output;
             var toAnchor = edge.input;
 
-            //Update connection
-            var slotInput = toAnchor != null ? toAnchor.model : null;
-            var slotOuput = fromAnchor != null ? fromAnchor.model : null;
-            if (slotInput && slotOuput)
-            {
-                //Save concerned object
-                slotInput.Link(slotOuput);
-                DataEdgesMightHaveChanged();
-            }
+            CreateLink(toAnchor, fromAnchor);
             edge.OnDisable();
         }
 
@@ -345,13 +398,30 @@ namespace UnityEditor.VFX.UI
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
             }
-            else if (element is VFXSlotContainerController)
+            else if (element is VFXParameterNodeController)
             {
-                var operatorController = element as VFXSlotContainerController;
+                var parameter = element as VFXParameterNodeController;
+
+                parameter.parentController.model.RemoveNode(parameter.infos);
+                DataEdgesMightHaveChanged();
+            }
+            else if (element is VFXSlotContainerController || element is VFXParameterController)
+            {
+                IVFXSlotContainer container = null;
+
+                if (element is VFXSlotContainerController)
+                {
+                    container = (element as VFXSlotContainerController).slotContainer;
+                }
+                else
+                {
+                    container = (element as VFXParameterController).model;
+                }
+
                 VFXSlot slotToClean = null;
                 do
                 {
-                    slotToClean = operatorController.slotContainer.inputSlots.Concat(operatorController.slotContainer.outputSlots)
+                    slotToClean = container.inputSlots.Concat(container.outputSlots)
                         .FirstOrDefault(o => o.HasLink(true));
                     if (slotToClean)
                     {
@@ -360,7 +430,7 @@ namespace UnityEditor.VFX.UI
                 }
                 while (slotToClean != null);
 
-                graph.RemoveChild(operatorController.model);
+                graph.RemoveChild(container as VFXModel);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -422,6 +492,13 @@ namespace UnityEditor.VFX.UI
             // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
             if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
+                if (m_GraphHandle != null)
+                {
+                    DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
+                    m_GraphHandle = null;
+                    DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
+                    m_UIHandle = null;
+                }
                 if (m_Graph != null)
                 {
                     GraphLost();
@@ -444,20 +521,15 @@ namespace UnityEditor.VFX.UI
                     VFXUI ui = m_Graph.UIInfos;
 
                     m_UIHandle = DataWatchService.sharedInstance.AddWatch(ui, UIChanged);
+
+                    GraphChanged(m_Graph);
                 }
             }
         }
 
         public void AddGroupNode(Vector2 pos)
         {
-            var ui = graph.UIInfos;
-
-            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(pos, Vector2.one * 100) };
-
-            if (ui.groupInfos != null)
-                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
-            else
-                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+            PrivateAddGroupNode(pos);
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
@@ -493,7 +565,19 @@ namespace UnityEditor.VFX.UI
 
         protected void GraphChanged(UnityEngine.Object obj)
         {
-            if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
+            if (m_GraphHandle == null)
+                return;
+            if (m_Graph == null)
+            {
+                if (model != null)
+                {
+                    ModelChanged(model);
+                }
+                return;
+            }
+
+            VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
+            validation.ValidateGraph();
 
             SyncControllerFromModel();
 
@@ -502,11 +586,19 @@ namespace UnityEditor.VFX.UI
 
         protected void UIChanged(UnityEngine.Object obj)
         {
+            if (m_UIHandle == null) return;
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
             RecreateUI();
 
             NotifyChange(AnyThing);
+        }
+
+        public void NotifyParameterControllerChange()
+        {
+            DataEdgesMightHaveChanged();
+            if (!m_Syncing)
+                NotifyChange(AnyThing);
         }
 
         public void RegisterFlowAnchorController(VFXFlowAnchorController controller)
@@ -685,15 +777,64 @@ namespace UnityEditor.VFX.UI
 
             if (!type.IsPrimitive)
             {
-                FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
-
-                if (defaultField != null)
+                if (type == typeof(Matrix4x4))
                 {
-                    parameter.value = defaultField.GetValue(null);
+                    parameter.value = Matrix4x4.identity;
+                }
+                else
+                {
+                    FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
+
+                    if (defaultField != null)
+                    {
+                        parameter.value = defaultField.GetValue(null);
+                    }
                 }
             }
 
             return model;
+        }
+
+        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor)
+        {
+            VFXModel newNode = null;
+            if (modelDescriptor is VFXModelDescriptor<VFXOperator>)
+            {
+                newNode = AddVFXOperator(tPos, (modelDescriptor as VFXModelDescriptor<VFXOperator>));
+            }
+            else if (modelDescriptor is VFXModelDescriptor<VFXContext>)
+            {
+                newNode = AddVFXContext(tPos, modelDescriptor as VFXModelDescriptor<VFXContext>);
+            }
+            else if (modelDescriptor is VFXModelDescriptorParameters)
+            {
+                newNode = AddVFXParameter(tPos, modelDescriptor as VFXModelDescriptorParameters);
+            }
+            if (newNode != null)
+            {
+                SyncControllerFromModel();
+
+                List<VFXNodeController> nodeControllers = null;
+                m_SyncedModels.TryGetValue(newNode, out nodeControllers);
+
+                if (newNode is VFXParameter)
+                {
+                    // Set an exposed name on a new parameter so that uncity is ensured
+                    VFXParameter newParameter = newNode as VFXParameter;
+                    m_ParameterControllers[newParameter].exposedName = string.Format("New {0}", newParameter.type.UserFriendlyName());
+                }
+
+                NotifyChange(AnyThing);
+
+                return nodeControllers[0];
+            }
+
+            return null;
+        }
+
+        public void AddVFXParameter(Vector2 pos, VFXParameterController parameterController)
+        {
+            parameterController.model.AddNode(pos);
         }
 
         public void Clear()
@@ -705,6 +846,7 @@ namespace UnityEditor.VFX.UI
 
             m_FlowAnchorController.Clear();
             m_SyncedModels.Clear();
+            m_ParameterControllers.Clear();
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
             m_GroupNodeControllers.Clear();
@@ -852,6 +994,30 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
+            // Iterate through graph.children to preserve add order.
+            VFXParameter[] parameters = graph.children.OfType<VFXParameter>().ToArray();
+            if (parameters.Length > 0)
+            {
+                var existingNames = new HashSet<string>();
+
+                existingNames.Add(parameters[0].exposedName);
+
+                for (int i = 1; i < parameters.Length; ++i)
+                {
+                    var controller = m_ParameterControllers[parameters[i]];
+
+                    controller.CheckNameUnique(existingNames);
+
+                    existingNames.Add(parameters[i].exposedName);
+                }
+            }
+
+            // make sure every parameter instance is created before we look for edges
+            foreach (var parameter in m_ParameterControllers.Values)
+            {
+                parameter.UpdateControllers();
+            }
+
             changed |= RecreateNodeEdges();
             changed |= RecreateFlowEdges();
 
@@ -861,45 +1027,142 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
+        Dictionary<VFXParameter, VFXParameterController> m_ParameterControllers = new Dictionary<VFXParameter, VFXParameterController>();
+
+        public IEnumerable<VFXParameterController> parameterControllers
+        {
+            get { return m_ParameterControllers.Values; }
+        }
+
+        public void SetParametersOrder(VFXParameterController controller, int index)
+        {
+            var orderedParameters = m_ParameterControllers.Where(t => t.Value.exposed == controller.exposed).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+
+            int oldIndex = orderedParameters.IndexOf(controller);
+
+            orderedParameters.RemoveAt(oldIndex);
+
+            if (oldIndex < index)
+            {
+                --index;
+            }
+
+            if (index < orderedParameters.Count)
+            {
+                orderedParameters.Insert(index, controller);
+            }
+            else
+            {
+                orderedParameters.Add(controller);
+            }
+
+            for (int i = 0; i < orderedParameters.Count; ++i)
+            {
+                orderedParameters[i].order = i;
+            }
+            NotifyChange(AnyThing);
+        }
+
         private void AddControllersFromModel(VFXModel model)
         {
-            VFXNodeController newController = null;
+            List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                newController = new VFXOperatorController(model, this);
+                newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {
-                newController = new VFXContextController(model, this);
+                newControllers.Add(new VFXContextController(model, this));
             }
             else if (model is VFXParameter)
             {
-                newController = new VFXParameterController(model, this);
+                VFXParameter parameter = model as VFXParameter;
+                parameter.ValidateNodes();
+
+                var newController = m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
+
+                m_SyncedModels[model] = new List<VFXNodeController>();
             }
 
-            if (newController != null)
+            if (newControllers.Count > 0)
             {
-                m_SyncedModels[model] = newController;
-                newController.ForceUpdate();
+                List<VFXNodeController> existingControllers;
+                if (m_SyncedModels.TryGetValue(model, out existingControllers))
+                {
+                    Debug.LogError("adding a model to controllers twice");
+                }
+                m_SyncedModels[model] = newControllers;
+                foreach (var controller in newControllers)
+                {
+                    controller.ForceUpdate();
+                }
             }
+        }
+
+        public void AddControllerToModel(VFXModel model, VFXNodeController controller)
+        {
+            m_SyncedModels[model].Add(controller);
+        }
+
+        public void RemoveControllerFromModel(VFXModel model, VFXNodeController controller)
+        {
+            m_SyncedModels[model].Remove(controller);
         }
 
         private void RemoveControllersFromModel(VFXModel model)
         {
-            VFXNodeController controller = null;
-            if (m_SyncedModels.TryGetValue(model, out controller))
+            List<VFXNodeController> controllers = null;
+            if (m_SyncedModels.TryGetValue(model, out controllers))
             {
-                controller.OnDisable();
+                foreach (var controller in controllers)
+                {
+                    controller.OnDisable();
+                }
                 m_SyncedModels.Remove(model);
+            }
+            if (model is VFXParameter)
+            {
+                m_ParameterControllers[model as VFXParameter].OnDisable();
+                m_ParameterControllers.Remove(model as VFXParameter);
             }
         }
 
-        public VFXNodeController GetControllerFromModel(VFXModel model)
+        public VFXNodeController GetControllerFromModel(VFXModel model, int id)
         {
-            VFXNodeController controller = null;
+            List<VFXNodeController> controller = null;
             m_SyncedModels.TryGetValue(model, out controller);
 
+            return controller.First(t => t.id == id);
+        }
+
+        public VFXParameterController GetParameterController(VFXParameter parameter)
+        {
+            VFXParameterController controller = null;
+            m_ParameterControllers.TryGetValue(parameter, out controller);
             return controller;
+        }
+
+        VFXUI.GroupInfo PrivateAddGroupNode(Vector2 position)
+        {
+            var ui = graph.UIInfos;
+
+            var newGroupInfo = new VFXUI.GroupInfo { title = "New Group Node", position = new Rect(position, Vector2.one * 100) };
+
+            if (ui.groupInfos != null)
+                ui.groupInfos = ui.groupInfos.Concat(Enumerable.Repeat(newGroupInfo, 1)).ToArray();
+            else
+                ui.groupInfos = new VFXUI.GroupInfo[] { newGroupInfo };
+
+            return ui.groupInfos.Last();
+        }
+
+        public void GroupNodes(IEnumerable<VFXNodeController> nodes)
+        {
+            VFXUI.GroupInfo info = PrivateAddGroupNode(Vector2.zero);
+
+            info.content = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
         private VFXGraph m_Graph;

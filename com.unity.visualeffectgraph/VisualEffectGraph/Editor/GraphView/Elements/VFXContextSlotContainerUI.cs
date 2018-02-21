@@ -60,11 +60,20 @@ namespace UnityEditor.VFX.UI
 
     class VFXOwnContextSlotContainerUI : VFXContextSlotContainerUI
     {
+        public VFXOwnContextSlotContainerUI()
+        {
+        }
+
         protected override void SelfChange()
         {
             base.SelfChange();
 
             visible = inputContainer.childCount > 0 || (settingsContainer != null && settingsContainer.childCount > 0);
+        }
+
+        public override bool hasSettingDivider
+        {
+            get { return false; }
         }
     }
 }

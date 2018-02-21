@@ -287,7 +287,7 @@ public class VisualEffectEditor : Editor
         public Type type;
     }
 
-    Dictionary<VFXParameterController, Infos> m_Infos = new Dictionary<VFXParameterController, Infos>();
+    Dictionary<VFXParameterNodeController, Infos> m_Infos = new Dictionary<VFXParameterNodeController, Infos>();
 
     void OnParamGUI(VFXParameter parameter)
     {
@@ -431,6 +431,10 @@ public class VisualEffectEditor : Editor
         {
             effect.pause = false;
         }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
+        {
+            effect.pause = !effect.pause;
+        }
         if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step)))
         {
             effect.pause = true;
@@ -440,10 +444,6 @@ public class VisualEffectEditor : Editor
         {
             effect.Reinit();
             effect.pause = false;
-        }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
-        {
-            effect.pause = !effect.pause;
         }
         GUILayout.EndHorizontal();
 
