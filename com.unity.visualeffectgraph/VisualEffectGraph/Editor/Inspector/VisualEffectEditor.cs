@@ -12,7 +12,46 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.UIElements.GraphView;
 using EditMode = UnityEditorInternal.EditMode;
+using UnityObject = UnityEngine.Object;
 
+
+static class VisualEffectEditorStyles
+{
+    static GUIContent[] m_Icons;
+
+    public enum Icon
+    {
+        Pause,
+        Play,
+        Restart,
+        Step,
+        Stop
+    }
+
+    static VisualEffectEditorStyles()
+    {
+        m_Icons = new GUIContent[1 + (int)Icon.Stop];
+        for (int i = 0; i <= (int)Icon.Stop; ++i)
+        {
+            Icon icon = (Icon)i;
+            string name = icon.ToString();
+
+            //TODO replace with editor default resource call when going to trunk
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VFXEditor/Editor/SceneWindow/Textures/" + name + ".png");
+            if (texture == null)
+            {
+                Debug.LogError("Can't find icon for " + name + " in VisualEffectEditorStyles");
+                continue;
+            }
+            m_Icons[i] = new GUIContent(texture);
+        }
+    }
+
+    public static GUIContent GetIcon(Icon icon)
+    {
+        return m_Icons[(int)icon];
+    }
+}
 
 static class VisualEffectUtility
 {
@@ -237,9 +276,9 @@ public class VisualEffectEditor : Editor
 
     void OnDisable()
     {
-        /*m_DebugPanel = null;
-        foreach (var exposed in m_ExposedData)
-            exposed.slot.RemoveAllObservers();*/
+        VisualEffect effect = ((VisualEffect)targets[0]);
+        effect.pause = false;
+        effect.playRate = 1.0f;
     }
 
     struct Infos
@@ -378,8 +417,46 @@ public class VisualEffectEditor : Editor
 
     public static bool s_IsEditingAsset = false;
 
+
+    private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+    {
+        VisualEffect effect = ((VisualEffect)targets[0]);
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Stop)))
+        {
+            effect.Reinit();
+            effect.pause = true;
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play)))
+        {
+            effect.pause = false;
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step)))
+        {
+            effect.pause = true;
+            effect.AdvanceOneFrame();
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Restart)))
+        {
+            effect.Reinit();
+            effect.pause = false;
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
+        {
+            effect.pause = !effect.pause;
+        }
+        GUILayout.EndHorizontal();
+
+        float playbackRate = EditorGUILayout.FloatField("Playback Rate", effect.playRate);
+        if (playbackRate < 0)
+            playbackRate = 0;
+        effect.playRate = playbackRate;
+    }
+
     protected virtual void OnSceneGUI()
     {
+        SceneViewOverlay.Window(ParticleSystemInspector.playBackTitle, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+
         if (EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this))
             VFXGizmo.OnDrawComponentGizmo(target as VisualEffect);
     }
