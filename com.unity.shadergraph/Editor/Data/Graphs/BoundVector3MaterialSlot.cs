@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new BoundInputVectorControlView(space + " Space");
+            return new LabelSlotControlView(space + " Space");
         }
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
