@@ -123,13 +123,7 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 
 half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
-    half4 directionAndAttenuation;
-
-#if defined(_MAIN_LIGHT_DIRECTIONAL)
-    directionAndAttenuation = half4(lightInput.position.xyz, 1.0);
-#else
-    directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
-#endif
+    half4 directionAndAttenuation = lerp(half4(lightInput.position.xyz, 1.0), GetLightDirectionAndAttenuation(lightInput, positionWS), lightInput.position.w);
 
     // Cookies are only computed for main light
     directionAndAttenuation.w *= CookieAttenuation(positionWS);
@@ -445,8 +439,8 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
-#if defined(_MAIN_LIGHT_DIRECTIONAL) && defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
-    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
+    bakedGI = lerp(SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI), bakedGI, _MainLightPosition.w);
 #endif
 
 #if defined(LIGHTMAP_ON)
@@ -521,9 +515,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 
     Light mainLight = GetMainLight(inputData.positionWS);
 
-#ifdef _SHADOWS_ENABLED
     mainLight.attenuation *= RealtimeShadowAttenuation(inputData.shadowCoord);
-#endif
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
@@ -546,9 +538,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.positionWS);
-#ifdef _SHADOWS_ENABLED
     mainLight.attenuation *= RealtimeShadowAttenuation(inputData.shadowCoord);
-#endif
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;

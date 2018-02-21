@@ -77,8 +77,8 @@
 #pragma kernel main_MSAA_MSM_15			KERNEL_MAIN=main_MSAA_MSM_15	SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=15
 #pragma kernel main_MSAA_MSM_17			KERNEL_MAIN=main_MSAA_MSM_17	SHADOW_MOMENT_ALGORITHM=MSM			MAX_MSAA=8	BLUR_SIZE=17
 
-#include "../../common.hlsl"
-#include "../ShadowMoments.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Shadow/ShadowMoments.hlsl"
 
 #if MAX_MSAA > 1
 Texture2DMS<float> depthTex;
@@ -222,17 +222,17 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 	int2 ldsIdx = (int2) groupThreadId.xy;
 	moment_t hblurredMoments[2];
 
-	[unroll]
+	UNITY_UNROLL
 	for( int ih = 0; ih < 2; ih++ )
 	{
-		[unroll]
+		UNITY_UNROLL
 		for( int iw = 0; iw < 2; iw++ )
 		{
 			if( ldsIdx.x < LDS_STRIDE )
 			{
 #if MAX_MSAA > 1
 				moment_t avgMoments = 0.0;
-				[loop]
+				UNITY_LOOP
 				for( uint is = 0; is < sampleCnt; is++ )
 				{
 					float depth = depthTex.Load( min( srcIdx, validSrc ), is ).x;
@@ -268,7 +268,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 
 		hblurredMoments[ih] = 0;
 		int2 idx = { groupThreadId.x + blurBorder, groupThreadId.y };
-		[loop]
+		UNITY_LOOP
 		for( int blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
 		{
 			hblurredMoments[ih] += readFromShared( int2( idx.x + blurOffset, idx.y ), LDS_STRIDE ) * blurWeights[abs( blurOffset )];
@@ -293,7 +293,7 @@ void KERNEL_MAIN( uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : 
 	ldsIdx = (int2) groupThreadId.xy + int2( 0, blurBorder );
 	moment_t vblurredMoment = 0.0;
 
-	[unroll]
+	UNITY_UNROLL
 	for( int blurOffset = -blurBorder; blurOffset <= blurBorder; blurOffset++ )
 	{
 		vblurredMoment += readFromShared( int2( ldsIdx.x, ldsIdx.y + blurOffset ), THREADS ) * blurWeights[abs(blurOffset)];
