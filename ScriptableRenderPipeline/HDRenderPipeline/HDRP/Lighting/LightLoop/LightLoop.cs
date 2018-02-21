@@ -1383,7 +1383,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, ReflectionProbeCullResults reflectionProbeCullResults, Camera camera, FrameSettings frameSettings)
+        public bool PrepareLightsForGPU(CommandBuffer cmd, ShadowSettings shadowSettings, CullResults cullResults, ReflectionProbeCullResults reflectionProbeCullResults, Camera camera)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1845,7 +1845,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
-        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled, FrameSettings frameSettings)
+        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             var camera = hdCamera.camera;
             cmd.BeginSample("Build Light List");
@@ -1868,7 +1868,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var projArr = new Matrix4x4[2];
             var projscrArr = new Matrix4x4[2];
             var invProjscrArr = new Matrix4x4[2];
-            if (frameSettings.enableStereo)
+            if (m_FrameSettings.enableStereo)
             {
                 for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
@@ -2037,20 +2037,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.EndSample("Build Light List");
         }
 
-        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled, FrameSettings frameSettings)
+        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled, frameSettings);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             PushGlobalParams(hdCamera, cmd);
         }
 
-        public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled, FrameSettings frameSettings)
+        public GPUFence BuildGPULightListsAsyncBegin(HDCamera hdCamera, ScriptableRenderContext renderContext, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, GPUFence startFence, bool skyEnabled)
         {
             var cmd = CommandBufferPool.Get("Build light list");
             cmd.WaitOnGPUFence(startFence);
 
-            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled, frameSettings);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
             GPUFence completeFence = cmd.CreateGPUFence();
             renderContext.ExecuteCommandBufferAsync(cmd, ComputeQueueType.Background);
             CommandBufferPool.Release(cmd);
