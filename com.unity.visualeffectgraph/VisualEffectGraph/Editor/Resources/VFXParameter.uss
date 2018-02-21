@@ -1,0 +1,53 @@
+
+VFXParameterUI.node > #node-border > #title
+{
+    margin-right:6;
+    font-size:11;
+    background-color:rgba(0,0,0,0);
+    height:-1;
+    padding-left:8;
+}
+VFXParameterUI.node > #node-border > #title > #title-label
+{
+    margin-right:4;
+    margin-left:4;
+    margin-top:2;
+    margin-bottom:2;
+    font-size:11;
+}
+
+VFXParameterUI.node > #node-border
+{
+    flex-direction:row;
+    border-radius:15;
+    background-image: resource("GraphView/Nodes/BlackboardFieldPillBackground.png");
+}
+VFXParameterUI.node > #selection-border
+{
+    border-radius:18;
+}
+VFXParameterUI.node > #node-border > #contents > #top
+{
+    flex:1;
+}
+VFXParameterUI.node > #node-border > #contents #output
+{
+    justify-content:center;
+    background-color:rgba(0,0,0,0);
+}
+VFXParameterUI.node > #node-border > #contents #divider
+{
+    background-color:rgba(0,0,0,0);
+    border-color:rgba(0,0,0,0);
+    border-bottom-width:0;
+}
+VFXParameterUI.node > #node-border > #title > #exposed-icon
+{
+    align-self:center;
+}
+VFXParameterUI.node.exposed > #node-border > #title > #exposed-icon
+{
+    image:resource("VFX/exposed dot");
+    width:6;
+    height:6;
+}

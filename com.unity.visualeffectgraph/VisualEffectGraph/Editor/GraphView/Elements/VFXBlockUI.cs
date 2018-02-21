@@ -21,6 +21,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlockUI()
         {
+            AddStyleSheetPath("VFXBlock");
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
             titleContainer.shadow.Insert(1, m_EnableToggle);

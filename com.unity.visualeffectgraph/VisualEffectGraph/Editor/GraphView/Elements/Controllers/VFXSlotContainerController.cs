@@ -84,12 +84,12 @@ namespace UnityEditor.VFX.UI
 
                 if (!VFXDataAnchorController.SlotShouldSkipFirstLevel(slot))
                 {
-                    changed |= UpdateSlots(newAnchors, slot.children, expanded && !slot.collapsed, input);
+                    changed |= UpdateSlots(newAnchors, slot.children, expanded && propController.expandedSelf, input);
                 }
                 else
                 {
                     VFXSlot firstSlot = slot.children.First();
-                    changed |= UpdateSlots(newAnchors, firstSlot.children, expanded && !slot.collapsed, input);
+                    changed |= UpdateSlots(newAnchors, firstSlot.children, expanded && propController.expandedSelf, input);
                 }
             }
 

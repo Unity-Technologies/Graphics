@@ -17,6 +17,22 @@ namespace UnityEditor.VFX.UIElements
             AddToClassList("sliderField");
         }
 
+        protected void RegisterCallBack()
+        {
+            (m_Field as VisualElement).RegisterCallback<BlurEvent>(OnFocusLost);
+        }
+
+        void OnFocusLost(BlurEvent e)
+        {
+            //forward the focus lost event
+            using (BlurEvent newE = BlurEvent.GetPooled(this, e.relatedTarget, e.direction))
+            {
+                UIElementsUtility.eventDispatcher.DispatchEvent(newE, null);
+            }
+
+            e.StopPropagation();
+        }
+
         public T m_Value;
 
         public T value
@@ -28,9 +44,11 @@ namespace UnityEditor.VFX.UIElements
 
             set
             {
+                m_IgnoreNotification = true;
                 m_Value = value;
                 m_Field.value = value;
                 m_Slider.value = ValueToFloat(value);
+                m_IgnoreNotification = false;
             }
         }
 
@@ -48,11 +66,24 @@ namespace UnityEditor.VFX.UIElements
             set
             {
                 m_Range = value;
-                m_Slider.lowValue = m_Range.x;
-                m_Slider.highValue = m_Range.y;
-                m_Slider.pageSize = (m_Slider.highValue - m_Slider.lowValue) * 0.1f;
+                m_IgnoreNotification = true;
+                if (m_Slider.lowValue != m_Range.x || m_Slider.highValue != m_Range.y)
+                {
+                    m_Slider.lowValue = m_Range.x;
+                    m_Slider.highValue = m_Range.y;
+                    m_Slider.pageSize = (m_Slider.highValue - m_Slider.lowValue) * 0.1f;
+
+                    //TODO ask fix in Slider
+
+                    m_Slider.value = m_Range.x;
+                    m_Slider.value = m_Range.y;
+                    m_Slider.value = ValueToFloat(this.value);
+                }
+                m_IgnoreNotification = false;
             }
         }
+
+        protected bool m_IgnoreNotification;
 
         public abstract bool hasFocus {get; }
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
@@ -76,12 +107,13 @@ namespace UnityEditor.VFX.UIElements
         protected void ValueChanged(ChangeEvent<T> e)
         {
             e.StopPropagation();
-            SetValueAndNotify(e.newValue);
+            if (!m_IgnoreNotification)
+                SetValueAndNotify(e.newValue);
         }
     }
-    class VFXDoubleSliderField : VFXBaseSliderField<float>
+    class VFXFloatSliderField : VFXBaseSliderField<float>
     {
-        public VFXDoubleSliderField()
+        public VFXFloatSliderField()
         {
             m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
@@ -94,6 +126,7 @@ namespace UnityEditor.VFX.UIElements
 
             Add(m_Slider);
             Add(doubleField);
+            RegisterCallBack();
         }
 
         public override bool hasFocus
@@ -111,7 +144,8 @@ namespace UnityEditor.VFX.UIElements
 
         void ValueChanged(float newValue)
         {
-            SetValueAndNotify(newValue);
+            if (!m_IgnoreNotification)
+                SetValueAndNotify(newValue);
         }
     }
     class VFXIntSliderField : VFXBaseSliderField<long>
@@ -129,6 +163,7 @@ namespace UnityEditor.VFX.UIElements
 
             Add(m_Slider);
             Add(integerField);
+            RegisterCallBack();
         }
 
         public override bool hasFocus

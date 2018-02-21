@@ -20,6 +20,13 @@ namespace UnityEditor.VFX.UI
         new T controller
         {
             get;
+        }
+    }
+    interface ISettableControlledElement<T> where T : Controller
+    {
+        T controller
+        {
+            get;
             set;
         }
     }

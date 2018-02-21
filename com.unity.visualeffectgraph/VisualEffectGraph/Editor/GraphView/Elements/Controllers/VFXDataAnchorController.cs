@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
         {
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
-            m_Collapsed = model.collapsed;
+            m_Expanded = expandedSelf;
 
             portType = model.property.type;
 
@@ -57,16 +57,18 @@ namespace UnityEditor.VFX.UI
 
         void MasterSlotChanged(UnityEngine.Object obj)
         {
+            if (m_MasterSlotHandle == null)
+                return;
             ModelChanged(obj);
         }
 
-        bool m_Collapsed;
+        bool m_Expanded;
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            if (model.collapsed != m_Collapsed)
+            if (expandedSelf != m_Expanded)
             {
-                m_Collapsed = model.collapsed;
+                m_Expanded = expandedSelf;
                 UpdateHiddenRecursive(m_Hidden, true);
             }
             UpdateInfos();
@@ -80,8 +82,14 @@ namespace UnityEditor.VFX.UI
             if (m_MasterSlotHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
+                m_MasterSlotHandle = null;
             }
             base.OnDisable();
+        }
+
+        public bool HasLink()
+        {
+            return model.HasLink();
         }
 
         public class Change
@@ -231,7 +239,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool expandedSelf
+        public virtual bool expandedSelf
         {
             get
             {
@@ -290,7 +298,7 @@ namespace UnityEditor.VFX.UI
             return typeof(ISpaceable).IsAssignableFrom(slot.property.type) && slot.children.Count() == 1;
         }
 
-        public void ExpandPath()
+        public virtual void ExpandPath()
         {
             model.collapsed = false;
             if (SlotShouldSkipFirstLevel(model))
@@ -299,10 +307,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RetractPath()
+        public virtual void RetractPath()
         {
             model.collapsed = true;
-            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            if (SlotShouldSkipFirstLevel(model))
             {
                 model.children.First().collapsed = model.collapsed;
             }

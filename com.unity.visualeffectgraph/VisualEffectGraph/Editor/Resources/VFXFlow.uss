@@ -1,17 +1,3 @@
-.FlowContainer{
-	flex-direction: row;
-	justify-content: center;
-	padding-left: 40;
-	padding-right: 20;
-	position-type:Absolute;
-	position-left:0;
-	position-right:0;
-	height:14;
-}
-.FlowContainer.Output{
-	position-bottom:0;
-}
-
 VFXFlowAnchor.EdgeConnector {
 }
 
@@ -53,20 +39,4 @@ VFXFlowAnchor.port.EdgeConnector #connector #cap
 
 VFXFlowAnchor.connected #connector
 {
-}
-
-VFXFlowEdge.edge
-{
-	edge-width:4;
-	border-color : rgba(146,146,146,255);
-}
-
-VFXFlowEdge.edge.selected
-{
-	border-color : rgba(240,240,240,255);
-}
-
-VFXFlowEdge.edge:hover
-{
-	edge-width:6;
 }

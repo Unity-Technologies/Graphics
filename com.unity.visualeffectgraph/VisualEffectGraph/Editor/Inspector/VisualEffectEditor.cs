@@ -287,7 +287,7 @@ public class VisualEffectEditor : Editor
         public Type type;
     }
 
-    Dictionary<VFXParameterController, Infos> m_Infos = new Dictionary<VFXParameterController, Infos>();
+    Dictionary<VFXParameterNodeController, Infos> m_Infos = new Dictionary<VFXParameterNodeController, Infos>();
 
     void OnParamGUI(VFXParameter parameter)
     {

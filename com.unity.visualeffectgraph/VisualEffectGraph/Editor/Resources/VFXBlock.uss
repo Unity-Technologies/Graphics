@@ -51,12 +51,6 @@ VFXBlockUI.VFXContextSlotContainerUI.node #title #collapse-button
 	width:20;
 	padding-right:4;
 }
-
-.node.selected
-{
-	border-color:#FFFFFF;
-}
-
 VFXBlockUI.node 
 {
     margin-left:0;

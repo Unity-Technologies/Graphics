@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, IControlledElement<VFXNodeController>, IDropTarget
+    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, ISettableControlledElement<VFXNodeController>, IDropTarget
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -61,13 +61,10 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
         }
 
-        VFXNodeController IControlledElement<VFXNodeController>.controller
+        VFXNodeController ISettableControlledElement<VFXNodeController>.controller
         {
             get { return m_Controller; }
-            set
-            {
-                controller = value as VFXContextController;
-            }
+            set { controller = value as VFXContextController; }
         }
 
         public VFXContextController controller
@@ -213,6 +210,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXContextUI()
         {
+            AddStyleSheetPath("VFXContext");
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
             forceNotififcationOnAdd = true;
 
