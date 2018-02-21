@@ -4,4 +4,4 @@
 	branch = v2
 [submodule "ShaderGraph"]
 	path = ShaderGraph
-	url = git@github.com:Unity-Technologies/ShaderGraph.git
+	url = https://github.com/Unity-Technologies/ShaderGraph
