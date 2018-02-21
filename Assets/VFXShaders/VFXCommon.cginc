@@ -375,9 +375,9 @@ float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
 
 #if USE_FLIPBOOK
 #if USE_FLIPBOOK_INTERPOLATION
-void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float4 uv, out float blend)
+void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float4 uv, out float blend)
 #else
-void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float2 uv)
+void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float2 uv)
 #endif
 {
     float frameBlend = frac(texIndex);
