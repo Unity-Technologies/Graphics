@@ -149,6 +149,9 @@ namespace UnityEditor.ShaderGraph
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
                 defines.AddShaderChunk("#define _AlphaClip 1", true);
 
+            if(masterNode.alphaMode == AlphaMode.Transparent)
+                defines.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON 1", true);
+
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
             foreach (var slot in usedSlots)

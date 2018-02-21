@@ -5,6 +5,7 @@ namespace UnityEditor.ShaderGraph {
     {
         Opaque,
         Fade,
+        Transparent,
         Additive,
         Multiply
     }
