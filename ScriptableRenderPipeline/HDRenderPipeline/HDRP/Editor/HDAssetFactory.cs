@@ -61,7 +61,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.debugViewTilesShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewTiles.Shader");
                 newAsset.debugFullScreenShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader");
                 newAsset.debugColorPickerShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugColorPicker.Shader");
-                newAsset.debugShadowMapShader = Load<Shader>(CorePath + "Shadow/DebugDisplayShadowMap.shader");
 
                 newAsset.deferredShader = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader");
                 newAsset.gaussianPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ColorPyramid.compute");
@@ -105,6 +104,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
                 newAsset.skyboxCubemap = Shader.Find("Skybox/Cubemap");
+
+                // Shadow
+                newAsset.shadowClearShader = Load<Shader>(CorePath + "Shadow/ShadowClear.shader");
+                newAsset.shadowBlurMoments = Load<ComputeShader>(CorePath + "Shadow/ShadowBlurMoments.compute");
+                newAsset.debugShadowMapShader = Load<Shader>(CorePath + "Shadow/DebugDisplayShadowMap.shader");
 
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
