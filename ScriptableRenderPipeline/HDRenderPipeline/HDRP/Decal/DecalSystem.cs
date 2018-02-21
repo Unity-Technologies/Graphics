@@ -335,17 +335,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             void UpdateTextureCache(CommandBuffer cmd)
             {
-                if ((m_DiffuseTexIndex == -1) && (m_DiffuseTexture != null))
+                if (m_DiffuseTexture != null)
                 {
                     m_DiffuseTexIndex = instance.TextureAtlas.FetchSlice(cmd, m_DiffuseTexture);
                 }
-                if ((m_NormalTexIndex == -1) && (m_NormalTexture != null))
+                else
+                {
+                    m_DiffuseTexIndex = -1;
+                }
+
+                if (m_NormalTexture != null)
                 {
                     m_NormalTexIndex = instance.TextureAtlas.FetchSlice(cmd, m_NormalTexture);
                 }
-                if ((m_MaskTexIndex == -1) && (m_MaskTexture != null))
+                else
+                {
+                    m_NormalTexIndex = -1;
+                }
+
+                if (m_MaskTexture != null)
                 {
                     m_MaskTexIndex = instance.TextureAtlas.FetchSlice(cmd, m_MaskTexture);
+                }
+                else
+                {
+                    m_MaskTexIndex = -1;
                 }
             }
 

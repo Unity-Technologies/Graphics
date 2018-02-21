@@ -15,7 +15,7 @@ DecalData FetchDecal(uint start, uint i)
 void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float3x3 decalToWorld, float blend)
 {
 	float4 src;
-	src.xyz =  mul(decalToWorld, DECAL_UNPACK_NORMAL_FUNC(SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex))) * 0.5f + 0.5f;
+	src.xyz =  mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex))) * 0.5f + 0.5f;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
