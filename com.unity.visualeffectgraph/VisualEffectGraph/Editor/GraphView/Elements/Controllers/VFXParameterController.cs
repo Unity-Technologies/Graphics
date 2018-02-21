@@ -316,6 +316,10 @@ namespace UnityEditor.VFX.UI
 
         public static string MakeNameUnique(string name, HashSet<string> allNames)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "parameter";
+            }
             string candidateName = name.Trim();
             if (candidateName.Length < 1)
             {
