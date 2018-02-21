@@ -209,7 +209,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = ShaderGenerator.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
+            var materialOptions = ShaderGenerator.GetMaterialOptions(masterNode.alphaMode, masterNode.twoSided.isOn);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);

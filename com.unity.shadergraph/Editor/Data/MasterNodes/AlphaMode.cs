@@ -4,7 +4,8 @@ namespace UnityEditor.ShaderGraph {
     public enum AlphaMode
     {
         Opaque,
-        AlphaBlend,
-        AdditiveBlend
+        Fade,
+        Additive,
+        Multiply
     }
 }
