@@ -77,8 +77,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_vBoundsBuffer = Shader.PropertyToID("g_vBoundsBuffer");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
         public static readonly int g_data = Shader.PropertyToID("g_data");
-        public static readonly int g_mProjection = Shader.PropertyToID("g_mProjection");
-        public static readonly int g_mInvProjection = Shader.PropertyToID("g_mInvProjection");
+        public static readonly int g_mProjectionArr = Shader.PropertyToID("g_mProjectionArr");
+        public static readonly int g_mInvProjectionArr = Shader.PropertyToID("g_mInvProjectionArr");
         public static readonly int g_viDimensions = Shader.PropertyToID("g_viDimensions");
         public static readonly int g_vLightList = Shader.PropertyToID("g_vLightList");
 
