@@ -56,9 +56,26 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        private SurfaceType m_SurfaceType;
+
+        [EnumControl("Surface")]
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         private AlphaMode m_AlphaMode;
 
-        [EnumControl("Blending")]
+        [EnumControl("Blend")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
