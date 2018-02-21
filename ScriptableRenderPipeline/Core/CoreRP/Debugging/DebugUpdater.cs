@@ -2,6 +2,17 @@
 {
     public class DebugUpdater : MonoBehaviour
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void RuntimeInit()
+        {
+            if (FindObjectOfType<DebugUpdater>() != null)
+                return;
+
+            var go = new GameObject { name = "[Debug Updater]" };
+            go.AddComponent<DebugUpdater>();
+            DontDestroyOnLoad(go);
+        }
+
         void Update()
         {
             DebugManager.instance.UpdateActions();

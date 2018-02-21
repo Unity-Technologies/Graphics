@@ -83,14 +83,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             RegisterInputs();
             RegisterActions();
-
-            var updater = UnityObject.FindObjectOfType<DebugUpdater>();
-
-            if (updater == null)
-            {
-                var go = new GameObject("[Debug Updater]") { hideFlags = HideFlags.HideInHierarchy };
-                go.AddComponent<DebugUpdater>();
-            }
         }
 
         public void Reset()
