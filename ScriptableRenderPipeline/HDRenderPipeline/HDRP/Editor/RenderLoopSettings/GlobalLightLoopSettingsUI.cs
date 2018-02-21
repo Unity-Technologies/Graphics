@@ -34,10 +34,10 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.LabelField(_.GetContent("Cookies"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(d.cookieSize, _.GetContent("Cookie Size"));
             EditorGUILayout.PropertyField(d.cookieTexArraySize, _.GetContent("Texture Array Size"));
-            EditorGUILayout.PropertyField(d.cubeCookieTexArraySize, _.GetContent("Cubemap Array Size"));
             EditorGUILayout.PropertyField(d.pointCookieSize, _.GetContent("Point Cookie Size"));
-            EditorGUILayout.PropertyField(d.spotCookieSize, _.GetContent("Spot Cookie Size"));
+            EditorGUILayout.PropertyField(d.cubeCookieTexArraySize, _.GetContent("Cubemap Array Size"));
             --EditorGUI.indentLevel;
         }
 

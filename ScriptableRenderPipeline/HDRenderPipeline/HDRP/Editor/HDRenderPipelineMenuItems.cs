@@ -24,7 +24,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     light.gameObject.AddComponent<HDAdditionalLightData>();
 
                 if (light.GetComponent<AdditionalShadowData>() == null)
-                    light.gameObject.AddComponent<AdditionalShadowData>();
+                {
+                    AdditionalShadowData shadowData = light.gameObject.AddComponent<AdditionalShadowData>();
+                    HDAdditionalShadowData.InitDefaultHDAdditionalShadowData(shadowData);
+                }
             }
         }
 

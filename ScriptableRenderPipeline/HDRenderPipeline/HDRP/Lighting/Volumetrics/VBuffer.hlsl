@@ -47,7 +47,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
     // TODO: add the proper sampler support.
     bool isInBounds = Min3(uv.x, uv.y, d) > 0 && Max3(uv.x, uv.y, d) < 1;
 
-    [branch] if (clampToEdge || isInBounds)
+    UNITY_BRANCH if (clampToEdge || isInBounds)
     {
     #if 1
         // Ignore non-linearity (for performance reasons) at the cost of accuracy.
