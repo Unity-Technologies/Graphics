@@ -21,8 +21,3 @@ NodeSettingsView > #mainContainer {
 	padding-right: 4;
 	padding-bottom: 4;
 }
-
-NodeSettingsView > #mainContainer > #title {
-    font-style: bold;
-	text-color: #e8596e;
-}
