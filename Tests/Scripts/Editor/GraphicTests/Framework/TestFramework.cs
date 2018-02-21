@@ -42,6 +42,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             BackupSceneManagerSetup();
             SetupRenderPipeAsset();
+            SetupQualitySettings();
         }
 
         [OneTimeTearDown]
@@ -50,6 +51,7 @@ namespace UnityEditor.Experimental.Rendering
             //Debug.Log("OneTimeTearDown");
             RestoreRenderPipeAsset();
             RestoreSceneManagerSetup();
+            RestoreQualitySettings();
         }
 
         public static RenderPipelineAsset GetRenderPipelineAsset(string _SRP_ID)
@@ -115,6 +117,43 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
+
+        public int qualityLevel = 0;
+        public void SetupQualitySettings()
+        {
+            qualityLevel = QualitySettings.GetQualityLevel();
+
+            List<string> qualityNames = new List<string>(QualitySettings.names);
+            if (!qualityNames.Contains("Graphic Tests"))
+            {
+                EditorUtility.DisplayDialog("Add a Quality Setting", "To run properly the Graphic Test, please add a Quality Setting named \"Graphic Tests\".", "Ok");
+                throw new Exception("Missing QualitySetting");
+            }
+
+            QualitySettings.SetQualityLevel( qualityNames.IndexOf("Graphic Tests"));
+
+            QualitySettings.masterTextureLimit = 0;
+            QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
+            QualitySettings.realtimeReflectionProbes = true;
+            QualitySettings.billboardsFaceCameraPosition = true;
+            QualitySettings.resolutionScalingFixedDPIFactor = 1f;
+            QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
+            QualitySettings.blendWeights = BlendWeights.FourBones;
+            QualitySettings.vSyncCount = 1;
+            QualitySettings.lodBias = 2;
+            QualitySettings.maximumLODLevel = 0;
+            QualitySettings.particleRaycastBudget = 4096;
+            QualitySettings.asyncUploadTimeSlice = 2;
+            QualitySettings.asyncUploadBufferSize = 4;
+            QualitySettings.antiAliasing = 0;
+
+            QualitySettings.SetQualityLevel( qualityNames.IndexOf("Graphic Tests"), true);
+        }
+
+        public void RestoreQualitySettings()
+        {
+            QualitySettings.SetQualityLevel(qualityLevel, true);
+        }
 
         // the actual test
         public static IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)

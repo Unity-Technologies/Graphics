@@ -60,9 +60,9 @@ Shader "HDRenderPipeline/Lit"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        _ThicknessIridescence("Thickness sridescence", Range(0.0, 1.0)) = 1.0
-        _ThicknessMapIridescence("Thickness Map Iridescence", 2D) = "white" {}
-        _ThicknessRemapIridescence("Thickness Remap Iridescence", Vector) = (0, 1, 0, 0)
+        _IridescenceThickness("Iridescence Thickness", Range(0.0, 1.0)) = 1.0
+        _IridescenceThicknessMap("Iridescence Thickness Map", 2D) = "white" {}
+        _IridescenceThicknessRemap("Iridescence Thickness Remap", Vector) = (0, 1, 0, 0)
         _IridescenceMask("Iridescence Mask", Range(0.0, 1.0)) = 1.0
         _IridescenceMaskMap("Iridescence Mask Map", 2D) = "white" {}
 
@@ -109,7 +109,7 @@ Shader "HDRenderPipeline/Lit"
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
-        _Ior("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
+        _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
         _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
@@ -232,7 +232,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
-    #pragma shader_feature _THICKNESSMAP_IRIDESCENCE
+    #pragma shader_feature _IRIDESCENCE_THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
@@ -297,6 +297,9 @@ Shader "HDRenderPipeline/Lit"
 
     SubShader
     {
+        // This tags allow to use the shader replacement features
+        Tags{ "RenderType" = "HDLitShader" }
+
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
