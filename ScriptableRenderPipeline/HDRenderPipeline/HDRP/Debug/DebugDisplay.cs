@@ -1,6 +1,7 @@
-using System.Collections.Generic;
-using UnityEngine;
 using System;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -27,30 +28,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class DebugDisplaySettings
     {
-        public static string kEnableShadowDebug = "Enable Shadows";
-        public static string kShadowDebugMode = "Shadow Debug Mode";
-        public static string kShadowSelectionDebug = "Use Selection";
-        public static string kShadowMapIndexDebug = "Shadow Map Index";
-        public static string kShadowAtlasIndexDebug = "Shadow Atlas Index";
-        public static string kShadowMinValueDebug = "Shadow Range Min Value";
-        public static string kShadowMaxValueDebug = "Shadow Range Max Value";
-        public static string kLightingDebugMode = "Lighting Debug Mode";
+        public static string k_PanelDisplayStats = "Display Stats";
+        public static string k_PanelMaterials = "Material";
+        public static string k_PanelLighting = "Lighting";
+        public static string k_PanelRendering = "Rendering";
 
-        public static string kOverrideAlbedoDebug = "Override Albedo";
-        public static string kOverrideAlbedoValueDebug = "Override Albedo Value";
-        public static string kOverrideSmoothnessDebug = "Override Smoothness";
-        public static string kOverrideSmoothnessValueDebug = "Override Smoothness Value";
-        public static string kOverrideNormalDebug = "Override normal";
-
-        public static string kDebugEnvironmentProxyDepthScale = "Debug Environment Proxy Depth Scale";
-        public static string kFullScreenDebugMode = "Fullscreen Debug Mode";
-        public static string kFullScreenDebugMip = "Fullscreen Debug Mip";
-        public static string kDisplaySkyReflectionDebug = "Display Sky Reflection";
-        public static string kSkyReflectionMipmapDebug = "Sky Reflection Mipmap";
-        public static string kTileClusterCategoryDebug = "Tile/Cluster Debug By Category";
-        public static string kTileClusterDebug = "Tile/Cluster Debug";
-        public static string kMipMapDebugMode = "Mip Map Debug Mode";
-
+        DebugUI.Widget[] m_DebugDisplayStatsItems;
+        DebugUI.Widget[] m_DebugMaterialItems;
+        DebugUI.Widget[] m_DebugLightingItems;
+        DebugUI.Widget[] m_DebugRenderingItems;
 
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
@@ -121,14 +107,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             materialDebugSettings.SetDebugViewEngine(value);
         }
 
-        public void SetDebugViewVarying(Attributes.DebugViewVarying value)
+        public void SetDebugViewVarying(DebugViewVarying value)
         {
             if (value != 0)
                 DisableNonMaterialDebugSettings();
             materialDebugSettings.SetDebugViewVarying(value);
         }
 
-        public void SetDebugViewProperties(Attributes.DebugViewProperties value)
+        public void SetDebugViewProperties(DebugViewProperties value)
         {
             if (value != 0)
                 DisableNonMaterialDebugSettings();
@@ -168,112 +154,269 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //    Texture.SetStreamingTextureMaterialDebugProperties();
         }
 
-        public void RegisterDebug()
+        void RegisterDisplayStatsDebug()
         {
-            DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Rate", () => 1.0f / Time.smoothDeltaTime, null, DebugItemFlag.DynamicDisplay);
-            DebugMenuManager.instance.AddDebugItem<float>("Display Stats", "Frame Time (ms)", () => Time.smoothDeltaTime * 1000.0f, null, DebugItemFlag.DynamicDisplay);
+            m_DebugDisplayStatsItems = new DebugUI.Widget[]
+            {
+                new DebugUI.Value { displayName = "Frame Rate", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f },
+                new DebugUI.Value { displayName = "Frame Rate (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f }
+            };
 
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "Material",() => materialDebugSettings.debugViewMaterial, (value) => SetDebugViewMaterial((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewMaterialStrings, MaterialDebugSettings.debugViewMaterialValues));
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "Engine",() => materialDebugSettings.debugViewEngine, (value) => SetDebugViewEngine((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewEngineStrings, MaterialDebugSettings.debugViewEngineValues));
-            DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewVarying>("Material", "Attributes",() => materialDebugSettings.debugViewVarying, (value) => SetDebugViewVarying((Attributes.DebugViewVarying)value));
-            DebugMenuManager.instance.AddDebugItem<Attributes.DebugViewProperties>("Material", "Properties", () => materialDebugSettings.debugViewProperties, (value) => SetDebugViewProperties((Attributes.DebugViewProperties)value));
-            DebugMenuManager.instance.AddDebugItem<int>("Material", "GBuffer",() => materialDebugSettings.debugViewGBuffer, (value) => SetDebugViewGBuffer((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues));
-
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, ShadowMapDebugMode>(kShadowDebugMode, () => lightingDebugSettings.shadowDebugMode, (value) => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kShadowSelectionDebug, () => lightingDebugSettings.shadowDebugUseSelection, (value) => lightingDebugSettings.shadowDebugUseSelection = (bool)value, DebugItemFlag.EditorOnly);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowMapIndexDebug, () => lightingDebugSettings.shadowMapIndex, (value) => lightingDebugSettings.shadowMapIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowIndex(1));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(kShadowAtlasIndexDebug, () => lightingDebugSettings.shadowAtlasIndex, (value) => lightingDebugSettings.shadowAtlasIndex = (uint)value, DebugItemFlag.None, new DebugItemHandlerShadowAtlasIndex(1));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMinValueDebug, () => lightingDebugSettings.shadowMinValue, (value) => lightingDebugSettings.shadowMinValue = (float)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kShadowMaxValueDebug, () => lightingDebugSettings.shadowMaxValue, (value) => lightingDebugSettings.shadowMaxValue = (float)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, int>(kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, uint>(
-                kFullScreenDebugMip,
-                () =>
-                {
-                    var id = 0;
-                    switch (fullScreenDebugMode)
-                    {
-                        default:
-                        case FullScreenDebugMode.DepthPyramid:
-                            id = HDShaderIDs._DepthPyramidMipSize;
-                            break;
-                        case FullScreenDebugMode.FinalColorPyramid:
-                        case FullScreenDebugMode.PreRefractionColorPyramid:
-                            id = HDShaderIDs._GaussianPyramidColorMipSize;
-                            break;
-                    }
-                    var size = Shader.GetGlobalVector(id);
-                    var lodCount = size.z;
-                    return (uint)(fullscreenDebugMip * lodCount);
-
-                },
-                value =>
-                {
-                    var id = 0;
-                    switch (fullScreenDebugMode)
-                    {
-                        default:
-                        case FullScreenDebugMode.DepthPyramid:
-                            id = HDShaderIDs._DepthPyramidMipSize;
-                            break;
-                        case FullScreenDebugMode.FinalColorPyramid:
-                        case FullScreenDebugMode.PreRefractionColorPyramid:
-                            id = HDShaderIDs._GaussianPyramidColorMipSize;
-                            break;
-                    }
-                    var size = Shader.GetGlobalVector(id);
-                    var lodCount = size.z;
-                    fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(Single)) / lodCount;
-                }, 
-                DebugItemFlag.None, 
-                new DebugItemHandlerUIntMinMax(() => 0,
-                    () =>
-                    {
-                        var id = 0;
-                        switch (fullScreenDebugMode)
-                        {
-                            default:
-                            case FullScreenDebugMode.DepthPyramid:
-                                id = HDShaderIDs._DepthPyramidMipSize;
-                                break;
-                            case FullScreenDebugMode.FinalColorPyramid:
-                            case FullScreenDebugMode.PreRefractionColorPyramid:
-                                id = HDShaderIDs._GaussianPyramidColorMipSize;
-                                break;
-                        }
-                        var size = Shader.GetGlobalVector(id);
-                        var lodCount = size.z;
-                        return (uint)lodCount;
-                    })
-                );
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, DebugLightingMode>(kLightingDebugMode, () => lightingDebugSettings.debugLightingMode, (value) => SetDebugLightingMode((DebugLightingMode)value));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideSmoothnessDebug, () => lightingDebugSettings.overrideSmoothness, (value) => lightingDebugSettings.overrideSmoothness = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kOverrideSmoothnessValueDebug, () => lightingDebugSettings.overrideSmoothnessValue, (value) => lightingDebugSettings.overrideSmoothnessValue = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideAlbedoDebug, () => lightingDebugSettings.overrideAlbedo, (value) => lightingDebugSettings.overrideAlbedo = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, Color>(kOverrideAlbedoValueDebug, () => lightingDebugSettings.overrideAlbedoValue, (value) => lightingDebugSettings.overrideAlbedoValue = (Color)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, bool>(kOverrideNormalDebug, () => lightingDebugSettings.overrideNormal, (value) => lightingDebugSettings.overrideNormal = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>("Lighting", kDisplaySkyReflectionDebug, () => lightingDebugSettings.displaySkyReflection, (value) => lightingDebugSettings.displaySkyReflection = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kSkyReflectionMipmapDebug, () => lightingDebugSettings.skyReflectionMipmap, (value) => lightingDebugSettings.skyReflectionMipmap = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.0f, 1.0f));
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterDebug>(kTileClusterDebug,() => lightingDebugSettings.tileClusterDebug, (value) => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value);
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, LightLoop.TileClusterCategoryDebug>(kTileClusterCategoryDebug,() => lightingDebugSettings.tileClusterDebugByCategory, (value) => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value);
-
-            DebugMenuManager.instance.AddDebugItem<LightingDebugPanel, float>(kDebugEnvironmentProxyDepthScale, () => lightingDebugSettings.environmentProxyDepthScale, value => lightingDebugSettings.environmentProxyDepthScale = (float)value, DebugItemFlag.None, new DebugItemHandlerFloatMinMax(0.1f, 50f));
-
-            DebugMenuManager.instance.AddDebugItem<int>("Rendering", kFullScreenDebugMode, () => (int)fullScreenDebugMode, (value) => fullScreenDebugMode = (FullScreenDebugMode)value, DebugItemFlag.None, new DebugItemHandlerIntEnum(DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues));
-            DebugMenuManager.instance.AddDebugItem<DebugMipMapMode>("Rendering", "MipMaps", () => mipMapDebugSettings.debugMipMapMode, (value) => SetMipMapMode((DebugMipMapMode)value));
-
-            DebugMenuManager.instance.AddDebugItem<ColorPickerDebugMode>("Rendering", ColorPickerDebugSettings.kColorPickerDebugMode, () => (int)colorPickerDebugSettings.colorPickerMode, (value) => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value);
-            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold0Debug, () => colorPickerDebugSettings.colorThreshold0, (value) => colorPickerDebugSettings.colorThreshold0 = (float)value);
-            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold1Debug, () => colorPickerDebugSettings.colorThreshold1, (value) => colorPickerDebugSettings.colorThreshold1 = (float)value);
-            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold2Debug, () => colorPickerDebugSettings.colorThreshold2, (value) => colorPickerDebugSettings.colorThreshold2 = (float)value);
-            DebugMenuManager.instance.AddDebugItem<float>("Rendering", ColorPickerDebugSettings.kColorPickerThreshold3Debug, () => colorPickerDebugSettings.colorThreshold3, (value) => colorPickerDebugSettings.colorThreshold3 = (float)value);
-            DebugMenuManager.instance.AddDebugItem<Color>("Rendering", ColorPickerDebugSettings.kColorPickerFontColor, () => colorPickerDebugSettings.fontColor, (value) => colorPickerDebugSettings.fontColor = (Color)value);
-
+            var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
+            panel.flags = DebugUI.Flags.RuntimeOnly;
+            panel.children.Add(m_DebugDisplayStatsItems);
         }
 
-        public void OnValidate()
+        public void RegisterMaterialDebug()
         {
-            lightingDebugSettings.OnValidate();
+            m_DebugMaterialItems = new DebugUI.Widget[]
+            {
+                new DebugUI.EnumField { displayName = "Material", getter = () => materialDebugSettings.debugViewMaterial, setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues },
+                new DebugUI.EnumField { displayName = "Engine", getter = () => materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues },
+                new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying) },
+                new DebugUI.EnumField { displayName = "Properties", getter = () => (int)materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties) },
+                new DebugUI.EnumField { displayName = "GBuffer", getter = () => materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues }
+            };
+
+            var panel = DebugManager.instance.GetPanel(k_PanelMaterials, true);
+            panel.children.Add(m_DebugMaterialItems);
+        }
+
+        // For now we just rebuild the lighting panel if needed, but ultimately it could be done in a better way
+        void RefreshLightingDebug<T>(DebugUI.Field<T> field, T value)
+        {
+            UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
+            RegisterLightingDebug();
+        }
+
+        public void RegisterLightingDebug()
+        {
+            var list = new List<DebugUI.Widget>();
+
+            list.Add(new DebugUI.EnumField
+            {
+                displayName = "Shadow Debug Mode",
+                getter = () => (int)lightingDebugSettings.shadowDebugMode,
+                setter = value => lightingDebugSettings.shadowDebugMode = (ShadowMapDebugMode)value,
+                autoEnum = typeof(ShadowMapDebugMode),
+                onValueChanged = RefreshLightingDebug
+            });
+
+            if (lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
+            {
+                var container = new DebugUI.Container();
+                container.children.Add(new DebugUI.BoolField { displayName = "Use Selection", getter = () => lightingDebugSettings.shadowDebugUseSelection, setter = value => lightingDebugSettings.shadowDebugUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug });
+
+                if (!lightingDebugSettings.shadowDebugUseSelection)
+                    container.children.Add(new DebugUI.UIntField { displayName = "Shadow Map Index", getter = () => lightingDebugSettings.shadowMapIndex, setter = value => lightingDebugSettings.shadowMapIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCurrentShadowCount() - 1u });
+
+                list.Add(container);
+            }
+            else if (lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.UIntField { displayName = "Shadow Atlas Index", getter = () => lightingDebugSettings.shadowMapIndex, setter = value => lightingDebugSettings.shadowAtlasIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetShadowAtlasCount() - 1u }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.FloatField { displayName = "Shadow Range Min Value", getter = () => lightingDebugSettings.shadowMinValue, setter = value => lightingDebugSettings.shadowMinValue = value });
+            list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => lightingDebugSettings.shadowMaxValue, setter = value => lightingDebugSettings.shadowMaxValue = value });
+
+            list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.debugLightingMode == DebugLightingMode.EnvironmentProxyVolume)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField { displayName = "Debug Environment Proxy Depth Scale", getter = () => lightingDebugSettings.environmentProxyDepthScale, setter = value => lightingDebugSettings.environmentProxyDepthScale = value, min = () => 0.1f, max = () => 50f }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = lightingFullScreenDebugStrings, enumValues = lightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug });
+            switch (fullScreenDebugMode)
+            {
+                case FullScreenDebugMode.PreRefractionColorPyramid:
+                case FullScreenDebugMode.FinalColorPyramid:
+                case FullScreenDebugMode.DepthPyramid:
+                {
+                    list.Add(new DebugUI.Container
+                    {
+                        children =
+                        {
+                            new DebugUI.UIntField
+                            {
+                                displayName = "Fullscreen Debug Mip",
+                                getter = () =>
+                                {
+                                    int id;
+                                    switch (fullScreenDebugMode)
+                                    {
+                                        case FullScreenDebugMode.FinalColorPyramid:
+                                        case FullScreenDebugMode.PreRefractionColorPyramid:
+                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            break;
+                                        default:
+                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            break;
+                                    }
+                                    var size = Shader.GetGlobalVector(id);
+                                    float lodCount = size.z;
+                                    return (uint)(fullscreenDebugMip * lodCount);
+                                },
+                                setter = value =>
+                                {
+                                    int id;
+                                    switch (fullScreenDebugMode)
+                                    {
+                                        case FullScreenDebugMode.FinalColorPyramid:
+                                        case FullScreenDebugMode.PreRefractionColorPyramid:
+                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            break;
+                                        default:
+                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            break;
+                                    }
+                                    var size = Shader.GetGlobalVector(id);
+                                    float lodCount = size.z;
+                                    fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(float)) / lodCount;
+                                },
+                                min = () => 0u,
+                                max = () =>
+                                {
+                                    int id;
+                                    switch (fullScreenDebugMode)
+                                    {
+                                        case FullScreenDebugMode.FinalColorPyramid:
+                                        case FullScreenDebugMode.PreRefractionColorPyramid:
+                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            break;
+                                        default:
+                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            break;
+                                    }
+                                    var size = Shader.GetGlobalVector(id);
+                                    float lodCount = size.z;
+                                    return (uint)lodCount;
+                                }
+                            }
+                        }
+                    });
+                    break;
+                }
+                default:
+                    fullscreenDebugMip = 0;
+                    break;
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Override Smoothness", getter = () => lightingDebugSettings.overrideSmoothness, setter = value => lightingDebugSettings.overrideSmoothness = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.overrideSmoothness)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField { displayName = "Smoothness", getter = () => lightingDebugSettings.overrideSmoothnessValue, setter = value => lightingDebugSettings.overrideSmoothnessValue = value, min = () => 0f, max = () => 1f, incStep = 0.025f }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Override Albedo", getter = () => lightingDebugSettings.overrideAlbedo, setter = value => lightingDebugSettings.overrideAlbedo = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.overrideAlbedo)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.ColorField { displayName = "Albedo", getter = () => lightingDebugSettings.overrideAlbedoValue, setter = value => lightingDebugSettings.overrideAlbedoValue = value, showAlpha = false, hdr = false }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Override Normal", getter = () => lightingDebugSettings.overrideNormal, setter = value => lightingDebugSettings.overrideNormal = value });
+
+            list.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug", getter = () => (int)lightingDebugSettings.tileClusterDebug, setter = value => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value, autoEnum = typeof(LightLoop.TileClusterDebug), onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.None && lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.MaterialFeatureVariants)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)lightingDebugSettings.tileClusterDebugByCategory, setter = value => lightingDebugSettings.tileClusterDebugByCategory = (LightLoop.TileClusterCategoryDebug)value, autoEnum = typeof(LightLoop.TileClusterCategoryDebug) }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Display Sky Reflection", getter = () => lightingDebugSettings.displaySkyReflection, setter = value => lightingDebugSettings.displaySkyReflection = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.displaySkyReflection)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField { displayName = "Sky Reflection Mipmap", getter = () => lightingDebugSettings.skyReflectionMipmap, setter = value => lightingDebugSettings.skyReflectionMipmap = value, min = () => 0f, max = () => 1f, incStep = 0.05f }
+                    }
+                });
+            }
+
+            m_DebugLightingItems = list.ToArray();
+            var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
+            panel.children.Add(m_DebugLightingItems);
+        }
+
+        public void RegisterRenderingDebug()
+        {
+            m_DebugRenderingItems = new DebugUI.Widget[]
+            {
+                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = renderingFullScreenDebugStrings, enumValues = renderingFullScreenDebugValues },
+                new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode) },
+
+                new DebugUI.Container
+                {
+                    displayName = "Color Picker",
+                    flags = DebugUI.Flags.EditorOnly,
+                    children =
+                    {
+                        new DebugUI.EnumField  { displayName = "Debug Mode", getter = () => (int)colorPickerDebugSettings.colorPickerMode, setter = value => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value, autoEnum = typeof(ColorPickerDebugMode) },
+                        new DebugUI.FloatField { displayName = "Range Threshold 0", getter = () => colorPickerDebugSettings.colorThreshold0, setter = value => colorPickerDebugSettings.colorThreshold0 = value },
+                        new DebugUI.FloatField { displayName = "Range Threshold 1", getter = () => colorPickerDebugSettings.colorThreshold1, setter = value => colorPickerDebugSettings.colorThreshold1 = value },
+                        new DebugUI.FloatField { displayName = "Range Threshold 2", getter = () => colorPickerDebugSettings.colorThreshold2, setter = value => colorPickerDebugSettings.colorThreshold2 = value },
+                        new DebugUI.FloatField { displayName = "Range Threshold 3", getter = () => colorPickerDebugSettings.colorThreshold3, setter = value => colorPickerDebugSettings.colorThreshold3 = value },
+                        new DebugUI.ColorField { displayName = "Font Color", flags = DebugUI.Flags.EditorOnly, getter = () => colorPickerDebugSettings.fontColor, setter = value => colorPickerDebugSettings.fontColor = value }
+                    }
+                }
+            };
+
+            var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
+            panel.children.Add(m_DebugRenderingItems);
+        }
+
+        public void RegisterDebug()
+        {
+            RegisterDisplayStatsDebug();
+            RegisterMaterialDebug();
+            RegisterLightingDebug();
+            RegisterRenderingDebug();
+        }
+
+        public void UnregisterDebug()
+        {
+            UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
+            UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
+            UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
+            UnregisterDebugItems(k_PanelRendering, m_DebugLightingItems);
+        }
+
+        void UnregisterDebugItems(string panelName, DebugUI.Widget[] items)
+        {
+            var panel = DebugManager.instance.GetPanel(panelName);
+            if (panel != null)
+                panel.children.Remove(items);
         }
 
         void FillFullScreenDebugEnum(ref GUIContent[] strings, ref int[] values, FullScreenDebugMode min, FullScreenDebugMode max)

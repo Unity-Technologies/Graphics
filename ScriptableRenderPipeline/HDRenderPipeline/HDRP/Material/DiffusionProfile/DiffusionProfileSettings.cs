@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the near field kernel.
             for (int i = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
-                float p = (i + 0.5f) * (1f / n);
+                float p = (i + 0.5f) * (1.0f / n);
                 float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the far field kernel.
             for (int i = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
-                float p = (i + 0.5f) * (1f / n);
+                float p = (i + 0.5f) * (1.0f / n);
                 float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo

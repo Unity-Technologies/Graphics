@@ -232,7 +232,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 		if(canEnter) canEnter = _LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
-		[branch]if(canEnter)
+		UNITY_BRANCH if(canEnter)
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 

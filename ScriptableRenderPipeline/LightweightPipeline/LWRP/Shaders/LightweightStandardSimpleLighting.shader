@@ -74,9 +74,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            #pragma multi_compile _MAIN_LIGHT_DIRECTIONAL _MAIN_LIGHT_SPOT
-            #pragma multi_compile _ _SHADOWS_ENABLED
-            #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
@@ -91,12 +88,6 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
-            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
-            #ifdef DIRLIGHTMAP_COMBINED
-            #define LIGHTMAP_ON
-            #endif
-
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimple
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
@@ -107,19 +98,28 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
         {
             Tags{"Lightmode" = "ShadowCaster"}
 
-            ZWrite On ZTest LEqual
+            ZWrite On
+            ZTest LEqual
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma target 2.0
+            
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
             #pragma vertex ShadowPassVertex
-            #pragma fragment ShadowPassFragment
+            #pragma fragment LitPassFragmentSimpleNull
 
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
@@ -136,20 +136,23 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma target 2.0
-            #pragma vertex vert
-            #pragma fragment frag
 
-            #include "LWRP/ShaderLibrary/Core.hlsl"
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION
 
-            float4 vert(float4 pos : POSITION) : SV_POSITION
-            {
-                return TransformObjectToHClip(pos.xyz);
-            }
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
-            half4 frag() : SV_TARGET
-            {
-                return 0;
-            }
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragmentSimpleNull
+        
+            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
 

@@ -46,7 +46,7 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	GroupMemoryBarrierWithGroupSync();
 
 	uint materialFeatureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
-	[unroll]
+	UNITY_UNROLL
 	for(int i = 0; i < 4; i++)
 	{
 		int idx = i * NR_THREADS + threadID;

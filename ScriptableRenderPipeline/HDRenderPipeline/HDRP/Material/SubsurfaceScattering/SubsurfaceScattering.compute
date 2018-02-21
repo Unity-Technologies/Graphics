@@ -4,13 +4,16 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
+#pragma kernel SubsurfaceScatteringQualityNormal SubsurfaceScattering=SubsurfaceScatteringQualityNormal SSS_ENABLE_NEAR_FIELD=0
+#pragma kernel SubsurfaceScatteringQualityUltra  SubsurfaceScattering=SubsurfaceScatteringQualityUltra  SSS_ENABLE_NEAR_FIELD=1
+
 // #pragma enable_d3d11_debug_symbols
+// TODO: use sharp load hoisting on PS4.
 
 // Tweak parameters.
 #define SSS_BILATERAL_FILTER  1
 #define SSS_USE_LDS_CACHE     1
-#define SSS_TAA_INTEGRATION   1 // Smoother results at the cost of a tiny amount of flickering in under-sampled areas
-#define SSS_ENABLE_NEAR_FIELD 0 // Greatly increases the number of samples. Comes at a high cost.
+#define SSS_RANDOM_ROTATION   1 // Hides undersampling artifacts with high-frequency noise. TAA blurs the noise.
 #define SSS_USE_TANGENT_PLANE 0 // Improves the accuracy of the approximation(0 -> 1st order). High cost. Does not work with back-facing normals.
 #define SSS_CLAMP_ARTIFACT    0 // Reduces bleeding. Use with SSS_USE_TANGENT_PLANE.
 #define SSS_DEBUG_LOD         0
@@ -90,7 +93,7 @@ float4 LoadSample(int2 pixelCoord, int2 cacheOffset)
     int2 cacheCoord = pixelCoord - cacheOffset;
     bool isInCache  = max((uint)cacheCoord.x, (uint)cacheCoord.y) < TEXTURE_CACHE_SIZE_1D;
 
-    [branch] if (isInCache)
+    UNITY_BRANCH if (isInCache)
     {
         return LoadSampleFromCacheMemory(cacheCoord);
     }
@@ -144,27 +147,23 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 
 void EvaluateSample(uint i, uint n, uint profileID, uint iR, uint iP, float2 centerCoord, int2 cacheOffset,
                     float3 shapeParam, float3 centerPosVS, float mmPerUnit, float2 pixelsPerMm,
-                    float3 tangentX, float3 tangentY, float4x4 projMatrix,
+                    float startAngle, float3 tangentX, float3 tangentY, float4x4 projMatrix,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
-    float r   = _FilterKernels[profileID][i][iR];
     // The relative sample position is known at the compile time.
+    float r   = _FilterKernels[profileID][i][iR];
     float phi = SampleDiskFibonacci(i, n).y;
-#if (SSS_TAA_INTEGRATION != 0)
-    // Note that we repeat the pattern twice during the TAA cycle to reduce flickering.
-    float sinPsi = _TaaFrameRotation.x;
-    float cosPsi = _TaaFrameRotation.y;
 
-    // The angle 'psi' is loop-invariant. All the trigonometry is done at compile time.
+    // The angle 'psi' is loop-invariant.
+    float sinPsi = sin(startAngle);
+    float cosPsi = cos(startAngle);
+
     // cos(a + b) = cos(a) * cos(b) - sin(a) * sin(b)
     // sin(a + b) = sin(a) * cos(b) + cos(a) * sin(b)
     float cosSum = cos(phi) * cosPsi - sin(phi) * sinPsi;
     float sinSum = sin(phi) * cosPsi + cos(phi) * sinPsi;
 
     float2 vec = r * float2(cosSum, sinSum);
-#else
-    float2 vec = r * float2(cos(phi), sin(phi));
-#endif
 
     // Compute the screen-space position and the squared distance (in mm) in the image plane.
     int2 position; float xy2;
@@ -217,21 +216,14 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 #endif
 }
 
-#pragma kernel SubsurfaceScattering
-
 [numthreads(GROUP_SIZE_2D, 1, 1)]
-void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
-                          uint  groupThreadId    : SV_GroupThreadID)
+void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
+                          uint  groupThreadId : SV_GroupThreadID)
 {
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;
     uint quadIndex = laneIndex / 4;
-
-    // We dispatch 4x swizzled 16x16 groups per a 32x32 macrotile.
-    // Therefore, we need to reorder. TODO: macrotile order.
-    uint2 groupQuad = DeinterleaveQuad(reorderedGroupId.x);
-    uint2 groupId   = uint2(reorderedGroupId.y * 2 + groupQuad.x, reorderedGroupId.z * 2 + groupQuad.y);
 
     // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
     uint2 groupCoord  = DecodeMorton2D(groupThreadId);
@@ -239,7 +231,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     uint2 pixelCoord  = groupOffset + groupCoord;
     int2  cacheOffset = (int2)groupOffset - TEXTURE_CACHE_BORDER;
 
-    [branch] if (groupThreadId == 0)
+    UNITY_BRANCH if (groupThreadId == 0)
     {
         float stencilRef = STENCILLIGHTINGUSAGE_SPLIT_LIGHTING;
 
@@ -256,7 +248,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     // Wait for the LDS.
     GroupMemoryBarrierWithGroupSync();
 
-    [branch] if (!processGroup) { return; }
+    UNITY_BRANCH if (!processGroup) { return; }
 
     float3 centerIrradiance  = LOAD_TEXTURE2D(_IrradianceSource, pixelCoord).rgb;
     float  centerDepth       = 0;
@@ -264,7 +256,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     bool   passedStencilTest = TestLightingForSSS(centerIrradiance);
 
     // Save some bandwidth by only loading depth values for SSS pixels.
-    [branch] if (passedStencilTest)
+    UNITY_BRANCH if (passedStencilTest)
     {
         centerDepth = LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r;
         centerViewZ = LinearEyeDepth(centerDepth, _ZBufferParams);
@@ -278,7 +270,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     uint numBorderQuadsPerWave = TEXTURE_CACHE_SIZE_1D / 2 - 1;
     uint halfCacheWidthInQuads = TEXTURE_CACHE_SIZE_1D / 4;
 
-    [branch] if (quadIndex < numBorderQuadsPerWave)
+    UNITY_BRANCH if (quadIndex < numBorderQuadsPerWave)
     {
         // Fetch another texel into the LDS.
         uint2 startQuad = halfCacheWidthInQuads * DeinterleaveQuad(waveIndex);
@@ -315,7 +307,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
         float  viewZ2      = 0;
 
         // Save some bandwidth by only loading depth values for SSS pixels.
-        [branch] if (TestLightingForSSS(irradiance2))
+        UNITY_BRANCH if (TestLightingForSSS(irradiance2))
         {
             viewZ2 = LinearEyeDepth(LOAD_TEXTURE2D(_DepthTexture, pixelCoord2).r, _ZBufferParams);
         }
@@ -328,7 +320,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    [branch] if (!passedStencilTest) { return; }
+    UNITY_BRANCH if (!passedStencilTest) { return; }
 
     PositionInputs posInput = GetPositionInput(pixelCoord, _ScreenSize.zw);
 
@@ -367,7 +359,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     uint   texturingMode = GetSubsurfaceScatteringTexturingMode(profileID);
     float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
-    [branch] if (distScale == 0 || maxDistInPixels < 1)
+    UNITY_BRANCH if (distScale == 0 || maxDistInPixels < 1)
     {
         #if SSS_DEBUG_LOD
             StoreResult(pixelCoord, float3(0, 0, 1));
@@ -404,6 +396,12 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     }
 #endif
 
+#if SSS_RANDOM_ROTATION
+    float startAngle = TWO_PI * GenerateHashedRandomFloat(asuint(centerPosVS));
+#else
+    float startAngle = 0;
+#endif
+
     // Use more samples for SS regions larger than 5x5 pixels (rotated by 45 degrees).
     bool useNearFieldKernel = SSS_ENABLE_NEAR_FIELD && maxDistInPixels > SSS_LOD_THRESHOLD;
 
@@ -415,6 +413,7 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     // Compute the indices used to access the individual components of the float4 of the kernel.
     uint iR = useNearFieldKernel ? 0 : 2; // radius
     uint iP = useNearFieldKernel ? 1 : 3; // rcp(pdf)
+    uint n  = useNearFieldKernel ? SSS_N_SAMPLES_NEAR_FIELD : SSS_N_SAMPLES_FAR_FIELD;
 
     float  centerRadius = _FilterKernels[profileID][0][iR];
     float  centerRcpPdf = _FilterKernels[profileID][0][iP];
@@ -424,31 +423,31 @@ void SubsurfaceScattering(uint3 reorderedGroupId : SV_GroupID,
     float3 totalIrradiance = centerWeight * centerIrradiance;
     float3 totalWeight     = centerWeight;
 
-    int i, n; // Declare once to avoid the warning from the Unity shader compiler.
+    uint i; // Declare once to avoid the warning from the Unity shader compiler.
 
-    [unroll]
-    for (i = 1, n = SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
+    UNITY_UNROLL
+    for (i = 1; i < SSS_N_SAMPLES_FAR_FIELD; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
-                       tangentX, tangentY, projMatrix,
+                       startAngle, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
     }
 
-    [branch] if (!useNearFieldKernel)
+    UNITY_BRANCH if (!useNearFieldKernel)
     {
          StoreResult(pixelCoord, albedo * totalIrradiance / totalWeight);
          return;
     }
 
-    [unroll]
-    for (i = SSS_N_SAMPLES_FAR_FIELD, n = SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
+    UNITY_UNROLL
+    for (i = SSS_N_SAMPLES_FAR_FIELD; i < SSS_N_SAMPLES_NEAR_FIELD; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, profileID, iR, iP, pixelCoord + 0.5, cacheOffset,
                        shapeParam, centerPosVS, mmPerUnit, pixelsPerMm,
-                       tangentX, tangentY, projMatrix,
+                       startAngle, tangentX, tangentY, projMatrix,
                        totalIrradiance, totalWeight);
     }
 

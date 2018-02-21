@@ -42,7 +42,7 @@ half GetShadowStrength()
 
 inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
-    shadowCoord.xy = shadowCoord.xy / shadowCoord.w;
+    shadowCoord.xy /= shadowCoord.w;
     half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
 
     // Apply shadow strength
@@ -51,7 +51,7 @@ inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 
 inline real SampleShadowmap(float4 shadowCoord)
 {
-    shadowCoord.xyz = shadowCoord.xyz /= shadowCoord.w;
+    shadowCoord.xyz /= shadowCoord.w;
 
     real attenuation;
 
@@ -126,14 +126,19 @@ inline half ComputeCascadeIndex(float3 positionWS)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-float4 ComputeShadowCoord(float3 positionWS)
+float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
 {
-#ifdef _SHADOWS_CASCADE
+    #ifdef _SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
     return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
-#endif
-
+#else
     return mul(_WorldToShadow[0], float4(positionWS, 1.0));
+#endif
+}
+
+float4 ComputeShadowCoord(float4 clipPos)
+{
+    return ComputeScreenPos(clipPos);
 }
 
 half RealtimeShadowAttenuation(float4 shadowCoord)
