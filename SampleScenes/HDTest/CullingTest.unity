@@ -61771,7 +61771,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   m_FrameSettings:
-    enableShadow: 0
+    enableShadow: 1
     enableContactShadows: 1
     enableSSR: 1
     enableSSAO: 1
