@@ -1,17 +1,17 @@
 NodeSettingsView {
 	width: 232;
 	position-type: absolute;
-	position-left: 116;
-	position-top: 15;
+	position-left: 143;
+	position-top: 22;
 	
 	slice-top: 40;
 	slice-left: 80;
 	slice-right: 25;
 	slice-bottom: 25;
-	padding-top: 30;
-	padding-left: 12;
-	padding-right: 12;
-	padding-bottom: 12;
+	padding-top: 15;
+	padding-left: 4;
+	padding-right: 4;
+	padding-bottom: 4;
 	background-image: resource("Icons/Settings_Flyout_9slice");
 }
 
