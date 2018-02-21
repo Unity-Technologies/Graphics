@@ -60,7 +60,7 @@ MonoBehaviour:
     supportMotionVectors: 1
     supportStereo: 0
     lightLoopSettings:
-      spotCookieSize: 128
+      cookieSize: 128
       cookieTexArraySize: 16
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
