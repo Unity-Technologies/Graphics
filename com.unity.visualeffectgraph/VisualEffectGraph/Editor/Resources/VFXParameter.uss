@@ -22,13 +22,13 @@ VFXParameterUI.node > #node-border > #title > #title-label
 VFXParameterUI.node > #node-border
 {
     flex-direction:row;
-    border-radius:15;
+    border-radius:8;
     background-image: resource("GraphView/Nodes/BlackboardFieldPillBackground.png");
 }
 
 VFXParameterUI.node > #selection-border
 {
-    border-radius:18;
+    border-radius:10;
 }
 
 VFXParameterUI.node > #node-border > #contents > #top

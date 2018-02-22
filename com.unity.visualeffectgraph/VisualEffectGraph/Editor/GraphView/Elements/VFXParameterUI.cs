@@ -32,10 +32,42 @@ namespace UnityEditor.VFX.UI
     }
 
 
+    static class UXMLHelper
+    {
+        const string folderName = "Editor Default Resources";
+
+        public static string GetUXMLPath(string name)
+        {
+            return GetUXMLPathRecursive("Assets", name);
+        }
+
+        static string GetUXMLPathRecursive(string path, string name)
+        {
+            string localFileName = path + "/" + folderName + "/" + name;
+            if (System.IO.File.Exists(localFileName))
+            {
+                return localFileName;
+            }
+
+            foreach (var dir in System.IO.Directory.GetDirectories(path))
+            {
+                if (dir.Length <= folderName.Length || !dir.EndsWith(folderName) || !"/\\".Contains(dir[dir.Length - folderName.Length - 1]))
+                {
+                    string result = GetUXMLPathRecursive(dir, name);
+                    if (result != null)
+                        return result;
+                }
+            }
+
+            return null;
+        }
+    }
+
+
     class VFXParameterUI : VFXNodeUI
     {
         Image m_Icon;
-        public VFXParameterUI() : base("VFXParameter.uxml")
+        public VFXParameterUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXParameter.uxml"))
         {
             RemoveFromClassList("VFXNodeUI");
             AddStyleSheetPath("VFXParameter");
