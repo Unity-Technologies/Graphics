@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
     public class SubGraphNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IOnAssetEnabled
-        , IGeneratesFunction 
+        , IGeneratesFunction
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent
@@ -101,6 +101,11 @@ namespace UnityEditor.ShaderGraph
         public SubGraphNode()
         {
             name = "Sub-graph";
+        }
+
+        public override bool allowedInSubGraph
+        {
+            get { return false; }
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
