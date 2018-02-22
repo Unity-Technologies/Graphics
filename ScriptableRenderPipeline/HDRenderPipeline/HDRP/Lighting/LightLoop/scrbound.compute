@@ -43,7 +43,7 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
 	uint groupID = u3GroupID.x;
-    uint eyeIndex = u3GroupID.y; // can only be 0 or 1
+    uint eyeIndex = u3GroupID.y; // currently, can only be 0 or 1
 
     // The g_ is preserved in order to make cross-pipeline (FPTL) updates easier
     float4x4 g_mInvProjection = g_mInvProjectionArr[eyeIndex];

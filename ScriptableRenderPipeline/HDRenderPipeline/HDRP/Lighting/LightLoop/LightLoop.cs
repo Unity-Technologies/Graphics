@@ -1437,11 +1437,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int[]   shadowRequests = m_ShadowRequests.ToArray();
                         int[]   shadowDataIndices;
 
-                        // Stereo: The usage of camera seems to be for the camera world space position.
-                        // which corresponds to the 'center eye' position. There might be some dissonance
-                        // with the combined view pullback position.
-                        // It is used in ShadowAtlas.Reserve, for camera relative rendering, 
-                        // and ShadowManager.PruneShadowCasters.  The uses seem appropriate, but worth keeping an eye on.
                         m_ShadowMgr.ProcessShadowRequests(m_FrameId, cullResults, camera, ShaderConfig.s_CameraRelativeRendering != 0, cullResults.visibleLights,
                             ref shadowRequestCount, shadowRequests, out shadowDataIndices);
 
@@ -1567,7 +1562,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // For now we will still apply the maximum of shadow here but we don't apply the sorting by priority + slot allocation yet
 
                     // 2. Go through all lights, convert them to GPU format.
-                    // Create simultaneously data for culling (LightVolumeData and rendering)
+                    // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
                     Vector3 camPosWS = camera.transform.position;
 
                     var worldToView = WorldToCamera(camera);
@@ -1771,11 +1766,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (stereoEnabled)
                 {
-                    // TODO: Make sure decals are taken into account in the future
+                    // TODO: Proper decal + stereo cull management
+
                     Debug.Assert(m_lightList.rightEyeBounds.Count == m_lightCount);
                     Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_lightCount);
 
-                    // TODO: Is this bad for the GC?
+                    // TODO: GC considerations?
                     m_lightList.bounds.AddRange(m_lightList.rightEyeBounds);
                     m_lightList.lightVolumes.AddRange(m_lightList.rightEyeLightVolumes);
                 }
@@ -1941,7 +1937,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // In stereo, we output two sets of AABB bounds
                 cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
 
-                // double the thread groups for stereo
                 int tgY = m_FrameSettings.enableStereo ? 2 : 1;
                 cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (m_lightCount + 7) / 8, tgY, 1);
             }
@@ -1954,10 +1949,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-                //cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
-                //cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
+
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
                 cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
+
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fFarPlane, camera.farClipPlane);
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_vLightList, s_BigTileLightList);
@@ -1985,10 +1980,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                //cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, projscr);
-                //cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
                 cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
                 cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
+
                 cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, HDShaderIDs.g_vLightList, s_LightList);
                 if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
@@ -2017,7 +2011,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-            //VoxelLightListGeneration(cmd, hdCamera, projscr, invProjscr, cameraDepthBufferRT);
             VoxelLightListGeneration(cmd, hdCamera, projscrArr[0], invProjscrArr[0], cameraDepthBufferRT);
 
             if (enableFeatureVariants)
