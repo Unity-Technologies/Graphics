@@ -1,5 +1,6 @@
 using UnityEditor.Graphing;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 
@@ -68,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return m_matrixList[matrix];
+            return m_matrixList[matrix].ToString(CultureInfo.InvariantCulture);
         }
 
         public bool RequiresVertexColor()
