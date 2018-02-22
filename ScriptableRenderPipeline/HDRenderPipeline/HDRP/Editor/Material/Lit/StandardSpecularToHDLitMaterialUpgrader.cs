@@ -13,10 +13,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RenameTexture("_MainTex", "_BaseColorMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_Glossiness", "_Smoothness");
+            RenameFloat("_GlossMapScale", "SmoothnessRemapMax");
             RenameTexture("_BumpMap", "_NormalMap");
             RenameFloat("_BumpScale", "_NormalScale");
             RenameColor("_EmissionColor", "_EmissiveColor");
             RenameTexture("_EmissionMap", "_EmissiveColorMap");
+            RenameTexture("_DetailAlbedoMap", "DetailMap");
+            RenameFloat("_UVSec", "_UVDetail");
+            SetFloat("_LinkDetailsWithBase", 0);
             RenameFloat("_DetailNormalMapScale", "_DetailNormalScale");
             RenameFloat("_Cutoff", "_AlphaCutoff");
             RenameKeywordToFloat("_ALPHATEST_ON", "_AlphaCutoffEnable", 1f, 0f);
@@ -44,16 +48,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //@TODO: Find a good way of setting up keywords etc from properties.
             // Code should be shared with material UI code.
 
-            if ( srcMaterial.GetTexture("_MetallicGlossMap") != null ||
-            srcMaterial.GetTexture("_OcclusionMap") != null ||
+            if ( srcMaterial.GetTexture("_OcclusionMap") != null ||
             srcMaterial.GetTexture("_DetailMask") != null)
             {
                 Texture2D maskMap;
+
+                // if there is a specular map, change the specular color to white
+                if (srcMaterial.GetTexture("_SpecGlossMap") != null ) dstMaterial.SetColor("_SpecularColor", Color.white);
+
+                // Get the Smoothness value that will be passed to the map.
+                string smoothnessTextureChannel = ( srcMaterial.GetFloat("_SmoothnessTextureChannel") == 0)?"_SpecGlossMap" : "_MainTex";
+                Texture2D smoothnessSource = (Texture2D) srcMaterial.GetTexture( smoothnessTextureChannel );
+                if (smoothnessSource == null || !TextureCombiner.TextureHasAlpha(smoothnessSource))
+                {
+                    smoothnessSource = TextureCombiner.TextureFromColor(Color.white * srcMaterial.GetFloat("_Glossiness"));
+                }
+
                 TextureCombiner maskMapCombiner = new TextureCombiner(
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_MetallicGlossMap", 1), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", 0), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", 0), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, (srcMaterial.GetFloat("_SmoothnessTextureChannel") == 0)?"_SpecGlossMap": "_MainTex", 2), 3
+                    Texture2D.blackTexture, 1,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", Color.white), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", Color.white), 4,
+                    smoothnessSource, 3
                 );
                 string maskMapPath = AssetDatabase.GetAssetPath(srcMaterial);
                 maskMapPath = maskMapPath.Remove(maskMapPath.Length-4) + "_MaskMap.png";
@@ -61,21 +76,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 dstMaterial.SetTexture("_MaskMap", maskMap);
             }
 
+            dstMaterial.SetFloat("_AORemapMin", 1f - srcMaterial.GetFloat("_OcclusionStrength"));
+
             if ( srcMaterial.GetTexture("_DetailAlbedoMap") != null ||
                 srcMaterial.GetTexture("_DetailNormalMap") != null
             )
             {
                 Texture2D detailMap;
                 TextureCombiner detailCombiner = new TextureCombiner(
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", 2), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 1,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", Color.grey), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 1,
                     TextureCombiner.midGrey, 1,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 0
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 0
                 );
                 string detailMapPath = AssetDatabase.GetAssetPath(srcMaterial);
                 detailMapPath = detailMapPath.Remove(detailMapPath.Length-4) + "_DetailMap.png";
                 detailMap = detailCombiner.Combine( detailMapPath );
-                Debug.Log("Coucou");
                 dstMaterial.SetTexture("_DetailMap", detailMap);
             }
 
@@ -106,6 +122,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     break;
             }
+
+            // Emission: Convert the HDR emissive color to ldr color + intensity
+            Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
+            float intensity = Mathf.Max(hdrEmission.r, Mathf.Max(hdrEmission.g, hdrEmission.b));
+            
+            if (intensity > 1f)
+            {
+                hdrEmission.r /= intensity;
+                hdrEmission.g /= intensity;
+                hdrEmission.b /= intensity;
+            }
+            else
+                intensity = 1f;
+            
+            dstMaterial.SetColor("_EmissiveColor", hdrEmission);
+            dstMaterial.SetFloat("_EmissiveIntensity", intensity);
 
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }
