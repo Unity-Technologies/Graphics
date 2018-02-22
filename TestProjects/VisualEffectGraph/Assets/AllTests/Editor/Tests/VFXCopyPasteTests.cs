@@ -313,6 +313,8 @@ namespace UnityEditor.VFX.Test
 
             view.PasteCallback();
 
+            view.controller.ApplyChanges();
+
             var elements = view.Query().OfType<VFXBlockUI>().ToList();
 
             var copyBlock = elements.Select(t => t.controller).First(t => t.block != newBlock).block;
