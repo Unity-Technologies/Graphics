@@ -108,8 +108,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Rect windowRect = target.layout;
 
-            Vector2 scaling = target.parent.layout.size / m_PreviousParentRect.size;
-
             Vector2 minSize = new Vector2(60f, 60f);
 
             if (!Mathf.Approximately(target.style.minWidth, 0f))
