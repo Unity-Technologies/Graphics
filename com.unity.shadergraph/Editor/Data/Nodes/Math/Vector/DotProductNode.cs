@@ -17,8 +17,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_DotProduct(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] Vector3 A,
-            [Slot(1, Binding.None, 0, 1, 0, 0)] Vector3 B,
+            [Slot(0, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector A,
+            [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector B,
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
