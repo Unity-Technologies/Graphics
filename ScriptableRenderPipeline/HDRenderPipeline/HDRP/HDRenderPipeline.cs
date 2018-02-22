@@ -434,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                     m_LightLoop.ReleaseResolutionDependentBuffers();
 
-                m_LightLoop.AllocResolutionDependentBuffers(hdCamera.actualWidth, hdCamera.actualHeight);
+                m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, m_FrameSettings.enableStereo);
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
@@ -628,7 +628,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateShadowSettings();
                     m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
-                    // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
                     ScriptableCullingParameters cullingParams;
                     if (!CullResults.GetCullingParameters(camera, m_FrameSettings.enableStereo, out cullingParams))
                     {
@@ -637,6 +636,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
+                    hdCamera.UpdateStereoDependentState(m_FrameSettings, ref cullingParams);
 
 #if UNITY_EDITOR
                     // emit scene view UI
