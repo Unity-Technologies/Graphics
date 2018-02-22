@@ -149,6 +149,9 @@ namespace UnityEditor.ShaderGraph
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
                 defines.AddShaderChunk("#define _AlphaClip 1", true);
 
+            if(masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
+                defines.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON 1", true);
+
             var templateLocation = ShaderGenerator.GetTemplatePath(template);
 
             foreach (var slot in usedSlots)
@@ -187,7 +190,7 @@ namespace UnityEditor.ShaderGraph
             subShader.Indent();
             subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" \"RenderPipeline\" = \"LightweightPipeline\"}", true);
 
-            var materialOptions = ShaderGenerator.GetMaterialOptionsFromAlphaMode(masterNode.alphaMode);
+            var materialOptions = ShaderGenerator.GetMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn);
             var tagsVisitor = new ShaderGenerator();
             materialOptions.GetTags(tagsVisitor);
             subShader.AddShaderChunk(tagsVisitor.GetShaderString(0), true);
@@ -203,8 +206,11 @@ namespace UnityEditor.ShaderGraph
 
             var extraPassesTemplateLocation = ShaderGenerator.GetTemplatePath("lightweightUnlitExtraPasses.template");
             if (File.Exists(extraPassesTemplateLocation))
-                subShader.AddShaderChunk(File.ReadAllText(extraPassesTemplateLocation), true);
-
+            {
+                var extraPassesTemplate = File.ReadAllText(extraPassesTemplateLocation);
+                extraPassesTemplate = extraPassesTemplate.Replace("${Culling}", materialOptions.cullMode.ToString());
+                subShader.AddShaderChunk(extraPassesTemplate, true);
+            }
 
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
