@@ -18,10 +18,6 @@ namespace UnityEditor.Experimental.Rendering
         [InitializeOnLoadMethod]
         static void Initialize()
         {
-            s_PreviewMaterial = new Material(Shader.Find("Debug/ReflectionProbePreview"))
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
             s_SphereMesh = Resources.GetBuiltinResource(typeof(Mesh), "New-Sphere.fbx") as Mesh;
         }
 
@@ -80,6 +76,16 @@ namespace UnityEditor.Experimental.Rendering
             var meshRenderer = p.GetComponent<MeshRenderer>() ?? p.gameObject.AddComponent<MeshRenderer>();
 
             meshFilter.sharedMesh = s_SphereMesh;
+
+            // Lazy evaluation attempt to avoid shader compil error issue in Editor (The shader is not found the first time
+            // we load after deleting Library folder)
+            if (s_PreviewMaterial == null)
+            {
+                s_PreviewMaterial = new Material(Shader.Find("Debug/ReflectionProbePreview"))
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
 
             var material = meshRenderer.sharedMaterial;
             if (material == null

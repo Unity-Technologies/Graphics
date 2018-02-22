@@ -187,6 +187,7 @@ Material:
     - _UVBase: 0
     - _UVDetail: 0
     - _ZTestMode: 4
+    - _ZTestModeDistortion: 4
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
