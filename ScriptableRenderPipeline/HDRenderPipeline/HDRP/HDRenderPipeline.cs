@@ -624,9 +624,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     Resize(hdCamera);
 
-
                     ApplyDebugDisplaySettings(hdCamera, cmd);
                     UpdateShadowSettings();
+                    m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
                     // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
                     ScriptableCullingParameters cullingParams;
