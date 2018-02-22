@@ -261,6 +261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
         }
 
+        // Stopgap method used to extract stereo combined matrix state.
         public void UpdateStereoDependentState(FrameSettings frameSettings, ref ScriptableCullingParameters cullingParams)
         {
             if (!frameSettings.enableStereo)
