@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
             m_BufferPyramid = new BufferPyramid(
-                asset.renderPipelineResources.gaussianPyramidCS,
+                asset.renderPipelineResources.colorPyramidCS,
                 asset.renderPipelineResources.depthPyramidCS,
                 m_GPUCopy);
 
