@@ -9,6 +9,9 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -339,7 +342,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var portInputView = new PortInputView(port.slot) { style = { positionType = PositionType.Absolute } };
                     m_PortInputContainer.Add(portInputView);
-                    port.RegisterCallback<PostLayoutEvent>(evt => UpdatePortInput((ShaderPort)evt.target));
+                    port.RegisterCallback<GeometryChangedEvent>(evt => UpdatePortInput((ShaderPort)evt.target));
                 }
             }
         }

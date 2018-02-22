@@ -6,10 +6,12 @@ using System.Text;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -113,7 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.Dirty(ModificationScope.Node);
                     forceRedrawPreviews = false;
                 }
-                    
+
                 graphEditorView.HandleGraphChanges();
                 graphObject.graph.ClearChanges();
             }
@@ -456,7 +458,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject.graph.ValidateGraph();
 
                 graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = selectedGuid };
-                graphEditorView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+                graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
                 titleContent = new GUIContent(asset.name);
 
@@ -471,9 +473,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnPostLayout(PostLayoutEvent evt)
+        void OnGeometryChanged(GeometryChangedEvent evt)
         {
-            graphEditorView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
+            graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             graphEditorView.graphView.FrameAll();
         }
     }

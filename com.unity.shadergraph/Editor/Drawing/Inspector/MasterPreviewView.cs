@@ -8,6 +8,9 @@ using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using Object = UnityEngine.Object;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -154,12 +157,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void UpdateRenderTextureOnNextLayoutChange()
         {
-            RegisterCallback<PostLayoutEvent>(AdaptRenderTextureOnLayoutChange);
+            RegisterCallback<GeometryChangedEvent>(AdaptRenderTextureOnLayoutChange);
         }
 
-        void AdaptRenderTextureOnLayoutChange(PostLayoutEvent evt)
+        void AdaptRenderTextureOnLayoutChange(GeometryChangedEvent evt)
         {
-            UnregisterCallback<PostLayoutEvent>(AdaptRenderTextureOnLayoutChange);
+            UnregisterCallback<GeometryChangedEvent>(AdaptRenderTextureOnLayoutChange);
             RefreshRenderTextureSize();
         }
 
