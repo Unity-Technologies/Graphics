@@ -16,16 +16,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RenameTexture("_BumpMap", "_NormalMap");
             RenameFloat("_BumpScale", "_NormalScale");
             RenameTexture("_EmissionMap", "_EmissiveColorMap");
+            RenameTexture("_DetailAlbedoMap", "DetailMap");
             RenameFloat("_UVSec", "_UVDetail");
             SetFloat("_LinkDetailsWithBase", 0);
             RenameFloat("_DetailNormalMapScale", "_DetailNormalScale");
             RenameFloat("_Cutoff", "_AlphaCutoff");
             RenameKeywordToFloat("_ALPHATEST_ON", "_AlphaCutoffEnable", 1f, 0f);
 
+            SetFloat("_MaterialID", 1f);
+
             // the HD renderloop packs detail albedo and detail normals into a single texture.
             // mapping the detail normal map, if any, to the detail map, should do the right thing if
             // there is no detail albedo.
-            RenameTexture("_DetailAlbedoMap", "_DetailMap");
 
             // Moved to convert function
 
@@ -61,9 +63,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 TextureCombiner maskMapCombiner = new TextureCombiner(
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_MetallicGlossMap", 0), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", 0), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", 0), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_MetallicGlossMap", Color.white), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", Color.white), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", Color.white), 4,
                     smoothnessSource, 3
                 );
                 string maskMapPath = AssetDatabase.GetAssetPath(srcMaterial);
@@ -80,10 +82,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Texture2D detailMap;
                 TextureCombiner detailCombiner = new TextureCombiner(
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", 2), 4,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 1,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", Color.grey), 4,
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 1,
                     TextureCombiner.midGrey, 1,
-                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", 2), 0
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 0
                 );
                 string detailMapPath = AssetDatabase.GetAssetPath(srcMaterial);
                 detailMapPath = detailMapPath.Remove(detailMapPath.Length-4) + "_DetailMap.png";

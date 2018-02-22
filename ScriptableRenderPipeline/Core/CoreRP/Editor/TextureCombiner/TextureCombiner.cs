@@ -31,31 +31,14 @@ public class TextureCombiner
 
 		if (makeTexture)
 		{
-			Texture2D tex = new Texture2D(4, 4, TextureFormat.ARGB32, false, true);
-			tex.SetPixels(new Color[] {
-				color, color, color, color,
-				color, color, color, color,
-				color, color, color, color,
-				color, color, color, color
-			});
+			Texture2D tex = new Texture2D(1,1, TextureFormat.ARGB32, false, true);
+			tex.SetPixel(0,0,color);
 			tex.Apply();
 
 			singleColorTextures[color] = tex;
 		}
 		
 		return singleColorTextures[color];
-	}
-
-	public static Texture GetTextureSafe( Material srcMaterial, string propertyName, int fallback)
-	{
-		switch(fallback)
-		{
-			case 0: return GetTextureSafe( srcMaterial, propertyName, Texture2D.whiteTexture );
-			case 1: return GetTextureSafe( srcMaterial, propertyName, Texture2D.blackTexture );
-			case 2: return GetTextureSafe( srcMaterial, propertyName, TextureCombiner.midGrey );
-		}
-
-		return null;
 	}
 
 	public static Texture GetTextureSafe( Material srcMaterial, string propertyName, Color fallback)
@@ -131,10 +114,19 @@ public class TextureCombiner
 	private Texture m_aSource;
 
 	// Chanels are : r=0, g=1, b=2, a=3, greyscale from rgb = 4
+	// If negative, the chanel is inverted
 	private int m_rChanel;
 	private int m_gChanel;
 	private int m_bChanel;
 	private int m_aChanel;
+
+	// Chanels remaping
+	private Vector4[] m_remapings = new Vector4[]{
+		new Vector4(0f, 1f, 0f, 0f),
+		new Vector4(0f, 1f, 0f, 0f),
+		new Vector4(0f, 1f, 0f, 0f),
+		new Vector4(0f, 1f, 0f, 0f)
+	};
 
 	private bool m_bilinearFilter;
 
@@ -151,6 +143,14 @@ public class TextureCombiner
 		m_bChanel = bChanel;
 		m_aChanel = aChanel;
 		m_bilinearFilter = bilinearFilter;
+	}
+
+	public void SetRemapping( int channel, float min, float max)
+	{
+		if (channel > 3 || channel < 0) return;
+
+		m_remapings[channel].x = min;
+		m_remapings[channel].y = max;
 	}
 
 	public Texture2D Combine( string savePath )
@@ -185,6 +185,11 @@ public class TextureCombiner
 		combinerMaterial.SetFloat("_GChannel", m_gChanel);
 		combinerMaterial.SetFloat("_BChannel", m_bChanel);
 		combinerMaterial.SetFloat("_AChannel", m_aChanel);
+
+		combinerMaterial.SetVector("_RRemap", m_remapings[0]);
+		combinerMaterial.SetVector("_GRemap", m_remapings[1]);
+		combinerMaterial.SetVector("_BRemap", m_remapings[2]);
+		combinerMaterial.SetVector("_ARemap", m_remapings[3]);
 
 		RenderTexture combinedRT =  new RenderTexture(xMin, yMin, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.sRGB);
 
