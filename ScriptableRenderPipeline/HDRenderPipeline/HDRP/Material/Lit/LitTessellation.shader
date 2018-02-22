@@ -60,6 +60,12 @@ Shader "HDRenderPipeline/LitTessellation"
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
+        _IridescenceThickness("Iridescence Thickness", Range(0.0, 1.0)) = 1.0
+        _IridescenceThicknessMap("Iridescence Thickness Map", 2D) = "white" {}
+        _IridescenceThicknessRemap("Iridescence Thickness Remap", Vector) = (0, 1, 0, 0)
+        _IridescenceMask("Iridescence Mask", Range(0.0, 1.0)) = 1.0
+        _IridescenceMaskMap("Iridescence Mask Map", 2D) = "white" {}
+
         _CoatMask("Coat Mask", Range(0.0, 1.0)) = 0.0
         _CoatMaskMap("CoatMaskMap", 2D) = "white" {}
 
@@ -104,7 +110,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionMode("Refraction Mode", Int) = 0
-        _IOR("Indice Of Refraction", Range(1.0, 2.5)) = 1.0
+        _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
         _TransmittanceColorMap("TransmittanceColorMap", 2D) = "white" {}
@@ -125,7 +131,8 @@ Shader "HDRenderPipeline/LitTessellation"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
-        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
+        [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
+        [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
@@ -237,6 +244,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
+    #pragma shader_feature _IRIDESCENCE_THICKNESSMAP
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
@@ -304,6 +312,9 @@ Shader "HDRenderPipeline/LitTessellation"
 
     SubShader
     {
+        // This tags allow to use the shader replacement features
+        Tags{ "RenderType" = "HDLitShader" }
+
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
@@ -373,7 +384,7 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST // This define allow to not perform the alpha test (alpha test is done during depth prepass)
             #include "../../ShaderVariables.hlsl"
             #ifdef DEBUG_DISPLAY
             #include "../../Debug/DebugDisplay.hlsl"
@@ -510,7 +521,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
             Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOp Add, [_DistortionBlurBlendOp]
-            ZTest [_ZTestMode]
+            ZTest [_ZTestModeDistortion]
             ZWrite off
             Cull [_CullMode]
 
@@ -605,8 +616,10 @@ Shader "HDRenderPipeline/LitTessellation"
             }
 
             Blend [_SrcBlend] [_DstBlend]
+            // In case of forward we want to have depth equal for opaque mesh
+            ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
-            Cull[_CullModeForward]
+            Cull [_CullModeForward]
 
             HLSLPROGRAM
 
@@ -623,6 +636,10 @@ Shader "HDRenderPipeline/LitTessellation"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
+            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+            #ifndef _SURFACE_TYPE_TRANSPARENT
+                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #endif
             #include "../../ShaderVariables.hlsl"
             #ifdef DEBUG_DISPLAY
             #include "../../Debug/DebugDisplay.hlsl"

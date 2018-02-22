@@ -19,6 +19,7 @@ uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
+uniform int _DecalIndexShift;
 
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
@@ -233,7 +234,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 		if(canEnter) canEnter = _LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
-		[branch]if(canEnter)
+		UNITY_BRANCH if(canEnter)
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 

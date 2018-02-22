@@ -8,36 +8,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class FrameSettings
     {
-        public static string kEnableShadow = "Enable Shadows";
-        public static string kEnableContactShadows = "Enable Contact Shadows";
-        public static string kEnableSSR = "Enable SSR";
-        public static string kEnableSSAO = "Enable SSAO";
-        public static string kEnableSubsurfaceScattering = "Enable SubsurfaceScattering";
-        public static string kEnableTransmission = "Enable Transmission";
-
-        public static string kForwardOnly = "Forward Only";
-        public static string kDeferredDepthPrepass = "Deferred Depth Prepass";
-        public static string kDeferredDepthPrepassATestOnly = "Deferred Depth Prepass ATest Only";
-
-        public static string KEnableTransparentPrepass = "Enable Transparent Prepass";
-        public static string kEnableMotionVectors = "Enable Motion Vectors";
-        public static string KEnableObjectMotionVectors = "Enable Object Motion Vectors";
-        public static string kEnableDBuffer = "Enable DBuffer";
-        public static string kEnableAtmosphericScattering = "Enable Atmospheric Scattering";
-        public static string kEnableRoughRefraction = "Enable Rough Refraction";
-        public static string kEnableTransparentPostpass = "Enable Transparent Postpass";
-        public static string kEnableDistortion = "Enable Distortion";
-        public static string kEnablePostprocess = "Enable Postprocess";
-
-        public static string kEnableStereoRendering = "Enable Stereo Rendering";
-        public static string kEnableAsyncCompute = "Enable Async Compute";
-
-        public static string kEnableOpaqueObjects = "Enable Opaque Objects";
-        public static string kEnableTransparentObjects = "Enable Transparent Objects";
-
-        public static string kEnableMSAA = "Enable MSAA";
-        public static string kEnableShadowMask = "Enable ShadowMask";
-
         // Lighting
         // Setup by users
         public bool enableShadow = true;
@@ -78,6 +48,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableShadowMask = false;
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
+
+        static DebugUI.Widget[] s_DebugEntries;
 
         public void CopyTo(FrameSettings frameSettings)
         {
@@ -234,10 +206,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = false;
-                enableDBuffer = false; 
-                enableDistortion = false; 
+                enableDBuffer = false;
+                enableDistortion = false;
                 enablePostprocess = false;
-                enableRoughRefraction = false; 
+                enableRoughRefraction = false;
                 enableSSAO = false;
                 enableSSR = false;
                 enableSubsurfaceScattering = false;
@@ -245,74 +217,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        static public void RegisterDebug(String menuName, FrameSettings frameSettings)
+        public static void RegisterDebug(string menuName, FrameSettings frameSettings)
         {
-            // Register the camera into the debug menu
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableShadow, () => frameSettings.enableShadow, (value) => frameSettings.enableShadow = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableContactShadows, () => frameSettings.enableContactShadows, (value) => frameSettings.enableContactShadows = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSR, () => frameSettings.enableSSR, (value) => frameSettings.enableSSR = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSSAO, () => frameSettings.enableSSAO, (value) => frameSettings.enableSSAO = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableSubsurfaceScattering, () => frameSettings.enableSubsurfaceScattering, (value) => frameSettings.enableSubsurfaceScattering = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransmission, () => frameSettings.enableTransmission, (value) => frameSettings.enableTransmission = (bool)value);
+            s_DebugEntries = new DebugUI.Widget[]
+            {
+                new DebugUI.BoolField { displayName = "Enable Shadows", getter = () => frameSettings.enableShadow, setter = value => frameSettings.enableShadow = value },
+                new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
+                new DebugUI.BoolField { displayName = "Enable SSR", getter = () => frameSettings.enableSSR, setter = value => frameSettings.enableSSR = value },
+                new DebugUI.BoolField { displayName = "Enable SSAO", getter = () => frameSettings.enableSSAO, setter = value => frameSettings.enableSSAO = value },
+                new DebugUI.BoolField { displayName = "Enable SubsurfaceScattering", getter = () => frameSettings.enableSubsurfaceScattering, setter = value => frameSettings.enableSubsurfaceScattering = value },
+                new DebugUI.BoolField { displayName = "Enable Transmission", getter = () => frameSettings.enableTransmission, setter = value => frameSettings.enableTransmission = value },
 
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kForwardOnly, () => frameSettings.enableForwardRenderingOnly, (value) => frameSettings.enableForwardRenderingOnly = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepass, () => frameSettings.enableDepthPrepassWithDeferredRendering, (value) => frameSettings.enableDepthPrepassWithDeferredRendering = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kDeferredDepthPrepassATestOnly, () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, (value) => frameSettings.enableAlphaTestOnlyInDeferredPrepass = (bool)value);
+                new DebugUI.BoolField { displayName = "Forward Only", getter = () => frameSettings.enableForwardRenderingOnly, setter = value => frameSettings.enableForwardRenderingOnly = value },
+                new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
+                new DebugUI.BoolField { displayName = "Deferred Depth Prepass ATest Only", getter = () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, setter = value => frameSettings.enableAlphaTestOnlyInDeferredPrepass = value },
 
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableTransparentPrepass, () => frameSettings.enableTransparentPrepass, (value) => frameSettings.enableTransparentPrepass = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableMotionVectors, () => frameSettings.enableMotionVectors, (value) => frameSettings.enableMotionVectors = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, KEnableObjectMotionVectors, () => frameSettings.enableObjectMotionVectors, (value) => frameSettings.enableObjectMotionVectors = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableDBuffer, () => frameSettings.enableDBuffer, (value) => frameSettings.enableDBuffer = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableAtmosphericScattering, () => frameSettings.enableAtmosphericScattering, (value) => frameSettings.enableAtmosphericScattering = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableRoughRefraction, () => frameSettings.enableRoughRefraction, (value) => frameSettings.enableRoughRefraction = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransparentPostpass, () => frameSettings.enableTransparentPostpass, (value) => frameSettings.enableTransparentPostpass = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableDistortion, () => frameSettings.enableDistortion, (value) => frameSettings.enableDistortion = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnablePostprocess, () => frameSettings.enablePostprocess, (value) => frameSettings.enablePostprocess = (bool)value);
+                new DebugUI.BoolField { displayName = "Enable Transparent Prepass", getter = () => frameSettings.enableTransparentPrepass, setter = value => frameSettings.enableTransparentPrepass = value },
+                new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
+                new DebugUI.BoolField { displayName = "Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
+                new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDBuffer, setter = value => frameSettings.enableDBuffer = value },
+                new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
+                new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
+                new DebugUI.BoolField { displayName = "Enable Transparent Postpass", getter = () => frameSettings.enableTransparentPostpass, setter = value => frameSettings.enableTransparentPostpass = value },
+                new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },
+                new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
 
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableStereoRendering, () => frameSettings.enableStereo, (value) => frameSettings.enableStereo = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableAsyncCompute, () => frameSettings.enableAsyncCompute, (value) => frameSettings.enableAsyncCompute = (bool)value);
+                new DebugUI.BoolField { displayName = "Enable Stereo Rendering", getter = () => frameSettings.enableStereo, setter = value => frameSettings.enableStereo = value },
+                new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
 
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableOpaqueObjects, () => frameSettings.enableOpaqueObjects, (value) => frameSettings.enableOpaqueObjects = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableTransparentObjects, () => frameSettings.enableTransparentObjects, (value) => frameSettings.enableTransparentObjects = (bool)value);
+                new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
+                new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
 
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableMSAA, () => frameSettings.enableMSAA, (value) => frameSettings.enableMSAA = (bool)value);
-            DebugMenuManager.instance.AddDebugItem<bool>(menuName, kEnableShadowMask, () => frameSettings.enableShadowMask, (value) => frameSettings.enableShadowMask = (bool)value);
+                new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
+                new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
+            };
+
+            var panel = DebugManager.instance.GetPanel(menuName, true);
+            panel.children.Add(s_DebugEntries);
 
             LightLoopSettings.RegisterDebug(menuName, frameSettings.lightLoopSettings);
        }
 
-        static public void UnRegisterDebug(String menuName)
+        public static void UnRegisterDebug(string menuName)
         {
-            // Register the camera into the debug menu
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableShadow);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableContactShadows);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSR);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSSAO);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableSubsurfaceScattering);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTransmission);
+            var panel = DebugManager.instance.GetPanel(menuName);
 
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kForwardOnly);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kDeferredDepthPrepass);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kDeferredDepthPrepassATestOnly);
-
-            DebugMenuManager.instance.RemoveDebugItem(menuName, KEnableTransparentPrepass);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableMotionVectors);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, KEnableObjectMotionVectors);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableDBuffer);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableAtmosphericScattering);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableRoughRefraction);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTransparentPostpass);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableDistortion);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnablePostprocess);
-
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableStereoRendering);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableAsyncCompute);
-
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableOpaqueObjects);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableTransparentObjects);
-
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableMSAA);
-            DebugMenuManager.instance.RemoveDebugItem(menuName, kEnableShadowMask);
+            if (panel != null)
+                panel.children.Remove(s_DebugEntries);
 
             LightLoopSettings.UnRegisterDebug(menuName);
         }

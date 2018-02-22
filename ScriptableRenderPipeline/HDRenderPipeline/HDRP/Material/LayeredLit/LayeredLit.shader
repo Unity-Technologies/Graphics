@@ -249,7 +249,7 @@ Shader "HDRenderPipeline/LayeredLit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
+        [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
@@ -485,6 +485,9 @@ Shader "HDRenderPipeline/LayeredLit"
 
     SubShader
     {
+        // This tags allow to use the shader replacement features
+        Tags{ "RenderType" = "HDLitShader" }
+
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
@@ -678,9 +681,11 @@ Shader "HDRenderPipeline/LayeredLit"
                 Pass Replace
             }
 
-            Blend[_SrcBlend][_DstBlend]
-            ZWrite[_ZWrite]
-            Cull[_CullMode]
+            Blend [_SrcBlend][_DstBlend]
+            // In case of forward we want to have depth equal for opaque mesh
+            ZTest [_ZTestDepthEqualForOpaque]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
 
             HLSLPROGRAM
 
@@ -694,6 +699,10 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
+            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+            #ifndef _SURFACE_TYPE_TRANSPARENT
+                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #endif
             #include "../../ShaderVariables.hlsl"
             #ifdef DEBUG_DISPLAY
             #include "../../Debug/DebugDisplay.hlsl"
