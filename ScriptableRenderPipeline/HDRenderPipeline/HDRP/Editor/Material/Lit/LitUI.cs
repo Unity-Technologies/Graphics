@@ -416,6 +416,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected void ShaderSSSAndTransmissionInputGUI(Material material, int layerIndex)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            if (hdPipeline == null)
+                return;
+
             var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
 
             if (hdPipeline.IsInternalDiffusionProfile(diffusionProfileSettings))
