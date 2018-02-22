@@ -1168,6 +1168,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114188600774548618
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4801,7 +4802,7 @@ VisualEffectAsset:
         index: 39
       - nameId: bounds_size
         index: 40
-      processor: {fileID: 7200000, guid: 8a9c64d914b64664cba6d03bd15bc352, type: 3}
+      processor: {fileID: 7200000, guid: 1f625afba30b46e48811cbc5d6665906, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4814,7 +4815,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 46
       params: []
-      processor: {fileID: 7200000, guid: 5bd3b2c818ed40243897ec61f460495a, type: 3}
+      processor: {fileID: 7200000, guid: da4ec32bd19354344b32ff4712dc6fef, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4827,7 +4828,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 76fbfb29cc8a662469ef6ff2591783f4, type: 3}
+      processor: {fileID: 4800000, guid: cac36ebee3495ea44b06ac3335f7a285, type: 3}
   - type: 1
     flags: 1
     capacity: 44
@@ -4870,7 +4871,7 @@ VisualEffectAsset:
         index: 35
       - nameId: bounds_size
         index: 36
-      processor: {fileID: 7200000, guid: eceb2fe5cc05a9146bb91d45cffb2a09, type: 3}
+      processor: {fileID: 7200000, guid: cbb6af94620e3b74eb87831e17719b42, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4883,7 +4884,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 46
       params: []
-      processor: {fileID: 7200000, guid: f5d90978929840049a6380090f6d0862, type: 3}
+      processor: {fileID: 7200000, guid: c1a931268a44aa246b4419983bfe720d, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4896,7 +4897,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: e3dc4701ce1fc0a45a7afd9fb79dffef, type: 3}
+      processor: {fileID: 4800000, guid: e7b5d2908b1af5a48a2d5a170edd7835, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
