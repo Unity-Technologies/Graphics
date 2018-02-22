@@ -9,10 +9,13 @@ Shader "LightweightPipeline/Standard Unlit"
         _BumpMap("Normal Map", 2D) = "bump" {}
 
         // BlendMode
-        [HideInInspector] _Mode("Mode", Float) = 0.0
+        [HideInInspector] _Surface("__surface", Float) = 0.0
+        [HideInInspector] _Blend("__blend", Float) = 0.0
+        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("Src", Float) = 1.0
         [HideInInspector] _DstBlend("Dst", Float) = 0.0
         [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
+        [HideInInspector] _Cull("__cull", Float) = 2.0
     }
     SubShader
     {
@@ -21,6 +24,7 @@ Shader "LightweightPipeline/Standard Unlit"
 
         Blend [_SrcBlend][_DstBlend]
         ZWrite [_ZWrite]
+        Cull [_Cull]
 
         Pass
         {
@@ -31,7 +35,7 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma fragment frag
             #pragma multi_compile_fog
             #pragma shader_feature _SAMPLE_GI
-            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ALPHATEST_ON
             #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
@@ -91,8 +95,7 @@ Shader "LightweightPipeline/Standard Unlit"
                 half2 uv = IN.uv0AndFogCoord.xy;
                 half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 half3 color = texColor.rgb * _Color.rgb;
-                half alpha = texColor.a * _Color.a;
-
+                half alpha = texColor.a * _Color.a;     
                 AlphaDiscard(alpha, _Cutoff);
 
 #if _SAMPLE_GI
@@ -104,12 +107,8 @@ Shader "LightweightPipeline/Standard Unlit"
                 color += SampleGI(IN.lightmapOrVertexSH, normalWS);
 #endif
                 ApplyFog(color, IN.uv0AndFogCoord.z);
-
-#ifdef _ALPHABLEND_ON
+       
                 return half4(color, alpha);
-#else
-                return half4(color, 1.0);
-#endif
             }
             ENDHLSL
         }

@@ -130,6 +130,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 
     half alpha = diffuseAlpha.a * _Color.a;
     AlphaDiscard(alpha, _Cutoff);
+#ifdef _ALPHAPREMULTIPLY_ON
+    diffuse *= alpha;
+#endif
 
 #ifdef _NORMALMAP
     half3 normalTS = Normal(uv);
