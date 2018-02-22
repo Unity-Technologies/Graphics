@@ -36,19 +36,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // convert intensity (lumen) to nits
         public static float ConvertSphereLightIntensity(float intensity, float sphereRadius)
         {
-            return intensity / (4.0f * Mathf.PI * sphereRadius * sphereRadius * Mathf.PI * Mathf.PI);
+            return intensity / ((4.0f * Mathf.PI * sphereRadius * sphereRadius) * Mathf.PI);
         }
 
         // convert intensity (lumen) to nits
         public static float ConvertDiscLightIntensity(float intensity, float discRadius)
         {
-            return intensity / (discRadius * discRadius * Mathf.PI * Mathf.PI);
+            return intensity / ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
         }
 
         // convert intensity (lumen) to nits
         public static float ConvertRectLightIntensity(float intensity, float width, float height)
         {
-            return intensity / (width * height * Mathf.PI);
+            return intensity / ((width * height) * Mathf.PI);
         }
 
         // convert intensity (lumen) to nits
