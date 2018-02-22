@@ -59,7 +59,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 foreach (var type in assembly.GetTypes())
                 {
-                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))) && type != typeof(PropertyNode))
+                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
+                        && type != typeof(PropertyNode)
+                        && type != typeof(SubGraphNode))
                     {
                         var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                         if (attrs != null && attrs.Length > 0)
@@ -71,11 +73,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
+            if (!(m_Graph is SubGraph))
             {
-                var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                var node = new SubGraphNode { subGraphAsset = asset };
-                AddEntries(node, new [] { "Sub-graph Assets", asset.name }, nodeEntries);
+                foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                    var node = new SubGraphNode { subGraphAsset = asset };
+                    AddEntries(node, new[] { "Sub-graph Assets", asset.name }, nodeEntries);
+                }
             }
 
             foreach (var property in m_Graph.properties)
@@ -167,6 +172,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> nodeEntries)
         {
+            if (m_Graph is SubGraph && !node.allowedInSubGraph)
+                return;
+            if (m_Graph is MaterialGraph && !node.allowedInMainGraph)
+                return;
             if (connectedPort == null)
             {
                 nodeEntries.Add(new NodeEntry

@@ -251,14 +251,29 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<MaterialNodeView>().Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            bool userNotified = false;
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    var property = (IShaderProperty)field.userData;
-                    graph.RemoveShaderProperty(property.guid);
+                    if (!userNotified)
+                    {
+                        if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        {
+                            userNotified = true;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                    if (userNotified)
+                    {
+                        var property = (IShaderProperty)field.userData;
+                        graph.RemoveShaderProperty(property.guid);
+                    }
                 }
             }
             selection.Clear();

@@ -34,12 +34,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void AddNode(INode node)
         {
-            if (outputNode != null && node is SubGraphOutputNode)
-            {
-                Debug.LogWarning("Attempting to add second SubGraphOutputNode to SubGraph. This is not allowed.");
-                return;
-            }
-
             var materialNode = node as AbstractMaterialNode;
             if (materialNode != null)
             {
@@ -84,7 +78,7 @@ namespace UnityEditor.ShaderGraph
                 return outputNode != null ? outputNode.graphOutputs : new List<MaterialSlot>();
             }
         }
-        
+
         public void GenerateSubGraphFunction(string functionName, FunctionRegistry registry, ShaderGraphRequirements reqs, GenerationMode generationMode)
         {
             registry.ProvideFunction(functionName, s =>
@@ -102,7 +96,7 @@ namespace UnityEditor.ShaderGraph
                 // Now generate outputs
                 foreach (var slot in graphOutputs)
                     arguments.Add(string.Format("out {0} {1}", slot.concreteValueType.ToString(outputNode.precision), slot.shaderOutputName));
-                
+
                 // Create the function protoype from the arguments
                 s.AppendLine("void {0}({1})"
                     , functionName
