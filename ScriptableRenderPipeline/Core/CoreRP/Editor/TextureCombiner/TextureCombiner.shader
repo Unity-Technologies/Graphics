@@ -78,7 +78,7 @@
 
 			float PlotSourcetoChanel(float4 source, float param)
 			{
-				return PlotSourcetoChanel(source, param, float2(0,1) )
+				return PlotSourcetoChanel(source, param, float2(0,1) );
 			}
 			
 			float4 frag (v2f i) : SV_Target

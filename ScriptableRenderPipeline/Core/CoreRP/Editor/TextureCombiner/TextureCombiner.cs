@@ -257,8 +257,6 @@ public class TextureCombiner
 
 				AssetDatabase.ImportAsset(rawPath);
 
-				Debug.Log("Import raw texture: "+rawPath);
-
 				TextureImporter rawImporter = (TextureImporter) TextureImporter.GetAtPath(rawPath);
 				rawImporter.textureType = TextureImporterType.Default;
 				rawImporter.mipmapEnabled = false;
