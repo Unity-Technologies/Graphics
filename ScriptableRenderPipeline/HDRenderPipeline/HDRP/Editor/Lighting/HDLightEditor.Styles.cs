@@ -57,6 +57,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent contactShadowFadeDistance = new GUIContent("Fade Distance", "Distance in world units over which the contact shadows are faded out (see Max Distance).");
             public readonly GUIContent contactShadowSampleCount = new GUIContent("Sample Count", "Number of samples when ray casting.");
 
+            // Bias control
+            public readonly GUIContent viewBiasMin = new GUIContent("View Bias");
+            public readonly GUIContent viewBiasMax = new GUIContent("View Bias Max");
+            public readonly GUIContent viewBiasScale = new GUIContent("View Bias Scale");
+            public readonly GUIContent normalBiasMin = new GUIContent("Normal Bias");
+            public readonly GUIContent normalBiasMax = new GUIContent("Normal Bias Max");
+            public readonly GUIContent normalBiasScale = new GUIContent("Normal Bias Scale");
+            public readonly GUIContent sampleBiasScale = new GUIContent("Sample Bias Scale");
+            public readonly GUIContent edgeLeakFixup = new GUIContent("Edge Leak Fixup");
+            public readonly GUIContent edgeToleranceNormal = new GUIContent("Edge Tolerance Normal");
+            public readonly GUIContent edgeTolerance = new GUIContent("Edge Tolerance");
+
             public Styles()
             {
                 shapeNames = Enum.GetNames(typeof(LightShape))

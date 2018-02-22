@@ -5,14 +5,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public class DiffusionProfileConstants
     {
-        public const int DIFFUSION_PROFILE_COUNT           = 16; // Max. number of profiles, including the slot taken by the neutral profile
-        public const int DIFFUSION_PROFILE_NEUTRAL_ID   = 0;  // Does not result in blurring
-        public const int SSS_N_SAMPLES_NEAR_FIELD       = 55; // Used for extreme close ups; must be a Fibonacci number
-        public const int SSS_N_SAMPLES_FAR_FIELD        = 21; // Used at a regular distance; must be a Fibonacci number
-        public const int SSS_LOD_THRESHOLD              = 4;  // The LoD threshold of the near-field kernel (in pixels)
+        public const int DIFFUSION_PROFILE_COUNT      = 16; // Max. number of profiles, including the slot taken by the neutral profile
+        public const int DIFFUSION_PROFILE_NEUTRAL_ID = 0;  // Does not result in blurring
+        public const int SSS_N_SAMPLES_NEAR_FIELD     = 55; // Used for extreme close ups; must be a Fibonacci number
+        public const int SSS_N_SAMPLES_FAR_FIELD      = 21; // Used at a regular distance; must be a Fibonacci number
+        public const int SSS_LOD_THRESHOLD            = 4;  // The LoD threshold of the near-field kernel (in pixels)
         // Old SSS Model >>>
-        public const int SSS_BASIC_N_SAMPLES      = 11; // Must be an odd number
-        public const int SSS_BASIC_DISTANCE_SCALE = 3;  // SSS distance units per centimeter
+        public const int SSS_BASIC_N_SAMPLES          = 11; // Must be an odd number
+        public const int SSS_BASIC_DISTANCE_SCALE     = 3;  // SSS distance units per centimeter
         // <<< Old SSS Model
     }
 
@@ -35,8 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [ColorUsage(false, true)]
         public Color            scatteringDistance;         // Per color channel (no meaningful units)
-        [ColorUsage(false)]
-        public Color            transmissionTint;           // Color, 0 to 1
+        [ColorUsage(false, true)]
+        public Color            transmissionTint;           // HDR color
         public TexturingMode    texturingMode;
         public TransmissionMode transmissionMode;
         public Vector2          thicknessRemap;             // X = min, Y = max (in millimeters)
@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the near field kernel.
             for (int i = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; i < n; i++)
             {
-                float p = (i + 0.5f) * (1f / n);
+                float p = (i + 0.5f) * (1.0f / n);
                 float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Importance sample the far field kernel.
             for (int i = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_FAR_FIELD; i < n; i++)
             {
-                float p = (i + 0.5f) * (1f / n);
+                float p = (i + 0.5f) * (1.0f / n);
                 float r = DisneyProfileCdfInverse(p, s);
 
                 // N.b.: computation of normalized weights, and multiplication by the surface albedo
@@ -358,8 +358,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public DiffusionProfile[] profiles;
 
-        [NonSerialized] public uint      texturingModeFlags;        // 1 bit/profile; 0 = PreAndPostScatter, 1 = PostScatter
-        [NonSerialized] public uint      transmissionFlags;         // 2 bit/profile; 0 = inf. thick, 1 = thin, 2 = regular
+        [NonSerialized] public uint      texturingModeFlags;        // 1 bit/profile: 0 = PreAndPostScatter, 1 = PostScatter
+        [NonSerialized] public uint      transmissionFlags;         // 1 bit/profile: 0 = regular, 1 = thin
         [NonSerialized] public Vector4[] thicknessRemaps;           // Remap: 0 = start, 1 = end - start
         [NonSerialized] public Vector4[] worldScales;               // X = meters per world unit; Y = world units per meter
         [NonSerialized] public Vector4[] shapeParams;               // RGB = S = 1 / D, A = filter radius

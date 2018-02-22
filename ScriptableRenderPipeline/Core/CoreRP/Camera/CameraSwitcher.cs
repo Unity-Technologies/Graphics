@@ -15,6 +15,8 @@ namespace UnityEngine.Experimental.Rendering
         GUIContent[]    m_CameraNames = null;
         int[]           m_CameraIndices = null;
 
+        DebugUI.EnumField m_DebugEntry;
+
         void OnEnable()
         {
             m_OriginalCamera = GetComponent<Camera>();
@@ -48,7 +50,18 @@ namespace UnityEngine.Experimental.Rendering
             m_CameraNames[GetCameraCount() - 1] = new GUIContent("Original Camera");
             m_CameraIndices[GetCameraCount() - 1] = GetCameraCount() - 1;
 
-            DebugMenuManager.instance.AddDebugItem<int>("Camera", "Camera Switcher", () => m_CurrentCameraIndex, (value) => SetCameraIndex((int)value), DebugItemFlag.None, new DebugItemHandlerIntEnum(m_CameraNames, m_CameraIndices));
+            m_DebugEntry = new DebugUI.EnumField { displayName = "Camera Switcher", getter = () => m_CurrentCameraIndex, setter = value => SetCameraIndex(value), enumNames = m_CameraNames, enumValues = m_CameraIndices };
+            var panel = DebugManager.instance.GetPanel("Camera", true);
+            panel.children.Add(m_DebugEntry);
+        }
+
+        void OnDisable()
+        {
+            if (m_DebugEntry != null && m_DebugEntry.panel != null)
+            {
+                var panel = m_DebugEntry.panel;
+                panel.children.Remove(m_DebugEntry);
+            }
         }
 
         int GetCameraCount()

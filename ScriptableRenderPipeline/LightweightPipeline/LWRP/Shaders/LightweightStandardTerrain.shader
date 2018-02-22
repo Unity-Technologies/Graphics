@@ -43,28 +43,17 @@ Shader "LightweightPipeline/Standard Terrain"
 
             // -------------------------------------
             // Lightweight Pipeline keywords
-            // We have no good approach exposed to skip shader variants, e.g, ideally we would like to skip _CASCADE for all puctual lights
-            // Lightweight combines light classification and shadows keywords to reduce shader variants.
-            // Lightweight shader library declares defines based on these keywords to avoid having to check them in the shaders
-            // Core.hlsl defines _MAIN_LIGHT_DIRECTIONAL and _MAIN_LIGHT_SPOT (point lights can't be main light)
-            // Shadow.hlsl defines _SHADOWS_ENABLED, _SHADOWS_SOFT, _SHADOWS_CASCADE, _SHADOWS_PERSPECTIVE
-            #pragma multi_compile _ _MAIN_LIGHT_DIRECTIONAL_SHADOW _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE _MAIN_LIGHT_DIRECTIONAL_SHADOW_SOFT _MAIN_LIGHT_DIRECTIONAL_SHADOW_CASCADE_SOFT _MAIN_LIGHT_SPOT_SHADOW _MAIN_LIGHT_SPOT_SHADOW_SOFT
-            #pragma multi_compile _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ FOG_LINEAR FOG_EXP2
-
+            
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED LIGHTMAP_ON
-            #pragma multi_compile __ _TERRAIN_NORMAL_MAP
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
 
-            // LW doesn't support dynamic GI. So we save 30% shader variants if we assume
-            // LIGHTMAP_ON when DIRLIGHTMAP_COMBINED is set
-            #ifdef DIRLIGHTMAP_COMBINED
-            #define LIGHTMAP_ON
-            #endif
+            #pragma multi_compile __ _TERRAIN_NORMAL_MAP
 
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
@@ -112,11 +101,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
                 half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
                 float3 positionWS               : TEXCOORD7;
-
-#ifdef _SHADOWS_ENABLED
-                float4 shadowCoord               : TEXCOORD8;
-#endif
-
+                float4 shadowCoord              : TEXCOORD8;
                 float4 clipPos                  : SV_POSITION;
             };
 
@@ -132,10 +117,7 @@ Shader "LightweightPipeline/Standard Terrain"
 #endif
 
                 input.viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
-
-#ifdef _SHADOWS_ENABLED
                 input.shadowCoord = IN.shadowCoord;
-#endif
 
                 input.fogCoord = IN.fogFactorAndVertexLight.x;
 
@@ -199,10 +181,7 @@ Shader "LightweightPipeline/Standard Terrain"
                 o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
                 o.positionWS = positionWS;
                 o.clipPos = clipPos;
-
-#if defined(_SHADOWS_ENABLED) && !defined(_SHADOWS_CASCADE)
-                o.shadowCoord = ComputeShadowCoord(o.positionWS.xyz);
-#endif
+                o.shadowCoord = ComputeScreenPos(o.clipPos);
 
                 return o;
             }

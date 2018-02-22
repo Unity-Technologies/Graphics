@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             case 1: return s.isSectionExpandedCaptureStaticSettings;
                         }
                     },
-                    FadeOption.Animate,
+                    FadeOption.None,
                     SectionCaptureMirrorSettings,
                     SectionCaptureStaticSettings)
             );
@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldCaptureType),
                 CED.FadeGroup(
                     (s, d, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
-                    FadeOption.Animate | FadeOption.Indent,
+                    FadeOption.Indent,
                     SectionProbeModeBakedSettings,
                     SectionProbeModeRealtimeSettings,
                     SectionProbeModeCustomSettings

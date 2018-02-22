@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using System;
+﻿using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -56,11 +54,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
         public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;
-
-        public void OnValidate()
-        {
-            overrideSmoothnessValue = Mathf.Clamp(overrideSmoothnessValue, 0.0f, 1.0f);
-            skyReflectionMipmap = Mathf.Clamp(skyReflectionMipmap, 0.0f, 1.0f);
-        }
     }
 }

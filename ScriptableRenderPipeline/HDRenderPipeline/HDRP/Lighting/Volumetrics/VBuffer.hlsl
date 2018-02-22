@@ -5,14 +5,14 @@
 // Therefore, given 'logEncodedDepth', we compute a new depth value
 // which allows us to perform HW interpolation which is linear in the view space.
 float ComputeLerpPositionForLogEncoding(float linearDepth, float logEncodedDepth,
-                                        float4 VBufferScaleAndSliceCount,
+                                        float2 VBufferSliceCount,
                                         float4 VBufferDepthDecodingParams)
 {
     float z = linearDepth;
     float d = logEncodedDepth;
 
-    float numSlices    = VBufferScaleAndSliceCount.z;
-    float rcpNumSlices = VBufferScaleAndSliceCount.w;
+    float numSlices    = VBufferSliceCount.x;
+    float rcpNumSlices = VBufferSliceCount.y;
 
     float s0 = floor(d * numSlices - 0.5);
     float s1 = ceil(d * numSlices - 0.5);
@@ -30,15 +30,14 @@ float ComputeLerpPositionForLogEncoding(float linearDepth, float logEncodedDepth
 // If (clampToEdge == false), out-of-bounds loads return 0.
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool clampToEdge,
                      float2 positionNDC, float linearDepth,
-                     float4 VBufferScaleAndSliceCount,
+                     float2 VBufferSliceCount,
                      float4 VBufferDepthEncodingParams,
                      float4 VBufferDepthDecodingParams)
 {
-    float numSlices    = VBufferScaleAndSliceCount.z;
-    float rcpNumSlices = VBufferScaleAndSliceCount.w;
+    float numSlices    = VBufferSliceCount.x;
+    float rcpNumSlices = VBufferSliceCount.y;
 
-    // Account for the visible area of the V-Buffer.
-    float2 uv = positionNDC * VBufferScaleAndSliceCount.xy;
+    float2 uv = positionNDC;
 
     // The distance between slices is log-encoded.
     float z = linearDepth;
@@ -48,7 +47,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
     // TODO: add the proper sampler support.
     bool isInBounds = Min3(uv.x, uv.y, d) > 0 && Max3(uv.x, uv.y, d) < 1;
 
-    [branch] if (clampToEdge || isInBounds)
+    UNITY_BRANCH if (clampToEdge || isInBounds)
     {
     #if 1
         // Ignore non-linearity (for performance reasons) at the cost of accuracy.
@@ -56,7 +55,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
         float w = d;
     #else
         // Adjust the texture coordinate for HW trilinear sampling.
-        float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthDecodingParams);
+        float w = ComputeLerpPositionForLogEncoding(z, d, VBufferSliceCount, VBufferDepthDecodingParams);
     #endif
 
         return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, w), 0);
@@ -71,21 +70,19 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
 float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler),
                                                  float2 positionNDC, float linearDepth,
                                                  float4 VBufferResolution,
-                                                 float4 VBufferScaleAndSliceCount,
+                                                 float2 VBufferSliceCount,
                                                  float4 VBufferDepthEncodingParams,
                                                  float4 VBufferDepthDecodingParams)
 {
 #ifdef RECONSTRUCTION_FILTER_TRILINEAR
     float4 L = SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, trilinearSampler), true,
                              positionNDC, linearDepth,
-                             VBufferScaleAndSliceCount,
+                             VBufferSliceCount,
                              VBufferDepthEncodingParams,
                              VBufferDepthDecodingParams);
-#else
-    // Perform biquadratic reconstruction in XY, linear in Z, using 4x trilinear taps.
-
-    // Account for the visible area of the V-Buffer.
-    float2 xy = positionNDC * (VBufferResolution.xy * VBufferScaleAndSliceCount.xy);
+#else // Perform biquadratic reconstruction in XY, linear in Z, using 4x trilinear taps.
+    float2 uv = positionNDC;
+    float2 xy = uv * VBufferResolution.xy;
     float2 ic = floor(xy);
     float2 fc = frac(xy);
 
@@ -99,7 +96,7 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
     float w = d;
 #else
     // Adjust the texture coordinate for HW trilinear sampling.
-    float w = ComputeLerpPositionForLogEncoding(z, d, VBufferScaleAndSliceCount, VBufferDepthDecodingParams);
+    float w = ComputeLerpPositionForLogEncoding(z, d, VBufferSliceCount, VBufferDepthDecodingParams);
 #endif
 
     float2 weights[2], offsets[2];

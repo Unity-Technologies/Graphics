@@ -101,14 +101,14 @@ namespace UnityEngine.Experimental.Rendering
             return !TextureCache.supportsCubemapArrayTextures ? (Texture)m_CacheNoCubeArray : m_Cache;
         }
 
-        public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped)
+        public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped, Material cubeBlitMaterial)
         {
             var res = AllocTextureArray(numCubeMaps);
             m_NumMipLevels = GetNumMips(width, width);      // will calculate same way whether we have cube array or not
 
             if (!TextureCache.supportsCubemapArrayTextures)
             {
-                if (!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano")) { hideFlags = HideFlags.HideAndDontSave };
+                m_CubeBlitMaterial = cubeBlitMaterial;
 
                 int panoWidthTop = 4 * width;
                 int panoHeightTop = 2 * width;
@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering
 
         // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint textureHash)
-                {
+        {
             // transfer new slice to sliceIndex from source texture
             SetSliceHash(sliceIndex, textureHash);
             TransferToSlice(cmd, sliceIndex, content);
@@ -351,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content)
         {
             UpdateSlice(cmd, sliceIndex, content, GetTextureHash(content));
-                }
+        }
 
         public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject=false)
         {

@@ -27,21 +27,23 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
             float3(1.0, 0.0, 0.0),
             float3(0.0, 1.0, 0.0),
             float3(0.0, 0.0, 1.0),
-            float3(1.0, 1.0, 0.0)
+            float3(1.0, 1.0, 0.0),
+            float3(1.0, 1.0, 1.0)
         };
 
-        float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, float3(0.0, 1.0, 0.0 ), 0, float3(0.0, 0.0, 0.0), float2(0.0, 0.0));
-        float4 dirShadowSplitSpheres[4];
-        uint payloadOffset = EvalShadow_LoadSplitSpheres(lightLoopContext.shadowContext, 0, dirShadowSplitSpheres);
-        int shadowSplitIndex = EvalShadow_GetSplitSphereIndexForDirshadows(positionWS, dirShadowSplitSpheres);
+        diffuseLighting = float3(0.0, 0.0, 0.0);
+        if (_DirectionalLightCount > 0)
+        {
+            int shadowIdx = _DirectionalLightDatas[0].shadowIndex;
+            float shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, float3(0.0, 1.0, 0.0 ), shadowIdx, -_DirectionalLightDatas[0].forward, float2(0.0, 0.0));
+            uint  payloadOffset;
+            real  alpha;
+            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, shadowIdx, positionWS, payloadOffset, alpha);
+            if (shadowSplitIndex >= 0)
+            {
+                diffuseLighting = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex+1], alpha) * shadow;
+            }
 
-        if (shadowSplitIndex == -1)
-        {
-            diffuseLighting = float3(0.0, 0.0, 0.0);
-        }
-        else
-        {
-            diffuseLighting = s_CascadeColors[shadowSplitIndex] * shadow;
         }
     }
 #endif
@@ -142,13 +144,27 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
     {
-        IndirectLighting lighting = EvaluateBSDF_SSRefraction(context, V, posInput, preLightData, bsdfData, refractionHierarchyWeight);
+        IndirectLighting lighting = EvaluateBSDF_SSLighting(
+            context,
+            V,
+            posInput,
+            preLightData,
+            bsdfData,
+            GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION,
+            refractionHierarchyWeight);
         AccumulateIndirectLighting(lighting, aggregateLighting);
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
     {
-        IndirectLighting lighting = EvaluateBSDF_SSReflection(context, V, posInput, preLightData, bsdfData, reflectionHierarchyWeight);
+        IndirectLighting lighting = EvaluateBSDF_SSLighting(
+            context,
+            V,
+            posInput,
+            preLightData,
+            bsdfData,
+            GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION,
+            reflectionHierarchyWeight);
         AccumulateIndirectLighting(lighting, aggregateLighting);
     }
 
