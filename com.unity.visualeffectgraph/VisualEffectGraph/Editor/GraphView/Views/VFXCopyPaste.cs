@@ -457,7 +457,7 @@ namespace UnityEditor.VFX.UI
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
             // Create all ui based on model
-            view.controller.ApplyChanges();
+            view.controller.LightApplyChanges();
 
             view.ClearSelection();
 
@@ -671,7 +671,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // Create all ui based on model
-            view.controller.ApplyChanges();
+            view.controller.LightApplyChanges();
 
             view.ClearSelection();
 

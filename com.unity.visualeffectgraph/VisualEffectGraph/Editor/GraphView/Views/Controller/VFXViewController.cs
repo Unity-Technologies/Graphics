@@ -48,6 +48,12 @@ namespace UnityEditor.VFX.UI
             get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
         }
 
+        public void LightApplyChanges()
+        {
+            ModelChanged(model);
+            GraphChanged(graph);
+        }
+
         public override void ApplyChanges()
         {
             ModelChanged(model);
