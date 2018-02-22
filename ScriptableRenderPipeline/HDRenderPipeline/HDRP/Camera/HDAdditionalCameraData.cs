@@ -48,6 +48,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask        volumeLayerMask = -1;
 
+        // Physical parameters
+        public float aperture = 8f;
+        public float shutterSpeed = 1f / 200f;
+        public float iso = 400f;
+
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField]

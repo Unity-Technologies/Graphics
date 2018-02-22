@@ -113,7 +113,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.dataSyncer                        = syncer;
             scInit.resourceBinder                    = binder;
 
-            m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, m_Shadowmaps);
+            ShadowManager.ShadowBudgets budgets;
+            budgets.maxPointLights       = 6;
+            budgets.maxSpotLights        = 12;
+            budgets.maxDirectionalLights = 1;
+
+            m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
             bool useGlobalOverrides = true;
             m_ShadowMgr.SetGlobalShadowOverride( GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides );

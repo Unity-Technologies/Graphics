@@ -1211,6 +1211,13 @@ namespace UnityEngine.Experimental.Rendering
             public VectorArray<ShadowPayload>   payloads     { get { return m_Payloads;    } set { m_Payloads = value;    } }
         }
 
+        public struct ShadowBudgets
+        {
+            public int maxPointLights;
+            public int maxSpotLights;
+            public int maxDirectionalLights;
+        }
+
         private const int           k_MaxShadowmapPerType = 4;
         private ShadowSettings      m_ShadowSettings;
         private ShadowmapBase[]     m_Shadowmaps;
@@ -1300,6 +1307,18 @@ namespace UnityEngine.Experimental.Rendering
             // and register itself
             AdditionalShadowDataEditor.SetRegistry( this );
 #endif
+        }
+
+        public ShadowManager(ShadowSettings shadowSettings, ref ShadowContext.CtxtInit ctxtInitializer, ref ShadowBudgets budgets, ShadowmapBase[] shadowmaps ) : this( shadowSettings, ref ctxtInitializer, shadowmaps )
+        {
+            SetPerFrameBudgets( ref budgets );
+        }
+
+        public void SetPerFrameBudgets( ref ShadowBudgets budgets )
+        {
+            m_MaxShadows[(int)GPUShadowType.Point      ,0] = m_MaxShadows[(int)GPUShadowType.Point        ,1] = budgets.maxPointLights;
+            m_MaxShadows[(int)GPUShadowType.Spot       ,0] = m_MaxShadows[(int)GPUShadowType.Spot         ,1] = budgets.maxSpotLights;
+            m_MaxShadows[(int)GPUShadowType.Directional,0] = m_MaxShadows[(int)GPUShadowType.Directional  ,1] = budgets.maxDirectionalLights;
         }
 
         public override void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams )

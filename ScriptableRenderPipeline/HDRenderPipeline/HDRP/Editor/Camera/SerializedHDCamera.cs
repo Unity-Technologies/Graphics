@@ -24,6 +24,10 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty farClippingPlane;
         public SerializedProperty targetEye;
 
+        public SerializedProperty aperture;
+        public SerializedProperty shutterSpeed;
+        public SerializedProperty iso;
+
 #if ENABLE_MULTIPLE_DISPLAYS
         public SerializedProperty targetDisplay;
 #endif
@@ -68,6 +72,9 @@ namespace UnityEditor.Experimental.Rendering
 
             targetEye = serializedObject.FindProperty("m_TargetEye");
 
+            aperture = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.aperture);
+            shutterSpeed = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.shutterSpeed);
+            iso = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.iso);
 
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
