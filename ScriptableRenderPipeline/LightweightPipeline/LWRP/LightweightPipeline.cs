@@ -889,8 +889,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
                 // If we precompute the terms in a MAD instruction
                 float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * lightData.spotAngle * 0.5f);
-                float cosInneAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
-                float smoothAngleRange = Mathf.Max(0.001f, cosInneAngle - cosOuterAngle);
+                // We neeed to do a null check for particle lights
+                // This should be changed in the future
+                // Particle lights will use an inline function
+                float cosInnerAngle;
+                if (lightData.light != null)
+                    cosInnerAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
+                else
+                    cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(lightData.spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
+                float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
                 float invAngleRange = 1.0f / smoothAngleRange;
                 float add = -cosOuterAngle * invAngleRange;
                 lightSpotAttenuation = new Vector4(invAngleRange, add, 0.0f);
