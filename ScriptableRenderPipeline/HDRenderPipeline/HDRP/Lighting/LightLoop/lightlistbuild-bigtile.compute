@@ -19,6 +19,7 @@ uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
+uniform int _DecalIndexShift;
 
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);

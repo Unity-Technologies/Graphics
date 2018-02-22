@@ -49,4 +49,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sRGBFlags = m_sRGBFlags;
        }
     }
+
+    // normalToWorld.m03 - total blend factor
+    // normalToWorld.m13 - diffuse texture index in atlas
+    // normalToWorld.m23 - normal texture index in atlas
+    // normalToWorld.m33 - mask texture index in atlas
+    [GenerateHLSL]
+    public struct DecalData
+    {
+        public Matrix4x4 worldToDecal;
+        public Matrix4x4 normalToWorld;
+    };
 }

@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportSSAO = true;
         public bool supportSubsurfaceScattering = true;
         public bool supportForwardOnly = false;
+        public bool enableUltraQualitySSS = false;
 
         // Engine
         public bool         supportDBuffer = false;
