@@ -829,6 +829,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLightData.dynamicShadowCasterOnly = 0;
             }
 
+            // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
 
             m_lightList.directionalLights.Add(directionalLightData);
@@ -1396,10 +1397,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
                             if (asd != null && asd.shadowDimmer > 0.0f)
+                            {
                                 m_ShadowRequests.Add(i);
+
+                                // Discover sun light and update cascade info from Volumes
+                                // TODO: This should be moved to GetDirectionalLightData when we merge the two loops here.
+                                // Careful it must still be done BEFORE the call to ProcessShadowRequests
+                                if (vl.lightType == LightType.Directional && m_CurrentSunLight == null)
+                                {
+                                    var hdShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
+                                    asd.SetShadowCascades(hdShadowSettings.cascadeShadowSplitCount, hdShadowSettings.cascadeShadowSplits, hdShadowSettings.cascadeShadowBorders );
+                                }
+                            }
                         }
                         // pass this list to a routine that assigns shadows based on some heuristic
-                        uint    shadowRequestCount = (uint)m_ShadowRequests.Count;
+                        uint shadowRequestCount = (uint)m_ShadowRequests.Count;
                         //TODO: Do not call ToArray here to avoid GC, refactor API
                         int[]   shadowRequests = m_ShadowRequests.ToArray();
                         int[]   shadowDataIndices;
@@ -2095,9 +2107,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {
-                AdditionalShadowData asd = m_CurrentSunLight.GetComponent<AdditionalShadowData>();
+                ContactShadows contactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
 
-                bool enableContactShadows = m_FrameSettings.enableContactShadows && asd.enableContactShadows && asd.contactShadowLength > 0.0f;
+                bool enableContactShadows = m_FrameSettings.enableContactShadows && contactShadows.enable && contactShadows.length > 0.0f;
                 int kernel;
                 if (enableContactShadows)
                     kernel = m_FrameSettings.enableForwardRenderingOnly ? s_deferredDirectionalShadow_Contact_Kernel : s_deferredDirectionalShadow_Contact_Normals_Kernel;
@@ -2108,12 +2120,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (enableContactShadows)
                 {
-                    float contactShadowRange = Mathf.Clamp(asd.contactShadowFadeDistance, 0.0f, asd.contactShadowMaxDistance);
-                    float contactShadowFadeEnd = asd.contactShadowMaxDistance;
+                    float contactShadowRange = Mathf.Clamp(contactShadows.fadeDistance, 0.0f, contactShadows.maxDistance);
+                    float contactShadowFadeEnd = contactShadows.maxDistance;
                     float contactShadowOneOverFadeRange = 1.0f / (contactShadowRange);
-                    Vector4 contactShadowParams = new Vector4(asd.contactShadowLength, asd.contactShadowDistanceScaleFactor, contactShadowFadeEnd, contactShadowOneOverFadeRange);
+                    Vector4 contactShadowParams = new Vector4(contactShadows.length, contactShadows.distanceScaleFactor, contactShadowFadeEnd, contactShadowOneOverFadeRange);
                     cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowParams, contactShadowParams);
-                    cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, (int)asd.contactShadowSampleCount);
+                    cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, contactShadows.sampleCount);
                 }
 
                 cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, m_CurrentSunLightShadowIndex);
