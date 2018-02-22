@@ -8,6 +8,9 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -129,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
-                RegisterCallback<PostLayoutEvent>(ApplySerializewindowLayouts);
+                RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
             }
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
@@ -335,19 +338,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     if (port.slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
                     {
-                        port.RegisterCallback<PostLayoutEvent>(RepositionNode);
+                        port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
                         return;
                     }
                 }
             }
         }
 
-        static void RepositionNode(PostLayoutEvent evt)
+        static void RepositionNode(GeometryChangedEvent evt)
         {
             var port = evt.target as ShaderPort;
             if (port == null)
                 return;
-            port.UnregisterCallback<PostLayoutEvent>(RepositionNode);
+            port.UnregisterCallback<GeometryChangedEvent>(RepositionNode);
             var nodeView = port.node as MaterialNodeView;
             if (nodeView == null)
                 return;
@@ -455,9 +458,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void ApplySerializewindowLayouts(PostLayoutEvent evt)
+        void ApplySerializewindowLayouts(GeometryChangedEvent evt)
         {
-            UnregisterCallback<PostLayoutEvent>(ApplySerializewindowLayouts);
+            UnregisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
 
             if (m_FloatingWindowsLayout != null)
             {
