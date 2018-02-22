@@ -17,13 +17,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class ColorPickerDebugSettings
     {
-        public static string kColorPickerFontColor = "Font Color";
-        public static string kColorPickerThreshold0Debug = "Color Range Threshold 0";
-        public static string kColorPickerThreshold1Debug = "Color Range Threshold 1";
-        public static string kColorPickerThreshold2Debug = "Color Range Threshold 2";
-        public static string kColorPickerThreshold3Debug = "Color Range Threshold 3";
-        public static string kColorPickerDebugMode = "Color Picker Debug Mode";
-
         public ColorPickerDebugMode colorPickerMode = ColorPickerDebugMode.None;
         public Color fontColor = new Color(1.0f, 0.0f, 0.0f);
 

@@ -181,10 +181,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
-        public static readonly int _HTile = Shader.PropertyToID("_HTile");
         public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
+
+        // all decal properties
+        public static readonly int _NormalToWorldID = Shader.PropertyToID("_NormalToWorld");
+        public static readonly int _DecalAtlasID = Shader.PropertyToID("_DecalAtlas");
         public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
+        public static readonly int _DecalIndexShift = Shader.PropertyToID("_DecalIndexShift");
+        public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
+        public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
 
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
