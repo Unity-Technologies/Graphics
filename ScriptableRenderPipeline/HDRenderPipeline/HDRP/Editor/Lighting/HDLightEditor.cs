@@ -429,41 +429,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
             EditorGUILayout.Slider(settings.shadowsNearPlane, 0.01f, 10f, s_Styles.shadowNearPlane);
 
-            if (settings.lightType.enumValueIndex == (int)LightType.Directional)
-            {
-                using (var scope = new EditorGUI.ChangeCheckScope())
-                {
-                    EditorGUILayout.IntSlider(m_AdditionalShadowData.cascadeCount, 1, 4, s_Styles.shadowCascadeCount);
-
-                    if (scope.changed)
-                    {
-                        int len = m_AdditionalShadowData.cascadeCount.intValue;
-                        m_AdditionalShadowData.cascadeRatios.arraySize = len - 1;
-                        m_AdditionalShadowData.cascadeBorders.arraySize = len;
-                    }
-                }
-
-                EditorGUI.indentLevel++;
-                int arraySize = m_AdditionalShadowData.cascadeRatios.arraySize;
-                for (int i = 0; i < arraySize; i++)
-                    EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
-                EditorGUI.indentLevel--;
-
-                if (!m_AdditionalShadowData.enableContactShadows.hasMultipleDifferentValues && m_AdditionalShadowData.enableContactShadows.boolValue)
-                {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField(s_Styles.contactShadow, EditorStyles.boldLabel);
-
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowLength, s_Styles.contactShadowLength);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowDistanceScaleFactor, s_Styles.contactShadowDistanceScaleFactor);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowMaxDistance, s_Styles.contactShadowMaxDistance);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowFadeDistance, s_Styles.contactShadowFadeDistance);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowSampleCount, s_Styles.contactShadowSampleCount);
-                    EditorGUI.indentLevel--;
-                }
-            }
-
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
 
