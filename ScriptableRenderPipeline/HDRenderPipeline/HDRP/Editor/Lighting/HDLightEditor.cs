@@ -237,12 +237,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DrawShape()
         {
+            EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
+
             m_LightShape = (LightShape)EditorGUILayout.Popup(s_Styles.shape, (int)m_LightShape, s_Styles.shapeNames);
 
             if (m_LightShape != LightShape.Directional)
                 settings.DrawRange(false);
-
-            EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
             // LightShape is HD specific, it need to drive LightType from the original LightType
             // when it make sense, so the GI is still in sync with the light shape
@@ -291,6 +291,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthRect);
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightRect);
+                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_LineWidth);
+                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_LineWidth);
                     settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
                     settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
                     settings.shadowsType.enumValueIndex = (int)LightShadows.None;
@@ -302,6 +304,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthLine);
+                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_LineWidth);
+                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_LineWidth);
                     // Fake line with a small rectangle in vanilla unity for GI
                     settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
                     settings.areaSizeY.floatValue = k_LineWidth;
@@ -319,7 +323,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
+                UpdateLightIntensity();
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
+            }
+        }
+
+        void UpdateLightIntensity()
+        {
+            switch (m_LightShape)
+            {
+                case LightShape.Directional:
+                    settings.intensity.floatValue = m_AdditionalLightData.directionalIntensity.floatValue;
+                    break;
+
+                case LightShape.Point:
+                    settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
+                    break;
+
+                case LightShape.Spot:
+                    // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
+                    // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
+                    settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
+                    // TODO: What to do with box shape ?
+                    // var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
+                    break;
+
+                case LightShape.Rectangle:
+                    settings.intensity.floatValue = LightUtils.ConvertRectLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+                    break;
+
+                case LightShape.Line:
+                    settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, k_LineWidth, m_AdditionalLightData.shapeWidth.floatValue);
+                    break;
             }
         }
 
@@ -348,32 +383,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                switch (m_LightShape)
-                {
-                    case LightShape.Directional:
-                        settings.intensity.floatValue = m_AdditionalLightData.directionalIntensity.floatValue;
-                        break;
-
-                    case LightShape.Point:
-                        settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                        break;
-
-                    case LightShape.Spot:
-                        // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
-                        // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
-                        settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                        // TODO: What to do with box shape ?
-                        // var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
-                        break;
-
-                    case LightShape.Rectangle:
-                        settings.intensity.floatValue = LightUtils.ConvertRectLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                        break;
-
-                    case LightShape.Line:
-                        settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, k_LineWidth, m_AdditionalLightData.shapeWidth.floatValue);
-                        break;
-                }
+                UpdateLightIntensity();
             }
 
             settings.DrawLightmapping();
