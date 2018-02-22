@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
 
-            base.CommonSkySettingsGUI();
+            base.CommonSkySettingsGUI(false);
         }
     }
 }
