@@ -7,11 +7,11 @@ namespace UnityEditor.VFX
 {
     sealed class VFXBuiltInExpression : VFXExpression
     {
-        public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXTotalTimeOp);
-        public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXDeltaTimeOp);
-        public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOp.kVFXSystemSeedOp);
-        public static readonly VFXExpression LocalToWorld = new VFXBuiltInExpression(VFXExpressionOp.kVFXLocalToWorldOp);
-        public static readonly VFXExpression WorldToLocal = new VFXBuiltInExpression(VFXExpressionOp.kVFXWorldToLocalOp);
+        public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOp.TotalTimeOp);
+        public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOp.DeltaTimeOp);
+        public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOp.SystemSeedOp);
+        public static readonly VFXExpression LocalToWorld = new VFXBuiltInExpression(VFXExpressionOp.LocalToWorldOp);
+        public static readonly VFXExpression WorldToLocal = new VFXBuiltInExpression(VFXExpressionOp.WorldToLocalOp);
 
         private static readonly VFXExpression[] AllExpressions = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
         public static readonly VFXExpressionOp[] All = AllExpressions.Select(e => e.operation).ToArray();

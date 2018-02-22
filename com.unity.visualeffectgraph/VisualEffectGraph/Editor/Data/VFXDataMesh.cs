@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
             {
                 processor = shader,
                 values = mappings.ToArray(),
-                type = VFXTaskType.kOutput
+                type = VFXTaskType.Output
             };
 
             mappings.Clear();
@@ -72,7 +72,7 @@ namespace UnityEditor.VFX
             {
                 tasks = new VFXTaskDesc[1] { task },
                 values = mappings.ToArray(),
-                type = VFXSystemType.kVFXMesh,
+                type = VFXSystemType.Mesh,
             });
         }
     }

@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXTRSToMatrixOp;
+                return VFXExpressionOp.TRSToMatrixOp;
             }
         }
 
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXInverseTRSOp;
+                return VFXExpressionOp.InverseTRSOp;
             }
         }
 
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXExtractPositionFromMatrixOp;
+                return VFXExpressionOp.ExtractPositionFromMatrixOp;
             }
         }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXExtractAnglesFromMatrixOp;
+                return VFXExpressionOp.ExtractAnglesFromMatrixOp;
             }
         }
 
@@ -126,7 +126,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXExtractScaleFromMatrixOp;
+                return VFXExpressionOp.ExtractScaleFromMatrixOp;
             }
         }
 
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -188,7 +188,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXTransformPosOp;
+                return VFXExpressionOp.TransformPosOp;
             }
         }
 
@@ -196,7 +196,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -231,7 +231,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXTransformPosOp;
+                return VFXExpressionOp.TransformPosOp;
             }
         }
 
@@ -239,7 +239,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -274,7 +274,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXTransformDirOp;
+                return VFXExpressionOp.TransformDirOp;
             }
         }
 
@@ -282,7 +282,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 

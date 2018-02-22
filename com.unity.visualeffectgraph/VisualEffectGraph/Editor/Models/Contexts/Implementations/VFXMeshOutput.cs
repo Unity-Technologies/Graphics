@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleMeshOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes

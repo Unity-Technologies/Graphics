@@ -24,25 +24,25 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.valueType == VFXValueType.kFloat3)
+            if (expression.valueType == VFXValueType.Float3)
                 return expression;
 
-            if (expression.valueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.Float)
                 return new VFXExpressionCombine(expression, expression, expression);
 
-            if (expression.valueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.Uint)
             {
                 var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression);
             }
 
-            if (expression.valueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.Int)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression);
             }
 
-            if (expression.valueType == VFXValueType.kFloat4)
+            if (expression.valueType == VFXValueType.Float4)
             {
                 return new VFXExpressionCombine(expression.x, expression.y, expression.z);
             }

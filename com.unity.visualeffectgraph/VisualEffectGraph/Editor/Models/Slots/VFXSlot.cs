@@ -159,7 +159,7 @@ namespace UnityEditor.VFX
         // Get relevant slot for UI & exposed expressions
         public IEnumerable<VFXSlot> GetVFXValueTypeSlots()
         {
-            if (VFXExpression.GetVFXValueTypeFromType(property.type) != VFXValueType.kNone)
+            if (VFXExpression.GetVFXValueTypeFromType(property.type) != VFXValueType.None)
                 yield return this;
             else
                 foreach (var child in children)

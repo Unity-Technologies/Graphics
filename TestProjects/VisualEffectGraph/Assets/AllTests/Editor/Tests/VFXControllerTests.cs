@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Test
 
             var edgeController = new VFXDataEdgeController(absController.inputPorts.First(), addController.outputPorts.First());
             m_ViewController.AddElement(edgeController);
-            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float, abs.outputSlots[0].GetExpression().valueType);
 
             var vector2Controller = fnFindController(vector2);
             for (int i = 0; i < 4; ++i)
@@ -82,11 +82,11 @@ namespace UnityEditor.VFX.Test
                 m_ViewController.AddElement(edgeController);
             }
 
-            Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().valueType);
-            Assert.AreEqual(VFXValueType.kFloat2, abs.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float2, add.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float2, abs.outputSlots[0].GetExpression().valueType);
 
             m_ViewController.RemoveElement(addController);
-            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float, abs.outputSlots[0].GetExpression().valueType);
         }
 
         [Test]

@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Decal Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
         public class InputProperties
