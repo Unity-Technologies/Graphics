@@ -35,17 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public SerializedProperty dimmer;
             public SerializedProperty fadeDistance;
-            public SerializedProperty cascadeCount;
-            public SerializedProperty cascadeRatios;
-            public SerializedProperty cascadeBorders;
             public SerializedProperty resolution;
-
-            public SerializedProperty enableContactShadows;
-            public SerializedProperty contactShadowLength;
-            public SerializedProperty contactShadowDistanceScaleFactor;
-            public SerializedProperty contactShadowMaxDistance;
-            public SerializedProperty contactShadowFadeDistance;
-            public SerializedProperty contactShadowSampleCount;
 
             // Bias control
             public SerializedProperty viewBiasMin;
@@ -121,16 +111,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 dimmer = o.Find(x => x.shadowDimmer),
                 fadeDistance = o.Find(x => x.shadowFadeDistance),
-                cascadeCount = o.Find("shadowCascadeCount"),
-                cascadeRatios = o.Find("shadowCascadeRatios"),
-                cascadeBorders = o.Find("shadowCascadeBorders"),
                 resolution = o.Find(x => x.shadowResolution),
-                enableContactShadows = o.Find(x => x.enableContactShadows),
-                contactShadowLength = o.Find(x => x.contactShadowLength),
-                contactShadowDistanceScaleFactor = o.Find(x => x.contactShadowDistanceScaleFactor),
-                contactShadowMaxDistance = o.Find(x => x.contactShadowMaxDistance),
-                contactShadowFadeDistance = o.Find(x => x.contactShadowFadeDistance),
-                contactShadowSampleCount = o.Find(x => x.contactShadowSampleCount),
 
                 viewBiasMin = o.Find(x => x.viewBiasMin),
                 viewBiasMax = o.Find(x => x.viewBiasMax),
@@ -218,10 +199,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 bool shadowsEnabled = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("Enable Shadows"), settings.shadowsType.enumValueIndex != 0);
                 settings.shadowsType.enumValueIndex = shadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
-                if (settings.lightType.enumValueIndex == (int)LightType.Directional)
-                {
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.enableContactShadows, CoreEditorUtils.GetContent("Enable Contact Shadows"));
-                }
             }
 
             EditorGUILayout.PropertyField(m_AdditionalLightData.showAdditionalSettings);
@@ -385,41 +362,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //EditorGUILayout.Slider(settings.shadowsNormalBias, 0.001f, 1f, s_Styles.shadowNormalBias);
             EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
             EditorGUILayout.Slider(settings.shadowsNearPlane, 0.01f, 10f, s_Styles.shadowNearPlane);
-
-            if (settings.lightType.enumValueIndex == (int)LightType.Directional)
-            {
-                using (var scope = new EditorGUI.ChangeCheckScope())
-                {
-                    EditorGUILayout.IntSlider(m_AdditionalShadowData.cascadeCount, 1, 4, s_Styles.shadowCascadeCount);
-
-                    if (scope.changed)
-                    {
-                        int len = m_AdditionalShadowData.cascadeCount.intValue;
-                        m_AdditionalShadowData.cascadeRatios.arraySize = len - 1;
-                        m_AdditionalShadowData.cascadeBorders.arraySize = len;
-                    }
-                }
-
-                EditorGUI.indentLevel++;
-                int arraySize = m_AdditionalShadowData.cascadeRatios.arraySize;
-                for (int i = 0; i < arraySize; i++)
-                    EditorGUILayout.Slider(m_AdditionalShadowData.cascadeRatios.GetArrayElementAtIndex(i), 0f, 1f, s_Styles.shadowCascadeRatios[i]);
-                EditorGUI.indentLevel--;
-
-                if(!m_AdditionalShadowData.enableContactShadows.hasMultipleDifferentValues && m_AdditionalShadowData.enableContactShadows.boolValue)
-                {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField(s_Styles.contactShadow, EditorStyles.boldLabel);
-
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowLength, s_Styles.contactShadowLength);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowDistanceScaleFactor, s_Styles.contactShadowDistanceScaleFactor);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowMaxDistance, s_Styles.contactShadowMaxDistance);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowFadeDistance, s_Styles.contactShadowFadeDistance);
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadowSampleCount, s_Styles.contactShadowSampleCount);
-                    EditorGUI.indentLevel--;
-                }
-            }
 
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
