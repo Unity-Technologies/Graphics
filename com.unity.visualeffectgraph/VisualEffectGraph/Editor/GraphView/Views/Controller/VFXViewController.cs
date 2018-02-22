@@ -781,6 +781,8 @@ namespace UnityEditor.VFX.UI
 
             Type type = parameter.type;
 
+            parameter.SetSettingValue("m_order", m_ParameterControllers.Keys.Select(t => t.order).Max() + 1);
+
             if (!type.IsPrimitive)
             {
                 if (type == typeof(Matrix4x4))
