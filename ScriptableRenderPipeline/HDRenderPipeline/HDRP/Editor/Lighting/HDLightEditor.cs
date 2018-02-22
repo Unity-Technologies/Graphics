@@ -14,7 +14,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty directionalIntensity;
             public SerializedProperty punctualIntensity;
             public SerializedProperty areaIntensity;
-            public SerializedProperty displayBounceIntensity;
             public SerializedProperty spotInnerPercent;
             public SerializedProperty lightDimmer;
             public SerializedProperty fadeDistance;
@@ -104,7 +103,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 directionalIntensity = o.Find(x => x.directionalIntensity),
                 punctualIntensity = o.Find(x => x.punctualIntensity),
                 areaIntensity = o.Find(x => x.areaIntensity),
-                displayBounceIntensity = o.Find(x => x.displayBounceIntensity),
                 spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                 lightDimmer = o.Find(x => x.lightDimmer),
                 fadeDistance = o.Find(x => x.fadeDistance),
@@ -378,27 +376,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            EditorGUI.BeginChangeCheck();
-            {
-                EditorGUILayout.PropertyField(m_AdditionalLightData.displayBounceIntensity, s_Styles.lightBounceIntensity);
-
-                // No indirect shadow support for anything but directional
-                if (m_LightShape != LightShape.Directional &&
-                    settings.shadowsType.enumValueIndex != (int)LightShadows.None &&
-                    settings.isRealtime && m_AdditionalLightData.displayBounceIntensity.floatValue > 0.0f &&
-                    !settings.lightType.hasMultipleDifferentValues)
-                {
-                    EditorGUILayout.HelpBox(s_Styles.indirectBounceShadowWarning.text, MessageType.Info);
-                }
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                // Lightmapper don't divide correctly by PI when calculating bounce of analytic light (Lambert is rho / PI but lightmapper only do rho),
-                // so we need to handle the divide ourselves through this workaround (only for analytical light)
-                settings.bounceIntensity.floatValue = m_AdditionalLightData.displayBounceIntensity.floatValue / Mathf.PI;
-            }
-
             settings.DrawLightmapping();
 
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
@@ -522,7 +499,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Slider(m_AdditionalShadowData.normalBiasMin, 0.0f, 5.0f, s_Styles.normalBiasMin);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    // Link min to max and don't expose normalBiasScale (useless when min == max)                    
+                    // Link min to max and don't expose normalBiasScale (useless when min == max)
                     m_AdditionalShadowData.normalBiasMax = m_AdditionalShadowData.normalBiasMin;
                 }
                 //EditorGUILayout.PropertyField(m_AdditionalShadowData.normalBiasMax, s_Styles.normalBiasMax);
