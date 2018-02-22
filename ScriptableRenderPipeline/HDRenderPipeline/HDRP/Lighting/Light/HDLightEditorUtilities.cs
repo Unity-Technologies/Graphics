@@ -81,7 +81,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
 
             var RectangleSize = new Vector3(arealight.areaSize.x, arealight.areaSize.y, 0);
-            Gizmos.matrix = arealight.transform.localToWorldMatrix;
+            // Remove scale for light, not take into account
+            var localToWorldMatrix = Matrix4x4.TRS(arealight.transform.position, arealight.transform.rotation, Vector3.one);
+            Gizmos.matrix = localToWorldMatrix;
             Gizmos.DrawWireCube(Vector3.zero, RectangleSize);
             Gizmos.matrix = Matrix4x4.identity;
             Gizmos.DrawWireSphere(arealight.transform.position, arealight.range);
