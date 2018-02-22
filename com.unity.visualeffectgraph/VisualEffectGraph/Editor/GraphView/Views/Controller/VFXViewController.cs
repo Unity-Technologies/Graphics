@@ -781,7 +781,12 @@ namespace UnityEditor.VFX.UI
 
             Type type = parameter.type;
 
-            parameter.SetSettingValue("m_order", m_ParameterControllers.Keys.Select(t => t.order).Max() + 1);
+            int order = 0;
+            if (m_ParameterControllers.Count > 0)
+            {
+                order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
+            }
+            parameter.SetSettingValue("m_order", order);
 
             if (!type.IsPrimitive)
             {
