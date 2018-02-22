@@ -892,16 +892,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // We neeed to do a null check for particle lights
                 // This should be changed in the future
                 // Particle lights will use an inline function
-                float cosInneAngle;
+                float cosInnerAngle;
                 if (lightData.light != null)
-                {
-                    cosInneAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
-                }
+                    cosInnerAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
                 else
-                {
-                    cosInneAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(lightData.spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
-                }
-                float smoothAngleRange = Mathf.Max(0.001f, cosInneAngle - cosOuterAngle);
+                    cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(lightData.spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
+                float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
                 float invAngleRange = 1.0f / smoothAngleRange;
                 float add = -cosOuterAngle * invAngleRange;
                 lightSpotAttenuation = new Vector4(invAngleRange, add, 0.0f);
