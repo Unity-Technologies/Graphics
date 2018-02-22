@@ -1033,7 +1033,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: we should be able to do this calculation only with LightData without VisibleLight light, but for now pass both
         public void GetLightVolumeDataAndBound(LightCategory lightCategory, GPULightType gpuLightType, LightVolumeType lightVolumeType,
                                                VisibleLight light, LightData lightData, Vector3 lightDimensions, Matrix4x4 worldToView,
-                                               bool rightEyeTarget = false)
+                                               Camera.StereoscopicEye eyeIndex = Camera.StereoscopicEye.Left)
         {
             // Then Culling side
             var range = lightDimensions.z;
@@ -1201,7 +1201,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
             }
 
-            if (rightEyeTarget == false)
+            if (eyeIndex == Camera.StereoscopicEye.Left)
             {
                 m_lightList.bounds.Add(bound);
                 m_lightList.lightVolumes.Add(lightVolumeData);
@@ -1301,7 +1301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, bool rightEyeTarget = false)
+        public void GetEnvLightVolumeDataAndBound(ProbeWrapper probe, LightVolumeType lightVolumeType, Matrix4x4 worldToView, Camera.StereoscopicEye eyeIndex = Camera.StereoscopicEye.Left)
         {
             var bound = new SFiniteLightBound();
             var lightVolumeData = new LightVolumeData();
@@ -1361,7 +1361,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (rightEyeTarget == false)
+            if (eyeIndex == Camera.StereoscopicEye.Left)
             {
                 m_lightList.bounds.Add(bound);
                 m_lightList.lightVolumes.Add(lightVolumeData);
@@ -1632,7 +1632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
                             if (stereoEnabled)
-                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, true);
+                                GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
@@ -1738,7 +1738,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
                             if (stereoEnabled)
-                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, true);
+                                GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
                             // to allow the preceding code to work with the absolute world space coordinates.
