@@ -965,6 +965,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114789286144881694
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1212,6 +1213,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114936562591132906
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1670,7 +1672,7 @@ VisualEffectAsset:
         index: 17
       - nameId: bounds_size
         index: 18
-      processor: {fileID: 7200000, guid: 6e4e5df40023a4741811f59345789c34, type: 3}
+      processor: {fileID: 7200000, guid: 4ccebbc1a39bc3b40bf0b0f478c7691f, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1681,7 +1683,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 16
       params: []
-      processor: {fileID: 7200000, guid: a7aed93864822b34d9d16eb47e6e17ea, type: 3}
+      processor: {fileID: 7200000, guid: 76a65b87e887f01429b74f6403b1f39e, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1694,7 +1696,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: b7cacbdcbe783334e96ea4cd6aff6db1, type: 3}
+      processor: {fileID: 4800000, guid: 8ab001f8401e39b4f88c3fff59c734bf, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

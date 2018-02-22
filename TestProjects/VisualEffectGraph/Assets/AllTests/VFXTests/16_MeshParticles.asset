@@ -926,6 +926,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114155846815806328
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4444,11 +4445,7 @@ MonoBehaviour:
     m_serializedType:
       m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: Specify the number of frames in the flipbook texture.
+    attributes: []
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114777537786923962
@@ -7587,7 +7584,7 @@ VisualEffectAsset:
         index: 109
       - nameId: bounds_size
         index: 101
-      processor: {fileID: 7200000, guid: 8d7195d2020ea8e459dcf7de94383d8b, type: 3}
+      processor: {fileID: 7200000, guid: 356d192dd75762b4e88b56bf231b05f5, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -7604,7 +7601,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 135
       params: []
-      processor: {fileID: 7200000, guid: 4a6153ff6bb2ed641841e9690e666c58, type: 3}
+      processor: {fileID: 7200000, guid: 5fbb6de00b0929a439ada32e908c6728, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7625,7 +7622,7 @@ VisualEffectAsset:
         index: 127
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 4e753542a50a0564fbbc513a227c8946, type: 3}
+      processor: {fileID: 4800000, guid: 33da420b26acc2941a1d9bf3aed80556, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7650,7 +7647,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: f3585c8c07f49dd4ba1f036e6fafa8ce, type: 3}
+      processor: {fileID: 4800000, guid: ae7f9168bacd6974db5c2102caeb7189, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7673,7 +7670,7 @@ VisualEffectAsset:
         index: 138
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 59ca6b119893b25498c970ddafee5c27, type: 3}
+      processor: {fileID: 4800000, guid: 59ebde95db969ca4b86e510e17bb7449, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7694,7 +7691,7 @@ VisualEffectAsset:
         index: 110
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 0d914f92a3fc74a419aa6b7c72d90c69, type: 3}
+      processor: {fileID: 4800000, guid: acd77034081058e4eace28ba8c0f7f7a, type: 3}
   - type: 2
     flags: 0
     capacity: 0
