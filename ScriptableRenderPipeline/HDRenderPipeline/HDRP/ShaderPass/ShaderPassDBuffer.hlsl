@@ -31,7 +31,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 	clip(1.0 - positionDS); // Clip value above one
 
     DecalSurfaceData surfaceData;
-	float4x4 decalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, normalToWorld);
+	float4x4 decalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
     GetSurfaceData(positionDS.xz, decalToWorld, surfaceData);
 
 	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions

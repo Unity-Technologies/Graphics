@@ -50,6 +50,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty contactShadowMaxDistance;
             public SerializedProperty contactShadowFadeDistance;
             public SerializedProperty contactShadowSampleCount;
+
+            // Bias control
+            public SerializedProperty viewBiasMin;
+            public SerializedProperty viewBiasMax;
+            public SerializedProperty viewBiasScale;
+            public SerializedProperty normalBiasMin;
+            public SerializedProperty normalBiasMax;
+            public SerializedProperty normalBiasScale;
+            public SerializedProperty sampleBiasScale;
+            public SerializedProperty edgeLeakFixup;
+            public SerializedProperty edgeToleranceNormal;
+            public SerializedProperty edgeTolerance;
         }
 
         SerializedObject m_SerializedAdditionalLightData;
@@ -82,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Get & automatically add additional HD data if not present
             var lightData = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets);
-            var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets);
+            var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
             m_SerializedAdditionalLightData = new SerializedObject(lightData);
             m_SerializedAdditionalShadowData = new SerializedObject(shadowData);
 
@@ -129,6 +141,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 contactShadowMaxDistance = o.Find(x => x.contactShadowMaxDistance),
                 contactShadowFadeDistance = o.Find(x => x.contactShadowFadeDistance),
                 contactShadowSampleCount = o.Find(x => x.contactShadowSampleCount),
+
+                viewBiasMin = o.Find(x => x.viewBiasMin),
+                viewBiasMax = o.Find(x => x.viewBiasMax),
+                viewBiasScale = o.Find(x => x.viewBiasScale),
+                normalBiasMin = o.Find(x => x.normalBiasMin),
+                normalBiasMax = o.Find(x => x.normalBiasMax),
+                normalBiasScale = o.Find(x => x.normalBiasScale),
+                sampleBiasScale = o.Find(x => x.sampleBiasScale),
+                edgeLeakFixup = o.Find(x => x.edgeLeakFixup),
+                edgeToleranceNormal = o.Find(x => x.edgeToleranceNormal),
+                edgeTolerance = o.Find(x => x.edgeTolerance)
             };
         }
 
@@ -437,8 +460,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.PropertyField(m_AdditionalShadowData.resolution, s_Styles.shadowResolution);
-            EditorGUILayout.Slider(settings.shadowsBias, 0.001f, 1f, s_Styles.shadowBias);
-            EditorGUILayout.Slider(settings.shadowsNormalBias, 0.001f, 1f, s_Styles.shadowNormalBias);
+            //EditorGUILayout.Slider(settings.shadowsBias, 0.001f, 1f, s_Styles.shadowBias);
+            //EditorGUILayout.Slider(settings.shadowsNormalBias, 0.001f, 1f, s_Styles.shadowNormalBias);
+            EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
             EditorGUILayout.Slider(settings.shadowsNearPlane, 0.01f, 10f, s_Styles.shadowNearPlane);
 
             if (settings.lightType.enumValueIndex == (int)LightType.Directional)
@@ -480,16 +504,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DrawBakedShadowParameters();
 
             // There is currently no additional settings for shadow on directional light
-            if (m_AdditionalLightData.showAdditionalSettings.boolValue && settings.lightType.enumValueIndex != (int)LightType.Directional)
+            if (m_AdditionalLightData.showAdditionalSettings.boolValue)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
 
-                if (settings.lightType.enumValueIndex == (int)LightType.Point || settings.lightType.enumValueIndex == (int)LightType.Spot)
+                if (settings.lightType.enumValueIndex != (int)LightType.Directional)
+                {
                     EditorGUILayout.PropertyField(m_AdditionalShadowData.fadeDistance, s_Styles.shadowFadeDistance);
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
+                }
 
-                EditorGUILayout.PropertyField(m_AdditionalShadowData.dimmer, s_Styles.shadowDimmer);
+                EditorGUILayout.Slider(m_AdditionalShadowData.viewBiasMin, 0.0f, 5.0f, s_Styles.viewBiasMin);
+                //EditorGUILayout.PropertyField(m_AdditionalShadowData.viewBiasMax, s_Styles.viewBiasMax);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.Slider(m_AdditionalShadowData.normalBiasMin, 0.0f, 5.0f, s_Styles.normalBiasMin);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Link min to max and don't expose normalBiasScale (useless when min == max)                    
+                    m_AdditionalShadowData.normalBiasMax = m_AdditionalShadowData.normalBiasMin;
+                }
+                //EditorGUILayout.PropertyField(m_AdditionalShadowData.normalBiasMax, s_Styles.normalBiasMax);
+                //EditorGUILayout.PropertyField(m_AdditionalShadowData.normalBiasScale, s_Styles.normalBiasScale);
+                //EditorGUILayout.PropertyField(m_AdditionalShadowData.sampleBiasScale, s_Styles.sampleBiasScale);
+                EditorGUILayout.PropertyField(m_AdditionalShadowData.edgeLeakFixup, s_Styles.edgeLeakFixup);
+                if (m_AdditionalShadowData.edgeLeakFixup.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AdditionalShadowData.edgeToleranceNormal, s_Styles.edgeToleranceNormal);
+                    EditorGUILayout.Slider(m_AdditionalShadowData.edgeTolerance, 0.0f, 1.0f, s_Styles.edgeTolerance);
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUI.indentLevel--;
             }
         }

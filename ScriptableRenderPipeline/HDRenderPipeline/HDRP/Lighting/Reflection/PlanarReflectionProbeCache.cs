@@ -26,8 +26,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MaterialPropertyBlock   m_ConvertTextureMPB;
         bool                    m_PerformBC6HCompression;
 
-        public PlanarReflectionProbeCache(IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
+        public PlanarReflectionProbeCache(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilter, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
         {
+            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.blitCubeTextureFace);
+            m_ConvertTextureMPB = new MaterialPropertyBlock();
+
             // BC6H requires CPP feature not yet available
             probeFormat = TextureFormat.RGBAHalf;
 
@@ -65,9 +68,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
                 m_ConvolutionTargetTexture.Create();
 
-                m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial("Hidden/SRP/BlitCubeTextureFace");
-                m_ConvertTextureMPB = new MaterialPropertyBlock();
-
                 InitializeProbeBakingStates();
             }
         }
@@ -97,6 +97,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ConvolutionTargetTexture = null;
             }
             m_ProbeBakingState = null;
+
+            CoreUtils.Destroy(m_ConvertTextureMaterial);
         }
 
         public void NewFrame()

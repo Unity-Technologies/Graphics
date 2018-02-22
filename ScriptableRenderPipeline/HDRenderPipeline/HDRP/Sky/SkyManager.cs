@@ -51,6 +51,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool                    m_NeedUpdateRealtimeEnv = false;
         bool                    m_NeedUpdateBakingSky = true;
 
+#if UNITY_EDITOR
+        // For Preview windows we want to have a 'fixed' sky, so we can display chrome metal and have always the same look
+        ProceduralSky           m_DefaultPreviewSky;
+#endif
+
         // This is the sky used for rendering in the main view. It will also be used for lighting if no lighting override sky is setup.
         // Ambient Probe: Only for real time GI (otherwise we use the baked one)
         // Reflection Probe : Always used and updated depending on the OnChanged/Realtime flags.
@@ -136,6 +141,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void UpdateCurrentSkySettings(HDCamera camera)
         {
             m_VisualSky.skySettings = GetSkySetting(VolumeManager.instance.stack);
+
+#if UNITY_EDITOR
+            if (camera.camera.cameraType == CameraType.Preview)
+            {
+                m_VisualSky.skySettings = m_DefaultPreviewSky;
+            }
+#endif
+
             m_BakingSky.skySettings = SkyManager.GetBakingSkySettings();
 
             // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
@@ -177,6 +190,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             m_LightingOverrideLayerMask = hdAsset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
+
+#if UNITY_EDITOR
+            m_DefaultPreviewSky = ScriptableObject.CreateInstance<ProceduralSky>();
+#endif
         }
 
         public void Cleanup()

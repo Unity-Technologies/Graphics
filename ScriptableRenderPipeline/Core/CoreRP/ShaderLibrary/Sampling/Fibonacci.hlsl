@@ -9,7 +9,7 @@ real2 Fibonacci2dSeq(real fibN1, real fibN2, uint i)
     // 3 cycles on GCN if 'fibN1' and 'fibN2' are known at compile time.
     // N.b.: According to Swinbank and Pusser [SP06], the uniformity of the distribution
     // can be slightly improved by introducing an offset of 1/N to the Z (or R) coordinates.
-    return real2(i / fibN1 + (0.5/ fibN1), frac(i * (fibN2 / fibN1)));
+    return real2(i / fibN1 + (0.5 / fibN1), frac(i * (fibN2 / fibN1)));
 }
 
 #define GOLDEN_RATIO 1.6180339887498948482
@@ -17,7 +17,7 @@ real2 Fibonacci2dSeq(real fibN1, real fibN2, uint i)
 // Replaces the Fibonacci sequence in Fibonacci2dSeq() with the Golden ratio.
 real2 Golden2dSeq(uint i, real n)
 {
-    return real2(i / n + (0.5/ n), frac(i * rcp(GOLDEN_RATIO)));
+    return real2(i / n + (0.5 / n), frac(i * rcp(GOLDEN_RATIO)));
 }
 
 static const uint k_FibonacciSeq[] = {

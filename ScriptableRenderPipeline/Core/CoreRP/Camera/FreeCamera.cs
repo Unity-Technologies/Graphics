@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering
         void Update()
         {
             // If the debug menu is running, we don't want to conflict with its inputs.
-            if (DebugMenuManager.instance.menuUI.isEnabled)
+            if (DebugManager.instance.displayRuntimeUI)
                 return;
 
             float inputRotateAxisX = 0.0f;

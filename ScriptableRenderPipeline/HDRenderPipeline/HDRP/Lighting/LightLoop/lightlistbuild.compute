@@ -26,6 +26,7 @@ uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
+uniform int _DecalIndexShift;
 uniform uint g_BaseFeatureFlags;
 
 Texture2D g_depth_tex : register( t0 );
@@ -162,7 +163,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	float4 vLinDepths;
 	{
 		// Fetch depths and calculate min/max
-		[unroll]
+		UNITY_UNROLL
 		for(int i = 0; i < 4; i++)
 		{
 			int idx = i * NR_THREADS + t;
@@ -293,7 +294,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// to make it work correctly
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DecalIndexShift;
 
 	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{

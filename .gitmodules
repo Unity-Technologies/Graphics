@@ -2,3 +2,6 @@
 	path = PostProcessing
 	url = https://github.com/Unity-Technologies/PostProcessing
 	branch = v2
+[submodule "ShaderGraph"]
+	path = ShaderGraph
+	url = https://github.com/Unity-Technologies/ShaderGraph
