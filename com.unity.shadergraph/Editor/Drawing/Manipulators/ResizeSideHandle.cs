@@ -1,6 +1,9 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -123,12 +126,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<MouseDownEvent>(HandleMouseDown);
             RegisterCallback<MouseUpEvent>(HandleDraggableMouseUp);
 
-            m_ResizeTarget.RegisterCallback<PostLayoutEvent>(InitialLayoutSetup);
+            m_ResizeTarget.RegisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
         }
 
-        void InitialLayoutSetup(PostLayoutEvent evt)
+        void InitialLayoutSetup(GeometryChangedEvent evt)
         {
-            m_ResizeTarget.UnregisterCallback<PostLayoutEvent>(InitialLayoutSetup);
+            m_ResizeTarget.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
             m_InitialAspectRatio = m_ResizeTarget.layout.width / m_ResizeTarget.layout.height;
         }
 
