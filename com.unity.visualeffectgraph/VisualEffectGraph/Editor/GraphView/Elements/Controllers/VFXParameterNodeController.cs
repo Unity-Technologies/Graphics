@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UI
             get
             {
                 if (depth == 0)
-                    return "";
+                    return sourceNode.exposedName;
                 return base.name;
             }
         }
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
         public override string title
         {
-            get { return m_ParentController.parameter.exposedName; }
+            get { return ""; }
         }
 
         public string exposedName

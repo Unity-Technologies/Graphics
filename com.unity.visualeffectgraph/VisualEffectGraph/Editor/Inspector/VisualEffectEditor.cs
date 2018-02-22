@@ -277,8 +277,11 @@ public class VisualEffectEditor : Editor
     void OnDisable()
     {
         VisualEffect effect = ((VisualEffect)targets[0]);
-        effect.pause = false;
-        effect.playRate = 1.0f;
+        if (effect != null)
+        {
+            effect.pause = false;
+            effect.playRate = 1.0f;
+        }
     }
 
     struct Infos

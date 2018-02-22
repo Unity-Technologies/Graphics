@@ -296,6 +296,15 @@ namespace UnityEditor.VFX.UI
             m_Remove.SetEnabled(false);
 
             Add(toolbar);
+            AddStyleSheetPath("VFXReorderableList");
+            if (EditorGUIUtility.isProSkin)
+            {
+                AddStyleSheetPath("VFXReorderableListDark");
+            }
+            else
+            {
+                AddStyleSheetPath("VFXReorderableListLight");
+            }
             AddToClassList("ReorderableList");
         }
 

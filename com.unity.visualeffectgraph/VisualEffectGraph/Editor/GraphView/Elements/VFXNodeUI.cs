@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Controller; }
         }
+
         VFXNodeController ISettableControlledElement<VFXNodeController>.controller
         {
             get { return m_Controller; }
@@ -46,7 +47,20 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement settingsContainer {get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
+
+
+        public VFXNodeUI(string template) : base(template)
+        {
+            AddStyleSheetPath("VFXNodeUI");
+            Initialize();
+        }
+
         public VFXNodeUI()
+        {
+            Initialize();
+        }
+
+        void Initialize()
         {
             AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
