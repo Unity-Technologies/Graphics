@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
@@ -131,7 +132,14 @@ namespace UnityEditor.ShaderGraph
             if (inputValueType == ConcreteSlotValueType.Vector1)
                 visitor.AddShaderChunk(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue), false);
             else if (generationMode == GenerationMode.ForReals)
-                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.{3}{4}{5}{6};", outputSlotType, outputName, inputValue, s_ComponentList[m_RedChannel], s_ComponentList[m_GreenChannel], s_ComponentList[m_BlueChannel], s_ComponentList[m_AlphaChannel]), false);
+                visitor.AddShaderChunk(string.Format("{0} {1} = {2}.{3}{4}{5}{6};", 
+                    outputSlotType, 
+                    outputName, 
+                    inputValue, 
+                    s_ComponentList[m_RedChannel].ToString(CultureInfo.InvariantCulture), 
+                    s_ComponentList[m_GreenChannel].ToString(CultureInfo.InvariantCulture), 
+                    s_ComponentList[m_BlueChannel].ToString(CultureInfo.InvariantCulture), 
+                    s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture)), false);
             else
                 visitor.AddShaderChunk(string.Format("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);",
                     outputSlotType,
