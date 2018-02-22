@@ -517,6 +517,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The view and proj matrices are per eye in stereo. This means we have to double the size of these buffers.
             // TODO: Maybe in stereo, we will only support half as many lights total, in order to minimize buffer size waste.
             // Alternatively, we could re-size these buffers if any stereo camera is active, instead of unilaterally increasing buffer size.
+            // TODO: I don't think k_MaxLightsOnScreen corresponds to the actual correct light count for cullable light types (punctual, area, env, decal)
             s_AABBBoundsBuffer = new ComputeBuffer(k_MaxStereoEyes * 2 * k_MaxLightsOnScreen, 3 * sizeof(float));
             s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxStereoEyes* k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
             s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxStereoEyes* k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
@@ -1760,9 +1761,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
-                m_lightList.bounds.AddRange(DecalSystem.m_Bounds);
-                m_lightList.lightVolumes.AddRange(DecalSystem.m_LightVolumes);
-                m_lightCount += DecalSystem.m_DecalDatasCount;
+                if (DecalSystem.m_DecalDatasCount > 0)
+                {
+                    // TODO: This adds the entire array to the buffer, likely introducing
+                    // empty entries into the buffer.  Currently, stereo assumes this buffer to
+                    // be tightly packed. Decals are currently disabled for stereo anyway, so we
+                    // will coordinate on a proper solution for this.
+                    m_lightList.bounds.AddRange(DecalSystem.m_Bounds);
+                    m_lightList.lightVolumes.AddRange(DecalSystem.m_LightVolumes);
+                    m_lightCount += DecalSystem.m_DecalDatasCount;
+                }
 
                 if (stereoEnabled)
                 {
