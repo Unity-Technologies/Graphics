@@ -144,6 +144,7 @@ BoolPropertyRM Toogle
 ColorPropertyRM
 {
 	flex-direction:row;
+    height:36;
 }
 
 .propertyrm  .maincontainer
