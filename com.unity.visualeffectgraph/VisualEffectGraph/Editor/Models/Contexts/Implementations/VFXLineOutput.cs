@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Line Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLines"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleLineOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }
 
         [VFXSetting, SerializeField]
         protected bool targetFromAttributes = true;

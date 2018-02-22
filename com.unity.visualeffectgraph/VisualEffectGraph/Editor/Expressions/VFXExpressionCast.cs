@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCastUintToFloat;
+                return VFXExpressionOp.CastUintToFloat;
             }
         }
 
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCastIntToFloat;
+                return VFXExpressionOp.CastIntToFloat;
             }
         }
 
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCastFloatToUint;
+                return VFXExpressionOp.CastFloatToUint;
             }
         }
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCastIntToUint;
+                return VFXExpressionOp.CastIntToUint;
             }
         }
 
@@ -135,7 +135,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCastFloatToInt;
+                return VFXExpressionOp.CastFloatToInt;
             }
         }
 
@@ -164,7 +164,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCastUintToInt;
+                return VFXExpressionOp.CastUintToInt;
             }
         }
 

@@ -212,7 +212,7 @@ namespace UnityEditor.VFX
             m_ReadSourceAttributes.Clear();
             if (type == VFXDataType.kParticle)
             {
-                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.kFloat));
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float));
             }
 
             int nbOwners = m_Owners.Count;

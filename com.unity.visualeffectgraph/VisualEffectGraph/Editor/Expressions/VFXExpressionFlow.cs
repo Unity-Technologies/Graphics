@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXCondition;
+                return VFXExpressionOp.Condition;
             }
         }
 
@@ -85,7 +85,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXBranch;
+                return VFXExpressionOp.Branch;
             }
         }
 

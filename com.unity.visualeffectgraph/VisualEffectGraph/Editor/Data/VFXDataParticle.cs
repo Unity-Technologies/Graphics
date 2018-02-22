@@ -248,7 +248,7 @@ namespace UnityEditor.VFX
             if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.kBool ? "uint" : "asuint");
+            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.Bool ? "uint" : "asuint");
         }
 
         public bool NeedsIndirectBuffer()
@@ -291,10 +291,10 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
             }
 
-            var systemFlag = VFXSystemFlag.kVFXSystemDefault;
+            var systemFlag = VFXSystemFlag.SystemDefault;
             if (hasKill)
             {
-                systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
+                systemFlag |= VFXSystemFlag.SystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
@@ -329,7 +329,7 @@ namespace UnityEditor.VFX
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             if (needsIndirectBuffer)
             {
-                systemFlag |= VFXSystemFlag.kVFXSystemHasIndirectBuffer;
+                systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
                 indirectBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
                 systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
@@ -392,7 +392,7 @@ namespace UnityEditor.VFX
                 capacity = capacity,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
-                type = VFXSystemType.kVFXParticle,
+                type = VFXSystemType.Particle,
             });
         }
 

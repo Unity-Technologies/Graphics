@@ -236,7 +236,7 @@ namespace UnityEditor.VFX
             //x = cos(angle) * distance
             //y = sin(angle) * distance
             var result = new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionCos(theta), new VFXExpressionSin(theta) });
-            return (result * CastFloat(distance, VFXValueType.kFloat2));
+            return (result * CastFloat(distance, VFXValueType.Float2));
         }
 
         static public VFXExpression[] RectangularToPolar(VFXExpression coord)
@@ -264,7 +264,7 @@ namespace UnityEditor.VFX
             var z = (sinTheta * cosPhi);
 
             var result = new VFXExpressionCombine(new VFXExpression[] { x, y, z });
-            return (result * CastFloat(distance, VFXValueType.kFloat3));
+            return (result * CastFloat(distance, VFXValueType.Float3));
         }
 
         static public VFXExpression[] RectangularToSpherical(VFXExpression coord)
@@ -366,7 +366,7 @@ namespace UnityEditor.VFX
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
-            if (expression.valueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.Float)
             {
                 return new[] { expression };
             }

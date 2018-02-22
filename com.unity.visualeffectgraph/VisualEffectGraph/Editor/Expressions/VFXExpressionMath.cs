@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionCos() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionCos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXCosOp)
+        public VFXExpressionCos(VFXExpression parent) : base(parent, VFXExpressionOp.CosOp)
         {
         }
 
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionSin() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionSin(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSinOp)
+        public VFXExpressionSin(VFXExpression parent) : base(parent, VFXExpressionOp.SinOp)
         {
         }
 
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionTan() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXTanOp)
+        public VFXExpressionTan(VFXExpression parent) : base(parent, VFXExpressionOp.TanOp)
         {
         }
 
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionACos() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionACos(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXACosOp)
+        public VFXExpressionACos(VFXExpression parent) : base(parent, VFXExpressionOp.ACosOp)
         {
         }
 
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionASin() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionASin(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXASinOp)
+        public VFXExpressionASin(VFXExpression parent) : base(parent, VFXExpressionOp.ASinOp)
         {
         }
 
@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionATan() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionATan(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXATanOp)
+        public VFXExpressionATan(VFXExpression parent) : base(parent, VFXExpressionOp.ATanOp)
         {
         }
 
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXAbsOp)
+        public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOp.AbsOp)
         {
         }
 
@@ -143,7 +143,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionSign() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXSignOp)
+        public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOp.SignOp)
         {
         }
 
@@ -162,7 +162,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionFloor() : this(VFXValue<float>.Default) {}
 
-        public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXFloorOp)
+        public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOp.FloorOp)
         {
         }
 
@@ -183,7 +183,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionAdd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXAddOp)
+        public VFXExpressionAdd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.AddOp)
         {
         }
 
@@ -215,7 +215,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMul(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMulOp)
+        public VFXExpressionMul(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.MulOp)
         {
         }
 
@@ -251,7 +251,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionDivide(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXDivideOp)
+        public VFXExpressionDivide(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.DivideOp)
         {
         }
 
@@ -285,7 +285,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXSubtractOp)
+        public VFXExpressionSubtract(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.SubtractOp)
         {
         }
 
@@ -315,7 +315,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMin(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMinOp)
+        public VFXExpressionMin(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.MinOp)
         {
         }
 
@@ -336,7 +336,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionMax(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXMaxOp)
+        public VFXExpressionMax(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.MaxOp)
         {
         }
 
@@ -357,7 +357,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionPow(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXPowOp)
+        public VFXExpressionPow(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.PowOp)
         {
         }
 
@@ -378,7 +378,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionATan2(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXATan2Op)
+        public VFXExpressionATan2(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.ATan2Op)
         {
         }
 
@@ -400,7 +400,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionBitwiseLeftShift(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseLeftShiftOp)
+        public VFXExpressionBitwiseLeftShift(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.BitwiseLeftShiftOp)
         {
         }
 
@@ -421,7 +421,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionBitwiseRightShift(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseRightShiftOp)
+        public VFXExpressionBitwiseRightShift(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.BitwiseRightShiftOp)
         {
         }
 
@@ -442,7 +442,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionBitwiseOr(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseOrOp)
+        public VFXExpressionBitwiseOr(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.BitwiseOrOp)
         {
         }
 
@@ -463,7 +463,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionBitwiseAnd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseAndOp)
+        public VFXExpressionBitwiseAnd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.BitwiseAndOp)
         {
         }
 
@@ -484,7 +484,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionBitwiseXor(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.kVFXBitwiseXorOp)
+        public VFXExpressionBitwiseXor(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOp.BitwiseXorOp)
         {
         }
 
@@ -505,7 +505,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionBitwiseComplement(VFXExpression parent) : base(parent, VFXExpressionOp.kVFXBitwiseComplementOp)
+        public VFXExpressionBitwiseComplement(VFXExpression parent) : base(parent, VFXExpressionOp.BitwiseComplementOp)
         {
         }
 

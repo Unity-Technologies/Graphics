@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXRGBtoHSVOp;
+                return VFXExpressionOp.RGBtoHSVOp;
             }
         }
 
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXHSVtoRGBOp;
+                return VFXExpressionOp.HSVtoRGBOp;
             }
         }
 
