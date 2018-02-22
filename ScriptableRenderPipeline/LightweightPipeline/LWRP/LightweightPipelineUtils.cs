@@ -73,11 +73,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public bool Equals(VisibleLight x, VisibleLight y)
         {
+            if (x.light == null && y.light == null)
+                return true;
+
+            if (x.light == null || y.light == null)
+                return false;
+
             return x.light.GetInstanceID() == y.light.GetInstanceID();
         }
 
         public int GetHashCode(VisibleLight obj)
         {
+            if (obj.light == null) // Particle light weirdness
+                return obj.GetHashCode();
+
             return obj.light.GetInstanceID();
         }
     }
