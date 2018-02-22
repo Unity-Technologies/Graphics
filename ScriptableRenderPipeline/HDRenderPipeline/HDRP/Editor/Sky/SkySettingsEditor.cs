@@ -13,8 +13,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_EnvUpdateMode;
         SerializedDataParameter m_EnvUpdatePeriod;
 
-        SerializedProperty      m_UseForBaking;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<SkySettings>(serializedObject);
@@ -26,11 +24,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_EnvUpdatePeriod = Unpack(o.Find(x => x.updatePeriod));
         }
 
-        protected void CommonSkySettingsGUI()
+        protected void CommonSkySettingsGUI(bool enableRotation = true)
         {
             PropertyField(m_SkyExposure);
             PropertyField(m_SkyMultiplier);
-            PropertyField(m_SkyRotation);
+            if(enableRotation)
+                PropertyField(m_SkyRotation);
 
             PropertyField(m_EnvUpdateMode);
             if (!m_EnvUpdateMode.value.hasMultipleDifferentValues && m_EnvUpdateMode.value.intValue == (int)EnvironementUpdateMode.Realtime)

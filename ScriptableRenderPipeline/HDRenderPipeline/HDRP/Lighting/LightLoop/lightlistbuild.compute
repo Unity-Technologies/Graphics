@@ -290,7 +290,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int localOffs=0;
 	int offs = tileIDX.y*nrTilesX + tileIDX.x;
 
-	// All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
+	// All our cull data are in the same list, but at render time envLights are separated so we need to shift the index
 	// to make it work correctly
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);

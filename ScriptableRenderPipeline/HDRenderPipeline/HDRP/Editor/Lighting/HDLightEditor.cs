@@ -38,17 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public SerializedProperty dimmer;
             public SerializedProperty fadeDistance;
-            public SerializedProperty cascadeCount;
-            public SerializedProperty cascadeRatios;
-            public SerializedProperty cascadeBorders;
             public SerializedProperty resolution;
-
-            public SerializedProperty enableContactShadows;
-            public SerializedProperty contactShadowLength;
-            public SerializedProperty contactShadowDistanceScaleFactor;
-            public SerializedProperty contactShadowMaxDistance;
-            public SerializedProperty contactShadowFadeDistance;
-            public SerializedProperty contactShadowSampleCount;
 
             // Bias control
             public SerializedProperty viewBiasMin;
@@ -129,16 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 dimmer = o.Find(x => x.shadowDimmer),
                 fadeDistance = o.Find(x => x.shadowFadeDistance),
-                cascadeCount = o.Find("shadowCascadeCount"),
-                cascadeRatios = o.Find("shadowCascadeRatios"),
-                cascadeBorders = o.Find("shadowCascadeBorders"),
                 resolution = o.Find(x => x.shadowResolution),
-                enableContactShadows = o.Find(x => x.enableContactShadows),
-                contactShadowLength = o.Find(x => x.contactShadowLength),
-                contactShadowDistanceScaleFactor = o.Find(x => x.contactShadowDistanceScaleFactor),
-                contactShadowMaxDistance = o.Find(x => x.contactShadowMaxDistance),
-                contactShadowFadeDistance = o.Find(x => x.contactShadowFadeDistance),
-                contactShadowSampleCount = o.Find(x => x.contactShadowSampleCount),
 
                 viewBiasMin = o.Find(x => x.viewBiasMin),
                 viewBiasMax = o.Find(x => x.viewBiasMax),
@@ -226,10 +207,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 bool shadowsEnabled = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("Enable Shadows"), settings.shadowsType.enumValueIndex != 0);
                 settings.shadowsType.enumValueIndex = shadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
-                if (settings.lightType.enumValueIndex == (int)LightType.Directional)
-                {
-                    EditorGUILayout.PropertyField(m_AdditionalShadowData.enableContactShadows, CoreEditorUtils.GetContent("Enable Contact Shadows"));
-                }
             }
 
             EditorGUILayout.PropertyField(m_AdditionalLightData.showAdditionalSettings);

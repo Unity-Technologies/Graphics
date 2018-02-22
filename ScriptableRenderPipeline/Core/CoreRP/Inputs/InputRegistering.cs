@@ -68,6 +68,7 @@ namespace UnityEngine.Experimental
 
         static public void RegisterInputs(List<InputManagerEntry> entries)
         {
+            /*
             // Grab reference to input manager
             var currentSelection = UnityEditor.Selection.activeObject;
             UnityEditor.EditorApplication.ExecuteMenuItem("Edit/Project Settings/Input");
@@ -86,6 +87,7 @@ namespace UnityEngine.Experimental
             soInputManager.ApplyModifiedProperties();
 
             UnityEditor.Selection.activeObject = currentSelection;
+            */
         }
     }
 #endif
