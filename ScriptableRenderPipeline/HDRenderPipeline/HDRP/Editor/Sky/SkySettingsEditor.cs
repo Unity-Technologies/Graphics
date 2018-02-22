@@ -13,8 +13,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_EnvUpdateMode;
         SerializedDataParameter m_EnvUpdatePeriod;
 
-        SerializedProperty      m_UseForBaking;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<SkySettings>(serializedObject);
