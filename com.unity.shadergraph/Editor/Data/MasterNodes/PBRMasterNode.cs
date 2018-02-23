@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode<IPBRSubShader>
+    public class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequireNormal
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -81,7 +82,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "PBR Master";
             AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
-            AddSlot(new BoundVector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, new Vector3(0, 0, 1), CoordinateSpace.Tangent, ShaderStage.Fragment));
+            AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStage.Fragment));
             AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Color.black, ShaderStage.Fragment));
             if (model == Model.Metallic)
                 AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0, ShaderStage.Fragment));
@@ -109,6 +110,13 @@ namespace UnityEditor.ShaderGraph
 
             if (!subShaders.Any())
                 AddSubShader(new LightWeightPBRSubShader());
+        }
+
+        public NeededCoordinateSpace RequiresNormal()
+        {
+            List<ISlot> slots = new List<ISlot>();
+            GetSlots(slots);
+            return slots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
         }
     }
 }
