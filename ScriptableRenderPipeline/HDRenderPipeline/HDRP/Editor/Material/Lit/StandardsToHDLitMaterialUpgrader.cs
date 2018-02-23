@@ -76,29 +76,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Texture2D smoothnessMap = TextureCombiner.TextureFromColor(Color.grey);
 
             if (srcMaterial.shader.name == Standard_Rough)
-                hasSmoothness = srcMaterial.GetTexture("_SpecGlossMap")!=null;
+            {
+                hasSmoothness = srcMaterial.GetTexture("_SpecGlossMap") != null;
+
+                if (hasSmoothness)
+                    smoothnessMap = (Texture2D)TextureCombiner.GetTextureSafe(srcMaterial, "_SpecGlossMap", Color.grey);
+            }   
             else
             {
                 string smoothnessTextureChannel = "_MainTex";
 
-                if (srcMaterial.shader.name == Standard_Rough)
-                    smoothnessMap = (Texture2D) TextureCombiner.GetTextureSafe(srcMaterial, "_SpecGlossMap", Color.grey);
-                else
+                if ( srcMaterial.GetFloat("_SmoothnessTextureChannel") == 0 )
                 {
-                    if ( srcMaterial.GetFloat("_SmoothnessTextureChannel") == 0 )
-                    {
-                        if (srcMaterial.shader.name == Standard) smoothnessTextureChannel = "_MetallicGlossMap";
-                        if (srcMaterial.shader.name == Standard_Spec) smoothnessTextureChannel = "_SpecGlossMap";
-                    }
+                    if (srcMaterial.shader.name == Standard) smoothnessTextureChannel = "_MetallicGlossMap";
+                    if (srcMaterial.shader.name == Standard_Spec) smoothnessTextureChannel = "_SpecGlossMap";
+                }
 
-                    smoothnessMap = (Texture2D) srcMaterial.GetTexture( smoothnessTextureChannel );
-                    if (smoothnessMap == null || !TextureCombiner.TextureHasAlpha(smoothnessMap))
+                smoothnessMap = (Texture2D) srcMaterial.GetTexture( smoothnessTextureChannel );
+                if (smoothnessMap != null)
+                {
+                    hasSmoothness = true;
+
+                    if (!TextureCombiner.TextureHasAlpha(smoothnessMap))
                     {
-                        hasSmoothness = true;
-                        smoothnessMap = TextureCombiner.TextureFromColor(Color.white * srcMaterial.GetFloat("_Glossiness"));
+                        smoothnessMap = TextureCombiner.TextureFromColor(Color.white);
                     }
                 }
+                else
+                {
+                    smoothnessMap = TextureCombiner.TextureFromColor(Color.white * srcMaterial.GetFloat("_Glossiness"));
+                }
             }
+
 
             // Build the mask map
             if ( hasMetallic || hasOcclusion || hasDetailMask || hasSmoothness )
