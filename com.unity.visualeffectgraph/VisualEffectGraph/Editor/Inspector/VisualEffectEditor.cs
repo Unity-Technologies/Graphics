@@ -334,7 +334,7 @@ public class VisualEffectEditor : Editor
             {
                 Vector4 vVal = property.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                c = EditorGUILayout.ColorField(parameter.exposedName, c);
+                c = EditorGUILayout.ColorField(EditorGUIUtility.TextContent(parameter.exposedName), c, true, true, true);
 
                 if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
                     property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
