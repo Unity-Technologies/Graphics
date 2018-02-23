@@ -17,12 +17,12 @@ width:-1;
 
 .VFXNodeUI #settings
 {
-    max-height:0;
     background-color: rgba(63,63,63,0.8);
 }
-.VFXNodeUI.expanded #settings
+.VFXNodeUI.collapsed #settings
 {
-    max-height:10000;
+    max-height:0;
+    height:0;
 }
 
 

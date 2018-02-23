@@ -49,8 +49,9 @@ namespace UnityEditor.VFX.UI
             Initialize();
         }
 
-        public VFXNodeUI()
+        public VFXNodeUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXNode.uxml"))
         {
+            AddStyleSheetPath("StyleSheets/GraphView/Node.uss");
             Initialize();
         }
 
@@ -94,21 +95,7 @@ namespace UnityEditor.VFX.UI
             {
                 object settings = controller.settings;
 
-                settingsContainer = new VisualElement { name = "settings" };
-
-                if (hasSettingDivider)
-                {
-                    m_SettingsDivider = new VisualElement() { name = "divider" };
-                    m_SettingsDivider.AddToClassList("horizontal");
-                }
-
-                m_Content = mainContainer.Q("contents");
-
-                int idx = 0;
-                if (hasSettingDivider)
-                    m_Content.Insert(idx++, m_SettingsDivider);
-
-                m_Content.Insert(idx++, settingsContainer);
+                settingsContainer = this.Q("settings");
 
                 foreach (var setting in controller.settings)
                 {
