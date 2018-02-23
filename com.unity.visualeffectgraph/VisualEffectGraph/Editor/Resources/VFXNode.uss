@@ -166,3 +166,9 @@ width:-1;
     height:0;
     border-bottom-width: 0;
 }
+
+.VFXNodeUI.collapsed #settings-divider 
+{
+    height:0;
+    border-bottom-width: 0;
+}
