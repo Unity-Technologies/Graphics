@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graph.RemoveShaderProperty(property.guid);
                 }
             }
-            
+
             selection.Clear();
         }
 
