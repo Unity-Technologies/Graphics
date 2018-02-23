@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
 
-[assembly: InternalsVisibleTo("com.unity.shadergraph.EditorTests")]
+[assembly: InternalsVisibleTo("Unity.ShaderGraph.EditorTests")]
 
 namespace UnityEditor.ShaderGraph
 {

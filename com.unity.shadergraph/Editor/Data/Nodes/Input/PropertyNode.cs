@@ -21,6 +21,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Property-Node"; }
+        }
+
         private void UpdateNode()
         {
             var graph = owner as AbstractMaterialGraph;

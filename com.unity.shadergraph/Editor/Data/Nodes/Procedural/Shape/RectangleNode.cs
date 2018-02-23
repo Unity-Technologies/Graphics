@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Rectangle";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rectangle-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Rectangle", BindingFlags.Static | BindingFlags.NonPublic);
@@ -25,11 +30,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}2 XMinAndMax = {precision}2(0.5 - Width / 2, 0.5 + Width / 2);
-    {precision}2 YMinAndMax = {precision}2(0.5 - Height / 2, 0.5 + Height / 2);
-    {precision} x = step( XMinAndMax.x, UV.x ) - step( XMinAndMax.y, UV.x );
-    {precision} y = step( YMinAndMax.x, UV.y ) - step( YMinAndMax.y, UV.y );
-    Out = x * y;
+    {precision}2 d = abs(UV * 2 - 1) - {precision}2(Width, Height);
+    d = 1 - d / fwidth(d);
+    Out = saturate(min(d.x, d.y));
 }";
         }
     }
