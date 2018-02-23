@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Not";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Not-Node"; }
+        }
+
         public override bool hasPreview
         {
             get { return false; }

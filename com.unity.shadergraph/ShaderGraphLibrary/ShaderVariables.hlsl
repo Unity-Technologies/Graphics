@@ -180,6 +180,8 @@ CBUFFER_START(UnityPerFrame)
     float4 unity_AmbientEquator;
     float4 unity_AmbientGround;
     float4 unity_IndirectSpecColor;
+    float4 unity_FogParams;
+    half4  unity_FogColor;
 
 #if !defined(USING_STEREO_MATRICES)
     float4x4 glstate_matrix_projection;

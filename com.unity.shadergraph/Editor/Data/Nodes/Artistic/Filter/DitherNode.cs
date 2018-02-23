@@ -11,6 +11,12 @@ namespace UnityEditor.ShaderGraph
             name = "Dither";
             UpdateNodeAfterDeserialization();
         }
+
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Dither-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Dither", BindingFlags.Static | BindingFlags.NonPublic);
