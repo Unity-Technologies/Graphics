@@ -40,9 +40,6 @@ namespace UnityEditor.VFX.UI
         List<VFXDataEdgeController> m_DataEdges = new List<VFXDataEdgeController>();
         List<VFXFlowEdgeController> m_FlowEdges = new List<VFXFlowEdgeController>();
 
-
-        public Preview3DController controller { get; set; }
-
         public override IEnumerable<Controller> allChildren
         {
             get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
@@ -473,10 +470,6 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXGroupNodeController)
             {
                 RemoveGroupNode(element as VFXGroupNodeController);
-            }
-            else if (element is Preview3DController)
-            {
-                //TODO
             }
             else
             {

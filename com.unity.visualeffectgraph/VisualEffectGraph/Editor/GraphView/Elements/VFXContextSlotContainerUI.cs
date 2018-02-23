@@ -13,7 +13,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXContextSlotContainerUI()
         {
-            forceNotififcationOnAdd = true;
             pickingMode = PickingMode.Ignore;
             capabilities &= ~Capabilities.Selectable;
 

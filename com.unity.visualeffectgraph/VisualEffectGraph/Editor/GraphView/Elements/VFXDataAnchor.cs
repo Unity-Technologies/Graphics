@@ -66,11 +66,6 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
-        protected override VisualElement CreateConnector()
-        {
-            return new VisualElement();
-        }
-
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
             var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType, node);

@@ -331,7 +331,7 @@ namespace  UnityEditor.VFX.UI
             }
         }
     }
-    class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>
+    class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -502,10 +502,8 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
-            base.UpdatePresenterPosition();
-
             SaveBlackboardPosition(GetPosition());
         }
     }

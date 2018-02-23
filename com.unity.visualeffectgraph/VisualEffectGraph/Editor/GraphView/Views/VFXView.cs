@@ -285,11 +285,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
-            m_SlotContainerFactory[typeof(VFXContextController)] = typeof(VFXContextUI);
-            m_SlotContainerFactory[typeof(VFXOperatorController)] = typeof(VFXOperatorUI);
-            m_SlotContainerFactory[typeof(VFXParameterNodeController)] = typeof(VFXParameterUI);
-
-            forceNotififcationOnAdd = true;
             SetupZoom(0.125f, 8);
 
             //this.AddManipulator(new SelectionSetter(this));
@@ -398,6 +393,8 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
+
+            graphViewChanged = VFXGraphViewChanged;
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -565,16 +562,6 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        private class SlotContainerFactory : BaseTypeFactory<VFXNodeController, GraphElement>
-        {
-            protected override GraphElement InternalCreate(Type valueType)
-            {
-                return (GraphElement)System.Activator.CreateInstance(valueType);
-            }
-        }
-        private SlotContainerFactory m_SlotContainerFactory = new SlotContainerFactory();
-
-
         void SyncNodes()
         {
             var controlledElements = rootSlotContainers;
@@ -600,7 +587,24 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var newController in controller.nodes.Except(controlledElements.Keys))
                 {
-                    var newElement = m_SlotContainerFactory.Create(newController);
+                    GraphElement newElement = null;
+                    if (newController is VFXContextController)
+                    {
+                        newElement = new VFXContextUI();
+                    }
+                    else if (newController is VFXOperatorController)
+                    {
+                        newElement = new VFXOperatorUI();
+                    }
+                    else if (newController is VFXParameterNodeController)
+                    {
+                        newElement = new VFXParameterUI();
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
+                    }
+
                     AddElement(newElement);
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
                 }
@@ -951,6 +955,7 @@ namespace UnityEditor.VFX.UI
         {
             if (change.movedElements.Count > 0)
             {
+                HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
                 foreach (var groupNode in vfxGroupNodes.ToList())
                 {
                     var containedElements = groupNode.containedElements;
@@ -958,7 +963,7 @@ namespace UnityEditor.VFX.UI
                     if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
                     {
                         groupNode.UpdateGeometryFromContent();
-                        groupNode.UpdatePresenterPosition();
+                        movables.Add(groupNode);
                     }
                 }
 
@@ -967,11 +972,16 @@ namespace UnityEditor.VFX.UI
                     var containedElements = groupNode.containedElements;
                     if (containedElements != null)
                     {
-                        foreach (var node in containedElements)
+                        foreach (var node in containedElements.OfType<IVFXMovable>())
                         {
-                            node.UpdatePresenterPosition();
+                            movables.Add(node);
                         }
                     }
+                }
+
+                foreach (var movable in movables)
+                {
+                    movable.OnMoved();
                 }
             }
             return change;

@@ -10,7 +10,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, ISettableControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, ISettableControlledElement<VFXNodeController>, IVFXMovable
     {
         VFXSlotContainerController m_Controller;
         Controller IControlledElement.controller
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
             set { controller = value as VFXSlotContainerController; }
         }
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
             controller.position = GetPosition().position;
         }

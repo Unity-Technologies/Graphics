@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, ISettableControlledElement<VFXNodeController>, IDropTarget
+    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, ISettableControlledElement<VFXNodeController>, IDropTarget, IVFXMovable
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
@@ -47,8 +47,6 @@ namespace UnityEditor.VFX.UI
         VisualElement               m_DragDisplay;
 
         VFXContextSlotContainerUI   m_OwnData;
-
-        protected GraphViewTypeFactory typeFactory { get; set; }
 
         public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
 
@@ -212,7 +210,6 @@ namespace UnityEditor.VFX.UI
         {
             AddStyleSheetPath("VFXContext");
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
-            forceNotififcationOnAdd = true;
 
             m_FlowInputConnectorContainer = new VisualElement()
             {
@@ -320,7 +317,7 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
             controller.position = GetPosition().position;
         }

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>
+    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>, IVFXMovable
     {
         Controller IControlledElement.controller
         {
@@ -39,18 +39,16 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
 
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
-            base.UpdatePresenterPosition();
-
             if (containedElements.Count == 0)
             {
                 controller.position = GetPosition();
             }
 
-            foreach (var node in containedElements)
+            foreach (var node in containedElements.OfType<IVFXMovable>())
             {
-                node.UpdatePresenterPosition();
+                node.OnMoved();
             }
         }
 
@@ -122,7 +120,7 @@ namespace UnityEditor.VFX.UI
                 {
                     controller.AddNode(node.controller);
 
-                    UpdatePresenterPosition();
+                    OnMoved();
                 }
             }
         }
@@ -136,7 +134,7 @@ namespace UnityEditor.VFX.UI
                 {
                     controller.RemoveNode(node.controller);
 
-                    UpdatePresenterPosition();
+                    OnMoved();
                 }
             }
         }
