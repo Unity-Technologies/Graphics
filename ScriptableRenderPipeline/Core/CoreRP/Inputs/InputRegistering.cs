@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEngine.Experimental
 {
 #if UNITY_EDITOR
+    using UnityEditor;
+
     public class InputManagerEntry
     {
         public enum Kind { KeyOrButton, Mouse, Axis }
@@ -29,7 +30,7 @@ namespace UnityEngine.Experimental
     public class InputRegistering
     {
 
-        static bool InputAlreadyRegistered(string name, InputManagerEntry.Kind kind, UnityEditor.SerializedProperty spAxes)
+        static bool InputAlreadyRegistered(string name, InputManagerEntry.Kind kind, SerializedProperty spAxes)
         {
             for (var i = 0; i < spAxes.arraySize; ++i)
             {
@@ -43,7 +44,7 @@ namespace UnityEngine.Experimental
             return false;
         }
 
-        static void WriteEntry(UnityEditor.SerializedProperty spAxes, InputManagerEntry entry)
+        static void WriteEntry(SerializedProperty spAxes, InputManagerEntry entry)
         {
             if (InputAlreadyRegistered(entry.name, entry.kind, spAxes))
                 return;
@@ -66,15 +67,13 @@ namespace UnityEngine.Experimental
             spAxis.FindPropertyRelative("joyNum").intValue = (int)entry.joystick;
         }
 
-        static public void RegisterInputs(List<InputManagerEntry> entries)
+        public static void RegisterInputs(List<InputManagerEntry> entries)
         {
             // Grab reference to input manager
-            var currentSelection = UnityEditor.Selection.activeObject;
-            UnityEditor.EditorApplication.ExecuteMenuItem("Edit/Project Settings/Input");
-            var inputManager = UnityEditor.Selection.activeObject;
+            var inputManager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0];
 
             // Wrap in serialized object
-            var soInputManager = new UnityEditor.SerializedObject(inputManager);
+            var soInputManager = new SerializedObject(inputManager);
             var spAxes = soInputManager.FindProperty("m_Axes");
 
             foreach(InputManagerEntry entry in entries)
@@ -84,8 +83,6 @@ namespace UnityEngine.Experimental
 
             // Commit
             soInputManager.ApplyModifiedProperties();
-
-            UnityEditor.Selection.activeObject = currentSelection;
         }
     }
 #endif
