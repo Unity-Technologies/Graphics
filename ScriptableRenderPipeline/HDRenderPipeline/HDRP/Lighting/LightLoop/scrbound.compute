@@ -6,6 +6,8 @@
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "LightLoop.cs.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 uniform int g_isOrthographic;
 uniform int g_iNrVisibLights;
 

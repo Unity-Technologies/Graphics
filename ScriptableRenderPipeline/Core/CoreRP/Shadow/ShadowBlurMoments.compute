@@ -80,6 +80,8 @@
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/Shadow/ShadowMoments.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 #if MAX_MSAA > 1
 Texture2DMS<float> depthTex;
 #else

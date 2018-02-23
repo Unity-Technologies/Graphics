@@ -2,6 +2,8 @@
 #include "CoreRP/ShaderLibrary/BC6H.hlsl"
 #include "CoreRP/ShaderLibrary/Sampling/Sampling.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 TextureCube<float4> _Source;
 RWTexture2DArray<uint4> _Target;
 int _MipIndex;
