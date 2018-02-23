@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -52,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Release()
         {
-            Texture.DestroyImmediate(m_Cache);      // do I need this?
+            CoreUtils.Destroy(m_Cache);
         }
     }
 
@@ -136,6 +135,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
                     m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
+
                 }
             }
             else
@@ -156,16 +156,16 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_CacheNoCubeArray)
             {
-                Texture.DestroyImmediate(m_CacheNoCubeArray);
+                CoreUtils.Destroy(m_CacheNoCubeArray);
                 for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
                     m_StagingRTs[m].Release();
                 }
                 m_StagingRTs = null;
-                if (m_CubeBlitMaterial) Material.DestroyImmediate(m_CubeBlitMaterial);
+                CoreUtils.Destroy(m_CubeBlitMaterial);
             }
-            if (m_Cache)
-                Texture.DestroyImmediate(m_Cache);
+
+            CoreUtils.Destroy(m_Cache);
         }
 
         private void TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture texture)
