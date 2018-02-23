@@ -1,7 +1,7 @@
 {
-    "name": "com.unity.shadergraph.EditorTests",
+    "name": "Unity.ShaderGraph.EditorTests",
     "references": [
-        "com.unity.shadergraph.Editor"
+        "Unity.ShaderGraph.Editor"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
@@ -9,5 +9,6 @@
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
 }
