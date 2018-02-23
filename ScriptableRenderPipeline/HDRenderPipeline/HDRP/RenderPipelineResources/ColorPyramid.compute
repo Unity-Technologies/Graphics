@@ -21,6 +21,8 @@
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 Texture2D<float4> _Source;
 RWTexture2D<float4> _Result;
 

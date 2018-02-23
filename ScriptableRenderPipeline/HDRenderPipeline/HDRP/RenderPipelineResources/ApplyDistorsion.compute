@@ -1,6 +1,8 @@
 ﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../Material/Builtin/BuiltinData.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 TEXTURE2D(_DistortionTexture);
 TEXTURE2D(_GaussianPyramidColorTexture);
 RW_TEXTURE2D(float4, _CameraColorTexture);

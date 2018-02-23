@@ -45,6 +45,8 @@
 #include "../../Lighting/LightDefinition.cs.hlsl"
 #include "SubsurfaceScattering.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
