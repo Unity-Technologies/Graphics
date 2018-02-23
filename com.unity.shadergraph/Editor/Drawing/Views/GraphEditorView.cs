@@ -279,7 +279,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             foreach (var node in m_Graph.addedNodes)
+            {
                 AddNode(node);
+            }
+
+            foreach (var node in m_Graph.pastedNodes)
+            {
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                m_GraphView.AddToSelection(nodeView);
+            }
 
             var nodesToUpdate = m_NodeViewHashSet;
             nodesToUpdate.Clear();
