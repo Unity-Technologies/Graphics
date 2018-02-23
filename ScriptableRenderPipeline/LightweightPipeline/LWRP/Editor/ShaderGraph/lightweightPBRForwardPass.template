@@ -1,0 +1,149 @@
+Pass
+{
+	Tags{"LightMode" = "LightweightForward"}
+	${Tags}
+	${Blending}
+	${Culling}
+	${ZTest}
+	${ZWrite}
+
+	HLSLPROGRAM
+    // Required to compile gles 2.0 with standard srp library
+    #pragma prefer_hlslcc gles
+	#pragma target 3.0
+
+	// -------------------------------------
+	// Lightweight Pipeline keywords
+	#pragma multi_compile _ _ADDITIONAL_LIGHTS
+	#pragma multi_compile _ _VERTEX_LIGHTS
+	#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+	#pragma multi_compile _ FOG_LINEAR FOG_EXP2
+
+	// -------------------------------------
+	// Unity defined keywords
+	#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+	#pragma multi_compile _ LIGHTMAP_ON
+
+	//--------------------------------------
+	// GPU Instancing
+	#pragma multi_compile_instancing
+
+    #pragma vertex vert
+	#pragma fragment frag
+
+	${Defines}
+
+	#include "LWRP/ShaderLibrary/Core.hlsl"
+	#include "LWRP/ShaderLibrary/Lighting.hlsl"
+	#include "CoreRP/ShaderLibrary/Color.hlsl"
+	#include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
+	#include "ShaderGraphLibrary/Functions.hlsl"
+
+	${Graph}
+
+	struct GraphVertexOutput
+    {
+        float4 clipPos                : SV_POSITION;
+        float4 lightmapUVOrVertexSH   : TEXCOORD0;
+		half4 fogFactorAndVertexLight : TEXCOORD1; // x: fogFactor, yzw: vertex light
+    	float4 shadowCoord            : TEXCOORD2;
+        ${Interpolators}
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+    };
+
+    GraphVertexOutput vert (GraphVertexInput v)
+	{
+	    v = PopulateVertexData(v);
+
+        GraphVertexOutput o = (GraphVertexOutput)0;
+
+        UNITY_SETUP_INSTANCE_ID(v);
+    	UNITY_TRANSFER_INSTANCE_ID(v, o);
+
+        ${VertexShader}
+
+		float3 lwWNormal = TransformObjectToWorldNormal(v.normal);
+		float3 lwWorldPos = TransformObjectToWorld(v.vertex.xyz);
+		float4 clipPos = TransformWorldToHClip(lwWorldPos);
+
+ 		// We either sample GI from lightmap or SH. lightmap UV and vertex SH coefficients
+	    // are packed in lightmapUVOrVertexSH to save interpolator.
+	    // The following funcions initialize
+	    OUTPUT_LIGHTMAP_UV(v.texcoord1, unity_LightmapST, o.lightmapUVOrVertexSH);
+	    OUTPUT_SH(lwWNormal, o.lightmapUVOrVertexSH);
+
+	    half3 vertexLight = VertexLighting(lwWorldPos, lwWNormal);
+	    half fogFactor = ComputeFogFactor(clipPos.z);
+	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+	    o.clipPos = clipPos;
+
+	    o.shadowCoord = ComputeShadowCoord(o.clipPos);
+		return o;
+	}
+
+	half4 frag (GraphVertexOutput IN) : SV_Target
+    {
+    	UNITY_SETUP_INSTANCE_ID(IN);
+
+    	${LocalPixelShader}
+
+        SurfaceInputs surfaceInput = (SurfaceInputs)0;
+        ${SurfaceInputs}
+
+        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+
+		float3 Albedo = float3(0.5, 0.5, 0.5);
+		float3 Specular = float3(0, 0, 0);
+		float Metallic = 1;
+		float3 Normal = float3(0, 0, 1);
+		float3 Emission = 0;
+		float Smoothness = 0.5;
+		float Occlusion = 1;
+		float Alpha = 1;
+		float AlphaClipThreshold = 0;
+
+        ${SurfaceOutputRemap}
+
+		InputData inputData;
+		inputData.positionWS = WorldSpacePosition;
+
+#ifdef _NORMALMAP
+	    inputData.normalWS = TangentToWorldNormal(Normal, WorldSpaceTangent, WorldSpaceBiTangent, WorldSpaceNormal);
+#else
+	    inputData.normalWS = normalize(WorldSpaceNormal);
+#endif
+
+#ifdef SHADER_API_MOBILE
+	    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
+	    inputData.viewDirectionWS = WorldSpaceViewDirection;
+#else
+	    inputData.viewDirectionWS = normalize(WorldSpaceViewDirection);
+#endif
+
+	    inputData.shadowCoord = IN.shadowCoord;
+
+	    inputData.fogCoord = IN.fogFactorAndVertexLight.x;
+	    inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+	    inputData.bakedGI = SampleGI(IN.lightmapUVOrVertexSH, inputData.normalWS);
+
+		half4 color = LightweightFragmentPBR(
+			inputData, 
+			Albedo, 
+			Metallic, 
+			Specular, 
+			Smoothness, 
+			Occlusion, 
+			Emission, 
+			Alpha);
+
+		// Computes fog factor per-vertex
+    	ApplyFog(color.rgb, IN.fogFactorAndVertexLight.x);
+
+#if _AlphaClip
+		clip(Alpha - AlphaClipThreshold);
+#endif
+		return color;
+    }
+
+	ENDHLSL
+}
