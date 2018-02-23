@@ -5,7 +5,8 @@
         "com.unity.render-pipelines.core.Editor",
         "com.unity.render-pipelines.lightweight.Runtime",
         "com.unity.postprocessing.Runtime",
-        "com.unity.postprocessing.Editor"
+        "com.unity.postprocessing.Editor",
+        "Unity.ShaderGraph.Editor"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [
