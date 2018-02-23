@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph
         private string SubGraphFunctionName()
         {
             var functionName = subGraphAsset != null ? NodeUtils.GetHLSLSafeName(subGraphAsset.name) : "ERROR";
-            return string.Format("{0}_{1}_{2}", "sg", functionName, GuidEncoder.Encode(referencedGraph.guid));
+            return string.Format("sg_{0}_{1}", functionName, GuidEncoder.Encode(referencedGraph.guid));
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
