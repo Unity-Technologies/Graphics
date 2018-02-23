@@ -564,7 +564,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
-            m_DecalAtlas.Release();
+            if (m_DecalAtlas != null)
+                m_DecalAtlas.Release();
             CoreUtils.Destroy(m_DecalMesh);
         }
     }
