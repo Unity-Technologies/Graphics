@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Area light are convert to luminance (cd/(m^2*steradian)) with the following formulation: Luminous Power / (Area * PI * steradian)
 
         // Ref: Moving Frostbite to PBR
+        // Also good ref: https://www.radiance-online.org/community/workshops/2004-fribourg/presentations/Wandachowicz_paper.pdf
 
         // convert intensity (lumen) to candela
         public static float ConvertPointLightIntensity(float intensity)
