@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -34,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return typeof(T); }
         }
-        
+
         public IEnumerable<T> subShaders
         {
             get { return m_SubShaders; }
@@ -43,16 +44,16 @@ namespace UnityEditor.ShaderGraph
         public void AddSubShader(T subshader)
         {
             if (m_SubShaders.Contains(subshader))
-                return; 
+                return;
 
             m_SubShaders.Add(subshader);
-            Dirty(ModificationScope.Node);
+            Dirty(ModificationScope.Graph);
         }
 
         public void RemoveSubShader(T subshader)
         {
             m_SubShaders.RemoveAll(x => x == subshader);
-            Dirty(ModificationScope.Node);
+            Dirty(ModificationScope.Graph);
         }
 
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)
@@ -100,9 +101,34 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize()
         {
-            base.OnAfterDeserialize();
             m_SubShaders = SerializationHelper.Deserialize<T>(m_SerializableSubShaders, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableSubShaders = null;
+            base.OnAfterDeserialize();
+
+        }
+
+        public override void UpdateNodeAfterDeserialization()
+        {
+            base.UpdateNodeAfterDeserialization();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isValid = !type.IsAbstract && type.IsPublic && !type.IsGenericType && type.IsClass && typeof(T).IsAssignableFrom(type);
+                    if (isValid && !subShaders.Any(s => s.GetType() == type))
+                    {
+                        try
+                        {
+                            var subShader = (T)Activator.CreateInstance(type);
+                            AddSubShader(subShader);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                        }
+                    }
+                }
+            }
         }
     }
 }

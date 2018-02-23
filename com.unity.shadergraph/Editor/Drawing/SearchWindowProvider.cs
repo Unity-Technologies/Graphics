@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -57,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeEntries = new List<NodeEntry>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in assembly.GetTypes())
+                foreach (var type in assembly.GetTypesOrNothing())
                 {
                     if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))) && type != typeof(PropertyNode))
                     {

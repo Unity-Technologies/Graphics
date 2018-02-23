@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
-        internal static string GetTemplatePath(string templateName)
+        public static string GetTemplatePath(string templateName)
         {
             var path = new List<string>
             {
