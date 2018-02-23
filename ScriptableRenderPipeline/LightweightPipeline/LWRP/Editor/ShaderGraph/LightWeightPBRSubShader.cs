@@ -207,7 +207,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         static string GetTemplatePath(string templateName)
         {
-            string relativeTemplatePath = Path.Combine("LWRP", Path.Combine("Editor", Path.Combine("ShaderGraph", Path.Combine(templateName))));
+            string relativeTemplatePath = Path.Combine("LWRP", Path.Combine("Editor", Path.Combine("ShaderGraph", templateName)));
             foreach (var path in LightweightIncludePaths.GetPaths())
             {
                 var templatePath = Path.Combine(path, relativeTemplatePath);
