@@ -1,4 +1,5 @@
 #pragma kernel BuildDispatchIndirect
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "LightLoop.cs.hlsl"
