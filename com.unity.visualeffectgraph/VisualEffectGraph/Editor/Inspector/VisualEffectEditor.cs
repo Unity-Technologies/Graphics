@@ -339,6 +339,15 @@ public class VisualEffectEditor : Editor
                 if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
                     property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
             }
+            else if (parameter.type == typeof(Vector4))
+            {
+                var oldVal = property.vector4Value;
+                var newVal = EditorGUILayout.Vector4Field(parameter.exposedName, oldVal);
+                if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+                {
+                    property.vector4Value = newVal;
+                }
+            }
             else
                 EditorGUILayout.PropertyField(property, new GUIContent(parameter.exposedName), true);
 
