@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph
                 s_LegacyTypeRemapping = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    foreach (var type in assembly.GetTypes())
+                    foreach (var type in assembly.GetTypesOrNothing())
                     {
                         if (type.IsAbstract)
                             continue;

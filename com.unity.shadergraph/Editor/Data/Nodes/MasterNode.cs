@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -34,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return typeof(T); }
         }
-        
+
         public IEnumerable<T> subShaders
         {
             get { return m_SubShaders; }
@@ -111,7 +112,7 @@ namespace UnityEditor.ShaderGraph
             base.UpdateNodeAfterDeserialization();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in assembly.GetTypes())
+                foreach (var type in assembly.GetTypesOrNothing())
                 {
                     var isValid = !type.IsAbstract && type.IsPublic && !type.IsGenericType && type.IsClass && typeof(T).IsAssignableFrom(type);
                     if (isValid && !subShaders.Any(s => s.GetType() == type))
