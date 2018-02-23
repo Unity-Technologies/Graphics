@@ -97,6 +97,8 @@ namespace UnityEditor.VFX.UI
 
                 settingsContainer = this.Q("settings");
 
+                m_SettingsDivider = this.Q("settings-divider");
+
                 foreach (var setting in controller.settings)
                 {
                     AddSetting(setting);
