@@ -5,6 +5,8 @@
 #include "LightingConvexHullUtils.hlsl"
 #include "SortingComputeUtils.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 #define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
