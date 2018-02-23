@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Step";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Step-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Step", BindingFlags.Static | BindingFlags.NonPublic);

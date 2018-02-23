@@ -1,7 +1,0 @@
-{
-    "name": "com.unity.shadergraph.Editor",
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": []
-}

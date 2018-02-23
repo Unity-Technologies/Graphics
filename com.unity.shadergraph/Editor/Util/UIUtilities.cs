@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEditor.Graphing.Util
 {
@@ -42,6 +43,18 @@ namespace UnityEditor.Graphing.Util
         public static IEnumerable<T> ToEnumerable<T>(this T item)
         {
             yield return item;
+        }
+
+        public static IEnumerable<Type> GetTypesOrNothing(this Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch
+            {
+                return Enumerable.Empty<Type>();
+            }
         }
     }
 }

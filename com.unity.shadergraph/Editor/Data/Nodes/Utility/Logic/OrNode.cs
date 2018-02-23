@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Or";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Or-Node"; }
+        }
+
         public override bool hasPreview
         {
             get { return false; }

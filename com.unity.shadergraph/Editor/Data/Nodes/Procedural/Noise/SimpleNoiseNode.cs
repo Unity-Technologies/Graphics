@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Simple Noise";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Simple-Noise-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_SimpleNoise", BindingFlags.Static | BindingFlags.NonPublic);

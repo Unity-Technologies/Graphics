@@ -312,7 +312,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
-                    copyGraph.InsertInGraph(graphView.graph, remappedNodes, remappedEdges);
+                    graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
 
                     // Add new elements to selection
                     graphView.ClearSelection();
