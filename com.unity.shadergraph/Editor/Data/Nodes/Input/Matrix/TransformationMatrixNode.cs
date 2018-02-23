@@ -1,5 +1,6 @@
 using UnityEditor.Graphing;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 
@@ -60,6 +61,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Transformation-Matrix-Node"; }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Matrix4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
@@ -68,7 +74,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return m_matrixList[matrix];
+            return m_matrixList[matrix].ToString(CultureInfo.InvariantCulture);
         }
 
         public bool RequiresVertexColor()

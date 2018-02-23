@@ -250,8 +250,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
+            foreach (var selectable in selection)
+            {
+                var field = selectable as BlackboardField;
+                if (field != null && field.userData != null)
+                {
+                    if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        break;
+                    return;
+                }
+            }
+
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<MaterialNodeView>().Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -261,6 +273,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graph.RemoveShaderProperty(property.guid);
                 }
             }
+
             selection.Clear();
         }
 
@@ -297,7 +310,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
-                    copyGraph.InsertInGraph(graphView.graph, remappedNodes, remappedEdges);
+                    graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
 
                     // Add new elements to selection
                     graphView.ClearSelection();

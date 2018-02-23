@@ -371,15 +371,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 try
                                 {
                                     node = results.sourceMap.FindNode(error.line);
+                                    message.AppendLine("Shader compilation error in {3} at line {1} (on {2}):\n{0}", error.message, error.line, error.platform, node != null ? string.Format("node {0} ({1})", node.name, node.guid) : "graph");
+                                    message.AppendLine(error.messageDetails);
+                                    message.AppendNewLine();
                                 }
-                                catch (Exception e)
+                                catch
                                 {
-                                    Debug.LogException(e);
-                                    continue;
+                                    message.AppendLine("Shader compilation error in {3} at line {1} (on {2}):\n{0}", error.message, error.line, error.platform, "graph");
                                 }
-                                message.AppendLine("{0} in {3} at line {1} (on {2})", error.message, error.line, error.platform, node != null ? string.Format("node {0} ({1})", node.name, node.guid) : "graph");
-                                message.AppendLine(error.messageDetails);
-                                message.AppendNewLine();
                             }
                             Debug.LogWarning(message.ToString());
                             ShaderUtil.ClearShaderErrors(m_UberShader);

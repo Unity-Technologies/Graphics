@@ -1,7 +1,10 @@
 ﻿﻿using System;
- using UnityEditor.Experimental.UIElements.GraphView;
- using UnityEngine;
+using UnityEngine;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -34,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Handle.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
             m_Handle.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
             m_Handle.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
-            target.RegisterCallback<PostLayoutEvent>(InitialLayoutSetup);
+            target.RegisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
         }
 
         protected override void UnregisterCallbacksFromTarget()
@@ -42,10 +45,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Handle.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
             m_Handle.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
             m_Handle.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
-            target.UnregisterCallback<PostLayoutEvent>(InitialLayoutSetup);
-            target.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
+            target.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
+            target.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             if (m_GraphView != null)
-                m_GraphView.UnregisterCallback<PostLayoutEvent>(OnPostLayout);
+                m_GraphView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         void OnMouseDown(MouseDownEvent evt)
@@ -88,23 +91,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void InitialLayoutSetup(PostLayoutEvent postLayoutEvent)
+        void InitialLayoutSetup(GeometryChangedEvent GeometryChangedEvent)
         {
             m_PreviousParentRect = target.parent.layout;
-            target.UnregisterCallback<PostLayoutEvent>(InitialLayoutSetup);
-            target.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+            target.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
+            target.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             VisualElement parent = target.parent;
             while (parent != null && !(parent is GraphView))
                 parent = parent.parent;
             m_GraphView = parent as GraphView;
             if (m_GraphView != null)
-                m_GraphView.RegisterCallback<PostLayoutEvent>(OnPostLayout);
+                m_GraphView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
         }
 
-        void OnPostLayout(PostLayoutEvent postLayoutEvent)
+        void OnGeometryChanged(GeometryChangedEvent GeometryChangedEvent)
         {
             Rect windowRect = target.layout;
 

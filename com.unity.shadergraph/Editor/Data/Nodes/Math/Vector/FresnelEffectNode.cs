@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Fresnel Effect";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Fresnel-Effect-Node"; }
+        }
+
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
