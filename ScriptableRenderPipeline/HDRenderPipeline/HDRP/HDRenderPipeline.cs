@@ -396,6 +396,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
+            DecalSystem.instance.Cleanup();
+
             m_MaterialList.ForEach(material => material.Cleanup());
 
             CoreUtils.Destroy(m_CopyStencilForNoLighting);
