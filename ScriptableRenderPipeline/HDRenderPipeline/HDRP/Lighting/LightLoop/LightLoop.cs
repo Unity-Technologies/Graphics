@@ -1778,15 +1778,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.Assert(m_lightList.bounds.Count == m_lightCount);
                 Debug.Assert(m_lightList.lightVolumes.Count == m_lightCount);
 
-                if (DecalSystem.m_DecalDatasCount > 0)
+                int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, k_MaxDecalsOnScreen);
+                if (decalDatasCount > 0)
                 {
-                    // TODO: This adds the entire array to the buffer, likely introducing
-                    // empty entries into the buffer.  Currently, stereo assumes this buffer to
-                    // be tightly packed. Decals are currently disabled for stereo anyway, so we
-                    // will coordinate on a proper solution for this.
-                    m_lightList.bounds.AddRange(DecalSystem.m_Bounds);
-                    m_lightList.lightVolumes.AddRange(DecalSystem.m_LightVolumes);
-                    m_lightCount += DecalSystem.m_DecalDatasCount;
+                    for (int i = 0; i < decalDatasCount; i++)
+                    {
+                        m_lightList.bounds.Add(DecalSystem.m_Bounds[i]);
+                        m_lightList.lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                    }
+                    m_lightCount += decalDatasCount;
                 }
 
                 if (stereoEnabled)
@@ -2110,7 +2110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_LightDatas.SetData(m_lightList.lights);
             s_EnvLightDatas.SetData(m_lightList.envLights);
             s_shadowDatas.SetData(m_lightList.shadows);
-            s_DecalDatas.SetData(DecalSystem.m_DecalDatas);
+            s_DecalDatas.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, k_MaxDecalsOnScreen)); // don't add more than the size of the buffer
 
             // These two buffers have been set in Rebuild()
             s_ConvexBoundsBuffer.SetData(m_lightList.bounds);
