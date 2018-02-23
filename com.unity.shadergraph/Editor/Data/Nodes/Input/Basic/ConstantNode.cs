@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Absolute-Node"; }
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Constant-Node"; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
