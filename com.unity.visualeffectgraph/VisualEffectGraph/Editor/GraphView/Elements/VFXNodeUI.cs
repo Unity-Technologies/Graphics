@@ -10,25 +10,19 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, ISettableControlledElement<VFXNodeController>, IVFXMovable
+    class VFXNodeUI : Node, IControlledElement, ISettableControlledElement<VFXNodeController>, IVFXMovable
     {
-        VFXSlotContainerController m_Controller;
+        VFXNodeController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
-        }
-
-        VFXNodeController ISettableControlledElement<VFXNodeController>.controller
-        {
-            get { return m_Controller; }
-            set { controller = value as VFXSlotContainerController; }
         }
         public void OnMoved()
         {
             controller.position = GetPosition().position;
         }
 
-        public VFXSlotContainerController controller
+        public VFXNodeController controller
         {
             get { return m_Controller; }
             set

@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
                         VFXContextUI selectedContext = view.selection.OfType<VFXContextUI>().FirstOrDefault();
                         if (selectedContext != null)
                         {
-                            selectedContext.controller.slotContainerController.DrawGizmos(comp);
+                            selectedContext.controller.DrawGizmos(comp);
                         }
                     }
                 }

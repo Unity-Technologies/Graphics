@@ -79,9 +79,9 @@ namespace UnityEditor.VFX.UI
                 {
                     m_Controller.RegisterHandler(this);
 
-                    m_OwnData.controller = m_Controller.slotContainerController;
+                    m_OwnData.controller = m_Controller;
 
-                    bool slotsVisible = m_Controller.slotContainerController.inputPorts.Count() > 0 || (m_Controller.slotContainerController.settings != null && m_Controller.slotContainerController.settings.Count() > 0);
+                    bool slotsVisible = m_Controller.inputPorts.Count() > 0 || (m_Controller.settings != null && m_Controller.settings.Count() > 0);
                     if (slotsVisible && m_OwnData.parent == null)
                     {
                         m_Header.Add(m_OwnData);

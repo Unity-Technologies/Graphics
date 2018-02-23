@@ -240,7 +240,7 @@ namespace UnityEditor.VFX.UI
 
             if (endNode != null)
             {
-                VFXSlotContainerController nodeController = endNode.controller.slotContainerController;
+                VFXNodeController nodeController = endNode.controller;
 
                 var compatibleAnchors = nodeController.viewController.GetCompatiblePorts(controller, null);
 

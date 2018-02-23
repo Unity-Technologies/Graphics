@@ -91,13 +91,13 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
-        IEnumerable<VFXSlotContainerController> AllSlotContainerControllers
+        public IEnumerable<VFXNodeController> AllSlotContainerControllers
         {
             get
             {
-                var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXSlotContainerController>();
-                var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXSlotContainerController>();
-                var contextSlotContainers = contexts.Select(t => t.slotContainerController).Where(t => t != null).Cast<VFXSlotContainerController>();
+                var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXNodeController>();
+                var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXNodeController>();
+                var contextSlotContainers = contexts.Where(t => t != null).Cast<VFXNodeController>();
 
                 return operatorControllers.Concat(blockControllers).Concat(contextSlotContainers);
             }
@@ -123,9 +123,9 @@ namespace UnityEditor.VFX.UI
                     if (nodeController is VFXContextController)
                     {
                         VFXContextController contextController = nodeController as VFXContextController;
-                        foreach (var input in contextController.slotContainerController.inputPorts)
+                        foreach (var input in contextController.inputPorts)
                         {
-                            changed |= RecreateInputSlotEdge(unusedEdges, contextController.slotContainerController, input);
+                            changed |= RecreateInputSlotEdge(unusedEdges, contextController, input);
                         }
 
                         foreach (var block in contextController.blockControllers)
@@ -408,13 +408,13 @@ namespace UnityEditor.VFX.UI
                 parameter.parentController.model.RemoveNode(parameter.infos);
                 DataEdgesMightHaveChanged();
             }
-            else if (element is VFXSlotContainerController || element is VFXParameterController)
+            else if (element is VFXNodeController || element is VFXParameterController)
             {
                 IVFXSlotContainer container = null;
 
-                if (element is VFXSlotContainerController)
+                if (element is VFXNodeController)
                 {
-                    container = (element as VFXSlotContainerController).slotContainer;
+                    container = (element as VFXNodeController).model as IVFXSlotContainer;
                 }
                 else
                 {
