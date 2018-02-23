@@ -251,7 +251,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsNotNull(dataEdges.Where(t =>
                     t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
-                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].ownData
+                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0]
                     ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>

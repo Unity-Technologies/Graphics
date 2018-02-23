@@ -686,7 +686,7 @@ namespace UnityEditor.VFX.UI
                 VFXContextUI contextUI = elements.OfType<VFXContextUI>().FirstOrDefault(t => t.controller.model == slotContainer);
                 if (contextUI != null)
                 {
-                    newSlotContainerUIs.Add(contextUI.ownData);
+                    newSlotContainerUIs.Add(contextUI);
                     newSlotContainerUIs.AddRange(contextUI.GetAllBlocks().Cast<VFXNodeUI>());
                     newContextUIs.Add(contextUI);
                     view.AddToSelection(contextUI);

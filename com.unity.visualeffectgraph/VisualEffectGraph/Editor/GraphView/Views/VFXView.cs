@@ -1007,25 +1007,21 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var element in layer)
                 {
-                    if (element is VFXContextUI)
-                    {
-                        var context = element as VFXContextUI;
-
-
-                        foreach (VFXDataAnchor anchor in context.ownData.GetPorts(input, output))
-                            yield return anchor;
-
-                        foreach (VFXBlockUI block in context.GetAllBlocks())
-                        {
-                            foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
-                                yield return anchor;
-                        }
-                    }
-                    else if (element is VFXNodeUI)
+                    if (element is VFXNodeUI)
                     {
                         var ope = element as VFXNodeUI;
                         foreach (VFXDataAnchor anchor in ope.GetPorts(input, output))
                             yield return anchor;
+                        if (element is VFXContextUI)
+                        {
+                            var context = element as VFXContextUI;
+
+                            foreach (VFXBlockUI block in context.GetAllBlocks())
+                            {
+                                foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
+                                    yield return anchor;
+                            }
+                        }
                     }
                 }
             }
