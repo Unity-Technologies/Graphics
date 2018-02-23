@@ -12,6 +12,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Fog-Node"; }
+        }
+
         const int OutputSlotId = 0;
         const int OutputSlot1Id = 1;
         const string k_OutputSlotName = "Color";

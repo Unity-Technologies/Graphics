@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "All";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/All-Node"; }
+        }
+
         public override bool hasPreview
         {
             get { return false; }
