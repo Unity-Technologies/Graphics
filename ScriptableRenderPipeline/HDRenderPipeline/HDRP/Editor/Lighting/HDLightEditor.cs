@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //Disc,
         }
 
-        const float k_LineWidth = 0.01f; // Provide a small size of 1cm for line light
+        const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
         // Used for UI only; the processing code must use LightTypeExtent and LightType
         LightShape m_LightShape;
@@ -268,8 +268,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthRect);
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightRect);
-                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_LineWidth);
-                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_LineWidth);
+                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
+                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
                     settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
                     settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
                     settings.shadowsType.enumValueIndex = (int)LightShadows.None;
@@ -281,11 +281,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthLine);
-                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_LineWidth);
-                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_LineWidth);
+                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
+                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
                     // Fake line with a small rectangle in vanilla unity for GI
                     settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
-                    settings.areaSizeY.floatValue = k_LineWidth;
+                    settings.areaSizeY.floatValue = k_MinAreaWidth;
                     settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
@@ -330,7 +330,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
 
                 case LightShape.Line:
-                    settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, k_LineWidth, m_AdditionalLightData.shapeWidth.floatValue);
+                    settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
                     break;
             }
         }
