@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Cosine";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Cosine-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Cosine", BindingFlags.Static | BindingFlags.NonPublic);

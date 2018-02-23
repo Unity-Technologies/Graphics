@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Is NaN";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Is-NaN-Node"; }
+        }
+
         public override bool hasPreview
         {
             get { return false; }

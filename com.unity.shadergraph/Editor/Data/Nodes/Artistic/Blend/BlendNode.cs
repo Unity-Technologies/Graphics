@@ -13,6 +13,11 @@ namespace UnityEditor.ShaderGraph
             name = "Blend";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Blend-Node"; }
+        }
+
         string GetCurrentBlendName()
         {
             return System.Enum.GetName(typeof(BlendMode), m_BlendMode);

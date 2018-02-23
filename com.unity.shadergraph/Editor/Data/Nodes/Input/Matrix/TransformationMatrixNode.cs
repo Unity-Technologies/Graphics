@@ -61,6 +61,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Transformation-Matrix-Node"; }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Matrix4MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
