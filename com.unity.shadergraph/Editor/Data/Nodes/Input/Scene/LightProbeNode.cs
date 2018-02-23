@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = ShadeSH9(float4(Normal , 1));
+    Out = SampleSH(Normal);
 }
 ";
         }
