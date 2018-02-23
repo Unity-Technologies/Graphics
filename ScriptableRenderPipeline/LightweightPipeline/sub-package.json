@@ -5,6 +5,6 @@
         "com.unity.render-pipelines.core"
     ],
     "dependencies": {
-        "com.unity.shadergraph": "0.1.19"
+        "com.unity.shadergraph": "1.0.0-beta"
     }
 }
