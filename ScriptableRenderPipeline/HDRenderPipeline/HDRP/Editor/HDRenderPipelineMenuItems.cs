@@ -52,9 +52,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     add.areaIntensity = l.intensity / LightUtils.calculateLineLightArea(1.0f, add.shapeWidth);
                 }
-
-                EditorUtility.SetDirty(add);
             }
+
+            var scene = SceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
         }
 
         [MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
