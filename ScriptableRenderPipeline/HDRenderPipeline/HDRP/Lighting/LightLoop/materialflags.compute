@@ -12,6 +12,8 @@
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
 #include "../../Lighting/LightDefinition.cs.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 #define USE_MATERIAL_FEATURE_FLAGS
 #define NR_THREADS	64
 

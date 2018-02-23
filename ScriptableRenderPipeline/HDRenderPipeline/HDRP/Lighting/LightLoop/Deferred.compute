@@ -84,6 +84,8 @@
 #include "../../Debug/DebugDisplay.hlsl"
 #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 //-------------------------------------------------------------------------------------
 // variable declaration
 //-------------------------------------------------------------------------------------

@@ -177,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
             m_BufferPyramid = new BufferPyramid(
-                asset.renderPipelineResources.gaussianPyramidCS,
+                asset.renderPipelineResources.colorPyramidCS,
                 asset.renderPipelineResources.depthPyramidCS,
                 m_GPUCopy);
 
@@ -396,6 +396,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
+            DecalSystem.instance.Cleanup();
+
             m_MaterialList.ForEach(material => material.Cleanup());
 
             CoreUtils.Destroy(m_CopyStencilForNoLighting);
@@ -434,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentWidth > 0 && m_CurrentHeight > 0)
                     m_LightLoop.ReleaseResolutionDependentBuffers();
 
-                m_LightLoop.AllocResolutionDependentBuffers(hdCamera.actualWidth, hdCamera.actualHeight);
+                m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, m_FrameSettings.enableStereo);
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
@@ -628,7 +630,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateShadowSettings();
                     m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
-                    // TODO: Float HDCamera setup higher in order to pass stereo into GetCullingParameters
                     ScriptableCullingParameters cullingParams;
                     if (!CullResults.GetCullingParameters(camera, m_FrameSettings.enableStereo, out cullingParams))
                     {
@@ -637,6 +638,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_LightLoop.UpdateCullingParameters(ref cullingParams);
+                    hdCamera.UpdateStereoDependentState(m_FrameSettings, ref cullingParams);
 
 #if UNITY_EDITOR
                     // emit scene view UI
