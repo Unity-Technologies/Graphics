@@ -12,18 +12,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		public float m_DrawDistance = 1000.0f;
         public float m_FadeScale = 0.9f;
         private Material m_OldMaterial = null;
-        public const int kInvalidIndex = -1;  
-        private int m_CullIndex = kInvalidIndex;
+        private DecalSystem.DecalHandle m_Handle = null;
 
-        public int CullIndex
+        public DecalSystem.DecalHandle Handle
         {
             get
             {
-                return this.m_CullIndex;
+                return this.m_Handle;
             }
             set
             {
-                this.m_CullIndex = value;
+                this.m_Handle = value;
             }
         }
 
