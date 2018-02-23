@@ -19,6 +19,11 @@ namespace UnityEditor.ShaderGraph
             name = "Hue";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Hue-Node"; }
+        }
+
         [SerializeField]
         private HueMode m_HueMode = HueMode.Degrees;
 

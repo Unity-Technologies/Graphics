@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "White Balance";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/White-Balance-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_WhiteBalance", BindingFlags.Static | BindingFlags.NonPublic);

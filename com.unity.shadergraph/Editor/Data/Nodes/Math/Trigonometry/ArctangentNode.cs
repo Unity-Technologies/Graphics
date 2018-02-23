@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Arctangent";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Arctangent-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Arctangent", BindingFlags.Static | BindingFlags.NonPublic);

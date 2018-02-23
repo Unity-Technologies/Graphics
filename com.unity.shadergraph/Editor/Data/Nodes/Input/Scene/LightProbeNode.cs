@@ -13,6 +13,11 @@ namespace UnityEditor.ShaderGraph
             name = "Light Probe";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Light-Probe-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_LightProbe", BindingFlags.Static | BindingFlags.NonPublic);

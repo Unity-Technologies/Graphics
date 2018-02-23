@@ -40,6 +40,11 @@ namespace UnityEditor.ShaderGraph
             m_Height = 208f;
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Preview-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Preview", BindingFlags.Static | BindingFlags.NonPublic);

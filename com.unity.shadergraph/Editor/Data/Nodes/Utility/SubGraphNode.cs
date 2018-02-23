@@ -103,6 +103,11 @@ namespace UnityEditor.ShaderGraph
             name = "Sub-graph";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sub-graph-Node"; }
+        }
+
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (referencedGraph == null)

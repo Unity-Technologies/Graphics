@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Polygon";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Polygon-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Polygon", BindingFlags.Static | BindingFlags.NonPublic);
