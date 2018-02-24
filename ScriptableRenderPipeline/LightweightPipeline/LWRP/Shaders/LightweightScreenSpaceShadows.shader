@@ -14,8 +14,13 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Core.hlsl"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        TEXTURE2D_ARRAY(_CameraDepthTexture);
+        SAMPLER(sampler_CameraDepthTexture);
+#else
         TEXTURE2D(_CameraDepthTexture);
         SAMPLER(sampler_CameraDepthTexture);
+#endif
 
         struct VertexInput
         {
@@ -29,6 +34,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             half4  pos      : SV_POSITION;
             half4  texcoord : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         Interpolators Vertex(VertexInput i)
@@ -36,13 +42,15 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             Interpolators o;
             UNITY_SETUP_INSTANCE_ID(i);
             UNITY_TRANSFER_INSTANCE_ID(i, o);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
             o.pos = TransformObjectToHClip(i.vertex.xyz);
 
             float4 projPos = o.pos * 0.5;
             projPos.xy = projPos.xy + projPos.w;
 
-            o.texcoord.xy = i.texcoord;
+            //o.texcoord.xy = i.texcoord;
+            o.texcoord.xy = UnityStereoTransformScreenSpaceTex(i.texcoord.xy);
             o.texcoord.zw = projPos.xy;
 
             return o;
@@ -51,8 +59,17 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         half Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
+            // TODO
+            // declare texture correctly as tex2darray
+            // pass in stereo eye index in correctly so it can sample texture
+            // Fix up sampling from a depth texture array
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy, unity_StereoEyeIndex).r;
+#else
             float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy);
+#endif
 
 #if UNITY_REVERSED_Z
             deviceDepth = 1 - deviceDepth;
