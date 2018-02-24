@@ -67,6 +67,7 @@ Shader "LightweightPipeline/Standard Unlit"
                 float4 vertex : SV_POSITION;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             VertexOutput vert(VertexInput v)
@@ -75,6 +76,7 @@ Shader "LightweightPipeline/Standard Unlit"
 
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 
                 o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv0AndFogCoord.xy = TRANSFORM_TEX(v.uv, _MainTex);
