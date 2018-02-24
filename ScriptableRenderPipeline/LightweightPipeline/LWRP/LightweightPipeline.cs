@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                 {
-                    DepthPass(ref context);
+                    DepthPass(ref context, frameRenderingConfiguration);
 
                     // Only screen space shadowmap mode is supported.
                     if (shadows)
@@ -422,7 +422,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        private void DepthPass(ref ScriptableRenderContext context)
+        private void DepthPass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
             SetRenderTarget(cmd, m_DepthRT, ClearFlag.Depth);
@@ -437,7 +437,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderQueueRange = RenderQueueRange.opaque
             };
 
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StartMultiEye(m_CurrCamera);
+
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
+
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StopMultiEye(m_CurrCamera);
         }
 
         private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
@@ -687,7 +693,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                    SetupIntermediateResourcesStereo(cmd, msaaSamples);
+                    SetupIntermediateResourcesStereo(cmd, renderingConfig, msaaSamples);
                 else
                     SetupIntermediateResourcesSingle(cmd, renderingConfig, msaaSamples);
             }
@@ -729,14 +735,35 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, colorRTDesc, FilterMode.Point);
         }
 
-        private void SetupIntermediateResourcesStereo(CommandBuffer cmd, int msaaSamples)
+        private void SetupIntermediateResourcesStereo(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
         {
-            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
-            rtDesc = XRSettings.eyeTextureDesc;
+            // TODO: support renderscale
+            // TODO: merge with SetupIntermediateResourcesSingle
+
+            var rtDesc = XRSettings.eyeTextureDesc;
+
+            if (m_RequireDepthTexture)
+            {
+                var depthRTDesc = rtDesc;
+                depthRTDesc.colorFormat = RenderTextureFormat.Depth;
+                depthRTDesc.depthBufferBits = kDepthStencilBufferBits;
+
+                //RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
+                cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
+
+                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
+                    cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Bilinear);
+            }
+
+            //RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
+            rtDesc.sRGB = true;
             rtDesc.colorFormat = m_ColorFormat;
             rtDesc.msaaSamples = msaaSamples;
 
             cmd.GetTemporaryRT(CameraRenderTargetID.color, rtDesc, FilterMode.Bilinear);
+
+            if (m_RequireCopyColor)
+                cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, rtDesc, FilterMode.Point);
         }
 
         private void SetupShaderConstants(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
