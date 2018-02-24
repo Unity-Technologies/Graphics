@@ -299,6 +299,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CurrCamera = camera;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
+                var profilingCmd = CommandBufferPool.Get("");
+                profilingCmd.BeginSample("LightweightPipeline.Render");
+                context.ExecuteCommandBuffer(profilingCmd);
+                CommandBufferPool.Release(profilingCmd);
+
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
                     continue;
@@ -365,6 +370,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.color);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.copyColor);
+
+                cmd.EndSample("LightweightPipeline.Render");
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
