@@ -1293,8 +1293,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.StartMultiEye(m_CurrCamera);
 
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
-            bool intermeaditeTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
-            if (intermeaditeTexture)
+            bool intermediteTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
+            if (intermediteTexture)
             {
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
@@ -1323,7 +1323,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
-            if (!intermeaditeTexture && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
+            if (!intermediteTexture && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
                 cmd.SetViewport(m_CurrCamera.pixelRect);
 
             context.ExecuteCommandBuffer(cmd);
