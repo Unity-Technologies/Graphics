@@ -17,6 +17,6 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXBakeGradient; } }
+        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.BakeGradient; } }
     }
 }

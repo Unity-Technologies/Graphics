@@ -124,10 +124,10 @@ namespace UnityEditor.VFX.UI
                 if (m_Index == -1) return Enumerable.Empty<VFXNodeController>();
 
                 if (m_UI.groupInfos[m_Index].content != null)
-                    return m_UI.groupInfos[m_Index].content.Where(t => t != null).Select(t => m_ViewController.GetControllerFromModel(t)).Where(t => t != null);
+                    return m_UI.groupInfos[m_Index].content.Where(t => t.model != null).Select(t => m_ViewController.GetControllerFromModel(t.model, t.id)).Where(t => t != null);
                 return new VFXNodeController[0];
             }
-            set { m_UI.groupInfos[m_Index].content = value.Select(t => t.model).ToArray(); }
+            set { m_UI.groupInfos[m_Index].content = value.Select(t => new VFXNodeID(t.model, t.id)).ToArray(); }
         }
 
 
@@ -137,19 +137,12 @@ namespace UnityEditor.VFX.UI
                 return;
 
             if (m_UI.groupInfos[m_Index].content != null)
-                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(controller.model, 1)).Distinct().ToArray();
+                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Concat(Enumerable.Repeat(new VFXNodeID(controller.model, controller.id), 1)).Distinct().ToArray();
             else
-                m_UI.groupInfos[m_Index].content = new VFXModel[] { controller.model };
+                m_UI.groupInfos[m_Index].content = new VFXNodeID[] { new VFXNodeID(controller.model, controller.id) };
             m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
 
-
             VFXUI ui = VFXMemorySerializer.DuplicateObjects(new ScriptableObject[] {model})[0] as VFXUI;
-
-
-            if (ui.groupInfos.Length > 0)
-            {
-                Debug.Log("toto");
-            }
         }
 
         public void RemoveNode(VFXNodeController controller)
@@ -158,7 +151,7 @@ namespace UnityEditor.VFX.UI
                 return;
 
             if (m_UI.groupInfos[m_Index].content != null)
-                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t != controller.model).ToArray();
+                m_UI.groupInfos[m_Index].content = m_UI.groupInfos[m_Index].content.Where(t => t.model != controller.model || t.id != controller.id).ToArray();
             m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
         }
 
@@ -167,7 +160,7 @@ namespace UnityEditor.VFX.UI
             if (m_Index == -1) return false;
             if (m_UI.groupInfos[m_Index].content != null)
             {
-                return m_UI.groupInfos[m_Index].content.Contains(controller.model);
+                return m_UI.groupInfos[m_Index].content.Contains(new VFXNodeID(controller.model, controller.id));
             }
             return false;
         }

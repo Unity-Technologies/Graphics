@@ -1277,39 +1277,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
---- !u!114 &114168377345518752
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114168377345518752}
-  m_MasterData:
-    m_Owner: {fileID: 114645663325757784}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-  m_Property:
-    name: kVFXTotalTimeOp
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114901870162106488}
 --- !u!114 &114169775863000100
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1631,6 +1598,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114221424596605542
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2025,6 +1993,39 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
+--- !u!114 &114313838979045082
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114313838979045082}
+  m_MasterData:
+    m_Owner: {fileID: 114640238843169738}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: TotalTimeOp
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114727477293626122}
 --- !u!114 &114314885941461894
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2056,6 +2057,39 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
+--- !u!114 &114329231886764384
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114329231886764384}
+  m_MasterData:
+    m_Owner: {fileID: 114645663325757784}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: TotalTimeOp
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114901870162106488}
 --- !u!114 &114329867987949052
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3459,6 +3493,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114540687242103448
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3953,6 +3988,7 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
+  m_Nodes: []
 --- !u!114 &114617143880116886
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4026,7 +4062,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114813677629315960}
+  - {fileID: 114313838979045082}
   m_expressionOp: 7
 --- !u!114 &114642580023272304
 MonoBehaviour:
@@ -4077,7 +4113,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114168377345518752}
+  - {fileID: 114329231886764384}
   m_expressionOp: 7
 --- !u!114 &114648377321597480
 MonoBehaviour:
@@ -4994,7 +5030,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114813677629315960}
+  - {fileID: 114313838979045082}
 --- !u!114 &114734087114453386
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5597,39 +5633,6 @@ MonoBehaviour:
   m_LinkedSlots:
   - {fileID: 114889574707667480}
   - {fileID: 114492709542381202}
---- !u!114 &114813677629315960
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114813677629315960}
-  m_MasterData:
-    m_Owner: {fileID: 114640238843169738}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-  m_Property:
-    name: kVFXTotalTimeOp
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114727477293626122}
 --- !u!114 &114817488505681668
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6410,7 +6413,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114168377345518752}
+  - {fileID: 114329231886764384}
 --- !u!114 &114901985431667716
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7984,7 +7987,7 @@ VisualEffectAsset:
         index: 79
       - nameId: bounds_size
         index: 78
-      processor: {fileID: 7200000, guid: a773efa71e7fe8e42abcf995a178ce66, type: 3}
+      processor: {fileID: 7200000, guid: f99a6711006065243be3c8bac66e98ca, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -8021,7 +8024,7 @@ VisualEffectAsset:
       - nameId: VectorField_b
         index: 77
       params: []
-      processor: {fileID: 7200000, guid: 622c1df8cdd33844bb99ecdcf4f1c79d, type: 3}
+      processor: {fileID: 7200000, guid: 761c50fe120325748bf03d7550e4616f, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
@@ -8048,7 +8051,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: ad0d8af49acb0a243aff7fff2a77b9f0, type: 3}
+      processor: {fileID: 4800000, guid: 93414157e3018b54ab2a9d946a697ac0, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

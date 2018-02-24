@@ -31,10 +31,10 @@ namespace UnityEditor.VFX.Block
                     switch (positionMode)
                     {
                         case PositionMode.ThicknessAbsolute:
-                            factor = VFXOperatorUtility.Clamp(VFXOperatorUtility.CastFloat(inputSlots[1].GetExpression() * VFXValue.Constant(2.0f), VFXValueType.kFloat3), VFXValue.Constant(0.0f), boxSize);
+                            factor = VFXOperatorUtility.Clamp(VFXOperatorUtility.CastFloat(inputSlots[1].GetExpression() * VFXValue.Constant(2.0f), VFXValueType.Float3), VFXValue.Constant(0.0f), boxSize);
                             break;
                         case PositionMode.ThicknessRelative:
-                            factor = VFXOperatorUtility.CastFloat(VFXOperatorUtility.Saturate(inputSlots[1].GetExpression()), VFXValueType.kFloat3) * boxSize;
+                            factor = VFXOperatorUtility.CastFloat(VFXOperatorUtility.Saturate(inputSlots[1].GetExpression()), VFXValueType.Float3) * boxSize;
                             break;
                     }
 

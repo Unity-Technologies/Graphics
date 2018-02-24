@@ -6,26 +6,26 @@ VFXContextUI {
 	-min-width: 340;
 	margin-top:0;
 }
-VFXContextUI #NodeContents
+VFXContextUI > #node-border
 {
 	width:368;	
 	background-color:rgba(29,29,29,0.8);
 	border-radius:8;
-	border-left-width:2;
-	border-right-width:2;
-	border-top-width:2;
-	border-bottom-width:2;
-	padding-top : 6;
-	padding-bottom : 6;
-	margin-top : 6;
-	margin-bottom : 6;
+	border-left-width:1;
+	border-right-width:1;
+	border-top-width:1;
+	border-bottom-width:1;
+	padding-top : 5;
+	padding-bottom : 5;
+	margin-top : 5;
+	margin-bottom : 5;
 	margin-left:2;
 	margin-right:2;
 }
 
 /*  update */
 
-VFXContextUI.typeparticle #NodeContents
+VFXContextUI.typeparticle  > #node-border
 {
     border-color: #BF9220;
 }
@@ -37,7 +37,7 @@ VFXFlowAnchor.port.EdgeConnector.typeparticle
 
 /*  output */
 
-VFXContextUI.typemesh #NodeContents
+VFXContextUI.typemesh  > #node-border
 {
     border-color: #3b5e92;
 }
@@ -49,19 +49,19 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 
 /* spawner */
 
-VFXContextUI.typeevent #NodeContents,VFXContextUI.typespawnevent #NodeContents
+VFXContextUI.typespawnevent  > #node-border
 {
     border-color: #17AB6A;
 }
 
-VFXFlowAnchor.port.EdgeConnector.typeevent, VFXFlowAnchor.port.EdgeConnector.typespawnevent
+VFXFlowAnchor.port.EdgeConnector.typespawnevent
 {
     port-color: #00ff8f;
 }
 
 /* event */
 
-VFXContextUI.typenone #NodeContents
+VFXContextUI.typenone  > #node-border
 {
     border-color: #27FFA0;
 }
@@ -73,7 +73,7 @@ VFXContextUI > #selection-border
     position-right:0;
     position-top:0;
     position-bottom:0;
-	border-radius:8;
+	border-radius:10;
 	margin-top:4;
 	margin-bottom:4;
 }
@@ -90,7 +90,7 @@ VFXContextUI:hover  > #selection-border{
     border-bottom: 1;
 }
 
-VFXContextUI.selected  > #selection-border
+VFXContextUI:selected  > #selection-border
 {
 	border-color: #44C0FF;
 	border-left-width:1;
@@ -99,7 +99,7 @@ VFXContextUI.selected  > #selection-border
 	border-bottom-width:1;
 }
 
-VFXContextUI.selected:hover  > #selection-border
+VFXContextUI:selected:hover  > #selection-border
 {
 	border-left-width:2;
 	border-right-width:2;
@@ -108,12 +108,6 @@ VFXContextUI.selected:hover  > #selection-border
 }
 
 
-
-
-VFXOwnContextSlotContainerUI.VFXNodeUI.selected
-{
-	border-color: rgba(0,0,0,0);
-}
 
 VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
 {
@@ -151,7 +145,7 @@ VFXOwnContextSlotContainerUI.VFXNodeUI #pane
 	border-right:0;
 }
 
-VFXContextUI #Inside
+VFXContextUI #inside
 {
 	margin-left: 8;
 	margin-right:8;
@@ -161,17 +155,11 @@ VFXContextUI #Inside
 	border-right:2;
 }
 
-
-VFXContextUI #Header,VFXContextUI #Footer
-{
-	-background-color:rgba(90,90,90,0.8);
-	-padding-top:10;
-	-padding-bottom:10;
-}
-
-VFXContextUI #Header
+VFXContextUI .extremity
 {
 	border-radius:2;
+	justify-content:center;
+	align-items:center;
 }
 
 VFXContextUI #HeaderContainer
@@ -181,84 +169,67 @@ VFXContextUI #HeaderContainer
 	align-items:center;
 }
 
-VFXContextUI #Footer
+VFXContextUI #footer
 {
 	flex-direction:row;
-	border-radius:2;
-	justify-content:center;
 	margin-bottom:1;
-	align-items:center;
 }
 
-VFXContextUI	.title
+VFXContextUI #node-border > #inside > #title > #title-label
 {
 	text-alignment:middle-center;
 
 	text-color:#c4c4c4;
 	font-size:18;
 	height:24;
-	-font-style: bold;
 }
-VFXContextUI	#FooterTitle
+VFXContextUI #footer #title-label
 {
 	font-size:11;
 	font-style: normal;
 	height:16;
 }
 
-VFXContextUI #HeaderIcon
+VFXContextUI #title #icon
 {
-	background-image:resource("VFX/Execution");
+	image:resource("VFX/Execution");
 	margin-right:6;
 }
 
-VFXContextUI #HeaderSpace
+VFXContextUI #header-space
 {
-	width:48;
-	height:16;
 	position-type:absolute;
 	position-right:5;
 	position-top:5;
 }
-
-
-VFXContextUI #HeaderSpace.spaceLocal
+VFXContextUI #node-border > #inside > #contents
 {
-	background-image:resource("VFX/title-local");
+    border-radius:6;
+    background-color: rgba(63,63,63,0.8);
+}
+VFXContextUI #node-border > #inside > #contents > #settings
+{
+    background-color: rgba(0,0,0,0);
 }
 
-VFXContextUI #HeaderSpace.spaceGlobal
+VFXContextUI #header-space.spaceLocal
 {
-	background-image:resource("VFX/title-global");
+	image:resource("VFX/title-local");
 }
 
-VFXContextUI #HeaderSpace.spaceCamera
+VFXContextUI #header-space.spaceGlobal
 {
-	background-image:resource("VFX/title-camera");
+	image:resource("VFX/title-global");
 }
 
-VFXContextUI #FooterIcon
+VFXContextUI #header-space.spaceCamera
 {
-	background-image:resource("VFX/Execution");
+	image:resource("VFX/title-camera");
 }
 
-VFXContextUI .icon
+VFXContextUI #footer #icon
 {
-	background-image:resource("VFX/Execution");
-	width:16;
-	height:16;
-}
-
-VFXContextUI > * >#Title {
-	text-color: #C4C4C4;
-	font-size:12;
-	font-style: bold;
-	padding-top: 8;
-	padding-left: 8;
-	padding-bottom: 8;
-	padding-right: 8;
-	flex:1;
-	
+	image:resource("VFX/Execution");
 }
 
 VFXContextUI *
@@ -269,6 +240,7 @@ VFXContextUI *
 VFXContextUI VFXOwnContextSlotContainerUI.VFXNodeUI #title
 {
 	max-height:0;
+	height:0;
 }
 
 
@@ -278,7 +250,7 @@ VFXContextUI .VFXNodeUI.VFXContextSlotContainerUI #left #leftBackground
 	background-color:rgba(0,0,0,0);
 }
 
-VFXContextUI BlockContainer {
+VFXContextUI #block-container {
 	text-alignment:upper-center;
 
 	text-color:#8FC1DF;
@@ -288,4 +260,21 @@ VFXContextUI BlockContainer {
 	margin-bottom: 0;
 	padding-top:2;
 	padding-bottom:2;
+}
+
+.flow-container
+{
+    flex-direction: row;
+    justify-content: center;
+    padding-left: 40;
+    padding-right: 20;
+    position-type: Absolute;
+    position-left: 0;
+    position-right: 0;
+    height: 14;
+}
+
+#flow-outputs
+{
+    position-bottom: 0;
 }

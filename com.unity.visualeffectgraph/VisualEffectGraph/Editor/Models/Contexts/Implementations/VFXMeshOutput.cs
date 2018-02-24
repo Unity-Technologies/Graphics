@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleMeshOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -70,18 +70,6 @@ namespace UnityEditor.VFX
             public Mesh mesh;
             [Tooltip("Define a bitmask to control which submeshes are rendered.")]
             public uint subMeshMask = 0xffffffff;
-        }
-
-        public class InputPropertiesFlipbook
-        {
-            [Tooltip("Texture to be applied to the mesh.")]
-            public Texture2D mainTexture;
-            [Tooltip("Mesh to be used for particle rendering.")]
-            public Mesh mesh;
-            [Tooltip("Define a bitmask to control which submeshes are rendered.")]
-            public uint subMeshMask = 0xffffffff;
-            [Tooltip("Specify the number of frames in the flipbook texture.")]
-            public Vector2 flipBookSize = new Vector2(5, 5);
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)

@@ -9,54 +9,73 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterUI : VFXStandaloneSlotContainerUI
+    class VFXParameterDataAnchor : VFXOutputDataAnchor
     {
-        PropertyRM m_Property;
-        List<PropertyRM> m_SubProperties;
+        public static new VFXParameterDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
+        {
+            var anchor = new VFXParameterDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
-        public VFXParameterUI()
+            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.controller = controller;
+            anchor.AddManipulator(anchor.m_EdgeConnector);
+            return anchor;
+        }
+
+        protected VFXParameterDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
         }
 
-        public new VFXParameterController controller
+        public override bool ContainsPoint(Vector2 localPoint)
         {
-            get { return base.controller as VFXParameterController; }
+            return base.ContainsPoint(localPoint) && !m_ConnectorText.ContainsPoint(this.ChangeCoordinatesTo(m_ConnectorText, localPoint));
+        }
+    }
+
+
+    static class UXMLHelper
+    {
+        const string folderName = "Editor Default Resources";
+
+        public static string GetUXMLPath(string name)
+        {
+            return GetUXMLPathRecursive("Assets", name);
         }
 
-        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+        static string GetUXMLPathRecursive(string path, string name)
         {
-            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
-
-            if (labelWidth < 70)
-                labelWidth = 70;
-
-            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
-
-            foreach (var port in properties)
+            string localFileName = path + "/" + folderName + "/" + name;
+            if (System.IO.File.Exists(localFileName))
             {
-                float portLabelWidth = port.GetPreferredLabelWidth();
-                float portControlWidth = port.GetPreferredControlWidth();
+                return localFileName;
+            }
 
-                if (labelWidth < portLabelWidth)
+            foreach (var dir in System.IO.Directory.GetDirectories(path))
+            {
+                if (dir.Length <= folderName.Length || !dir.EndsWith(folderName) || !"/\\".Contains(dir[dir.Length - folderName.Length - 1]))
                 {
-                    labelWidth = portLabelWidth;
-                }
-                if (controlWidth < portControlWidth)
-                {
-                    controlWidth = portControlWidth;
+                    string result = GetUXMLPathRecursive(dir, name);
+                    if (result != null)
+                        return result;
                 }
             }
+
+            return null;
+        }
+    }
+
+
+    class VFXParameterUI : VFXNodeUI
+    {
+        Image m_Icon;
+        public VFXParameterUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXParameter.uxml"))
+        {
+            RemoveFromClassList("VFXNodeUI");
+            AddStyleSheetPath("VFXParameter");
         }
 
-        public override void ApplyWidths(float labelWidth, float controlWidth)
+        public new VFXParameterNodeController controller
         {
-            base.ApplyWidths(labelWidth, controlWidth);
-
-            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
-            foreach (var port in properties)
-            {
-                port.SetLabelWidth(labelWidth);
-            }
+            get { return base.controller as VFXParameterNodeController; }
         }
 
         protected override bool syncInput
@@ -64,60 +83,22 @@ namespace UnityEditor.VFX.UI
             get { return false; }
         }
 
-        void CreateSubProperties(List<int> fieldPath)
+        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var subControllers = controller.GetSubControllers(fieldPath);
-
-            var subFieldPath = new List<int>();
-            int cpt = 0;
-            foreach (var subController in subControllers)
-            {
-                PropertyRM prop = PropertyRM.Create(subController, 55);
-                if (prop != null)
-                {
-                    m_SubProperties.Add(prop);
-                    inputContainer.Add(prop);
-                }
-                if (prop == null || !prop.showsEverything)
-                {
-                    subFieldPath.Clear();
-                    subFieldPath.AddRange(fieldPath);
-                    subFieldPath.Add(cpt);
-                    CreateSubProperties(subFieldPath);
-                }
-                ++cpt;
-            }
+            return VFXParameterDataAnchor.Create(controller, node);
         }
 
         protected override void SelfChange()
         {
             base.SelfChange();
-            if (controller == null)
-                return;
 
-            if (m_Property == null)
+            if (controller.parentController.exposed)
             {
-                m_Property = PropertyRM.Create(controller, 55);
-                if (m_Property != null)
-                {
-                    inputContainer.Add(m_Property);
-                    m_SubProperties = new List<PropertyRM>();
-                    List<int> fieldpath = new List<int>();
-                    if (!m_Property.showsEverything)
-                    {
-                        CreateSubProperties(fieldpath);
-                    }
-                }
-                RefreshPorts();
+                AddToClassList("exposed");
             }
-            if (m_Property != null)
-                m_Property.Update();
-            if (m_SubProperties != null)
+            else
             {
-                foreach (var subProp in m_SubProperties)
-                {
-                    subProp.Update();
-                }
+                RemoveFromClassList("exposed");
             }
         }
     }

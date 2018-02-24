@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Collections.ObjectModel;
+using System.Reflection;
+
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXContextController : VFXNodeController
     {
         public VFXContext context       { get { return model as VFXContext; } }
-
-        public override VFXSlotContainerController slotContainerController { get { return m_SlotController; } }
 
         private List<VFXBlockController> m_BlockControllers = new List<VFXBlockController>();
         public IEnumerable<VFXBlockController> blockControllers
@@ -33,8 +34,6 @@ namespace UnityEditor.VFX.UI
             get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
 
-        VFXContextSlotContainerController m_SlotController;
-
         IDataWatchHandle m_DataHandle;
 
         public override void OnDisable()
@@ -46,6 +45,7 @@ namespace UnityEditor.VFX.UI
             if (m_DataHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
+                m_DataHandle = null;
             }
 
             base.OnDisable();
@@ -61,7 +61,25 @@ namespace UnityEditor.VFX.UI
 
         protected void DataChanged(UnityEngine.Object obj)
         {
+            if (m_DataHandle == null)
+                return;
             NotifyChange(AnyThing);
+        }
+
+        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
+        {
+            if (input)
+            {
+                VFXContextDataInputAnchorController anchorController = new VFXContextDataInputAnchorController(slot, this, hidden);
+
+                return anchorController;
+            }
+            else
+            {
+                VFXContextDataOutputAnchorController anchorController = new VFXContextDataOutputAnchorController(slot, this, hidden);
+
+                return anchorController;
+            }
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)
@@ -94,8 +112,6 @@ namespace UnityEditor.VFX.UI
         {
             UnregisterAnchors();
 
-            m_SlotController = new VFXContextSlotContainerController(model, this);
-
             if (context.inputType != VFXDataType.kNone)
             {
                 for (int slot = 0; slot < context.inputFlowSlot.Length; ++slot)
@@ -119,12 +135,6 @@ namespace UnityEditor.VFX.UI
             }
 
             SyncControllers();
-        }
-
-        public override void ForceUpdate()
-        {
-            base.ForceUpdate();
-            m_SlotController.ForceUpdate();
         }
 
         public void AddBlock(int index, VFXBlock block)
@@ -228,7 +238,22 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return Enumerable.Repeat(m_SlotController as Controller, 1).Concat(m_BlockControllers.Cast<Controller>()); }
+            get { return m_BlockControllers.Cast<Controller>(); }
+        }
+
+        public static bool IsTypeExpandable(System.Type type)
+        {
+            return !type.IsPrimitive && !typeof(UnityObject).IsAssignableFrom(type) && type != typeof(AnimationCurve) && !type.IsEnum && type != typeof(Gradient);
+        }
+
+        static bool ShouldSkipLevel(Type type)
+        {
+            return typeof(ISpaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
+        }
+
+        bool ShouldIgnoreMember(Type type, FieldInfo field)
+        {
+            return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
         }
     }
 }

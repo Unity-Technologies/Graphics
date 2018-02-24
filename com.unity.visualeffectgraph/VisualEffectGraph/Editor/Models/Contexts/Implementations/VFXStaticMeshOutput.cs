@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
 
         public override string name { get { return "Static Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return null; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.Output; } }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {

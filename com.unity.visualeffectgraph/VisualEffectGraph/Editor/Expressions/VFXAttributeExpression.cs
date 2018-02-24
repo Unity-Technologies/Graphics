@@ -20,31 +20,31 @@ namespace UnityEditor.VFX
     {
         public static readonly float kDefaultSize = 0.1f;
 
-        public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.kUint);
-        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.kFloat3);
-        public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.Uint);
+        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.Float3);
+        public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.Float3);
+        public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3);
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
         public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize));
         public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize));
         public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize));
-        public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.kFloat);
-        public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.kFloat);
-        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.kFloat);
-        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.kFloat);
-        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.kFloat);
-        public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.kFloat);
-        public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.kFloat);
-        public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.kFloat3);
-        public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.kUint);
+        public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.Float);
+        public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.Float);
+        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float);
+        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float);
+        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float);
+        public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.Float);
+        public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
+        public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.Float3);
+        public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint);
         public static readonly VFXAttribute ParticleIndex       = new VFXAttribute("particleIndex", VFXValueType.kUint);
         public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
         public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
         public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
         public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
         public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.kFloat3);
+        public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.Float3);
         public static readonly VFXAttribute EventCount          = new VFXAttribute("eventCount", VFXValueType.kUint);
         public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, ParticleIndex };
         public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
@@ -59,13 +59,13 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kBool: return VFXValue.Constant<bool>();
-                case VFXValueType.kUint: return VFXValue.Constant<uint>();
-                case VFXValueType.kInt: return VFXValue.Constant<int>();
-                case VFXValueType.kFloat: return VFXValue.Constant<float>();
-                case VFXValueType.kFloat2: return VFXValue.Constant<Vector2>();
-                case VFXValueType.kFloat3: return VFXValue.Constant<Vector3>();
-                case VFXValueType.kFloat4: return VFXValue.Constant<Vector4>();
+                case VFXValueType.Bool: return VFXValue.Constant<bool>();
+                case VFXValueType.Uint: return VFXValue.Constant<uint>();
+                case VFXValueType.Int: return VFXValue.Constant<int>();
+                case VFXValueType.Float: return VFXValue.Constant<float>();
+                case VFXValueType.Float2: return VFXValue.Constant<Vector2>();
+                case VFXValueType.Float3: return VFXValue.Constant<Vector3>();
+                case VFXValueType.Float4: return VFXValue.Constant<Vector4>();
                 default: throw new InvalidOperationException(string.Format("Unexpected attribute type: {0}", type));
             }
         }
@@ -147,7 +147,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOp.kVFXNoneOp;
+                return VFXExpressionOp.NoneOp;
             }
         }
 

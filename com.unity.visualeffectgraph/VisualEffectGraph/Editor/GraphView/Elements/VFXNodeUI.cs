@@ -10,27 +10,19 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, IControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement, ISettableControlledElement<VFXNodeController>, IVFXMovable
     {
-        VFXSlotContainerController m_Controller;
+        VFXNodeController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        VFXNodeController IControlledElement<VFXNodeController>.controller
-        {
-            get { return m_Controller; }
-            set
-            {
-                controller = value as VFXSlotContainerController;
-            }
-        }
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
             controller.position = GetPosition().position;
         }
 
-        public VFXSlotContainerController controller
+        public VFXNodeController controller
         {
             get { return m_Controller; }
             set
@@ -49,8 +41,23 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement settingsContainer {get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
-        public VFXNodeUI()
+
+
+        public VFXNodeUI(string template) : base(template)
         {
+            AddStyleSheetPath("VFXNodeUI");
+            Initialize();
+        }
+
+        public VFXNodeUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXNode.uxml"))
+        {
+            AddStyleSheetPath("StyleSheets/GraphView/Node.uss");
+            Initialize();
+        }
+
+        void Initialize()
+        {
+            AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
             RegisterCallback<ControllerChangedEvent>(OnChange);
             clippingOptions = ClippingOptions.ClipContents;
@@ -73,23 +80,24 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        VisualElement m_SettingsDivider;
-        VisualElement m_Content;
+        protected VisualElement m_SettingsDivider;
+        VisualElement           m_Content;
 
-        protected void SyncSettings()
+
+        public virtual bool hasSettingDivider
+        {
+            get { return true; }
+        }
+
+        protected virtual void SyncSettings()
         {
             if (settingsContainer == null && controller.settings != null)
             {
                 object settings = controller.settings;
 
-                settingsContainer = new VisualElement { name = "settings" };
-                m_SettingsDivider = new VisualElement() {name = "divider"};
-                m_SettingsDivider.AddToClassList("horizontal");
+                settingsContainer = this.Q("settings");
 
-                m_Content = mainContainer.Q("contents");
-                m_Content.Insert(0, m_SettingsDivider);
-
-                m_Content.Insert(1, settingsContainer);
+                m_SettingsDivider = this.Q("settings-divider");
 
                 foreach (var setting in controller.settings)
                 {
@@ -114,18 +122,21 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if (hasSettings)
+                if (m_SettingsDivider != null)
                 {
-                    if (m_SettingsDivider.parent == null)
+                    if (hasSettings)
                     {
-                        m_Content.Insert(0, m_SettingsDivider);
+                        if (m_SettingsDivider.parent == null)
+                        {
+                            m_Content.Insert(0, m_SettingsDivider);
+                        }
                     }
-                }
-                else
-                {
-                    if (m_SettingsDivider.parent != null)
+                    else
                     {
-                        m_SettingsDivider.RemoveFromHierarchy();
+                        if (m_SettingsDivider.parent != null)
+                        {
+                            m_SettingsDivider.RemoveFromHierarchy();
+                        }
                     }
                 }
             }
@@ -162,7 +173,7 @@ namespace UnityEditor.VFX.UI
             foreach (var newController in newAnchors)
             {
                 var newElement = InstantiateDataAnchor(newController, this);
-                (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
+                (newElement as VFXDataAnchor).controller = newController;
 
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;

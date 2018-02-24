@@ -104,22 +104,22 @@ namespace UnityEditor.VFX
                     VFXExpressionValueContainerDescAbstract value;
                     switch (exp.valueType)
                     {
-                        case VFXValueType.kFloat: value = CreateValueDesc<float>(exp, i); break;
-                        case VFXValueType.kFloat2: value = CreateValueDesc<Vector2>(exp, i); break;
-                        case VFXValueType.kFloat3: value = CreateValueDesc<Vector3>(exp, i); break;
-                        case VFXValueType.kFloat4: value = CreateValueDesc<Vector4>(exp, i); break;
-                        case VFXValueType.kInt: value = CreateValueDesc<int>(exp, i); break;
-                        case VFXValueType.kUint: value = CreateValueDesc<uint>(exp, i); break;
-                        case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
-                        case VFXValueType.kTexture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
-                        case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
-                        case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
-                        case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
-                        case VFXValueType.kMatrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
-                        case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
-                        case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
-                        case VFXValueType.kMesh: value = CreateValueDesc<Mesh>(exp, i); break;
-                        case VFXValueType.kBool: value = CreateValueDesc<bool>(exp, i); break;
+                        case VFXValueType.Float: value = CreateValueDesc<float>(exp, i); break;
+                        case VFXValueType.Float2: value = CreateValueDesc<Vector2>(exp, i); break;
+                        case VFXValueType.Float3: value = CreateValueDesc<Vector3>(exp, i); break;
+                        case VFXValueType.Float4: value = CreateValueDesc<Vector4>(exp, i); break;
+                        case VFXValueType.Int: value = CreateValueDesc<int>(exp, i); break;
+                        case VFXValueType.Uint: value = CreateValueDesc<uint>(exp, i); break;
+                        case VFXValueType.Texture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
+                        case VFXValueType.Texture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
+                        case VFXValueType.Texture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
+                        case VFXValueType.TextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
+                        case VFXValueType.TextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
+                        case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
+                        case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
+                        case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
+                        case VFXValueType.Mesh: value = CreateValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.Bool: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                     value.expressionIndex = (uint)i;
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
 
         private static void CollectExposedDesc(List<VFXMapping> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
+            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.None ? slot.GetInExpression() : null;
             if (expression != null)
             {
                 var exprIndex = graph.GetFlattenedIndex(expression);
@@ -241,30 +241,30 @@ namespace UnityEditor.VFX
             {
                 var attribute = VFXAttribute.AllAttribute.FirstOrDefault(o => o.name == element.name);
                 bool useAttribute = attribute.name == element.name;
-                if (element.type == VFXValueType.kBool)
+                if (element.type == VFXValueType.Bool)
                 {
                     var v = useAttribute ? attribute.value.Get<bool>() : default(bool);
                     data.PushBool(v);
                 }
-                else if (element.type == VFXValueType.kFloat)
+                else if (element.type == VFXValueType.Float)
                 {
                     var v = useAttribute ? attribute.value.Get<float>() : default(float);
                     data.PushFloat(v);
                 }
-                else if (element.type == VFXValueType.kFloat2)
+                else if (element.type == VFXValueType.Float2)
                 {
                     var v = useAttribute ? attribute.value.Get<Vector2>() : default(Vector2);
                     data.PushFloat(v.x);
                     data.PushFloat(v.y);
                 }
-                else if (element.type == VFXValueType.kFloat3)
+                else if (element.type == VFXValueType.Float3)
                 {
                     var v = useAttribute ? attribute.value.Get<Vector3>() : default(Vector3);
                     data.PushFloat(v.x);
                     data.PushFloat(v.y);
                     data.PushFloat(v.z);
                 }
-                else if (element.type == VFXValueType.kFloat4)
+                else if (element.type == VFXValueType.Float4)
                 {
                     var v = useAttribute ? attribute.value.Get<Vector4>() : default(Vector4);
                     data.PushFloat(v.x);
@@ -272,12 +272,12 @@ namespace UnityEditor.VFX
                     data.PushFloat(v.z);
                     data.PushFloat(v.w);
                 }
-                else if (element.type == VFXValueType.kInt)
+                else if (element.type == VFXValueType.Int)
                 {
                     var v = useAttribute ? attribute.value.Get<int>() : default(int);
                     data.PushInt(v);
                 }
-                else if (element.type == VFXValueType.kUint)
+                else if (element.type == VFXValueType.Uint)
                 {
                     var v = useAttribute ? attribute.value.Get<uint>() : default(uint);
                     data.PushUInt(v);
@@ -320,7 +320,7 @@ namespace UnityEditor.VFX
                 {
                     buffers = buffers,
                     capacity = 0u,
-                    flags = VFXSystemFlag.kVFXSystemDefault,
+                    flags = VFXSystemFlag.SystemDefault,
                     tasks = spawnContext.activeChildrenWithImplicit.Select((b, index) =>
                         {
                             var spawnerBlock = b as VFXAbstractSpawner;
@@ -328,11 +328,11 @@ namespace UnityEditor.VFX
                             {
                                 throw new InvalidCastException("Unexpected block type in spawnerContext");
                             }
-                            if (spawnerBlock.spawnerType == VFXTaskType.kSpawnerCustomCallback && spawnerBlock.customBehavior == null)
+                            if (spawnerBlock.spawnerType == VFXTaskType.SpawnerCustomCallback && spawnerBlock.customBehavior == null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
                             }
-                            if (spawnerBlock.spawnerType != VFXTaskType.kSpawnerCustomCallback && spawnerBlock.customBehavior != null)
+                            if (spawnerBlock.spawnerType != VFXTaskType.SpawnerCustomCallback && spawnerBlock.customBehavior != null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
                             }
@@ -544,7 +544,7 @@ namespace UnityEditor.VFX
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
-                var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
+                var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.None ? slot.GetInExpression() : null;
                 if (expression != null)
                     expressions.Add(expression);
                 else
@@ -630,7 +630,7 @@ namespace UnityEditor.VFX
 
                 var exposedParameterDescs = new List<VFXMapping>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models.OfType<VFXParameter>());
-                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
+                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 6 / nbSteps);
@@ -729,22 +729,22 @@ namespace UnityEditor.VFX
 
                     switch (exp.valueType)
                     {
-                        case VFXValueType.kFloat: SetValueDesc<float>(desc, exp); break;
-                        case VFXValueType.kFloat2: SetValueDesc<Vector2>(desc, exp); break;
-                        case VFXValueType.kFloat3: SetValueDesc<Vector3>(desc, exp); break;
-                        case VFXValueType.kFloat4: SetValueDesc<Vector4>(desc, exp); break;
-                        case VFXValueType.kInt: SetValueDesc<int>(desc, exp); break;
-                        case VFXValueType.kUint: SetValueDesc<uint>(desc, exp); break;
-                        case VFXValueType.kTexture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
-                        case VFXValueType.kTexture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
-                        case VFXValueType.kTexture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
-                        case VFXValueType.kTextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
-                        case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
-                        case VFXValueType.kMatrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
-                        case VFXValueType.kCurve: SetValueDesc<AnimationCurve>(desc, exp); break;
-                        case VFXValueType.kColorGradient: SetValueDesc<Gradient>(desc, exp); break;
-                        case VFXValueType.kMesh: SetValueDesc<Mesh>(desc, exp); break;
-                        case VFXValueType.kBool: SetValueDesc<bool>(desc, exp); break;
+                        case VFXValueType.Float: SetValueDesc<float>(desc, exp); break;
+                        case VFXValueType.Float2: SetValueDesc<Vector2>(desc, exp); break;
+                        case VFXValueType.Float3: SetValueDesc<Vector3>(desc, exp); break;
+                        case VFXValueType.Float4: SetValueDesc<Vector4>(desc, exp); break;
+                        case VFXValueType.Int: SetValueDesc<int>(desc, exp); break;
+                        case VFXValueType.Uint: SetValueDesc<uint>(desc, exp); break;
+                        case VFXValueType.Texture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
+                        case VFXValueType.Texture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
+                        case VFXValueType.Texture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
+                        case VFXValueType.TextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
+                        case VFXValueType.TextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
+                        case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
+                        case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
+                        case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
+                        case VFXValueType.Mesh: SetValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.Bool: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }
