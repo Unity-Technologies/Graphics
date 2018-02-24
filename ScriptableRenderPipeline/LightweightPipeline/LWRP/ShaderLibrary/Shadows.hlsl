@@ -138,6 +138,7 @@ float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
 
 float4 ComputeShadowCoord(float4 clipPos)
 {
+    // TODO: This might have to be corrected for double-wide and texture arrays
     return ComputeScreenPos(clipPos);
 }
 

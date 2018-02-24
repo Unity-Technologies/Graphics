@@ -340,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                     // Only screen space shadowmap mode is supported.
                     if (shadows)
-                        ShadowCollectPass(visibleLights, ref context, ref lightData);
+                        ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
                 }
 
                 if (!shadows)
@@ -408,17 +408,34 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        private void ShadowCollectPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        private void ShadowCollectPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData, FrameRenderingConfiguration frameRenderingConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
             SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]);
             SetShadowCollectPassKeywords(cmd, visibleLights[lightData.mainLightIndex], ref lightData);
 
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+            {
+                var desc = XRSettings.eyeTextureDesc;
+                desc.depthBufferBits = 0;
+                desc.colorFormat = RenderTextureFormat.R8;
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, desc, FilterMode.Bilinear);
+            }
+            else
+            {
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+            }
             cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StartMultiEye(m_CurrCamera);
+
             context.ExecuteCommandBuffer(cmd);
+
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StopMultiEye(m_CurrCamera);
+
             CommandBufferPool.Release(cmd);
         }
 
