@@ -250,7 +250,7 @@ namespace UnityEditor.VFX
         static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
         {
             var r = new VFXShaderWriter();
-            var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.kFloat);
+            var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.Float);
             if (!context.GetData().dependenciesIn.Any())
             {
                 var spawnLinkCount = context.GetData().sourceCount;

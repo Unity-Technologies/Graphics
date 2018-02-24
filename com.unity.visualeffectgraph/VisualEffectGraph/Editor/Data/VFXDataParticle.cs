@@ -429,7 +429,7 @@ namespace UnityEditor.VFX
             var systemFlag = VFXSystemFlag.SystemDefault;
             if (eventGPUFrom != -1)
             {
-                systemFlag |= VFXSystemFlag.kVFXSystemReceivedEventGPU;
+                systemFlag |= VFXSystemFlag.SystemReceivedEventGPU;
                 systemBufferMappings.Add(new VFXMapping("eventList", eventGPUFrom));
             }
 
