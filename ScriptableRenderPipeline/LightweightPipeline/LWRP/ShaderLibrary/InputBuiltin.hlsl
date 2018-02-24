@@ -243,4 +243,21 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     return M;
 }
 
+#if defined(UNITY_SINGLE_PASS_STEREO)
+float2 TransformStereoScreenSpaceTex(float2 uv, float w)
+{
+    float4 scaleOffset = unity_StereoScaleOffset[unity_StereoEyeIndex];
+    return uv.xy * scaleOffset.xy + scaleOffset.zw * w;
+}
+
+float2 UnityStereoTransformScreenSpaceTex(float2 uv)
+{
+    return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
+}
+#else
+
+#define UnityStereoTransformScreenSpaceTex(uv) uv
+
+#endif
+
 #endif // LIGHTWEIGHT_SHADER_VARIABLES_INCLUDED
