@@ -43,6 +43,10 @@ half GetShadowStrength()
 inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
+
+    // The stereo transform has to happen after the manual perspective divide
+    shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
+
     half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
 
     // Apply shadow strength
