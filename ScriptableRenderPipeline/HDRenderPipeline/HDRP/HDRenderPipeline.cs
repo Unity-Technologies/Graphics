@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -523,6 +523,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             base.Render(renderContext, cameras);
+            BeginFrameRendering(cameras);
 
             if (m_FrameCount != Time.frameCount)
             {
@@ -544,6 +545,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (camera == null)
                     continue;
+
+                BeginCameraRendering(camera);
 
                 if (camera.cameraType != CameraType.Reflection)
                     // TODO: Render only visible probes
