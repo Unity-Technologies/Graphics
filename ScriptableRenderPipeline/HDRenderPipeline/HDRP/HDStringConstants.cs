@@ -78,8 +78,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_vBoundsBuffer = Shader.PropertyToID("g_vBoundsBuffer");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
         public static readonly int g_data = Shader.PropertyToID("g_data");
-        public static readonly int g_mProjection = Shader.PropertyToID("g_mProjection");
-        public static readonly int g_mInvProjection = Shader.PropertyToID("g_mInvProjection");
+        public static readonly int g_mProjectionArr = Shader.PropertyToID("g_mProjectionArr");
+        public static readonly int g_mInvProjectionArr = Shader.PropertyToID("g_mInvProjectionArr");
         public static readonly int g_viDimensions = Shader.PropertyToID("g_viDimensions");
         public static readonly int g_vLightList = Shader.PropertyToID("g_vLightList");
 
@@ -182,10 +182,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
-        public static readonly int _HTile = Shader.PropertyToID("_HTile");
         public static readonly int _SSSHTile = Shader.PropertyToID("_SSSHTile");
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
+
+        // all decal properties
+        public static readonly int _NormalToWorldID = Shader.PropertyToID("_NormalToWorld");
+        public static readonly int _DecalAtlasID = Shader.PropertyToID("_DecalAtlas");
         public static readonly int _DecalHTileTexture = Shader.PropertyToID("_DecalHTileTexture");
+        public static readonly int _DecalIndexShift = Shader.PropertyToID("_DecalIndexShift");
+        public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
+        public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
 
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
@@ -203,6 +209,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TaaFrameIndex    = Shader.PropertyToID("_TaaFrameIndex");
         public static readonly int _TaaFrameRotation = Shader.PropertyToID("_TaaFrameRotation");
 
+        public static readonly int _ViewMatrixStereo = Shader.PropertyToID("_ViewMatrixStereo");
+        public static readonly int _ViewProjMatrixStereo = Shader.PropertyToID("_ViewProjMatrixStereo");
+        public static readonly int _InvViewMatrixStereo = Shader.PropertyToID("_InvViewMatrixStereo");
         public static readonly int _InvProjMatrixStereo = Shader.PropertyToID("_InvProjMatrixStereo");
         public static readonly int _InvViewProjMatrixStereo = Shader.PropertyToID("_InvViewProjMatrixStereo");
 

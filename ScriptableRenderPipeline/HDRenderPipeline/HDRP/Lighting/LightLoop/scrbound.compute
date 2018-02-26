@@ -6,10 +6,13 @@
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "LightLoop.cs.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 uniform int g_isOrthographic;
 uniform int g_iNrVisibLights;
-uniform float4x4 g_mInvProjection;
-uniform float4x4 g_mProjection;
+
+uniform float4x4 g_mInvProjectionArr[2];
+uniform float4x4 g_mProjectionArr[2];
 
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
 
@@ -42,6 +45,11 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
 	uint groupID = u3GroupID.x;
+    uint eyeIndex = u3GroupID.y; // currently, can only be 0 or 1
+
+    // The g_ is preserved in order to make cross-pipeline (FPTL) updates easier
+    float4x4 g_mInvProjection = g_mInvProjectionArr[eyeIndex];
+    float4x4 g_mProjection = g_mProjectionArr[eyeIndex];
 
 	//uint vindex = groupID * NR_THREADS + threadID;
 	unsigned int g = groupID;
@@ -51,7 +59,8 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	const int lgtIndex = subLigt+(int) g*8;
 	const int sideIndex = (int) (t%8);
 
-	SFiniteLightBound lgtDat = g_data[lgtIndex];
+    const int eyeAdjustedLgtIndex = lgtIndex + (eyeIndex * g_iNrVisibLights);
+    SFiniteLightBound lgtDat = g_data[eyeAdjustedLgtIndex];
 
 	const float3 boxX = lgtDat.boxAxisX.xyz;
 	const float3 boxY = lgtDat.boxAxisY.xyz;
@@ -328,8 +337,15 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			//g_vBoundsBuffer[lgtIndex+g_iNrVisibLights] = float3(0.5*vMax.x+0.5, -0.5*vMin.y+0.5, vMax.z*VIEWPORT_SCALE_Z);
 
 			// changed for unity
-			g_vBoundsBuffer[lgtIndex+0] = float3(0.5*vMin.x+0.5, 0.5*vMin.y+0.5, vMin.z*VIEWPORT_SCALE_Z);
-			g_vBoundsBuffer[lgtIndex+(int) g_iNrVisibLights] = float3(0.5*vMax.x+0.5, 0.5*vMax.y+0.5, vMax.z*VIEWPORT_SCALE_Z);
+
+            // Each light's AABB is represented by two float3s, the min and max of the box.
+            // And for stereo, we have two sets of lights.  Therefore, each eye has a set of mins, followed by
+            // a set of maxs, and each set is equal to g_iNrVisibLights.
+            const int eyeBaseIndex = eyeIndex * g_iNrVisibLights * 2;
+            const int minIndex = eyeBaseIndex + lgtIndex + 0;
+            const int maxIndex = eyeBaseIndex + lgtIndex + (int)g_iNrVisibLights;
+            g_vBoundsBuffer[minIndex] = float3(0.5*vMin.x + 0.5, 0.5*vMin.y + 0.5, vMin.z*VIEWPORT_SCALE_Z);
+            g_vBoundsBuffer[maxIndex] = float3(0.5*vMax.x + 0.5, 0.5*vMax.y + 0.5, vMax.z*VIEWPORT_SCALE_Z);
 		}
 	}
 }

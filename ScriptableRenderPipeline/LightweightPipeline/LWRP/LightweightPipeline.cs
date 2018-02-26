@@ -286,6 +286,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             base.Render(context, cameras);
+            RenderPipeline.BeginFrameRendering(cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = true;
             SetupPerFrameShaderConstants();
@@ -294,10 +295,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Array.Sort(cameras, m_CameraComparer);
             foreach (Camera camera in cameras)
             {
+                RenderPipeline.BeginCameraRendering(camera);
+
                 bool sceneViewCamera = camera.cameraType == CameraType.SceneView;
                 bool stereoEnabled = XRSettings.isDeviceActive && !sceneViewCamera;
                 m_CurrCamera = camera;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
+
+                var cmd = CommandBufferPool.Get("");
+                cmd.BeginSample("LightweightPipeline.Render");
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
@@ -354,7 +362,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
 
-                var cmd = CommandBufferPool.Get("After Camera Render");
+                cmd.name = "After Camera Render";
 #if UNITY_EDITOR
                 if (sceneViewCamera)
                     CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
@@ -365,6 +373,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.color);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.copyColor);
+
+                cmd.EndSample("LightweightPipeline.Render");
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
@@ -889,8 +900,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
                 // If we precompute the terms in a MAD instruction
                 float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * lightData.spotAngle * 0.5f);
-                float cosInneAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
-                float smoothAngleRange = Mathf.Max(0.001f, cosInneAngle - cosOuterAngle);
+                // We neeed to do a null check for particle lights
+                // This should be changed in the future
+                // Particle lights will use an inline function
+                float cosInnerAngle;
+                if (lightData.light != null)
+                    cosInnerAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
+                else
+                    cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(lightData.spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
+                float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
                 float invAngleRange = 1.0f / smoothAngleRange;
                 float add = -cosOuterAngle * invAngleRange;
                 lightSpotAttenuation = new Vector4(invAngleRange, add, 0.0f);

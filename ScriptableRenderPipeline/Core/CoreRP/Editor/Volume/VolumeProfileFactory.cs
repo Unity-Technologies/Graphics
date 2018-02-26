@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering
             else
             {
                 var scenePath = Path.GetDirectoryName(scene.path);
-                var extPath = scene.name + "_Profiles";
+                var extPath = scene.name;
                 var profilePath = scenePath + "/" + extPath;
 
                 if (!AssetDatabase.IsValidFolder(profilePath))
