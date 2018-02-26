@@ -39,17 +39,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
             }
 
-            DecalSystem.instance.AddDecal(this);
-        }
-
-        public void Start()
-        {
-            DecalSystem.instance.AddDecal(this);
+            if(m_Handle != null)
+                DecalSystem.instance.RemoveDecal(m_Handle);
+            m_Handle = DecalSystem.instance.AddDecal(transform, m_DrawDistance, m_FadeScale, m_Material);
         }
 
         public void OnDisable()
         {
-            DecalSystem.instance.RemoveDecal(this);
+            DecalSystem.instance.RemoveDecal(m_Handle);
+            m_Handle = null;
         }
 
 		// Declare the method signature of the delegate to call.	
@@ -63,12 +61,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // handle material changes
             if (m_OldMaterial != m_Material)
             {
-                Material tempMaterial = m_Material;
-                m_Material = m_OldMaterial;
-                if(m_Material != null)
-                    DecalSystem.instance.RemoveDecal(this);
-                m_Material = tempMaterial;
-                DecalSystem.instance.AddDecal(this);
+                if( m_Handle != null)
+                    DecalSystem.instance.RemoveDecal(m_Handle);
+                m_Handle = DecalSystem.instance.AddDecal(transform, m_DrawDistance, m_FadeScale, m_Material);
                 m_OldMaterial = m_Material;
 
                 // notify the editor that material has changed so it can update the shader foldout
