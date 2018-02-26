@@ -17,6 +17,8 @@
 #include "SortingComputeUtils.hlsl"
 #endif
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
@@ -26,6 +28,7 @@ uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
+uniform int _DecalIndexShift;
 uniform uint g_BaseFeatureFlags;
 
 Texture2D g_depth_tex : register( t0 );
@@ -296,7 +299,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// to make it work correctly
 	int shiftIndex[CATEGORY_LIST_SIZE];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, CATEGORY_LIST_SIZE);
-	shiftIndex[CATEGORY_LIST_SIZE - 1] = _EnvLightIndexShift;
+	shiftIndex[CATEGORY_LIST_SIZE - 2] = _EnvLightIndexShift;
+	shiftIndex[CATEGORY_LIST_SIZE - 1] = _DecalIndexShift;
 
 	for(int category=0; category<CATEGORY_LIST_SIZE; category++)
 	{

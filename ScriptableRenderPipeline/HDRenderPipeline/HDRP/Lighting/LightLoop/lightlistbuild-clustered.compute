@@ -15,6 +15,8 @@
 #include "SortingComputeUtils.hlsl"
 #endif
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 #define CONV_HULL_TEST_ENABLED
@@ -25,6 +27,7 @@ float4x4 g_mInvScrProjection;
 float4x4 g_mScrProjection;
 uint g_isOrthographic;
 int _EnvLightIndexShift;
+int _DecalIndexShift;
 int _DensityVolumeIndexShift;
 
 float g_fClustScale;
@@ -346,14 +349,15 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
 	}
 
-	// All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
+	// All our cull data are in the same list, but at render time envLights are separated so we need to shift the index
 	// to make it work correctly
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 3] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _DecalIndexShift;
 	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DensityVolumeIndexShift;
 
-	int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes and density volumes
+	int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals and density volumes
 	ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)

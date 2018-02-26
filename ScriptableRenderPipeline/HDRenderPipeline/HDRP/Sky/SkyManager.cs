@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var visualEnv = stack.GetComponent<VisualEnvironment>();
             int skyID = visualEnv.skyType;
             Type skyType;
-            if(m_SkyTypesDict.TryGetValue(skyID, out skyType))
+            if (skyTypesDict.TryGetValue(skyID, out skyType))
             {
                 return (SkySettings)stack.GetComponent(skyType);
             }
@@ -104,29 +104,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static void UpdateSkyTypes()
         {
-            if(m_SkyTypesDict == null)
+            if (m_SkyTypesDict == null)
             {
                 m_SkyTypesDict = new Dictionary<int, Type>();
 
                 var skyTypes = CoreUtils.GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(SkySettings)) && !t.IsAbstract);
-                foreach(Type skyType in skyTypes)
+                foreach (Type skyType in skyTypes)
                 {
                     var uniqueIDs = skyType.GetCustomAttributes(typeof(SkyUniqueID), false);
-                    if(uniqueIDs.Length == 0)
+                    if (uniqueIDs.Length == 0)
                     {
                         Debug.LogWarningFormat("Missing attribute SkyUniqueID on class {0}. Class won't be registered as an available sky.", skyType);
                     }
                     else
                     {
                         int uniqueID = ((SkyUniqueID)uniqueIDs[0]).uniqueID;
-                        if(uniqueID == 0)
+                        if (uniqueID == 0)
                         {
                             Debug.LogWarningFormat("0 is a reserved SkyUniqueID and is used in class {0}. Class won't be registered as an available sky.", skyType);
                             continue;
                         }
 
                         Type value;
-                        if(m_SkyTypesDict.TryGetValue(uniqueID, out value))
+                        if (m_SkyTypesDict.TryGetValue(uniqueID, out value))
                         {
                             Debug.LogWarningFormat("SkyUniqueID {0} used in class {1} is already used in class {2}. Class won't be registered as an available sky.", uniqueID, skyType, value);
                             continue;
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void UpdateCurrentSkySettings(HDCamera camera)
+        public void UpdateCurrentSkySettings(HDCamera camera)
         {
             m_VisualSky.skySettings = GetSkySetting(VolumeManager.instance.stack);
 
@@ -274,9 +274,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_NeedUpdateRealtimeEnv = false;
             }
 
-            UpdateSkyTypes();
-            UpdateCurrentSkySettings(camera);
-
             // For the baking sky, we don't want to take the sun into account because we usually won't include it (this would cause double highlight in the reflection for example).
             // So we pass null so that's it doesn't affect the hash and the rendering.
             m_NeedUpdateBakingSky = m_BakingSkyRenderingContext.UpdateEnvironment(m_BakingSky, camera, null, m_UpdateRequired, cmd);
@@ -379,8 +376,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             result.Apply();
 
             UnityEngine.Graphics.SetRenderTarget(null);
-            Object.DestroyImmediate(temp);
-            Object.DestroyImmediate(tempRT);
+            CoreUtils.Destroy(temp);
+            CoreUtils.Destroy(tempRT);
 
             return result;
         }

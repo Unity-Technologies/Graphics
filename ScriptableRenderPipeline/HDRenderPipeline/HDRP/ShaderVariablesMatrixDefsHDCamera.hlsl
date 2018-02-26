@@ -9,11 +9,11 @@
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
-#define UNITY_MATRIX_V     unity_StereoMatrixV[unity_StereoEyeIndex]
-#define UNITY_MATRIX_I_V   unity_StereoMatrixInvV[unity_StereoEyeIndex]
+#define UNITY_MATRIX_V     _ViewMatrixStereo[unity_StereoEyeIndex]
+#define UNITY_MATRIX_I_V   _InvViewMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(unity_StereoMatrixP[unity_StereoEyeIndex])
 #define UNITY_MATRIX_I_P   _InvProjMatrixStereo[unity_StereoEyeIndex]
-#define UNITY_MATRIX_VP    unity_StereoMatrixVP[unity_StereoEyeIndex]
+#define UNITY_MATRIX_VP    _ViewProjMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_VP  _InvViewProjMatrixStereo[unity_StereoEyeIndex]
 
 #else

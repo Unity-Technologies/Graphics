@@ -26,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Matrix4x4[] viewMatrixStereo;
         public Matrix4x4[] projMatrixStereo;
+        public Vector4 centerEyeTranslationOffset;
 
         // Non oblique projection matrix (RHS)
         public Matrix4x4 nonObliqueProjMatrix
@@ -134,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // The scene view has no additional data so this will correctly pick the editor preference backround color here.
                 return camera.backgroundColor.linear;
             }
-        }        
+        }
 
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
@@ -173,14 +174,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
 
+            // In stereo, this corresponds to the center eye position
             var pos = camera.transform.position;
-            var relPos = pos; // World-origin-relative
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 // Zero out the translation component.
                 gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-                relPos = Vector3.zero; // Camera-relative
             }
 
             var gpuVP = gpuNonJitteredProj * gpuView;
@@ -202,12 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isFirstFrame = false;
             }
 
-            // TEMP: Re-enable this code once we bump the postprocessing package to 0.1.19 (or above)
-            // current package 0.1.8 don't have the .sampleIndex and it fail with template...
-            // taaFrameIndex = taaEnabled ? (uint)postProcessLayer.temporalAntialiasing.sampleIndex : 0;
-            const uint taaFrameCount = 8;
-            taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
-            // END TEMP
+            taaFrameIndex = taaEnabled ? (uint)postProcessLayer.temporalAntialiasing.sampleIndex : 0;
             taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
                                            Mathf.Cos(taaFrameIndex * (0.5f * Mathf.PI)));
 
@@ -261,6 +256,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
         }
 
+        // Stopgap method used to extract stereo combined matrix state.
+        public void UpdateStereoDependentState(FrameSettings frameSettings, ref ScriptableCullingParameters cullingParams)
+        {
+            if (!frameSettings.enableStereo)
+                return;
+
+            // What constants in UnityPerPass need updating for stereo considerations?
+            // _ViewProjMatrix - It is used directly for generating tesselation factors. This should be the same
+            //                   across both eyes for consistency, and to keep shadow-generation eye-independent
+            // _ViewParam -      Used for isFrontFace determination, should be the same for both eyes. There is the scenario
+            //                   where there might be multi-eye sets that are divergent enough where this assumption is not valid,
+            //                   but that's a future problem
+            // _InvProjParam -   Intention was for generating linear depths, but not currently used.  Will need to be stereo-ized if
+            //                   actually needed.
+            // _FrustumPlanes -  Also used for generating tesselation factors.  Should be fine to use the combined stereo VP
+            //                   to calculate frustum planes.
+
+            // TODO: Would it be worth calculating my own combined view/proj matrix in Update?
+            // In engine, we modify the view and proj matrices accordingly in order to generate the single cull
+            // * Get the center eye view matrix, and pull it back to cover both eyes
+            // * Generated an expanded projection matrix (one method - max bound of left/right proj matrices)
+            //   and move near/far planes to match near/far locations of proj matrices located at eyes.
+            // I think using the cull matrices is valid, as long as I only use them for tess factors in shader.
+            // Using them for other calculations (like light list generation) could be problematic.
+
+            var stereoCombinedViewMatrix = cullingParams.cullStereoView;
+
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                // This is pulled back from the center eye, so set the offset
+                var translation = stereoCombinedViewMatrix.GetColumn(3);
+                translation += centerEyeTranslationOffset;
+                stereoCombinedViewMatrix.SetColumn(3, translation);
+            }
+
+            viewMatrix = stereoCombinedViewMatrix;
+            var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
+            projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
+
+            viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
+
+            frustum = Frustum.Create(viewProjMatrix, true, true);
+
+            // Left, right, top, bottom, near, far.
+            for (int i = 0; i < 6; i++)
+            {
+                frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
+            }
+        }
+
         void ConfigureStereoMatrices()
         {
             for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
@@ -269,6 +314,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 projMatrixStereo[eyeIndex] = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)eyeIndex);
                 projMatrixStereo[eyeIndex] = GL.GetGPUProjectionMatrix(projMatrixStereo[eyeIndex], true);
+            }
+
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                var leftTranslation = viewMatrixStereo[0].GetColumn(3);
+                var rightTranslation = viewMatrixStereo[1].GetColumn(3);
+                var centerTranslation = (leftTranslation + rightTranslation) / 2;
+                var centerOffset = -centerTranslation;
+                centerOffset.w = 0;
+
+                // TODO: Grabbing the CenterEye transform would be preferable, but XRNode.CenterEye
+                // doesn't always seem to be valid.
+
+                for (uint eyeIndex = 0; eyeIndex < 2; eyeIndex++)
+                {
+                    var translation = viewMatrixStereo[eyeIndex].GetColumn(3);
+                    translation += centerOffset;
+                    viewMatrixStereo[eyeIndex].SetColumn(3, translation);
+                }
+
+                centerEyeTranslationOffset = centerOffset;
             }
 
             // TODO: Fetch the single cull matrix stuff
@@ -350,6 +416,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)
         {
+            var viewProjStereo = new Matrix4x4[2];
+            var invViewStereo = new Matrix4x4[2];
             var invProjStereo = new Matrix4x4[2];
             var invViewProjStereo = new Matrix4x4[2];
 
@@ -358,12 +426,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var proj = projMatrixStereo[eyeIndex];
                 invProjStereo[eyeIndex] = proj.inverse;
 
-                var vp = proj * viewMatrixStereo[eyeIndex];
-                invViewProjStereo[eyeIndex] = vp.inverse;
+                var view = viewMatrixStereo[eyeIndex];
+                invViewStereo[eyeIndex] = view.inverse;
+
+                viewProjStereo[eyeIndex] = proj * view;
+                invViewProjStereo[eyeIndex] = viewProjStereo[eyeIndex].inverse;
             }
 
             // corresponds to UnityPerPassStereo
             // TODO: Migrate the other stereo matrices to HDRP-managed UnityPerPassStereo?
+            cmd.SetGlobalMatrixArray(HDShaderIDs._ViewMatrixStereo, viewMatrixStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._ViewProjMatrixStereo, viewProjStereo);
+            cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewMatrixStereo, invViewStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
         }

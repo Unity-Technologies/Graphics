@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering
             Inspector = new []
             {
                 SectionPrimarySettings,
+                SectionPhysicalSettings,
                 SectionCaptureSettings,
                 SectionOutputSettings,
                 SectionXRSettings,
@@ -42,6 +43,14 @@ namespace UnityEditor.Experimental.Rendering
             CED.Action(Drawer_FieldRenderingPath),
             CED.space
         );
+
+        public static readonly CED.IDrawer SectionPhysicalSettings = CED.FoldoutGroup(
+            "Physical Settings",
+            (s, p, o) => s.isSectionExpandedPhysicalSettings,
+            FoldoutOption.Indent,
+            CED.Action(Drawer_FieldAperture),
+            CED.Action(Drawer_FieldShutterSpeed),
+            CED.Action(Drawer_FieldIso));
 
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
             "Capture Settings",
@@ -89,18 +98,19 @@ namespace UnityEditor.Experimental.Rendering
         SerializedHDCamera m_SerializedHdCamera;
 
         public AnimBool isSectionExpandedOrthoOptions { get { return m_AnimBools[0]; } }
-        public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[1]; } }
-        public AnimBool isSectionExpandedOutputSettings { get { return m_AnimBools[2]; } }
-        public AnimBool isSectionAvailableRenderLoopSettings { get { return m_AnimBools[3]; } }
-        public AnimBool isSectionExpandedXRSettings { get { return m_AnimBools[4]; } }
-        public AnimBool isSectionAvailableXRSettings { get { return m_AnimBools[5]; } }
+        public AnimBool isSectionExpandedPhysicalSettings { get { return m_AnimBools[1]; } }
+        public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[2]; } }
+        public AnimBool isSectionExpandedOutputSettings { get { return m_AnimBools[3]; } }
+        public AnimBool isSectionAvailableRenderLoopSettings { get { return m_AnimBools[4]; } }
+        public AnimBool isSectionExpandedXRSettings { get { return m_AnimBools[5]; } }
+        public AnimBool isSectionAvailableXRSettings { get { return m_AnimBools[6]; } }
 
         public bool canOverrideRenderLoopSettings { get; set; }
 
         public FrameSettingsUI frameSettingsUI = new FrameSettingsUI();
 
         public HDCameraUI()
-            : base(6)
+            : base(7)
         {
             canOverrideRenderLoopSettings = false;
         }
@@ -174,6 +184,23 @@ namespace UnityEditor.Experimental.Rendering
                 "Clipping Planes",
                 new[] { p.nearClippingPlane, p.farClippingPlane },
                 new[] { _.GetContent("Near|The closest point relative to the camera that drawing will occur."), _.GetContent("Far|The furthest point relative to the camera that drawing will occur.\n") });
+        }
+
+        static void Drawer_FieldAperture(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.aperture, _.GetContent("Aperture"));
+        }
+
+        static void Drawer_FieldShutterSpeed(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        {
+            p.shutterSpeed.floatValue = 1f / p.shutterSpeed.floatValue;
+            EditorGUILayout.PropertyField(p.shutterSpeed, _.GetContent("Shutter Speed (1 / x)"));
+            p.shutterSpeed.floatValue = 1f / p.shutterSpeed.floatValue;
+        }
+
+        static void Drawer_FieldIso(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.iso, _.GetContent("ISO"));
         }
 
         static void Drawer_FieldNormalizedViewPort(HDCameraUI s, SerializedHDCamera p, Editor owner)
