@@ -10,9 +10,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public class DecalHandle
         {
-            public DecalHandle(int index, Material material)
+            public DecalHandle(int index, int materialID)
             {
-                m_Material = material;
+                m_MaterialID = materialID;
                 m_Index = index;
             }
 
@@ -20,13 +20,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (handle == null)
                     return false;
-                if (handle.m_Material == null)
-                    return false;
                 if (handle.m_Index == kInvalidIndex)
                     return false;
                 return true;
             }
-            public Material m_Material; // identifies decal set
+            public int m_MaterialID;    // identifies decal set
             public int m_Index;         // identifies decal within the set
         }
 
@@ -166,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BoundingSpheres[index] = GetDecalProjectBoundingSphere(m_CachedDecalToWorld[index]);
             }
 
-            public DecalHandle AddDecal(Transform transform, float drawDistance, float fadeScale, Material material)
+            public DecalHandle AddDecal(Transform transform, float drawDistance, float fadeScale, int materialID)
             {
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
@@ -191,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_CachedDrawDistances = newCachedDrawDistances;
                 }
 
-                DecalHandle decalHandle = new DecalHandle(m_DecalsCount, material);
+                DecalHandle decalHandle = new DecalHandle(m_DecalsCount, materialID);
                 m_Handles[m_DecalsCount] = decalHandle;
                 UpdateCachedData(transform, drawDistance, fadeScale, decalHandle);
                 m_DecalsCount++;
@@ -452,7 +450,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 decalSet = new DecalSet(material);
                 m_DecalSets.Add(key, decalSet);
             }
-            return decalSet.AddDecal(transform, drawDistance, fadeScale, material);
+            return decalSet.AddDecal(transform, drawDistance, fadeScale, key);
         }
 
         public void AddDecal(DecalProjectorComponent decal)
@@ -466,7 +464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             DecalSet decalSet = null;
-            int key = handle.m_Material.GetInstanceID();
+            int key = handle.m_MaterialID;
             if (m_DecalSets.TryGetValue(key, out decalSet))
             {
                 decalSet.RemoveDecal(handle);
@@ -490,7 +488,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             DecalSet decalSet = null;
-            int key = handle.m_Material.GetInstanceID();
+            int key = handle.m_MaterialID;
             if (m_DecalSets.TryGetValue(key, out decalSet))
             {
                 decalSet.UpdateCachedData(transform, drawDistance, fadeScale, handle);
