@@ -69,6 +69,12 @@ namespace UnityEditor.VFX.Test
 
             var controllerCross = fnFindController(cross);
 
+            var vA = new Vector3(2, 3, 4);
+            position.outputSlots[0].value = new Position() { position = vA };
+
+            var vB = new Vector3(5, 6, 7);
+            direction.outputSlots[0].value = new DirectionType() { direction = vB };
+
             var edgeControllerAppend_A = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).First(), fnFindController(position).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_A);
             m_ViewController.ApplyChanges();
@@ -77,10 +83,29 @@ namespace UnityEditor.VFX.Test
             m_ViewController.AddElement(edgeControllerAppend_B);
             m_ViewController.ApplyChanges();
 
+            m_ViewController.ForceReload();
+
             Assert.AreEqual(1, cross.inputSlots[0].LinkedSlots.Count());
             Assert.AreEqual(1, cross.inputSlots[1].LinkedSlots.Count());
 
-            //TODO : set value & check result => will be a full test
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+
+            var currentA = context.Compile(cross.inputSlots[0].GetExpression()).Get<Vector3>();
+            var currentB = context.Compile(cross.inputSlots[1].GetExpression()).Get<Vector3>();
+            var result = context.Compile(cross.outputSlots[0].GetExpression()).Get<Vector3>();
+
+            Assert.AreEqual((double)vA.x, (double)currentA.x, 0.001f);
+            Assert.AreEqual((double)vA.y, (double)currentA.y, 0.001f);
+            Assert.AreEqual((double)vA.z, (double)currentA.z, 0.001f);
+
+            Assert.AreEqual((double)vB.normalized.x, (double)currentB.x, 0.001f);
+            Assert.AreEqual((double)vB.normalized.y, (double)currentB.y, 0.001f);
+            Assert.AreEqual((double)vB.normalized.z, (double)currentB.z, 0.001f);
+
+            var expectedResult = Vector3.Cross(vA, vB.normalized);
+            Assert.AreEqual((double)expectedResult.x, (double)result.x, 0.001f);
+            Assert.AreEqual((double)expectedResult.y, (double)result.y, 0.001f);
+            Assert.AreEqual((double)expectedResult.z, (double)result.z, 0.001f);
         }
 
         [Test]
