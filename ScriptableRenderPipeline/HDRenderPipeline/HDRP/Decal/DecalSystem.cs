@@ -484,12 +484,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // for compatibility with old code
-        public void UpdateCachedData(DecalProjectorComponent decal)
-        {
-            UpdateCachedData(decal.transform, decal.m_DrawDistance, decal.m_FadeScale, decal.Handle);
-        }
-
         public void BeginCull()
         {
             foreach (var pair in m_DecalSets)

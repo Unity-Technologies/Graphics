@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DrawGizmo(true);
             // if this object is selected there is a chance the transform was changed so update culling info
-            DecalSystem.instance.UpdateCachedData(this);
+            DecalSystem.instance.UpdateCachedData(transform, m_DrawDistance, m_FadeScale, m_Handle);
         }
 
         public void OnDrawGizmos()
