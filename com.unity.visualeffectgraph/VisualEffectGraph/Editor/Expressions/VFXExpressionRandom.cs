@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXGenerateRandomOp; } }
+        public override VFXExpressionOp operation { get { return VFXExpressionOp.GenerateRandomOp; } }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
         public VFXExpressionFixedRandom(VFXExpression hash, bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None, hash)
         {}
 
-        public override VFXExpressionOp operation { get { return VFXExpressionOp.kVFXGenerateFixedRandomOp; }}
+        public override VFXExpressionOp operation { get { return VFXExpressionOp.GenerateFixedRandomOp; }}
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {

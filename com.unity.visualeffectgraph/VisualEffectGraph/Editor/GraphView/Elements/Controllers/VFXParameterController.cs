@@ -21,6 +21,9 @@ namespace UnityEditor.VFX.UI
 
         VFXSubParameterController[] m_Children;
 
+        object[] m_CustomAttributes;
+        VFXPropertyAttribute[] m_Attributes;
+
 
         public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
         {
@@ -38,6 +41,8 @@ namespace UnityEditor.VFX.UI
                 m_FieldInfos[i] = info;
                 type = info.FieldType;
             }
+            m_CustomAttributes = m_FieldInfos[m_FieldInfos.Length - 1].GetCustomAttributes(true);
+            m_Attributes = VFXPropertyAttribute.Create(m_CustomAttributes);
         }
 
         public VFXSubParameterController[] children
@@ -72,9 +77,9 @@ namespace UnityEditor.VFX.UI
             get { return m_FieldInfos[m_FieldInfos.Length - 1].Name; }
         }
 
-        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+        object[] IPropertyRMProvider.customAttributes { get { return m_CustomAttributes; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return m_Attributes; } }
 
         int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
@@ -316,6 +321,10 @@ namespace UnityEditor.VFX.UI
 
         public static string MakeNameUnique(string name, HashSet<string> allNames)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "parameter";
+            }
             string candidateName = name.Trim();
             if (candidateName.Length < 1)
             {

@@ -245,13 +245,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXSlotContainerController> slotContainers)
+        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXNodeController> slotContainers)
         {
-            IEnumerable<VFXSlotContainerController> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotContainerController as VFXSlotContainerController)).Concat(contexts.SelectMany(t => t.blockControllers).Cast<VFXSlotContainerController>()).ToArray();
+            IEnumerable<VFXNodeController> dataEdgeTargets = slotContainers.Concat(contexts.Cast<VFXNodeController>()).Concat(contexts.SelectMany(t => t.blockControllers).Cast<VFXNodeController>()).ToArray();
 
             // consider only edges contained in the selection
 
-            IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXSlotContainerController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXSlotContainerController)).ToArray();
+            IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXNodeController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXNodeController)).ToArray();
             IEnumerable<VFXFlowEdgeController> flowEdges = elements.OfType<VFXFlowEdgeController>().Where(t =>
                     contexts.Contains((t.input as VFXFlowAnchorController).context) &&
                     contexts.Contains((t.output as VFXFlowAnchorController).context)
@@ -289,7 +289,7 @@ namespace UnityEditor.VFX.UI
         public static object CreateCopy(IEnumerable<Controller> elements)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
-            IEnumerable<VFXSlotContainerController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXSlotContainerController>();
+            IEnumerable<VFXNodeController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
             IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
 
             Data copyData = new Data();
@@ -457,7 +457,7 @@ namespace UnityEditor.VFX.UI
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
             // Create all ui based on model
-            view.controller.ApplyChanges();
+            view.controller.LightApplyChanges();
 
             view.ClearSelection();
 
@@ -671,7 +671,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // Create all ui based on model
-            view.controller.ApplyChanges();
+            view.controller.LightApplyChanges();
 
             view.ClearSelection();
 
@@ -686,7 +686,7 @@ namespace UnityEditor.VFX.UI
                 VFXContextUI contextUI = elements.OfType<VFXContextUI>().FirstOrDefault(t => t.controller.model == slotContainer);
                 if (contextUI != null)
                 {
-                    newSlotContainerUIs.Add(contextUI.ownData);
+                    newSlotContainerUIs.Add(contextUI);
                     newSlotContainerUIs.AddRange(contextUI.GetAllBlocks().Cast<VFXNodeUI>());
                     newContextUIs.Add(contextUI);
                     view.AddToSelection(contextUI);

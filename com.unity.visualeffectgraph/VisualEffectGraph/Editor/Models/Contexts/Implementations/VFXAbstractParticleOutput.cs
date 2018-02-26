@@ -9,8 +9,6 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleOutput : VFXContext
     {
-        private readonly static bool HDRP = false;
-
         public enum BlendMode
         {
             Additive,
@@ -90,12 +88,11 @@ namespace UnityEditor.VFX
         {
             get
             {
-                string inputPropertiesType = "InputProperties";
-                if (flipbookMode != FlipbookMode.Off) inputPropertiesType = "InputPropertiesFlipbook";
-
-                foreach (var property in PropertiesFromType(inputPropertiesType))
+                foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
+                if (flipbookMode != FlipbookMode.Off)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
                 if (blendMode == BlendMode.Masked)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold"), 0.5f);
                 if (supportSoftParticles)

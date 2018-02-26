@@ -32,6 +32,7 @@ namespace UnityEditor.VFX.UI
             };
 
             Add(new VisualElement() { name = "lineSpacer" });
+            AddToClassList("VFXOutputDataAnchor");
             Insert(0, m_Icon); //insert at first ( right since reversed)
         }
 

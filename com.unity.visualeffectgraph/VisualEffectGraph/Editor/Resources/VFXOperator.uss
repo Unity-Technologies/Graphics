@@ -37,6 +37,16 @@ OperandInfo .PopupButton
     width:50;
 }
 
+#edit-container
+{
+    position-type:Absolute;
+	position-top:0;
+	position-bottom:0;
+	position-right:0;
+    position-left:0;
+}
+
+
 VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
 {
 	width:0;

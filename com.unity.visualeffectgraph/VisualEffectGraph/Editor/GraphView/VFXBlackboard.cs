@@ -331,7 +331,7 @@ namespace  UnityEditor.VFX.UI
             }
         }
     }
-    class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>
+    class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -402,6 +402,7 @@ namespace  UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
             moveItemRequested = OnMoveItem;
+            addItemRequested = OnAddItem;
 
 
             SetPosition(LoadBlackBoardPosition());
@@ -413,6 +414,27 @@ namespace  UnityEditor.VFX.UI
         }
 
         BlackboardSection m_ExposedSection;
+
+        void OnAddParameter(object parameter)
+        {
+            m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+        }
+
+        void OnAddItem(Blackboard bb)
+        {
+            GenericMenu menu = new GenericMenu();
+
+            foreach (var parameter in VFXLibrary.GetParameters())
+            {
+                VFXParameter model = parameter.model as VFXParameter;
+
+                var type = model.type;
+
+                menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
+            }
+
+            menu.ShowAsContext();
+        }
 
         void OnEditName(Blackboard bb, VisualElement element, string value)
         {
@@ -480,10 +502,8 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
-            base.UpdatePresenterPosition();
-
             SaveBlackboardPosition(GetPosition());
         }
     }

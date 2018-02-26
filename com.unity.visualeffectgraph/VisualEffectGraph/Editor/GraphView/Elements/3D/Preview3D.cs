@@ -10,21 +10,21 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.VFX.UI
 {
-    class Preview3DController : SimpleElementPresenter
-    {
-        public Preview3DController()
-        {
-            title = "3D Preview";
+    /* class Preview3DController : SimpleElementPresenter
+     {
+         public Preview3DController()
+         {
+             title = "3D Preview";
 
-            position = new Rect(100, 100, 300, 300);
-        }
+             position = new Rect(100, 100, 300, 300);
+         }
 
-        public new void OnEnable()
-        {
-            base.OnEnable();
-            capabilities |= Capabilities.Movable | Capabilities.Resizable;
-        }
-    }
+         public new void OnEnable()
+         {
+             base.OnEnable();
+             capabilities |= Capabilities.Movable | Capabilities.Resizable;
+         }
+     }*/
     class Preview3D : GraphElement
     {
         Label m_Label;
@@ -52,7 +52,8 @@ namespace UnityEditor.VFX.UI
             m_Element.AddManipulator(new Rotate3DManipulator(m_Element));
         }
 
-        public override void OnDataChanged()
+        /*
+        public void OnDataChanged()
         {
             base.OnDataChanged();
 
@@ -60,5 +61,6 @@ namespace UnityEditor.VFX.UI
 
             m_Label.text = controller.title;
         }
+        */
     }
 }

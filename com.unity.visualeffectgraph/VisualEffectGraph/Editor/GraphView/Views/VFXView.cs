@@ -285,11 +285,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
-            m_SlotContainerFactory[typeof(VFXContextController)] = typeof(VFXContextUI);
-            m_SlotContainerFactory[typeof(VFXOperatorController)] = typeof(VFXOperatorUI);
-            m_SlotContainerFactory[typeof(VFXParameterNodeController)] = typeof(VFXParameterUI);
-
-            forceNotififcationOnAdd = true;
             SetupZoom(0.125f, 8);
 
             //this.AddManipulator(new SelectionSetter(this));
@@ -395,6 +390,11 @@ namespace UnityEditor.VFX.UI
             m_Blackboard = new VFXBlackboard();
 
             Add(m_Blackboard);
+
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
+            RegisterCallback<DragPerformEvent>(OnDragPerform);
+
+            graphViewChanged = VFXGraphViewChanged;
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -562,16 +562,6 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        private class SlotContainerFactory : BaseTypeFactory<VFXNodeController, GraphElement>
-        {
-            protected override GraphElement InternalCreate(Type valueType)
-            {
-                return (GraphElement)System.Activator.CreateInstance(valueType);
-            }
-        }
-        private SlotContainerFactory m_SlotContainerFactory = new SlotContainerFactory();
-
-
         void SyncNodes()
         {
             var controlledElements = rootSlotContainers;
@@ -597,7 +587,24 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var newController in controller.nodes.Except(controlledElements.Keys))
                 {
-                    var newElement = m_SlotContainerFactory.Create(newController);
+                    GraphElement newElement = null;
+                    if (newController is VFXContextController)
+                    {
+                        newElement = new VFXContextUI();
+                    }
+                    else if (newController is VFXOperatorController)
+                    {
+                        newElement = new VFXOperatorUI();
+                    }
+                    else if (newController is VFXParameterNodeController)
+                    {
+                        newElement = new VFXParameterUI();
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
+                    }
+
                     AddElement(newElement);
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
                 }
@@ -897,7 +904,7 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation ReinitComponents()
         {
-            foreach (var component in VisualEffect.GetAllActive())
+            foreach (var component in VFXManager.GetComponents())
                 component.Reinit();
             return EventPropagation.Stop;
         }
@@ -948,6 +955,7 @@ namespace UnityEditor.VFX.UI
         {
             if (change.movedElements.Count > 0)
             {
+                HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
                 foreach (var groupNode in vfxGroupNodes.ToList())
                 {
                     var containedElements = groupNode.containedElements;
@@ -955,7 +963,7 @@ namespace UnityEditor.VFX.UI
                     if (containedElements != null && containedElements.Intersect(change.movedElements).Count() > 0)
                     {
                         groupNode.UpdateGeometryFromContent();
-                        groupNode.UpdatePresenterPosition();
+                        movables.Add(groupNode);
                     }
                 }
 
@@ -964,11 +972,16 @@ namespace UnityEditor.VFX.UI
                     var containedElements = groupNode.containedElements;
                     if (containedElements != null)
                     {
-                        foreach (var node in containedElements)
+                        foreach (var node in containedElements.OfType<IVFXMovable>())
                         {
-                            node.UpdatePresenterPosition();
+                            movables.Add(node);
                         }
                     }
+                }
+
+                foreach (var movable in movables)
+                {
+                    movable.OnMoved();
                 }
             }
             return change;
@@ -994,25 +1007,21 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var element in layer)
                 {
-                    if (element is VFXContextUI)
-                    {
-                        var context = element as VFXContextUI;
-
-
-                        foreach (VFXDataAnchor anchor in context.ownData.GetPorts(input, output))
-                            yield return anchor;
-
-                        foreach (VFXBlockUI block in context.GetAllBlocks())
-                        {
-                            foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
-                                yield return anchor;
-                        }
-                    }
-                    else if (element is VFXNodeUI)
+                    if (element is VFXNodeUI)
                     {
                         var ope = element as VFXNodeUI;
                         foreach (VFXDataAnchor anchor in ope.GetPorts(input, output))
                             yield return anchor;
+                        if (element is VFXContextUI)
+                        {
+                            var context = element as VFXContextUI;
+
+                            foreach (VFXBlockUI block in context.GetAllBlocks())
+                            {
+                                foreach (VFXDataAnchor anchor in block.GetPorts(input, output))
+                                    yield return anchor;
+                            }
+                        }
                     }
                 }
             }
@@ -1352,6 +1361,28 @@ namespace UnityEditor.VFX.UI
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
 
             return true;
+        }
+
+        void OnDragUpdated(DragUpdatedEvent e)
+        {
+            if (selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                e.StopPropagation();
+            }
+        }
+
+        void OnDragPerform(DragPerformEvent e)
+        {
+            var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
+            if (rows.Length > 0)
+            {
+                Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+                foreach (var row in rows)
+                {
+                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller);
+                }
+            }
         }
     }
 }

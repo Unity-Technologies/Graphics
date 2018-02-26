@@ -146,7 +146,7 @@ uint3 ConvertFloatToSortableUint(float3 f)
 
 #define RAND_24BITS 0
 
-uint Mul24(uint a,uint b)
+uint VFXMul24(uint a,uint b)
 {
 #ifndef SHADER_API_PSSL
     return (a & 0xffffff) * (b & 0xffffff); // Tmp to ensure correct inputs
@@ -165,17 +165,6 @@ uint WangHash(uint seed)
     return seed;
 }
 
-uint JenkinsHash(uint seed)
-{
-   seed = (seed+0x7ed55d16) + (seed<<12);
-   seed = (seed^0xc761c23c) ^ (seed>>19);
-   seed = (seed+0x165667b1) + (seed<<5);
-   seed = (seed+0xd3a2646c) ^ (seed<<9);
-   seed = (seed+0xfd7046c5) + (seed<<3);
-   seed = (seed^0xb55a4f09) ^ (seed>>16);
-   return seed;
-}
-
 uint WangHash2(uint seed) // without mul on integers
 {
     seed += ~(seed<<15);
@@ -191,8 +180,8 @@ uint WangHash2(uint seed) // without mul on integers
 uint AnotherHash(uint seed)
 {
 #if RAND_24BITS
-    seed = Mul24((seed >> 16) ^ seed,0x5d9f3b);
-    seed = Mul24((seed >> 16) ^ seed,0x5d9f3b);
+    seed = VFXMul24((seed >> 16) ^ seed,0x5d9f3b);
+    seed = VFXMul24((seed >> 16) ^ seed,0x5d9f3b);
 #else
     seed = ((seed >> 16) ^ seed) * 0x45d9f3b;
     seed = ((seed >> 16) ^ seed) * 0x45d9f3b;
@@ -375,9 +364,9 @@ float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
 
 #if USE_FLIPBOOK
 #if USE_FLIPBOOK_INTERPOLATION
-void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float4 uv, out float blend)
+void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float4 uv, out float blend)
 #else
-void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float2 uv)
+void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float2 uv)
 #endif
 {
     float frameBlend = frac(texIndex);

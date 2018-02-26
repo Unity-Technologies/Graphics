@@ -144,6 +144,7 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer == null)
                 {
                     m_EditContainer = new VFXMultiOperatorEdit();
+                    m_EditContainer.name = "edit-container";
                 }
                 (m_EditContainer as VFXMultiOperatorEdit).controller = controller;
             }

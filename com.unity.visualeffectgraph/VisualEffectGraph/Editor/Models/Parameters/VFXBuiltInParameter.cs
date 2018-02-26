@@ -35,15 +35,15 @@ namespace UnityEditor.VFX
                 switch (m_expressionOp)
                 {
                     // Do to reorganization, some indices have changed
-                    case VFXExpressionOp.kVFXTanOp:         m_expressionOp = VFXExpressionOp.kVFXDeltaTimeOp; break;
-                    case VFXExpressionOp.kVFXASinOp:        m_expressionOp = VFXExpressionOp.kVFXTotalTimeOp; break;
-                    case VFXExpressionOp.kVFXACosOp:        m_expressionOp = VFXExpressionOp.kVFXSystemSeedOp; break;
-                    case VFXExpressionOp.kVFXRGBtoHSVOp:    m_expressionOp = VFXExpressionOp.kVFXLocalToWorldOp; break;
-                    case VFXExpressionOp.kVFXHSVtoRGBOp:    m_expressionOp = VFXExpressionOp.kVFXWorldToLocalOp; break;
+                    case VFXExpressionOp.TanOp:         m_expressionOp = VFXExpressionOp.DeltaTimeOp; break;
+                    case VFXExpressionOp.ASinOp:        m_expressionOp = VFXExpressionOp.TotalTimeOp; break;
+                    case VFXExpressionOp.ACosOp:        m_expressionOp = VFXExpressionOp.SystemSeedOp; break;
+                    case VFXExpressionOp.RGBtoHSVOp:    m_expressionOp = VFXExpressionOp.LocalToWorldOp; break;
+                    case VFXExpressionOp.HSVtoRGBOp:    m_expressionOp = VFXExpressionOp.WorldToLocalOp; break;
 
                     default:
                         Debug.LogWarning(string.Format("Expression operator for the BuiltInParameter is invalid ({0}). Reset to none", m_expressionOp));
-                        m_expressionOp = VFXExpressionOp.kVFXNoneOp;
+                        m_expressionOp = VFXExpressionOp.NoneOp;
                         break;
                 }
             }

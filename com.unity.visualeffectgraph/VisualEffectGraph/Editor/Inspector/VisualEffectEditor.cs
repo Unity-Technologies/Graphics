@@ -12,7 +12,46 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.UIElements.GraphView;
 using EditMode = UnityEditorInternal.EditMode;
+using UnityObject = UnityEngine.Object;
 
+
+static class VisualEffectEditorStyles
+{
+    static GUIContent[] m_Icons;
+
+    public enum Icon
+    {
+        Pause,
+        Play,
+        Restart,
+        Step,
+        Stop
+    }
+
+    static VisualEffectEditorStyles()
+    {
+        m_Icons = new GUIContent[1 + (int)Icon.Stop];
+        for (int i = 0; i <= (int)Icon.Stop; ++i)
+        {
+            Icon icon = (Icon)i;
+            string name = icon.ToString();
+
+            //TODO replace with editor default resource call when going to trunk
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VFXEditor/Editor/SceneWindow/Textures/" + name + ".png");
+            if (texture == null)
+            {
+                Debug.LogError("Can't find icon for " + name + " in VisualEffectEditorStyles");
+                continue;
+            }
+            m_Icons[i] = new GUIContent(texture);
+        }
+    }
+
+    public static GUIContent GetIcon(Icon icon)
+    {
+        return m_Icons[(int)icon];
+    }
+}
 
 static class VisualEffectUtility
 {
@@ -109,35 +148,35 @@ public class SlotValueBinder : VFXPropertySlotObserver
     {
         switch (m_Slot.ValueType)
         {
-            case VFXValueType.kInt:
+            case VFXValueType.Int:
                 if (m_Component.HasInt(m_Name))
                     m_Slot.Set<int>(m_Component.GetInt(m_Name));
                 break;
-            case VFXValueType.kUint:
+            case VFXValueType.Uint:
                 if (m_Component.HasUInt(m_Name))
                     m_Slot.Set<UInt32>(m_Component.GetUInt(m_Name));
                 break;
-            case VFXValueType.kFloat:
+            case VFXValueType.Float:
                 if (m_Component.HasFloat(m_Name))
                     m_Slot.Set<float>(m_Component.GetFloat(m_Name));
                 break;
-            case VFXValueType.kFloat2:
+            case VFXValueType.Float2:
                 if (m_Component.HasVector2(m_Name))
                     m_Slot.Set<Vector2>(m_Component.GetVector2(m_Name));
                 break;
-            case VFXValueType.kFloat3:
+            case VFXValueType.Float3:
                 if (m_Component.HasVector3(m_Name))
                     m_Slot.Set<Vector3>(m_Component.GetVector3(m_Name));
                 break;
-            case VFXValueType.kFloat4:
+            case VFXValueType.Float4:
                 if (m_Component.HasVector4(m_Name))
                     m_Slot.Set<Vector4>(m_Component.GetVector4(m_Name));
                 break;
-            case VFXValueType.kTexture2D:
+            case VFXValueType.Texture2D:
                 if (m_Component.HasTexture2D(m_Name))
                     m_Slot.Set<Texture2D>(m_Component.GetTexture2D(m_Name));
                 break;
-            case VFXValueType.kTexture3D:
+            case VFXValueType.Texture3D:
                 if (m_Component.HasTexture3D(m_Name))
                     m_Slot.Set<Texture3D>(m_Component.GetTexture3D(m_Name));
                 break;
@@ -158,27 +197,27 @@ public class SlotValueBinder : VFXPropertySlotObserver
 
         switch (slot.ValueType)
         {
-            case VFXValueType.kFloat:
+            case VFXValueType.Float:
                 if (m_Component.HasFloat(m_Name))
                     m_Component.SetFloat(m_Name, m_Slot.Get<float>());
                 break;
-            case VFXValueType.kFloat2:
+            case VFXValueType.Float2:
                 if (m_Component.HasVector2(m_Name))
                     m_Component.SetVector2(m_Name, m_Slot.Get<Vector2>());
                 break;
-            case VFXValueType.kFloat3:
+            case VFXValueType.Float3:
                 if (m_Component.HasVector3(m_Name))
                     m_Component.SetVector3(m_Name, m_Slot.Get<Vector3>());
                 break;
-            case VFXValueType.kFloat4:
+            case VFXValueType.Float4:
                 if (m_Component.HasVector4(m_Name))
                     m_Component.SetVector4(m_Name, m_Slot.Get<Vector4>());
                 break;
-            case VFXValueType.kTexture2D:
+            case VFXValueType.Texture2D:
                 if (m_Component.HasTexture2D(m_Name))
                     m_Component.SetTexture2D(m_Name, m_Slot.Get<Texture2D>());
                 break;
-            case VFXValueType.kTexture3D:
+            case VFXValueType.Texture3D:
                 if (m_Component.HasTexture3D(m_Name))
                     m_Component.SetTexture3D(m_Name, m_Slot.Get<Texture3D>());
                 break;
@@ -237,9 +276,12 @@ public class VisualEffectEditor : Editor
 
     void OnDisable()
     {
-        /*m_DebugPanel = null;
-        foreach (var exposed in m_ExposedData)
-            exposed.slot.RemoveAllObservers();*/
+        VisualEffect effect = ((VisualEffect)targets[0]);
+        if (effect != null)
+        {
+            effect.pause = false;
+            effect.playRate = 1.0f;
+        }
     }
 
     struct Infos
@@ -292,10 +334,19 @@ public class VisualEffectEditor : Editor
             {
                 Vector4 vVal = property.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                c = EditorGUILayout.ColorField(parameter.exposedName, c);
+                c = EditorGUILayout.ColorField(EditorGUIUtility.TextContent(parameter.exposedName), c, true, true, true);
 
                 if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
                     property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
+            }
+            else if (parameter.type == typeof(Vector4))
+            {
+                var oldVal = property.vector4Value;
+                var newVal = EditorGUILayout.Vector4Field(parameter.exposedName, oldVal);
+                if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+                {
+                    property.vector4Value = newVal;
+                }
             }
             else
                 EditorGUILayout.PropertyField(property, new GUIContent(parameter.exposedName), true);
@@ -378,8 +429,46 @@ public class VisualEffectEditor : Editor
 
     public static bool s_IsEditingAsset = false;
 
+
+    private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+    {
+        VisualEffect effect = ((VisualEffect)targets[0]);
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Stop)))
+        {
+            effect.Reinit();
+            effect.pause = true;
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play)))
+        {
+            effect.pause = false;
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
+        {
+            effect.pause = !effect.pause;
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step)))
+        {
+            effect.pause = true;
+            effect.AdvanceOneFrame();
+        }
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Restart)))
+        {
+            effect.Reinit();
+            effect.pause = false;
+        }
+        GUILayout.EndHorizontal();
+
+        float playbackRate = EditorGUILayout.FloatField("Playback Rate", effect.playRate);
+        if (playbackRate < 0)
+            playbackRate = 0;
+        effect.playRate = playbackRate;
+    }
+
     protected virtual void OnSceneGUI()
     {
+        SceneViewOverlay.Window(ParticleSystemInspector.playBackTitle, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+
         if (EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this))
             VFXGizmo.OnDrawComponentGizmo(target as VisualEffect);
     }

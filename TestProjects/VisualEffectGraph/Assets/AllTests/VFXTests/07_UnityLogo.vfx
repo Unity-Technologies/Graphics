@@ -135,7 +135,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114076681416168342}
+  - {fileID: 114377169442168908}
 --- !u!114 &114010758778321178
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -410,7 +410,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114142400170049970}
+  - {fileID: 114620032784917258}
   m_expressionOp: 7
 --- !u!114 &114052474742269770
 MonoBehaviour:
@@ -510,7 +510,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 114292049123527864}
   - {fileID: 114008604913712136}
-  - {fileID: 114201445858021156}
+  - {fileID: 114266814919831846}
   m_OutputSlots:
   - {fileID: 114339315983922540}
 --- !u!114 &114062548488304128
@@ -614,39 +614,6 @@ MonoBehaviour:
   m_Disabled: 0
   mode: 0
   roughSurface: 0
---- !u!114 &114076681416168342
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114076681416168342}
-  m_MasterData:
-    m_Owner: {fileID: 114407878428282606}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 
-  m_Property:
-    name: kVFXDeltaTimeOp
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114008604913712136}
 --- !u!114 &114077356124643328
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1120,39 +1087,6 @@ MonoBehaviour:
   - {fileID: 114123161346257178}
   m_OutputSlots:
   - {fileID: 114550059317258866}
---- !u!114 &114142400170049970
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114142400170049970}
-  m_MasterData:
-    m_Owner: {fileID: 114044202006354730}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 
-  m_Property:
-    name: kVFXTotalTimeOp
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114928394975614074}
 --- !u!114 &114153008861586322
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1558,38 +1492,6 @@ MonoBehaviour:
   - {fileID: 114110576228267686}
   m_OutputSlots:
   - {fileID: 114176574477086774}
---- !u!114 &114201445858021156
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114201445858021156}
-  m_MasterData:
-    m_Owner: {fileID: 114062302110721222}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[-17.0]}'
-  m_Property:
-    name: c
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114202798711541314
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2194,6 +2096,38 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114339315983922540}
+--- !u!114 &114266814919831846
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114266814919831846}
+  m_MasterData:
+    m_Owner: {fileID: 114062302110721222}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[1.0]}'
+  m_Property:
+    name: c
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114292049123527864
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2608,6 +2542,39 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114377169442168908
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114377169442168908}
+  m_MasterData:
+    m_Owner: {fileID: 114407878428282606}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: DeltaTimeOp
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114008604913712136}
 --- !u!114 &114384614258351586
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2790,7 +2757,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114076681416168342}
+  - {fileID: 114377169442168908}
   m_expressionOp: 6
 --- !u!114 &114408173132635882
 MonoBehaviour:
@@ -3848,13 +3815,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114231982420006628}
   m_Children: []
-  m_UIPosition: {x: -466.0244, y: 854.5171}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114930672389675934}
-  m_exposedName: exposedName
+  m_exposedName: exposedName 3
   m_exposed: 0
   m_order: 0
   m_Min:
@@ -3865,7 +3832,15 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114930672389675934}
+      inputSlot: {fileID: 114970572636722840}
+    - outputSlot: {fileID: 114930672389675934}
+      inputSlot: {fileID: 114588896677769818}
+    position: {x: -466.0244, y: 854.5171}
+    expandedSlots: []
 --- !u!114 &114531814772278122
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4487,6 +4462,39 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114037864430085106}
+--- !u!114 &114620032784917258
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114620032784917258}
+  m_MasterData:
+    m_Owner: {fileID: 114044202006354730}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: TotalTimeOp
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114928394975614074}
 --- !u!114 &114620861960468456
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5316,13 +5324,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114231982420006628}
   m_Children: []
-  m_UIPosition: {x: -1514.8813, y: 1240.877}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114425551758419458}
-  m_exposedName: exposedName
+  m_exposedName: exposedName 1
   m_exposed: 0
   m_order: 0
   m_Min:
@@ -5333,7 +5341,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114425551758419458}
+      inputSlot: {fileID: 114177693062951452}
+    position: {x: -1514.8813, y: 1240.877}
+    expandedSlots: []
 --- !u!114 &114726396342495756
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5367,13 +5381,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114231982420006628}
   m_Children: []
-  m_UIPosition: {x: -2056.0315, y: 2343.5417}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114664837784982664}
-  m_exposedName: exposedName
+  m_exposedName: exposedName 2
   m_exposed: 0
   m_order: 0
   m_Min:
@@ -5384,7 +5398,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114664837784982664}
+      inputSlot: {fileID: 114003315507423320}
+    position: {x: -2056.0315, y: 2343.5417}
+    expandedSlots: []
 --- !u!114 &114735132530867216
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5695,7 +5715,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114231982420006628}
   m_Children: []
-  m_UIPosition: {x: -3291.8555, y: 2102.3286}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -5712,7 +5732,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114527320267978688}
+      inputSlot: {fileID: 114265508101040662}
+    position: {x: -3291.8555, y: 2102.3286}
+    expandedSlots: []
 --- !u!114 &114782572820235358
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6576,7 +6602,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114142400170049970}
+  - {fileID: 114620032784917258}
 --- !u!114 &114929506839738846
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7073,347 +7099,6 @@ VisualEffectAsset:
   m_PrefabInternal: {fileID: 0}
   m_Name: 07_UnityLogo
   m_Graph: {fileID: 114231982420006628}
-  m_ShaderSources:
-  - compute: 1
-    name: Temp_compute_b_initialize_Runtime.compute
-    source: "#pragma kernel CSMain\r\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP
-      64\r\n#define VFX_USE_COLOR_CURRENT 1\r\n#define VFX_USE_LIFETIME_CURRENT 1\r\n#define
-      VFX_USE_SEED_CURRENT 1\r\n#define VFX_USE_POSITION_CURRENT 1\r\n#define VFX_USE_DIRECTION_CURRENT
-      1\r\n#define VFX_USE_PARTICLEID_CURRENT 1\r\n#define VFX_USE_VELOCITY_CURRENT
-      1\r\n#define VFX_USE_AGE_CURRENT 1\r\n#define VFX_USE_ALIVE_CURRENT 1\r\n\r\n#include
-      \"Assets/VFXShaders/Common/VFXCommonCompute.cginc\"\r\n#define VFX_LOCAL_SPACE
-      1\r\n#include \"Assets/VFXShaders/VFXCommon.cginc\"\r\n\r\n\r\nCBUFFER_START(parameters)\r\n
-      \   float3 Color_b;\r\n    float Min_c;\r\n    float3 uniform_h;\r\n    float
-      Max_c;\r\n    float3 uniform_i;\r\n    float uniform_e;\r\n    float3 uniform_j;\r\n
-      \   float uniform_f;\r\n    float3 uniform_k;\r\n    float uniform_g;\r\n    float
-      ArcSphere_sphere_radius_d;\r\n    float ArcSphere_arc_d;\r\n    uint2 PADDING_0;\r\nCBUFFER_END\r\n\r\n\r\n\r\nRWByteAddressBuffer
-      attributeBuffer;\r\nByteAddressBuffer sourceAttributeBuffer;\r\n\r\nCBUFFER_START(initParams)\r\n
-      \   uint nbSpawned;\t\t// Numbers of particle spawned\r\n    uint spawnIndex;\t//
-      Index of the first particle spawned\r\n\tuint systemSeed;\r\nCBUFFER_END\r\n\r\n#if
-      VFX_USE_ALIVE_CURRENT \r\nConsumeStructuredBuffer<uint> deadListIn;\r\nByteAddressBuffer
-      deadListCount; // This is bad to use a SRV to fetch deadList count but Unity
-      API currently prevent from copying to CB\r\n#endif\r\n\r\nvoid SetAttribute_5E351D5B(inout
-      float3 color, float3 Color) /*attribute:color Composition:Overwrite Random:Off
-      */\r\n{\r\n    color = Color;\r\n}\r\nvoid SetLifetime_1(inout float lifetime,
-      inout uint seed, float Min, float Max) /*mode:Random */\r\n{\r\n    lifetime
-      = lerp(Min,Max,RAND);\r\n}\r\nvoid PositionSphere_18D(inout float3 position,
-      inout uint seed, inout float3 direction, float3 ArcSphere_sphere_center, float
-      ArcSphere_sphere_radius, float ArcSphere_arc, float volumeFactor) /*positionMode:Volume
-      spawnMode:Randomized */\r\n{\r\n    float cosPhi = 2.0f * RAND - 1.0f;float
-      theta = ArcSphere_arc * RAND;\r\n    float rNorm = pow(volumeFactor + (1 - volumeFactor)
-      * RAND, 1.0f / 3.0f);\r\n    \r\n    float2 sincosTheta;\r\n    sincos(theta,
-      sincosTheta.x, sincosTheta.y);\r\n    sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);\r\n
-      \   \r\n    direction = float3(sincosTheta, cosPhi);\r\n    position += direction
-      * (rNorm * ArcSphere_sphere_radius) + ArcSphere_sphere_center;\r\n    \r\n}\r\n\r\n\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
-      CSMain(uint3 id : SV_DispatchThreadID)\r\n{\r\n\tuint maxThreadId = nbSpawned;\r\n#if
-      VFX_USE_ALIVE_CURRENT\r\n\tmaxThreadId = min(maxThreadId, deadListCount.Load(0x0));\r\n#endif\r\n\r\n
-      \   if (id.x < maxThreadId)\r\n    {\r\n\t\tuint particleIndex = id.x + spawnIndex;\r\n\t\tint
-      sourceIndex = 0;\r\n\t\t/*//Loop with 1 iteration generate a wrong IL Assembly
-      (and actually, useless code)\r\n\t\tuint currentSumSpawnCount = 0u;\r\n\t\tfor
-      (sourceIndex=0; sourceIndex<1; sourceIndex++)\r\n\t\t{\r\n\t\t    currentSumSpawnCount
-      += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\r\n\t\t
-      \   if (id.x < currentSumSpawnCount)\r\n\t\t    {\r\n\t\t        break;\r\n\t\t
-      \   }\r\n\t\t}\r\n\t\t*/\r\n\t\t\r\n\r\n        float3 color = float3(1,1,1);\r\n
-      \       float lifetime = (float)0;\r\n        uint seed = (uint)0;\r\n        float3
-      position = float3(0,0,0);\r\n        float3 direction = float3(0,0,1);\r\n        uint
-      particleId = (uint)0;\r\n        float3 velocity = float3(0,0,0);\r\n        float
-      age = (float)0;\r\n        bool alive = (bool)true;\r\n        \r\n\r\n\t\t\t\t\r\n#if
-      VFX_USE_PARTICLEID_CURRENT\r\n\t\tparticleId = particleIndex;\r\n#endif\r\n#if
-      VFX_USE_SEED_CURRENT\r\n\t\tseed = WangHash(particleIndex ^ systemSeed);\r\n#endif\r\n\t\t\r\n
-      \       SetAttribute_5E351D5B(/*inout*/color, Color_b);\r\n        SetLifetime_1(/*inout*/lifetime,
-      /*inout*/seed, Min_c, Max_c);\r\n        {\r\n            float tmp_bh = FixedRand(particleId
-      ^ asuint(uniform_g));\r\n            float tmp_bi = uniform_f * tmp_bh;\r\n
-      \           float tmp_bj = uniform_e + tmp_bi;\r\n            float3 tmp_bk
-      = float3(tmp_bj, tmp_bj, tmp_bj);\r\n            float3 tmp_bl = tmp_bk * uniform_h;\r\n
-      \           float3 tmp_bm = tmp_bl * uniform_i;\r\n            float3 tmp_bn
-      = sin(tmp_bm);\r\n            float tmp_bo = tmp_bn[1];\r\n            float3
-      tmp_bp = cos(tmp_bm);\r\n            float tmp_bq = tmp_bp[0];\r\n            float
-      tmp_br = tmp_bp[2];\r\n            float3 tmp_bs = float3(tmp_bo, tmp_bq, tmp_br);\r\n
-      \           float3 tmp_bt = tmp_bs * uniform_j;\r\n            float3 tmp_bu
-      = tmp_bt * uniform_k;\r\n            PositionSphere_18D(/*inout*/position, /*inout*/seed,
-      /*inout*/direction, tmp_bu, ArcSphere_sphere_radius_d, ArcSphere_arc_d, (float)0);\r\n
-      \       }\r\n        \r\n\r\n\r\n#if VFX_USE_ALIVE_CURRENT\t\t\r\n        if
-      (alive)\r\n        {\t\r\n            uint index = deadListIn.Consume();\r\n
-      \           attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(color));\r\n
-      \           attributeBuffer.Store((index * 0x2 + 0x356800) << 2,asuint(lifetime));\r\n
-      \           attributeBuffer.Store3((index * 0x8 + 0x501C00) << 2,asuint(position));\r\n
-      \           attributeBuffer.Store((index * 0x2 + 0x356801) << 2,asuint(particleId));\r\n
-      \           attributeBuffer.Store3((index * 0x8 + 0x501C04) << 2,asuint(velocity));\r\n
-      \           attributeBuffer.Store((index * 0x8 + 0x501C03) << 2,asuint(age));\r\n
-      \           attributeBuffer.Store((index * 0x8 + 0x501C07) << 2,uint(alive));\r\n
-      \           \r\n\r\n        }\r\n#else\r\n\t\tuint index = particleIndex;\r\n\t\tattributeBuffer.Store3((index
-      * 0x4 + 0x0) << 2,asuint(color));\r\n\t\tattributeBuffer.Store((index * 0x2
-      + 0x356800) << 2,asuint(lifetime));\r\n\t\tattributeBuffer.Store3((index * 0x8
-      + 0x501C00) << 2,asuint(position));\r\n\t\tattributeBuffer.Store((index * 0x2
-      + 0x356801) << 2,asuint(particleId));\r\n\t\tattributeBuffer.Store3((index *
-      0x8 + 0x501C04) << 2,asuint(velocity));\r\n\t\tattributeBuffer.Store((index
-      * 0x8 + 0x501C03) << 2,asuint(age));\r\n\t\tattributeBuffer.Store((index * 0x8
-      + 0x501C07) << 2,uint(alive));\r\n\t\t\r\n\r\n#endif\t\t\r\n    }\r\n}"
-    shader: {fileID: 7200000, guid: 78b579043ed563646a8189556bdf8e4f, type: 3}
-  - compute: 1
-    name: Temp_compute_c_update_Runtime.compute
-    source: "#pragma kernel CSMain\r\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP
-      64\r\n#define VFX_USE_LIFETIME_CURRENT 1\r\n#define VFX_USE_POSITION_CURRENT
-      1\r\n#define VFX_USE_PARTICLEID_CURRENT 1\r\n#define VFX_USE_VELOCITY_CURRENT
-      1\r\n#define VFX_USE_AGE_CURRENT 1\r\n#define VFX_USE_MASS_CURRENT 1\r\n#define
-      VFX_USE_ALIVE_CURRENT 1\r\n\r\n#include \"Assets/VFXShaders/Common/VFXCommonCompute.cginc\"\r\n#define
-      VFX_LOCAL_SPACE 1\r\n#include \"Assets/VFXShaders/VFXCommon.cginc\"\r\n\r\n\r\nCBUFFER_START(parameters)\r\n
-      \   float4x4 InvFieldTransform_d;\r\n    float4x4 FieldTransform_d;\r\n    float4x4
-      InvFieldTransform_e;\r\n    float4x4 FieldTransform_e;\r\n    float3 uniform_e;\r\n
-      \   float uniform_b;\r\n    float3 uniform_f;\r\n    float uniform_c;\r\n    float3
-      uniform_g;\r\n    float uniform_d;\r\n    float3 uniform_h;\r\n    float Sphere_radius_b;\r\n
-      \   float3 uniform_m;\r\n    float Elasticity_b;\r\n    float3 uniform_n;\r\n
-      \   float Friction_b;\r\n    float3 uniform_o;\r\n    float LifetimeLoss_b;\r\n
-      \   float3 uniform_p;\r\n    float Intensity_d;\r\n    float DragCoefficient_d;\r\n
-      \   float Intensity_e;\r\n    float DragCoefficient_e;\r\n    uint PADDING_0;\r\nCBUFFER_END\r\nTexture3D
-      VectorField_d;\r\nSamplerState samplerVectorField_d;\r\nTexture3D VectorField_e;\r\nSamplerState
-      samplerVectorField_e;\r\n\r\n\r\nvoid CollisionSphere_0(inout float3 position,
-      inout float3 velocity, inout float age, float lifetime, float mass, float3 Sphere_center,
-      float Sphere_radius, float Elasticity, float Friction, float LifetimeLoss, float
-      deltaTime, float colliderSign) /*mode:Solid roughSurface:False */\r\n{\r\n    \r\n
-      \   float3 nextPos = position + velocity * deltaTime;\r\n    float3 dir = nextPos
-      - Sphere_center;\r\n    float sqrLength = dot(dir, dir);\r\n    if (colliderSign
-      * sqrLength <= colliderSign * Sphere_radius * Sphere_radius)\r\n    {\r\n        float
-      dist = sqrt(sqrLength);\r\n        float3 n = colliderSign * dir / dist;\r\n
-      \   \r\n        float projVelocity = dot(n, velocity);\r\n        projVelocity
-      *= mass;\r\n    \r\n        float3 normalVelocity = projVelocity * n;\r\n        float3
-      tangentVelocity = velocity - normalVelocity;\r\n    \r\n        if (projVelocity
-      < 0)\r\n            velocity -= ((1 + Elasticity) * projVelocity) * n;\r\n        velocity
-      -= Friction * tangentVelocity;\r\n    \r\n        age += (LifetimeLoss * lifetime);\r\n
-      \   \r\n        position -= n * (dist - Sphere_radius) * colliderSign;\r\n    }\r\n}\r\nvoid
-      Force_0(inout float3 velocity, float mass, float3 Force, float deltaTime) /*Mode:Absolute
-      */\r\n{\r\n    velocity += (Force / mass) * deltaTime;\r\n}\r\nvoid VectorFieldForce_0(float3
-      position, inout float3 velocity, float mass, VFXSampler3D VectorField, float4x4
-      InvFieldTransform, float4x4 FieldTransform, float Intensity, float DragCoefficient,
-      float deltaTime) /*DataEncoding:UnsignedNormalized */\r\n{\r\n    \r\n    float3
-      vectorFieldCoord = mul(InvFieldTransform, float4(position,1.0f)).xyz;\r\n    float3
-      value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;\r\n
-      \   \r\n    value = mul(FieldTransform,float4(value,0.0f)).xyz * Intensity;\r\n
-      \   float3 relativeForce = value - velocity;\r\n    velocity += relativeForce
-      * min(1.0,(DragCoefficient * deltaTime) / mass);\r\n    \r\n}\r\nvoid EulerIntegration(inout
-      float3 position, float3 velocity, float deltaTime)\r\n{\r\n    position += velocity
-      * deltaTime;\r\n}\r\nvoid AgeAndDie(inout float age, float lifetime, inout bool
-      alive, float deltaTime)\r\n{\r\n    age += deltaTime;\r\n    if(age > lifetime)\r\n
-      \   {\r\n        alive = false;\r\n    }\r\n}\r\n\r\n\r\n\r\nRWByteAddressBuffer
-      attributeBuffer;\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\nAppendStructuredBuffer<uint>
-      deadListOut;\r\n#endif\r\n\r\n#if VFX_HAS_INDIRECT_DRAW\r\nAppendStructuredBuffer<uint>
-      indirectBuffer;\r\n#endif\r\n\r\nCBUFFER_START(updateParams)\r\n    uint nbMax;\r\n\tuint
-      systemSeed;\r\nCBUFFER_END\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
-      CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)\r\n{\r\n
-      \   uint index = id.x;\r\n\tif (id.x < nbMax)\r\n\t{\r\n#if VFX_USE_ALIVE_CURRENT\r\n\t\tbool
-      alive = (attributeBuffer.Load((index * 0x8 + 0x501C07) << 2));\r\n\t\t\r\n\r\n\t\tif
-      (alive)\r\n\t\t{\r\n\t\t\tfloat lifetime = asfloat(attributeBuffer.Load((index
-      * 0x2 + 0x356800) << 2));\r\n\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0x501C00) << 2));\r\n\t\t\tuint particleId = (attributeBuffer.Load((index
-      * 0x2 + 0x356801) << 2));\r\n\t\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
-      * 0x8 + 0x501C04) << 2));\r\n\t\t\tfloat age = asfloat(attributeBuffer.Load((index
-      * 0x8 + 0x501C03) << 2));\r\n\t\t\tfloat mass = (float)1;\r\n\t\t\t\r\n\r\n\t\t\t\r\n#if
-      VFX_USE_OLDPOSITION_CURRENT\r\n\t\t\toldPosition = position;\r\n#endif\r\n\t\t\t\r\n\t\t\t{\r\n\t\t\t
-      \   float tmp_bu = FixedRand(particleId ^ asuint(uniform_d));\r\n\t\t\t    float
-      tmp_bv = uniform_c * tmp_bu;\r\n\t\t\t    float tmp_bw = uniform_b + tmp_bv;\r\n\t\t\t
-      \   float3 tmp_bx = float3(tmp_bw, tmp_bw, tmp_bw);\r\n\t\t\t    float3 tmp_by
-      = tmp_bx * uniform_e;\r\n\t\t\t    float3 tmp_bz = tmp_by * uniform_f;\r\n\t\t\t
-      \   float3 tmp_ca = sin(tmp_bz);\r\n\t\t\t    float tmp_cb = tmp_ca[1];\r\n\t\t\t
-      \   float3 tmp_cc = cos(tmp_bz);\r\n\t\t\t    float tmp_cd = tmp_cc[0];\r\n\t\t\t
-      \   float tmp_ce = tmp_cc[2];\r\n\t\t\t    float3 tmp_cf = float3(tmp_cb, tmp_cd,
-      tmp_ce);\r\n\t\t\t    float3 tmp_cg = tmp_cf * uniform_g;\r\n\t\t\t    float3
-      tmp_ch = tmp_cg * uniform_h;\r\n\t\t\t    CollisionSphere_0(/*inout*/position,
-      /*inout*/velocity, /*inout*/age, lifetime, mass, tmp_ch, Sphere_radius_b, Elasticity_b,
-      Friction_b, LifetimeLoss_b, uniform_c, (float)1);\r\n\t\t\t}\r\n\t\t\t{\r\n\t\t\t
-      \   float3 tmp_bu = position - uniform_m;\r\n\t\t\t    float3 tmp_bv = tmp_bu
-      - uniform_n;\r\n\t\t\t    float3 tmp_bx = tmp_bv * tmp_bv;\r\n\t\t\t    float
-      tmp_by = tmp_bx[2];\r\n\t\t\t    float tmp_bz = tmp_bx[1];\r\n\t\t\t    float
-      tmp_ca = tmp_by + tmp_bz;\r\n\t\t\t    float tmp_cb = tmp_bx[0];\r\n\t\t\t    float
-      tmp_cc = tmp_ca + tmp_cb;\r\n\t\t\t    float tmp_ce = pow(tmp_cc, (float)0.5);\r\n\t\t\t
-      \   float tmp_cf = (float)1 / tmp_ce;\r\n\t\t\t    float3 tmp_cg = float3(tmp_cf,
-      tmp_cf, tmp_cf);\r\n\t\t\t    float3 tmp_ch = tmp_bv * tmp_cg;\r\n\t\t\t    float3
-      tmp_ci = tmp_ch * uniform_o;\r\n\t\t\t    float3 tmp_cj = tmp_ci * uniform_p;\r\n\t\t\t
-      \   Force_0(/*inout*/velocity, mass, tmp_cj, uniform_c);\r\n\t\t\t}\r\n\t\t\tVectorFieldForce_0(position,
-      /*inout*/velocity, mass, GetVFXSampler(VectorField_d, samplerVectorField_d),
-      InvFieldTransform_d, FieldTransform_d, Intensity_d, DragCoefficient_d, uniform_c);\r\n\t\t\tVectorFieldForce_0(position,
-      /*inout*/velocity, mass, GetVFXSampler(VectorField_e, samplerVectorField_e),
-      InvFieldTransform_e, FieldTransform_e, Intensity_e, DragCoefficient_e, uniform_c);\r\n\t\t\tEulerIntegration(/*inout*/position,
-      velocity, uniform_c);\r\n\t\t\tAgeAndDie(/*inout*/age, lifetime, /*inout*/alive,
-      uniform_c);\r\n\t\t\t\r\n\r\n\t\t\tif (alive)\r\n\t\t\t{\r\n\t\t\t\tattributeBuffer.Store3((index
-      * 0x8 + 0x501C00) << 2,asuint(position));\r\n\t\t\t\tattributeBuffer.Store3((index
-      * 0x8 + 0x501C04) << 2,asuint(velocity));\r\n\t\t\t\tattributeBuffer.Store((index
-      * 0x8 + 0x501C03) << 2,asuint(age));\r\n\t\t\t\t\r\n\r\n#if VFX_HAS_INDIRECT_DRAW\r\n\t\t\t\tindirectBuffer.Append(index);\r\n#endif\r\n\t\t\t}\r\n\t\t\telse\r\n\t\t\t{\t\r\n\t\t\t\tattributeBuffer.Store((index
-      * 0x8 + 0x501C07) << 2,uint(alive));\r\n\t\t\t\t\r\n\r\n\t\t\t\tdeadListOut.Append(index);\r\n\t\t\t}\r\n\t\t}\r\n#else\r\n\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x2 + 0x356800) << 2));\r\n\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x501C00) << 2));\r\n\t\tuint
-      particleId = (attributeBuffer.Load((index * 0x2 + 0x356801) << 2));\r\n\t\tfloat3
-      velocity = asfloat(attributeBuffer.Load3((index * 0x8 + 0x501C04) << 2));\r\n\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x8 + 0x501C03) << 2));\r\n\t\tfloat
-      mass = (float)1;\r\n\t\tbool alive = (attributeBuffer.Load((index * 0x8 + 0x501C07)
-      << 2));\r\n\t\t\r\n\r\n\t\t\r\n#if VFX_USE_OLDPOSITION_CURRENT\r\n\t\toldPosition
-      = position;\r\n#endif\r\n\t\t\r\n\t\t{\r\n\t\t    float tmp_bu = FixedRand(particleId
-      ^ asuint(uniform_d));\r\n\t\t    float tmp_bv = uniform_c * tmp_bu;\r\n\t\t
-      \   float tmp_bw = uniform_b + tmp_bv;\r\n\t\t    float3 tmp_bx = float3(tmp_bw,
-      tmp_bw, tmp_bw);\r\n\t\t    float3 tmp_by = tmp_bx * uniform_e;\r\n\t\t    float3
-      tmp_bz = tmp_by * uniform_f;\r\n\t\t    float3 tmp_ca = sin(tmp_bz);\r\n\t\t
-      \   float tmp_cb = tmp_ca[1];\r\n\t\t    float3 tmp_cc = cos(tmp_bz);\r\n\t\t
-      \   float tmp_cd = tmp_cc[0];\r\n\t\t    float tmp_ce = tmp_cc[2];\r\n\t\t    float3
-      tmp_cf = float3(tmp_cb, tmp_cd, tmp_ce);\r\n\t\t    float3 tmp_cg = tmp_cf *
-      uniform_g;\r\n\t\t    float3 tmp_ch = tmp_cg * uniform_h;\r\n\t\t    CollisionSphere_0(/*inout*/position,
-      /*inout*/velocity, /*inout*/age, lifetime, mass, tmp_ch, Sphere_radius_b, Elasticity_b,
-      Friction_b, LifetimeLoss_b, uniform_c, (float)1);\r\n\t\t}\r\n\t\t{\r\n\t\t
-      \   float3 tmp_bu = position - uniform_m;\r\n\t\t    float3 tmp_bv = tmp_bu
-      - uniform_n;\r\n\t\t    float3 tmp_bx = tmp_bv * tmp_bv;\r\n\t\t    float tmp_by
-      = tmp_bx[2];\r\n\t\t    float tmp_bz = tmp_bx[1];\r\n\t\t    float tmp_ca =
-      tmp_by + tmp_bz;\r\n\t\t    float tmp_cb = tmp_bx[0];\r\n\t\t    float tmp_cc
-      = tmp_ca + tmp_cb;\r\n\t\t    float tmp_ce = pow(tmp_cc, (float)0.5);\r\n\t\t
-      \   float tmp_cf = (float)1 / tmp_ce;\r\n\t\t    float3 tmp_cg = float3(tmp_cf,
-      tmp_cf, tmp_cf);\r\n\t\t    float3 tmp_ch = tmp_bv * tmp_cg;\r\n\t\t    float3
-      tmp_ci = tmp_ch * uniform_o;\r\n\t\t    float3 tmp_cj = tmp_ci * uniform_p;\r\n\t\t
-      \   Force_0(/*inout*/velocity, mass, tmp_cj, uniform_c);\r\n\t\t}\r\n\t\tVectorFieldForce_0(position,
-      /*inout*/velocity, mass, GetVFXSampler(VectorField_d, samplerVectorField_d),
-      InvFieldTransform_d, FieldTransform_d, Intensity_d, DragCoefficient_d, uniform_c);\r\n\t\tVectorFieldForce_0(position,
-      /*inout*/velocity, mass, GetVFXSampler(VectorField_e, samplerVectorField_e),
-      InvFieldTransform_e, FieldTransform_e, Intensity_e, DragCoefficient_e, uniform_c);\r\n\t\tEulerIntegration(/*inout*/position,
-      velocity, uniform_c);\r\n\t\tAgeAndDie(/*inout*/age, lifetime, /*inout*/alive,
-      uniform_c);\r\n\t\t\r\n\r\n\t\tattributeBuffer.Store3((index * 0x8 + 0x501C00)
-      << 2,asuint(position));\r\n\t\tattributeBuffer.Store3((index * 0x8 + 0x501C04)
-      << 2,asuint(velocity));\r\n\t\tattributeBuffer.Store((index * 0x8 + 0x501C03)
-      << 2,asuint(age));\r\n\t\tattributeBuffer.Store((index * 0x8 + 0x501C07) <<
-      2,uint(alive));\r\n\t\t\r\n\r\n#endif\r\n\t}\r\n}"
-    shader: {fileID: 7200002, guid: 78b579043ed563646a8189556bdf8e4f, type: 3}
-  - compute: 0
-    name: Temp_shader_d_quad output_Runtime.shader
-    source: "Shader \"Hidden/VFX/ParticleQuads\"\r\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
-      Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\tBlend
-      SrcAlpha One\r\n\t\tZTest LEqual\r\n\t\tZWrite Off\r\n\t\t\r\n\t\r\n\t\t\t\r\n\t\tHLSLINCLUDE\r\n\t\t#if
-      !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\r\n\t\t#define VFX_LOCAL_SPACE
-      1\r\n\t\t#endif\r\n\t\t\r\n\t\t#include \"HLSLSupport.cginc\"\r\n\t\t#define
-      NB_THREADS_PER_GROUP 64\r\n\t\t#define VFX_USE_COLOR_CURRENT 1\r\n\t\t#define
-      VFX_USE_LIFETIME_CURRENT 1\r\n\t\t#define VFX_USE_POSITION_CURRENT 1\r\n\t\t#define
-      VFX_USE_PARTICLEID_CURRENT 1\r\n\t\t#define VFX_USE_VELOCITY_CURRENT 1\r\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\r\n\t\t#define VFX_USE_ALPHA_CURRENT 1\r\n\t\t#define
-      VFX_USE_ALIVE_CURRENT 1\r\n\t\t#define VFX_USE_AXISX_CURRENT 1\r\n\t\t#define
-      VFX_USE_AXISY_CURRENT 1\r\n\t\t#define VFX_USE_AXISZ_CURRENT 1\r\n\t\t#define
-      VFX_USE_ANGLEX_CURRENT 1\r\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\r\n\t\t#define
-      VFX_USE_ANGLEZ_CURRENT 1\r\n\t\t#define VFX_USE_PIVOT_CURRENT 1\r\n\t\t#define
-      VFX_USE_SIZEX_CURRENT 1\r\n\t\t#define VFX_USE_SIZEY_CURRENT 1\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t#include
-      \"Assets/VFXShaders/RenderPipeline/Legacy/VFXCommon.cginc\"\r\n\t\t#define VFX_LOCAL_SPACE
-      1\r\n\t\t#include \"Assets/VFXShaders/VFXCommon.cginc\"\r\n\t\t\r\n\r\n\t\tCBUFFER_START(parameters)\r\n\t\t
-      \   float3 uniform_i;\r\n\t\t    float SizeX_c;\r\n\t\t    float3 uniform_j;\r\n\t\t
-      \   float SizeY_d;\r\n\t\t    float3 uniform_k;\r\n\t\t    float gradient_e;\r\n\t\t
-      \   float3 uniform_l;\r\n\t\t    float uniform_e;\r\n\t\t    float uniform_f;\r\n\t\t
-      \   float uniform_g;\r\n\t\t    float uniform_h;\r\n\t\t    float uniform_m;\r\n\t\t
-      \   float uniform_n;\r\n\t\t    float uniform_o;\r\n\t\t    float uniform_p;\r\n\t\t
-      \   uint PADDING_0;\r\n\t\tCBUFFER_END\r\n\t\tTexture2D mainTexture;\r\n\t\tSamplerState
-      samplermainTexture;\r\n\t\t\r\n\r\n\t\tvoid Orient_6(inout float3 axisX, inout
-      float3 axisY, inout float3 axisZ, float3 position, float3 velocity) /*mode:AlongVelocity
-      */\r\n\t\t{\r\n\t\t    \r\n\t\t    axisY = normalize(velocity);\r\n\t\t    axisZ
-      = position - GetViewVFXPosition();\r\n\t\t    axisX = normalize(cross(axisY,axisZ));\r\n\t\t
-      \   axisZ = cross(axisX,axisY);\r\n\t\t    \r\n\t\t}\r\n\t\tvoid SetAttribute_86894F8F(inout
-      float sizeX, float SizeX) /*attribute:sizeX Composition:Overwrite Random:Off
-      */\r\n\t\t{\r\n\t\t    sizeX = SizeX;\r\n\t\t}\r\n\t\tvoid SetAttribute_868BB738(inout
-      float sizeY, float SizeY) /*attribute:sizeY Composition:Overwrite Random:Off
-      */\r\n\t\t{\r\n\t\t    sizeY = SizeY;\r\n\t\t}\r\n\t\tvoid ColorOverLife_73256(float
-      age, float lifetime, inout float3 color, inout float alpha, float gradient,
-      float BlendColor) /*mode:ColorAndAlpha ColorComposition:Blend AlphaComposition:Scale
-      */\r\n\t\t{\r\n\t\t    \r\n\t\t    float4 sampledColor = SampleGradient(gradient,
-      age/lifetime);\r\n\t\t    color = lerp(color,sampledColor.rgb,BlendColor);\r\n\t\t
-      \   alpha *= sampledColor.a;\r\n\t\t    \r\n\t\t}\r\n\t\tvoid SubpixelAA(float3
-      position, inout float alpha, inout float sizeX, inout float sizeY)\r\n\t\t{\r\n\t\t
-      \   \r\n\t\t    float2 size = float2(sizeX,sizeY);\r\n\t\t    float clipPosW
-      = TransformPositionVFXToClip(position).w;\r\n\t\t    float minSize = clipPosW
-      / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] *
-      _ScreenParams.y)); // max size in one pixel\r\n\t\t    float2 clampedSize =
-      max(size,minSize);\r\n\t\t    float fade = (size.x * size.y) / (clampedSize.x
-      * clampedSize.y);\r\n\t\t    alpha *= fade;\r\n\t\t    size = clampedSize;\r\n\t\t
-      \   sizeX = size.x;\r\n\t\t    sizeY = size.y;\r\n\t\t    \r\n\t\t}\r\n\t\t\r\n\r\n\t\t\r\n\t\t#define
-      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\r\n\t\t#define
-      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\r\n\t\t\r\n\t\tByteAddressBuffer
-      attributeBuffer;\t\r\n\t\t\r\n\t\t#if VFX_HAS_INDIRECT_DRAW\r\n\t\tStructuredBuffer<uint>
-      indirectBuffer;\t\r\n\t\t#endif\t\r\n\t\t\r\n\t\tCBUFFER_START(outputParams)\r\n\t\t\tfloat
-      nbMax;\r\n\t\t\tfloat systemSeed;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\t\tENDHLSL\r\n\t\t\r\n\r\n\t\t//
-      Forward pass\r\n\t\tPass\r\n\t\t{\t\t\r\n\t\t\tTags { \"LightMode\"=\"ForwardBase\"
-      }\r\n\t\t\t\r\n\t\t\tHLSLPROGRAM\r\n\t\t\t#pragma target 4.5\r\n\t\t\t\r\n\t\t\tstruct
-      ps_input\r\n\t\t\t{\r\n\t\t\t\tfloat4 pos : SV_POSITION;\r\n\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\r\n\t\t\t\tfloat4
-      uv : TEXCOORD0;\r\n\t\t\t\t#else\r\n\t\t\t\tfloat2 uv : TEXCOORD0;\t\r\n\t\t\t\t#endif\r\n\t\t\t\t#if
-      VFX_NEEDS_COLOR_INTERPOLATOR\r\n\t\t\t\tnointerpolation float4 color : COLOR0;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if
-      USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\r\n\t\t\t\t//
-      x: inverse soft particles fade distance\r\n\t\t\t\t// y: alpha threshold\r\n\t\t\t\t//
-      z: frame blending factor\r\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD1;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if USE_SOFT_PARTICLE\r\n\t\t\t\tfloat4
-      projPos : TEXCOORD2;\t\t\r\n\t\t\t\t#endif\r\n\t\t\t};\r\n\t\t\t\r\n\t\t\tstruct
-      ps_output\r\n\t\t\t{\r\n\t\t\t\tfloat4 color : SV_Target0;\r\n\t\t\t};\r\n\t\t\r\n\t\t#define
-      VFX_VARYING_PS_INPUTS ps_input\r\n\t\t#define VFX_VARYING_POSCS pos\r\n\t\t#define
-      VFX_VARYING_POSSS projPos\r\n\t\t#define VFX_VARYING_COLOR color.rgb\r\n\t\t#define
-      VFX_VARYING_ALPHA color.a\r\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
-      builtInInterpolants.x\r\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\r\n\t\t#define
-      VFX_VARYING_FRAMEBLEND builtInInterpolants.z\r\n\t\t#define VFX_VARYING_UV uv\r\n\t\t\t\t\r\n\t\t\t#if
-      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\r\n\t\t\t#error
-      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\r\n\t\t\t#endif\r\n\t\t\t\r\n\t\t\t#pragma
-      vertex vert\r\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint
-      instanceID : SV_InstanceID)\r\n\t\t\t{\r\n\t\t\t\tuint index = (id >> 2) + instanceID
-      * 2048;\r\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\r\n\t\t\t\tif
-      (index < asuint(nbMax))\r\n\t\t\t\t{\r\n\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\r\n\t\t\t\t\tindex
-      = indirectBuffer[index];\r\n\t\t\t\t\t#endif\r\n\t\t\t\t\tbool alive = (attributeBuffer.Load((index
-      * 0x8 + 0x501C07) << 2));\r\n\t\t\t\t\t\r\n\r\n\t\t\t\t\tif (alive)\r\n\t\t\t\t\t{\r\n\t\t\t\t\t\tfloat3
-      color = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\r\n\t\t\t\t\t\tfloat
-      lifetime = asfloat(attributeBuffer.Load((index * 0x2 + 0x356800) << 2));\r\n\t\t\t\t\t\tfloat3
-      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x501C00) << 2));\r\n\t\t\t\t\t\tuint
-      particleId = (attributeBuffer.Load((index * 0x2 + 0x356801) << 2));\r\n\t\t\t\t\t\tfloat3
-      velocity = asfloat(attributeBuffer.Load3((index * 0x8 + 0x501C04) << 2));\r\n\t\t\t\t\t\tfloat
-      age = asfloat(attributeBuffer.Load((index * 0x8 + 0x501C03) << 2));\r\n\t\t\t\t\t\tfloat
-      alpha = (float)1;\r\n\t\t\t\t\t\tfloat3 axisX = float3(1,0,0);\r\n\t\t\t\t\t\tfloat3
-      axisY = float3(0,1,0);\r\n\t\t\t\t\t\tfloat3 axisZ = float3(0,0,1);\r\n\t\t\t\t\t\tfloat
-      angleX = (float)0;\r\n\t\t\t\t\t\tfloat angleY = (float)0;\r\n\t\t\t\t\t\tfloat
-      angleZ = (float)0;\r\n\t\t\t\t\t\tfloat3 pivot = float3(0,0,0);\r\n\t\t\t\t\t\tfloat
-      sizeX = (float)0.1;\r\n\t\t\t\t\t\tfloat sizeY = (float)0.1;\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\tOrient_6(/*inout*/axisX,
-      /*inout*/axisY, /*inout*/axisZ, position, velocity);\r\n\t\t\t\t\t\tSetAttribute_86894F8F(/*inout*/sizeX,
-      SizeX_c);\r\n\t\t\t\t\t\tSetAttribute_868BB738(/*inout*/sizeY, SizeY_d);\r\n\t\t\t\t\t\t{\r\n\t\t\t\t\t\t
-      \   float tmp_bl = FixedRand(particleId ^ asuint(uniform_h));\r\n\t\t\t\t\t\t
-      \   float tmp_bm = uniform_g * tmp_bl;\r\n\t\t\t\t\t\t    float tmp_bn = uniform_f
-      + tmp_bm;\r\n\t\t\t\t\t\t    float3 tmp_bo = float3(tmp_bn, tmp_bn, tmp_bn);\r\n\t\t\t\t\t\t
-      \   float3 tmp_bp = tmp_bo * uniform_i;\r\n\t\t\t\t\t\t    float3 tmp_bq = tmp_bp
-      * uniform_j;\r\n\t\t\t\t\t\t    float3 tmp_br = sin(tmp_bq);\r\n\t\t\t\t\t\t
-      \   float tmp_bs = tmp_br[1];\r\n\t\t\t\t\t\t    float3 tmp_bt = cos(tmp_bq);\r\n\t\t\t\t\t\t
-      \   float tmp_bu = tmp_bt[0];\r\n\t\t\t\t\t\t    float tmp_bv = tmp_bt[2];\r\n\t\t\t\t\t\t
-      \   float3 tmp_bw = float3(tmp_bs, tmp_bu, tmp_bv);\r\n\t\t\t\t\t\t    float3
-      tmp_bx = tmp_bw * uniform_k;\r\n\t\t\t\t\t\t    float3 tmp_by = tmp_bx * uniform_l;\r\n\t\t\t\t\t\t
-      \   float3 tmp_bz = position - tmp_by;\r\n\t\t\t\t\t\t    float3 tmp_ca = tmp_bz
-      * tmp_bz;\r\n\t\t\t\t\t\t    float tmp_cb = tmp_ca[2];\r\n\t\t\t\t\t\t    float
-      tmp_cc = tmp_ca[1];\r\n\t\t\t\t\t\t    float tmp_cd = tmp_cb + tmp_cc;\r\n\t\t\t\t\t\t
-      \   float tmp_ce = tmp_ca[0];\r\n\t\t\t\t\t\t    float tmp_cf = tmp_cd + tmp_ce;\r\n\t\t\t\t\t\t
-      \   float tmp_ch = pow(tmp_cf, (float)0.5);\r\n\t\t\t\t\t\t    float tmp_ci
-      = max(tmp_ch, uniform_m);\r\n\t\t\t\t\t\t    float tmp_cj = min(tmp_ci, uniform_n);\r\n\t\t\t\t\t\t
-      \   float tmp_ck = tmp_cj - uniform_m;\r\n\t\t\t\t\t\t    float tmp_cl = tmp_ck
-      / uniform_o;\r\n\t\t\t\t\t\t    float tmp_cm = tmp_cl * uniform_p;\r\n\t\t\t\t\t\t
-      \   float tmp_cn = uniform_e + tmp_cm;\r\n\t\t\t\t\t\t    float tmp_cp = max(tmp_cn,
-      (float)0);\r\n\t\t\t\t\t\t    float tmp_cr = min(tmp_cp, (float)1);\r\n\t\t\t\t\t\t
-      \   ColorOverLife_73256(age, lifetime, /*inout*/color, /*inout*/alpha, gradient_e,
-      tmp_cr);\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\tSubpixelAA(position, /*inout*/alpha,
-      /*inout*/sizeX, /*inout*/sizeY);\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tif
-      (!alive)\r\n\t\t\t\t\t\t\treturn o;\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_UV.x
-      = float(id & 1);\r\n\t\t\t\t\t\to.VFX_VARYING_UV.y = float((id & 2) >> 1);\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\tfloat3
-      size = float3(sizeX,sizeX,sizeX);\r\n\t\t\t\t\t\t\t\t#if VFX_USE_SIZEY_CURRENT\r\n\t\t\t\t\t\t\t\tsize.y
-      = sizeY;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t#if VFX_USE_SIZEZ_CURRENT\r\n\t\t\t\t\t\t\t\tsize.z
-      = sizeZ;\r\n\t\t\t\t\t\t\t\t#else\r\n\t\t\t\t\t\t\t\tsize.z = min(size.x,size.y);\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tfloat4x4
-      elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);\r\n\t\t\t\t\t\tfloat3
-      vPos = mul(elementToVFX,float4(o.VFX_VARYING_UV.xy * 2.0f - 1.0f,0.0f,1.0f)).xyz;\r\n\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_POSCS
-      = TransformPositionVFXToClip(vPos);\r\n\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
-      VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_COLOR
-      = color;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT
-      && defined(VFX_VARYING_ALPHA) \r\n\t\t\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
-      USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
-      = invSoftParticlesFadeDistance;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
-      (VFX_NEEDS_POSSS || USE_SOFT_PARTICLE) && defined(VFX_VARYING_POSSS)\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_POSSS
-      = VFXGetPOSSS(o.pos);\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
-      USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
-      = alphaThreshold;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t#if
-      USE_FLIPBOOK\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\r\n\t\t\t\t\t\tProcessFlipBookUV(flipBookSize,
-      invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);\r\n\t\t\t\t\t\t#else\r\n\t\t\t\t\t\tProcessFlipBookUV(flipBookSize,
-      invFlipBookSize, texIndex, o.VFX_VARYING_UV);\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t#endif\r\n\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t\treturn
-      o;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t#include \"Assets/VFXShaders/VFXCommonOutput.cginc\"\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t\t\r\n\t\t\t#pragma
-      fragment frag\r\n\t\t\tps_output frag(ps_input i)\r\n\t\t\t{\r\n\t\t\t\tps_output
-      o = (ps_output)0;\r\n\t\t\t\to.color = VFXGetFragmentColor(i);\r\n\t\t\t\to.color
-      *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);\t\t\r\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\r\n\t\t\t\treturn
-      o;\r\n\t\t\t}\r\n\t\t\tENDHLSL\r\n\t\t}\r\n\t\t\r\n\r\n\t\t\r\n\t}\r\n}\r\n"
-    shader: {fileID: 4800000, guid: 78b579043ed563646a8189556bdf8e4f, type: 3}
   m_Expressions:
     m_Expressions:
     - op: 1
@@ -8161,7 +7846,7 @@ VisualEffectAsset:
       - m_ExpressionIndex: 58
         m_Value: 0
       - m_ExpressionIndex: 61
-        m_Value: -17
+        m_Value: 1
       - m_ExpressionIndex: 68
         m_Value: 0
       - m_ExpressionIndex: 69
@@ -8462,7 +8147,7 @@ VisualEffectAsset:
         index: 91
       - nameId: bounds_size
         index: 94
-      processor: {fileID: 7200000, guid: 78b579043ed563646a8189556bdf8e4f, type: 3}
+      processor: {fileID: 7200000, guid: f5adba7c4204573428754c200543edd3, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -8521,7 +8206,7 @@ VisualEffectAsset:
       - nameId: VectorField_e
         index: 109
       params: []
-      processor: {fileID: 7200002, guid: 78b579043ed563646a8189556bdf8e4f, type: 3}
+      processor: {fileID: 7200000, guid: 6ecc655e0b5eef74d825df483b369759, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -8562,7 +8247,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 78b579043ed563646a8189556bdf8e4f, type: 3}
+      processor: {fileID: 4800000, guid: 1302aba4349738148b6dfbd0373180dd, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
