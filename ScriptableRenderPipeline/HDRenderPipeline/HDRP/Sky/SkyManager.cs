@@ -376,8 +376,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             result.Apply();
 
             UnityEngine.Graphics.SetRenderTarget(null);
-            Object.DestroyImmediate(temp);
-            Object.DestroyImmediate(tempRT);
+            CoreUtils.Destroy(temp);
+            CoreUtils.Destroy(tempRT);
 
             return result;
         }

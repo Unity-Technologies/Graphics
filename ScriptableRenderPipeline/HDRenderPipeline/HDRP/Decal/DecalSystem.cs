@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Core\CoreRP\ShaderLibrary\UnityInstancing.hlsl
         // #if defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)
         //      #define UNITY_INSTANCED_ARRAY_SIZE  250
-        private const int kDrawIndexedBatchSize = 250; 
+        private const int kDrawIndexedBatchSize = 250;
 
         // cube mesh bounds for decal
         static Vector4 kMin = new Vector4(-0.5f, -1.0f, -0.5f, 1.0f);
@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DiffuseTexture = m_Material.GetTexture("_BaseColorMap");
                 m_NormalTexture = m_Material.GetTexture("_NormalMap");
                 m_MaskTexture = m_Material.GetTexture("_MaskMap");
-                m_Blend = m_Material.GetFloat("_DecalBlend");                
+                m_Blend = m_Material.GetFloat("_DecalBlend");
             }
 
             public DecalSet(Material material)
@@ -323,13 +323,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         normalToWorldBatch[instanceCount].m13 = m_DiffuseTexIndex;      // texture atlas indices needed for clustered
                         normalToWorldBatch[instanceCount].m23 = m_NormalTexIndex;
                         normalToWorldBatch[instanceCount].m33 = m_MaskTexIndex;
-                        
-                        // clustered forward data                        
-                        m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse; 
+
+                        // clustered forward data
+                        m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                         m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                         GetDecalVolumeDataAndBound(decalToWorldBatch[instanceCount], worldToView);
                         m_DecalDatasCount++;
-                        
+
                         instanceCount++;
                         if (instanceCount == kDrawIndexedBatchSize)
                         {
@@ -382,7 +382,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 InitializeMaterialValues(); // refresh in case they changed in the UI
                 UpdateTextureCache(cmd);
             }
-      
+
             public void RenderIntoDBuffer(CommandBuffer cmd)
             {
                 if(m_NumResults == 0)
@@ -400,9 +400,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
-                }                
+                }
             }
-           
+
             public Material KeyMaterial
             {
                 get
@@ -440,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private int m_NormalTexIndex = -1;
             private int m_MaskTexIndex = -1;
         }
-        
+
         public DecalHandle AddDecal(Transform transform, float drawDistance, float fadeScale, Material material)
         {			
             DecalSet decalSet = null;
@@ -537,7 +537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.RenderIntoDBuffer(cmd);
-            }            
+            }
         }
 
         public void SetAtlas(CommandBuffer cmd)
@@ -556,7 +556,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CreateDrawData()
         {
-            m_DecalDatasCount = 0;           
+            m_DecalDatasCount = 0;
             // reallocate if needed
             if (m_DecalsVisibleThisFrame > m_DecalDatas.Length)
             {
@@ -569,6 +569,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 pair.Value.CreateDrawData();
             }
+        }
+
+        public void Cleanup()
+        {
+            if (m_DecalAtlas != null)
+                m_DecalAtlas.Release();
+            CoreUtils.Destroy(m_DecalMesh);
         }
     }
 }

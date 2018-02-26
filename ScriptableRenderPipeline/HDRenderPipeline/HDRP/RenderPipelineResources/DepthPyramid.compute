@@ -3,6 +3,8 @@
 #pragma kernel KMain_8                KERNEL_SIZE=8     KERNEL_NAME=KMain_8
 #pragma kernel KMain_1                KERNEL_SIZE=1     KERNEL_NAME=KMain_1
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 Texture2D<float> _Source;
 RWTexture2D<float> _Result;
 

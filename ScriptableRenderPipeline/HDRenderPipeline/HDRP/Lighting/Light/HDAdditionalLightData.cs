@@ -29,6 +29,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_Version = 1.0f;
  #pragma warning restore 414
 
+        // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
+        // we add intensity (for each type of light we want to manage).
+        public float directionalIntensity   = Mathf.PI; // In Lux
+        public float punctualIntensity      = 600.0f;   // Light default to 600 lumen, i.e ~48 candela
+        public float areaIntensity          = 200.0f;   // Light default to 200 lumen to better match point light
+
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
