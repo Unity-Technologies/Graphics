@@ -453,11 +453,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return decalSet.AddDecal(transform, drawDistance, fadeScale, key);
         }
 
-        public void AddDecal(DecalProjectorComponent decal)
-        {
-            decal.Handle = AddDecal(decal.transform, decal.m_DrawDistance, decal.m_FadeScale, decal.m_Material);            
-        }
-
         public void RemoveDecal(DecalHandle handle)
         {
             if (!DecalHandle.IsValid(handle))
@@ -474,12 +469,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DecalSets.Remove(key);
                 }
             }
-        }
-
-        // for compatibility with old code
-        public void RemoveDecal(DecalProjectorComponent decal)
-        {
-            RemoveDecal(decal.Handle);
         }
 
         public void UpdateCachedData(Transform transform, float drawDistance, float fadeScale, DecalHandle handle)
