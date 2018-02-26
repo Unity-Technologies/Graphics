@@ -49,6 +49,41 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void LinkPositionAndDirection()
+        {
+            var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
+            var positionDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.Contains("Position"));
+            var directionDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.Contains("Direction"));
+
+            var cross = m_ViewController.AddVFXOperator(new Vector2(1, 1), crossDesc);
+            var position = m_ViewController.AddVFXParameter(new Vector2(2, 2), positionDesc);
+            var direction = m_ViewController.AddVFXParameter(new Vector2(3, 3), directionDesc);
+
+            m_ViewController.ApplyChanges();
+
+            Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
+                {
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
+                };
+
+            var controllerCross = fnFindController(cross);
+
+            var edgeControllerAppend_A = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).First(), fnFindController(position).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_A);
+            m_ViewController.ApplyChanges();
+
+            var edgeControllerAppend_B = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).Last(), fnFindController(direction).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_B);
+            m_ViewController.ApplyChanges();
+
+            Assert.AreEqual(1, cross.inputSlots[0].LinkedSlots.Count());
+            Assert.AreEqual(1, cross.inputSlots[1].LinkedSlots.Count());
+
+            //TODO : set value & check result => will be a full test
+        }
+
+        [Test]
         public void CascadedOperatorAdd()
         {
             Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)

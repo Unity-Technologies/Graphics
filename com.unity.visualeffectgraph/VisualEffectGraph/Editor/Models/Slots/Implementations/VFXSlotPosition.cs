@@ -1,15 +1,14 @@
 using System;
 using UnityEngine;
-//using Direction = UnityEditor.VFX.Direction;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(type = typeof(DirectionType))]
-    class VFXSlotDirection : VFXSlot
+    [VFXInfo(type = typeof(Position))]
+    class VFXSlotPosition : VFXSlot
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXValue<Vector3>(Vector3.forward, mode);
+            return new VFXValue<Vector3>(Vector3.zero, mode);
         }
 
         protected override bool CanConvertFrom(Type type)
@@ -19,7 +18,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
-            return VFXOperatorUtility.Normalize(expr[0]);
+            return expr[0];
         }
 
         protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
