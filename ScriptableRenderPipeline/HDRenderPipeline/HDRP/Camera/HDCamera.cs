@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // The scene view has no additional data so this will correctly pick the editor preference backround color here.
                 return camera.backgroundColor.linear;
             }
-        }        
+        }
 
         static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
         static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
@@ -202,12 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 isFirstFrame = false;
             }
 
-            // TEMP: Re-enable this code once we bump the postprocessing package to 0.1.19 (or above)
-            // current package 0.1.8 don't have the .sampleIndex and it fail with template...
-            // taaFrameIndex = taaEnabled ? (uint)postProcessLayer.temporalAntialiasing.sampleIndex : 0;
-            const uint taaFrameCount = 8;
-            taaFrameIndex = taaEnabled ? (uint)Time.renderedFrameCount % taaFrameCount : 0;
-            // END TEMP
+            taaFrameIndex = taaEnabled ? (uint)postProcessLayer.temporalAntialiasing.sampleIndex : 0;
             taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
                                            Mathf.Cos(taaFrameIndex * (0.5f * Mathf.PI)));
 

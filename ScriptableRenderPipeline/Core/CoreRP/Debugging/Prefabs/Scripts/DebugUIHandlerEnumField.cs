@@ -72,6 +72,11 @@ namespace UnityEngine.Experimental.Rendering.UI
         void UpdateValueLabel()
         {
             int index = Array.IndexOf(m_Field.enumValues, m_Field.GetValue());
+
+            // Fallback just in case, we may be handling sub/sectionned enums here
+            if (index < 0)
+                index = 0;
+
             valueLabel.text = "< " + m_Field.enumNames[index].text + " >";
         }
     }
