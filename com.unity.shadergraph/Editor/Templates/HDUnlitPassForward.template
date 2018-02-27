@@ -25,6 +25,7 @@ Pass
     #include "HDRP/ShaderVariables.hlsl"
     #include "HDRP/ShaderPass/FragInputs.hlsl"
     #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
+    #include "ShaderGraphLibrary/Functions.hlsl"
 
     ${Defines}
     
