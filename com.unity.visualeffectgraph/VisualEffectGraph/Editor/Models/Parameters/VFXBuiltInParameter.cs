@@ -28,11 +28,33 @@ namespace UnityEditor.VFX
 
         override public string name { get { return m_expressionOp.ToString(); } }
 
+        public override void Sanitize()
+        {
+            if (VFXBuiltInExpression.Find(m_expressionOp) == null)
+            {
+                switch (m_expressionOp)
+                {
+                    // Do to reorganization, some indices have changed
+                    case VFXExpressionOp.TanOp:         m_expressionOp = VFXExpressionOp.DeltaTimeOp; break;
+                    case VFXExpressionOp.ASinOp:        m_expressionOp = VFXExpressionOp.TotalTimeOp; break;
+                    case VFXExpressionOp.ACosOp:        m_expressionOp = VFXExpressionOp.SystemSeedOp; break;
+                    case VFXExpressionOp.RGBtoHSVOp:    m_expressionOp = VFXExpressionOp.LocalToWorldOp; break;
+                    case VFXExpressionOp.HSVtoRGBOp:    m_expressionOp = VFXExpressionOp.WorldToLocalOp; break;
+
+                    default:
+                        Debug.LogWarning(string.Format("Expression operator for the BuiltInParameter is invalid ({0}). Reset to none", m_expressionOp));
+                        m_expressionOp = VFXExpressionOp.NoneOp;
+                        break;
+                }
+            }
+            base.Sanitize(); // Will call ResyncSlots
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
-                var expression = VFXBuiltInExpression.Find(this.m_expressionOp);
+                var expression = VFXBuiltInExpression.Find(m_expressionOp);
                 if (expression != null)
                     yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(expression.valueType), m_expressionOp.ToString()));
             }

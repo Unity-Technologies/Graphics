@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Test
         VFXViewController m_ViewController;
         VFXViewWindow m_Window;
 
-        const string testAssetName = "Assets/TmpTests/{0}.asset";
+        const string testAssetName = "Assets/TmpTests/{0}.vfx";
 
 
         [Test]
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.Test
             m_ViewController.ApplyChanges();
             foreach (var param in parameters)
             {
-                VFXParameterController paramController = m_ViewController.allChildren.OfType<VFXParameterController>().First(t => t.model == param);
+                VFXParameterNodeController paramController = m_ViewController.allChildren.OfType<VFXParameterNodeController>().First(t => t.model == param);
 
                 VFXDataAnchorController outputAnchor = paramController.outputPorts.First() as VFXDataAnchorController;
                 System.Type type = outputAnchor.portType;
@@ -112,11 +112,11 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        public VFXAsset m_Asset;
+        public VisualEffectAsset m_Asset;
 
         public void CreateTestAsset(string name)
         {
-            m_Asset = new VFXAsset();
+            m_Asset = new VisualEffectAsset();
 
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Graphing;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -15,9 +16,9 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         private string m_exposedName;
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private bool m_exposed;
         [VFXSetting, SerializeField]
         private int m_order;
@@ -25,6 +26,44 @@ namespace UnityEditor.VFX
         public VFXSerializableObject m_Min;
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Max;
+
+        [System.Serializable]
+        public struct NodeLinkedSlot
+        {
+            public VFXSlot outputSlot; // some slot from the parameter
+            public VFXSlot inputSlot;
+        }
+
+        [System.Serializable]
+        public class Node
+        {
+            public Node(int id)
+            {
+                m_Id = id;
+            }
+
+            [SerializeField]
+            private int m_Id;
+
+            public int id { get { return m_Id; } }
+
+            public List<NodeLinkedSlot> linkedSlots;
+            public Vector2 position;
+            public List<VFXSlot> expandedSlots;
+
+
+            //Should only be called by ValidateNodes if something very wrong happened with serialization
+            internal void ChangeId(int newId)
+            {
+                m_Id = newId;
+            }
+        }
+
+        [SerializeField]
+        protected List<Node> m_Nodes;
+
+        [NonSerialized]
+        int m_IDCounter = 0;
 
         public string exposedName
         {
@@ -66,6 +105,19 @@ namespace UnityEditor.VFX
         {
             get { return outputSlots[0].value; }
             set { outputSlots[0].value = value; }
+        }
+
+
+        public ReadOnlyCollection<Node> nodes
+        {
+            get
+            {
+                if (m_Nodes == null)
+                {
+                    m_Nodes = new List<Node>();
+                }
+                return m_Nodes.AsReadOnly();
+            }
         }
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -120,6 +172,157 @@ namespace UnityEditor.VFX
                 m_ExprSlots = new VFXSlot[0];
                 m_ValueExpr = new VFXValue[0];
             }
+
+            if (m_Nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    if (m_IDCounter < node.id + 1)
+                    {
+                        m_IDCounter = node.id + 1;
+                    }
+                }
+            }
+        }
+
+        Node NewNode()
+        {
+            return new Node(m_IDCounter++);
+        }
+
+        public void AddNode(Vector2 pos)
+        {
+            Node info = NewNode();
+
+            info.position = pos;
+
+            m_Nodes.Add(info);
+
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
+        public void RemoveNode(Node info)
+        {
+            if (m_Nodes.Contains(info))
+            {
+                foreach (var slots in info.linkedSlots)
+                {
+                    slots.outputSlot.Unlink(slots.inputSlot);
+                }
+                m_Nodes.Remove(info);
+
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+        }
+
+        //AddNodeRange will take ownership of the Nodes instead of copying them
+        public void AddNodeRange(IEnumerable<Node> infos)
+        {
+            foreach (var info in infos)
+            {
+                if (m_Nodes.Any(t => t.id == info.id))
+                {
+                    info.ChangeId(m_IDCounter++);
+                }
+                m_Nodes.Add(info);
+            }
+
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
+        //SetNodes will take ownership of the Nodes instead of copying them
+        public void SetNodes(IEnumerable<Node> infos)
+        {
+            m_Nodes = infos.ToList();
+
+            ValidateNodes();
+
+            Invalidate(InvalidationCause.kUIChanged);
+        }
+
+        void GetAllLinks(List<NodeLinkedSlot> list, VFXSlot slot)
+        {
+            list.AddRange(slot.LinkedSlots.Select(t => new NodeLinkedSlot() { outputSlot = slot, inputSlot = t }));
+            foreach (var child in slot.children)
+            {
+                GetAllLinks(list, child);
+            }
+        }
+
+        void GetAllExpandedSlots(List<VFXSlot> list, VFXSlot slot)
+        {
+            if (!slot.collapsed)
+                list.Add(slot);
+            foreach (var child in slot.children)
+            {
+                GetAllExpandedSlots(list, child);
+            }
+        }
+
+        public void ValidateNodes()
+        {
+            // Case of the old VFXParameter we create a new one on the same place with all the Links
+            if (position != Vector2.zero && nodes.Count == 0)
+            {
+                var newInfos = NewNode();
+                newInfos.position = position;
+
+
+                newInfos.linkedSlots = new List<NodeLinkedSlot>();
+                GetAllLinks(newInfos.linkedSlots, outputSlots[0]);
+                newInfos.expandedSlots = new List<VFXSlot>();
+                GetAllExpandedSlots(newInfos.expandedSlots, outputSlots[0]);
+                m_Nodes.Add(newInfos);
+            }
+            else
+            {
+                // the linked slot of the outSlot decides so make sure that all appear once and only once in all the nodes
+                List<NodeLinkedSlot> links = new List<NodeLinkedSlot>();
+                GetAllLinks(links, outputSlots[0]);
+                HashSet<int> usedIds = new HashSet<int>();
+                foreach (var info in nodes)
+                {
+                    // Check linkedSlots
+                    if (info.linkedSlots == null)
+                    {
+                        info.linkedSlots = new List<NodeLinkedSlot>();
+                    }
+                    else
+                    {
+                        // first remove linkedSlots that are not existing
+                        var intersect = info.linkedSlots.Intersect(links);
+                        if (intersect.Count() != info.linkedSlots.Count())
+                            info.linkedSlots = info.linkedSlots.Intersect(links).ToList();
+                    }
+
+                    //Check that all slots needed for
+                    if (info.expandedSlots == null)
+                    {
+                        info.expandedSlots = new List<VFXSlot>();
+                    }
+
+                    if (usedIds.Contains(info.id))
+                    {
+                        info.ChangeId(m_IDCounter++);
+                    }
+                    usedIds.Add(info.id);
+
+                    foreach (var slot in info.linkedSlots)
+                    {
+                        links.Remove(slot);
+                    }
+                }
+                // if there are some links in the output slots that are in none of the infos, create a default param with them
+                if (links.Count > 0)
+                {
+                    var newInfos = NewNode();
+                    newInfos.position = Vector2.zero;
+                    newInfos.linkedSlots = links;
+                    newInfos.expandedSlots = new List<VFXSlot>();
+                    m_Nodes.Add(newInfos);
+                }
+            }
+            position = Vector2.zero; // Set that as a marker that the parameter has been touched by the new code.
         }
 
         public override void UpdateOutputExpressions()

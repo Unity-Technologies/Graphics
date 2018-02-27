@@ -74,20 +74,20 @@ namespace UnityEditor.VFX
         {
             m_Operands[index].type = type;
 
-            VFXValueType vectorType = VFXValueType.kNone;
+            VFXValueType vectorType = VFXValueType.None;
 
             switch (type)
             {
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
+                case VFXValueType.Float2:
+                case VFXValueType.Float3:
+                case VFXValueType.Float4:
                     vectorType = type;
                     break;
                 default:
                     break;
             }
 
-            if (vectorType != VFXValueType.kNone)
+            if (vectorType != VFXValueType.None)
             {
                 for (int i = 0; i < m_Operands.Length; ++i)
                 {
@@ -95,9 +95,9 @@ namespace UnityEditor.VFX
                     {
                         switch (m_Operands[i].type)
                         {
-                            case VFXValueType.kFloat2:
-                            case VFXValueType.kFloat3:
-                            case VFXValueType.kFloat4:
+                            case VFXValueType.Float2:
+                            case VFXValueType.Float3:
+                            case VFXValueType.Float4:
                                 m_Operands[i].type = vectorType;
                                 break;
                             default:
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
 
             if (m_Operands != null)
             {
-                VFXValueType vectorType = VFXValueType.kNone;
+                VFXValueType vectorType = VFXValueType.None;
                 for (int i = 0; i < m_Operands.Length; ++i)
                 {
                     if (string.IsNullOrEmpty(m_Operands[i].name))
@@ -126,13 +126,13 @@ namespace UnityEditor.VFX
 
                     switch (m_Operands[i].type)
                     {
-                        case VFXValueType.kFloat:
+                        case VFXValueType.Float:
                             break;
-                        case VFXValueType.kFloat2:
-                        case VFXValueType.kFloat3:
-                        case VFXValueType.kFloat4:
+                        case VFXValueType.Float2:
+                        case VFXValueType.Float3:
+                        case VFXValueType.Float4:
                         {
-                            if (vectorType != VFXValueType.kNone)
+                            if (vectorType != VFXValueType.None)
                             {
                                 if (vectorType != m_Operands[i].type)
                                 {
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX
                         }
                         break;
                         default:
-                            m_Operands[i].type = VFXValueType.kFloat;
+                            m_Operands[i].type = VFXValueType.Float;
                             break;
                     }
                 }
@@ -196,15 +196,15 @@ namespace UnityEditor.VFX
 
         public OperandInfo GetDefaultInfo(int index)
         {
-            return new OperandInfo() {name = GetDefaultName(index), type = VFXValueType.kFloat};
+            return new OperandInfo() {name = GetDefaultName(index), type = VFXValueType.Float};
         }
 
         VFXValueType[] m_ValidTypes = new VFXValueType[]
         {
-            VFXValueType.kFloat,
-            VFXValueType.kFloat2,
-            VFXValueType.kFloat3,
-            VFXValueType.kFloat4,
+            VFXValueType.Float,
+            VFXValueType.Float2,
+            VFXValueType.Float3,
+            VFXValueType.Float4,
         };
 
         public IEnumerable<VFXValueType> validTypes
@@ -217,17 +217,17 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:
+                case VFXValueType.Float:
                     return 1.0f;
-                case VFXValueType.kFloat2:
+                case VFXValueType.Float2:
                     return Vector2.one;
-                case VFXValueType.kFloat3:
+                case VFXValueType.Float3:
                     return Vector3.one;
-                case VFXValueType.kFloat4:
+                case VFXValueType.Float4:
                     return Vector4.one;
-                case VFXValueType.kInt:
+                case VFXValueType.Int:
                     return 1;
-                case VFXValueType.kUint:
+                case VFXValueType.Uint:
                     return (uint)1;
             }
             return null;
@@ -243,7 +243,7 @@ namespace UnityEditor.VFX
                     for (int i = 0; i < m_Operands.Length; ++i)
                     {
                         m_Operands[i].name = GetDefaultName(i);
-                        m_Operands[i].type = VFXValueType.kFloat;
+                        m_Operands[i].type = VFXValueType.Float;
                     }
                 }
 

@@ -21,8 +21,9 @@ ByteAddressBuffer attributeBuffer;
 StructuredBuffer<uint> indirectBuffer;	
 #endif	
 
-CBUFFER_START(outputParams)	
+CBUFFER_START(outputParams)
 	float nbMax;
+	float systemSeed;
 CBUFFER_END
 
 ENDHLSL

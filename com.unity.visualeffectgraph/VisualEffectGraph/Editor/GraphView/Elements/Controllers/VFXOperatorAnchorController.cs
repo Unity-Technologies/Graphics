@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXOperatorAnchorController : VFXDataAnchorController
     {
-        public VFXOperatorAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        public VFXOperatorAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
 
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXInputOperatorAnchorController : VFXOperatorAnchorController
     {
-        public VFXInputOperatorAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        public VFXInputOperatorAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
 
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXOutputOperatorAnchorController : VFXOperatorAnchorController
     {
-        public VFXOutputOperatorAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
+        public VFXOutputOperatorAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model, sourceNode, hidden)
         {
         }
 

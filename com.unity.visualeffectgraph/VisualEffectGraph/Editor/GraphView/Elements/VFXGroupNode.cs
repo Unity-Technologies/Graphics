@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>
+    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>, IVFXMovable
     {
         Controller IControlledElement.controller
         {
@@ -39,18 +39,16 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
 
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
-            base.UpdatePresenterPosition();
-
             if (containedElements.Count == 0)
             {
                 controller.position = GetPosition();
             }
 
-            foreach (var node in containedElements)
+            foreach (var node in containedElements.OfType<IVFXMovable>())
             {
-                node.UpdatePresenterPosition();
+                node.OnMoved();
             }
         }
 
@@ -68,11 +66,11 @@ namespace UnityEditor.VFX.UI
 
 
                 var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<IControlledElement<VFXNodeController>>();
+                var elementContent = containedElements.OfType<ISettableControlledElement<VFXNodeController>>();
 
                 if (elementContent == null)
                 {
-                    elementContent = new List<IControlledElement<VFXNodeController>>();
+                    elementContent = new List<ISettableControlledElement<VFXNodeController>>();
                 }
 
                 bool elementsChanged = false;
@@ -83,7 +81,7 @@ namespace UnityEditor.VFX.UI
                     elementsChanged = true;
                 }
 
-                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement<VFXNodeController>>();
+                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<ISettableControlledElement<VFXNodeController>>();
 
                 var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.controller == t) == null).Select(t => viewElements.FirstOrDefault(u => u.controller == t)).ToArray();
 
@@ -116,13 +114,13 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
+                ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
 
                 if (node != null)
                 {
                     controller.AddNode(node.controller);
 
-                    UpdatePresenterPosition();
+                    OnMoved();
                 }
             }
         }
@@ -131,12 +129,12 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_ModificationFromPresenter)
             {
-                IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
+                ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
                 if (node != null)
                 {
                     controller.RemoveNode(node.controller);
 
-                    UpdatePresenterPosition();
+                    OnMoved();
                 }
             }
         }

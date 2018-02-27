@@ -14,14 +14,14 @@ namespace UnityEditor.VFX.UI
 
         public static void OnDrawComponentGizmo(Object component)
         {
-            VFXComponent comp = component as VFXComponent;
+            VisualEffect comp = component as VisualEffect;
 
             if (VFXViewWindow.currentWindow == null) return;
 
 
             VFXView view = VFXViewWindow.currentWindow.graphView as VFXView;
 
-            if (comp.vfxAsset != view.controller.model) return;
+            if (comp.visualEffectAsset != view.controller.model) return;
 
             VFXBlockUI selectedBlock = view.selection.OfType<VFXBlockUI>().FirstOrDefault();
 
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
                         VFXContextUI selectedContext = view.selection.OfType<VFXContextUI>().FirstOrDefault();
                         if (selectedContext != null)
                         {
-                            selectedContext.controller.slotContainerController.DrawGizmos(comp);
+                            selectedContext.controller.DrawGizmos(comp);
                         }
                     }
                 }

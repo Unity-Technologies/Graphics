@@ -34,9 +34,9 @@ namespace UnityEditor.VFX.Test
             public ContextTestOutput() : base(VFXContextType.kOutput) {}
         }
 
-        private VFXAttribute Attrib1 = new VFXAttribute("attrib1", VFXValueType.kFloat);
-        private VFXAttribute Attrib2 = new VFXAttribute("attrib2", VFXValueType.kFloat2);
-        private VFXAttribute Attrib3 = new VFXAttribute("attrib3", VFXValueType.kFloat3);
+        private VFXAttribute Attrib1 = new VFXAttribute("attrib1", VFXValueType.Float);
+        private VFXAttribute Attrib2 = new VFXAttribute("attrib2", VFXValueType.Float2);
+        private VFXAttribute Attrib3 = new VFXAttribute("attrib3", VFXValueType.Float3);
 
         private void TestAttributes(Action<VFXGraph> init, Action<VFXData> test)
         {

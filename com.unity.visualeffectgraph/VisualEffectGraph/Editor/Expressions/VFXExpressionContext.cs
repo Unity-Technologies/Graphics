@@ -86,6 +86,9 @@ namespace UnityEditor.VFX
                 if (exp.Is(Flags.InvalidOnCPU) || exp.Is(Flags.PerElement))
                     return false;
 
+                if (!exp.Is(Flags.Value) && reducedParents.Length == 0) // not a value
+                    return false;
+
                 Flags flag = Flags.Value;
                 if (!Has(VFXExpressionContextOption.CPUEvaluation))
                     flag |= Has(VFXExpressionContextOption.ConstantFolding) ? Flags.Foldable : Flags.Constant;
@@ -100,9 +103,9 @@ namespace UnityEditor.VFX
             {
                 switch (exp.valueType)
                 {
-                    case VFXValueType.kColorGradient:
+                    case VFXValueType.ColorGradient:
                         return new VFXExpressionBakeGradient(exp);
-                    case VFXValueType.kCurve:
+                    case VFXValueType.Curve:
                         return new VFXExpressionBakeCurve(exp);
                     default:
                         return exp;

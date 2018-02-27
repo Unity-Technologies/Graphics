@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI()
         {
-            m_TextField.text = m_Value != null ? m_Value : "";
+            m_TextField.value = m_Value != null ? m_Value : "";
         }
     }
 }

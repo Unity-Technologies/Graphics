@@ -20,6 +20,8 @@ namespace UnityEditor.VFX.UI
 
         public VFXOperatorUI()
         {
+            AddStyleSheetPath("VFXOperator");
+
             m_Middle = new VisualElement();
             m_Middle.name = "middle";
             inputContainer.parent.Insert(1, m_Middle);
@@ -142,8 +144,9 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer == null)
                 {
                     m_EditContainer = new VFXMultiOperatorEdit();
+                    m_EditContainer.name = "edit-container";
                 }
-                (m_EditContainer as IControlledElement<VFXOperatorController>).controller = controller;
+                (m_EditContainer as VFXMultiOperatorEdit).controller = controller;
             }
             else
             {

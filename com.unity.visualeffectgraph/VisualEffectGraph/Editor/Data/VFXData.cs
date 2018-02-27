@@ -202,9 +202,7 @@ namespace UnityEditor.VFX
 
         protected bool HasImplicitInit(VFXAttribute attrib)
         {
-            return (attrib.Equals(VFXAttribute.Seed)
-                    || attrib.Equals(VFXAttribute.ParticleId)
-                    || attrib.Equals(VFXAttribute.Phase));
+            return (attrib.Equals(VFXAttribute.Seed) || attrib.Equals(VFXAttribute.ParticleId));
         }
 
         private void ProcessAttributes()
@@ -214,7 +212,7 @@ namespace UnityEditor.VFX
             m_ReadSourceAttributes.Clear();
             if (type == VFXDataType.kParticle)
             {
-                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.kFloat));
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float));
             }
 
             int nbOwners = m_Owners.Count;
