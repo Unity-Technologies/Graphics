@@ -81,9 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void UpdateSlotType()
         {
             if (slot.concreteValueType != m_SlotType)
-            {
                 Recreate();
-            }
         }
 
         void Recreate()
