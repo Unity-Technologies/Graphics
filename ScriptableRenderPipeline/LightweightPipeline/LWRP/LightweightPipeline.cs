@@ -437,7 +437,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
             }
-            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
+
+            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that 
+            // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
+            // stereo functionality, we use the screen-space shadow map as the source (until we have
+            // a better solution).
+            cmd.Blit(m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
             if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
                 context.StartMultiEye(m_CurrCamera);
