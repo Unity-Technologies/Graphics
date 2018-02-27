@@ -7,10 +7,13 @@ using UnityEngine.Experimental.Rendering;
 public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 {
     private const float kMinShininessValue = 0.01f;
+    private MaterialProperty surfaceTypeProp;
     private MaterialProperty blendModeProp;
+    private MaterialProperty culling;
+    private MaterialProperty alphaClip;
     private MaterialProperty albedoMapProp;
     private MaterialProperty albedoColorProp;
-    private MaterialProperty alphaCutoffProp;
+    private MaterialProperty alphaThresholdProp;
     private MaterialProperty specularSourceProp;
     private MaterialProperty glossinessSourceProp;
     private MaterialProperty specularGlossMapProp;
@@ -22,6 +25,9 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 
     private static class Styles
     {
+        public static GUIContent twoSidedLabel = new GUIContent("Two Sided", "Render front and back faces");
+        public static GUIContent alphaClipLabel = new GUIContent("Alpha Clip", "Enable Alpha Clip");
+
         public static GUIContent[] albedoGlosinessLabels =
         {
             new GUIContent("Base (RGB) Glossiness (A)", "Base Color (RGB) and Glossiness (A)"),
@@ -40,17 +46,19 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map");
         public static GUIContent emissionMapLabel = new GUIContent("Emission Map", "Emission Map");
 
+        public static readonly string[] surfaceNames = Enum.GetNames(typeof(SurfaceType));
         public static readonly string[] blendNames = Enum.GetNames(typeof(UpgradeBlendMode));
         public static readonly string[] glossinessSourceNames = Enum.GetNames(typeof(GlossinessSource));
 
-        public static string renderingModeLabel = "Rendering Mode";
+        public static string surfaceTypeLabel = "Surface Type";
+        public static string blendingModeLabel = "Blending Mode";
         public static string specularSourceLabel = "Specular";
         public static string glossinessSourceLabel = "Glossiness Source";
         public static string glossinessSource = "Glossiness Source";
         public static string albedoColorLabel = "Base Color";
         public static string albedoMapAlphaLabel = "Base(RGB) Alpha(A)";
         public static string albedoMapGlossinessLabel = "Base(RGB) Glossiness (A)";
-        public static string alphaCutoffLabel = "Alpha Cutoff";
+        public static string clipThresholdLabel = "Clip Threshold";
         public static string shininessLabel = "Shininess";
         public static string normalMapLabel = "Normal map";
         public static string emissionColorLabel = "Emission Color";
@@ -59,11 +67,13 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 
     public override void FindProperties(MaterialProperty[] properties)
     {
-        blendModeProp = FindProperty("_Mode", properties);
+        surfaceTypeProp = FindProperty("_Surface", properties);
+        blendModeProp = FindProperty("_Blend", properties);
+        culling = FindProperty("_Cull", properties);
+        alphaClip  = FindProperty("_AlphaClip", properties);
         albedoMapProp = FindProperty("_MainTex", properties);
         albedoColorProp = FindProperty("_Color", properties);
-
-        alphaCutoffProp = FindProperty("_Cutoff", properties);
+        alphaThresholdProp = FindProperty("_Cutoff", properties);
         specularSourceProp = FindProperty("_SpecSource", properties);
         glossinessSourceProp = FindProperty("_GlossinessSource", properties);
         specularGlossMapProp = FindProperty("_SpecGlossMap", properties);
@@ -78,9 +88,7 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
     {
         EditorGUI.BeginChangeCheck();
         {
-            DoBlendMode();
-
-            EditorGUILayout.Space();
+            DoSurfaceArea();
             DoSpecular();
 
             EditorGUILayout.Space();
@@ -169,31 +177,47 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         StandardSimpleLightingUpgrader.UpdateMaterialKeywords(material);
     }
 
-    private void DoBlendMode()
+    private void DoSurfaceArea()
     {
-        int modeValue = (int)blendModeProp.floatValue;
+        int surfaceTypeValue = (int)surfaceTypeProp.floatValue;
         EditorGUI.BeginChangeCheck();
-        modeValue = EditorGUILayout.Popup(Styles.renderingModeLabel, modeValue, Styles.blendNames);
+        surfaceTypeValue = EditorGUILayout.Popup(Styles.surfaceTypeLabel, surfaceTypeValue, Styles.surfaceNames);
         if (EditorGUI.EndChangeCheck())
-            blendModeProp.floatValue = modeValue;
+            surfaceTypeProp.floatValue = surfaceTypeValue;
 
-        UpgradeBlendMode mode = (UpgradeBlendMode)blendModeProp.floatValue;
+        if((SurfaceType)surfaceTypeValue == SurfaceType.Transparent)
+        {
+            int blendModeValue = (int)blendModeProp.floatValue;
+            EditorGUI.BeginChangeCheck();
+            blendModeValue = EditorGUILayout.Popup(Styles.blendingModeLabel, blendModeValue, Styles.blendNames);
+            if (EditorGUI.EndChangeCheck())
+                blendModeProp.floatValue = blendModeValue;
+        }
 
+        EditorGUI.BeginChangeCheck();
+        bool twoSidedEnabled = EditorGUILayout.Toggle(Styles.twoSidedLabel, culling.floatValue == 0);
+        if (EditorGUI.EndChangeCheck())
+            culling.floatValue = twoSidedEnabled ? 0 : 2;
+
+        EditorGUI.BeginChangeCheck();
+        bool alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipLabel, alphaClip.floatValue == 1);
+        if (EditorGUI.EndChangeCheck())
+            alphaClip.floatValue = alphaClipEnabled ? 1 : 0;
+        
         EditorGUILayout.Space();
 
-        if (mode == UpgradeBlendMode.Opaque)
+        if ((SurfaceType)surfaceTypeValue == SurfaceType.Opaque)
         {
             int glossSource = (int)glossinessSourceProp.floatValue;
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoGlosinessLabels[glossSource], albedoMapProp,
                 albedoColorProp);
-            m_MaterialEditor.TextureScaleOffsetProperty(albedoMapProp);
         }
         else
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoAlphaLabel, albedoMapProp, albedoColorProp);
-            if (mode == UpgradeBlendMode.Cutout)
-                m_MaterialEditor.RangeProperty(alphaCutoffProp, "Cutoff");
         }
+        if (alphaClipEnabled)
+            m_MaterialEditor.ShaderProperty(alphaThresholdProp, Styles.clipThresholdLabel, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
     }
 
     private void DoSpecular()
@@ -258,17 +282,23 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 
         if (oldShaderName.Contains("Transp"))
         {
+            shaderUpgradeParams.surfaceType = UpgradeSurfaceType.Transparent;
             shaderUpgradeParams.blendMode = UpgradeBlendMode.Alpha;
+            shaderUpgradeParams.alphaClip = false;
             shaderUpgradeParams.glosinessSource = GlossinessSource.SpecularAlpha;
         }
         else if (oldShaderName.Contains("Cutout"))
         {
-            shaderUpgradeParams.blendMode = UpgradeBlendMode.Cutout;
+            shaderUpgradeParams.surfaceType = UpgradeSurfaceType.Opaque;
+            shaderUpgradeParams.blendMode = UpgradeBlendMode.Alpha;
+            shaderUpgradeParams.alphaClip = true;
             shaderUpgradeParams.glosinessSource = GlossinessSource.SpecularAlpha;
         }
         else
         {
-            shaderUpgradeParams.blendMode = UpgradeBlendMode.Opaque;
+            shaderUpgradeParams.surfaceType = UpgradeSurfaceType.Opaque;
+            shaderUpgradeParams.blendMode = UpgradeBlendMode.Alpha;
+            shaderUpgradeParams.alphaClip = false;
             shaderUpgradeParams.glosinessSource = GlossinessSource.BaseAlpha;
         }
 
@@ -277,7 +307,8 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         else
             shaderUpgradeParams.specularSource = SpecularSource.NoSpecular;
 
-        material.SetFloat("_Mode", (float)shaderUpgradeParams.blendMode);
+        material.SetFloat("_Surface", (float)shaderUpgradeParams.surfaceType);
+        material.SetFloat("_Blend", (float)shaderUpgradeParams.blendMode);
         material.SetFloat("_SpecSource", (float)shaderUpgradeParams.specularSource);
         material.SetFloat("_GlossinessSource", (float)shaderUpgradeParams.glosinessSource);
 
