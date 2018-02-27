@@ -315,7 +315,6 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     // read
-                    float texelSizeX = 1.0f, texelSizeY = 1.0f;
                     CachedEntry ce = m_EntryCache[ceIdx];
                     ce.zclip = sr.shadowType != GPUShadowType.Directional;
 
@@ -340,8 +339,6 @@ namespace UnityEngine.Experimental.Rendering
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                         {
                             int face = (int)key.faceIdx;
-                            texelSizeX = 2.0f / ce.current.proj.m00;
-                            texelSizeY = 2.0f / ce.current.proj.m11;
                             m_TmpBorders[face] = cascadeBorders[face];
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
                         }
