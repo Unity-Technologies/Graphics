@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -396,6 +396,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
+            DecalSystem.instance.Cleanup();
+
             m_MaterialList.ForEach(material => material.Cleanup());
 
             CoreUtils.Destroy(m_CopyStencilForNoLighting);
@@ -521,6 +523,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             base.Render(renderContext, cameras);
+            RenderPipeline.BeginFrameRendering(cameras);
 
             if (m_FrameCount != Time.frameCount)
             {
@@ -542,6 +545,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (camera == null)
                     continue;
+
+                RenderPipeline.BeginCameraRendering(camera);
 
                 if (camera.cameraType != CameraType.Reflection)
                     // TODO: Render only visible probes

@@ -121,7 +121,14 @@ namespace UnityEngine.Experimental.Rendering
                 set
                 {
                     enumNames = Enum.GetNames(value).Select(x => new GUIContent(x)).ToArray();
-                    enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+
+                    // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
+                    //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+
+                    var values = Enum.GetValues(value);
+                    enumValues = new int[values.Length];
+                    for (int i = 0; i < values.Length; i++)
+                        enumValues[i] = (int)values.GetValue(i);
                 }
             }
         }
