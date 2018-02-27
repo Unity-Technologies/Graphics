@@ -6,7 +6,11 @@
 
 #define MAX_SHADOW_CASCADES 4
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+TEXTURE2D_ARRAY(_ScreenSpaceShadowMap);
+#else
 TEXTURE2D(_ScreenSpaceShadowMap);
+#endif
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
 TEXTURE2D_SHADOW(_ShadowMap);
@@ -47,7 +51,11 @@ inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
     // The stereo transform has to happen after the manual perspective divide
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
 
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy, unity_StereoEyeIndex).x;
+#else
     half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
+#endif
 
     // Apply shadow strength
     return LerpWhiteTo(attenuation, GetShadowStrength());
