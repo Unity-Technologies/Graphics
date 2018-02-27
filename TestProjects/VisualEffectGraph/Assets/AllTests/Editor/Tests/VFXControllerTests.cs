@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
+        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
 
         private int m_StartUndoGroupId;
 

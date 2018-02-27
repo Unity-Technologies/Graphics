@@ -430,39 +430,66 @@ public class VisualEffectEditor : Editor
     public static bool s_IsEditingAsset = false;
 
 
+    const float minSlider = 1;
+    const float maxSlider = 4000;
+
+    readonly int[] setPlaybackValues = new int[] { 1, 10, 50, 100, 200, 500, 1000, 4000 };
+
     private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
     {
         VisualEffect effect = ((VisualEffect)targets[0]);
+
+        var buttonWidth = GUILayout.Width(50);
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Stop)))
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Stop), buttonWidth))
         {
             effect.Reinit();
             effect.pause = true;
         }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play)))
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play), buttonWidth))
         {
             effect.pause = false;
         }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause)))
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause), buttonWidth))
         {
             effect.pause = !effect.pause;
         }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step)))
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step), buttonWidth))
         {
             effect.pause = true;
             effect.AdvanceOneFrame();
         }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Restart)))
+        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Restart), buttonWidth))
         {
             effect.Reinit();
             effect.pause = false;
         }
         GUILayout.EndHorizontal();
 
-        float playbackRate = EditorGUILayout.FloatField("Playback Rate", effect.playRate);
-        if (playbackRate < 0)
-            playbackRate = 0;
-        effect.playRate = playbackRate;
+        float playRate = effect.playRate * 100.0f;
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("Playback Rate", GUILayout.Width(84));
+        playRate = EditorGUILayout.PowerSlider("", playRate, minSlider, maxSlider, 10, GUILayout.Width(138));
+        effect.playRate = playRate * 0.01f;
+        if (EditorGUILayout.DropdownButton(EditorGUIUtility.TextContent("Set"), FocusType.Passive, GUILayout.Width(36)))
+        {
+            GenericMenu menu = new GenericMenu();
+            Rect buttonRect = GUILayoutUtility.topLevel.GetLast();
+            foreach (var value in setPlaybackValues)
+            {
+                menu.AddItem(EditorGUIUtility.TextContent(string.Format("{0}%", value)), false, SetPlayRate, value);
+            }
+            menu.DropDown(buttonRect);
+        }
+        GUILayout.EndHorizontal();
+    }
+
+    void SetPlayRate(object value)
+    {
+        float rate = (float)((int)value) / 100.0f;
+        VisualEffect effect = ((VisualEffect)targets[0]);
+        effect.playRate = rate;
     }
 
     protected virtual void OnSceneGUI()
@@ -660,12 +687,6 @@ public class VisualEffectEditor : Editor
     }
 
     bool m_WasEditingAsset;
-
-    private void SetPlayRate(object rate)
-    {
-        var component = (VisualEffect)target;
-        component.playRate = (float)rate;
-    }
 
     private class Styles
     {

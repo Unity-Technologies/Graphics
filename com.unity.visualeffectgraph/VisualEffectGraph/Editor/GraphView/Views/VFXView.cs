@@ -93,10 +93,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemFiles = System.IO.Directory.GetFiles(templatePath, "*.asset").Select(t => t.Replace("\\", "/"));
+            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/"));
             var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
 
 
@@ -781,14 +780,14 @@ namespace UnityEditor.VFX.UI
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             if (asset != null)
             {
-                VFXViewController controller = VFXViewController.GetController(asset, true);
-                controller.useCount++;
+                VFXViewController templateController = VFXViewController.GetController(asset, true);
+                templateController.useCount++;
 
-                var data = VFXCopyPaste.SerializeElements(controller.allChildren);
+                var data = VFXCopyPaste.SerializeElements(templateController.allChildren);
 
-                VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
+                VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this);
 
-                controller.useCount--;
+                templateController.useCount--;
             }
         }
 
@@ -1227,7 +1226,7 @@ namespace UnityEditor.VFX.UI
 
         void UnserializeAndPasteElements(string operationName, string data)
         {
-            VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
+            VFXCopyPaste.UnserializeAndPasteElements(controller, pasteOffset, data, this);
 
             pasteOffset += defaultPasteOffset;
         }
