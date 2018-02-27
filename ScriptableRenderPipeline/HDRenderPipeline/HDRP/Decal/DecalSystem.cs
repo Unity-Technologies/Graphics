@@ -510,8 +510,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 pair.Value.EndCull();
             }
         }
-
-        // need a better way than passing light loop here
+       
         public void RenderIntoDBuffer(CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
@@ -559,6 +558,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalAtlas != null)
                 m_DecalAtlas.Release();
             CoreUtils.Destroy(m_DecalMesh);
+            m_DecalAtlas = null; // set to null so that it gets recreated correctly
+            m_DecalMesh = null;
         }
     }
 }
