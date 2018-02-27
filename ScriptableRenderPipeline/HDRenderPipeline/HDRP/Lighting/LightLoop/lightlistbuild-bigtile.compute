@@ -1,5 +1,7 @@
 #pragma kernel BigTileLightListGen
 
+#pragma enable_d3d11_debug_symbols
+
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "LightLoop.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
@@ -15,8 +17,12 @@
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
-uniform float4x4 g_mInvScrProjection;
-uniform float4x4 g_mScrProjection;
+
+//uniform float4x4 g_mInvScrProjection;
+//uniform float4x4 g_mScrProjection;
+uniform float4x4 g_mInvScrProjectionArr[2];
+uniform float4x4 g_mScrProjectionArr[2];
+
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform uint g_isOrthographic;
@@ -38,8 +44,12 @@ RWStructuredBuffer<uint> g_vLightList : register( u0 );		// don't support RWBuff
 groupshared unsigned int lightsListLDS[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE];
 groupshared uint lightOffs;
 
+// TODO: Remove this function and g_mInvScrProjectionArr from constants.
+// Only usage of that constant.
 float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 {
+    float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[0];
+
     // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
 	// however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
@@ -54,6 +64,8 @@ float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
+    float4x4 g_mScrProjection = g_mScrProjectionArr[0];
+
 	bool isOrthographic = g_isOrthographic!=0;
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
@@ -74,6 +86,8 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 
 float GetOnePixDiagWorldDistAtDepthOne()
 {
+    float4x4 g_mScrProjection = g_mScrProjectionArr[0];
+
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
 
