@@ -186,16 +186,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is Node)
-                evt.menu.AppendAction("Copy shader", ConvertToShader, ConvertToShaderStatus);
+                evt.menu.AppendAction("Copy shader", ConvertToShader, node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden);
             base.BuildContextualMenu(evt);
         }
 
-        ContextualMenu.MenuAction.StatusFlags ConvertToShaderStatus(EventBase eventBase)
-        {
-            return node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden;
-        }
-
-        void ConvertToShader(EventBase eventBase)
+        void ConvertToShader()
         {
             List<PropertyCollector.TextureInfo> textureInfo;
             var masterNode = node as IMasterNode;
