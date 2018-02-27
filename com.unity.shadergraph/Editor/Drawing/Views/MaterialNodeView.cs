@@ -276,7 +276,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                     {
                         port.slot = newSlot;
-                        var portInputView = m_PortInputContainer.OfType<PortInputView>().FirstOrDefault(x => Equals(x.slot.id, currentSlot.id));
+                        var portInputView = m_PortInputContainer.OfType<PortInputView>().FirstOrDefault(x => x.slot.id == currentSlot.id);
                         portInputView.UpdateSlot(newSlot);
 
                         slots.Remove(newSlot);
