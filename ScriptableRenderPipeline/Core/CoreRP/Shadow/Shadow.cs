@@ -710,7 +710,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 if( curx + vp.width > xmax || cury + curh > ymax || curslice == m_Slices )
                 {
-                    Debug.LogError( "ERROR! Shadow atlasing failed." );
+                    Debug.LogWarning( "Shadow atlasing has failed." );
                     return false;
                 }
                 vp.x = curx;
@@ -1510,7 +1510,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 if( smidx == k_MaxShadowmapPerType )
                 {
-                    Debug.LogError("The requested shadows do not fit into any shadowmap.");
+                    Debug.LogWarning("The requested shadows do not fit into any shadowmap.");
                     return false;
                 }
             }
@@ -1520,7 +1520,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if( !sm.ReserveFinalize( frameId, ref shadowDatas, ref shadowmapPayload ) )
                 {
-                    Debug.LogError("Shadow allocation failed in the ReserveFinalize step." );
+                    Debug.LogWarning("Shadow allocation failed in the ReserveFinalize step." );
                     return false;
                 }
             }
