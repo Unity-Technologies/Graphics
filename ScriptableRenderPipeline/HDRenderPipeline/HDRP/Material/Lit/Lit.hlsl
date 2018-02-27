@@ -1326,19 +1326,24 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     UNITY_BRANCH
     if (autoThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
     {
-        // TODO: perform bilinear filtering of the shadow map.
         // Recompute transmittance using the thickness value computed from the shadow map.
-    #if 0
-        // Does not work, I get a compiler crash...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Cascade(lightLoopContext.shadowContext, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
-    #else
         #define SHADOW_DISPATCH_DIR_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Cascade(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX], posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
-    #endif
 
-        float thicknessInUnits       = distance(posInput.positionWS, occluderPosWS);
+        // Compute the distance from the light to the back face of the object along the light direction.
+        float3 nearPlanePositionWS;
+        float backNearPlaneDist = EvalShadow_SampleClosestDistance_Cascade(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX],
+                                                                           s_linear_clamp_sampler, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0),
+                                                                           nearPlanePositionWS);
+
+        // Our subsurface scattering models use the semi-infinite planar slab assumption.
+        // Therefore, we need to find the thickness along the normal.
+        float frontNearPlaneDist     = distance(nearPlanePositionWS, posInput.positionWS);
+        float thicknessInUnits       = (frontNearPlaneDist - backNearPlaneDist)  * -NdotL;
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
         float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
+
+        // We need to make sure it's not less than the baked thickness to minimize light leaking.
+        thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
 
         // TODO: optimize.
     #if SHADEROPTIONS_USE_DISNEY_SSS
@@ -1440,19 +1445,21 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     UNITY_BRANCH
     if (autoThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
     {
-        // TODO: perform bilinear filtering of the shadow map.
         // Recompute transmittance using the thickness value computed from the shadow map.
-    #if 0
-        // Does not work, I get a compiler crash...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Punctual(lightLoopContext.shadowContext, posInput.positionWS, lightData.shadowIndex, L);
-    #else
         #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX], posInput.positionWS, lightData.shadowIndex, L);
-    #endif
 
-        float thicknessInUnits       = distance(posInput.positionWS, occluderPosWS);
+        // Compute the distance from the light to the back face of the object along the light direction.
+        float backLightDist = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
+                                                                        s_linear_clamp_sampler, posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+
+        // Our subsurface scattering models use the semi-infinite planar slab assumption.
+        // Therefore, we need to find the thickness along the normal.
+        float thicknessInUnits       = (distances.x - backLightDist)  * -NdotL;
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
         float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
+
+        // We need to make sure it's not less than the baked thickness to minimize light leaking.
+        thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
 
         // TODO: optimize.
     #if SHADEROPTIONS_USE_DISNEY_SSS
