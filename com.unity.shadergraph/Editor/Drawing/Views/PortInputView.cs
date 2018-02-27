@@ -72,26 +72,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_EdgeControl.outputColor = edgeColor;
         }
 
+        public void UpdateSlot(MaterialSlot newSlot)
+        {
+            m_Slot = newSlot;
+            Recreate();
+        }
+
         public void UpdateSlotType()
         {
             if (slot.concreteValueType != m_SlotType)
             {
-                RemoveFromClassList("type" + m_SlotType);
-                m_SlotType = slot.concreteValueType;
-                AddToClassList("type" + m_SlotType);
-                if (m_Control != null)
-                {
-                    var disposable = m_Control as IDisposable;
-                    if (disposable != null)
-                        disposable.Dispose();
-                    m_Container.Remove(m_Control);
-                }
-                m_Control = slot.InstantiateControl();
-                if (m_Control != null)
-                    m_Container.Insert(0, m_Control);
-
-                m_Container.visible = m_EdgeControl.visible = m_Control != null;
+                Recreate();
             }
+        }
+
+        void Recreate()
+        {
+            RemoveFromClassList("type" + m_SlotType);
+            m_SlotType = slot.concreteValueType;
+            AddToClassList("type" + m_SlotType);
+            if (m_Control != null)
+            {
+                var disposable = m_Control as IDisposable;
+                if (disposable != null)
+                    disposable.Dispose();
+                m_Container.Remove(m_Control);
+            }
+            m_Control = slot.InstantiateControl();
+            if (m_Control != null)
+                m_Container.Insert(0, m_Control);
+
+            m_Container.visible = m_EdgeControl.visible = m_Control != null;
         }
 
         public void Dispose()
