@@ -284,6 +284,8 @@ namespace UnityEngine.Experimental.Rendering
             if( sr.shadowType == GPUShadowType.Directional )
             {
                 asd.GetShadowCascades( out cascadeCnt, out cascadeRatios, out cascadeBorders );
+                for( int i = 0; i < m_TmpSplits.Length; i++ )
+                    m_TmpSplits[i].w = -1.0f;
             }
 
 
@@ -461,8 +463,8 @@ namespace UnityEngine.Experimental.Rendering
                 uint first = k_MaxCascadesInShader, second = k_MaxCascadesInShader;
                 for( uint i = 0; i < k_MaxCascadesInShader; i++, payloadOffset++ )
                 {
-                    first  = (first  == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : first;
-                    second = (second == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : second;
+                    first  = ( first  == k_MaxCascadesInShader                      && m_TmpSplits[i].w > 0.0f) ? i : first;
+                    second = ((second == k_MaxCascadesInShader || second == first)  && m_TmpSplits[i].w > 0.0f) ? i : second;
                     sp.Set( m_TmpSplits[i] );
                     payload[payloadOffset] = sp;
                 }
