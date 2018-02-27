@@ -37,19 +37,25 @@ namespace UnityEditor
             VisualEffectAsset asset = new VisualEffectAsset();
 
             VFXViewController controller = VFXViewController.GetController(asset);
+            controller.useCount++;
 
             VisualEffectAsset template = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(templatePath + "/" + templateAssetName);
             if (template != null)
             {
                 VFXViewController templateController = VFXViewController.GetController(template);
+                templateController.useCount++;
 
-                var data = VFXCopyPaste.SerializeElements(templateController.allChildren);
+                var data = VFXCopyPaste.SerializeElements(templateController.allChildren, Rect.zero);
 
                 VFXCopyPaste.UnserializeAndPasteElements(controller, Vector2.zero, data);
+
+                templateController.useCount--;
             }
             controller.graph.RecompileIfNeeded();
 
             ProjectWindowUtil.CreateAsset(asset, "New VFX.vfx");
+
+            controller.useCount--;
         }
     }
 }

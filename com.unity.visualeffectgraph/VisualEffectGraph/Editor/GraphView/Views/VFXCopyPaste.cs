@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
         class Data
         {
             public string serializedObjects;
-
+            public Rect bounds;
 
             public bool blocksOnly;
 
@@ -245,8 +245,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXNodeController> slotContainers)
+        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXNodeController> slotContainers, Rect bounds)
         {
+            copyData.bounds = bounds;
             IEnumerable<VFXNodeController> dataEdgeTargets = slotContainers.Concat(contexts.Cast<VFXNodeController>()).Concat(contexts.SelectMany(t => t.blockControllers).Cast<VFXNodeController>()).ToArray();
 
             // consider only edges contained in the selection
@@ -286,7 +287,7 @@ namespace UnityEditor.VFX.UI
             CopyFlowEdges(copyData, flowEdges, allSerializedObjects);
         }
 
-        public static object CreateCopy(IEnumerable<Controller> elements)
+        public static object CreateCopy(IEnumerable<Controller> elements, Rect bounds)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
             IEnumerable<VFXNodeController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
@@ -303,15 +304,15 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                CopyNodes(copyData, elements, contexts, slotContainers);
+                CopyNodes(copyData, elements, contexts, slotContainers, bounds);
             }
 
             return copyData;
         }
 
-        public static string SerializeElements(IEnumerable<Controller> elements)
+        public static string SerializeElements(IEnumerable<Controller> elements, Rect bounds)
         {
-            var copyData = CreateCopy(elements) as Data;
+            var copyData = CreateCopy(elements, bounds) as Data;
 
             return JsonUtility.ToJson(copyData);
         }
@@ -386,7 +387,7 @@ namespace UnityEditor.VFX.UI
             PasteCopy(viewController, pasteOffset, copyData, allSerializedObjects, view);
         }
 
-        public static void PasteCopy(VFXViewController viewController, Vector2 pasteOffset, object data, ScriptableObject[] allSerializedObjects, VFXView view)
+        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view)
         {
             Data copyData = (Data)data;
 
@@ -400,7 +401,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteNodes(viewController, pasteOffset, copyData, allSerializedObjects, view);
+                PasteNodes(viewController, center, copyData, allSerializedObjects, view);
             }
         }
 
@@ -545,9 +546,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void PasteNodes(VFXViewController viewController, Vector2 pasteOffset, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view)
+        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view)
         {
             var graph = viewController.graph;
+            Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
 
             if (copyData.contexts != null)
             {
