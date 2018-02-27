@@ -4,12 +4,17 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEditor.VFX;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor
 {
     [InitializeOnLoad]
     public class VisualEffectAssetEditorUtility
     {
+        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
+
+        public const string templateAssetName = "DefaultParticleSystem.vfx";
+
         [MenuItem("GameObject/Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
@@ -26,10 +31,23 @@ namespace UnityEditor
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
         }
 
-        [MenuItem("Assets/Create/VFX", false, 306)]
+        [MenuItem("Assets/Create/Visual Effect", false, 306)]
         public static void CreateVisualEffectAsset()
         {
             VisualEffectAsset asset = new VisualEffectAsset();
+
+            VFXViewController controller = VFXViewController.GetController(asset);
+
+            VisualEffectAsset template = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(templatePath + "/" + templateAssetName);
+            if (template != null)
+            {
+                VFXViewController templateController = VFXViewController.GetController(template);
+
+                var data = VFXCopyPaste.SerializeElements(templateController.allChildren);
+
+                VFXCopyPaste.UnserializeAndPasteElements(controller, Vector2.zero, data);
+            }
+            controller.graph.RecompileIfNeeded();
 
             ProjectWindowUtil.CreateAsset(asset, "New VFX.vfx");
         }

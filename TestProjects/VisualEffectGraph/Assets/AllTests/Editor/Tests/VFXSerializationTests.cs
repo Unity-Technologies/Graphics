@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Test
     {
         private readonly static string kTestAssetDir = "Assets/VFXEditor/Editor/Tests";
         private readonly static string kTestAssetName = "TestAsset";
-        private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".asset";
+        private readonly static string kTestAssetPath = kTestAssetDir + "/" + kTestAssetName + ".vfx";
 
         private VisualEffectAsset CreateAssetAtPath(string path)
         {
@@ -155,8 +155,8 @@ namespace UnityEditor.VFX.Test
 
         private void InnerSaveAndReloadTest(string suffixname, Action<VisualEffectAsset> write, Action<VisualEffectAsset> read)
         {
-            var kTempAssetPathA = string.Format("{0}/Temp_{1}_A.asset", kTestAssetDir, suffixname);
-            var kTempAssetPathB = string.Format("{0}/Temp_{1}_B.asset", kTestAssetDir, suffixname);
+            var kTempAssetPathA = string.Format("{0}/Temp_{1}_A.vfx", kTestAssetDir, suffixname);
+            var kTempAssetPathB = string.Format("{0}/Temp_{1}_B.vfx", kTestAssetDir, suffixname);
             AssetDatabase.DeleteAsset(kTempAssetPathA);
             AssetDatabase.DeleteAsset(kTempAssetPathB);
 

@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
+        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
 
         private int m_StartUndoGroupId;
 
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteEdges()
         {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.vfx");
 
             VFXViewController controller = VFXViewController.GetController(asset, true);
 
@@ -332,7 +332,7 @@ namespace UnityEditor.VFX.Test
             VFXView view = window.graphView;
             view.controller = m_ViewController;
 
-            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset", Vector2.zero);
+            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.vfx", Vector2.zero);
         }
     }
 }
