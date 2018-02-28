@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
             Off
         }
 
-        public enum ZTest
+        public enum ZTestMode
         {
             Less,
             Greater,
@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
         protected ZWriteMode zWriteMode = ZWriteMode.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected ZTest zTestMode = ZTest.LEqual;
+        protected ZTestMode zTestMode = ZTestMode.LEqual;
 
         [VFXSetting, SerializeField, Header("Particle Options")]
         protected FlipbookMode flipbookMode;
@@ -223,13 +223,13 @@ namespace UnityEditor.VFX
 
                 switch (zTestMode)
                 {
-                    case ZTest.Always: rs.WriteLine("ZTest Always"); break;
-                    case ZTest.Equal: rs.WriteLine("ZTest Equal"); break;
-                    case ZTest.GEqual: rs.WriteLine("ZTest GEqual"); break;
-                    case ZTest.Greater: rs.WriteLine("ZTest Greater"); break;
-                    case ZTest.LEqual: rs.WriteLine("ZTest LEqual"); break;
-                    case ZTest.Less: rs.WriteLine("ZTest Less"); break;
-                    case ZTest.NotEqual: rs.WriteLine("ZTest NotEqual"); break;
+                    case ZTestMode.Always: rs.WriteLine("ZTest Always"); break;
+                    case ZTestMode.Equal: rs.WriteLine("ZTest Equal"); break;
+                    case ZTestMode.GEqual: rs.WriteLine("ZTest GEqual"); break;
+                    case ZTestMode.Greater: rs.WriteLine("ZTest Greater"); break;
+                    case ZTestMode.LEqual: rs.WriteLine("ZTest LEqual"); break;
+                    case ZTestMode.Less: rs.WriteLine("ZTest Less"); break;
+                    case ZTestMode.NotEqual: rs.WriteLine("ZTest NotEqual"); break;
                 }
 
                 switch (zWriteMode)
