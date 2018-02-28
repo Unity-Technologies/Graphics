@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 	public class UnlitsToHDUnlitUpgrader : MaterialUpgrader
 	{
 		string Unlit_Color = "Unlit/Color";
-		string Unlit_Texture = "Unlit/Texture";
+		//string Unlit_Texture = "Unlit/Texture";
 		string Unlit_Transparent = "Unlit/Transparent";
 		string Unlit_Cutout = "Unlit/Transparent Cutout";
 
@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //dstMaterial.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
             base.Convert(srcMaterial, dstMaterial);
-            
+
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
 		}
 	}

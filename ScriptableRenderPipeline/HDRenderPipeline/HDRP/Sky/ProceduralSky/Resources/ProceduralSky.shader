@@ -61,7 +61,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
     static const float kCameraHeight = 0.0001;
 
-    #define kRAYLEIGH (lerp(0.0, 0.0025, pow(_AtmosphereThickness,2.5)))      // Rayleigh constant
+    #define kRAYLEIGH (lerp(0.0, 0.0025, PositivePow(_AtmosphereThickness,2.5)))      // Rayleigh constant
     #define kMIE 0.0010             // Mie constant
     #define kSUN_BRIGHTNESS 20.0    // Sun brightness
 
@@ -136,7 +136,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             kDefaultScatteringWavelength-kVariableRangeForScatteringWavelength,
             kDefaultScatteringWavelength+kVariableRangeForScatteringWavelength,
             float3(1,1,1) - _SkyTint); // using Tint in sRGB gamma allows for more visually linear interpolation and to keep (.5) at (128, gray in sRGB) point
-        float3 kInvWavelength = 1.0 / pow(kScatteringWavelength, 4);
+        float3 kInvWavelength = 1.0 / float3(PositivePow(kScatteringWavelength.x, 4), PositivePow(kScatteringWavelength.y, 4), PositivePow(kScatteringWavelength.z, 4));
 
         float kKrESun = kRAYLEIGH * kSUN_BRIGHTNESS;
         float kKr4PI = kRAYLEIGH * 4.0 * 3.14159265;
@@ -244,7 +244,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             cIn = frontColor * (kInvWavelength * kKrESun + kKmESun);
             cOut = clamp(attenuate, 0.0, 1.0);
 
-            groundColor = _SkyParam.y * (cIn + _GroundColor * _GroundColor * cOut);
+            groundColor = _SkyParam.y * (cIn + _GroundColor.rgb * _GroundColor.rgb * cOut);
         }
 
         float3 sunColor = float3(0.0, 0.0, 0.0);
