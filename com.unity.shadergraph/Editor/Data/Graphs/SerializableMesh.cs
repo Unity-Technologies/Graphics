@@ -7,10 +7,16 @@ namespace UnityEditor.ShaderGraph
     public class SerializableMesh
     {
         [SerializeField]
-        private string m_SerializedMesh;
+        string m_SerializedMesh;
+
+        [SerializeField]
+        string m_Guid;
+
+        [NonSerialized]
+        Mesh m_Mesh;
 
         [Serializable]
-        private class MeshHelper
+        class MeshHelper
         {
             public Mesh mesh;
         }
@@ -19,21 +25,26 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (string.IsNullOrEmpty(m_SerializedMesh))
-                    return null;
+                if (!string.IsNullOrEmpty(m_SerializedMesh))
+                {
+                    var textureHelper = new MeshHelper();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedMesh, textureHelper);
+                    m_SerializedMesh = null;
+                    m_Guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(textureHelper.mesh));
+                    m_Mesh = textureHelper.mesh;
+                }
+                else if (!string.IsNullOrEmpty(m_Guid) && m_Mesh == null)
+                {
+                    m_Mesh = AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(m_Guid));
+                }
 
-                var meshHelper = new MeshHelper();
-                EditorJsonUtility.FromJsonOverwrite(m_SerializedMesh, meshHelper);
-                return meshHelper.mesh;
+                return m_Mesh;
             }
             set
             {
-                if (mesh == value)
-                    return;
-
-                var meshHelper = new MeshHelper();
-                meshHelper.mesh = value;
-                m_SerializedMesh = EditorJsonUtility.ToJson(meshHelper, true);
+                m_SerializedMesh = null;
+                m_Guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(value));
+                m_Mesh = value;
             }
         }
     }
