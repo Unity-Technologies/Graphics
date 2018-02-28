@@ -62,14 +62,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 metallicMap = Texture2D.blackTexture;
 
             // Occlusion
-            //bool hasOcclusion = srcMaterial.GetTexture("_OcclusionMap") != null;
-            //Texture occlusionMap;
-            //if (hasOcclusion) occlusionMap = TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", Color.white);
+            bool hasOcclusion = srcMaterial.GetTexture("_OcclusionMap") != null;
+            Texture occlusionMap;
+            if (hasOcclusion) occlusionMap = TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", Color.white);
 
             // Detail Mask
-            //bool hasDetailMask = srcMaterial.GetTexture("_DetailMask") != null;
-            //Texture detailMaskMap;
-            //if (hasDetailMask) detailMaskMap = TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", Color.white);
+            bool hasDetailMask = srcMaterial.GetTexture("_DetailMask") != null;
+            Texture detailMaskMap;
+            if (hasDetailMask) detailMaskMap = TextureCombiner.GetTextureSafe(srcMaterial, "_DetailMask", Color.white);
 
             // Smoothness
             bool hasSmoothness = false;
