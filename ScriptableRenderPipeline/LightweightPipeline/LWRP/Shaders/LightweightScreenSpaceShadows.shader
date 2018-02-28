@@ -43,8 +43,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float4 projPos = o.pos * 0.5;
             projPos.xy = projPos.xy + projPos.w;
 
-            //o.texcoord.xy = i.texcoord;
-            o.texcoord.xy = UnityStereoTransformScreenSpaceTex(i.texcoord.xy);
+            o.texcoord.xy = UnityStereoTransformScreenSpaceTex(i.texcoord);
             o.texcoord.zw = projPos.xy;
 
             return o;
