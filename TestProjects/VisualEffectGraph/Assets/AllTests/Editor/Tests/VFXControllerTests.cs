@@ -48,16 +48,19 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(testAssetName);
         }
 
+        static private bool[] usePosition = { true, false };
         [Test]
-        public void LinkPositionAndDirection()
+        public void LinkPositionOrVectorAndDirection([ValueSource("usePosition")] bool usePosition)
         {
             var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
             var positionDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.Contains("Position"));
+            var vectorDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name == "Vector");
             var directionDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.Contains("Direction"));
 
             var cross = m_ViewController.AddVFXOperator(new Vector2(1, 1), crossDesc);
             var position = m_ViewController.AddVFXParameter(new Vector2(2, 2), positionDesc);
-            var direction = m_ViewController.AddVFXParameter(new Vector2(3, 3), directionDesc);
+            var vector = m_ViewController.AddVFXParameter(new Vector2(3, 3), vectorDesc);
+            var direction = m_ViewController.AddVFXParameter(new Vector2(4, 4), directionDesc);
 
             m_ViewController.ApplyChanges();
 
@@ -71,11 +74,12 @@ namespace UnityEditor.VFX.Test
 
             var vA = new Vector3(2, 3, 4);
             position.outputSlots[0].value = new Position() { position = vA };
+            vector.outputSlots[0].value = new Vector() { vector = vA };
 
             var vB = new Vector3(5, 6, 7);
             direction.outputSlots[0].value = new DirectionType() { direction = vB };
 
-            var edgeControllerAppend_A = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).First(), fnFindController(position).outputPorts.First());
+            var edgeControllerAppend_A = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).First(), fnFindController(usePosition ? position : vector).outputPorts.First());
             m_ViewController.AddElement(edgeControllerAppend_A);
             m_ViewController.ApplyChanges();
 
