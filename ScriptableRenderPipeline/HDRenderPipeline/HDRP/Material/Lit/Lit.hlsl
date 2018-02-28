@@ -142,7 +142,7 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 // Additional bits set in 'bsdfData.materialFeatures' to save registers and simplify feature tracking.
 #define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
 #define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
-#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_AUTO_THICKNESS  ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
+#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
 {
@@ -258,7 +258,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     // the current object. That's not a problem, since large thickness will result in low intensity.
     bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
-    bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_AUTO_THICKNESS;
+    bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always be used for indirect lighting).
@@ -1288,8 +1288,8 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
     float negatedNdotL = -NdotL;
 
     // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
-    bool  autoThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_AUTO_THICKNESS);
-    float backNdotL         = autoThicknessMode ? negatedNdotL : wrappedNdotL;
+    bool  mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
+    float backNdotL          = mixedThicknessMode ? negatedNdotL : wrappedNdotL;
 
     // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
@@ -1320,11 +1320,11 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 L     = -lightData.forward; // Lights point backward in Unity
     float  NdotL = dot(N, L); // Note: Ideally this N here should be vertex normal - use for transmisison
 
-    float3 transmittance     = bsdfData.transmittance;
-    bool   autoThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_AUTO_THICKNESS);
+    float3 transmittance      = bsdfData.transmittance;
+    bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
 
     UNITY_BRANCH
-    if (autoThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
+    if (mixedThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
     {
         // Recompute transmittance using the thickness value computed from the shadow map.
         #define SHADOW_DISPATCH_DIR_TEX 3 // Manually keep it in sync with Shadow.hlsl...
@@ -1439,11 +1439,11 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float3 N     = bsdfData.normalWS;
     float  NdotL = dot(N, L);
 
-    float3 transmittance     = bsdfData.transmittance;
-    bool   autoThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_AUTO_THICKNESS);
+    float3 transmittance      = bsdfData.transmittance;
+    bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
 
     UNITY_BRANCH
-    if (autoThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
+    if (mixedThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
     {
         // Recompute transmittance using the thickness value computed from the shadow map.
         #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
