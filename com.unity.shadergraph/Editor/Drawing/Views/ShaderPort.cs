@@ -7,14 +7,26 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     sealed class ShaderPort : Port
     {
+#if UNITY_2018_1
+        ShaderPort(Orientation portOrientation, Direction portDirection, Type type)
+            : base(portOrientation, portDirection, type)
+#else
         ShaderPort(Orientation portOrientation, Direction portDirection, Capacity portCapacity, Type type)
-            : base(portOrientation, portDirection, portCapacity, type) { AddStyleSheetPath("Styles/ShaderPort"); }
+            : base(portOrientation, portDirection, portCapacity, type)
+#endif
+        {
+            AddStyleSheetPath("Styles/ShaderPort");
+        }
 
         MaterialSlot m_Slot;
 
         public static Port Create(MaterialSlot slot, IEdgeConnectorListener connectorListener)
         {
-            var port = new ShaderPort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output, slot.isInputSlot ? Capacity.Single : Capacity.Multi, null)
+            var port = new ShaderPort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output,
+#if !UNITY_2018_1
+                slot.isInputSlot ? Capacity.Single : Capacity.Multi,
+#endif
+                null)
             {
                 m_EdgeConnector = new EdgeConnector<Edge>(connectorListener),
             };
