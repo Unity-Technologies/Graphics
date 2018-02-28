@@ -250,12 +250,10 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        // TODO: Doesn't work correctly with indented controls, fixme
         protected void DrawOverrideCheckbox(SerializedDataParameter property)
         {
             var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
             overrideRect.yMin += 4f;
-            overrideRect.xMin += EditorGUI.indentLevel * 15f;
 
             var oldColor = GUI.color;
             GUI.color = new Color(0.6f, 0.6f, 0.6f, 0.75f);

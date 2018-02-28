@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering
         Dictionary<string, float> m_FloatPropertiesToSet = new Dictionary<string, float>();
         Dictionary<string, Color> m_ColorPropertiesToSet = new Dictionary<string, Color>();
         List<string> m_TexturesToRemove = new List<string>();
+        Dictionary<string, Texture> m_TexturesToSet = new Dictionary<string, Texture>();
 
 
         class KeywordFloatRename
@@ -81,6 +82,9 @@ namespace UnityEditor.Experimental.Rendering
             foreach (var prop in m_TexturesToRemove)
                 dstMaterial.SetTexture(prop, null);
 
+            foreach (var prop in m_TexturesToSet)
+                dstMaterial.SetTexture(prop.Key, prop.Value);
+
             foreach (var prop in m_FloatPropertiesToSet)
                 dstMaterial.SetFloat(prop.Key, prop.Value);
 
@@ -125,6 +129,11 @@ namespace UnityEditor.Experimental.Rendering
         public void SetColor(string propertyName, Color value)
         {
             m_ColorPropertiesToSet[propertyName] = value;
+        }
+
+        public void SetTexture(string propertyName, Texture value)
+        {
+            m_TexturesToSet[propertyName] = value;
         }
 
         public void RenameKeywordToFloat(string oldName, string newName, float setVal, float unsetVal)

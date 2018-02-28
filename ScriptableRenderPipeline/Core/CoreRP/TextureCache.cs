@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -52,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Release()
         {
-            Texture.DestroyImmediate(m_Cache);      // do I need this?
+            CoreUtils.Destroy(m_Cache);
         }
     }
 
@@ -136,6 +135,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
                     m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
+
                 }
             }
             else
@@ -156,16 +156,16 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_CacheNoCubeArray)
             {
-                Texture.DestroyImmediate(m_CacheNoCubeArray);
+                CoreUtils.Destroy(m_CacheNoCubeArray);
                 for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
                     m_StagingRTs[m].Release();
                 }
                 m_StagingRTs = null;
-                if (m_CubeBlitMaterial) Material.DestroyImmediate(m_CubeBlitMaterial);
+                CoreUtils.Destroy(m_CubeBlitMaterial);
             }
-            if (m_Cache)
-                Texture.DestroyImmediate(m_Cache);
+
+            CoreUtils.Destroy(m_Cache);
         }
 
         private void TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture texture)
@@ -214,17 +214,10 @@ namespace UnityEngine.Experimental.Rendering
             get
             {
                 var format = TextureFormat.RGBAHalf;
-
                 var probeFormat = TextureFormat.BC6H;
 
-//                // On editor the texture is uncompressed when operating against mobile build targets
-//#if UNITY_2017_2_OR_NEWER
                 if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
                     format = probeFormat;
-//#else
-//                if (SystemInfo.SupportsTextureFormat(probeFormat) && !TextureCache.isMobileBuildTarget)
-//                    format = probeFormat;
-//#endif
 
                 return format;
             }
@@ -234,11 +227,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-//#if UNITY_2017_2_OR_NEWER
                 return !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_CUBEMAP_ARRAY);
-//#else
-//                return (SystemInfo.supportsCubemapArrayTextures && !TextureCache.isMobileBuildTarget);
-//#endif
             }
         }
 

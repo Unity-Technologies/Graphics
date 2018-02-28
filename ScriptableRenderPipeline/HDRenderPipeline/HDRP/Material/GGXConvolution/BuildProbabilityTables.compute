@@ -8,6 +8,8 @@
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../../ShaderVariables.hlsl"
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 /* --- Input --- */
 
 #define TEXTURE_HEIGHT 256                // Equiareal texture map: cos(theta) = 1.0 - 2.0 * v
