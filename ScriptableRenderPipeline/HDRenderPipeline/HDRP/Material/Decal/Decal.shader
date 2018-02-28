@@ -54,7 +54,7 @@ Shader "HDRenderPipeline/Decal"
         Pass
         {
             Name "DBuffer"  // Name is not used
-            Tags { "LightMode" = "DBuffer" } // This will be only for opaque object based on the RenderQueue index
+            Tags { "RenderPipeline" = "HDPipeline" "LightMode" = "DBuffer" } // This will be only for opaque object based on the RenderQueue index
 
 			// back faces with zfail, for cases when camera is inside the decal volume
             Cull Front
