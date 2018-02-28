@@ -120,6 +120,13 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_ParentController.parameter.order; }
         }
+        public override bool expanded
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         bool IPropertyRMProvider.expanded
         {
