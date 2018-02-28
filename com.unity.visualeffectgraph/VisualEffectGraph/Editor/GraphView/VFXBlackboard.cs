@@ -268,7 +268,19 @@ namespace  UnityEditor.VFX.UI
 
         VFXBlackboardPropertyView m_Properties;
         public VFXBlackboardRow() : this(new VFXBlackboardField() { name = "vfx-field" }, new VFXBlackboardPropertyView() { name = "vfx-properties" })
-        {}
+        {
+            Button button = this.Q<Button>("expandButton");
+
+            if (button != null)
+            {
+                button.clickable.clicked += OnExpand;
+            }
+        }
+
+        void OnExpand()
+        {
+            controller.expanded = expanded;
+        }
 
         private VFXBlackboardRow(VFXBlackboardField field, VFXBlackboardPropertyView property) : base(field, property)
         {
@@ -298,6 +310,8 @@ namespace  UnityEditor.VFX.UI
             m_CurrentExposed = controller.exposed;
 
             m_Properties.SelfChange(e.change);
+
+            expanded = controller.expanded;
 
             m_Field.SelfChange();
         }

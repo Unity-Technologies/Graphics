@@ -774,6 +774,8 @@ namespace UnityEditor.VFX.UI
 
             Type type = parameter.type;
 
+            parameter.collapsed = true;
+
             int order = 0;
             if (m_ParameterControllers.Count > 0)
             {
@@ -1000,17 +1002,18 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
-            // Iterate through graph.children to preserve add order.
-            VFXParameter[] parameters = graph.children.OfType<VFXParameter>().ToArray();
+            VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
             if (parameters.Length > 0)
             {
                 var existingNames = new HashSet<string>();
 
                 existingNames.Add(parameters[0].exposedName);
+                m_ParameterControllers[parameters[0]].order = 0;
 
                 for (int i = 1; i < parameters.Length; ++i)
                 {
                     var controller = m_ParameterControllers[parameters[i]];
+                    controller.order = i;
 
                     controller.CheckNameUnique(existingNames);
 

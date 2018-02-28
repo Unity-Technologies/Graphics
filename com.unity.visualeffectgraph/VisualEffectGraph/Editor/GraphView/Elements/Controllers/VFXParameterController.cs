@@ -594,7 +594,11 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return false;
+                return !model.collapsed;
+            }
+            set
+            {
+                model.collapsed = !value;
             }
         }
         public bool editable
