@@ -398,7 +398,7 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                parameter.SetSettingValue("m_order", value);
+                parameter.order = value;
             }
         }
 
