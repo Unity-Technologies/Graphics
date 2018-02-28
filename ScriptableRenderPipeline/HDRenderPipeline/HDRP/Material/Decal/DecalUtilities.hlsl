@@ -15,7 +15,7 @@ DecalData FetchDecal(uint start, uint i)
 void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float3x3 decalToWorld, float blend)
 {
 	float4 src;
-	src.xyz =  mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex))) * 0.5f + 0.5f;
+	src.xyz =  mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, ComputeTextureLOD(texCoords)))) * 0.5f + 0.5f;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
@@ -24,7 +24,7 @@ void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int
 
 void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float blend)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex);
+	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, ComputeTextureLOD(texCoords));
 	src.w *= blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
@@ -33,7 +33,7 @@ void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, in
 
 void ApplyBlendMask(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float blend)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex);
+	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, ComputeTextureLOD(texCoords));
 	src.z = src.w;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
@@ -45,7 +45,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 {
 	if(_EnableDBuffer)
 	{
-		DecalSurfaceData decalSurfaceData;		
+		DecalSurfaceData decalSurfaceData;
 		int mask = 0;
 		// the code in the macros, gets moved inside the conditionals by the compiler
 		FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
@@ -63,10 +63,10 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         decalStart = 0;
     #endif
 		float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-		uint i = 0; 
+		uint i = 0;
         for (i = 0; i < decalCount; i++)
         {
-            DecalData decalData = FetchDecal(decalStart, i);    
+            DecalData decalData = FetchDecal(decalStart, i);
 			float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
 			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
 			float decalBlend = decalData.normalToWorld[0][3];
@@ -92,15 +92,15 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			}
 		}
 #else
-		mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8)); 
+		mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8).r);
 #endif
-		DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);		
+		DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 		// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 		if(mask & DBUFFERHTILEBIT_DIFFUSE)
 		{
 			surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 		}
-		
+
 		if(mask & DBUFFERHTILEBIT_NORMAL)
 		{
 			surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);

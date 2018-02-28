@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 RenameTexture("_SpecGlossMap", "_SpecularColorMap");
             }
         }
-        
+
         public override void Convert(Material srcMaterial, Material dstMaterial)
         {
             dstMaterial.hideFlags = HideFlags.DontUnloadUnusedAsset;
@@ -89,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (hasSmoothness)
                     smoothnessMap = (Texture2D)TextureCombiner.GetTextureSafe(srcMaterial, "_SpecGlossMap", Color.grey);
-            }   
+            }
             else
             {
                 string smoothnessTextureChannel = "_MainTex";
@@ -195,7 +195,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 0);
                     break;
-                case 3: // Transparent -> Alpha 
+                case 3: // Transparent -> Alpha
                     dstMaterial.SetFloat("_SurfaceType", 1);
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
@@ -206,7 +206,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Emission: Convert the HDR emissive color to ldr color + intensity
             Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
             float intensity = Mathf.Max(hdrEmission.r, Mathf.Max(hdrEmission.g, hdrEmission.b));
-            
+
             if (intensity > 1f)
             {
                 hdrEmission.r /= intensity;
@@ -217,10 +217,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 intensity = 1f;
 
             intensity = Mathf.Pow(intensity, 2.2f); // Gamma to Linear conversion
-            
+
             dstMaterial.SetColor("_EmissiveColor", hdrEmission);
             dstMaterial.SetFloat("_EmissiveIntensity", intensity);
-            
+
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }
 	}
