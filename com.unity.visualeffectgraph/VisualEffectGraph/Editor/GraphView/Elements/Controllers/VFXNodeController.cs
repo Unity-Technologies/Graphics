@@ -186,7 +186,7 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public bool expanded
+        public virtual bool expanded
         {
             get
             {

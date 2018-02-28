@@ -398,7 +398,7 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                parameter.SetSettingValue("m_order", value);
+                parameter.order = value;
             }
         }
 
@@ -594,7 +594,11 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return false;
+                return !model.collapsed;
+            }
+            set
+            {
+                model.collapsed = !value;
             }
         }
         public bool editable
