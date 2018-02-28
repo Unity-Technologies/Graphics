@@ -243,6 +243,7 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     return M;
 }
 
+// Move these to Core.hlsl
 #if defined(UNITY_SINGLE_PASS_STEREO)
 float2 TransformStereoScreenSpaceTex(float2 uv, float w)
 {

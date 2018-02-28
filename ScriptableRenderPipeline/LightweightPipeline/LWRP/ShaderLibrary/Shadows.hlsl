@@ -3,14 +3,11 @@
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Core.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-TEXTURE2D_ARRAY(_ScreenSpaceShadowMap);
-#else
-TEXTURE2D(_ScreenSpaceShadowMap);
-#endif
+SCREENSPACE_TEXTURE(_ScreenSpaceShadowMap);
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
 TEXTURE2D_SHADOW(_ShadowMap);

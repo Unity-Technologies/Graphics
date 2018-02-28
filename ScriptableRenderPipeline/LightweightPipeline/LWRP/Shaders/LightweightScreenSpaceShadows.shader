@@ -13,13 +13,8 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Core.hlsl"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-        TEXTURE2D_ARRAY(_CameraDepthTexture);
+        SCREENSPACE_TEXTURE(_CameraDepthTexture);
         SAMPLER(sampler_CameraDepthTexture);
-#else
-        TEXTURE2D(_CameraDepthTexture);
-        SAMPLER(sampler_CameraDepthTexture);
-#endif
 
         struct VertexInput
         {
