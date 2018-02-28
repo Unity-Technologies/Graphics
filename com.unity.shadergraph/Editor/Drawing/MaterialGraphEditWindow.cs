@@ -441,7 +441,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssetDatabase.ImportAsset(path);
         }
 
-
         private void Rebuild()
         {
             if (graphObject != null && graphObject.graph != null)
