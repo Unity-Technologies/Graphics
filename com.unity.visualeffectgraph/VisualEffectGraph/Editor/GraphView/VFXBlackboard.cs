@@ -260,6 +260,25 @@ namespace  UnityEditor.VFX.UI
                 icon = null;
             }
         }
+
+        protected internal override void ExecuteDefaultAction(EventBase evt)
+        {
+            if (evt.GetEventTypeId() == MouseEnterEvent.TypeId() || evt.GetEventTypeId() == MouseLeaveEvent.TypeId())
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                if (view != null)
+                {
+                    foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
+                    {
+                        if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                            parameter.pseudoStates |= PseudoStates.Hover;
+                        else
+                            parameter.pseudoStates &= ~PseudoStates.Hover;
+                    }
+                }
+            }
+            base.ExecuteDefaultAction(evt);
+        }
     }
 
     class VFXBlackboardRow : BlackboardRow, IControlledElement<VFXParameterController>
