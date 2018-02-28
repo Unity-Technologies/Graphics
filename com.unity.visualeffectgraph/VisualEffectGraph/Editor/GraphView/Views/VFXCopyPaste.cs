@@ -551,6 +551,48 @@ namespace UnityEditor.VFX.UI
             var graph = viewController.graph;
             Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
 
+            // look if pasting there will result in the first element beeing exactly on top of other
+            while (true)
+            {
+                bool foundSamePosition = false;
+                if (copyData.contexts != null && copyData.contexts.Length > 0)
+                {
+                    VFXContext firstContext = copyData.contexts[0];
+
+                    foreach (var existingContext in viewController.graph.children.OfType<VFXContext>())
+                    {
+                        if ((firstContext.position + pasteOffset - existingContext.position).sqrMagnitude < 1)
+                        {
+                            foundSamePosition = true;
+                            break;
+                        }
+                    }
+                }
+                else if (copyData.slotContainers != null && copyData.slotContainers.Length > 0)
+                {
+                    VFXModel firstContainer = copyData.slotContainers[0];
+
+                    foreach (var existingSlotContainer in viewController.graph.children.Where(t => t is IVFXSlotContainer))
+                    {
+                        if ((firstContainer.position + pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
+                        {
+                            foundSamePosition = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (foundSamePosition)
+                {
+                    pasteOffset += Vector2.one * 30;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+
             if (copyData.contexts != null)
             {
                 foreach (var slotContainer in copyData.contexts)
