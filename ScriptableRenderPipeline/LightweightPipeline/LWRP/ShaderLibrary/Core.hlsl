@@ -112,4 +112,11 @@ void ApplyFog(inout half3 color, half fogFactor)
     ApplyFogColor(color, unity_FogColor.rgb, fogFactor);
 }
 
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    #define SCREENSPACE_TEXTURE TEXTURE2D_ARRAY
+#else
+    #define SCREENSPACE_TEXTURE TEXTURE2D
+#endif // defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+
 #endif
