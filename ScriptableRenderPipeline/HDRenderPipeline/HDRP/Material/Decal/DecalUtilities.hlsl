@@ -45,7 +45,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 {
 	if(_EnableDBuffer)
 	{
-		DecalSurfaceData decalSurfaceData;		
+		DecalSurfaceData decalSurfaceData;
 		int mask = 0;
 		// the code in the macros, gets moved inside the conditionals by the compiler
 		FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
@@ -63,10 +63,10 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         decalStart = 0;
     #endif
 		float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-		uint i = 0; 
+		uint i = 0;
         for (i = 0; i < decalCount; i++)
         {
-            DecalData decalData = FetchDecal(decalStart, i);    
+            DecalData decalData = FetchDecal(decalStart, i);
 			float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
 			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
 			float decalBlend = decalData.normalToWorld[0][3];
@@ -92,15 +92,15 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			}
 		}
 #else
-		mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8)); 
+		mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8).r);
 #endif
-		DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);		
+		DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 		// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 		if(mask & DBUFFERHTILEBIT_DIFFUSE)
 		{
 			surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 		}
-		
+
 		if(mask & DBUFFERHTILEBIT_NORMAL)
 		{
 			surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
