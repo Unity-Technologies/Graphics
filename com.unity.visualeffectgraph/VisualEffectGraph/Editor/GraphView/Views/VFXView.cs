@@ -783,7 +783,7 @@ namespace UnityEditor.VFX.UI
                 VFXViewController templateController = VFXViewController.GetController(asset, true);
                 templateController.useCount++;
 
-                var data = VFXCopyPaste.SerializeElements(templateController.allChildren);
+                var data = VFXCopyPaste.SerializeElements(templateController.allChildren, Rect.zero);
 
                 VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this);
 
@@ -1221,12 +1221,35 @@ namespace UnityEditor.VFX.UI
         string SerializeElements(IEnumerable<GraphElement> elements)
         {
             pasteOffset = defaultPasteOffset;
-            return VFXCopyPaste.SerializeElements(ElementsToController(elements));
+
+
+            Rect[] elementBounds = elements.Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
+
+            Rect bounds = elementBounds[0];
+
+            for (int i = 1; i < elementBounds.Length; ++i)
+            {
+                bounds = Rect.MinMaxRect(Mathf.Min(elementBounds[i].xMin, bounds.xMin), Mathf.Min(elementBounds[i].yMin, bounds.yMin), Mathf.Max(elementBounds[i].xMax, bounds.xMax), Mathf.Max(elementBounds[i].yMax, bounds.yMax));
+            }
+
+            return VFXCopyPaste.SerializeElements(ElementsToController(elements), bounds);
+        }
+
+        Vector2 visibleCenter
+        {
+            get
+            {
+                Vector2 center = layout.size * 0.5f;
+
+                center = this.ChangeCoordinatesTo(contentViewContainer, center);
+
+                return center;
+            }
         }
 
         void UnserializeAndPasteElements(string operationName, string data)
         {
-            VFXCopyPaste.UnserializeAndPasteElements(controller, pasteOffset, data, this);
+            VFXCopyPaste.UnserializeAndPasteElements(controller, visibleCenter, data, this);
 
             pasteOffset += defaultPasteOffset;
         }
