@@ -209,9 +209,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Initialize various compute shader resources
             m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
 
-            // Set subshader pipeline tag
-            Shader.globalRenderPipeline = "HDRenderPipeline";
-
             // General material
             m_CopyStencilForNoLighting = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyStencilBuffer);
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
@@ -221,7 +218,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyDepthBuffer);
 
             InitializeDebugMaterials();
-
 
             m_MaterialList.ForEach(material => material.Build(asset));
 
@@ -324,6 +320,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void SetRenderingFeatures()
         {
+            // Set subshader pipeline tag
+            Shader.globalRenderPipeline = "HDRenderPipeline";
+
             // HD use specific GraphicsSettings
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
@@ -351,6 +350,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode");
             }
 #endif
+        }
+
+        void UnsetRenderingFeatures()
+        {
+            Shader.globalRenderPipeline = "";
+
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+
+            Lightmapping.ResetDelegate();
         }
 
         void InitializeDebugMaterials()
@@ -421,9 +429,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             DestroyRenderTextures();
 
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
-
-            Lightmapping.ResetDelegate();
+            UnsetRenderingFeatures();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
