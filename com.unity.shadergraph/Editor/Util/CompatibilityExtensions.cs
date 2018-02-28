@@ -8,7 +8,7 @@ using UnityEditor.Experimental.UIElements.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public static class CompatibilityExtensions
+    static class CompatibilityExtensions
     {
 #if UNITY_2018_1
         public static void OpenTextEditor(this BlackboardField field)
