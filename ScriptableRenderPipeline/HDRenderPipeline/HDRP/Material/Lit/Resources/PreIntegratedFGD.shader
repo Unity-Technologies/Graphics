@@ -2,7 +2,7 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
 {
     SubShader 
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass 
         {
             ZTest Always Cull Off ZWrite Off

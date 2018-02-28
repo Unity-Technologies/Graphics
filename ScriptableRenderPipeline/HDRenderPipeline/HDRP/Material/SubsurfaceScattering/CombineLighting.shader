@@ -7,7 +7,7 @@ Shader "Hidden/HDRenderPipeline/CombineLighting"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Stencil
