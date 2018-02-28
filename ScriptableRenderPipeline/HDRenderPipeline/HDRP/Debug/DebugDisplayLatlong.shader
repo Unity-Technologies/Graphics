@@ -2,7 +2,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             ZWrite On

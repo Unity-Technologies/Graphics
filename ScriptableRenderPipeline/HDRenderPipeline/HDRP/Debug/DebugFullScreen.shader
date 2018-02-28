@@ -2,7 +2,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             ZWrite Off

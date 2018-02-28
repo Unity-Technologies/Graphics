@@ -43,7 +43,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         
         Pass
         {

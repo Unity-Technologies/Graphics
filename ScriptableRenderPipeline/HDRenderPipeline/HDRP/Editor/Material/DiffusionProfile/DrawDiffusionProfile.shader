@@ -2,7 +2,7 @@ Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Cull   Off

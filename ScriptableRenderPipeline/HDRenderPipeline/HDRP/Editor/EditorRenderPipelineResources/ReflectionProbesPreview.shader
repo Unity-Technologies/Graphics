@@ -11,7 +11,7 @@
 	
 	SubShader
 	{
-		Tags{ "RenderPipeline" = "HDPipeline" "RenderType" = "Opaque" "Queue" = "Transparent" }
+		Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Opaque" "Queue" = "Transparent" }
 		ZWrite On
 		Cull Back
 

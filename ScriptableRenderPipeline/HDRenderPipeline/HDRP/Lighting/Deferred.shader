@@ -13,7 +13,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Stencil
