@@ -1989,6 +1989,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -7984,7 +7987,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 78
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 61b7051ae55011d40a70a76c9233fe2e, type: 3}
+      processor: {fileID: 7200000, guid: 26c72a771afb3484a827386d49f73385, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -8021,7 +8024,7 @@ VFXAsset:
       - index: 77
         nameId: VectorField_b
       params: []
-      processor: {fileID: 7200000, guid: be7eb8d3b486e1649a14f4e798d0c7a8, type: 3}
+      processor: {fileID: 7200000, guid: a7c6a28050e43b748a34329a1e688b3c, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -8048,7 +8051,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 057d9e0095deda246be97bfee975711f, type: 3}
+      processor: {fileID: 4800000, guid: e32e3bf26c4ed144f92badaded35a304, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

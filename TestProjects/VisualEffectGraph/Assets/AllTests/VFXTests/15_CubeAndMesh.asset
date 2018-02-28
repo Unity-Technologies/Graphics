@@ -4177,6 +4177,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -5256,7 +5259,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 76
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 64eac8b05b38b224db85598529f51206, type: 3}
+      processor: {fileID: 7200000, guid: 44718499bfc64eb41bfe9aaf7737ec7e, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5271,7 +5274,7 @@ VFXAsset:
       - index: 18
         nameId: deltaTime_c
       params: []
-      processor: {fileID: 7200000, guid: fc5ec742dfd3d8846b6d90eca37e8bd3, type: 3}
+      processor: {fileID: 7200000, guid: 4d58ed94af858f747a94defc1193431a, type: 3}
     - type: 1073741827
       buffers:
       - index: 0
@@ -5294,7 +5297,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 44f10ac290b9a23439e7846b49cc76af, type: 3}
+      processor: {fileID: 4800000, guid: 5e7d2a54ed8f9cb43b6bc2cbd5482d99, type: 3}
   - type: 2
     flags: 0
     capacity: 0

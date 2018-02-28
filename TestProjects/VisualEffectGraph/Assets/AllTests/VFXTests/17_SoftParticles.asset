@@ -660,6 +660,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 1
   sortPriority: 0
@@ -1798,12 +1801,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 1
   sortPriority: 0
   indirectDraw: 0
   preRefraction: 0
-  twoSided: 0
 --- !u!114 &114365880646675674
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2036,6 +2041,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 1
   sortPriority: 0
@@ -3960,6 +3968,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 1
   sortPriority: 0
@@ -5865,7 +5876,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 84
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 8dd0e81e9d21ccd4a9417212ca61f20f, type: 3}
+      processor: {fileID: 7200000, guid: 6f488dd81cb23e24fa0a3cbc437d6194, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -5892,7 +5903,7 @@ VFXAsset:
       - index: 87
         nameId: gradient_d
       params: []
-      processor: {fileID: 7200000, guid: 2339217f2d00a7c4785eb85b214a44b9, type: 3}
+      processor: {fileID: 7200000, guid: c2e4006299b5db94381789e3b28851a2, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -5905,7 +5916,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 28a8e6c4f293f634394544c096464dae, type: 3}
+      processor: {fileID: 4800000, guid: 1c172337f1de10541bcf596dabfb669a, type: 3}
     - type: 1073741824
       buffers:
       - index: 0
@@ -5924,7 +5935,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: e8bbbb015ae477f408fb33d2fb6260eb, type: 3}
+      processor: {fileID: 4800000, guid: ef8d365e70e26b34283bb8aada5bfd63, type: 3}
     - type: 1073741825
       buffers:
       - index: 0
@@ -5945,7 +5956,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3e8f5365938c9d74db2831ceff176e70, type: 3}
+      processor: {fileID: 4800000, guid: 93c6a9ff31ea6c145b62597f3d948449, type: 3}
     - type: 1073741828
       buffers:
       - index: 0
@@ -5968,7 +5979,7 @@ VFXAsset:
         nameId: subMeshMask
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 3c45f89666e584e4b85f4a8793a265bc, type: 3}
+      processor: {fileID: 4800000, guid: e77169e0695bf224c84d48ae8893b2bc, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

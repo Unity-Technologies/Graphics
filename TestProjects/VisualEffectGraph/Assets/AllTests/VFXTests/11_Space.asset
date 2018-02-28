@@ -251,6 +251,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -791,6 +794,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 2
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -4801,7 +4807,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 40
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: e9d8076bda7d4cd43ae3756973f29507, type: 3}
+      processor: {fileID: 7200000, guid: 686a63433e8b03b4d80b5ebd50452d5b, type: 3}
     - type: 805306368
       buffers:
       - index: 0
@@ -4814,7 +4820,7 @@ VFXAsset:
       - index: 46
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: dc2e799a0e9fe234fa783b29c04db7dd, type: 3}
+      processor: {fileID: 7200000, guid: fa37e36c29d553840b72b8526c1557e6, type: 3}
     - type: 1073741826
       buffers:
       - index: 0
@@ -4827,7 +4833,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 36e72f96f15478642a3f4df2a33a5e51, type: 3}
+      processor: {fileID: 4800000, guid: d102cf1e8cc087549a4fe3fdf98767d3, type: 3}
   - type: 1
     flags: 1
     capacity: 44
@@ -4870,7 +4876,7 @@ VFXAsset:
         nameId: bounds_center
       - index: 36
         nameId: bounds_size
-      processor: {fileID: 7200000, guid: 8914c01ad91154d4f8f4192cfec648ee, type: 3}
+      processor: {fileID: 7200000, guid: da954c0bd55bb864896362c168e24a07, type: 3}
     - type: 805306368
       buffers:
       - index: 4
@@ -4883,7 +4889,7 @@ VFXAsset:
       - index: 46
         nameId: deltaTime_b
       params: []
-      processor: {fileID: 7200000, guid: 04ed49fcfb007ae4dbffb3c8b873c453, type: 3}
+      processor: {fileID: 7200000, guid: 14a58ce2b3297f444b379ab826bef560, type: 3}
     - type: 1073741826
       buffers:
       - index: 4
@@ -4896,7 +4902,7 @@ VFXAsset:
       params:
       - index: 0
         nameId: sortPriority
-      processor: {fileID: 4800000, guid: 5fbf393f5edc0864ab8534c5f65f481c, type: 3}
+      processor: {fileID: 4800000, guid: ddc3ba1f7566dc0498293157e0d4733f, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

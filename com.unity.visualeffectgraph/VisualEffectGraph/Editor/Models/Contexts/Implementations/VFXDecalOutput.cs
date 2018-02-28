@@ -14,6 +14,7 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         public class InputProperties
         {
@@ -24,6 +25,19 @@ namespace UnityEditor.VFX
         {
             public Texture2D mainTexture;
             public Vector2 flipBookSize = new Vector2(5, 5);
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "cullMode";
+                yield return "zWriteMode";
+                yield return "zTestMode";
+            }
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)

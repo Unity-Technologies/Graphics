@@ -27,16 +27,50 @@ namespace UnityEditor.VFX
             FlipbookBlend,
         }
 
-        [VFXSetting, SerializeField]
+        public enum ZWriteMode
+        {
+            Default,
+            Off,
+            On
+        }
+        public enum CullMode
+        {
+            Default,
+            Front,
+            Back,
+            Off
+        }
+
+        public enum ZTest
+        {
+            Less,
+            Greater,
+            LEqual,
+            GEqual,
+            Equal,
+            NotEqual,
+            Always
+        }
+
+        [VFXSetting, SerializeField, Header("Render States")]
         protected BlendMode blendMode = BlendMode.Alpha;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected CullMode cullMode = CullMode.Default;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected ZWriteMode zWriteMode = ZWriteMode.Default;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected ZTest zTestMode = ZTest.LEqual;
+
+        [VFXSetting, SerializeField, Header("Particle Options")]
         protected FlipbookMode flipbookMode;
 
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Rendering Options")]
         protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -52,6 +86,8 @@ namespace UnityEditor.VFX
         public override bool codeGeneratorCompute { get { return false; } }
 
         public virtual bool supportsFlipbooks { get { return false; } }
+        public virtual CullMode defaultCullMode { get { return CullMode.Off; } }
+
 
         public virtual bool supportSoftParticles { get { return useSoftParticle && (blendMode != BlendMode.Opaque && blendMode != BlendMode.Masked); } }
 
@@ -185,16 +221,45 @@ namespace UnityEditor.VFX
                 else if (blendMode == BlendMode.AlphaPremultiplied)
                     rs.WriteLine("Blend One OneMinusSrcAlpha");
 
-                rs.WriteLine("ZTest LEqual");
+                switch (zTestMode)
+                {
+                    case ZTest.Always: rs.WriteLine("ZTest Always"); break;
+                    case ZTest.Equal: rs.WriteLine("ZTest Equal"); break;
+                    case ZTest.GEqual: rs.WriteLine("ZTest GEqual"); break;
+                    case ZTest.Greater: rs.WriteLine("ZTest Greater"); break;
+                    case ZTest.LEqual: rs.WriteLine("ZTest LEqual"); break;
+                    case ZTest.Less: rs.WriteLine("ZTest Less"); break;
+                    case ZTest.NotEqual: rs.WriteLine("ZTest NotEqual"); break;
+                }
 
-                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
-                    rs.WriteLine("ZWrite On");
-                else
-                    rs.WriteLine("ZWrite Off");
+                switch (zWriteMode)
+                {
+                    case ZWriteMode.Default:
+                        if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
+                            rs.WriteLine("ZWrite On");
+                        else
+                            rs.WriteLine("ZWrite Off");
+                        break;
+                    case ZWriteMode.On: rs.WriteLine("ZWrite On"); break;
+                    case ZWriteMode.Off: rs.WriteLine("ZWrite Off"); break;
+                }
+
+                var cull = cullMode;
+                if (cull == CullMode.Default)
+                    cull = defaultCullMode;
+
+                switch (cull)
+                {
+                    case CullMode.Default: rs.WriteLine("Cull Off"); break;
+                    case CullMode.Front: rs.WriteLine("Cull Front"); break;
+                    case CullMode.Back: rs.WriteLine("Cull Back"); break;
+                    case CullMode.Off: rs.WriteLine("Cull Off"); break;
+                }
 
                 return rs;
             }
         }
+
 
         public override IEnumerable<VFXMapping> additionalMappings
         {

@@ -16,6 +16,17 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         protected bool targetFromAttributes = true;
 
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "cullMode";
+            }
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
