@@ -423,6 +423,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]);
             SetShadowCollectPassKeywords(cmd, visibleLights[lightData.mainLightIndex], ref lightData);
 
+
+            // TODO: Support RenderScale for the SSSM target.  Should probably move allocation elsewhere, or at
+            // least propogate RenderTextureDescriptor generation
             if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
             {
                 var desc = XRSettings.eyeTextureDesc;
@@ -718,33 +721,41 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
-            {
-                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                    SetupIntermediateResourcesStereo(cmd, renderingConfig, msaaSamples);
-                else
-                    SetupIntermediateResourcesSingle(cmd, renderingConfig, msaaSamples);
-            }
+                SetupIntermediateRenderTextures(cmd, renderingConfig, msaaSamples);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        private void SetupIntermediateResourcesSingle(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
+        private void SetupIntermediateRenderTextures(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
         {
+            RenderTextureDescriptor baseDesc;
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
+                baseDesc = XRSettings.eyeTextureDesc;
+            else
+                baseDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
+
             float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
-            int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
-            int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
+            baseDesc.width = (int)((float)baseDesc.width * renderScale);
+            baseDesc.height = (int)((float)baseDesc.height * renderScale);
+
+            // TODO: Might be worth caching baseDesc for allocation of other targets (Screen-space Shadow Map?)
 
             if (m_RequireDepthTexture)
             {
-                RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
+                var depthRTDesc = baseDesc;
+                depthRTDesc.colorFormat = RenderTextureFormat.Depth;
+                depthRTDesc.depthBufferBits = kDepthStencilBufferBits;
+
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Bilinear);
             }
 
-            RenderTextureDescriptor colorRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, m_ColorFormat, kDepthStencilBufferBits);
+            var colorRTDesc = baseDesc;
+            colorRTDesc.colorFormat = m_ColorFormat;
+            colorRTDesc.depthBufferBits = kDepthStencilBufferBits; // TODO: does the color RT always need depth?
             colorRTDesc.sRGB = true;
             colorRTDesc.msaaSamples = msaaSamples;
             colorRTDesc.enableRandomWrite = false;
@@ -760,37 +771,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // color RT to blit the effect.
             if (m_RequireCopyColor)
                 cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, colorRTDesc, FilterMode.Point);
-        }
-
-        private void SetupIntermediateResourcesStereo(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
-        {
-            // TODO: support renderscale
-            // TODO: merge with SetupIntermediateResourcesSingle
-
-            var rtDesc = XRSettings.eyeTextureDesc;
-
-            if (m_RequireDepthTexture)
-            {
-                var depthRTDesc = rtDesc;
-                depthRTDesc.colorFormat = RenderTextureFormat.Depth;
-                depthRTDesc.depthBufferBits = kDepthStencilBufferBits;
-
-                //RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
-                cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
-
-                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
-                    cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Bilinear);
-            }
-
-            //RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
-            rtDesc.sRGB = true;
-            rtDesc.colorFormat = m_ColorFormat;
-            rtDesc.msaaSamples = msaaSamples;
-
-            cmd.GetTemporaryRT(CameraRenderTargetID.color, rtDesc, FilterMode.Bilinear);
-
-            if (m_RequireCopyColor)
-                cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, rtDesc, FilterMode.Point);
         }
 
         private void SetupShaderConstants(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
