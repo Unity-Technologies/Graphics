@@ -27,6 +27,14 @@ namespace UnityEditor.VFX
             public Vector2 flipBookSize = new Vector2(5, 5);
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            cullMode = CullMode.Back;
+            zTestMode = ZTestMode.LEqual;
+            zWriteMode = ZWriteMode.Off;
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get

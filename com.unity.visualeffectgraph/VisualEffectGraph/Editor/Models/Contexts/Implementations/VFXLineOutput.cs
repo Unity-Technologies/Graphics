@@ -27,6 +27,12 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            cullMode = CullMode.Off;
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

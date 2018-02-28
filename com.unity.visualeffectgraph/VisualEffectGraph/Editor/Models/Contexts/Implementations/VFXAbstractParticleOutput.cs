@@ -43,6 +43,7 @@ namespace UnityEditor.VFX
 
         public enum ZTestMode
         {
+            Default,
             Less,
             Greater,
             LEqual,
@@ -62,7 +63,7 @@ namespace UnityEditor.VFX
         protected ZWriteMode zWriteMode = ZWriteMode.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected ZTestMode zTestMode = ZTestMode.LEqual;
+        protected ZTestMode zTestMode = ZTestMode.Default;
 
         [VFXSetting, SerializeField, Header("Particle Options")]
         protected FlipbookMode flipbookMode;
@@ -87,6 +88,7 @@ namespace UnityEditor.VFX
 
         public virtual bool supportsFlipbooks { get { return false; } }
         public virtual CullMode defaultCullMode { get { return CullMode.Off; } }
+        public virtual ZTestMode defaultZTestMode { get { return ZTestMode.LEqual; } }
 
 
         public virtual bool supportSoftParticles { get { return useSoftParticle && (blendMode != BlendMode.Opaque && blendMode != BlendMode.Masked); } }
@@ -221,8 +223,13 @@ namespace UnityEditor.VFX
                 else if (blendMode == BlendMode.AlphaPremultiplied)
                     rs.WriteLine("Blend One OneMinusSrcAlpha");
 
-                switch (zTestMode)
+                var zTest = zTestMode;
+                if (zTest == ZTestMode.Default)
+                    zTest = defaultZTestMode;
+
+                switch (zTest)
                 {
+                    case ZTestMode.Default: rs.WriteLine("ZTest LEqual"); break;
                     case ZTestMode.Always: rs.WriteLine("ZTest Always"); break;
                     case ZTestMode.Equal: rs.WriteLine("ZTest Equal"); break;
                     case ZTestMode.GEqual: rs.WriteLine("ZTest GEqual"); break;

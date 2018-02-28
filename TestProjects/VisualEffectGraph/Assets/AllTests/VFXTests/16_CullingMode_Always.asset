@@ -2957,7 +2957,7 @@ MonoBehaviour:
   blendMode: 1
   cullMode: 0
   zWriteMode: 0
-  zTestMode: 2
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
