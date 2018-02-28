@@ -8,9 +8,10 @@
 		_Exposure("_Exposure", Range(-10.0,10.0)) = 0.0
 
 	}
-		SubShader
+	
+	SubShader
 	{
-		Tags{ "RenderType" = "Opaque" "Queue" = "Transparent" }
+		Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Opaque" "Queue" = "Transparent" }
 		ZWrite On
 		Cull Back
 
