@@ -442,15 +442,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
             // stereo functionality, we use the screen-space shadow map as the source (until we have
             // a better solution).
+            // An alternative would be DrawProcedural, but that would require further changes in the shader.
             cmd.Blit(m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
 
-            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
-                context.StartMultiEye(m_CurrCamera);
+            StartStereoRendering(ref context, frameRenderingConfiguration);
 
             context.ExecuteCommandBuffer(cmd);
 
-            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
-                context.StopMultiEye(m_CurrCamera);
+            StopStereoRendering(ref context, frameRenderingConfiguration);
 
             CommandBufferPool.Release(cmd);
         }
@@ -470,13 +469,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderQueueRange = RenderQueueRange.opaque
             };
 
-            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
-                context.StartMultiEye(m_CurrCamera);
+            StartStereoRendering(ref context, frameRenderingConfiguration);
 
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
 
-            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
-                context.StopMultiEye(m_CurrCamera);
+            StopStereoRendering(ref context, frameRenderingConfiguration);
         }
 
         private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
@@ -1350,8 +1347,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
 
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                context.StartMultiEye(m_CurrCamera);
+            StartStereoRendering(ref context, renderingConfig);
 
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
             bool intermediteTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
@@ -1506,6 +1502,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.CopyTexture(sourceRT, destRT);
             else
                 cmd.Blit(sourceRT, destRT, copyMaterial);
+        }
+
+        private void StartStereoRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (LightweightUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StartMultiEye(m_CurrCamera);
+        }
+
+        private void StopStereoRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (LightweightUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StopMultiEye(m_CurrCamera);
         }
     }
 }
