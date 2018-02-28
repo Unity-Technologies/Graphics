@@ -3,5 +3,8 @@
 	"description": "Lightweight Render Pipeline for Unity.",
     "subDependencies": [
         "com.unity.render-pipelines.core"
-    ]
+    ],
+    "dependencies": {
+        "com.unity.shadergraph": "0.1.19"
+    }
 }

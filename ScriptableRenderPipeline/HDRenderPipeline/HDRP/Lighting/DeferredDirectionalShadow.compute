@@ -20,6 +20,8 @@
 #include "../ShaderVariables.hlsl"
 #include "Lighting.hlsl" 
 
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
 //#pragma enable_d3d11_debug_symbols
 
 RWTexture2D<float4> _DeferredShadowTextureUAV;

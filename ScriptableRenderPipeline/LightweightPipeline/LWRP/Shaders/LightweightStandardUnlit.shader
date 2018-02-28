@@ -38,6 +38,11 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma shader_feature _ALPHATEST_ON
             #pragma multi_compile_instancing
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+
             // Lighting include is needed because of GI
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
             #include "LWRP/ShaderLibrary/InputSurface.hlsl"
@@ -81,9 +86,8 @@ Shader "LightweightPipeline/Standard Unlit"
 
 #if _SAMPLE_GI
                 OUTPUT_NORMAL(v, o);
-                half3 normalWS = o.normal;
                 OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapOrVertexSH.xy);
-                OUTPUT_SH(normalWS, o.lightmapOrVertexSH);
+                OUTPUT_SH(o.normal, o.lightmapOrVertexSH);
 #endif
                 return o;
             }
@@ -104,7 +108,7 @@ Shader "LightweightPipeline/Standard Unlit"
     #else
                 half3 normalWS = normalize(IN.normal);
     #endif
-                color += SampleGI(IN.lightmapOrVertexSH, normalWS);
+                color *= SampleGI(IN.lightmapOrVertexSH, normalWS);
 #endif
                 ApplyFog(color, IN.uv0AndFogCoord.z);
        

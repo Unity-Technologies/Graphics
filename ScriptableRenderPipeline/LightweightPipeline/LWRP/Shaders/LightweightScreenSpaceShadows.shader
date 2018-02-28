@@ -6,6 +6,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         HLSLINCLUDE
 
+        #pragma prefer_hlslcc gles
         //Keep compiler quiet about Shadows.hlsl. 
         #include "CoreRP/ShaderLibrary/Common.hlsl"
         #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
