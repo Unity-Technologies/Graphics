@@ -46,6 +46,8 @@
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDPipeline" }
+        
         // 0: Nearest
         Pass
         {

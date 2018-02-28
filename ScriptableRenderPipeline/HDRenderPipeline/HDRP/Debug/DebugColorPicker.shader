@@ -2,6 +2,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDPipeline" }
         Pass
         {
             ZWrite Off
