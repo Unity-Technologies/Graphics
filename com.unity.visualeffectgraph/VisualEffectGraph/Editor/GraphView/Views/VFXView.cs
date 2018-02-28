@@ -975,7 +975,7 @@ namespace UnityEditor.VFX.UI
 
         GraphViewChange VFXGraphViewChanged(GraphViewChange change)
         {
-            if (change.movedElements.Count > 0)
+            if (change.movedElements != null && change.movedElements.Count > 0)
             {
                 HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
                 foreach (var groupNode in vfxGroupNodes.ToList())
