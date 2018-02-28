@@ -56,7 +56,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDPipeline" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         
         Pass
         {

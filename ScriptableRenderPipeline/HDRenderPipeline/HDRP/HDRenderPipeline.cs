@@ -210,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
 
             // Set subshader pipeline tag
-            Shader.globalRenderPipeline = "HDPipeline";
+            Shader.globalRenderPipeline = "HDRenderPipeline";
 
             // General material
             m_CopyStencilForNoLighting = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyStencilBuffer);
