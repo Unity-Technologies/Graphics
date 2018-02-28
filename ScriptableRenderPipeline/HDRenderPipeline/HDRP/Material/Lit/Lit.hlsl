@@ -1284,23 +1284,18 @@ float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 // - we multiply the transmitted radiance by the transmittance.
 float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float attenuation)
 {
+    // Apply wrapped lighting to better handle thin objects at grazing angles.
     float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-    float negatedNdotL = -NdotL;
-
-    // Apply wrapped lighting to better handle thin objects (cards) at grazing angles.
-    bool  mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
-    float backNdotL          = mixedThicknessMode ? negatedNdotL : wrappedNdotL;
 
     // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     attenuation *= Lambert();
 #else
-    attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, abs(backNdotL));
+    attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, max(0, -NdotL));
 #endif
 
-    float intensity = max(0, attenuation * backNdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
+    float intensity = attenuation * wrappedNdotL;
     return intensity * transmittance;
 }
 
