@@ -15,7 +15,7 @@ DecalData FetchDecal(uint start, uint i)
 void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float3x3 decalToWorld, float blend)
 {
 	float4 src;
-	src.xyz =  mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex))) * 0.5f + 0.5f;
+	src.xyz =  mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, ComputeTextureLOD(texCoords)))) * 0.5f + 0.5f;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
@@ -24,7 +24,7 @@ void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int
 
 void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float blend)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex);
+	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, ComputeTextureLOD(texCoords));
 	src.w *= blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
@@ -33,7 +33,7 @@ void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, in
 
 void ApplyBlendMask(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float blend)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex);
+	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, ComputeTextureLOD(texCoords));
 	src.z = src.w;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
