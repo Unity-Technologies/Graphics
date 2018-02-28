@@ -1330,15 +1330,15 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         #define SHADOW_DISPATCH_DIR_TEX 3 // Manually keep it in sync with Shadow.hlsl...
 
         // Compute the distance from the light to the back face of the object along the light direction.
-        float3 nearPlanePositionWS;
-        float backNearPlaneDist = EvalShadow_SampleClosestDistance_Cascade(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX],
-                                                                           s_linear_clamp_sampler, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0),
-                                                                           nearPlanePositionWS);
+        float3 lightPositionWS;
+        float  distBackFaceToLight = EvalShadow_SampleClosestDistance_Cascade(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX],
+                                                                              s_linear_clamp_sampler, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0),
+                                                                              lightPositionWS);
 
         // Our subsurface scattering models use the semi-infinite planar slab assumption.
         // Therefore, we need to find the thickness along the normal.
-        float frontNearPlaneDist     = distance(nearPlanePositionWS, posInput.positionWS);
-        float thicknessInUnits       = (frontNearPlaneDist - backNearPlaneDist)  * -NdotL;
+        float distFrontFaceToLight   = distance(lightPositionWS, posInput.positionWS);
+        float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
         float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
@@ -1449,12 +1449,13 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
 
         // Compute the distance from the light to the back face of the object along the light direction.
-        float backLightDist = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
-                                                                        s_linear_clamp_sampler, posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+        float distBackFaceToLight = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
+                                                                              s_linear_clamp_sampler, posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
 
         // Our subsurface scattering models use the semi-infinite planar slab assumption.
         // Therefore, we need to find the thickness along the normal.
-        float thicknessInUnits       = (distances.x - backLightDist)  * -NdotL;
+        float distFrontFaceToLight   = distances.x;
+        float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
         float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
