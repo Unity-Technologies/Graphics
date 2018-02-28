@@ -14,6 +14,13 @@
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+// flow control attributes
+#define UNITY_BRANCH        [branch]
+#define UNITY_FLATTEN       [flatten]
+#define UNITY_UNROLL        [unroll]
+#define UNITY_UNROLLX(_x)   [unroll(_x)]
+#define UNITY_LOOP          [loop]
+
 // Initialize arbitrary structure with zero values.
 // Do not exist on some platform, in this case we need to have a standard name that call a function that will initialize all parameters to 0
 #define ZERO_INITIALIZE(type, name) name = (type)0;

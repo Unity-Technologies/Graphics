@@ -410,7 +410,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 				wposDir = -sphere.xyz + positionWS;
 		float   distSq  = dot( wposDir, wposDir );
 		relDistance = distSq / sphere.w;
-		if( relDistance <= 1.0 )
+		if( relDistance > 0.0 && relDistance <= 1.0 )
 		{ 
 			splitSphere = sphere.xyz;
 			wposDir    /= sqrt( distSq );

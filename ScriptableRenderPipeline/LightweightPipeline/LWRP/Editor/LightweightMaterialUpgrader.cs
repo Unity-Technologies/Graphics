@@ -131,70 +131,90 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         static public UpgradeParams diffuseOpaque = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularOpaque = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseAlphaCutout = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Cutout,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = true,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlphaCutout = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Cutout,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = true,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseCubemap = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemap = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
@@ -232,7 +252,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         public StandardSimpleLightingUpgrader(string oldShaderName, UpgradeParams upgradeParams)
         {
             RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_SIMPLE_LIGHTING), UpdateMaterialKeywords);
-            SetFloat("_Mode", (float)upgradeParams.blendMode);
+            SetFloat("_Surface", (float)upgradeParams.surfaceType);
+            SetFloat("_Blend", (float)upgradeParams.blendMode);
+            SetFloat("_AlphaClip", upgradeParams.alphaClip ? 1 : 0);
             SetFloat("_SpecSource", (float)upgradeParams.specularSource);
             SetFloat("_GlossinessSource", (float)upgradeParams.glosinessSource);
 
