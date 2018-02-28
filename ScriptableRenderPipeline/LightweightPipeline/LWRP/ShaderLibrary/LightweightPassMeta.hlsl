@@ -73,7 +73,7 @@ half4 MetaFragment(MetaInput IN)
         unity_OneOverOutputBoost = saturate(unity_OneOverOutputBoost);
 
         // Apply Albedo Boost from LightmapSettings.
-        res.rgb = clamp(pow(res.rgb, unity_OneOverOutputBoost), 0, unity_MaxOutputValue);
+        res.rgb = clamp(PositivePow(res.rgb, unity_OneOverOutputBoost), 0, unity_MaxOutputValue);
     }
     if (unity_MetaFragmentControl.y)
     {
