@@ -192,7 +192,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     {
         DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
     }
-#pragma warning(enable : 3557)
+#pragma warning(default : 3557)
 
     // 5. Display sign
     if (intValue < 0 || forceNegativeSign)
