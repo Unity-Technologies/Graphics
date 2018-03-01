@@ -334,7 +334,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
 
                 case LightShape.Line:
-                    settings.intensity.floatValue = LightUtils.CalculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
+                    settings.intensity.floatValue = LightUtils.CalculateLineLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
                     break;
             }
         }
