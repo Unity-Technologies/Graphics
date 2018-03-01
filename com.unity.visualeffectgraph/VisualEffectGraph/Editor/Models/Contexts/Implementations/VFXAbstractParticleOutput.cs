@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Masked)
+                if (blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked)
                     yield return "IS_OPAQUE_PARTICLE";
                 if (blendMode == BlendMode.Masked)
                     yield return "USE_ALPHA_TEST";
