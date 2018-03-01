@@ -277,7 +277,7 @@ MonoBehaviour:
   - {fileID: 114879092719112468}
   m_exposedName: gradient
   m_exposed: 1
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1710,7 +1710,7 @@ MonoBehaviour:
   - {fileID: 114597739427807632}
   m_exposedName: initialGradient
   m_exposed: 1
-  m_order: 1
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -2116,6 +2116,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -3535,7 +3538,7 @@ VisualEffectAsset:
         index: 31
       - nameId: bounds_size
         index: 33
-      processor: {fileID: 7200000, guid: 4027892b49075d840864ba2daac2bac5, type: 3}
+      processor: {fileID: 7200000, guid: 2077ffc74d5c0c34a8ff25f45e0a1013, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -3546,7 +3549,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 37
       params: []
-      processor: {fileID: 7200000, guid: d40045b3c75069b4a9cb724ab9ecab87, type: 3}
+      processor: {fileID: 7200000, guid: 22d023b1e9c4dfb4f8ac2c886dab0499, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3565,7 +3568,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 09b4788b41be7954282e734c4b1a965a, type: 3}
+      processor: {fileID: 4800000, guid: 94f7603464ffa7c41b6feb180bb319fb, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

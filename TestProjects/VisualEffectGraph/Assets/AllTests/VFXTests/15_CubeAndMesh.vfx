@@ -272,7 +272,7 @@ MonoBehaviour:
   - {fileID: 114626334562317016}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -2197,7 +2197,7 @@ MonoBehaviour:
   - {fileID: 114649673960739854}
   m_exposedName: torus radii
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -4212,6 +4212,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -5299,7 +5302,7 @@ VisualEffectAsset:
         index: 64
       - nameId: bounds_size
         index: 79
-      processor: {fileID: 7200000, guid: f5eb5e3bec9b5554eaba3abd0728074b, type: 3}
+      processor: {fileID: 7200000, guid: 3e77bdd2833285a47bd9696b28ab1389, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5314,7 +5317,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 18
       params: []
-      processor: {fileID: 7200000, guid: df632ab02579db646a6186e6af304be5, type: 3}
+      processor: {fileID: 7200000, guid: 914eb256812e751439af42361e05183b, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
@@ -5337,7 +5340,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: a5c7e6f3e71e2e54ab7fbcea28f768ee, type: 3}
+      processor: {fileID: 4800000, guid: d983273fcfdd74a4593277c104a890a1, type: 3}
   - type: 2
     flags: 0
     capacity: 0
