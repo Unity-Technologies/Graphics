@@ -284,6 +284,8 @@ namespace UnityEngine.Experimental.Rendering
             if( sr.shadowType == GPUShadowType.Directional )
             {
                 asd.GetShadowCascades( out cascadeCnt, out cascadeRatios, out cascadeBorders );
+                for( int i = 0; i < m_TmpSplits.Length; i++ )
+                    m_TmpSplits[i].w = -1.0f;
             }
 
 
@@ -315,7 +317,6 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     // read
-                    float texelSizeX = 1.0f, texelSizeY = 1.0f;
                     CachedEntry ce = m_EntryCache[ceIdx];
                     ce.zclip = sr.shadowType != GPUShadowType.Directional;
 
@@ -340,8 +341,6 @@ namespace UnityEngine.Experimental.Rendering
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                         {
                             int face = (int)key.faceIdx;
-                            texelSizeX = 2.0f / ce.current.proj.m00;
-                            texelSizeY = 2.0f / ce.current.proj.m11;
                             m_TmpBorders[face] = cascadeBorders[face];
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
                         }
@@ -464,8 +463,8 @@ namespace UnityEngine.Experimental.Rendering
                 uint first = k_MaxCascadesInShader, second = k_MaxCascadesInShader;
                 for( uint i = 0; i < k_MaxCascadesInShader; i++, payloadOffset++ )
                 {
-                    first  = (first  == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : first;
-                    second = (second == k_MaxCascadesInShader && m_TmpSplits[i].w > 0.0f) ? i : second;
+                    first  = ( first  == k_MaxCascadesInShader                      && m_TmpSplits[i].w > 0.0f) ? i : first;
+                    second = ((second == k_MaxCascadesInShader || second == first)  && m_TmpSplits[i].w > 0.0f) ? i : second;
                     sp.Set( m_TmpSplits[i] );
                     payload[payloadOffset] = sp;
                 }
@@ -711,7 +710,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 if( curx + vp.width > xmax || cury + curh > ymax || curslice == m_Slices )
                 {
-                    Debug.LogError( "ERROR! Shadow atlasing failed." );
+                    Debug.LogWarning( "Shadow atlasing has failed." );
                     return false;
                 }
                 vp.x = curx;
@@ -1511,7 +1510,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 if( smidx == k_MaxShadowmapPerType )
                 {
-                    Debug.LogError("The requested shadows do not fit into any shadowmap.");
+                    Debug.LogWarning("The requested shadows do not fit into any shadowmap.");
                     return false;
                 }
             }
@@ -1521,7 +1520,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if( !sm.ReserveFinalize( frameId, ref shadowDatas, ref shadowmapPayload ) )
                 {
-                    Debug.LogError("Shadow allocation failed in the ReserveFinalize step." );
+                    Debug.LogWarning("Shadow allocation failed in the ReserveFinalize step." );
                     return false;
                 }
             }

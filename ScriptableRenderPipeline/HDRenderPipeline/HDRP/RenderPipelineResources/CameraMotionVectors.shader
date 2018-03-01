@@ -56,6 +56,8 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+        
         Pass
         {
             // We will perform camera motion velocity only where there is no object velocity

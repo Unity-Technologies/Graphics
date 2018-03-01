@@ -114,11 +114,11 @@ float4 LoadSample(int2 pixelCoord, int2 cacheOffset)
 float3 DisneyProfilePolar(float r, float3 S)
 {
 #if 0
-    float3 expOneThird = exp(((-1.0 / 3.0) * r) * S);
+    float3 expOneThird = exp((-1.0 / 3.0) * r * S);
 #else
     // Help the compiler.
     float  k = (-1.0 / 3.0) * LOG2_E;
-    float3 p = (k * r) * S;
+    float3 p = (k * S) * r;
     float3 expOneThird = exp2(p);
 #endif
     return expOneThird + expOneThird * expOneThird * expOneThird;

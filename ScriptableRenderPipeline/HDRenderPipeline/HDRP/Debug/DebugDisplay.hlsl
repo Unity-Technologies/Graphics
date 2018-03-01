@@ -187,10 +187,12 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     }
 
     // 4. Display leading 0
+#pragma warning(disable : 3557) // loop only executes for 0 iteration(s)
     for (int i = 0; i < leading0; ++i)
     {
         DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
     }
+#pragma warning(default : 3557)
 
     // 5. Display sign
     if (intValue < 0 || forceNegativeSign)
