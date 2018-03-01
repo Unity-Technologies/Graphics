@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UI
             get
             {
                 if (depth == 0)
-                    return "";
+                    return sourceNode.exposedName;
                 return base.name;
             }
         }
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXParameterNodeController : VFXSlotContainerController, IPropertyRMProvider, IValueController
+    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider, IValueController
     {
         VFXParameterController m_ParentController;
 
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
         public override string title
         {
-            get { return m_ParentController.parameter.exposedName; }
+            get { return ""; }
         }
 
         public string exposedName
@@ -119,6 +119,13 @@ namespace UnityEditor.VFX.UI
         public int order
         {
             get { return m_ParentController.parameter.order; }
+        }
+        public override bool expanded
+        {
+            get
+            {
+                return true;
+            }
         }
 
         bool IPropertyRMProvider.expanded

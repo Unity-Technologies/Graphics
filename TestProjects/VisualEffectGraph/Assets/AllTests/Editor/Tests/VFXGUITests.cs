@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Test
         VFXViewController m_ViewController;
         VFXViewWindow m_Window;
 
-        const string testAssetName = "Assets/TmpTests/{0}.asset";
+        const string testAssetName = "Assets/TmpTests/{0}.vfx";
 
 
         [Test]

@@ -18,9 +18,9 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IValueController
     {
-        private VFXSlotContainerController m_SourceNode;
+        private VFXNodeController m_SourceNode;
 
-        public VFXSlotContainerController sourceNode
+        public VFXNodeController sourceNode
         {
             get
             {
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
-        public VFXDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model)
+        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model)
         {
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
@@ -221,7 +221,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool expandable
         {
-            get { return VFXContextSlotContainerController.IsTypeExpandable(portType); }
+            get { return VFXContextController.IsTypeExpandable(portType); }
         }
 
         public virtual string iconName

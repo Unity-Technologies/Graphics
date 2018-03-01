@@ -17,12 +17,12 @@ width:-1;
 
 .VFXNodeUI #settings
 {
-    max-height:0;
     background-color: rgba(63,63,63,0.8);
 }
-.VFXNodeUI.expanded #settings
+.VFXNodeUI.collapsed #settings
 {
-    max-height:10000;
+    max-height:0;
+    height:0;
 }
 
 
@@ -150,4 +150,25 @@ width:-1;
 .VFXNodeUI.superCollapsed.node .VFXDataAnchor #line
 {
     background-color:rgba(0,0,0,0);
+}
+
+
+#settings-divider 
+{
+    background-color: rgba(35,35,35,0.8);
+    border-color: rgba(35,35,35,0.8);
+    height:0.01;
+    border-bottom-width: 1;
+}
+
+#settings-divider.hidden 
+{
+    height:0;
+    border-bottom-width: 0;
+}
+
+.VFXNodeUI.collapsed #settings-divider 
+{
+    height:0;
+    border-bottom-width: 0;
 }

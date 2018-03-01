@@ -20,8 +20,8 @@ namespace UnityEditor.VFX
         private string m_exposedName;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private bool m_exposed;
-        [VFXSetting, SerializeField]
-        private int m_order;
+        [SerializeField]
+        private int m_Order;
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Min;
         [VFXSetting, SerializeField]
@@ -83,14 +83,21 @@ namespace UnityEditor.VFX
 
         public int order
         {
-            get { return m_order; }
+            get { return m_Order; }
+            set
+            {
+                if (m_Order != value)
+                {
+                    m_Order = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
         }
 
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
-                yield return "m_order";
                 yield return "m_Min";
                 yield return "m_Max";
             }

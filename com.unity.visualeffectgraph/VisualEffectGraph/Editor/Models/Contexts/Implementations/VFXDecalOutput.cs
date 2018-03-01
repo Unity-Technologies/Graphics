@@ -12,18 +12,12 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Decal Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
         public class InputProperties
         {
             public Texture2D mainTexture;
-        }
-
-        public class InputPropertiesFlipbook
-        {
-            public Texture2D mainTexture;
-            public Vector2 flipBookSize = new Vector2(5, 5);
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)

@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
         class Data
         {
             public string serializedObjects;
-
+            public Rect bounds;
 
             public bool blocksOnly;
 
@@ -245,13 +245,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXSlotContainerController> slotContainers)
+        static void CopyNodes(Data copyData, IEnumerable<Controller> elements, IEnumerable<VFXContextController> contexts, IEnumerable<VFXNodeController> slotContainers, Rect bounds)
         {
-            IEnumerable<VFXSlotContainerController> dataEdgeTargets = slotContainers.Concat(contexts.Select(t => t.slotContainerController as VFXSlotContainerController)).Concat(contexts.SelectMany(t => t.blockControllers).Cast<VFXSlotContainerController>()).ToArray();
+            copyData.bounds = bounds;
+            IEnumerable<VFXNodeController> dataEdgeTargets = slotContainers.Concat(contexts.Cast<VFXNodeController>()).Concat(contexts.SelectMany(t => t.blockControllers).Cast<VFXNodeController>()).ToArray();
 
             // consider only edges contained in the selection
 
-            IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXSlotContainerController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXSlotContainerController)).ToArray();
+            IEnumerable<VFXDataEdgeController> dataEdges = elements.OfType<VFXDataEdgeController>().Where(t => dataEdgeTargets.Contains((t.input as VFXDataAnchorController).sourceNode as VFXNodeController) && dataEdgeTargets.Contains((t.output as VFXDataAnchorController).sourceNode as VFXNodeController)).ToArray();
             IEnumerable<VFXFlowEdgeController> flowEdges = elements.OfType<VFXFlowEdgeController>().Where(t =>
                     contexts.Contains((t.input as VFXFlowAnchorController).context) &&
                     contexts.Contains((t.output as VFXFlowAnchorController).context)
@@ -286,10 +287,10 @@ namespace UnityEditor.VFX.UI
             CopyFlowEdges(copyData, flowEdges, allSerializedObjects);
         }
 
-        public static object CreateCopy(IEnumerable<Controller> elements)
+        public static object CreateCopy(IEnumerable<Controller> elements, Rect bounds)
         {
             IEnumerable<VFXContextController> contexts = elements.OfType<VFXContextController>();
-            IEnumerable<VFXSlotContainerController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXSlotContainerController>();
+            IEnumerable<VFXNodeController> slotContainers = elements.Where(t => t is VFXOperatorController || t is VFXParameterNodeController).Cast<VFXNodeController>();
             IEnumerable<VFXBlockController> blocks = elements.OfType<VFXBlockController>();
 
             Data copyData = new Data();
@@ -303,15 +304,15 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                CopyNodes(copyData, elements, contexts, slotContainers);
+                CopyNodes(copyData, elements, contexts, slotContainers, bounds);
             }
 
             return copyData;
         }
 
-        public static string SerializeElements(IEnumerable<Controller> elements)
+        public static string SerializeElements(IEnumerable<Controller> elements, Rect bounds)
         {
-            var copyData = CreateCopy(elements) as Data;
+            var copyData = CreateCopy(elements, bounds) as Data;
 
             return JsonUtility.ToJson(copyData);
         }
@@ -368,7 +369,7 @@ namespace UnityEditor.VFX.UI
             return slot;
         }
 
-        public static void UnserializeAndPasteElements(VFXView view, Vector2 pasteOffset, string data)
+        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 pasteOffset, string data, VFXView view = null)
         {
             var copyData = JsonUtility.FromJson<Data>(data);
 
@@ -383,21 +384,24 @@ namespace UnityEditor.VFX.UI
                 copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
             }
 
-            PasteCopy(view, pasteOffset, copyData, allSerializedObjects);
+            PasteCopy(viewController, pasteOffset, copyData, allSerializedObjects, view);
         }
 
-        public static void PasteCopy(VFXView view, Vector2 pasteOffset, object data, ScriptableObject[] allSerializedObjects)
+        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view)
         {
             Data copyData = (Data)data;
 
             if (copyData.blocksOnly)
             {
-                copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
-                PasteBlocks(view, copyData);
+                if (view != null)
+                {
+                    copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
+                    PasteBlocks(view, copyData);
+                }
             }
             else
             {
-                PasteNodes(view, pasteOffset, copyData, allSerializedObjects);
+                PasteNodes(viewController, center, copyData, allSerializedObjects, view);
             }
         }
 
@@ -457,7 +461,7 @@ namespace UnityEditor.VFX.UI
             targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
 
             // Create all ui based on model
-            view.controller.ApplyChanges();
+            view.controller.LightApplyChanges();
 
             view.ClearSelection();
 
@@ -542,9 +546,52 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void PasteNodes(VFXView view, Vector2 pasteOffset, Data copyData, ScriptableObject[] allSerializedObjects)
+        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view)
         {
-            var graph = view.controller.graph;
+            var graph = viewController.graph;
+            Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
+
+            // look if pasting there will result in the first element beeing exactly on top of other
+            while (true)
+            {
+                bool foundSamePosition = false;
+                if (copyData.contexts != null && copyData.contexts.Length > 0)
+                {
+                    VFXContext firstContext = copyData.contexts[0];
+
+                    foreach (var existingContext in viewController.graph.children.OfType<VFXContext>())
+                    {
+                        if ((firstContext.position + pasteOffset - existingContext.position).sqrMagnitude < 1)
+                        {
+                            foundSamePosition = true;
+                            break;
+                        }
+                    }
+                }
+                else if (copyData.slotContainers != null && copyData.slotContainers.Length > 0)
+                {
+                    VFXModel firstContainer = copyData.slotContainers[0];
+
+                    foreach (var existingSlotContainer in viewController.graph.children.Where(t => t is IVFXSlotContainer))
+                    {
+                        if ((firstContainer.position + pasteOffset - existingSlotContainer.position).sqrMagnitude < 1)
+                        {
+                            foundSamePosition = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (foundSamePosition)
+                {
+                    pasteOffset += Vector2.one * 30;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
 
             if (copyData.contexts != null)
             {
@@ -616,7 +663,7 @@ namespace UnityEditor.VFX.UI
             int firstCopiedGroup = -1;
             if (copiedUI != null)
             {
-                VFXUI ui = view.controller.graph.UIInfos;
+                VFXUI ui = viewController.graph.UIInfos;
 
                 if (ui.groupInfos == null)
                 {
@@ -671,71 +718,74 @@ namespace UnityEditor.VFX.UI
             }
 
             // Create all ui based on model
-            view.controller.ApplyChanges();
+            viewController.LightApplyChanges();
 
-            view.ClearSelection();
-
-            var elements = view.graphElements.ToList();
-
-
-            List<VFXNodeUI> newSlotContainerUIs = new List<VFXNodeUI>();
-            List<VFXContextUI> newContextUIs = new List<VFXContextUI>();
-
-            foreach (var slotContainer in allSerializedObjects.OfType<VFXContext>())
+            if (view != null)
             {
-                VFXContextUI contextUI = elements.OfType<VFXContextUI>().FirstOrDefault(t => t.controller.model == slotContainer);
-                if (contextUI != null)
-                {
-                    newSlotContainerUIs.Add(contextUI.ownData);
-                    newSlotContainerUIs.AddRange(contextUI.GetAllBlocks().Cast<VFXNodeUI>());
-                    newContextUIs.Add(contextUI);
-                    view.AddToSelection(contextUI);
-                }
-            }
-            foreach (var slotContainer in allSerializedObjects.OfType<VFXOperator>())
-            {
-                VFXOperatorUI slotContainerUI = elements.OfType<VFXOperatorUI>().FirstOrDefault(t => t.controller.model == slotContainer);
-                if (slotContainerUI != null)
-                {
-                    newSlotContainerUIs.Add(slotContainerUI);
-                    view.AddToSelection(slotContainerUI);
-                }
-            }
+                view.ClearSelection();
 
-            foreach (var param in copyData.parameters)
-            {
-                foreach (var parameterUI in elements.OfType<VFXParameterUI>().Where(t => t.controller.model == param.parameter && param.parameter.nodes.IndexOf(t.controller.infos) >= param.infoIndexOffset))
-                {
-                    newSlotContainerUIs.Add(parameterUI);
-                    view.AddToSelection(parameterUI);
-                }
-            }
+                var elements = view.graphElements.ToList();
 
-            // Simply selected all data edge with the context or slot container, they can be no other than the copied ones
-            foreach (var dataEdge in elements.OfType<VFXDataEdge>())
-            {
-                if (newSlotContainerUIs.Contains(dataEdge.input.GetFirstAncestorOfType<VFXNodeUI>()))
-                {
-                    view.AddToSelection(dataEdge);
-                }
-            }
-            // Simply selected all data edge with the context or slot container, they can be no other than the copied ones
-            foreach (var flowEdge in elements.OfType<VFXFlowEdge>())
-            {
-                if (newContextUIs.Contains(flowEdge.input.GetFirstAncestorOfType<VFXContextUI>()))
-                {
-                    view.AddToSelection(flowEdge);
-                }
-            }
 
-            //Select all groups that are new
-            if (firstCopiedGroup >= 0)
-            {
-                foreach (var groupNode in elements.OfType<VFXGroupNode>())
+                List<VFXNodeUI> newSlotContainerUIs = new List<VFXNodeUI>();
+                List<VFXContextUI> newContextUIs = new List<VFXContextUI>();
+
+                foreach (var slotContainer in allSerializedObjects.OfType<VFXContext>())
                 {
-                    if (groupNode.controller.index >= firstCopiedGroup)
+                    VFXContextUI contextUI = elements.OfType<VFXContextUI>().FirstOrDefault(t => t.controller.model == slotContainer);
+                    if (contextUI != null)
                     {
-                        view.AddToSelection(groupNode);
+                        newSlotContainerUIs.Add(contextUI);
+                        newSlotContainerUIs.AddRange(contextUI.GetAllBlocks().Cast<VFXNodeUI>());
+                        newContextUIs.Add(contextUI);
+                        view.AddToSelection(contextUI);
+                    }
+                }
+                foreach (var slotContainer in allSerializedObjects.OfType<VFXOperator>())
+                {
+                    VFXOperatorUI slotContainerUI = elements.OfType<VFXOperatorUI>().FirstOrDefault(t => t.controller.model == slotContainer);
+                    if (slotContainerUI != null)
+                    {
+                        newSlotContainerUIs.Add(slotContainerUI);
+                        view.AddToSelection(slotContainerUI);
+                    }
+                }
+
+                foreach (var param in copyData.parameters)
+                {
+                    foreach (var parameterUI in elements.OfType<VFXParameterUI>().Where(t => t.controller.model == param.parameter && param.parameter.nodes.IndexOf(t.controller.infos) >= param.infoIndexOffset))
+                    {
+                        newSlotContainerUIs.Add(parameterUI);
+                        view.AddToSelection(parameterUI);
+                    }
+                }
+
+                // Simply selected all data edge with the context or slot container, they can be no other than the copied ones
+                foreach (var dataEdge in elements.OfType<VFXDataEdge>())
+                {
+                    if (newSlotContainerUIs.Contains(dataEdge.input.GetFirstAncestorOfType<VFXNodeUI>()))
+                    {
+                        view.AddToSelection(dataEdge);
+                    }
+                }
+                // Simply selected all data edge with the context or slot container, they can be no other than the copied ones
+                foreach (var flowEdge in elements.OfType<VFXFlowEdge>())
+                {
+                    if (newContextUIs.Contains(flowEdge.input.GetFirstAncestorOfType<VFXContextUI>()))
+                    {
+                        view.AddToSelection(flowEdge);
+                    }
+                }
+
+                //Select all groups that are new
+                if (firstCopiedGroup >= 0)
+                {
+                    foreach (var groupNode in elements.OfType<VFXGroupNode>())
+                    {
+                        if (groupNode.controller.index >= firstCopiedGroup)
+                        {
+                            view.AddToSelection(groupNode);
+                        }
                     }
                 }
             }

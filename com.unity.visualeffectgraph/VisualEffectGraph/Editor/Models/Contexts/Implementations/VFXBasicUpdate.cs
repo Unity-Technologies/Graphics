@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Update"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.Update; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

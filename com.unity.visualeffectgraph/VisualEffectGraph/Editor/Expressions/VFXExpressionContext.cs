@@ -103,9 +103,9 @@ namespace UnityEditor.VFX
             {
                 switch (exp.valueType)
                 {
-                    case VFXValueType.kColorGradient:
+                    case VFXValueType.ColorGradient:
                         return new VFXExpressionBakeGradient(exp);
-                    case VFXValueType.kCurve:
+                    case VFXValueType.Curve:
                         return new VFXExpressionBakeCurve(exp);
                     default:
                         return exp;

@@ -10,24 +10,19 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, ISettableControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement, ISettableControlledElement<VFXNodeController>, IVFXMovable
     {
-        VFXSlotContainerController m_Controller;
+        VFXNodeController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        VFXNodeController ISettableControlledElement<VFXNodeController>.controller
-        {
-            get { return m_Controller; }
-            set { controller = value as VFXSlotContainerController; }
-        }
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
             controller.position = GetPosition().position;
         }
 
-        public VFXSlotContainerController controller
+        public VFXNodeController controller
         {
             get { return m_Controller; }
             set
@@ -46,7 +41,21 @@ namespace UnityEditor.VFX.UI
 
         public VisualElement settingsContainer {get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
-        public VFXNodeUI()
+
+
+        public VFXNodeUI(string template) : base(template)
+        {
+            AddStyleSheetPath("VFXNodeUI");
+            Initialize();
+        }
+
+        public VFXNodeUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXNode.uxml"))
+        {
+            AddStyleSheetPath("StyleSheets/GraphView/Node.uss");
+            Initialize();
+        }
+
+        void Initialize()
         {
             AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
@@ -86,21 +95,9 @@ namespace UnityEditor.VFX.UI
             {
                 object settings = controller.settings;
 
-                settingsContainer = new VisualElement { name = "settings" };
+                settingsContainer = this.Q("settings");
 
-                if (hasSettingDivider)
-                {
-                    m_SettingsDivider = new VisualElement() { name = "divider" };
-                    m_SettingsDivider.AddToClassList("horizontal");
-                }
-
-                m_Content = mainContainer.Q("contents");
-
-                int idx = 0;
-                if (hasSettingDivider)
-                    m_Content.Insert(idx++, m_SettingsDivider);
-
-                m_Content.Insert(idx++, settingsContainer);
+                m_SettingsDivider = this.Q("settings-divider");
 
                 foreach (var setting in controller.settings)
                 {

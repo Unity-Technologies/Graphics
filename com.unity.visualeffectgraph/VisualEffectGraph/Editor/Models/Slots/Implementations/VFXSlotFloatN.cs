@@ -20,13 +20,13 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression ConvertExpression(VFXExpression expression)
         {
-            if (expression.valueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.Uint)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return floatExpression;
             }
 
-            if (expression.valueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.Int)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return floatExpression;

@@ -40,12 +40,15 @@ namespace UnityEditor.VFX.UI
         List<VFXDataEdgeController> m_DataEdges = new List<VFXDataEdgeController>();
         List<VFXFlowEdgeController> m_FlowEdges = new List<VFXFlowEdgeController>();
 
-
-        public Preview3DController controller { get; set; }
-
         public override IEnumerable<Controller> allChildren
         {
             get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
+        }
+
+        public void LightApplyChanges()
+        {
+            ModelChanged(model);
+            GraphChanged(graph);
         }
 
         public override void ApplyChanges()
@@ -88,13 +91,13 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
-        IEnumerable<VFXSlotContainerController> AllSlotContainerControllers
+        public IEnumerable<VFXNodeController> AllSlotContainerControllers
         {
             get
             {
-                var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXSlotContainerController>();
-                var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXSlotContainerController>();
-                var contextSlotContainers = contexts.Select(t => t.slotContainerController).Where(t => t != null).Cast<VFXSlotContainerController>();
+                var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXNodeController>();
+                var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXNodeController>();
+                var contextSlotContainers = contexts.Where(t => t != null).Cast<VFXNodeController>();
 
                 return operatorControllers.Concat(blockControllers).Concat(contextSlotContainers);
             }
@@ -120,9 +123,9 @@ namespace UnityEditor.VFX.UI
                     if (nodeController is VFXContextController)
                     {
                         VFXContextController contextController = nodeController as VFXContextController;
-                        foreach (var input in contextController.slotContainerController.inputPorts)
+                        foreach (var input in contextController.inputPorts)
                         {
-                            changed |= RecreateInputSlotEdge(unusedEdges, contextController.slotContainerController, input);
+                            changed |= RecreateInputSlotEdge(unusedEdges, contextController, input);
                         }
 
                         foreach (var block in contextController.blockControllers)
@@ -405,13 +408,13 @@ namespace UnityEditor.VFX.UI
                 parameter.parentController.model.RemoveNode(parameter.infos);
                 DataEdgesMightHaveChanged();
             }
-            else if (element is VFXSlotContainerController || element is VFXParameterController)
+            else if (element is VFXNodeController || element is VFXParameterController)
             {
                 IVFXSlotContainer container = null;
 
-                if (element is VFXSlotContainerController)
+                if (element is VFXNodeController)
                 {
-                    container = (element as VFXSlotContainerController).slotContainer;
+                    container = (element as VFXNodeController).model as IVFXSlotContainer;
                 }
                 else
                 {
@@ -467,10 +470,6 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXGroupNodeController)
             {
                 RemoveGroupNode(element as VFXGroupNodeController);
-            }
-            else if (element is Preview3DController)
-            {
-                //TODO
             }
             else
             {
@@ -775,6 +774,15 @@ namespace UnityEditor.VFX.UI
 
             Type type = parameter.type;
 
+            parameter.collapsed = true;
+
+            int order = 0;
+            if (m_ParameterControllers.Count > 0)
+            {
+                order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
+            }
+            parameter.order = order;
+
             if (!type.IsPrimitive)
             {
                 if (type == typeof(Matrix4x4))
@@ -994,17 +1002,18 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
-            // Iterate through graph.children to preserve add order.
-            VFXParameter[] parameters = graph.children.OfType<VFXParameter>().ToArray();
+            VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
             if (parameters.Length > 0)
             {
                 var existingNames = new HashSet<string>();
 
                 existingNames.Add(parameters[0].exposedName);
+                m_ParameterControllers[parameters[0]].order = 0;
 
                 for (int i = 1; i < parameters.Length; ++i)
                 {
                     var controller = m_ParameterControllers[parameters[i]];
+                    controller.order = i;
 
                     controller.CheckNameUnique(existingNames);
 

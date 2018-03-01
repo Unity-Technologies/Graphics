@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
+        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
 
         private int m_StartUndoGroupId;
 
@@ -51,9 +51,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedOperatorAdd()
         {
-            Func<IVFXSlotContainer, VFXSlotContainerController> fnFindController = delegate(IVFXSlotContainer slotContainer)
+            Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.AllSlotContainerControllers;
                     return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Test
 
             var edgeController = new VFXDataEdgeController(absController.inputPorts.First(), addController.outputPorts.First());
             m_ViewController.AddElement(edgeController);
-            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float, abs.outputSlots[0].GetExpression().valueType);
 
             var vector2Controller = fnFindController(vector2);
             for (int i = 0; i < 4; ++i)
@@ -82,11 +82,11 @@ namespace UnityEditor.VFX.Test
                 m_ViewController.AddElement(edgeController);
             }
 
-            Assert.AreEqual(VFXValueType.kFloat2, add.outputSlots[0].GetExpression().valueType);
-            Assert.AreEqual(VFXValueType.kFloat2, abs.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float2, add.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float2, abs.outputSlots[0].GetExpression().valueType);
 
             m_ViewController.RemoveElement(addController);
-            Assert.AreEqual(VFXValueType.kFloat, abs.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float, abs.outputSlots[0].GetExpression().valueType);
         }
 
         [Test]
@@ -97,9 +97,9 @@ namespace UnityEditor.VFX.Test
                     m_ViewController.ForceReload();
                 };
 
-            Func<IVFXSlotContainer, VFXSlotContainerController> fnFindController = delegate(IVFXSlotContainer slotContainer)
+            Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
                 {
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
                 };
 
@@ -186,10 +186,10 @@ namespace UnityEditor.VFX.Test
                 abs.position = position;
             }
 
-            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
+            Func<Type, VFXNodeController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -215,10 +215,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoAddOperator()
         {
-            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+            Func<VFXNodeController[]> fnAllOperatorController = delegate()
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.OfType<VFXOperatorController>().ToArray();
                 };
 
@@ -258,10 +258,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoSetSlotValue()
         {
-            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+            Func<VFXNodeController[]> fnAllOperatorController = delegate()
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.OfType<VFXOperatorController>().ToArray();
                 };
 
@@ -288,10 +288,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoSetSlotValueThenGraphChange()
         {
-            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+            Func<VFXNodeController[]> fnAllOperatorController = delegate()
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.OfType<VFXOperatorController>().ToArray();
                 };
 
@@ -352,10 +352,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoSetSlotValueAndGraphChange()
         {
-            Func<VFXSlotContainerController[]> fnAllOperatorController = delegate()
+            Func<VFXNodeController[]> fnAllOperatorController = delegate()
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.OfType<VFXOperatorController>().ToArray();
                 };
 
@@ -389,10 +389,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoOperatorLinkSimple()
         {
-            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
+            Func<Type, VFXNodeController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -432,10 +432,10 @@ namespace UnityEditor.VFX.Test
                     return m_ViewController.allChildren.OfType<VFXContextController>().FirstOrDefault();
                 };
 
-            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
+            Func<Type, VFXNodeController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 
@@ -480,10 +480,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void UndoRedoOperatorLinkAdvanced()
         {
-            Func<Type, VFXSlotContainerController> fnFindController = delegate(Type type)
+            Func<Type, VFXNodeController> fnFindController = delegate(Type type)
                 {
                     m_ViewController.ApplyChanges();
-                    var allController = m_ViewController.allChildren.OfType<VFXSlotContainerController>();
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
                     return allController.FirstOrDefault(o => type.IsInstanceOfType(o.slotContainer));
                 };
 

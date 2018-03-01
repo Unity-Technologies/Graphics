@@ -437,7 +437,7 @@ namespace UnityEditor.VFX
 
             if (considerGraphDirty || m_ExpressionValuesDirty)
             {
-                foreach (var component in VisualEffect.GetAllActive())
+                foreach (var component in VFXManager.GetComponents())
                 {
                     if (component.visualEffectAsset == compiledData.visualEffectAsset)
                     {
