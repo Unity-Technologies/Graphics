@@ -16,6 +16,8 @@ namespace UnityEditor.VFX
 
         public override bool supportsFlipbooks { get { return true; } }
 
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
