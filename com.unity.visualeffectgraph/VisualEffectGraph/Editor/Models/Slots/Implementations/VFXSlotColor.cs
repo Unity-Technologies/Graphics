@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -8,8 +10,16 @@ namespace UnityEditor.VFX
     {
         sealed protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type)
-                || type == typeof(Vector4);
+            return base.CanConvertFrom(type) || type == typeof(Vector3);
+        }
+
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        {
+            if (expression.valueType == VFXValueType.Float3)
+            {
+                return VFXOperatorUtility.CastFloat(expression, VFXValueType.Float4, 1.0f);
+            }
+            return base.ConvertExpression(expression);
         }
     }
 }
