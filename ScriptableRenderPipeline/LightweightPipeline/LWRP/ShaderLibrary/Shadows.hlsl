@@ -3,10 +3,11 @@
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Core.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
-TEXTURE2D(_ScreenSpaceShadowMap);
+SCREENSPACE_TEXTURE(_ScreenSpaceShadowMap);
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
 TEXTURE2D_SHADOW(_ShadowMap);
@@ -43,7 +44,15 @@ half GetShadowStrength()
 inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
+
+    // The stereo transform has to happen after the manual perspective divide
+    shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy, unity_StereoEyeIndex).x;
+#else
     half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
+#endif
 
     // Apply shadow strength
     return LerpWhiteTo(attenuation, GetShadowStrength());
@@ -138,6 +147,7 @@ float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
 
 float4 ComputeShadowCoord(float4 clipPos)
 {
+    // TODO: This might have to be corrected for double-wide and texture arrays
     return ComputeScreenPos(clipPos);
 }
 
