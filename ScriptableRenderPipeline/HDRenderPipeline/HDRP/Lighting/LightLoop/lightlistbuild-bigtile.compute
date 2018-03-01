@@ -26,6 +26,7 @@ uniform float4x4 g_mScrProjectionArr[2];
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform uint g_isOrthographic;
+// TODO: These aren't used, we should remove them
 uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
 
@@ -64,6 +65,7 @@ float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
+    // XRTODO: Stereo-ize this!
     float4x4 g_mScrProjection = g_mScrProjectionArr[0];
 
 	bool isOrthographic = g_isOrthographic!=0;
@@ -86,6 +88,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 
 float GetOnePixDiagWorldDistAtDepthOne()
 {
+    // Stereo-ize this
     float4x4 g_mScrProjection = g_mScrProjectionArr[0];
 
 	float fSx = g_mScrProjection[0].x;
@@ -109,6 +112,8 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 [numthreads(NR_THREADS, 1, 1)]
 void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
+    // XRTODO: Decode stereo eye index from u3GroupID.z
+
 	uint2 tileIDX = u3GroupID.xy;
 	uint t=threadID;
 
@@ -123,16 +128,24 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-
+    // Raw pixel coordinates of tile
 	uint2 viTilLL = 64*tileIDX;
 	uint2 viTilUR = min( viTilLL+uint2(64,64), uint2(iWidth, iHeight) );			// not width and height minus 1 since viTilUR represents the end of the tile corner.
 
+    // 'Normalized' coordinates of tile
 	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
 	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
+
+    // XRTODO: Depending on the eye, make sure you index into the right 'half' of
+    // g_vBoundsBuffer
 
 	// build coarse list using AABB
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
+        // XRTODO: generate a 'real' index into  the correct half of g_vBoundsBuffer
+        // This index should also correspond to the matching structs in _LightVolumeData and 
+        // g_data, so if I just use this 'real' index, everything just might 'work'.
+        // If I need to look up the real light, I'll have to decode it, but this is fine for now.
 		const float2 vMi = g_vBoundsBuffer[l].xy;
 		const float2 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xy;
 
@@ -166,12 +179,17 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
 	int i;
+    // XRTODO: Fix up check against g_iNrVisibLights to account for stereo
 	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<(uint)g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
 
+    // XRTODO: Fix up the offset into the stereo-ized big tile list
 	int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
 
+    // XRTODO: Do I want to encode the global index, or per-eye-relative index?  The light list code later on
+    // is relative to per-eye, but I'll need the global index anyway.  For consistency, it might be worth
+    // having the per-eye offset happen in the following compute job.  Not sure yet.
 	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
 		g_vLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[max(i-1, 0)];
 }
@@ -248,6 +266,8 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	{
 		const uint idxCoarse = lightsListLDS[l];
 
+        // XRTODO: This will fail for stereo right eye, because it can't be compared against the count for one
+        // eye.
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 		if(canEnter) canEnter = _LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		UNITY_BRANCH if(canEnter)
