@@ -59,7 +59,7 @@ float4 MetaVertexPosition(float4 vertex, float2 uv1, float2 uv2, float4 lightmap
         // so use it in a very dummy way
         vertex.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
     }
-    return TransformObjectToHClip(vertex.xyz);
+    return TransformWorldToHClip(vertex.xyz); // Need to transfer from world to clip compared to legacy
 }
 
 half4 MetaFragment(MetaInput IN)
