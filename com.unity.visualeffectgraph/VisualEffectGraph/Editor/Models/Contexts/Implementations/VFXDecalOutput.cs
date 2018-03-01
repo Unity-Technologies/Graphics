@@ -20,27 +20,28 @@ namespace UnityEditor.VFX
         {
             public Texture2D mainTexture;
         }
-    }
 
-    public override void OnEnable()
-    {
-        base.OnEnable();
-        cullMode = CullMode.Back;
-        zTestMode = ZTestMode.LEqual;
-        zWriteMode = ZWriteMode.Off;
-    }
-
-    protected override IEnumerable<string> filteredOutSettings
-    {
-        get
+        public override void OnEnable()
         {
-            foreach (var setting in base.filteredOutSettings)
-                yield return setting;
-
-            yield return "cullMode";
-            yield return "zWriteMode";
-            yield return "zTestMode";
+            base.OnEnable();
+            cullMode = CullMode.Back;
+            zTestMode = ZTestMode.LEqual;
+            zWriteMode = ZWriteMode.Off;
         }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "cullMode";
+                yield return "zWriteMode";
+                yield return "zTestMode";
+            }
+        }
+
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
