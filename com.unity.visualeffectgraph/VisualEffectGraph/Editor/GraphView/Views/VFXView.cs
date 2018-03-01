@@ -306,13 +306,17 @@ namespace UnityEditor.VFX.UI
 
             VisualElement toolbar = new VisualElement();
             toolbar.AddToClassList("toolbar");
-            Add(toolbar);
 
 
             Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
+
+            Button toggleBlackboard = new Button(() => { ToggleBlackboard(); });
+            toggleBlackboard.text = "Blackboard";
+            toggleBlackboard.AddToClassList("toolbarItem");
+            toolbar.Add(toggleBlackboard);
 
 
             VisualElement spacer = new VisualElement();
@@ -388,12 +392,31 @@ namespace UnityEditor.VFX.UI
 
             m_Blackboard = new VFXBlackboard();
 
-            Add(m_Blackboard);
+
+            bool blackboardVisible = EditorPrefs.GetBool("vfx-blackboard-visible", true);
+            if (blackboardVisible)
+                Add(m_Blackboard);
+
+            Add(toolbar);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
 
             graphViewChanged = VFXGraphViewChanged;
+        }
+
+        void ToggleBlackboard()
+        {
+            if (m_Blackboard.parent == null)
+            {
+                Insert(childCount - 1, m_Blackboard);
+                EditorPrefs.SetBool("vfx-blackboard-visible", true);
+            }
+            else
+            {
+                m_Blackboard.RemoveFromHierarchy();
+                EditorPrefs.SetBool("vfx-blackboard-visible", false);
+            }
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -952,7 +975,7 @@ namespace UnityEditor.VFX.UI
 
         GraphViewChange VFXGraphViewChanged(GraphViewChange change)
         {
-            if (change.movedElements.Count > 0)
+            if (change.movedElements != null && change.movedElements.Count > 0)
             {
                 HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
                 foreach (var groupNode in vfxGroupNodes.ToList())

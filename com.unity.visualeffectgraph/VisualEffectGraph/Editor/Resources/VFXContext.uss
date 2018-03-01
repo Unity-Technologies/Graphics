@@ -49,12 +49,12 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 
 /* spawner */
 
-VFXContextUI.typespawnevent  > #node-border
+VFXContextUI.typespawnevent  > #node-border,VFXContextUI.typeevent  > #node-border
 {
     border-color: #17AB6A;
 }
 
-VFXFlowAnchor.port.EdgeConnector.typespawnevent
+VFXFlowAnchor.port.EdgeConnector.typespawnevent, VFXFlowAnchor.port.EdgeConnector.typeevent
 {
     port-color: #00ff8f;
 }
