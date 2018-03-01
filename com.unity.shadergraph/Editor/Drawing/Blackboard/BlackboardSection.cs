@@ -1,3 +1,4 @@
+#if UNITY_2018_1
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -297,3 +298,4 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 }
+#endif
