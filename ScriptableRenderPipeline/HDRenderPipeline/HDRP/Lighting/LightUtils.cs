@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // convert intensity (lumen) to nits
-        public static float calculateLineLightArea(float intensity, float lineWidth)
+        public static float CalculateLineLightArea(float intensity, float lineWidth)
         {
             // The area of a cylinder is this:
             // float lineRadius = 0.01f; // 1cm
