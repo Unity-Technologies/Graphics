@@ -2,6 +2,7 @@ Shader "Hidden/HDRenderPipeline/GGXConvolve"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Cull   Off

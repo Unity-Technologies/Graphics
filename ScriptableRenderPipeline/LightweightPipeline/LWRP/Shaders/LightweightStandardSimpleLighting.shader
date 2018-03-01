@@ -40,10 +40,13 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
         [Enum(UV0,0,UV1,1)] _UVSec("UV Set for secondary textures", Float) = 0
 
         // Blending state
-        [HideInInspector] _Mode("__mode", Float) = 0.0
+        [HideInInspector] _Surface("__surface", Float) = 0.0
+        [HideInInspector] _Blend("__blend", Float) = 0.0
+        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _Cull("__cull", Float) = 2.0
     }
 
     SubShader
@@ -58,6 +61,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // Use same blending / depth states as Standard shader
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
+            Cull[_Cull]
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -66,7 +70,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ALPHATEST_ON 
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
@@ -100,6 +105,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             ZWrite On
             ZTest LEqual
+            Cull[_Cull]
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -108,7 +114,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ALPHATEST_ON 
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
@@ -139,7 +146,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON
+            #pragma shader_feature _ALPHATEST_ON 
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP

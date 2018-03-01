@@ -452,7 +452,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (EditorGUI.EndChangeCheck())
                 {
                     // Link min to max and don't expose normalBiasScale (useless when min == max)
-                    m_AdditionalShadowData.normalBiasMax = m_AdditionalShadowData.normalBiasMin;
+                    m_AdditionalShadowData.normalBiasMax.floatValue = m_AdditionalShadowData.normalBiasMin.floatValue;
                 }
                 //EditorGUILayout.PropertyField(m_AdditionalShadowData.normalBiasMax, s_Styles.normalBiasMax);
                 //EditorGUILayout.PropertyField(m_AdditionalShadowData.normalBiasScale, s_Styles.normalBiasScale);
