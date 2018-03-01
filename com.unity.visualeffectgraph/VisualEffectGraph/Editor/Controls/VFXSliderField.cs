@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UIElements
                 SetValueAndNotify(newValue);
         }
     }
-    class VFXIntSliderField : VFXBaseSliderField<long>
+    class VFXIntSliderField : VFXBaseSliderField<int>
     {
         public VFXIntSliderField()
         {
@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.UIElements
             m_Slider.valueChanged += ValueChanged;
 
             var integerField = new IntegerField();
-            integerField.RegisterCallback<ChangeEvent<long>>(ValueChanged);
+            integerField.RegisterCallback<ChangeEvent<int>>(ValueChanged);
             integerField.name = "Field";
             m_Field = integerField;
 
@@ -174,14 +174,14 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        protected override float ValueToFloat(long value)
+        protected override float ValueToFloat(int value)
         {
             return (float)value;
         }
 
         void ValueChanged(float newValue)
         {
-            SetValueAndNotify((long)newValue);
+            SetValueAndNotify((int)newValue);
         }
     }
 }

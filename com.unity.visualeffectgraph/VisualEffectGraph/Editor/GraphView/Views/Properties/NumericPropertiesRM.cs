@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class UintPropertyRM : NumericPropertyRM<uint, long>
+    class UintPropertyRM : NumericPropertyRM<uint, int>
     {
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -113,16 +113,16 @@ namespace UnityEditor.VFX.UI
             return base.RangeShouldCreateSlider(range) && (uint)range.x < (uint)range.y;
         }
 
-        protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
+        protected override INotifyValueChanged<int> CreateSimpleField(out TextValueField<int> textField)
         {
-            var field =  new VFXLabeledField<IntegerField, long>(m_Label);
+            var field =  new VFXLabeledField<IntegerField, int>(m_Label);
             textField = field.control;
             return field;
         }
 
-        protected override INotifyValueChanged<long> CreateSliderField(out VFXBaseSliderField<long> slider)
+        protected override INotifyValueChanged<int> CreateSliderField(out VFXBaseSliderField<int> slider)
         {
-            var field = new VFXLabeledField<VFXIntSliderField, long>(m_Label);
+            var field = new VFXLabeledField<VFXIntSliderField, int>(m_Label);
             slider = field.control;
             return field;
         }
@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class IntPropertyRM : NumericPropertyRM<int, long>
+    class IntPropertyRM : NumericPropertyRM<int, int>
     {
         public IntPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -154,16 +154,16 @@ namespace UnityEditor.VFX.UI
             return base.RangeShouldCreateSlider(range) && (int)range.x < (int)range.y;
         }
 
-        protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
+        protected override INotifyValueChanged<int> CreateSimpleField(out TextValueField<int> textField)
         {
-            var field = new VFXLabeledField<IntegerField, long>(m_Label);
+            var field = new VFXLabeledField<IntegerField, int>(m_Label);
             textField = field.control;
             return field;
         }
 
-        protected override INotifyValueChanged<long> CreateSliderField(out VFXBaseSliderField<long> slider)
+        protected override INotifyValueChanged<int> CreateSliderField(out VFXBaseSliderField<int> slider)
         {
-            var field = new VFXLabeledField<VFXIntSliderField, long>(m_Label);
+            var field = new VFXLabeledField<VFXIntSliderField, int>(m_Label);
             slider = field.control;
             return field;
         }
