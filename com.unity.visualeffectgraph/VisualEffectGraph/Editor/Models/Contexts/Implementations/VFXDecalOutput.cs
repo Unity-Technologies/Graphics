@@ -14,10 +14,32 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         public class InputProperties
         {
             public Texture2D mainTexture;
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            cullMode = CullMode.Back;
+            zTestMode = ZTestMode.LEqual;
+            zWriteMode = ZWriteMode.Off;
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "cullMode";
+                yield return "zWriteMode";
+                yield return "zTestMode";
+            }
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
