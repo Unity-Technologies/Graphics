@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else if (lightTypeExtent == LightTypeExtent.Line)
             {
-                light.intensity = LightUtils.CalculateLineLightArea(areaIntensity, shapeWidth);
+                light.intensity = LightUtils.CalculateLineLightIntensity(areaIntensity, shapeWidth);
             }
         }
 
