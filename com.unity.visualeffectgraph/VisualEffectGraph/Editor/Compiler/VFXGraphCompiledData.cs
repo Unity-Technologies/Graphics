@@ -575,6 +575,9 @@ namespace UnityEditor.VFX
 
         public void Compile()
         {
+            // Prevent doing anything ( and especially showing progesses ) in an empty graph.
+            if (m_Graph.children.Count() < 1) return;
+
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {

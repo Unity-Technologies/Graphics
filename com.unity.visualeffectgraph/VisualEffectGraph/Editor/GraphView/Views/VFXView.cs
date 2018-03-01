@@ -93,10 +93,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemFiles = System.IO.Directory.GetFiles(templatePath, "*.asset").Select(t => t.Replace("\\", "/"));
+            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/"));
             var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
 
 
@@ -307,13 +306,17 @@ namespace UnityEditor.VFX.UI
 
             VisualElement toolbar = new VisualElement();
             toolbar.AddToClassList("toolbar");
-            Add(toolbar);
 
 
             Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
+
+            Button toggleBlackboard = new Button(() => { ToggleBlackboard(); });
+            toggleBlackboard.text = "Blackboard";
+            toggleBlackboard.AddToClassList("toolbarItem");
+            toolbar.Add(toggleBlackboard);
 
 
             VisualElement spacer = new VisualElement();
@@ -389,12 +392,31 @@ namespace UnityEditor.VFX.UI
 
             m_Blackboard = new VFXBlackboard();
 
-            Add(m_Blackboard);
+
+            bool blackboardVisible = EditorPrefs.GetBool("vfx-blackboard-visible", true);
+            if (blackboardVisible)
+                Add(m_Blackboard);
+
+            Add(toolbar);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
 
             graphViewChanged = VFXGraphViewChanged;
+        }
+
+        void ToggleBlackboard()
+        {
+            if (m_Blackboard.parent == null)
+            {
+                Insert(childCount - 1, m_Blackboard);
+                EditorPrefs.SetBool("vfx-blackboard-visible", true);
+            }
+            else
+            {
+                m_Blackboard.RemoveFromHierarchy();
+                EditorPrefs.SetBool("vfx-blackboard-visible", false);
+            }
         }
 
         public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
@@ -781,14 +803,14 @@ namespace UnityEditor.VFX.UI
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             if (asset != null)
             {
-                VFXViewController controller = VFXViewController.GetController(asset, true);
-                controller.useCount++;
+                VFXViewController templateController = VFXViewController.GetController(asset, true);
+                templateController.useCount++;
 
-                var data = VFXCopyPaste.SerializeElements(controller.allChildren);
+                var data = VFXCopyPaste.SerializeElements(templateController.allChildren, Rect.zero);
 
-                VFXCopyPaste.UnserializeAndPasteElements(this, tPos, data);
+                VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this);
 
-                controller.useCount--;
+                templateController.useCount--;
             }
         }
 
@@ -953,7 +975,7 @@ namespace UnityEditor.VFX.UI
 
         GraphViewChange VFXGraphViewChanged(GraphViewChange change)
         {
-            if (change.movedElements.Count > 0)
+            if (change.movedElements != null && change.movedElements.Count > 0)
             {
                 HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
                 foreach (var groupNode in vfxGroupNodes.ToList())
@@ -1222,12 +1244,35 @@ namespace UnityEditor.VFX.UI
         string SerializeElements(IEnumerable<GraphElement> elements)
         {
             pasteOffset = defaultPasteOffset;
-            return VFXCopyPaste.SerializeElements(ElementsToController(elements));
+
+
+            Rect[] elementBounds = elements.Select(t => contentViewContainer.WorldToLocal(t.worldBound)).ToArray();
+
+            Rect bounds = elementBounds[0];
+
+            for (int i = 1; i < elementBounds.Length; ++i)
+            {
+                bounds = Rect.MinMaxRect(Mathf.Min(elementBounds[i].xMin, bounds.xMin), Mathf.Min(elementBounds[i].yMin, bounds.yMin), Mathf.Max(elementBounds[i].xMax, bounds.xMax), Mathf.Max(elementBounds[i].yMax, bounds.yMax));
+            }
+
+            return VFXCopyPaste.SerializeElements(ElementsToController(elements), bounds);
+        }
+
+        Vector2 visibleCenter
+        {
+            get
+            {
+                Vector2 center = layout.size * 0.5f;
+
+                center = this.ChangeCoordinatesTo(contentViewContainer, center);
+
+                return center;
+            }
         }
 
         void UnserializeAndPasteElements(string operationName, string data)
         {
-            VFXCopyPaste.UnserializeAndPasteElements(this, pasteOffset, data);
+            VFXCopyPaste.UnserializeAndPasteElements(controller, visibleCenter, data, this);
 
             pasteOffset += defaultPasteOffset;
         }
