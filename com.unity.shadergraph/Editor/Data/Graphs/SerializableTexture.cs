@@ -18,7 +18,9 @@ namespace UnityEditor.ShaderGraph
         [Serializable]
         class TextureHelper
         {
+#pragma warning disable 649
             public Texture texture;
+#pragma warning restore 649
         }
 
         public Texture texture
