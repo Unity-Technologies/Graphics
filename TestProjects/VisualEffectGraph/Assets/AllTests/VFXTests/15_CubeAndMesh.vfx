@@ -5299,7 +5299,7 @@ VisualEffectAsset:
         index: 64
       - nameId: bounds_size
         index: 79
-      processor: {fileID: 7200000, guid: dd5156a06dd284340b7c4ed183601139, type: 3}
+      processor: {fileID: 7200000, guid: f5eb5e3bec9b5554eaba3abd0728074b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5314,7 +5314,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 18
       params: []
-      processor: {fileID: 7200000, guid: c9f613d2fad01c44fba69b9bf2176356, type: 3}
+      processor: {fileID: 7200000, guid: df632ab02579db646a6186e6af304be5, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
@@ -5337,7 +5337,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: e9ff8872c85991945a51cb7a9a7a8c9e, type: 3}
+      processor: {fileID: 4800000, guid: a5c7e6f3e71e2e54ab7fbcea28f768ee, type: 3}
   - type: 2
     flags: 0
     capacity: 0

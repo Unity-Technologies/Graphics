@@ -4802,7 +4802,7 @@ VisualEffectAsset:
         index: 39
       - nameId: bounds_size
         index: 40
-      processor: {fileID: 7200000, guid: d07dabb186ef7f84ca470073ce9aa250, type: 3}
+      processor: {fileID: 7200000, guid: 624463c7c8f024146a4d378bf489ce58, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4815,7 +4815,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 46
       params: []
-      processor: {fileID: 7200000, guid: d9c951f6bb3c52b4a8ef2fcae550a20a, type: 3}
+      processor: {fileID: 7200000, guid: 8a042d2b11bb1554dbd7213c1e70a33e, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4828,7 +4828,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7e3e67761aac78440adf0d38c591759b, type: 3}
+      processor: {fileID: 4800000, guid: dd6f0c0758aca89488325e9a9d5f8fd0, type: 3}
   - type: 1
     flags: 1
     capacity: 44
@@ -4871,7 +4871,7 @@ VisualEffectAsset:
         index: 35
       - nameId: bounds_size
         index: 36
-      processor: {fileID: 7200000, guid: d043983ba9f3c1743a0d43463dc5d1c2, type: 3}
+      processor: {fileID: 7200000, guid: f256edb16d0d05d4bbc52723b1f1824c, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4884,7 +4884,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 46
       params: []
-      processor: {fileID: 7200000, guid: f292296e3419a904bb91a431faa2f9d7, type: 3}
+      processor: {fileID: 7200000, guid: af5b960a1e14ea145b1bc658d1f328bc, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4897,7 +4897,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 0da7a0658c61e974e882936512a42701, type: 3}
+      processor: {fileID: 4800000, guid: eb982254cd9fbc64ba40a157dac9df37, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

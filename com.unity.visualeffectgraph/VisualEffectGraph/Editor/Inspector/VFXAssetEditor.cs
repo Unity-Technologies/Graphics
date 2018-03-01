@@ -24,6 +24,21 @@ public class VisualEffectAssetEditorStyles
 [CustomEditor(typeof(VisualEffectAsset))]
 public class VisualEffectAssetEditor : Editor
 {
+    ReorderableList outputList;
+
+    List<VFXAbstractParticleOutput> m_Outputs = new List<VFXAbstractParticleOutput>();
+    void OnEnable()
+    {
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+
+        VFXGraph graph = asset.GetOrCreateGraph();
+        /*
+        m_Outputs = graph.children.OfType<VFXAbstractParticleOutput>().ToList();
+
+        outputList = new ReorderableList(m_Outputs, typeof(VFXAbstractParticleOutput));
+        */
+    }
+
     public override void OnInspectorGUI()
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
