@@ -18,7 +18,9 @@ namespace UnityEditor.ShaderGraph
         [Serializable]
         class CubemapHelper
         {
+#pragma warning disable 649
             public Cubemap cubemap;
+#pragma warning restore 649
         }
 
         public Cubemap cubemap
