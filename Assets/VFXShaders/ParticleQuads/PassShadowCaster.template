@@ -44,6 +44,11 @@ Pass
 		float alpha = VFXGetFragmentColor(i).a;
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;		
 		VFXClipFragmentColor(alpha,i);
+
+#ifndef USE_ALPHA_TEST
+		clip(alpha - 1e-5);
+#endif
+
 		return 0;
 	}
 	ENDHLSL

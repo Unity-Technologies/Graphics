@@ -21,6 +21,7 @@ namespace UnityEditor.VFX
         }
     }
 
+#if _ENABLE_INLINE_OPERATOR
     [VFXInfo(category = "Inline", variantProvider = typeof(InlineTypeProvider))]
     class VFXInlineOperator : VFXOperator
     {
@@ -54,4 +55,5 @@ namespace UnityEditor.VFX
             return inputExpression;
         }
     }
+#endif
 }
