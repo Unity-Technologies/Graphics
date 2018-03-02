@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
     }
 
     [VFXInfo(category = "Inline", variantProvider = typeof(InlineTypeProvider))]
-    class VFXInlineType : VFXOperator
+    class VFXInlineOperator : VFXOperator
     {
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
         private SerializableType m_Type;
