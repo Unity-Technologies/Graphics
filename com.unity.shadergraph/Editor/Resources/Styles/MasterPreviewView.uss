@@ -1,19 +1,16 @@
 MasterPreviewView {
     flex-direction: column;
     position-type: absolute;
-    position-right: 0;
-    position-bottom: 0;
+    position-right: 10;
+    position-bottom: 10;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
-    min-width: 200;
-    min-height: 200;
     border-radius: 6;
     border-top-width: 1;
     border-bottom-width: 1;
     border-left-width: 1;
     border-right-width: 1;
     border-color: rgb(25,25,25);
-
 }
 
 MasterPreviewView > #top {
