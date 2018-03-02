@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    static class GraphUtil
+    public static class GraphUtil
     {
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
         {
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (char.IsUpper(text[i]))
                     if ((text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) ||
-                        (preserveAcronyms && char.IsUpper(text[i - 1]) && 
+                        (preserveAcronyms && char.IsUpper(text[i - 1]) &&
                         i < text.Length - 1 && !char.IsUpper(text[i + 1])))
                         newText.Append(' ');
                 newText.Append(text[i]);
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        internal static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
+        public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
         {
             vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
             vertexInputs.AddShaderChunk("{", false);
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph
             return results;
         }
 
-        internal static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
+        public static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
         {
             surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
             surfaceDescriptionStruct.Indent();
@@ -226,7 +226,7 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionStruct.AddShaderChunk("};", false);
         }
 
-        internal static void GenerateSurfaceDescription(
+        public static void GenerateSurfaceDescription(
             List<INode> activeNodeList,
             AbstractMaterialNode masterNode,
             AbstractMaterialGraph graph,
@@ -318,7 +318,7 @@ namespace UnityEditor.ShaderGraph
                 s_LegacyTypeRemapping = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    foreach (var type in assembly.GetTypes())
+                    foreach (var type in assembly.GetTypesOrNothing())
                     {
                         if (type.IsAbstract)
                             continue;

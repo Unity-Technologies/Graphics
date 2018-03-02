@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Cross Product";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Cross-Product-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_CrossProduct", BindingFlags.Static | BindingFlags.NonPublic);

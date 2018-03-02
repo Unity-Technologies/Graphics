@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
-        internal static string GetTemplatePath(string templateName)
+        public static string GetTemplatePath(string templateName)
         {
             var path = new List<string>
             {
@@ -651,39 +651,63 @@ namespace UnityEditor.ShaderGraph
             return res;
         }
 
-        public static SurfaceMaterialOptions GetMaterialOptionsFromAlphaMode(AlphaMode alphaMode)
+        public static SurfaceMaterialOptions GetMaterialOptions(SurfaceType surfaceType, AlphaMode alphaMode, bool twoSided)
         {
             var materialOptions = new SurfaceMaterialOptions();
-            switch (alphaMode)
+            switch (surfaceType)
             {
-                case AlphaMode.Opaque:
+                case SurfaceType.Opaque:
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
+                    materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;
                     materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                     materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.On;
                     materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Geometry;
                     materialOptions.renderType = SurfaceMaterialOptions.RenderType.Opaque;
                     break;
-                case AlphaMode.AlphaBlend:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
-                    break;
-                case AlphaMode.AdditiveBlend:
-                    materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
-                    materialOptions.cullMode = SurfaceMaterialOptions.CullMode.Back;
-                    materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
-                    materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
-                    materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
-                    materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                case SurfaceType.Transparent:
+                    switch (alphaMode)
+                    {
+                        case AlphaMode.Alpha:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.SrcAlpha;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;
+                            materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                            materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                            materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                            materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                            break;
+                        case AlphaMode.Premultiply:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;
+                            materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                            materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                            materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                            materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                            break;
+                        case AlphaMode.Additive:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;
+                            materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                            materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                            materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                            materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                            break;
+                        case AlphaMode.Multiply:
+                            materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.DstColor;
+                            materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.Zero;
+                            materialOptions.cullMode = twoSided ? SurfaceMaterialOptions.CullMode.Off : SurfaceMaterialOptions.CullMode.Back;
+                            materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
+                            materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
+                            materialOptions.renderQueue = SurfaceMaterialOptions.RenderQueue.Transparent;
+                            materialOptions.renderType = SurfaceMaterialOptions.RenderType.Transparent;
+                            break;
+                    }
                     break;
             }
+            
             return materialOptions;
         }
 

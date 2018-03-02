@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -135,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (create)
             {
-                field.RenameGo();
+                field.OpenTextEditor();
                 row.expanded = true;
                 m_Graph.owner.RegisterCompleteObjectUndo("Create Property");
                 m_Graph.AddShaderProperty(property);

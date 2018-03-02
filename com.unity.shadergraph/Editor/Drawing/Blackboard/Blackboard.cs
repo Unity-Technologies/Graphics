@@ -1,3 +1,4 @@
+#if UNITY_2018_1
 using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -130,3 +131,4 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 }
+#endif

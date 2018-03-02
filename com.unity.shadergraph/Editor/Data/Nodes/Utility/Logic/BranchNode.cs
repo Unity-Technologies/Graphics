@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Branch";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Branch-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Branch", BindingFlags.Static | BindingFlags.NonPublic);
@@ -25,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = (Predicate * True) + abs((Predicate - 1) * False);
+    Out = lerp(False, True, Predicate);
 }
 ";
         }

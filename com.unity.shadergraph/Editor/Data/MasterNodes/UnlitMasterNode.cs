@@ -23,9 +23,26 @@ namespace UnityEditor.ShaderGraph
 
        
         [SerializeField]
+        private SurfaceType m_SurfaceType;
+
+        [EnumControl("Surface")]
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         private AlphaMode m_AlphaMode;
 
-        [EnumControl("")]
+        [EnumControl("Blend")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -39,13 +56,35 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        private bool m_TwoSided;
+
+        [ToggleControl("Two Sided")]
+        public Toggle twoSided
+        {
+            get { return new Toggle(m_TwoSided); }
+            set
+            {
+                if (m_TwoSided == value.isOn)
+                    return;
+                m_TwoSided = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public UnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Unlit-Master-Node"; }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            base.UpdateNodeAfterDeserialization();
             name = "Unlit Master";
             AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStage.Fragment));
@@ -60,9 +99,6 @@ namespace UnityEditor.ShaderGraph
                 AlphaSlotId,
                 AlphaThresholdSlotId
             });
-
-            if (!subShaders.Any())
-                AddSubShader(new LightWeightUnlitSubShader());
         }
 
         public VisualElement CreateSettingsElement()

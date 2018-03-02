@@ -56,48 +56,6 @@ namespace UnityEditor.Graphing.Util
             get { return m_Edges; }
         }
 
-        public void InsertInGraph(IGraph graph, List<INode> remappedNodes, List<IEdge> remappedEdges)
-        {
-            var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in GetNodes<INode>())
-            {
-                var oldGuid = node.guid;
-                var newGuid = node.RewriteGuid();
-                nodeGuidMap[oldGuid] = newGuid;
-
-                var drawState = node.drawState;
-                var position = drawState.position;
-                position.x += 30;
-                position.y += 30;
-                drawState.position = position;
-                node.drawState = drawState;
-                remappedNodes.Add(node);
-                graph.AddNode(node);
-            }
-
-            // only connect edges within pasted elements, discard
-            // external edges.
-            foreach (var edge in edges)
-            {
-                var outputSlot = edge.outputSlot;
-                var inputSlot = edge.inputSlot;
-
-                Guid remappedOutputNodeGuid;
-                Guid remappedInputNodeGuid;
-                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
-                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
-                {
-                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
-                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    remappedEdges.Add(graph.Connect(outputSlotRef, inputSlotRef));
-                }
-            }
-
-            m_Nodes.Clear();
-            m_Edges.Clear();
-            graph.ValidateGraph();
-        }
-
         public void OnBeforeSerialize()
         {
             m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);

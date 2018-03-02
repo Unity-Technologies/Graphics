@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -10,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode<IPBRSubShader>, IHasSettings
+    public class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequireNormal, IHasSettings
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -42,7 +43,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Model m_Model = Model.Metallic;
 
-        //[EnumControl("")]
+        [EnumControl("Workflow")]
         public Model model
         {
             get { return m_Model; }
@@ -58,9 +59,26 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        private SurfaceType m_SurfaceType;
+
+        [EnumControl("Surface")]
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         private AlphaMode m_AlphaMode;
 
-        //[EnumControl("")]
+        [EnumControl("Blend")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -74,16 +92,38 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        private bool m_TwoSided;
+
+        [ToggleControl("Two Sided")]
+        public Toggle twoSided
+        {
+            get { return new Toggle(m_TwoSided); }
+            set
+            {
+                if (m_TwoSided == value.isOn)
+                    return;
+                m_TwoSided = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/PBR-Master-Node"; }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            base.UpdateNodeAfterDeserialization();
             name = "PBR Master";
             AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
-            AddSlot(new Vector3MaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, SlotType.Input, new Vector3(0, 0, 1), ShaderStage.Fragment));
+            AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStage.Fragment));
             AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionSlotName, EmissionSlotName, SlotType.Input, Color.black, ShaderStage.Fragment));
             if (model == Model.Metallic)
                 AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0, ShaderStage.Fragment));
@@ -108,9 +148,13 @@ namespace UnityEditor.ShaderGraph
                 AlphaSlotId,
                 AlphaThresholdSlotId
             }, true);
+        }
 
-            if (!subShaders.Any())
-                AddSubShader(new LightWeightPBRSubShader());
+        public NeededCoordinateSpace RequiresNormal()
+        {
+            List<ISlot> slots = new List<ISlot>();
+            GetSlots(slots);
+            return slots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
         }
 
         public VisualElement CreateSettingsElement()

@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Voronoi";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Voronoi-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Voronoi", BindingFlags.Static | BindingFlags.NonPublic);
