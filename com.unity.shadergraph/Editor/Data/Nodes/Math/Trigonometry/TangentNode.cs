@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Tangent";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Tangent-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Tangent", BindingFlags.Static | BindingFlags.NonPublic);

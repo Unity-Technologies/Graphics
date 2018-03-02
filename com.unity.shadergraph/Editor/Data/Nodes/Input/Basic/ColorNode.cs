@@ -24,6 +24,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Color-Node"; }
+        }
+
         [SerializeField]
         Color m_Color = new Color(UnityEngine.Color.clear, ColorMode.Default);
 

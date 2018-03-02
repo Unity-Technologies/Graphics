@@ -10,6 +10,11 @@ namespace UnityEditor.ShaderGraph
             name = "Radians To Degrees";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Radians-To-Degrees-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_RadiansToDegrees", BindingFlags.Static | BindingFlags.NonPublic);

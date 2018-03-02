@@ -15,6 +15,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Flipbook-Node"; }
+        }
+
         const int UVSlotId = 0;
         const int WidthSlotId = 1;
         const int HeightSlotId = 2;

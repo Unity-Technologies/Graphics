@@ -9,6 +9,9 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
+#if UNITY_2018_1
+using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -213,16 +216,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is Node)
-                evt.menu.AppendAction("Copy shader", ConvertToShader, ConvertToShaderStatus);
+                evt.menu.AppendAction("Copy shader", ConvertToShader, node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden);
             base.BuildContextualMenu(evt);
         }
 
-        ContextualMenu.MenuAction.StatusFlags ConvertToShaderStatus(EventBase eventBase)
-        {
-            return node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden;
-        }
-
-        void ConvertToShader(EventBase eventBase)
+        void ConvertToShader()
         {
             List<PropertyCollector.TextureInfo> textureInfo;
             var masterNode = node as IMasterNode;
@@ -323,6 +321,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                     {
                         port.slot = newSlot;
+                        var portInputView = m_PortInputContainer.OfType<PortInputView>().FirstOrDefault(x => x.slot.id == currentSlot.id);
+                        portInputView.UpdateSlot(newSlot);
+
                         slots.Remove(newSlot);
                     }
                 }
@@ -389,7 +390,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var portInputView = new PortInputView(port.slot) { style = { positionType = PositionType.Absolute } };
                     m_PortInputContainer.Add(portInputView);
-                    port.RegisterCallback<PostLayoutEvent>(evt => UpdatePortInput((ShaderPort)evt.target));
+                    port.RegisterCallback<GeometryChangedEvent>(evt => UpdatePortInput((ShaderPort)evt.target));
                 }
             }
         }

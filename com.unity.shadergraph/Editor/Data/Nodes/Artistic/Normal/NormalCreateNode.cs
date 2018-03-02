@@ -27,6 +27,11 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-Create-Node"; }
+        }
+
         string GetFunctionName()
         {
             return string.Format("Unity_NormalCreate_{0}", precision);

@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             name = "Polar Coordinates";
         }
 
+        public override string documentationURL
+        {
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Polar-Coordinates-Node"; }
+        }
+
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_PolarCoordinates", BindingFlags.Static | BindingFlags.NonPublic);

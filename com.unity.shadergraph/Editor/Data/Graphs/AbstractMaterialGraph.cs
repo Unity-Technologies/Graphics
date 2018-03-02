@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -94,6 +95,14 @@ namespace UnityEditor.ShaderGraph
             get { return m_RemovedNodes; }
         }
 
+        [NonSerialized]
+        List<INode> m_PastedNodes = new List<INode>();
+
+        public IEnumerable<INode> pastedNodes
+        {
+            get { return m_PastedNodes; }
+        }
+
         #endregion
 
         #region Edge data
@@ -143,6 +152,7 @@ namespace UnityEditor.ShaderGraph
         {
             m_AddedNodes.Clear();
             m_RemovedNodes.Clear();
+            m_PastedNodes.Clear();
             m_AddedEdges.Clear();
             m_RemovedEdges.Clear();
             m_AddedProperties.Clear();
@@ -312,9 +322,11 @@ namespace UnityEditor.ShaderGraph
 
         public INode GetNodeFromTempId(Identifier tempId)
         {
+            if (tempId.index > m_Nodes.Count)
+                throw new ArgumentException("Trying to retrieve a node using an identifier that does not exist.");
             var node = m_Nodes[tempId.index];
             if (node == null)
-                throw new Exception("Index does not contain a node.");
+                throw new Exception("Trying to retrieve a node using an identifier that does not exist.");
             if (node.tempId.version != tempId.version)
                 throw new Exception("Trying to retrieve a node that was removed from the graph.");
             return node;
@@ -498,7 +510,7 @@ namespace UnityEditor.ShaderGraph
                     outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
                     inputSlot = inputNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
                 }
-                
+
                 if (outputNode == null
                     || inputNode == null
                     || outputSlot == null
@@ -571,6 +583,49 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var edge in other.edges)
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
+
+            ValidateGraph();
+        }
+
+        internal void PasteGraph(CopyPasteGraph graphToPaste, List<INode> remappedNodes, List<IEdge> remappedEdges)
+        {
+            var nodeGuidMap = new Dictionary<Guid, Guid>();
+            foreach (var node in graphToPaste.GetNodes<INode>())
+            {
+                var oldGuid = node.guid;
+                var newGuid = node.RewriteGuid();
+                nodeGuidMap[oldGuid] = newGuid;
+
+                var drawState = node.drawState;
+                var position = drawState.position;
+                position.x += 30;
+                position.y += 30;
+                drawState.position = position;
+                node.drawState = drawState;
+                remappedNodes.Add(node);
+                AddNode(node);
+
+                // add the node to the pasted node list
+                m_PastedNodes.Add(node);
+            }
+
+            // only connect edges within pasted elements, discard
+            // external edges.
+            foreach (var edge in graphToPaste.edges)
+            {
+                var outputSlot = edge.outputSlot;
+                var inputSlot = edge.inputSlot;
+
+                Guid remappedOutputNodeGuid;
+                Guid remappedInputNodeGuid;
+                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
+                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
+                {
+                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
+                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
+                    remappedEdges.Add(Connect(outputSlotRef, inputSlotRef));
+                }
+            }
 
             ValidateGraph();
         }
