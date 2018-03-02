@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -9,6 +10,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
+        [MenuItem("CONTEXT/Light/Remove HD Light", false,0)]
+        static void RemoveLight(MenuCommand menuCommand)
+        {
+            GameObject go = ( (Light) menuCommand.context ).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Undo.IncrementCurrentGroup();
+            Undo.DestroyObjectImmediate(go.GetComponent<Light>());
+            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
+            Undo.DestroyObjectImmediate(go.GetComponent<AdditionalShadowData>());
+        }
+
         sealed class SerializedLightData
         {
             public SerializedProperty directionalIntensity;
