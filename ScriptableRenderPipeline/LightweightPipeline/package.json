@@ -3,9 +3,9 @@
     "description": "Lightweight Render Pipeline for Unity.",
     "dependencies": {
         "com.unity.shadergraph": "1.0.0-beta",
-        "com.unity.postprocessing": "2.0.0-beta",
-        "com.unity.render-pipelines.core": "1.0.0-beta"
+        "com.unity.postprocessing": "2.0.1-beta",
+        "com.unity.render-pipelines.core": "1.0.1-beta"
     },
-    "version": "1.0.0-beta",
+    "version": "1.0.1-beta",
     "unity": "2018.1"
 }
