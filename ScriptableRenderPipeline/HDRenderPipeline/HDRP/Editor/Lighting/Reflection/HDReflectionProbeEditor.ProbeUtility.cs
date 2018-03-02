@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using Object = UnityEngine.Object;
 
@@ -8,10 +8,15 @@ namespace UnityEditor.Experimental.Rendering
     {
         void ChangeVisibilityOfAllTargets(bool visibility)
         {
+            if (targets.Length == 0) return;
+
             for (var i = 0; i < targets.Length; ++i)
             {
-                var p = (ReflectionProbe)targets[i];
-                HDReflectionProbeEditorUtility.ChangeVisibility(p, visibility);
+                if (targets[i] != null)
+                {
+                    var p = (ReflectionProbe)targets[i];
+                    HDReflectionProbeEditorUtility.ChangeVisibility(p, visibility);
+                }
             }
         }
 

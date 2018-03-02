@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
@@ -11,6 +12,20 @@ namespace UnityEditor.Experimental.Rendering
     [CanEditMultipleObjects]
     partial class HDReflectionProbeEditor : Editor
     {
+        [MenuItem("CONTEXT/ReflectionProbe/Remove HD Reflection Probe", false, 0)]
+        static void RemoveLight(MenuCommand menuCommand)
+        {
+            GameObject go = ((ReflectionProbe)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Undo.SetCurrentGroupName("Remove HD Reflection Probe");
+            Undo.DestroyObjectImmediate(go.GetComponent<ReflectionProbe>());
+            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalReflectionData>());
+            Undo.DestroyObjectImmediate(go.GetComponent<MeshRenderer>());
+            Undo.DestroyObjectImmediate(go.GetComponent<MeshFilter>());
+        }
+
         static Dictionary<ReflectionProbe, HDReflectionProbeEditor> s_ReflectionProbeEditors = new Dictionary<ReflectionProbe, HDReflectionProbeEditor>();
 
         static HDReflectionProbeEditor GetEditorFor(ReflectionProbe p)
