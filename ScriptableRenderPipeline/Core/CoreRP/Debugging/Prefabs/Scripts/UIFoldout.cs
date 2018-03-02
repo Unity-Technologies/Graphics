@@ -9,9 +9,9 @@ namespace UnityEngine.Experimental.Rendering.UI
         public GameObject arrowOpened;
         public GameObject arrowClosed;
 
-        protected override void Awake()
+        protected override void Start()
         {
-            base.Awake();
+            base.Start();
             onValueChanged.AddListener(SetState);
             SetState(isOn);
         }
