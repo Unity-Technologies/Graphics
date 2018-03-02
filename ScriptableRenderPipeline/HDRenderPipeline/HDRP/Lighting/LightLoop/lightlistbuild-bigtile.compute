@@ -1,7 +1,5 @@
 #pragma kernel BigTileLightListGen
 
-#pragma enable_d3d11_debug_symbols
-
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "LightLoop.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
@@ -19,8 +17,6 @@
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 
-//uniform float4x4 g_mInvScrProjection;
-//uniform float4x4 g_mScrProjection;
 uniform float4x4 g_mInvScrProjectionArr[2];
 uniform float4x4 g_mScrProjectionArr[2];
 
@@ -118,7 +114,6 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 	uint iWidth = g_viDimensions.x;
 	uint iHeight = g_viDimensions.y;
-    // TODO: Should we be re-calculating this?
 	uint nrBigTilesX = (iWidth+63)/64;
 	uint nrBigTilesY = (iHeight+63)/64;
 
@@ -136,34 +131,10 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
 	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
 
-    // XRTODO: Depending on the eye, make sure you index into the right 'half' of
-    // g_vBoundsBuffer
-
 	// build coarse list using AABB
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
-        // XRTODO - DONE: generate a 'real' index into  the correct half of g_vBoundsBuffer
-        // This index should also correspond to the matching structs in _LightVolumeData and 
-        // g_data, so if I just use this 'real' index, everything just might 'work'.
-        // If I need to look up the real light, I'll have to decode it, but this is fine for now.
-        // Actually, g_vBoundsBuffer will be significantly different than _LightVolumeData/g_data
-        // but I solved this by using helper function
-        
-        // In the monoscopic mode, there is one set of bounds (min,max -> 2 * g_iNrVisibLights)
-        // In stereo, there are two sets of bounds (leftMin, leftMax, rightMin, rightMax -> 4 * g_iNrVisibLights)
-        // Might be worth creating helper functions for this
-        //const int eyeRelativeBase = 2 * eyeIndex * (int)g_iNrVisibLights;
-        //const int minBoundsIndex = eyeRelativeBase + l;
-        //const int maxBoundsIndex = eyeRelativeBase + l + (int)g_iNrVisibLights;
-        //const int2 boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
         const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
-		
-        //const float2 vMi = g_vBoundsBuffer[l].xy;
-		//const float2 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xy;
-        //const float2 vMi = g_vBoundsBuffer[minBoundsIndex].xy;
-        //const float2 vMa = g_vBoundsBuffer[maxBoundsIndex].xy;
-        //const float2 vMi = g_vBoundsBuffer[boundsIndices.x].xy;
-        //const float2 vMa = g_vBoundsBuffer[boundsIndices.y].xy;
         const float2 vMi = g_vBoundsBuffer[boundsIndices.min].xy;
         const float2 vMa = g_vBoundsBuffer[boundsIndices.max].xy;
 
@@ -173,7 +144,6 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 			unsigned int uIndex;
 			InterlockedAdd(lightOffs, uInc, uIndex);
 
-            // XRTODO - DONE: We store the 'plain' light list index, not stereo-adjusted
 			if(uIndex<MAX_NR_BIGTILE_LIGHTS) lightsListLDS[uIndex] = l;		// add to light list
 		}
 	}
@@ -199,20 +169,12 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	if(t==0) lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
 	int i;
-    // XRTODO - DONE: Fix up check against g_iNrVisibLights to account for stereo
-    // If we store the un-adjusted index, we are safe to compare against g_iNrVisibLights
 	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<(uint)g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
 
-    // XRTODO - DONE: Fix up the offset into the stereo-ized big tile list
-	//int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
     int offs = tileIDX.y*nrBigTilesX + tileIDX.x + (eyeIndex * nrBigTilesX * nrBigTilesY);
 
-    // XRTODO - DONE: Do I want to encode the global index, or per-eye-relative index?  The light list code later on
-    // is relative to per-eye, but I'll need the global index anyway.  For consistency, it might be worth
-    // having the per-eye offset happen in the following compute job.  Not sure yet.
-    // I think I want to encode the per-eye-relative-index (the normal one).  This helps with tests against g_iNrVisibLights
 	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
 		g_vLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[max(i-1, 0)];
 }
@@ -232,9 +194,6 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
 
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
-        // XRTODO - DONE: Is the value in lightsListLDS[l] stereo-corrected?
-        //         It is not, so we need to correct it before using it in g_data
-        //SFiniteLightBound lgtDat = g_data[lightsListLDS[l]];
         const int boundIndex = GenerateLightCullDataIndex(lightsListLDS[l], g_iNrVisibLights, eyeIndex);
         SFiniteLightBound lgtDat = g_data[boundIndex];
 
@@ -291,21 +250,14 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	const int totNrEdgePairs = 12*nrFrustEdges;
 	for(int l=0; l<iNrCoarseLights; l++)
 	{
-        // XRTODO - DONE: Where does this need to be corrected?
-        // One index for comparing against g_iNrVisibLights, one index for buffer lookups
 		const uint idxCoarse = lightsListLDS[l];
         const int bufIdxCoarse = GenerateLightCullDataIndex(idxCoarse, g_iNrVisibLights, eyeIndex);
 
-        // XRTODO - DONE: This is safe with uncorrected indices
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
 
-        // XRTODO - DONE: We need to correct before indexing into _LightVolumeData
-        //if (canEnter) canEnter = _LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
         if(canEnter) canEnter = _LightVolumeData[bufIdxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		UNITY_BRANCH if(canEnter)
 		{
-            // XRTODO - DONE: We need to correct before indexing into g_data
-            //SFiniteLightBound lgtDat = g_data[idxCoarse];
             SFiniteLightBound lgtDat = g_data[bufIdxCoarse];
 
 			const float3 boxX = lgtDat.boxAxisX.xyz;
