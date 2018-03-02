@@ -83,6 +83,7 @@ namespace UnityEditor.VFX
                 Detach();
                 randOp.Attach(parent);
             }
+            base.Sanitize();
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
