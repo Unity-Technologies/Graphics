@@ -32,9 +32,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [ToggleControl("")]
-        public Toggle value
+        public ToggleData value
         {
-            get { return new Toggle(m_Value); }
+            get { return new ToggleData(m_Value); }
             set
             {
                 if (m_Value == value.isOn)

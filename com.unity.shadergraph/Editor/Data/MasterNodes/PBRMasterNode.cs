@@ -96,9 +96,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_TwoSided;
 
         [ToggleControl("Two Sided")]
-        public Toggle twoSided
+        public ToggleData twoSided
         {
-            get { return new Toggle(m_TwoSided); }
+            get { return new ToggleData(m_TwoSided); }
             set
             {
                 if (m_TwoSided == value.isOn)

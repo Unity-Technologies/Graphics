@@ -55,9 +55,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_InvertX = false;
 
         [ToggleControl("Invert X")]
-        public Toggle invertX
+        public ToggleData invertX
         {
-            get { return new Toggle(m_InvertX); }
+            get { return new ToggleData(m_InvertX); }
             set
             {
                 if (m_InvertX == value.isOn)
@@ -71,9 +71,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_InvertY = true;
 
         [ToggleControl("Invert Y")]
-        public Toggle invertY
+        public ToggleData invertY
         {
-            get { return new Toggle(m_InvertY); }
+            get { return new ToggleData(m_InvertY); }
             set
             {
                 if (m_InvertY == value.isOn)
