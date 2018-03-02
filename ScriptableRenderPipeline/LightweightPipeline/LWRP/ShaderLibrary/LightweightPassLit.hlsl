@@ -34,6 +34,7 @@ struct LightweightVertexOutput
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputData inputData)
@@ -71,6 +72,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     UNITY_SETUP_INSTANCE_ID(v);
     UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 

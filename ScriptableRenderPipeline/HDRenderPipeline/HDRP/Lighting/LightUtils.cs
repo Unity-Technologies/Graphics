@@ -53,14 +53,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // convert intensity (lumen) to nits
-        public static float calculateLineLightArea(float intensity, float lineWidth)
+        public static float CalculateLineLightIntensity(float intensity, float lineWidth)
         {
-            // The area of a cylinder is this:
-            // float lineRadius = 0.01f; // 1cm
-            //return intensity / (2.0f * Mathf.PI * lineRadius * lineWidth * Mathf.PI);
-            // But with our current line light algorithm we get an insane gap in intensity
-            // following formula (fully empirical) give a better match to a rect light of 1cm of width.
-            // It is basically point light intensity / line width.
+            // Line lights in the shader expect intensity (W / sr).
+            // In the UI, we specify luminous flux(power) in lumens.
+            // First, it needs to be converted to radiometric units(radiant flux, W).
+            // Then we must recall how to compute power from intensity for a line light:
+            // power = Integral{length, Integral{sphere, intensity}}.
+            // For an isotropic line light, intensity is constant, so
+            // power = length * (4 * Pi) * intensity,
+            // intensity = power / (length * (4 * Pi)).
             return intensity / (4.0f * Mathf.PI * lineWidth);
         }
     }
