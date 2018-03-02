@@ -1,7 +1,8 @@
-﻿﻿using System;
+﻿using System;
 using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 #if UNITY_2018_1
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
 #endif
@@ -15,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         WindowDockingLayout m_WindowDockingLayout;
 
         Vector2 m_LocalMosueOffset;
-        Rect m_PreviousParentRect;
 
         VisualElement m_Handle;
         GraphView m_GraphView;
@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Handle = handle;
             m_Active = false;
-            m_PreviousParentRect = new Rect(0f, 0f, 0f, 0f);
             m_WindowDockingLayout = new WindowDockingLayout();
         }
 
@@ -37,7 +36,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Handle.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
             m_Handle.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
             m_Handle.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
-            target.RegisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
         }
 
         protected override void UnregisterCallbacksFromTarget()
@@ -45,7 +43,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Handle.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
             m_Handle.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
             m_Handle.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
-            target.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
             target.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             if (m_GraphView != null)
                 m_GraphView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
@@ -54,6 +51,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnMouseDown(MouseDownEvent evt)
         {
             m_Active = true;
+
+            VisualElement parent = target.parent;
+            while (parent != null && !(parent is GraphView))
+                parent = parent.parent;
+            m_GraphView = parent as GraphView;
+
+            if (m_GraphView != null)
+                m_GraphView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+
+            // m_LocalMouseOffset is offset from the target element's (0, 0) to the
+            // to the mouse position.
             m_LocalMosueOffset = m_Handle.WorldToLocal(evt.mousePosition);
 
             m_Handle.TakeMouseCapture();
@@ -64,9 +72,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_Active)
             {
-                Rect layout = target.layout;
-                layout.position = target.parent.WorldToLocal(evt.mousePosition - m_LocalMosueOffset);
-                target.layout = layout;
+                // The mouse position of is corrected according to the offset within the target
+                // element (m_LocalWorldOffset) to set the position relative to the mouse position
+                // when the dragging started.
+                Vector2 position = target.parent.WorldToLocal(evt.mousePosition) - m_LocalMosueOffset;
+
+                // Make sure that the object remains in the parent window
+                position.x = Mathf.Clamp(position.x, 0f, target.parent.layout.width - target.layout.width);
+                position.y = Mathf.Clamp(position.y, 0f, target.parent.layout.height - target.layout.height);
+
+                // While moving, use only the left and top position properties,
+                // while keeping the others NaN to not affect layout.
+                target.style.positionLeft = StyleValue<float>.Create(position.x);
+                target.style.positionTop = StyleValue<float>.Create(position.y);
+                target.style.positionRight = StyleValue<float>.Create(float.NaN);
+                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
             }
         }
 
@@ -83,82 +103,73 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             evt.StopImmediatePropagation();
 
+            // Recalculate which corner to dock to
             m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
 
-            if (emitDragFinishedEvent && OnDragFinished != null)
-            {
-                OnDragFinished();
-            }
-        }
+            // Make sure that the window offset is non-negative (remains in screen).
+            Vector2 positionOffset = new Vector2(m_WindowDockingLayout.horizontalOffset, m_WindowDockingLayout.verticalOffset);
+            positionOffset.x = Mathf.Max(positionOffset.x, 0f);
+            positionOffset.y = Mathf.Max(positionOffset.y, 0f);
 
-        void InitialLayoutSetup(GeometryChangedEvent GeometryChangedEvent)
-        {
-            m_PreviousParentRect = target.parent.layout;
-            target.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
-            target.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-
-            VisualElement parent = target.parent;
-            while (parent != null && !(parent is GraphView))
-                parent = parent.parent;
-            m_GraphView = parent as GraphView;
-            if (m_GraphView != null)
-                m_GraphView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-
-            m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
-        }
-
-        void OnGeometryChanged(GeometryChangedEvent GeometryChangedEvent)
-        {
-            Rect windowRect = target.layout;
-
-            Vector2 minSize = new Vector2(60f, 60f);
-
-            if (!Mathf.Approximately(target.style.minWidth, 0f))
-            {
-                minSize.x = target.style.minWidth;
-            }
-
-            if (!Mathf.Approximately(target.style.minHeight, 0f))
-            {
-                minSize.y = target.style.minHeight;
-            }
-
-            Vector2 distanceFromParentEdge = Vector2.zero;
-            distanceFromParentEdge.x = m_WindowDockingLayout.dockingLeft ? target.layout.x : (m_PreviousParentRect.width - target.layout.x - target.layout.width);
-            distanceFromParentEdge.y = m_WindowDockingLayout.dockingTop ? target.layout.y : (m_PreviousParentRect.height - target.layout.y - target.layout.height);
-
-            Vector2 normalizedDistanceFromEdge = distanceFromParentEdge / target.parent.layout.size;
-
+            // Use the docking results to figure which of left/right and top/bottom needs to be set.
             if (m_WindowDockingLayout.dockingLeft)
             {
-                windowRect.x = normalizedDistanceFromEdge.x * target.parent.layout.width;
+                target.style.positionRight = StyleValue<float>.Create(float.NaN);
+                target.style.positionLeft = StyleValue<float>.Create(positionOffset.x);
             }
             else
             {
-                windowRect.x = (1f - normalizedDistanceFromEdge.x) * target.parent.layout.width - windowRect.width;
+                target.style.positionLeft = StyleValue<float>.Create(float.NaN);
+                target.style.positionRight = StyleValue<float>.Create(positionOffset.x);
             }
 
             if (m_WindowDockingLayout.dockingTop)
             {
-                windowRect.y = normalizedDistanceFromEdge.y * target.parent.layout.height;
+                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
+                target.style.positionTop = StyleValue<float>.Create(positionOffset.y);
             }
             else
             {
-                windowRect.y = (1f - normalizedDistanceFromEdge.y) * target.parent.layout.height - windowRect.height;
+                target.style.positionTop = StyleValue<float>.Create(float.NaN);
+                target.style.positionBottom = StyleValue<float>.Create(positionOffset.y);
             }
 
-            windowRect.width = Mathf.Max(windowRect.width, minSize.x);
-            windowRect.height = Mathf.Max(windowRect.height, minSize.y);
+            // Signal that the dragging has finished.
+            if (emitDragFinishedEvent && OnDragFinished != null)
+                OnDragFinished();
+        }
 
-            float maximumXPosition = Mathf.Max(target.parent.layout.width - windowRect.width, 0f);
-            float maximumYPosition = Mathf.Max(target.parent.layout.height - windowRect.height, 0f);
+        void OnGeometryChanged(GeometryChangedEvent geometryChangedEvent)
+        {
+            // Make the target clamp to the border of the window if the
+            // parent window becomes too small to contain it.
+            if (target.parent.layout.width < target.layout.width)
+            {
+                if (m_WindowDockingLayout.dockingLeft)
+                {
+                    target.style.positionRight = StyleValue<float>.Create(float.NaN);
+                    target.style.positionLeft = StyleValue<float>.Create(0f);
+                }
+                else
+                {
+                    target.style.positionLeft = StyleValue<float>.Create(float.NaN);
+                    target.style.positionRight = StyleValue<float>.Create(0f);
+                }
+            }
 
-            windowRect.x = Mathf.Clamp(windowRect.x, 0f, maximumXPosition);
-            windowRect.y = Mathf.Clamp(windowRect.y, 0f, maximumYPosition);
-
-            m_PreviousParentRect = target.parent.layout;
-
-            target.layout = windowRect;
+            if (target.parent.layout.height < target.layout.height)
+            {
+                if (m_WindowDockingLayout.dockingTop)
+                {
+                    target.style.positionBottom = StyleValue<float>.Create(float.NaN);
+                    target.style.positionTop = StyleValue<float>.Create(0f);
+                }
+                else
+                {
+                    target.style.positionTop = StyleValue<float>.Create(float.NaN);
+                    target.style.positionBottom = StyleValue<float>.Create(0f);
+                }
+            }
         }
     }
 }
