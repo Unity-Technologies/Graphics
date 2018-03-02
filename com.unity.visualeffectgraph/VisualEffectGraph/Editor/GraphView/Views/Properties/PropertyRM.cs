@@ -456,11 +456,18 @@ namespace UnityEditor.VFX.UI
 
         public void OnValueChanged(ChangeEvent<U> e)
         {
-            T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
-            if (!newValue.Equals(m_Value))
+            try
             {
-                m_Value = newValue;
-                NotifyValueChanged();
+                T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+                if (!newValue.Equals(m_Value))
+                {
+                    m_Value = newValue;
+                    NotifyValueChanged();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("Catching exception to not break graph in OnValueChanged" + ex.Message);
             }
         }
 
@@ -481,7 +488,16 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI()
         {
             if (!HasFocus())
-                m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+            {
+                try
+                {
+                    m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
+                }
+            }
         }
 
         public override bool showsEverything { get { return true; } }
