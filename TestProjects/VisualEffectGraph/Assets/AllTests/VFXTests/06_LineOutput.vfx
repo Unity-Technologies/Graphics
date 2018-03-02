@@ -925,7 +925,7 @@ MonoBehaviour:
   - {fileID: 114537105779611658}
   m_exposedName: NbSlices
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1316,7 +1316,7 @@ MonoBehaviour:
   - {fileID: 114287871694759918}
   m_exposedName: Count
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3572,6 +3572,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 3
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -4266,14 +4269,14 @@ VisualEffectAsset:
         index: 50
       - nameId: bounds_size
         index: 49
-      processor: {fileID: 7200000, guid: 371c710f41f9d4f499bb9d2b97010b11, type: 3}
+      processor: {fileID: 7200000, guid: efe768d5cce902145b692cdf2ebdb21a, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 62f6f6ea3c425194bae18ba5148f8e57, type: 3}
+      processor: {fileID: 7200000, guid: 85eee9292473c8342af910c2cff0be43, type: 3}
     - type: 1073741825
       buffers:
       - nameId: attributeBuffer
@@ -4292,7 +4295,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 0339b681f118744478f28eb428ff606f, type: 3}
+      processor: {fileID: 4800000, guid: 37f6f4da8729a3041a56933bf1308af7, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

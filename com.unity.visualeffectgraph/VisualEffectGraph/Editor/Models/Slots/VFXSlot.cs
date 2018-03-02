@@ -189,6 +189,10 @@ namespace UnityEditor.VFX
         {
             get
             {
+                if (!m_DefaultExpressionInitialized)
+                {
+                    InitDefaultExpression();
+                }
                 return m_DefaultExpression;
             }
         }
