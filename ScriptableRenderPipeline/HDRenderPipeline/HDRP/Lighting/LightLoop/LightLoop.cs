@@ -1969,11 +1969,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
             if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
             {
+                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
                 cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
 
                 //cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
                 //cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
