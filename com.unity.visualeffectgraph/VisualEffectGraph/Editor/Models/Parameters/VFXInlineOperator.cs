@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
                 if (type != null)
                 {
                     var property = new VFXProperty(type, string.Empty);
-                    yield return new VFXPropertyWithValue(new VFXProperty(type, string.Empty), VFXTypeExtension.GetDefaultField(type));
+                    yield return new VFXPropertyWithValue(property, VFXTypeExtension.GetDefaultField(type));
                 }
             }
         }
