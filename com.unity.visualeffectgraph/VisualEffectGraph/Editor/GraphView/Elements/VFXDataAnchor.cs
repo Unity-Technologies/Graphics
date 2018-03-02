@@ -357,11 +357,24 @@ namespace UnityEditor.VFX.UI
             }
 
             // If linking to a new parameter, copy the slot value
-            if (direction == Direction.Input && newNode is VFXParameterNodeController)
+            if (direction == Direction.Input)
             {
-                VFXParameter parameter = (newNode as VFXParameterNodeController).parentController.model;
-
-                CopyValueToParameter(parameter);
+                if (newNode is VFXParameterNodeController)
+                {
+                    VFXParameter parameter = (newNode as VFXParameterNodeController).parentController.model;
+                    CopyValueToParameter(parameter);
+                }
+                else if (newNode is VFXOperatorController)
+                {
+                    var inlineOperator = (newNode as VFXOperatorController).model as VFXInlineOperator;
+                    if (inlineOperator)
+                    {
+                        if (VFXConverter.CanConvert(inlineOperator.type))
+                            inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                        else
+                            inlineOperator.inputSlots[0].value = controller.model.value;
+                    }
+                }
             }
         }
 
