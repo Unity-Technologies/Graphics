@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -51,6 +52,21 @@ namespace UnityEditor.VFX
             }
             while (type != null);
 
+            return null;
+        }
+
+        public static object GetDefaultField(Type type)
+        {
+            if (type == typeof(Matrix4x4))
+            {
+                return Matrix4x4.identity;
+            }
+
+            var defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
+            if (defaultField != null)
+            {
+                return defaultField.GetValue(null);
+            }
             return null;
         }
     }
