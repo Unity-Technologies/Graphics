@@ -33,9 +33,14 @@ namespace UnityEngine.Experimental.Rendering.UI
             if (arrowOpened == null || arrowClosed == null || content == null)
                 return;
 
-            arrowOpened.SetActive(state);
-            arrowClosed.SetActive(!state);
-            content.SetActive(state);
+            if (arrowOpened.activeSelf != state)
+                arrowOpened.SetActive(state);
+
+            if (arrowClosed.activeSelf == state)
+                arrowClosed.SetActive(!state);
+
+            if (content.activeSelf != state)
+                content.SetActive(state);
 
             if (rebuildLayout)
                 LayoutRebuilder.ForceRebuildLayoutImmediate(transform.parent as RectTransform);
