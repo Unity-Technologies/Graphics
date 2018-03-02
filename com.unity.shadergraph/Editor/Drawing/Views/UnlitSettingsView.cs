@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         label.AddToClassList("label");
                     });
 
-                    row.Add(new EnumField(AlphaMode.AdditiveBlend), (enumField) =>
+                    row.Add(new EnumField(AlphaMode.Additive), (enumField) =>
                     {
                         enumField.AddToClassList("enumcontainer");
                         enumField.value = m_Node.alphaMode;
