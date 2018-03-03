@@ -25,9 +25,9 @@
 CBUFFER_START(UnityLightListClustered)
 int g_iNrVisibLights;
 
-// XRTODO: Stereo-ize these
-float4x4 g_mInvScrProjection;
-float4x4 g_mScrProjection;
+// XRTODO - DONE: Stereo-ize these
+float4x4 g_mInvScrProjectionArr[2];
+float4x4 g_mScrProjectionArr[2];
 
 uint g_isOrthographic;
 int _EnvLightIndexShift;
@@ -104,6 +104,8 @@ groupshared uint lightOffsSph;
 // XRTODO: Stereo-ize access to g_mInvScrProjection, pass in eyeIndex
 float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 {
+    float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[0];
+
     // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
 	// however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
@@ -119,6 +121,8 @@ float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 // XRTODO: Stereo-ize access to g_mScrProjection, pass in eyeIndex
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 {
+    float4x4 g_mScrProjection = g_mScrProjectionArr[0];
+
 	bool isOrthographic = g_isOrthographic!=0;
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
@@ -140,6 +144,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 // XRTODO: Stereo-ize access to g_mScrProjection, pass in eyeIndex
 float GetOnePixDiagWorldDistAtDepthOne()
 {
+    float4x4 g_mScrProjection = g_mScrProjectionArr[0];
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
 
