@@ -1911,6 +1911,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var invProjscrArr = new Matrix4x4[2];
             if (m_FrameSettings.enableStereo)
             {
+                // XRTODO: If possible, we could generate a non-oblique stereo projection
+                // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
+                // the same FOV as the original projection matrix (which would mean padding each half
+                // of the frustum with the max half-angle). We don't need the light information in 
+                // real projection space.  We just use screen space to figure out what is proximal
+                // to a cluster or tile.
                 for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     projArr[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);

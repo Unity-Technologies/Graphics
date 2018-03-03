@@ -127,7 +127,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	uint2 viTilLL = 64*tileIDX;
 	uint2 viTilUR = min( viTilLL+uint2(64,64), uint2(iWidth, iHeight) );			// not width and height minus 1 since viTilUR represents the end of the tile corner.
 
-    // 'Normalized' coordinates of tile
+    // 'Normalized' coordinates of tile, for use with AABB bounds in g_vBoundsBuffer
 	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
 	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
 
