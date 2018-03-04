@@ -294,14 +294,17 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef USE_TWO_PASS_TILED_LIGHTING
 	const uint log2BigTileToClustTileRatio = firstbithigh(64) - log2TileSize;
 
-    // XRTODO: Properly stereo-ize access to g_vBigTileLightList
+    // XRTODO - DONE: Properly stereo-ize access to g_vBigTileLightList
     // All of this code is localized here, so I don't really have to worry about side-effects further on down
     // I need to generate NrBigTilesY, so I can generate a per-eye offset/base into g_vBigTileLightList
     // Since bigTileIdx is used twice (once for count, once for the light list), I should probably fix that one.
     // Would be worth function-alizing, because this code is shared with FPTL/lightlistbuild.compute
-	int NrBigTilesX = (nrTilesX+((1<<log2BigTileToClustTileRatio)-1))>>log2BigTileToClustTileRatio;
-	const int bigTileIdx = (tileIDX.y>>log2BigTileToClustTileRatio)*NrBigTilesX + (tileIDX.x>>log2BigTileToClustTileRatio);		// map the idx to 64x64 tiles
-	int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+0];
+    int NrBigTilesX = (nrTilesX + ((1<<log2BigTileToClustTileRatio)-1)) >> log2BigTileToClustTileRatio;
+    int NrBigTilesY = (nrTilesY + ((1<<log2BigTileToClustTileRatio)-1)) >> log2BigTileToClustTileRatio;
+    const int bigTileBase = eyeIndex * NrBigTilesX * NrBigTilesY;
+	const int bigTileIdx = bigTileBase + ((tileIDX.y>>log2BigTileToClustTileRatio)*NrBigTilesX) + (tileIDX.x>>log2BigTileToClustTileRatio);		// map the idx to 64x64 tiles
+	
+    int nrBigTileLights = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+0];
 	for(int l0=(int) t; l0<(int) nrBigTileLights; l0 += NR_THREADS)
 	{
 		int l = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+l0+1];
@@ -333,7 +336,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 
-    // XRTODO: Stereo-ize by passing in eyeIndex
+    // XRTODO - DONE: Stereo-ize by passing in eyeIndex
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(g_screenSize.x-1, g_screenSize.y-1))), eyeIndex );
 #endif
@@ -353,7 +356,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 
-    // XRTODO: Stereo-ize by passing in eyeIndex
+    // XRTODO - DONE: Stereo-ize by passing in eyeIndex
 #ifdef EXACT_EDGE_TESTS
     iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane, eyeIndex);
 #endif
@@ -621,7 +624,7 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 	int iSwizzle = e0&0x3;
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
-    // XRTODO: Pass in eyeIndex
+    // XRTODO - DONE: Pass in eyeIndex
     vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane, eyeIndex);
 
 #if USE_LEFT_HAND_CAMERA_SPACE
@@ -633,7 +636,7 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 	vE0 = iSection == 0 ? edgeSectionZero : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
 }
 
-// XRTODO: Stereo-ize with eyeIndex, used for indexing _LightVolumeData and g_data, 
+// XRTODO - DONE: Stereo-ize with eyeIndex, used for indexing _LightVolumeData and g_data, 
 // and with GetFrustEdge and GetTileVertex functions
 int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex)
 {
