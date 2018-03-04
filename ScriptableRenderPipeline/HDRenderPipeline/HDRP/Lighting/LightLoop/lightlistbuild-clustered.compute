@@ -468,8 +468,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
             // XRTODO - DONE: Stereo-ize CheckIntersection by passing in eyeIndex to GetViewPosFromLinDepth
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase, eyeIndex) )
 			{
-                // XRTODO: Stereo-ize index into _LightVolumeData, run coarseList[l] thru GenerateLightCullDataIndex
-				uint lightCategory = _LightVolumeData[coarseList[l]].lightCategory;
+                // XRTODO - DONE: Stereo-ize index into _LightVolumeData, run coarseList[l] thru GenerateLightCullDataIndex
+                const int lightVolIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
+                uint lightCategory = _LightVolumeData[lightVolIndex].lightCategory;
 				++categoryListCount[lightCategory];
 				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
 			    
@@ -520,9 +521,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 // Pass in eyeIndex
 float4 FetchPlane(int l, int p, uint eyeIndex)
 {
-    // XRTODO: Use eyeIndex and coarseList[l] to index into g_data
+    // XRTODO - DONE: Use eyeIndex and coarseList[l] to index into g_data
     // use GenerateLightCullDataIndex
-	SFiniteLightBound lgtDat = g_data[coarseList[l]];
+    const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
+    SFiniteLightBound lgtDat = g_data[lightBoundIndex];
 
 	const float3 boxX = lgtDat.boxAxisX.xyz;
 	const float3 boxY = lgtDat.boxAxisY.xyz;
@@ -555,9 +557,10 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
-        // XRTODO: Stereo-ize access with eyeIndex and GenerateLightCullDataIndex
+        // XRTODO - DONE: Stereo-ize access with eyeIndex and GenerateLightCullDataIndex
         // Use it on coarseList[l], use result to index g_data
-		SFiniteLightBound lgtDat = g_data[coarseList[l]];
+        const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
+        SFiniteLightBound lgtDat = g_data[lightBoundIndex];
 
 		if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius, g_isOrthographic!=0) )
 			coarseList[l]=UINT_MAX;
@@ -644,12 +647,12 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
-        // XRTODO: stereo-ize index used to access _LightVolumeData (and g_data), use GenerateLightCullDataIndex and eyeIndex
-		const int idxCoarse = coarseList[l];
-		UNITY_BRANCH if (_LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+        // XRTODO - DONE: stereo-ize index used to access _LightVolumeData (and g_data), use GenerateLightCullDataIndex and eyeIndex
+        const int lightCullIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
+		UNITY_BRANCH if (_LightVolumeData[lightCullIndex].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
-            // XRTODO: stereo-ize index used to access g_data, use the same index generated above from idxCoarse
-			SFiniteLightBound lgtDat = g_data[idxCoarse];
+            // XRTODO - DONE: stereo-ize index used to access g_data, use the same index generated above from idxCoarse
+            SFiniteLightBound lgtDat = g_data[lightCullIndex];
 
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
