@@ -45,10 +45,7 @@ int g_iNumSamplesMSAA;
 CBUFFER_END
 
 // ClusteredUtils.hlsl is dependent on the constants declared in UnityLightListClustered :/
-// g_fClustBase
-// g_fNearPlane
-// g_fFarPlane
-// g_iLog2NumClusters
+// g_fClustBase, g_fNearPlane, g_fFarPlane, g_iLog2NumClusters
 #include "ClusteredUtils.hlsl"
 
 // XRTODO: Reading from these textures and buffers must be stereo-ized
@@ -101,7 +98,7 @@ groupshared uint lightOffs2;
 groupshared uint lightOffsSph;
 #endif
 
-// XRTODO: Stereo-ize access to g_mInvScrProjection, pass in eyeIndex
+// XRTODO - DONE: Stereo-ize access to g_mInvScrProjection, pass in eyeIndex
 float GetLinearDepth(float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
 {
     float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
@@ -166,8 +163,8 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 // returns 1 for intersection and 0 for none
 
-// XRTODO: Pass in eyeIndex
-float4 FetchPlane(int l, int p);
+// XRTODO - DONE: Pass in eyeIndex
+float4 FetchPlane(int l, int p, uint eyeIndex);
 
 // XRTODO - DONE: Stereo-ize due to access to GetViewPosFromLinDepth
 // We need eyeIndex
@@ -455,8 +452,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 		int p = i>>2;
 		int m = i&3;
-        // XRTODO: Pass in eyeIndex to FetchPlane, as it looks into g_data (SFiniteLightBound)
-		if(i<24) lightPlanes[6*m+p] = FetchPlane(min(iNrCoarseLights-1,ll+m), p);
+        // XRTODO - DONE: Pass in eyeIndex to FetchPlane, as it looks into g_data (SFiniteLightBound)
+		if(i<24) lightPlanes[6*m+p] = FetchPlane(min(iNrCoarseLights-1,ll+m), p, eyeIndex);
 
         // The first 24 threads in the TG each generate 1 plane equation.  There are
         // 6 planes per light, and we process 4 lights at a time, hence, 24 threads.
@@ -519,9 +516,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 }
 
 
-// XRTODO: Must be stereo-ized because it fetches from g_data
+// XRTODO - DONE: Must be stereo-ized because it fetches from g_data
 // Pass in eyeIndex
-float4 FetchPlane(int l, int p)
+float4 FetchPlane(int l, int p, uint eyeIndex)
 {
     // XRTODO: Use eyeIndex and coarseList[l] to index into g_data
     // use GenerateLightCullDataIndex
