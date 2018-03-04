@@ -102,9 +102,9 @@ groupshared uint lightOffsSph;
 #endif
 
 // XRTODO: Stereo-ize access to g_mInvScrProjection, pass in eyeIndex
-float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
+float GetLinearDepth(float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
 {
-    float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[0];
+    float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
 
     // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
 	// however this function must also work for orthographic projection so we keep it like this.
@@ -118,10 +118,10 @@ float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
     //return v4Pres.z / v4Pres.w;
 }
 
-// XRTODO: Stereo-ize access to g_mScrProjection, pass in eyeIndex
-float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
+// XRTODO - DONE: Stereo-ize access to g_mScrProjection, pass in eyeIndex
+float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth, uint eyeIndex)
 {
-    float4x4 g_mScrProjection = g_mScrProjectionArr[0];
+    float4x4 g_mScrProjection = g_mScrProjectionArr[eyeIndex];
 
 	bool isOrthographic = g_isOrthographic!=0;
 	float fSx = g_mScrProjection[0].x;
@@ -141,10 +141,10 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 	return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
 }
 
-// XRTODO: Stereo-ize access to g_mScrProjection, pass in eyeIndex
-float GetOnePixDiagWorldDistAtDepthOne()
+// XRTODO - DONE: Stereo-ize access to g_mScrProjection, pass in eyeIndex
+float GetOnePixDiagWorldDistAtDepthOne(uint eyeIndex)
 {
-    float4x4 g_mScrProjection = g_mScrProjectionArr[0];
+    float4x4 g_mScrProjection = g_mScrProjectionArr[eyeIndex];
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
 
@@ -155,12 +155,12 @@ float GetOnePixDiagWorldDistAtDepthOne()
 // in lightlistbuild-bigtile.compute.  But would need more re-factoring than needed
 // right now.
 
-// XRTODO: Stereo-ize these functions with eyeIndex
+// XRTODO - DONE: Stereo-ize these functions with eyeIndex
 #ifdef EXACT_EDGE_TESTS
-int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane);
+int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex);
 #endif
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
+int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate, uint eyeIndex);
 #endif
 
 
@@ -169,9 +169,9 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 // XRTODO: Pass in eyeIndex
 float4 FetchPlane(int l, int p);
 
-// XRTODO: Stereo-ize due to access to GetViewPosFromLinDepth
+// XRTODO - DONE: Stereo-ize due to access to GetViewPosFromLinDepth
 // We need eyeIndex
-bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggestedBase)
+bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggestedBase, uint eyeIndex)
 {
     // If this light's screen space depth bounds intersect this cluster...simple cluster test
     // TODO: Unify this code with the code in CheckIntersectionBasic...
@@ -194,8 +194,8 @@ bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggest
 				float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
 				float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
 				float z = (i&4)==0 ? depthAtNearZ : depthAtFarZ;
-                // XRTODO: Stereo-ize this by passing in eyeIndex
-				float3 vP = GetViewPosFromLinDepth( float2(x, y), z);
+                // XRTODO - DONE: Stereo-ize this by passing in eyeIndex
+                float3 vP = GetViewPosFromLinDepth( float2(x, y), z, eyeIndex);
 
                 // Test each corner of the cluster against the light bounding box planes
 				bAllInvisib = bAllInvisib && dot(plane, float4(vP,1.0))>0;
@@ -220,7 +220,8 @@ bool CheckIntersectionBasic(int l, int k)
 [numthreads(NR_THREADS, 1, 1)]
 void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
-    // XRTODO: Generate eyeIndex from u3GroupID.z
+    // XRTODO - DONE: Generate eyeIndex from u3GroupID.z
+    uint eyeIndex = u3GroupID.z;
 
 	uint2 tileIDX = u3GroupID.xy;
 	uint t=threadID;
@@ -336,16 +337,16 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
     // XRTODO: Stereo-ize by passing in eyeIndex
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(g_screenSize.x-1, g_screenSize.y-1))) );
+	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(g_screenSize.x-1, g_screenSize.y-1))), eyeIndex );
 #endif
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 
-    // XRTODO: Stereo-ize access to GetLinearDepth with eyeIndex
+    // XRTODO - DONE: Stereo-ize access to GetLinearDepth with eyeIndex
 #if USE_LEFT_HAND_CAMERA_SPACE
-	float fTileFarPlane = GetLinearDepth(dpt_ma);
+    float fTileFarPlane = GetLinearDepth(dpt_ma, eyeIndex);
 #else // USE_LEFT_HAND_CAMERA_SPACE
-	float fTileFarPlane = -GetLinearDepth(dpt_ma);
+    float fTileFarPlane = -GetLinearDepth(dpt_ma, eyeIndex);
 #endif
 	float suggestedBase = SuggestLogBase50(fTileFarPlane);
 #else // ENABLE_DEPTH_TEXTURE_BACKPLANE
@@ -356,7 +357,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
     // XRTODO: Stereo-ize by passing in eyeIndex
 #ifdef EXACT_EDGE_TESTS
-	iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane);
+    iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane, eyeIndex);
 #endif
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
@@ -383,12 +384,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
             // It's for the cluster in the tile (the depth layer slice whatever)
 			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights-1)];
 
-            // XRTODO: Stereo-ize GetLinearDepth with eyeIndex
-			const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), suggestedBase));
-			const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), suggestedBase));
-			const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), suggestedBase));
-			const unsigned int clustIdxMa1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1+g_iNrVisibLights].z), suggestedBase));
-
+            // XRTODO - DONE: Stereo-ize GetLinearDepth with eyeIndex
+            const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0 + g_iNrVisibLights].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMi1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMa1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1 + g_iNrVisibLights].z, eyeIndex), suggestedBase));
 			clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
 		}
 	}
@@ -468,8 +468,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 		for(int l=ll; l<min(iNrCoarseLights,(ll+4)); l++)
 		{
-            // XRTODO: Stereo-ize CheckIntersection by passing in eyeIndex to GetViewPosFromLinDepth
-			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
+            // XRTODO - DONE: Stereo-ize CheckIntersection by passing in eyeIndex to GetViewPosFromLinDepth
+			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase, eyeIndex) )
 			{
                 // XRTODO: Stereo-ize index into _LightVolumeData, run coarseList[l] thru GenerateLightCullDataIndex
 				uint lightCategory = _LightVolumeData[coarseList[l]].lightCategory;
@@ -540,20 +540,20 @@ float4 FetchPlane(int l, int p)
 
 
 
-// XRTODO: Stereo-ize for a bunch of use cases! Pass in eyeIndex!
+// XRTODO - DONE: Stereo-ize for a bunch of use cases! Pass in eyeIndex!
 // Needed for GetViewPosFromLinDepth, GetOnePixDiagWorldDistAtDepthOne, and g_data
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
+int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate, uint eyeIndex)
 {
-    // XRTODO: Stereo-ize access with eyeIndex
+    // XRTODO - DONE: Stereo-ize access with eyeIndex
 #if USE_LEFT_HAND_CAMERA_SPACE
-	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
+    float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0, eyeIndex);
 #else
-	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0, eyeIndex);
 #endif
 
-    // XRTODO: Stereo-ize access with eyeIndex
-	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
+    // XRTODO - DONE: Stereo-ize access with eyeIndex
+    float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne(eyeIndex);
 	float halfTileSizeAtZDistOne = (TILE_SIZE_CLUSTERED/2)*onePixDiagDist;		// scale by half a tile
 
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
@@ -598,8 +598,8 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 #ifdef EXACT_EDGE_TESTS
 
-// XRTODO: Stereo-ize for access to GetViewPosFromLinDepth, use eyeIndex
-float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
+// XRTODO - DONE: Stereo-ize for access to GetViewPosFromLinDepth, use eyeIndex
+float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane, uint eyeIndex)
 {
 	float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
 	float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
@@ -607,17 +607,19 @@ float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
 #if !USE_LEFT_HAND_CAMERA_SPACE
 	z = -z;
 #endif
-	return GetViewPosFromLinDepth( float2(x, y), z);
+    // XRTODO - DONE: Pass in eyeIndex
+    return GetViewPosFromLinDepth( float2(x, y), z, eyeIndex);
 }
 
-// XRTODO: Stereo-ize for access to GetTileVertex, use eyeIndex
-void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane)
+// XRTODO - DONE: Stereo-ize for access to GetTileVertex, use eyeIndex
+void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex)
 {
 	int iSection = e0>>2;		// section 0 is side edges, section 1 is near edges and section 2 is far edges
 	int iSwizzle = e0&0x3;
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
-	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane);
+    // XRTODO: Pass in eyeIndex
+    vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane, eyeIndex);
 
 #if USE_LEFT_HAND_CAMERA_SPACE
 	float3 edgeSectionZero = g_isOrthographic==0 ? vP0 : float3(0.0,0.0,1.0);
@@ -630,7 +632,7 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 
 // XRTODO: Stereo-ize with eyeIndex, used for indexing _LightVolumeData and g_data, 
 // and with GetFrustEdge and GetTileVertex functions
-int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane)
+int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex)
 {
 	if(threadID==0) lightOffs2 = 0;
 
@@ -669,8 +671,8 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 
 
 				float3 vP1, vE1;
-                // XRTODO: Stereo-ize to use GetFrustEdge, use eyeIndex
-				GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, fTileFarPlane);
+                // XRTODO - DONE: Stereo-ize to use GetFrustEdge, use eyeIndex
+                GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, fTileFarPlane, eyeIndex);
 
 				// potential separation plane
 				float3 vN = cross(vE0, vE1);
@@ -688,8 +690,8 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 				positive=0; negative=0;
 				for(int j=0; j<8; j++)
 				{
-                    // XRTODO: Stereo-ize to use GetTileVertex, use eyeIndex
-					float3 vPf = GetTileVertex(viTilLL, viTilUR, j, fTileFarPlane);
+                    // XRTODO - DONE: Stereo-ize to use GetTileVertex, use eyeIndex
+                    float3 vPf = GetTileVertex(viTilLL, viTilUR, j, fTileFarPlane, eyeIndex);
 					float fSignDist = dot(vN, vPf-vP0);
 					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
 				}
