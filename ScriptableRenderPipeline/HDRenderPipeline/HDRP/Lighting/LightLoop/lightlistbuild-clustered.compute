@@ -48,7 +48,7 @@ CBUFFER_END
 // g_fClustBase, g_fNearPlane, g_fFarPlane, g_iLog2NumClusters
 #include "ClusteredUtils.hlsl"
 
-// XRTODO: Reading from these textures and buffers must be stereo-ized
+// XRTODO - DONE: Reading from these textures and buffers must be stereo-ized
 #ifdef MSAA_ENABLED
 Texture2DMS<float> g_depth_tex : register( t0 );
 #else
@@ -252,12 +252,18 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	for(int idx=t; idx<(TILE_SIZE_CLUSTERED*TILE_SIZE_CLUSTERED); idx+=NR_THREADS)
 	{
-        // XRTODO: We need to stereo-ize access to g_depth_tex.  This is the only time we use viTilLL
+        // XRTODO - DONE: We need to stereo-ize access to g_depth_tex.  This is the only time we use viTilLL
         // to generate a screen-space texture coordinate, so we can localize our stereo texture access here.
         // For double-wide, we need to sample the correct half.  
         // For instancing/multi-view, the right texture layer. When we add support for that, we need to pass in 
-        // an extra uint2 for layer index.
+        // an extra uint for layer index.
 		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(g_screenSize.x-1, g_screenSize.y-1) );
+        // TODO: For stereo double-wide, I need a proper way to insert the second eye width offset. Right now, I can just
+        // use g_screenSize.x, but that's kinda cheating.
+        // Additionally, we're going to have a method to select between a doublewide texture or texture array. Doubling
+        // the kernels seems like a bad idea.  We could branch our texture read to switch between different texture declarations.
+        uint stereoDWOffset = eyeIndex * g_screenSize.x;
+        uPixCrd.x += stereoDWOffset;
 #ifdef MSAA_ENABLED
 		for(int i=0; i<g_iNumSamplesMSAA; i++)
 		{
