@@ -1883,7 +1883,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var numTilesX = GetNumTileClusteredX(hdCamera);
             var numTilesY = GetNumTileClusteredY(hdCamera);
-            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
+            int numEyes = m_FrameSettings.enableStereo ? 2 : 1;
+            //cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
+            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, numEyes);
         }
 
         public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
