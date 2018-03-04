@@ -65,13 +65,14 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );		// don't support B
 
 #define NR_THREADS			64
 
-// XRTODO: Stereo-ize writes to these buffers (except g_LayeredSingleIdxBuffer)
-// output buffer
+// XRTODO - DONE: Stereo-ize writes to g_LayeredOffset
+// g_vLayeredLightList is a dynamically allocated cluster list, and g_LayeredSingleIdxBuffer tracks allocations
+// so these do not need to be stereoized.
 RWStructuredBuffer<uint> g_vLayeredLightList : register( u0 );			// don't support RWBuffer yet in unity
 RWStructuredBuffer<uint> g_LayeredOffset : register( u1 );				// don't support RWBuffer yet in unity
 RWStructuredBuffer<uint> g_LayeredSingleIdxBuffer : register( u2 );		// don't support RWBuffer yet in unity
 
-// XRTODO: Stereo-ize writes to g_logBaseBuffer
+// XRTODO - DONE: Stereo-ize writes to g_logBaseBuffer
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 RWStructuredBuffer<float> g_logBaseBuffer : register( u3 );				// don't support RWBuffer yet in unity
 #endif
@@ -440,7 +441,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         // 'iSpaceAvail' is how many total lights are in this cluster.
         // This allocation might be roughly over, because CheckIntersectionBasic is a very basic check.
 
-        // XRTODO: For stereo, we don't have to adjust anything into g_LayeredSingleIdxBuffer. Each thread is processing it's own
+        // XRTODO - DONE: For stereo, we don't have to adjust anything into g_LayeredSingleIdxBuffer. Each thread is processing it's own
         // cluster, so we just need to make sure there is enough memory allocated in g_vLayeredLightList for two eyes worth of
         // lists.  The offset we get from start is good enough.  We do have to store the offset into the 
         // stereo-corrected half of g_LayeredOffset.
@@ -506,10 +507,13 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     // The encoded offsets are assuming the lights are sorted by category in the cluster list
 	uint localOffs=0;
 
-    // XRTODO: Stereo-ize this initial 'offs' to jump into the correct half of g_LayeredOffs.
+    // XRTODO - DONE: Stereo-ize this initial 'offs' to jump into the correct half of g_LayeredOffs.
     // The offsets are organized Category/Cluster/Row/Column.
     // For stereo, we just add eyeIndex*LIGHTCATEGORY_COUNT*nrClusters*nrTilesX*nrTilesY
-	offs = i*nrTilesX*nrTilesY + tileIDX.y*nrTilesX + tileIDX.x;
+    // TODO: Functionalize g_LayeredOffset indexing?
+    uint layeredOffsetBase = eyeIndex * LIGHTCATEGORY_COUNT * (nrClusters*nrTilesX*nrTilesY);
+
+    offs = layeredOffsetBase + (i*nrTilesX*nrTilesY) + (tileIDX.y*nrTilesX) + tileIDX.x;
 	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{
 		int numLights = min(categoryListCount[category],31);		// only allow 5 bits
@@ -522,9 +526,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	}
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-    // XRTODO: Stereo-ize this, as this is per-eye set of tiles
+    // XRTODO - DONE: Stereo-ize this, as this is per-eye set of tiles
     // Add eyeIndex*nrTilesY*nrTilesX to this index
-	if(threadID==0) g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x] = suggestedBase;
+    uint logBaseIndex = (eyeIndex * nrTilesY * nrTilesX) + (tileIDX.y*nrTilesX) + tileIDX.x;
+	if(threadID==0) g_logBaseBuffer[logBaseIndex] = suggestedBase;
 #endif
 }
 
