@@ -309,13 +309,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
-        // XRTODO: Once we have our light index (l), we need to make sure it indexes the 
+        // XRTODO - DONE: Once we have our light index (l), we need to make sure it indexes the 
         // correct portion of g_vBoundsBuffer. I have that code in GenerateScreenSpaceBoundsIndices
 
         // TODO: Seems kinda funny that we repeat this exact code here, bigtile, and FPTL...
 
-		const float2 vMi = g_vBoundsBuffer[l].xy;
-		const float2 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xy;
+        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
+        const float2 vMi = g_vBoundsBuffer[boundsIndices.min].xy;
+        const float2 vMa = g_vBoundsBuffer[boundsIndices.max].xy;
 
 		if( all(vMa>vTileLL) && all(vMi<vTileUR))
 		{
@@ -376,16 +377,18 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 		for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
 		{
-            // XRTODO: Stereo-ize access to g_vBoundsBuffer, run l0 and l1 through GenerateScreenSpaceBoundsIndices
+            // XRTODO - DONE: Stereo-ize access to g_vBoundsBuffer, run l0 and l1 through GenerateScreenSpaceBoundsIndices
             // The logic here is a bit confusing.  We seem to process pairs of lights, and 
             // It's for the cluster in the tile (the depth layer slice whatever)
 			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights-1)];
+            const ScreenSpaceBoundsIndices l0Bounds = GenerateScreenSpaceBoundsIndices(l0, g_iNrVisibLights, eyeIndex);
+            const ScreenSpaceBoundsIndices l1Bounds = GenerateScreenSpaceBoundsIndices(l1, g_iNrVisibLights, eyeIndex);
 
             // XRTODO - DONE: Stereo-ize GetLinearDepth with eyeIndex
-            const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z, eyeIndex), suggestedBase));
-            const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0 + g_iNrVisibLights].z, eyeIndex), suggestedBase));
-            const unsigned int clustIdxMi1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z, eyeIndex), suggestedBase));
-            const unsigned int clustIdxMa1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1 + g_iNrVisibLights].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0Bounds.min].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0Bounds.max].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMi1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1Bounds.min].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMa1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1Bounds.max].z, eyeIndex), suggestedBase));
 			clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
 		}
 	}
