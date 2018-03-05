@@ -43,4 +43,6 @@ MasterPreviewView > #middle > #preview {
     flex-grow: 1;
     border-width: 10;
     border-color: rgb(200,10,190);
+    width: 200;
+    height: 200;
 }
