@@ -558,7 +558,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalAtlas != null)
                 m_DecalAtlas.Release();
             CoreUtils.Destroy(m_DecalMesh);
-            m_DecalAtlas = null; // set to null so that it gets recreated correctly
+            // set to null so that they get recreated
+            m_DecalAtlas = null;
             m_DecalMesh = null;
         }
     }

@@ -69,6 +69,8 @@ MonoBehaviour:
   GGXConvolve: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
   opaqueAtmosphericScattering: {fileID: 4800000, guid: 326059e48e5735e46a98047eff4f0295,
     type: 3}
+  hdriSky: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
+  proceduralSky: {fileID: 4800000, guid: ec63f47fd265df243a7b1d40f9ef7fe7, type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
   encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
   cubeToPanoShader: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}

@@ -37,21 +37,35 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Legacy Shaders upgraders         /
             /////////////////////////////////////
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Diffuse", SupportedUpgradeParams.diffuseOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Diffuse Detail", SupportedUpgradeParams.diffuseOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Diffuse Fast", SupportedUpgradeParams.diffuseOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Specular", SupportedUpgradeParams.specularOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Bumped Specular", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Parallax Diffuse", SupportedUpgradeParams.diffuseOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Parallax Specular", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/VertexLit", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/VertexLit", SupportedUpgradeParams.specularAlphaCutout));
 
-            // TODO:
-            //upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Diffuse", SupportedUpgradeParams.diffuseCubemap));
-            //upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Specular", SupportedUpgradeParams.specularOpaque));
-            //upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Diffuse", SupportedUpgradeParams.diffuseCubemap));
-            //upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Specular", SupportedUpgradeParams.specularOpaque));
+            // Reflective
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Diffuse", SupportedUpgradeParams.diffuseCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Specular", SupportedUpgradeParams.specularCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Unlit", SupportedUpgradeParams.diffuseCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped VertexLit", SupportedUpgradeParams.diffuseCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Diffuse", SupportedUpgradeParams.diffuseCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Specular", SupportedUpgradeParams.specularCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/VertexLit", SupportedUpgradeParams.diffuseCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Parallax Diffuse", SupportedUpgradeParams.diffuseCubemap));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Parallax Specular", SupportedUpgradeParams.specularCubemap));
 
             // Self-Illum upgrader
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Diffuse", SupportedUpgradeParams.diffuseOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Parallax Diffuse", SupportedUpgradeParams.diffuseOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Specular", SupportedUpgradeParams.specularOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Bumped Specular", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Parallax Specular", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/VertexLit", SupportedUpgradeParams.specularOpaque));
 
             // Alpha Blended
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Diffuse", SupportedUpgradeParams.diffuseAlpha));
@@ -65,6 +79,28 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/Bumped Diffuse", SupportedUpgradeParams.diffuseAlphaCutout));
             upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/Bumped Specular", SupportedUpgradeParams.specularAlphaCutout));
 
+            // Lightmapped
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Diffuse", SupportedUpgradeParams.diffuseOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Specular", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/VertexLit", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Bumped Specular", SupportedUpgradeParams.specularOpaque));
+
+            /////////////////////////////////////
+            // Sprites Upgraders
+            /////////////////////////////////////
+            upgraders.Add(new StandardSimpleLightingUpgrader("Sprites/Diffuse", SupportedUpgradeParams.diffuseAlpha));
+
+            /////////////////////////////////////
+            // UI Upgraders
+            /////////////////////////////////////
+            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Bumped", SupportedUpgradeParams.diffuseAlphaCutout));
+            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Detail", SupportedUpgradeParams.diffuseAlphaCutout));
+            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Refraction", SupportedUpgradeParams.diffuseAlphaCutout));
+            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Refraction Detail", SupportedUpgradeParams.diffuseAlphaCutout));
+            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Transparent", SupportedUpgradeParams.diffuseAlpha));
+
+
             /////////////////////////////////////
             // Mobile Upgraders                 /
             /////////////////////////////////////
@@ -74,6 +110,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Unlit (Supports Lightmap)", SupportedUpgradeParams.diffuseOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/VertexLit", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/VertexLit (Only Directional Lights)", SupportedUpgradeParams.specularOpaque));
+            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Particles/VertexLit Blended", SupportedUpgradeParams.specularOpaque));
 
             ////////////////////////////////////
             // Terrain Upgraders              //
@@ -85,6 +123,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             ////////////////////////////////////
             upgraders.Add(new ParticleUpgrader("Particles/Standard Surface"));
             upgraders.Add(new ParticleUpgrader("Particles/Standard Unlit"));
+            upgraders.Add(new ParticleUpgrader("Particles/VertexLit Blended"));
         }
     }
 
@@ -92,70 +131,90 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     {
         static public UpgradeParams diffuseOpaque = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularOpaque = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseAlphaCutout = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Cutout,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = true,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams specularAlphaCutout = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Cutout,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = true,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.SpecularAlpha,
         };
 
         static public UpgradeParams diffuseCubemap = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemap = new UpgradeParams()
         {
-            blendMode = UpgradeBlendMode.Opaque,
+            surfaceType = UpgradeSurfaceType.Opaque,
+            blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.NoSpecular,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
 
         static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
         {
+            surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
+            alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
             glosinessSource = GlossinessSource.BaseAlpha,
         };
@@ -193,14 +252,16 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         public StandardSimpleLightingUpgrader(string oldShaderName, UpgradeParams upgradeParams)
         {
             RenameShader(oldShaderName, LightweightShaderUtils.GetShaderPath(ShaderPathID.STANDARD_SIMPLE_LIGHTING), UpdateMaterialKeywords);
-            SetFloat("_Mode", (float)upgradeParams.blendMode);
+            SetFloat("_Surface", (float)upgradeParams.surfaceType);
+            SetFloat("_Blend", (float)upgradeParams.blendMode);
+            SetFloat("_AlphaClip", upgradeParams.alphaClip ? 1 : 0);
             SetFloat("_SpecSource", (float)upgradeParams.specularSource);
             SetFloat("_GlossinessSource", (float)upgradeParams.glosinessSource);
 
             if (oldShaderName.Contains("Legacy Shaders/Self-Illumin"))
             {
-                RenameTexture("_MainTex", "_EmissionMap");
-                RemoveTexture("_MainTex");
+                RenameTexture("_Illum", "_EmissionMap");
+                RemoveTexture("_Illum");
                 SetColor("_EmissionColor", Color.white);
             }
         }
