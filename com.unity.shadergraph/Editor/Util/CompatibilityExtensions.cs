@@ -29,5 +29,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             Debug.Assert(action != null);
             contextualMenu.AppendAction(actionName, e => action(), e => statusFlags);
         }
+
+        public static bool GetValue(this Toggle toggle)
+        {
+#if UNITY_2018_1
+            return toggle.on;
+#else
+            return toggle.value;
+#endif
+        }
+
+        public static void SetValue(this Toggle toggle, bool value)
+        {
+#if UNITY_2018_1
+            toggle.on = value;
+#else
+            toggle.value = value;
+#endif
+        }
     }
 }
