@@ -14,13 +14,14 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-    #ifdef SHADER_API_GLES
+    #if defined(SHADER_API_GLES) || (SHADER_TARGET < 30) || !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
-    #else
+    #elif defined(SHADER_API_MOBILE) && !defined(NICEST_QUALITY)
         // Evaluates L2 SH in vertex and L0L1 in pixel
         #define EVALUATE_SH_MIXED
     #endif
+        // Otherwise evaluate SH fully per-pixel
 #endif
 
 #ifdef LIGHTMAP_ON
@@ -333,7 +334,9 @@ half3 SampleSHVertex(half3 normalWS)
 // mixed or fully in pixel. See SampleSHVertex
 half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 {
-#ifdef EVALUATE_SH_MIXED
+#if defined(EVALUATE_SH_VERTEX)
+    return L2Term;
+#elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
     return max(half3(0, 0, 0), L2Term + L0L1Term);
 #endif
