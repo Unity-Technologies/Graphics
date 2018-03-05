@@ -832,7 +832,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentSunLightShadowIndex = shadowIdx;
             }
 
-            // TODO: Currently m_maxShadowDistance is based on shadow settings, but this value is define for a whole level. We should be able to change this value during gameplay
             float scale;
             float bias;
             GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
@@ -999,7 +998,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (additionalshadowData)
             {
-                float shadowDistanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalshadowData.shadowFadeDistance);
+                float shadowDistanceFade = ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance, additionalshadowData.shadowFadeDistance));
                 lightData.shadowDimmer = additionalshadowData.shadowDimmer * shadowDistanceFade;
             }
             else
@@ -1409,6 +1408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
+                m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
                 m_lightList.Clear();
 
@@ -1802,8 +1802,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 
                 UpdateDataBuffers();
-
-                m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
                 return m_enableBakeShadowMask;
             }
