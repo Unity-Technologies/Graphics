@@ -32,5 +32,7 @@ namespace UnityEditor.VFX
         }
 
         public GroupInfo[] groupInfos;
+
+        public Rect uiBounds;
     }
 }

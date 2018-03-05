@@ -369,7 +369,7 @@ namespace UnityEditor.VFX.UI
             return slot;
         }
 
-        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 pasteOffset, string data, VFXView view = null)
+        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null)
         {
             var copyData = JsonUtility.FromJson<Data>(data);
 
@@ -384,7 +384,7 @@ namespace UnityEditor.VFX.UI
                 copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
             }
 
-            PasteCopy(viewController, pasteOffset, copyData, allSerializedObjects, view);
+            PasteCopy(viewController, center, copyData, allSerializedObjects, view);
         }
 
         public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view)

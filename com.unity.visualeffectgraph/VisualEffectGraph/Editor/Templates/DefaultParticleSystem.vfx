@@ -567,7 +567,7 @@ MonoBehaviour:
   - {fileID: 114025884244312252}
   - {fileID: 114271204891525672}
   - {fileID: 114213800008113656}
-  m_UIPosition: {x: 64.184906, y: 345.22577}
+  m_UIPosition: {x: 64.184906, y: 244.82024}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -650,7 +650,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114843545431835356}
   - {fileID: 114355360060674480}
-  m_UIPosition: {x: 68.89144, y: 1307.336}
+  m_UIPosition: {x: 59.880688, y: 860.66016}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -828,7 +828,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114348003522140610}
   m_Children: []
-  m_UIPosition: {x: 64.625465, y: 1054.2102}
+  m_UIPosition: {x: 63.33822, y: 732.3976}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1041,6 +1041,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 68
+    y: 29
+    width: 385
+    height: 1230
 --- !u!114 &114763298395922230
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1715,7 +1721,7 @@ VisualEffectAsset:
         index: 32
       - nameId: bounds_size
         index: 28
-      processor: {fileID: 7200000, guid: c115144e21d35184d801222f8629dd70, type: 3}
+      processor: {fileID: 7200000, guid: d3ace4ad47e43124aa921445b7dbeecc, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1726,7 +1732,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 20
       params: []
-      processor: {fileID: 7200000, guid: dad55d5bb34c5e44680312a0a92387be, type: 3}
+      processor: {fileID: 7200000, guid: 0c0ea92d9bc516643b35010656590d07, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1741,7 +1747,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 9c3295f1ee485d44a89673ada5fd2d87, type: 3}
+      processor: {fileID: 4800000, guid: 7574d8ca7f4e50b48a50d59514caa88b, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
