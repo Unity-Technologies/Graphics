@@ -18,7 +18,7 @@ struct LightweightVertexInput
 struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
-    float4 lightmapUVOrVertexSH     : TEXCOORD1; // holds either lightmapUV or vertex SH. depending on LIGHTMAP_ON
+    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
     float3 posWS                    : TEXCOORD2;
 
 #ifdef _NORMALMAP
@@ -62,7 +62,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 
     inputData.fogCoord = IN.fogFactorAndVertexLight.x;
     inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SampleGI(IN.lightmapUVOrVertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(IN.lightmapUV, IN.vertexSH, inputData.normalWS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,8 +97,8 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     // We either sample GI from lightmap or SH. lightmap UV and vertex SH coefficients
     // are packed in lightmapUVOrVertexSH to save interpolator.
     // The following funcions initialize
-    OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUVOrVertexSH);
-    OUTPUT_SH(o.normal.xyz, o.lightmapUVOrVertexSH);
+    OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
+    OUTPUT_SH(o.normal.xyz, o.vertexSH);
 
     half3 vertexLight = VertexLighting(o.posWS, o.normal.xyz);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
