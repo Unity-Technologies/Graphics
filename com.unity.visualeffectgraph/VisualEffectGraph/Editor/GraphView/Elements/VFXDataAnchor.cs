@@ -6,6 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Collections.Generic;
 using Type = System.Type;
 using System.Linq;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -44,6 +45,7 @@ namespace UnityEditor.VFX.UI
 
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
+            Profiler.BeginSample("VFXDataAnchor.VFXDataAnchor");
             AddStyleSheetPath("VFXDataAnchor");
             AddToClassList("VFXDataAnchor");
             AddStyleSheetPath("VFXTypeColor");
@@ -64,6 +66,7 @@ namespace UnityEditor.VFX.UI
             m_Node = node;
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
+            Profiler.EndSample();
         }
 
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)

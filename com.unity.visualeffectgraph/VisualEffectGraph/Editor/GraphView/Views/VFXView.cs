@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
-
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -164,6 +164,16 @@ namespace UnityEditor.VFX.UI
     }
     class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>
     {
+        public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
+
+        void OnRecompile(VFXRecompileEvent e)
+        {
+            foreach (var anchor in allDataAnchors)
+            {
+                anchor.OnRecompile();
+            }
+        }
+
         VisualElement m_NoAssetLabel;
 
         VFXViewController m_Controller;
@@ -389,6 +399,7 @@ namespace UnityEditor.VFX.UI
 
             vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+            RegisterCallback<VFXRecompileEvent>(OnRecompile);
 
             m_Blackboard = new VFXBlackboard();
 
@@ -440,8 +451,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool m_InControllerChanged;
+
         void ControllerChanged(int change)
         {
+            m_InControllerChanged = true;
+            Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.Change.destroy)
             {
                 m_Blackboard.controller = null;
@@ -489,6 +504,12 @@ namespace UnityEditor.VFX.UI
 
             // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
             SelectionUpdated();
+            Profiler.EndSample();
+            m_InControllerChanged = false;
+            if (m_UpdateUIBounds)
+            {
+                UpdateUIBounds();
+            }
         }
 
         public override void OnPersistentDataReady()
@@ -571,6 +592,7 @@ namespace UnityEditor.VFX.UI
 
         void SyncNodes()
         {
+            Profiler.BeginSample("VFXView.SyncNodes");
             if (controller == null)
             {
                 foreach (var element in rootNodes.Values.ToArray())
@@ -622,16 +644,21 @@ namespace UnityEditor.VFX.UI
 
                 elementAddedToGroupNode = ElementAddedToGroupNode;
                 elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
-
-                if (changed)
-                {
-                    UpdateUIBounds();
-                }
             }
+
+            Profiler.EndSample();
         }
 
+        bool m_UpdateUIBounds = false;
         void UpdateUIBounds()
         {
+            if (m_InControllerChanged)
+            {
+                m_UpdateUIBounds = true;
+                return;
+            }
+            m_UpdateUIBounds = false;
+
             if (panel != null)
             {
                 (panel as BaseVisualElementPanel).ValidateLayout();
