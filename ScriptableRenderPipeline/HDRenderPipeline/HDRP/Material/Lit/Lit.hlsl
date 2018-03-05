@@ -1282,7 +1282,7 @@ float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
 // - we integrate the diffuse reflectance profile w.r.t. the radius (while also accounting
 //   for the thickness) to compute the transmittance;
 // - we multiply the transmitted radiance by the transmittance.
-float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float attenuation)
+float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
 {
     // Apply wrapped lighting to better handle thin objects at grazing angles.
     float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
@@ -1292,7 +1292,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
 #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     attenuation *= Lambert();
 #else
-    attenuation *= INV_PI * F_Transm_Schlick(0, 0.5, NdotV) * F_Transm_Schlick(0, 0.5, max(0, -NdotL));
+    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
 #endif
 
     float intensity = attenuation * wrappedNdotL;
@@ -1313,7 +1313,9 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 N     = bsdfData.normalWS;
     float3 L     = -lightData.forward; // Lights point backward in Unity
-    float  NdotL = dot(N, L); // Note: Ideally this N here should be vertex normal - use for transmisison
+    float  NdotV = ClampNdotV(preLightData.NdotV);
+    float  NdotL = dot(N, L);
+    float  LdotV = dot(L, V);
 
     float3 transmittance      = bsdfData.transmittance;
     bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
@@ -1393,7 +1395,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1446,7 +1448,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     }
 
     float3 N     = bsdfData.normalWS;
+    float  NdotV = ClampNdotV(preLightData.NdotV);
     float  NdotL = dot(N, L);
+    float  LdotV = dot(L, V);
 
     float3 transmittance      = bsdfData.transmittance;
     bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
@@ -1532,7 +1536,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, ClampNdotV(preLightData.NdotV), attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
