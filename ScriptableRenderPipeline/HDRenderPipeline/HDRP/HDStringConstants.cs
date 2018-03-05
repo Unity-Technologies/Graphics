@@ -60,8 +60,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
+
         public static readonly int g_mScrProjection = Shader.PropertyToID("g_mScrProjection");
         public static readonly int g_mInvScrProjection = Shader.PropertyToID("g_mInvScrProjection");
+        public static readonly int g_mScrProjectionArr = Shader.PropertyToID("g_mScrProjectionArr");
+        public static readonly int g_mInvScrProjectionArr = Shader.PropertyToID("g_mInvScrProjectionArr");
+
         public static readonly int g_iLog2NumClusters = Shader.PropertyToID("g_iLog2NumClusters");
         public static readonly int g_screenSize = Shader.PropertyToID("g_screenSize");
         public static readonly int g_iNumSamplesMSAA = Shader.PropertyToID("g_iNumSamplesMSAA");

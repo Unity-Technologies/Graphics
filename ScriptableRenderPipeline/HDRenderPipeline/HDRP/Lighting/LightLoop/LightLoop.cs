@@ -412,7 +412,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
         // clustered light list specific buffers and data end
 
-        static int[] s_TempIntArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
+        static int[] s_TempScreenDimArray = new int[2]; // Used to avoid GC stress when calling SetComputeIntParams
 
         FrameSettings m_FrameSettings = null;
         RenderPipelineResources m_Resources = null;
@@ -1893,8 +1893,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var w = (int)hdCamera.screenSize.x;
             var h = (int)hdCamera.screenSize.y;
-            s_TempIntArray[0] = w;
-            s_TempIntArray[1] = h;
+            s_TempScreenDimArray[0] = w;
+            s_TempScreenDimArray[1] = h;
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
 
@@ -1969,14 +1969,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
             if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
             {
+                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
+                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+
+                // TODO: These two aren't actually used...
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
 
-                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
-                cmd.SetComputeMatrixParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
+                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjectionArr, projscrArr);
+                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, invProjscrArr);
 
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fFarPlane, camera.farClipPlane);
@@ -1984,7 +1986,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
-                cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
+
+                int tgZ = m_FrameSettings.enableStereo ? 2 : 1;
+                cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, tgZ);
             }
 
             var numTilesX = GetNumTileFtplX(hdCamera);
@@ -1996,7 +2000,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_FrameSettings.lightLoopSettings.isFptlEnabled)
             {
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
+                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
                 cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
@@ -2053,7 +2057,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     cmd.SetComputeIntParam(buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempIntArray);
+                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
                     cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
 
                     cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
