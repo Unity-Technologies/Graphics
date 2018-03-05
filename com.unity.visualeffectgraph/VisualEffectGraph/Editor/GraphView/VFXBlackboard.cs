@@ -301,6 +301,14 @@ namespace  UnityEditor.VFX.UI
             controller.expanded = expanded;
         }
 
+        public VFXBlackboardField field
+        {
+            get
+            {
+                return m_Field;
+            }
+        }
+
         private VFXBlackboardRow(VFXBlackboardField field, VFXBlackboardPropertyView property) : base(field, property)
         {
             m_Field = field;
@@ -489,6 +497,14 @@ namespace  UnityEditor.VFX.UI
 
         Dictionary<VFXParameterController, VFXBlackboardRow> m_ExposedParameters = new Dictionary<VFXParameterController, VFXBlackboardRow>();
 
+
+        public VFXBlackboardRow GetRowFromController(VFXParameterController controller)
+        {
+            VFXBlackboardRow row = null;
+            m_ExposedParameters.TryGetValue(controller, out row);
+
+            return row;
+        }
 
         void SyncParameters(BlackboardSection section, HashSet<VFXParameterController> actualControllers , Dictionary<VFXParameterController, VFXBlackboardRow> parameters)
         {

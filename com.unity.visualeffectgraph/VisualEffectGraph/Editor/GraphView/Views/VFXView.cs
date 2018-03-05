@@ -1192,6 +1192,11 @@ namespace UnityEditor.VFX.UI
         public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
         public Vector2 pasteOffset = Vector2.zero;
 
+        public VFXBlackboard blackboard
+        {
+            get { return m_Blackboard; }
+        }
+
         protected internal override bool canCopySelection
         {
             get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any(); }

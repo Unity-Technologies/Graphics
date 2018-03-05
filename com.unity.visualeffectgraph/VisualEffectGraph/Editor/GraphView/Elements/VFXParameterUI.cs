@@ -101,5 +101,25 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("exposed");
             }
         }
+
+        protected internal override void ExecuteDefaultAction(EventBase evt)
+        {
+            if (evt.GetEventTypeId() == MouseEnterEvent.TypeId() || evt.GetEventTypeId() == MouseLeaveEvent.TypeId())
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                if (view != null)
+                {
+                    VFXBlackboard blackboard = view.blackboard;
+
+                    VFXBlackboardRow row = blackboard.GetRowFromController(controller.parentController);
+
+                    if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                        row.AddToClassList("hovered");
+                    else
+                        row.RemoveFromClassList("hovered");
+                }
+            }
+            base.ExecuteDefaultAction(evt);
+        }
     }
 }
