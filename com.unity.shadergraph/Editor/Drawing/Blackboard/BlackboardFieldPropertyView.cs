@@ -216,12 +216,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (property is BooleanShaderProperty)
             {
                 var booleanProperty = (BooleanShaderProperty)property;
-                Action onBooleanChanged = () => 
-                { 
+                Action onBooleanChanged = () =>
+                {
                     booleanProperty.value = !booleanProperty.value;
                     DirtyNodes();
                 };
-                var field = new Toggle(onBooleanChanged) { on = booleanProperty.value };
+                var field = new Toggle(onBooleanChanged);
+                field.SetValue(booleanProperty.value);
                 AddRow("Default", field);
             }
 //            AddRow("Type", new TextField());
