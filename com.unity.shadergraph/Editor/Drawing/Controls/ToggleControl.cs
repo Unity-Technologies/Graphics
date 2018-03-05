@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             if (propertyInfo.PropertyType != typeof(Toggle))
                 throw new ArgumentException("Property must be a Toggle.", "propertyInfo");
-            
+
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
 
             var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             Action changedToggle = () => { OnChangeToggle(); };
             m_Toggle = new UnityEngine.Experimental.UIElements.Toggle(changedToggle);
             m_Toggle.SetEnabled(value.isEnabled);
-            m_Toggle.on = value.isOn;
+            m_Toggle.SetValue(value.isOn);
             panel.Add(m_Toggle);
             Add(panel);
         }
@@ -75,11 +75,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
             m_Toggle.SetEnabled(value.isEnabled);
- 
+
             if (scope == ModificationScope.Graph)
             {
                 Dirty(ChangeType.Repaint);
-            } 
+            }
         }
 
         void OnChangeToggle()
