@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Sky/SkyHDRI"
+Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
 {
     HLSLINCLUDE
 

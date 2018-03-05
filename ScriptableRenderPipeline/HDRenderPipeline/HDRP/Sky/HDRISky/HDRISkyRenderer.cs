@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRISkyRenderer : SkyRenderer
@@ -14,7 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Build()
         {
-            m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/Sky/SkyHDRI");
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.hdriSky);
         }
 
         public override void Cleanup()
@@ -36,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap)
         {
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.skyHDRI);
+            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(m_HdriSkyParams.exposure, m_HdriSkyParams.multiplier, -m_HdriSkyParams.rotation, 0.0f)); // -rotation to match Legacy...
 
             // This matrix needs to be updated at the draw call frequency.

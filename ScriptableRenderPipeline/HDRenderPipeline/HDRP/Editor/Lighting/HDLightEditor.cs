@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -9,6 +10,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
+        [MenuItem("CONTEXT/Light/Remove HD Light", false,0)]
+        static void RemoveLight(MenuCommand menuCommand)
+        {
+            GameObject go = ( (Light) menuCommand.context ).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Undo.IncrementCurrentGroup();
+            Undo.DestroyObjectImmediate(go.GetComponent<Light>());
+            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
+            Undo.DestroyObjectImmediate(go.GetComponent<AdditionalShadowData>());
+        }
+
         sealed class SerializedLightData
         {
             public SerializedProperty directionalIntensity;
@@ -82,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.OnEnable();
 
             // Get & automatically add additional HD data if not present
-            var lightData = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets);
+            var lightData = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
             var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
             m_SerializedAdditionalLightData = new SerializedObject(lightData);
             m_SerializedAdditionalShadowData = new SerializedObject(shadowData);
@@ -139,6 +153,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SerializedAdditionalLightData.Update();
             m_SerializedAdditionalShadowData.Update();
 
+            // Disable the default light editor for the release, it is just use for development
+            /*
             // Temporary toggle to go back to the old editor & separated additional datas
             bool useOldInspector = m_AdditionalLightData.useOldInspector.boolValue;
 
@@ -155,6 +171,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_SerializedAdditionalLightData.ApplyModifiedProperties();
                 return;
             }
+            */
 
             // New editor
             ApplyAdditionalComponentsVisibility(true);
@@ -305,6 +322,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
         void UpdateLightIntensity()
         {
             switch (m_LightShape)
@@ -330,7 +348,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
 
                 case LightShape.Line:
-                    settings.intensity.floatValue = LightUtils.calculateLineLightArea(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
+                    settings.intensity.floatValue = LightUtils.CalculateLineLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
                     break;
             }
         }
