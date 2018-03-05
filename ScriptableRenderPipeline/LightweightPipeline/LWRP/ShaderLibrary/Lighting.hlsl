@@ -24,10 +24,13 @@
         // Otherwise evaluate SH fully per-pixel
 #endif
 
+
 #ifdef LIGHTMAP_ON
+    #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
     #define OUTPUT_SH(normalWS, OUT)
 #else
+    #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) half3 shName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
@@ -372,15 +375,20 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-half3 SampleGI(float4 sampleData, half3 normalWS)
-{
 #ifdef LIGHTMAP_ON
-    return SampleLightmap(sampleData.xy, normalWS);
-#endif
-
-    // If lightmap is not enabled we sample GI from SH
-    return SampleSHPixel(sampleData.xyz, normalWS);
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleGI(lmName, normalWSName)
+half3 SampleGI(float2 sampleData, half3 normalWS)
+{
+    return SampleLightmap(sampleData, normalWS);
 }
+#else
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleGI(shName, normalWSName)
+half3 SampleGI(half3 sampleData, half3 normalWS)
+{
+    // If lightmap is not enabled we sample GI from SH
+    return SampleSHPixel(sampleData, normalWS);
+}
+#endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {
