@@ -142,6 +142,8 @@ namespace UnityEditor.VFX.Test
                 slot.collapsed = false;
             }
 
+            m_ViewController.ApplyChanges();
+
             var totalSlotCount = cross.inputSlots.Concat(cross.outputSlots).Count();
             for (int step = 1; step < totalSlotCount; step++)
             {
@@ -418,6 +420,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, fnCountEdge());
 
             Undo.PerformUndo();
+            m_ViewController.ApplyChanges();
             Assert.AreEqual(0, fnCountEdge());
             Assert.NotNull(fnFindController(typeof(VFXOperatorCosine)));
             Assert.NotNull(fnFindController(typeof(VFXOperatorSine)));

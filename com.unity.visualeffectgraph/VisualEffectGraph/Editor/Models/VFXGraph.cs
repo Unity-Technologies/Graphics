@@ -146,22 +146,32 @@ namespace UnityEditor.VFX
 
         public string Backup()
         {
+            Profiler.BeginSample("VFXGraph.Backup");
             var dependencies = new HashSet<ScriptableObject>();
 
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-            return VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+
+            var result = VFXMemorySerializer.StoreObjects(dependencies.Cast<ScriptableObject>().ToArray());
+
+            Profiler.EndSample();
+
+            return result;
         }
 
         public void Restore(string str)
         {
+            Profiler.BeginSample("VFXGraph.Restore");
             var scriptableObject = VFXMemorySerializer.ExtractObjects(str, false);
 
+            Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
             foreach (var model in scriptableObject.OfType<VFXModel>())
             {
                 model.OnUnknownChange();
             }
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs)
