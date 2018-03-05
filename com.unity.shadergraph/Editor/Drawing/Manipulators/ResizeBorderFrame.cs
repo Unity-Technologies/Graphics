@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
-
+using UnityEngine.Networking;
 
 public class ResizeBorderFrame : VisualElement
 {
@@ -43,20 +43,31 @@ public class ResizeBorderFrame : VisualElement
 
     public ResizeBorderFrame(VisualElement target)
     {
+        InitializeResizeBorderFrame(target, target);
+    }
+
+    public ResizeBorderFrame(VisualElement target, VisualElement container)
+    {
+        InitializeResizeBorderFrame(target, container);
+    }
+
+    void InitializeResizeBorderFrame(VisualElement target, VisualElement container)
+    {
         pickingMode = PickingMode.Ignore;
 
         AddToClassList("reszieBorderFrame");
 
         m_ResizeSideHandles = new List<ResizeSideHandle>();
 
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.TopLeft));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Top));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.TopRight));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Right));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.BottomRight));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Bottom));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.BottomLeft));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, ResizeHandleAnchor.Left));
+        // Add resize handles along the border 
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopLeft));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Top));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopRight));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Right));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.BottomRight));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Bottom));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.BottomLeft));
+        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Left));
 
         foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
         {
