@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
                 throw new Exception(string.Format("Numbers of output expressions ({0}) does not match number of output (with expression)s slots ({1})", outputExpressions.Length, outputSlotWithExpression.Count));
 
             for (int i = 0; i < outputSlotWithExpression.Count; ++i)
-                outputSlotWithExpression[i].SetExpression(outputExpressions[i++]);
+                outputSlotWithExpression[i].SetExpression(outputExpressions[i]);
         }
 
         public override void UpdateOutputExpressions()

@@ -27,6 +27,14 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
         private SerializableType m_Type;
 
+        public Type type
+        {
+            get
+            {
+                return (Type)m_Type;
+            }
+        }
+
         public override string name
         {
             get
@@ -42,7 +50,10 @@ namespace UnityEditor.VFX
             {
                 var type = (Type)m_Type;
                 if (type != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(type, string.Empty));
+                {
+                    var property = new VFXProperty(type, string.Empty);
+                    yield return new VFXPropertyWithValue(property, VFXTypeExtension.GetDefaultField(type));
+                }
             }
         }
 
