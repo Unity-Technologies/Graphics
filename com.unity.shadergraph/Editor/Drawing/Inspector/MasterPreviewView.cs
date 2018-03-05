@@ -23,11 +23,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         PreviewRenderData m_PreviewRenderHandle;
         Image m_PreviewTextureView;
 
+        public Image previewTextureView
+        {
+            get { return m_PreviewTextureView; }
+        }
+
         Vector2 m_PreviewScrollPosition;
         ObjectField m_PreviewMeshPicker;
 
         IMasterNode m_MasterNode;
         Mesh m_PreviousMesh;
+
+        VisualElement m_Preview;
+
+        public VisualElement preview
+        {
+            get { return m_Preview; }
+        }
 
         List<string> m_DoNotShowPrimitives = new List<string>( new string[] {PrimitiveType.Plane.ToString()});
 
@@ -51,15 +63,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(topContainer);
 
-            var middleContainer = new VisualElement {name = "middle"};
+            m_Preview = new VisualElement {name = "middle"};
             {
                 m_PreviewTextureView = CreatePreview(Texture2D.blackTexture);
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
-                middleContainer.Add(m_PreviewTextureView);
-                middleContainer.AddManipulator(new Scrollable(OnScroll));
+                preview.Add(m_PreviewTextureView);
+                preview.AddManipulator(new Scrollable(OnScroll));
             }
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
-            Add(middleContainer);
+            Add(preview);
         }
 
         Image CreatePreview(Texture texture)
