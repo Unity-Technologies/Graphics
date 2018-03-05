@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
 
-using Object = UnityEngine.Object;
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
         public VFXMapping[] parameters;
-        public Object processor;
+        public UnityObject processor;
     }
 
     class VFXGraphCompiledData
@@ -346,7 +346,7 @@ namespace UnityEditor.VFX
                                 };
                             }).ToArray();
 
-                            Object processor = null;
+                            UnityObject processor = null;
                             if (spawnerBlock.customBehavior != null)
                             {
                                 var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
@@ -486,13 +486,19 @@ namespace UnityEditor.VFX
 
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
 
-                descs = asset.shaderSources;
+                UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+
+
+                var shadersByName = objects.Where(t => t is Shader || t is ComputeShader).ToDictionary(t => t.name, t => t);
+
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
                     var contextData = contextToCompiledData[generated.context];
-                    contextData.processor = descs[i].shader;
+                    UnityObject shader = null;
+                    shadersByName.TryGetValue(descs[i].name, out shader);
+                    contextData.processor = shader;
                     contextToCompiledData[generated.context] = contextData;
                 }
             }
