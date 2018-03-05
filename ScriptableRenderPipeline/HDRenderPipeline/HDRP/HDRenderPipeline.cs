@@ -633,6 +633,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
+                    // Disable postprocess if we enable debug mode
+                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.None && m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    {
+                        m_FrameSettings.enablePostprocess = false;
+                    }
+
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                     var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
 
