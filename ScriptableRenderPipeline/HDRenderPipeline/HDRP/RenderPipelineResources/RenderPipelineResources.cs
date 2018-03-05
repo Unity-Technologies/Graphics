@@ -50,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader computeGgxIblSampleData;
         public Shader GGXConvolve;
         public Shader opaqueAtmosphericScattering;
+        public Shader hdriSky;
+        public Shader proceduralSky;
 
         public Shader skyboxCubemap;
 
