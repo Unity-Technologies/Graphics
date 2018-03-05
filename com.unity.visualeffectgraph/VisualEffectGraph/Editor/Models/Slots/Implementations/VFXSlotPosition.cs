@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -13,7 +14,15 @@ namespace UnityEditor.VFX
 
         protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type) || type == typeof(Vector3);
+            return base.CanConvertFrom(type) || type == typeof(Vector4) ||  type == typeof(Vector3);
+        }
+
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expresssion, Type sourceSlotType)
+        {
+            if (expresssion.valueType == VFXValueType.Float3)
+                return expresssion;
+
+            return VFXOperatorUtility.CastFloat(expresssion, VFXValueType.Float3);
         }
 
         protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
