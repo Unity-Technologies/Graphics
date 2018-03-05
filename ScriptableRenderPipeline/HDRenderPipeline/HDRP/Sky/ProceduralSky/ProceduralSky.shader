@@ -135,7 +135,7 @@ Shader "Hidden/HDRenderPipeline/Sky/ProceduralSky"
         float3 kScatteringWavelength = lerp (
             kDefaultScatteringWavelength-kVariableRangeForScatteringWavelength,
             kDefaultScatteringWavelength+kVariableRangeForScatteringWavelength,
-            float3(1,1,1) - _SkyTint); // using Tint in sRGB gamma allows for more visually linear interpolation and to keep (.5) at (128, gray in sRGB) point
+            float3(1,1,1) - _SkyTint.xyz); // using Tint in sRGB gamma allows for more visually linear interpolation and to keep (.5) at (128, gray in sRGB) point
         float3 kInvWavelength = 1.0 / float3(PositivePow(kScatteringWavelength.x, 4), PositivePow(kScatteringWavelength.y, 4), PositivePow(kScatteringWavelength.z, 4));
 
         float kKrESun = kRAYLEIGH * kSUN_BRIGHTNESS;
