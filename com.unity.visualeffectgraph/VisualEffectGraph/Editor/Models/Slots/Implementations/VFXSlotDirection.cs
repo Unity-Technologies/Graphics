@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 //using Direction = UnityEditor.VFX.Direction;
 
 namespace UnityEditor.VFX
@@ -14,13 +15,16 @@ namespace UnityEditor.VFX
 
         sealed protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type) || type == typeof(Vector3);
+            return base.CanConvertFrom(type) || type == typeof(Vector4) || type == typeof(Vector3);
         }
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression, Type sourceSlotType)
         {
             if (sourceSlotType == typeof(VFXSlotDirection))
                 return expression; //avoid multiple normalization
+
+            if (expression.valueType == VFXValueType.Float4)
+                expression = VFXOperatorUtility.CastFloat(expression, VFXValueType.Float3);
 
             return VFXOperatorUtility.Normalize(expression);
         }
