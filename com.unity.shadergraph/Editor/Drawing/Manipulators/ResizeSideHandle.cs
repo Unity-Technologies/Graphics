@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 #if UNITY_2018_1
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
 #endif
@@ -29,6 +30,9 @@ namespace UnityEditor.ShaderGraph.Drawing
     public class ResizeSideHandle : VisualElement
     {
         VisualElement m_ResizeTarget;
+        VisualElement m_Container;
+
+        WindowDockingLayout m_WindowDockingLayout;
 
         bool m_StayWithinParentBounds;
 
@@ -48,8 +52,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action OnResizeFinished;
 
-        bool m_DockingLeft;
-        bool m_DockingTop;
         bool m_Dragging;
 
         float m_InitialAspectRatio;
@@ -57,9 +59,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         Rect m_ResizeBeginLayout;
         Vector2 m_ResizeBeginMousePosition;
 
-        public ResizeSideHandle(VisualElement resizeTarget, ResizeHandleAnchor anchor)
+        public ResizeSideHandle(VisualElement resizeTarget, VisualElement container, ResizeHandleAnchor anchor)
         {
+            m_WindowDockingLayout = new WindowDockingLayout();
+
             m_ResizeTarget = resizeTarget;
+            m_Container = container;
 
             AddToClassList("resize");
 
@@ -133,158 +138,51 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_ResizeTarget.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
             m_InitialAspectRatio = m_ResizeTarget.layout.width / m_ResizeTarget.layout.height;
-        }
-
-        Vector2 GetMinSize()
-        {
-            Vector2 minSize = new Vector2(60f, 60f);
-
-            if (!Mathf.Approximately(m_ResizeTarget.style.minWidth.value, 0f))
-            {
-                minSize.x = m_ResizeTarget.style.minWidth;
-            }
-
-            if (!Mathf.Approximately(m_ResizeTarget.style.minHeight.value, 0f))
-            {
-                minSize.y = m_ResizeTarget.style.minHeight.value;
-            }
-
-            return minSize;
-        }
-
-        float GetMaxHorizontalExpansion(bool expandingLeft)
-        {
-            float maxHorizontalExpansion;
-
-            if (expandingLeft)
-            {
-                maxHorizontalExpansion = m_ResizeBeginLayout.x;
-            }
-            else
-            {
-                maxHorizontalExpansion = m_ResizeTarget.parent.layout.width - m_ResizeBeginLayout.xMax;
-            }
-
-            if (maintainAspectRatio)
-            {
-                if (!m_DockingTop)
-                {
-                    maxHorizontalExpansion = Mathf.Min(maxHorizontalExpansion, m_ResizeBeginLayout.y);
-                }
-                else
-                {
-                    maxHorizontalExpansion = Mathf.Min(maxHorizontalExpansion, m_ResizeTarget.parent.layout.height - m_ResizeBeginLayout.yMax);
-                }
-            }
-
-            return maxHorizontalExpansion;
-        }
-
-        float GetMaxVerticalExpansion(bool expandingUp)
-        {
-            float maxVerticalExpansion;
-
-            if (expandingUp)
-            {
-                maxVerticalExpansion = m_ResizeBeginLayout.y;
-            }
-            else
-            {
-                maxVerticalExpansion = m_ResizeTarget.parent.layout.height - m_ResizeBeginLayout.yMax;
-            }
-
-            if (maintainAspectRatio)
-            {
-                if (!m_DockingLeft)
-                {
-                    maxVerticalExpansion = Mathf.Min(maxVerticalExpansion, m_ResizeBeginLayout.x);
-                }
-                else
-                {
-                    maxVerticalExpansion = Mathf.Min(maxVerticalExpansion, m_ResizeTarget.parent.layout.width - m_ResizeBeginLayout.xMax);
-                }
-            }
-
-            return maxVerticalExpansion;
+            m_InitialAspectRatio = 1f;
         }
 
         void HandleResizeFromTop(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginLayout.yMax - GetMinSize().y);
+            // Set anchor points for positioning
+            m_Container.style.positionTop = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionBottom = StyleValue<float>.Create(m_Container.parent.layout.height - m_Container.layout.yMax);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginMousePosition.y - GetMaxVerticalExpansion(true));
-            }
+            float newHeight = Mathf.Max(0f, m_ResizeBeginLayout.height - relativeMousePosition.y);
 
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.yMin = m_ResizeBeginLayout.yMin + delta.y;
+            m_ResizeTarget.style.height = StyleValue<float>.Create(newHeight);
 
             if (maintainAspectRatio)
-            {
-                if (m_DockingLeft)
-                {
-                    newLayout.width = newLayout.height * m_InitialAspectRatio;
-                }
-                else
-                {
-                    newLayout.xMin = newLayout.xMax - (newLayout.height * m_InitialAspectRatio);
-                }
-            }
+                m_ResizeTarget.style.width = StyleValue<float>.Create(newHeight);
 
-            m_ResizeTarget.layout = newLayout;
-
-            mouseMoveEvent.StopPropagation();
+            mouseMoveEvent.StopImmediatePropagation();
         }
 
         void HandleResizeFromTopRight(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginLayout.xMin + GetMinSize().x);
-            restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginLayout.yMax - GetMinSize().y);
+            // Set anchor points for positioning
+            m_Container.style.positionTop = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionBottom = StyleValue<float>.Create(m_Container.parent.layout.height - m_Container.layout.yMax);
+            m_Container.style.positionLeft = StyleValue<float>.Create(m_Container.layout.xMin);
+            m_Container.style.positionRight = StyleValue<float>.Create(float.NaN);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginMousePosition.x + GetMaxHorizontalExpansion(false));
-                restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, 0f);
-            }
-
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.width += delta.x;
-            newLayout.yMin += delta.y;
+            float newWidth = Mathf.Max(0f, m_ResizeBeginLayout.width + relativeMousePosition.x);
+            float newHeight = Mathf.Max(0f, m_ResizeBeginLayout.height - relativeMousePosition.y);
 
             if (maintainAspectRatio)
-            {
-                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
-                {
-                    newLayout.yMin = Mathf.Min(newLayout.yMax - newLayout.width / m_InitialAspectRatio, newLayout.yMax - GetMinSize().y);
-                }
-                else
-                {
-                    newLayout.width = newLayout.height * m_InitialAspectRatio;
-                }
-            }
+                newWidth = newHeight = Mathf.Min(newWidth, newHeight);
 
-            m_ResizeTarget.layout = newLayout;
+            m_ResizeTarget.style.width = StyleValue<float>.Create(newWidth);
+            m_ResizeTarget.style.height = StyleValue<float>.Create(newHeight);
 
             mouseMoveEvent.StopPropagation();
         }
@@ -292,38 +190,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HandleResizeFromRight(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginLayout.xMin + GetMinSize().x);
+            // Set anchor points for positioning
+            m_Container.style.positionLeft = StyleValue<float>.Create(m_Container.layout.xMin);
+            m_Container.style.positionRight = StyleValue<float>.Create(float.NaN);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginMousePosition.x + GetMaxHorizontalExpansion(false));
-            }
+            float newWidth = Mathf.Max(0f, m_ResizeBeginLayout.width + relativeMousePosition.x);
 
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.xMax = m_ResizeBeginLayout.xMax + delta.x;
+            m_ResizeTarget.style.width = StyleValue<float>.Create(newWidth);
 
             if (maintainAspectRatio)
             {
-                if (m_DockingTop)
-                {
-                    newLayout.height = newLayout.width / m_InitialAspectRatio;
-                }
-                else
-                {
-                    newLayout.yMin = newLayout.yMax - (newLayout.width / m_InitialAspectRatio);
-                }
+                m_ResizeTarget.style.height = StyleValue<float>.Create(newWidth);
             }
-
-            m_ResizeTarget.layout = newLayout;
 
             mouseMoveEvent.StopPropagation();
         }
@@ -331,40 +213,24 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HandleResizeFromBottomRight(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginLayout.xMin + GetMinSize().x);
-            restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginLayout.yMin + GetMinSize().y);
+            // Set anchor points for positioning
+            m_Container.style.positionTop = StyleValue<float>.Create(m_Container.layout.yMin);
+            m_Container.style.positionBottom = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionLeft = StyleValue<float>.Create(m_Container.layout.xMin);
+            m_Container.style.positionRight = StyleValue<float>.Create(float.NaN);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginMousePosition.x + GetMaxHorizontalExpansion(false));
-                restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginMousePosition.y + GetMaxVerticalExpansion(false));
-            }
-
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.size += delta;
+            float newWidth = Mathf.Max(0f, m_ResizeBeginLayout.width + relativeMousePosition.x);
+            float newHeight = Mathf.Max(0f, m_ResizeBeginLayout.height + relativeMousePosition.y);
 
             if (maintainAspectRatio)
-            {
-                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
-                {
-                    newLayout.height = newLayout.width / m_InitialAspectRatio;
-                }
-                else
-                {
-                    newLayout.width = newLayout.height * m_InitialAspectRatio;
-                }
-            }
+                newWidth = newHeight = Mathf.Min(newWidth, newHeight);
 
-            m_ResizeTarget.layout = newLayout;
+            m_ResizeTarget.style.width = StyleValue<float>.Create(newWidth);
+            m_ResizeTarget.style.height = StyleValue<float>.Create(newHeight);
 
             mouseMoveEvent.StopPropagation();
         }
@@ -372,38 +238,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HandleResizeFromBottom(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginLayout.yMin + GetMinSize().y);
+            // Set anchor points for positioning
+            m_Container.style.positionTop = StyleValue<float>.Create(m_Container.layout.yMin);
+            m_Container.style.positionBottom = StyleValue<float>.Create(float.NaN);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginMousePosition.y + GetMaxVerticalExpansion(false));
-            }
+            float newHeight = Mathf.Max(0f, m_ResizeBeginLayout.height + relativeMousePosition.y);
 
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.yMax = m_ResizeBeginLayout.yMax + delta.y;
+            m_ResizeTarget.style.height = StyleValue<float>.Create(newHeight);
 
             if (maintainAspectRatio)
-            {
-                if (m_DockingLeft)
-                {
-                    newLayout.width = newLayout.height * m_InitialAspectRatio;
-                }
-                else
-                {
-                    newLayout.xMin = newLayout.xMax - (newLayout.height * m_InitialAspectRatio);
-                }
-            }
-
-            m_ResizeTarget.layout = newLayout;
+                m_ResizeTarget.style.width = StyleValue<float>.Create(newHeight);
 
             mouseMoveEvent.StopPropagation();
         }
@@ -411,41 +259,24 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HandleResizeFromBottomLeft(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginLayout.xMax - GetMinSize().x);
-            restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, m_ResizeBeginLayout.yMin + GetMinSize().y);
+            // Set anchor points for positioning
+            m_Container.style.positionTop = StyleValue<float>.Create(m_Container.layout.yMin);
+            m_Container.style.positionBottom = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionLeft = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionRight = StyleValue<float>.Create(m_Container.parent.layout.width - m_Container.layout.xMax);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, 0f);
-                restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginMousePosition.y + GetMaxVerticalExpansion(false));
-            }
-
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.xMin += delta.x;
-            newLayout.height += delta.y;
+            float newWidth = Mathf.Max(0f, m_ResizeBeginLayout.width - relativeMousePosition.x);
+            float newHeight = Mathf.Max(0f, m_ResizeBeginLayout.height + relativeMousePosition.y);
 
             if (maintainAspectRatio)
-            {
-                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
-                {
-                    newLayout.height = newLayout.width / m_InitialAspectRatio;
-                }
-                else
-                {
-                    newLayout.xMin = Mathf.Min(newLayout.xMax - newLayout.height * m_InitialAspectRatio, newLayout.xMax - GetMinSize().x);
-                }
-            }
+                newWidth = newHeight = Mathf.Min(newWidth, newHeight);
 
-            m_ResizeTarget.layout = newLayout;
+            m_ResizeTarget.style.width = StyleValue<float>.Create(newWidth);
+            m_ResizeTarget.style.height = StyleValue<float>.Create(newHeight);
 
             mouseMoveEvent.StopPropagation();
         }
@@ -453,38 +284,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HandleResizeFromLeft(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginLayout.xMax - GetMinSize().x);
+            // Set anchor points for positioning
+            m_Container.style.positionLeft = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionRight = StyleValue<float>.Create(m_Container.parent.layout.width - m_Container.layout.xMax);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, m_ResizeBeginMousePosition.x - GetMaxHorizontalExpansion(true));
-            }
+            float newWidth = Mathf.Max(0f, m_ResizeBeginLayout.width - relativeMousePosition.x);
 
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.xMin = m_ResizeBeginLayout.xMin + delta.x;
+            m_ResizeTarget.style.width = StyleValue<float>.Create(newWidth);
 
             if (maintainAspectRatio)
-            {
-                if (m_DockingTop)
-                {
-                    newLayout.height = newLayout.width / m_InitialAspectRatio;
-                }
-                else
-                {
-                    newLayout.yMin = newLayout.yMax - (newLayout.width / m_InitialAspectRatio);
-                }
-            }
-
-            m_ResizeTarget.layout = newLayout;
+                m_ResizeTarget.style.height = StyleValue<float>.Create(newWidth);
 
             mouseMoveEvent.StopPropagation();
         }
@@ -492,54 +305,63 @@ namespace UnityEditor.ShaderGraph.Drawing
         void HandleResizeFromTopLeft(MouseMoveEvent mouseMoveEvent)
         {
             if (!m_Dragging)
-            {
                 return;
-            }
 
-            Vector2 restrictedMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseMoveEvent.mousePosition);
+            Vector2 relativeMousePosition = mouseMoveEvent.mousePosition - m_ResizeBeginMousePosition;
 
-            restrictedMousePosition.x = Mathf.Min(restrictedMousePosition.x, m_ResizeBeginLayout.xMax - GetMinSize().x);
-            restrictedMousePosition.y = Mathf.Min(restrictedMousePosition.y, m_ResizeBeginLayout.yMax - GetMinSize().y);
+            // Set anchor points for positioning
+            m_Container.style.positionTop = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionBottom = StyleValue<float>.Create(m_Container.parent.layout.height - m_Container.layout.yMax);
+            m_Container.style.positionLeft = StyleValue<float>.Create(float.NaN);
+            m_Container.style.positionRight = StyleValue<float>.Create(m_Container.parent.layout.width - m_Container.layout.xMax);
 
-            if (stayWithinParentBounds)
-            {
-                restrictedMousePosition.x = Mathf.Max(restrictedMousePosition.x, 0f);
-                restrictedMousePosition.y = Mathf.Max(restrictedMousePosition.y, 0f);
-            }
-
-            Vector2 delta = restrictedMousePosition - m_ResizeBeginMousePosition;
-
-            Rect newLayout = m_ResizeBeginLayout;
-
-            newLayout.xMin += delta.x;
-            newLayout.yMin += delta.y;
+            float newWidth = Mathf.Max(0f, m_ResizeBeginLayout.width - relativeMousePosition.x);
+            float newHeight = Mathf.Max(0f, m_ResizeBeginLayout.height - relativeMousePosition.y);
 
             if (maintainAspectRatio)
-            {
-                if (newLayout.width < newLayout.height * m_InitialAspectRatio)
-                {
-                    newLayout.yMin = Mathf.Min(newLayout.yMax - newLayout.width / m_InitialAspectRatio, newLayout.yMax - GetMinSize().y);
-                }
-                else
-                {
-                    newLayout.xMin = Mathf.Min(newLayout.xMax - newLayout.height * m_InitialAspectRatio, newLayout.xMax - GetMinSize().x);
-                }
-            }
+                newWidth = newHeight = Mathf.Min(newWidth, newHeight);
 
-            m_ResizeTarget.layout = newLayout;
+            m_ResizeTarget.style.width = StyleValue<float>.Create(newWidth);
+            m_ResizeTarget.style.height = StyleValue<float>.Create(newHeight);
 
             mouseMoveEvent.StopPropagation();
         }
 
+
+        void Applydocking()
+        {
+            m_WindowDockingLayout.CalculateDockingCornerAndOffset(m_Container.layout, m_Container.parent.layout);
+
+            if (m_WindowDockingLayout.dockingLeft)
+            {
+                m_Container.style.positionLeft = StyleValue<float>.Create(m_WindowDockingLayout.horizontalOffset);
+                m_Container.style.positionRight = StyleValue<float>.Create(float.NaN);
+            }
+            else
+            {
+                m_Container.style.positionLeft = StyleValue<float>.Create(float.NaN);
+                m_Container.style.positionRight = StyleValue<float>.Create(m_WindowDockingLayout.horizontalOffset);
+            }
+
+            if (m_WindowDockingLayout.dockingTop)
+            {
+                m_Container.style.positionTop = StyleValue<float>.Create(m_WindowDockingLayout.verticalOffset);
+                m_Container.style.positionBottom = StyleValue<float>.Create(float.NaN);
+            }
+            else
+            {
+                m_Container.style.positionTop = StyleValue<float>.Create(float.NaN);
+                m_Container.style.positionBottom = StyleValue<float>.Create(m_WindowDockingLayout.verticalOffset);
+            }
+        }
+
         void HandleMouseDown(MouseDownEvent mouseDownEvent)
         {
-            m_Dragging = true;
-
-            m_DockingLeft = m_ResizeTarget.layout.center.x / m_ResizeTarget.parent.layout.width < .5f;
-            m_DockingTop = m_ResizeTarget.layout.center.y / m_ResizeTarget.parent.layout.height < .5f;
-
+            // Get the docking settings for the window, as well as the
+            // layout and mouse position when resize begins.
+            Applydocking();
             m_ResizeBeginLayout = m_ResizeTarget.layout;
-            m_ResizeBeginMousePosition = m_ResizeTarget.parent.WorldToLocal(mouseDownEvent.mousePosition);
+            m_ResizeBeginMousePosition = mouseDownEvent.mousePosition;
 
             m_Dragging = true;
             this.TakeMouseCapture();
@@ -559,6 +381,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 OnResizeFinished();
             }
+
+            Applydocking();
         }
     }
 }
