@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -73,6 +75,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             m_Size = layout.size;
+        }
+
+        public void ApplyPosition(VisualElement target)
+        {
+            if (dockingLeft)
+            {
+                target.style.positionRight = StyleValue<float>.Create(float.NaN);
+                target.style.positionLeft = StyleValue<float>.Create(horizontalOffset);
+            }
+            else
+            {
+                target.style.positionLeft = StyleValue<float>.Create(float.NaN);
+                target.style.positionRight = StyleValue<float>.Create(horizontalOffset);
+            }
+
+            if (dockingTop)
+            {
+                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
+                target.style.positionTop = StyleValue<float>.Create(verticalOffset);
+            }
+            else
+            {
+                target.style.positionTop = StyleValue<float>.Create(float.NaN);
+                target.style.positionBottom = StyleValue<float>.Create(verticalOffset);
+            }
+        }
+
+        public void ApplySize(VisualElement target)
+        {
+            target.style.width = StyleValue<float>.Create(size.x);
+            target.style.height = StyleValue<float>.Create(size.y);
         }
 
         public Rect GetLayout(Rect parentLayout)

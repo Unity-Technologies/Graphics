@@ -54,8 +54,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_Dragging;
 
-        float m_InitialAspectRatio;
-
         Rect m_ResizeBeginLayout;
         Vector2 m_ResizeBeginMousePosition;
 
@@ -137,8 +135,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         void InitialLayoutSetup(GeometryChangedEvent evt)
         {
             m_ResizeTarget.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
-            m_InitialAspectRatio = m_ResizeTarget.layout.width / m_ResizeTarget.layout.height;
-            m_InitialAspectRatio = 1f;
+        }
+
+        Vector2 BoundedMousePosition(Vector2 mousePosition)
+        {
+            mousePosition = m_Container.parent.WorldToLocal(mousePosition);
+
+            if (!stayWithinParentBounds)
+                return mousePosition;
+
+            mousePosition.x = Mathf.Clamp(mousePosition.x, 5f, m_Container.parent.layout.width);
+            mousePosition.y = Mathf.Clamp(mousePosition.y, 5f, m_Container.parent.layout.height);
+
+            return mousePosition;
         }
 
         void HandleResizeFromTop(MouseMoveEvent mouseMoveEvent)
@@ -327,39 +336,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             mouseMoveEvent.StopPropagation();
         }
 
-
-        void Applydocking()
-        {
-            m_WindowDockingLayout.CalculateDockingCornerAndOffset(m_Container.layout, m_Container.parent.layout);
-
-            if (m_WindowDockingLayout.dockingLeft)
-            {
-                m_Container.style.positionLeft = StyleValue<float>.Create(m_WindowDockingLayout.horizontalOffset);
-                m_Container.style.positionRight = StyleValue<float>.Create(float.NaN);
-            }
-            else
-            {
-                m_Container.style.positionLeft = StyleValue<float>.Create(float.NaN);
-                m_Container.style.positionRight = StyleValue<float>.Create(m_WindowDockingLayout.horizontalOffset);
-            }
-
-            if (m_WindowDockingLayout.dockingTop)
-            {
-                m_Container.style.positionTop = StyleValue<float>.Create(m_WindowDockingLayout.verticalOffset);
-                m_Container.style.positionBottom = StyleValue<float>.Create(float.NaN);
-            }
-            else
-            {
-                m_Container.style.positionTop = StyleValue<float>.Create(float.NaN);
-                m_Container.style.positionBottom = StyleValue<float>.Create(m_WindowDockingLayout.verticalOffset);
-            }
-        }
-
         void HandleMouseDown(MouseDownEvent mouseDownEvent)
         {
             // Get the docking settings for the window, as well as the
             // layout and mouse position when resize begins.
-            Applydocking();
+            m_WindowDockingLayout.CalculateDockingCornerAndOffset(m_Container.layout, m_Container.parent.layout);
+            m_WindowDockingLayout.ApplyPosition(m_Container);
+
             m_ResizeBeginLayout = m_ResizeTarget.layout;
             m_ResizeBeginMousePosition = mouseDownEvent.mousePosition;
 
@@ -373,16 +356,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Dragging = false;
 
             if (this.HasMouseCapture())
-            {
                 this.ReleaseMouseCapture();
-            }
 
             if (OnResizeFinished != null)
-            {
                 OnResizeFinished();
-            }
 
-            Applydocking();
+            m_WindowDockingLayout.CalculateDockingCornerAndOffset(m_Container.layout, m_Container.parent.layout);
+            m_WindowDockingLayout.ApplyPosition(m_Container);
         }
     }
 }

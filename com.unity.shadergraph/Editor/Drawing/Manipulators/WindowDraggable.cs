@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Handle.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
             m_Handle.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
             m_Handle.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
+            target.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         protected override void UnregisterCallbacksFromTarget()
@@ -112,27 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             positionOffset.y = Mathf.Max(positionOffset.y, 0f);
 
             // Use the docking results to figure which of left/right and top/bottom needs to be set.
-            if (m_WindowDockingLayout.dockingLeft)
-            {
-                target.style.positionRight = StyleValue<float>.Create(float.NaN);
-                target.style.positionLeft = StyleValue<float>.Create(positionOffset.x);
-            }
-            else
-            {
-                target.style.positionLeft = StyleValue<float>.Create(float.NaN);
-                target.style.positionRight = StyleValue<float>.Create(positionOffset.x);
-            }
-
-            if (m_WindowDockingLayout.dockingTop)
-            {
-                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
-                target.style.positionTop = StyleValue<float>.Create(positionOffset.y);
-            }
-            else
-            {
-                target.style.positionTop = StyleValue<float>.Create(float.NaN);
-                target.style.positionBottom = StyleValue<float>.Create(positionOffset.y);
-            }
+            m_WindowDockingLayout.ApplyPosition(target);
 
             // Signal that the dragging has finished.
             if (emitDragFinishedEvent && OnDragFinished != null)
