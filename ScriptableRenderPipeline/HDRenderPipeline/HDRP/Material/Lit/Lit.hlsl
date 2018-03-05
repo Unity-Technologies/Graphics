@@ -1337,22 +1337,36 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
         float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
+    #if SHADEROPTIONS_USE_DISNEY_SSS
+        // We need to make sure it's not less than the baked thickness to minimize light leaking.
+        float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
+
+        float3 S = _ShapeParams[bsdfData.diffusionProfile];
+
+        // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
+    #if 0
+        float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
+    #else
+        // Help the compiler.
+        float  k = (-1.0 / 3.0) * LOG2_E;
+        float3 p = (k * thicknessDelta) * S;
+        float3 expOneThird = exp2(p);
+    #endif
+
+        transmittance *= expOneThird;
+
+    #else // SHADEROPTIONS_USE_DISNEY_SSS
+
         // We need to make sure it's not less than the baked thickness to minimize light leaking.
         thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
 
-        // TODO: optimize.
-    #if SHADEROPTIONS_USE_DISNEY_SSS
-        transmittance = ComputeTransmittanceDisney(_ShapeParams[bsdfData.diffusionProfile].rgb,
-                                                   _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
-                                                   thicknessInMillimeters);
-    #else
         transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
                                                     _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
                                                     _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
                                                     _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
                                                     _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
                                                     thicknessInMillimeters);
-    #endif
+    #endif // SHADEROPTIONS_USE_DISNEY_SSS
 
         // Make sure we do not sample the shadow map twice.
         lightData.shadowIndex = -1;
@@ -1454,22 +1468,36 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
         float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
+    #if SHADEROPTIONS_USE_DISNEY_SSS
+        // We need to make sure it's not less than the baked thickness to minimize light leaking.
+        float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
+
+        float3 S = _ShapeParams[bsdfData.diffusionProfile];
+
+        // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
+    #if 0
+        float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
+    #else
+        // Help the compiler.
+        float  k = (-1.0 / 3.0) * LOG2_E;
+        float3 p = (k * thicknessDelta) * S;
+        float3 expOneThird = exp2(p);
+    #endif
+
+        transmittance *= expOneThird;
+
+    #else // SHADEROPTIONS_USE_DISNEY_SSS
+
         // We need to make sure it's not less than the baked thickness to minimize light leaking.
         thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
 
-        // TODO: optimize.
-    #if SHADEROPTIONS_USE_DISNEY_SSS
-        transmittance = ComputeTransmittanceDisney(_ShapeParams[bsdfData.diffusionProfile].rgb,
-                                                   _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
-                                                   thicknessInMillimeters);
-    #else
         transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
                                                     _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
                                                     _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
                                                     _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
                                                     _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
                                                     thicknessInMillimeters);
-    #endif
+    #endif // SHADEROPTIONS_USE_DISNEY_SSS
 
         // Make sure we do not sample the shadow map twice.
         lightData.shadowIndex = -1;
