@@ -123,7 +123,7 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 
 half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
-    half4 directionAndAttenuation = lerp(half4(lightInput.position.xyz, 1.0), GetLightDirectionAndAttenuation(lightInput, positionWS), lightInput.position.w);
+    half4 directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
     // Cookies are only computed for main light
     directionAndAttenuation.w *= CookieAttenuation(positionWS);
