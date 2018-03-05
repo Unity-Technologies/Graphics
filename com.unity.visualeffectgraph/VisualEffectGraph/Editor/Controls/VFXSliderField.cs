@@ -184,4 +184,40 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify((int)newValue);
         }
     }
+    class VFXLongSliderField : VFXBaseSliderField<long>
+    {
+        public VFXLongSliderField()
+        {
+            m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, 0.1f);
+            m_Slider.AddToClassList("textfield");
+            m_Slider.valueChanged += ValueChanged;
+
+            var integerField = new LongField();
+            integerField.RegisterCallback<ChangeEvent<long>>(ValueChanged);
+            integerField.name = "Field";
+            m_Field = integerField;
+
+            Add(m_Slider);
+            Add(integerField);
+            RegisterCallBack();
+        }
+
+        public override bool hasFocus
+        {
+            get
+            {
+                return (m_Field as IntegerField).hasFocus;
+            }
+        }
+
+        protected override float ValueToFloat(long value)
+        {
+            return (float)value;
+        }
+
+        void ValueChanged(float newValue)
+        {
+            SetValueAndNotify((long)newValue);
+        }
+    }
 }

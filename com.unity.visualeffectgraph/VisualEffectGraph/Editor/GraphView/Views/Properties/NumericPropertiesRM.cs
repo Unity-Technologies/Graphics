@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class UintPropertyRM : NumericPropertyRM<uint, int>
+    class UintPropertyRM : NumericPropertyRM<uint, long>
     {
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -113,16 +113,16 @@ namespace UnityEditor.VFX.UI
             return base.RangeShouldCreateSlider(range) && (uint)range.x < (uint)range.y;
         }
 
-        protected override INotifyValueChanged<int> CreateSimpleField(out TextValueField<int> textField)
+        protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
         {
-            var field =  new VFXLabeledField<IntegerField, int>(m_Label);
+            var field =  new VFXLabeledField<LongField, long>(m_Label);
             textField = field.control;
             return field;
         }
 
-        protected override INotifyValueChanged<int> CreateSliderField(out VFXBaseSliderField<int> slider)
+        protected override INotifyValueChanged<long> CreateSliderField(out VFXBaseSliderField<long> slider)
         {
-            var field = new VFXLabeledField<VFXIntSliderField, int>(m_Label);
+            var field = new VFXLabeledField<VFXLongSliderField, long>(m_Label);
             slider = field.control;
             return field;
         }
