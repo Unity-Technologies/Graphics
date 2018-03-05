@@ -3,7 +3,7 @@
 //  It's been ported to HDRP in order to have a basic procedural sky
 //  It has been left mostly untouched but has been adapted to run per-pixel instead of per vertex
 // ==================================================================================================
-Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
+Shader "Hidden/HDRenderPipeline/Sky/ProceduralSky"
 {
     HLSLINCLUDE
 
