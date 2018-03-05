@@ -7592,7 +7592,7 @@ VisualEffectAsset:
         index: 109
       - nameId: bounds_size
         index: 101
-      processor: {fileID: 7200000, guid: 6c497ebbea1a78744a96a1084c477b5f, type: 3}
+      processor: {fileID: 7200000, guid: 278207b08a734544ea33c3b70e62624b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -7609,7 +7609,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 135
       params: []
-      processor: {fileID: 7200000, guid: fc662f262896e3343894df34d9f9ab68, type: 3}
+      processor: {fileID: 7200000, guid: fa729c2073c40f541bafce686ed5a296, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7630,7 +7630,7 @@ VisualEffectAsset:
         index: 127
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 28f33b31b844e744ea3576dc6427f0b6, type: 3}
+      processor: {fileID: 4800000, guid: 5dbecb70f7b4c414f8f99209abd7ab82, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7655,7 +7655,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 8d613d0c171ac16449249c623ef36768, type: 3}
+      processor: {fileID: 4800000, guid: 3d27b6b509bea4f44b4dce49f5abd465, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7678,7 +7678,7 @@ VisualEffectAsset:
         index: 138
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 4c38ca2e0bbf62b47868873452877346, type: 3}
+      processor: {fileID: 4800000, guid: 185ebbee23a87a3459e5821981f88b13, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7699,7 +7699,7 @@ VisualEffectAsset:
         index: 110
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: d67a8a54815604d4dbe69c6e8525dbcb, type: 3}
+      processor: {fileID: 4800000, guid: 1dd84fb264f72684184058938ab5bb0a, type: 3}
   - type: 2
     flags: 0
     capacity: 0
