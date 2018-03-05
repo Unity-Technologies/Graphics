@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
 #if UNITY_2018_1
@@ -65,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddStyleSheetPath("Styles/GraphEditorView");
             m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
+
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
             if (!string.IsNullOrEmpty(serializedWindowLayout))
             {
@@ -72,6 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_FloatingWindowsLayout.masterPreviewSize.x > 0f && m_FloatingWindowsLayout.masterPreviewSize.y > 0f)
                     previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
+
             previewManager.RenderPreviews();
 
             var toolbar = new IMGUIContainer(() =>
@@ -106,12 +110,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 content.Add(m_GraphView);
 
                 // Uncomment to enable pixel caching profiler
-//                m_ProfilerView = new PixelCacheProfilerView(this);
-//                m_GraphView.Add(m_ProfilerView);
+                // m_ProfilerView = new PixelCacheProfilerView(this);
+                // m_GraphView.Add(m_ProfilerView);
 
                 m_BlackboardProvider = new BlackboardProvider(assetName, graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
-                m_BlackboardProvider.blackboard.layout = new Rect(new Vector2(10f, 10f), m_BlackboardProvider.blackboard.layout.size);
+                m_BlackboardProvider.blackboard.style.positionType = StyleValue<PositionType>.Create(PositionType.Absolute);
+                m_BlackboardProvider.blackboard.style.positionLeft = StyleValue<float>.Create(10f);
+                m_BlackboardProvider.blackboard.style.positionTop = StyleValue<float>.Create(10f);
 
                 m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
 
@@ -119,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
                 m_GraphView.Add(m_MasterPreviewView);
 
-                ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView) { name = "resizeBorderFrame" };
+                ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView.previewTextureView, m_MasterPreviewView) { name = "resizeBorderFrame" };
                 masterPreviewResizeBorderFrame.stayWithinParentBounds = true;
                 masterPreviewResizeBorderFrame.maintainAspectRatio = true;
                 masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
@@ -472,8 +478,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (m_FloatingWindowsLayout != null)
             {
-                m_MasterPreviewView.layout = m_FloatingWindowsLayout.previewLayout.GetLayout(layout);
-                m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(layout);
+                // Restore master preview layout
+                m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
+                m_MasterPreviewView.previewTextureView.style.width = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.x);
+                m_MasterPreviewView.previewTextureView.style.height = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.y);
+
+                // Restore blackboard layout
+                m_FloatingWindowsLayout.blackboardLayout.ApplyPosition(m_BlackboardProvider.blackboard);
+                m_FloatingWindowsLayout.blackboardLayout.ApplySize(m_BlackboardProvider.blackboard);
 
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
@@ -487,9 +499,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_FloatingWindowsLayout == null)
                 m_FloatingWindowsLayout = new FloatingWindowsLayout();
+
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
             m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
-            m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.Q("preview").layout.size;
+            m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.previewTextureView.layout.size;
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(k_FloatingWindowsLayoutKey, serializedWindowLayout);
