@@ -17,6 +17,14 @@ namespace UnityEditor.VFX
             return base.CanConvertFrom(type) || type == typeof(Vector3);
         }
 
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, Type sourceSlotType)
+        {
+            if (sourceSlotType == typeof(VFXSlotDirection))
+                return expression; //avoid multiple normalization
+
+            return VFXOperatorUtility.Normalize(expression);
+        }
+
         sealed protected override VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {
             return VFXOperatorUtility.Normalize(expr[0]);
@@ -24,7 +32,7 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression[] ExpressionToChildren(VFXExpression expr)
         {
-            return new VFXExpression[1] { expr };
+            return new[] { expr };
         }
     }
 }

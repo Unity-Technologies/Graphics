@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
                 || type == typeof(Color);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, Type sourceSlotType)
         {
             if (expression.valueType == VFXValueType.Uint)
             {

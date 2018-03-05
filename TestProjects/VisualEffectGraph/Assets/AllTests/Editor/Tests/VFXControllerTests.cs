@@ -113,6 +113,44 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void LinkToDirection()
+        {
+            var directionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && (o.model as VFXInlineOperator).type == typeof(DirectionType));
+            var vector3Desc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && (o.model as VFXInlineOperator).type == typeof(Vector3));
+
+            var direction = m_ViewController.AddVFXOperator(new Vector2(1, 1), directionDesc);
+            var vector3 = m_ViewController.AddVFXOperator(new Vector2(2, 2), vector3Desc);
+            m_ViewController.ApplyChanges();
+
+            Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
+                {
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
+                };
+
+            var vA = new Vector3(8, 9, 6);
+            vector3.inputSlots[0].value = vA;
+
+            var controllerDirection = fnFindController(direction);
+            var controllerVector3 = fnFindController(vector3);
+
+            var edgeControllerAppend_A = new VFXDataEdgeController(controllerDirection.inputPorts.First(), controllerVector3.outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_A);
+            m_ViewController.ApplyChanges();
+
+            m_ViewController.ForceReload();
+
+            Assert.AreEqual(1, direction.inputSlots[0].LinkedSlots.Count());
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+
+            var result = context.Compile(direction.outputSlots[0].GetExpression()).Get<Vector3>();
+
+            Assert.AreEqual((double)vA.normalized.x, (double)result.x, 0.001f);
+            Assert.AreEqual((double)vA.normalized.y, (double)result.y, 0.001f);
+            Assert.AreEqual((double)vA.normalized.z, (double)result.z, 0.001f);
+        }
+
+        [Test]
         public void CascadedOperatorAdd()
         {
             Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)

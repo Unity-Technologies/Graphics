@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
             return new VFXValue<Vector3>(Vector3.zero, mode);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, Type sourceSlotType)
         {
             if (expression.valueType == VFXValueType.Float3)
                 return expression;
