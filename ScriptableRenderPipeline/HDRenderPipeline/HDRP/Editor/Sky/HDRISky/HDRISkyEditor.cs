@@ -9,19 +9,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     public class HDRISkyEditor
         : SkySettingsEditor
     {
-        SerializedDataParameter m_SkyHDRI;
+        SerializedDataParameter m_hdriSky;
 
         public override void OnEnable()
         {
             base.OnEnable();
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_SkyHDRI = Unpack(o.Find(x => x.skyHDRI));
+            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
         }
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_SkyHDRI);
+            PropertyField(m_hdriSky);
 
             EditorGUILayout.Space();
 
