@@ -504,7 +504,7 @@ MonoBehaviour:
   - {fileID: 114718897262716678}
   m_exposedName: New AABox
   m_exposed: 0
-  m_order: 0
+  m_Order: 2
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -915,7 +915,7 @@ MonoBehaviour:
   - {fileID: 114936841699705906}
   m_exposedName: parameter
   m_exposed: 0
-  m_order: 0
+  m_Order: 1
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1478,6 +1478,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1505,7 +1508,7 @@ MonoBehaviour:
   - {fileID: 114197471506683826}
   m_exposedName: Texture
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 

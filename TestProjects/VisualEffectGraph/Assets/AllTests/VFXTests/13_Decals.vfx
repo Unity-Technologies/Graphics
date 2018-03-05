@@ -1589,7 +1589,7 @@ MonoBehaviour:
   - {fileID: 114544607760722526}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1957,6 +1957,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  cullMode: 2
+  zWriteMode: 1
+  zTestMode: 3
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -3484,7 +3487,7 @@ MonoBehaviour:
   - {fileID: 114725874336250028}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3979,7 +3982,7 @@ MonoBehaviour:
   - {fileID: 114680765894936828}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -7987,7 +7990,7 @@ VisualEffectAsset:
         index: 79
       - nameId: bounds_size
         index: 78
-      processor: {fileID: 7200000, guid: 721ad0753e70972499a99f245de2d7e4, type: 3}
+      processor: {fileID: 7200000, guid: 43257642c9c3a804781bed8e33e6cf26, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -8024,7 +8027,7 @@ VisualEffectAsset:
       - nameId: VectorField_b
         index: 77
       params: []
-      processor: {fileID: 7200000, guid: 0248cb972105c0b409cc90a6e3796d21, type: 3}
+      processor: {fileID: 7200000, guid: c7380d80bfbc61c4c94b585766d9cd83, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
@@ -8051,7 +8054,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7951e56623250d94c9f4402e5d0f7893, type: 3}
+      processor: {fileID: 4800000, guid: daf6bd3e333751040a0555402db9e7d1, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

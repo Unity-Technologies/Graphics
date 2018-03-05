@@ -11,6 +11,23 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePoints"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticlePointOutput; } }
 
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "cullMode";
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            cullMode = CullMode.Off;
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
