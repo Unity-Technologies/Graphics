@@ -437,6 +437,8 @@ namespace  UnityEditor.VFX.UI
             moveItemRequested = OnMoveItem;
             addItemRequested = OnAddItem;
 
+            this.scrollable = true;
+
 
             SetPosition(LoadBlackBoardPosition());
 

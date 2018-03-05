@@ -623,6 +623,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  cullMode: 3
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1699,7 +1702,7 @@ MonoBehaviour:
   - {fileID: 114283240058233450}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1802,12 +1805,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
   preRefraction: 0
-  twoSided: 0
 --- !u!114 &114365880646675674
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2070,6 +2075,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  cullMode: 3
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -3764,7 +3772,7 @@ MonoBehaviour:
   - {fileID: 114605936197091038}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -3906,6 +3914,9 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 2
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -4814,7 +4825,7 @@ MonoBehaviour:
   - {fileID: 114757265932841848}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -5649,7 +5660,7 @@ VisualEffectAsset:
         index: 69
       - nameId: bounds_size
         index: 68
-      processor: {fileID: 7200000, guid: e993a8c99d53fa440b7c5a905756e144, type: 3}
+      processor: {fileID: 7200000, guid: 94d85e33a2cd19b4386b6b3023da4450, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5676,7 +5687,7 @@ VisualEffectAsset:
       - nameId: gradient_d
         index: 84
       params: []
-      processor: {fileID: 7200000, guid: cf9cd748882514d40b9289ab1ce4dd2f, type: 3}
+      processor: {fileID: 7200000, guid: a7f3b9802980a454d876d058ac59d4e8, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5689,7 +5700,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: a94506ba091b809478378f034865e465, type: 3}
+      processor: {fileID: 4800000, guid: b1ac5ee6609afd448b11d8c52dc9ed71, type: 3}
     - type: 1073741824
       buffers:
       - nameId: attributeBuffer
@@ -5706,7 +5717,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 775adf5aa542ba443a6e53964ce1877f, type: 3}
+      processor: {fileID: 4800000, guid: 5629610ad8f408541859395799b36a9b, type: 3}
     - type: 1073741825
       buffers:
       - nameId: attributeBuffer
@@ -5725,7 +5736,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 882ce6f0b80374d408df40cbf2853f60, type: 3}
+      processor: {fileID: 4800000, guid: fe04962320e354445b72aa391d764fd6, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -5746,7 +5757,7 @@ VisualEffectAsset:
         index: 79
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 16b49c9fe2442b04796b5780e193e5c2, type: 3}
+      processor: {fileID: 4800000, guid: 5278e4c4ed7ec8041a4655d48932eefe, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

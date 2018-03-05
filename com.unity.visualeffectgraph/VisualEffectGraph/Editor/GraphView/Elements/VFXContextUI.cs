@@ -60,12 +60,31 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList(ContextEnumToClassName(contextType.ToString()));
 
-            var inputType = controller.context.ownedType;
+            var inputType = controller.context.inputType;
+            if (inputType == VFXDataType.kNone)
+            {
+                inputType = controller.context.ownedType;
+            }
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("inputType" + ContextEnumToClassName(value));
+            }
+            AddToClassList("inputType" + ContextEnumToClassName(inputType.ToString()));
+
+            var outputType = controller.context.outputType;
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("outputType" + ContextEnumToClassName(value));
+            }
+            AddToClassList("outputType" + ContextEnumToClassName(outputType.ToString()));
+
+            var type = controller.context.ownedType;
             foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
             {
                 RemoveFromClassList("type" + ContextEnumToClassName(value));
             }
-            AddToClassList("type" + ContextEnumToClassName(inputType.ToString()));
+            AddToClassList("type" + ContextEnumToClassName(type.ToString()));
+
 
             foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
             {
