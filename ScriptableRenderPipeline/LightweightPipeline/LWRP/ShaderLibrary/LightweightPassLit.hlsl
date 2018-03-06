@@ -48,7 +48,11 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
 #else
     half3 viewDir = IN.viewDir;
-    inputData.normalWS = normalize(IN.normal);
+    #ifdef SHADER_API_MOBILE
+        inputData.normalWS = IN.normal;
+    #else
+        inputData.normalWS = normalize(IN.normal);
+    #endif
 #endif
 
 #ifdef SHADER_API_MOBILE
