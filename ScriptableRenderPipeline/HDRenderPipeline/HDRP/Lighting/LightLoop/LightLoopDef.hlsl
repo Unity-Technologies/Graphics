@@ -239,11 +239,10 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
 void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
 {
     int nrClusters = (1 << g_iLog2NumClusters);
-    int idx = ((lightCategory * nrClusters + clusterIndex) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
-    
+
     // XRTODO - DONE: Add the eye offset.  Each eye is split into category, cluster, x, y
-    idx += unity_StereoEyeIndex * LIGHTCATEGORY_COUNT * nrClusters * _NumTileClusteredX * _NumTileClusteredY;
-    
+    const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
+
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
     start = dataPair & 0x7ffffff;
     lightCount = (dataPair >> 27) & 31;

@@ -510,10 +510,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     // XRTODO - DONE: Stereo-ize this initial 'offs' to jump into the correct half of g_LayeredOffs.
     // The offsets are organized Category/Cluster/Row/Column.
     // For stereo, we just add eyeIndex*LIGHTCATEGORY_COUNT*nrClusters*nrTilesX*nrTilesY
-    // TODO: Functionalize g_LayeredOffset indexing?
-    uint layeredOffsetBase = eyeIndex * LIGHTCATEGORY_COUNT * (nrClusters*nrTilesX*nrTilesY);
-
-    offs = layeredOffsetBase + (i*nrTilesX*nrTilesY) + (tileIDX.y*nrTilesX) + tileIDX.x;
+    offs = GenerateLayeredOffsetBufferIndex(0, tileIDX, i, nrTilesX, nrTilesY, nrClusters, eyeIndex);
 	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{
 		int numLights = min(categoryListCount[category],31);		// only allow 5 bits
