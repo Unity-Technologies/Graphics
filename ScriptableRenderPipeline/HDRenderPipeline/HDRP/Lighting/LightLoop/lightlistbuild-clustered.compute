@@ -528,7 +528,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
     // XRTODO - DONE: Stereo-ize this, as this is per-eye set of tiles
     // Add eyeIndex*nrTilesY*nrTilesX to this index
-    uint logBaseIndex = (eyeIndex * nrTilesY * nrTilesX) + (tileIDX.y*nrTilesX) + tileIDX.x;
+    const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIDX, nrTilesX, nrTilesY, eyeIndex);
 	if(threadID==0) g_logBaseBuffer[logBaseIndex] = suggestedBase;
 #endif
 }

@@ -229,8 +229,8 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
     if (g_isLogBaseBufferEnabled)
     {
         // XRTODO - DONE: Stereo-ize access to g_logBaseBuffer
-        const uint eyeOffset = unity_StereoEyeIndex * _NumTileClusteredX * _NumTileClusteredY;
-        logBase = g_logBaseBuffer[eyeOffset + (tileIndex.y * _NumTileClusteredX) + tileIndex.x];
+        const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
+        logBase = g_logBaseBuffer[logBaseIndex];
     }
 
     return SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
