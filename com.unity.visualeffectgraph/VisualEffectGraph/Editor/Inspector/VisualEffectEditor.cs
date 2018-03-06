@@ -29,8 +29,11 @@ static class VisualEffectEditorStyles
         Stop
     }
 
+    public static readonly GUIStyle toggleStyle;
+
     static VisualEffectEditorStyles()
     {
+        toggleStyle = new GUIStyle("ShurikenCheckMark");
         m_Icons = new GUIContent[1 + (int)Icon.Stop];
         for (int i = 0; i <= (int)Icon.Stop; ++i)
         {
@@ -270,13 +273,14 @@ public class VisualEffectEditor : Editor
         m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
-        EditorApplication.contextualPropertyMenu += PropertyMenuCallback;
+        //EditorApplication.contextualPropertyMenu += PropertyMenuCallback;
 
         InitSlots();
 
         m_Infos.Clear();
     }
 
+    /*
     void PropertyMenuCallback(GenericMenu menu, SerializedProperty property)
     {
         if (property.serializedObject == serializedObject && property.propertyPath.StartsWith("m_PropertySheet.") && property.propertyPath.EndsWith(".m_Value"))
@@ -296,7 +300,7 @@ public class VisualEffectEditor : Editor
             overrideProperty.boolValue = false;
         serializedObject.ApplyModifiedProperties();
     }
-
+    */
     void OnDisable()
     {
         VisualEffect effect = ((VisualEffect)targets[0]);
@@ -305,7 +309,7 @@ public class VisualEffectEditor : Editor
             effect.pause = false;
             effect.playRate = 1.0f;
         }
-        EditorApplication.contextualPropertyMenu -= PropertyMenuCallback;
+        //EditorApplication.contextualPropertyMenu -= PropertyMenuCallback;
     }
 
     struct Infos
@@ -344,6 +348,64 @@ public class VisualEffectEditor : Editor
                 }
             }
         }
+    }
+
+    void DisplayProperty(FieldData field, SerializedProperty overrideProperty, SerializedProperty property)
+    {
+        EditorGUILayout.BeginHorizontal();
+
+        GUIContent nameContent = EditorGUIUtility.TextContent(field.exposedName);
+
+        if (!overrideProperty.hasMultipleDifferentValues)
+        {
+            bool result = EditorGUILayout.Toggle(overrideProperty.boolValue, VisualEffectEditorStyles.toggleStyle, GUILayout.Width(16));
+
+            if (overrideProperty.boolValue != result)
+            {
+                overrideProperty.boolValue = result;
+            }
+        }
+        else
+        {
+            //TODO what to do with multiple value
+        }
+
+        EditorGUI.BeginChangeCheck();
+        if (field.rangeAttribute != null)
+        {
+            if (field.type == typeof(float))
+                EditorGUILayout.Slider(property, field.rangeAttribute.min, field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
+            else
+                EditorGUILayout.IntSlider(property, (int)field.rangeAttribute.min, (int)field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
+        }
+        else if (field.type == typeof(Color))
+        {
+            Vector4 vVal = property.vector4Value;
+            Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
+            c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
+
+            if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
+                property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
+        }
+        else if (field.type == typeof(Vector4))
+        {
+            var oldVal = property.vector4Value;
+            var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
+            if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+            {
+                property.vector4Value = newVal;
+            }
+        }
+        else
+        {
+            EditorGUILayout.PropertyField(property, nameContent, true);
+        }
+        if (EditorGUI.EndChangeCheck())
+        {
+            overrideProperty.boolValue = true;
+        }
+
+        EditorGUILayout.EndHorizontal();
     }
 
     void OnParamGUI(VFXParameter parameter)
@@ -401,41 +463,7 @@ public class VisualEffectEditor : Editor
                     GUI.color = AnimationMode.animatedPropertyColor;
                 }
 
-                string properyName = field.exposedName + (overrideProperty.boolValue ? "*" : "");
-
-                EditorGUI.BeginChangeCheck();
-                if (field.rangeAttribute != null)
-                {
-                    if (field.type == typeof(float))
-                        EditorGUILayout.Slider(property, field.rangeAttribute.min, field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
-                    else
-                        EditorGUILayout.IntSlider(property, (int)field.rangeAttribute.min, (int)field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
-                }
-                else if (field.type == typeof(Color))
-                {
-                    Vector4 vVal = property.vector4Value;
-                    Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                    c = EditorGUILayout.ColorField(EditorGUIUtility.TextContent(properyName), c, true, true, true);
-
-                    if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
-                        property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
-                }
-                else if (field.type == typeof(Vector4))
-                {
-                    var oldVal = property.vector4Value;
-                    var newVal = EditorGUILayout.Vector4Field(properyName, oldVal);
-                    if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
-                    {
-                        property.vector4Value = newVal;
-                    }
-                }
-                else
-                    EditorGUILayout.PropertyField(property, new GUIContent(properyName), true);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    overrideProperty.boolValue = true;
-                }
+                DisplayProperty(field, overrideProperty, property);
 
                 if (animated)
                 {
