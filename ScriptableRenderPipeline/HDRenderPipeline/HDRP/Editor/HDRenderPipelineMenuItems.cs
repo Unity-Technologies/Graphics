@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     public class HDRenderPipelineMenuItems
     {
-        [MenuItem("Internal/HDRenderPipeline/Upgrade Scene Light Intensity to physical light unit", priority = CoreUtils.editMenuPriority2)]
+        //[MenuItem("Internal/HDRenderPipeline/Upgrade Scene Light Intensity to physical light unit", priority = CoreUtils.editMenuPriority2)]
         static void UpgradeLightsPLU()
         {
             Light[] lights = Resources.FindObjectsOfTypeAll<Light>();
@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorSceneManager.MarkSceneDirty(scene);
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
+        //[MenuItem("Internal/HDRenderPipeline/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {
             var lights = UnityObject.FindObjectsOfType(typeof(Light)) as Light[];
@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
+        //[MenuItem("Internal/HDRenderPipeline/Add \"Additional Camera Data\" (if not present)")]
         static void AddAdditionalCameraData()
         {
             var cameras = UnityObject.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // This script is a helper for the artists to re-synchronize all layered materials
-        [MenuItem("Internal/HDRenderPipeline/Synchronize all Layered materials")]
+        ////[MenuItem("Internal/HDRenderPipeline/Synchronize all Layered materials")]
         static void SynchronizeAllLayeredMaterial()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -196,7 +196,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Update/Update diffusion profile")]
+        //[MenuItem("Internal/HDRenderPipeline/Update/Update diffusion profile")]
         static void UpdateDiffusionProfile()
         {
             var matIds = AssetDatabase.FindAssets("t:DiffusionProfileSettings");
@@ -223,7 +223,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Update/Update material for clear coat")]
+        //[MenuItem("Internal/HDRenderPipeline/Update/Update material for clear coat")]
         static void UpdateMaterialForClearCoat()
         {
             try
@@ -302,7 +302,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Internal/HDRenderPipeline/Update/Update material for subsurface")]
+        //[MenuItem("Internal/HDRenderPipeline/Update/Update material for subsurface")]
         static void UpdateMaterialForSubsurface()
         {
             try
@@ -361,7 +361,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         //
-        [MenuItem("Internal/HDRenderPipeline/Update/Update Height Maps parametrization")]
+        //[MenuItem("Internal/HDRenderPipeline/Update/Update Height Maps parametrization")]
         static void UpdateHeightMapParametrization()
         {
             try
@@ -447,7 +447,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Function used only to check performance of data with and without tessellation
-        [MenuItem("Internal/HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
+        //[MenuItem("Internal/HDRenderPipeline/Test/Remove tessellation materials (not reversible)")]
         static void RemoveTessellationMaterials()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
