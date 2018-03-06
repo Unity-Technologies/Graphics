@@ -47,11 +47,11 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.normalWS = normalize(IN.normal);
 #endif
 
-#ifdef SHADER_API_MOBILE
-    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
-    inputData.viewDirectionWS = IN.viewDir;
+#if SHADER_HINT_NICE_QUALITY
+    inputData.viewDirectionWS = SafeNormalize(IN.viewDir);
 #else
-    inputData.viewDirectionWS = normalize(IN.viewDir);
+    // View direction is already normalize in vertex. Small acceptable error to save ALU.
+    inputData.viewDirectionWS = IN.viewDir;
 #endif
 
     inputData.shadowCoord = IN.shadowCoord;
@@ -78,7 +78,13 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     o.posWS = TransformObjectToWorld(v.vertex.xyz);
     o.clipPos = TransformWorldToHClip(o.posWS);
-    o.viewDir = SafeNormalize(GetCameraPositionWS() - o.posWS);
+
+    o.viewDir = GetCameraPositionWS() - o.posWS;
+
+#if !SHADER_HINT_NICE_QUALITY
+    // Normalize in vertex and avoid renormalizing it in frag to save ALU.
+    o.viewDir = SafeNormalize(o.viewDir);
+#endif
 
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
     OUTPUT_NORMAL(v, o);
