@@ -97,4 +97,10 @@ float SuggestLogBase25(float tileFarPlane)
     return max(g_fClustBase, suggested_base);
 }
 
+uint GenerateLogBaseBufferIndex(uint2 tileIndex, uint numTilesX, uint numTilesY, uint eyeIndex)
+{
+    uint eyeOffset = eyeIndex * numTilesX * numTilesY;
+    return (eyeOffset + (tileIndex.y * numTilesX) + tileIndex.x);
+}
+
 #endif
