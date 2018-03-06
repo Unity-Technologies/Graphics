@@ -422,14 +422,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
                 uint lightCategory = _LightVolumeData[lightVolIndex].lightCategory;
 				++categoryListCount[lightCategory];
 				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
-			    
-                // NOTE: I think there _might_ be a potential bug here. The way this code seems to work is that
-                // as each light comes in, they are added to the allocated list in g_vLayeredLightList.
-                // As each light is added, the respective category count is incremented, and the raw light index is
-                // altered by subtracting the shift associated with the category.  So these light indices are category
-                // dependent. Since they are category dependent, these indices have to grouped into category sub-lists
-                // inside the cluster's allocation.  But...when the coarseList is generated, there's no guarantee it is sorted
-                // unless it runs through the SORTLIST routine above.
             }
 		}
 
