@@ -41,7 +41,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
         float4 decodeInstructions = float4(34.493242, 2.2, 0.0, 0.0); // range^2.2 = 5^2.2, gamma = 2.2
     #else
-        float4 decodeInstructions = float4(0.0, 0.0, 0.0, 0.0); // range = 2.0^2.2 = 4.59
+        float4 decodeInstructions = float4(2.0, 2.2, 0.0, 0.0); // range = 2.0^2.2 = 4.59
     #endif
 #endif
 
@@ -56,7 +56,6 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     #endif
 
     #ifdef DYNAMICLIGHTMAP_ON
-        float4 decodeInstructions = float4(0.0, 0.0, 0.0, 0.0); // Never used but needed for the interface since it supports gamma lightmaps
         #ifdef DIRLIGHTMAP_COMBINED
         bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap),
                                                         TEXTURE2D_PARAM(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
