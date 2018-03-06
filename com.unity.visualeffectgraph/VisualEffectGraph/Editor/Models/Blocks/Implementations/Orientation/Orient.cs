@@ -152,7 +152,7 @@ axisZ = cross(axisX,axisY);
             if (mode == Mode.LookAtPosition)
             {
                 /* Slot of type position has changed from undefined VFXSlot to VFXSlotPosition*/
-                if (!(GetInputSlot(0) is VFXSlotPosition))
+                if (GetNbInputSlots() > 0 && !(GetInputSlot(0) is VFXSlotPosition))
                 {
                     var oldValue = GetInputSlot(0).value;
                     RemoveSlot(GetInputSlot(0));
