@@ -14,8 +14,8 @@ namespace UnityEditor.VFX
             return new Dictionary<int, VFXExpression>()
             {
                 { 1, VFXValue.Constant(baseValue) },
-                { 3, VFXValue.Constant(Vector3.one * baseValue) },
                 { 2, VFXValue.Constant(Vector2.one * baseValue) },
+                { 3, VFXValue.Constant(Vector3.one * baseValue) },
                 { 4, VFXValue.Constant(Vector4.one * baseValue) },
             };
         }
@@ -76,10 +76,10 @@ namespace UnityEditor.VFX
             return new VFXExpressionFloor(input + half);
         }
 
-        static public VFXExpression Log(VFXExpression input, VFXExpression @base)
+        static public VFXExpression Log(VFXExpression input, VFXExpression _base)
         {
             //log2(x)/log2(b)
-            return new VFXExpressionLog2(input) / new VFXExpressionLog2(@base);
+            return new VFXExpressionLog2(input) / new VFXExpressionLog2(_base);
         }
 
         static public VFXExpression Atanh(VFXExpression input)
