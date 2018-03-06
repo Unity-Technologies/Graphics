@@ -505,7 +505,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var type = settings.lightType;
 
             // Special case for multi-selection: don't resolve light shape or it'll corrupt lights
-            if (type.hasMultipleDifferentValues)
+            if (type.hasMultipleDifferentValues
+                || m_AdditionalLightData.lightTypeExtent.hasMultipleDifferentValues)
             {
                 m_LightShape = (LightShape)(-1);
                 return;
