@@ -557,6 +557,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 517
+    y: 112
+    width: 1849
+    height: 542
 --- !u!114 &114251390124489172
 MonoBehaviour:
   m_ObjectHideFlags: 1
