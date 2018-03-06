@@ -426,6 +426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
             m_VolumetricLightingModule.Cleanup();
+            m_IBLFilterGGX.Cleanup();
 
             DestroyRenderTextures();
 
