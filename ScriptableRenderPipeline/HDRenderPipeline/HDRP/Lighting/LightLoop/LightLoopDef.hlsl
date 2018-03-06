@@ -228,7 +228,6 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
     {
-        // XRTODO - DONE: Stereo-ize access to g_logBaseBuffer
         const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
         logBase = g_logBaseBuffer[logBaseIndex];
     }
@@ -240,7 +239,6 @@ void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCateg
 {
     int nrClusters = (1 << g_iLog2NumClusters);
 
-    // XRTODO - DONE: Add the eye offset.  Each eye is split into category, cluster, x, y
     const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
 
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
@@ -250,9 +248,6 @@ void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCateg
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    // XRTODO - DONE: Will have to fix up GetLightClusterIndex and GetCountAndStartCluster
-    // basicaly the log base and offset buffers are stereo ized.  depth tex anywhere as well?
-
     // Note: XR depends on unity_StereoEyeIndex already being defined,
     // which means ShaderVariables.hlsl needs to be defined ahead of this!
 

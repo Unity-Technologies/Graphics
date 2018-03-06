@@ -25,7 +25,6 @@
 CBUFFER_START(UnityLightListClustered)
 int g_iNrVisibLights;
 
-// XRTODO - DONE: Stereo-ize these
 float4x4 g_mInvScrProjectionArr[2];
 float4x4 g_mScrProjectionArr[2];
 
@@ -48,7 +47,6 @@ CBUFFER_END
 // g_fClustBase, g_fNearPlane, g_fFarPlane, g_iLog2NumClusters
 #include "ClusteredUtils.hlsl"
 
-// XRTODO - DONE: Reading from these textures and buffers must be stereo-ized
 #ifdef MSAA_ENABLED
 Texture2DMS<float> g_depth_tex : register( t0 );
 #else
@@ -65,14 +63,10 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );		// don't support B
 
 #define NR_THREADS			64
 
-// XRTODO - DONE: Stereo-ize writes to g_LayeredOffset
-// g_vLayeredLightList is a dynamically allocated cluster list, and g_LayeredSingleIdxBuffer tracks allocations
-// so these do not need to be stereoized.
 RWStructuredBuffer<uint> g_vLayeredLightList : register( u0 );			// don't support RWBuffer yet in unity
 RWStructuredBuffer<uint> g_LayeredOffset : register( u1 );				// don't support RWBuffer yet in unity
 RWStructuredBuffer<uint> g_LayeredSingleIdxBuffer : register( u2 );		// don't support RWBuffer yet in unity
 
-// XRTODO - DONE: Stereo-ize writes to g_logBaseBuffer
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 RWStructuredBuffer<float> g_logBaseBuffer : register( u3 );				// don't support RWBuffer yet in unity
 #endif
@@ -99,7 +93,6 @@ groupshared uint lightOffs2;
 groupshared uint lightOffsSph;
 #endif
 
-// XRTODO - DONE: Stereo-ize access to g_mInvScrProjection, pass in eyeIndex
 float GetLinearDepth(float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
 {
     float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
@@ -116,7 +109,6 @@ float GetLinearDepth(float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
     //return v4Pres.z / v4Pres.w;
 }
 
-// XRTODO - DONE: Stereo-ize access to g_mScrProjection, pass in eyeIndex
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth, uint eyeIndex)
 {
     float4x4 g_mScrProjection = g_mScrProjectionArr[eyeIndex];
@@ -139,7 +131,6 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth, uint eyeIndex)
 	return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
 }
 
-// XRTODO - DONE: Stereo-ize access to g_mScrProjection, pass in eyeIndex
 float GetOnePixDiagWorldDistAtDepthOne(uint eyeIndex)
 {
     float4x4 g_mScrProjection = g_mScrProjectionArr[eyeIndex];
@@ -153,7 +144,6 @@ float GetOnePixDiagWorldDistAtDepthOne(uint eyeIndex)
 // in lightlistbuild-bigtile.compute.  But would need more re-factoring than needed
 // right now.
 
-// XRTODO - DONE: Stereo-ize these functions with eyeIndex
 #ifdef EXACT_EDGE_TESTS
 int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex);
 #endif
@@ -164,11 +154,8 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 // returns 1 for intersection and 0 for none
 
-// XRTODO - DONE: Pass in eyeIndex
 float4 FetchPlane(int l, int p, uint eyeIndex);
 
-// XRTODO - DONE: Stereo-ize due to access to GetViewPosFromLinDepth
-// We need eyeIndex
 bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggestedBase, uint eyeIndex)
 {
     // If this light's screen space depth bounds intersect this cluster...simple cluster test
@@ -192,7 +179,6 @@ bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggest
 				float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
 				float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
 				float z = (i&4)==0 ? depthAtNearZ : depthAtFarZ;
-                // XRTODO - DONE: Stereo-ize this by passing in eyeIndex
                 float3 vP = GetViewPosFromLinDepth( float2(x, y), z, eyeIndex);
 
                 // Test each corner of the cluster against the light bounding box planes
@@ -218,7 +204,6 @@ bool CheckIntersectionBasic(int l, int k)
 [numthreads(NR_THREADS, 1, 1)]
 void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
-    // XRTODO - DONE: Generate eyeIndex from u3GroupID.z
     uint eyeIndex = u3GroupID.z;
 
 	uint2 tileIDX = u3GroupID.xy;
@@ -253,12 +238,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	for(int idx=t; idx<(TILE_SIZE_CLUSTERED*TILE_SIZE_CLUSTERED); idx+=NR_THREADS)
 	{
-        // XRTODO - DONE: We need to stereo-ize access to g_depth_tex.  This is the only time we use viTilLL
-        // to generate a screen-space texture coordinate, so we can localize our stereo texture access here.
-        // For double-wide, we need to sample the correct half.  
-        // For instancing/multi-view, the right texture layer. When we add support for that, we need to pass in 
-        // an extra uint for layer index.
+        // XRTODO: We need to stereo-ize access to g_depth_tex for texture arrays.
 		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(g_screenSize.x-1, g_screenSize.y-1) );
+
         // TODO: For stereo double-wide, I need a proper way to insert the second eye width offset. Right now, I can just
         // use g_screenSize.x, but that's kinda cheating.
         // Additionally, we're going to have a method to select between a doublewide texture or texture array. Doubling
@@ -281,8 +263,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 	}
 
-    // Max across TG
-    // Why is this a uint? Can't we save floats in shared mem?
+    // Why is this a uint? Doesn't InterlockedMax support shared mem floats?
 	InterlockedMax(ldsZMax, asuint(dpt_ma) );
 
 
@@ -301,11 +282,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef USE_TWO_PASS_TILED_LIGHTING
 	const uint log2BigTileToClustTileRatio = firstbithigh(64) - log2TileSize;
 
-    // XRTODO - DONE: Properly stereo-ize access to g_vBigTileLightList
-    // All of this code is localized here, so I don't really have to worry about side-effects further on down
-    // I need to generate NrBigTilesY, so I can generate a per-eye offset/base into g_vBigTileLightList
-    // Since bigTileIdx is used twice (once for count, once for the light list), I should probably fix that one.
-    // Would be worth function-alizing, because this code is shared with FPTL/lightlistbuild.compute
     int NrBigTilesX = (nrTilesX + ((1<<log2BigTileToClustTileRatio)-1)) >> log2BigTileToClustTileRatio;
     int NrBigTilesY = (nrTilesY + ((1<<log2BigTileToClustTileRatio)-1)) >> log2BigTileToClustTileRatio;
     const int bigTileBase = eyeIndex * NrBigTilesX * NrBigTilesY;
@@ -319,9 +295,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
-        // XRTODO - DONE: Once we have our light index (l), we need to make sure it indexes the 
-        // correct portion of g_vBoundsBuffer. I have that code in GenerateScreenSpaceBoundsIndices
-
         // TODO: Seems kinda funny that we repeat this exact code here, bigtile, and FPTL...
 
         const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
@@ -343,14 +316,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 
-    // XRTODO - DONE: Stereo-ize by passing in eyeIndex
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(TILE_SIZE_CLUSTERED/2,TILE_SIZE_CLUSTERED/2), uint2(g_screenSize.x-1, g_screenSize.y-1))), eyeIndex );
 #endif
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 
-    // XRTODO - DONE: Stereo-ize access to GetLinearDepth with eyeIndex
 #if USE_LEFT_HAND_CAMERA_SPACE
     float fTileFarPlane = GetLinearDepth(dpt_ma, eyeIndex);
 #else // USE_LEFT_HAND_CAMERA_SPACE
@@ -363,38 +334,27 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 
-    // XRTODO - DONE: Stereo-ize by passing in eyeIndex
 #ifdef EXACT_EDGE_TESTS
     iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane, eyeIndex);
 #endif
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-    // TODO: Why not sort on console?
+    // NOTE: Why not sort on console?
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	SORTLIST(coarseList, iNrCoarseLights, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 #endif
 
 	//////////// cell specific code
 	{
-        // This code is a little tricky. For each light in our coarse list (and the list is associated with the screen tile),
-        // we find a cluster associated with the lights AABB Z value.  For each light, we have a min and max cluster index.
-        // And because the cluster index is a max of 255, we are able to encode 4 cluster indices per 32-bit DWORD.
-        // Therefore, we can encode 2 lights per uint (light 0 min idx, light 0 max idx, light 1...)
-        // Each iteration of the loop goes over two neighboring lights in the coarseList, unfortunate name choice of 'l'
-
         // TODO: We should write some encode/decode functions to help put cluster indices into the shared mem buffer,
         // and extract them later.  The code that reads from clusterIdx is hairy.
 
 		for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
 		{
-            // XRTODO - DONE: Stereo-ize access to g_vBoundsBuffer, run l0 and l1 through GenerateScreenSpaceBoundsIndices
-            // The logic here is a bit confusing.  We seem to process pairs of lights, and 
-            // It's for the cluster in the tile (the depth layer slice whatever)
 			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights-1)];
             const ScreenSpaceBoundsIndices l0Bounds = GenerateScreenSpaceBoundsIndices(l0, g_iNrVisibLights, eyeIndex);
             const ScreenSpaceBoundsIndices l1Bounds = GenerateScreenSpaceBoundsIndices(l1, g_iNrVisibLights, eyeIndex);
 
-            // XRTODO - DONE: Stereo-ize GetLinearDepth with eyeIndex
             const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0Bounds.min].z, eyeIndex), suggestedBase));
             const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0Bounds.max].z, eyeIndex), suggestedBase));
             const unsigned int clustIdxMi1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1Bounds.min].z, eyeIndex), suggestedBase));
@@ -417,8 +377,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int i=(int) t;
 	int iSpaceAvail = 0;
 	int iSum = 0;
-    // Each thread in the TG represents a cluster index, and tests all coarse lights against that cluster.
-    // It should be noted that nrClusters can never be greater than the TG size, otherwise, this code doesn't work!
 	if(i<nrClusters)
 	{
         // Each thread checks it's respective cluster against all coarse lights for intersection.
@@ -432,26 +390,13 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         // want to allocate out of g_LayeredSingleIdxBuffer.
 		iSpaceAvail = min(iSum,MAX_NR_COARSE_ENTRIES);							// combined storage for both direct lights and reflection
 		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
-
-        // All the light lists live in g_vLayeredLightList.  They aren't sorted in any manner, and it's tightly packed.
-        // The allocation can handle the max lights per tile, but it likely won't use all the memory.
-        // g_LayeredSingleIdxBuffer is recording the allocations out of the buffer.  
-        // 'start' indicates the offset into g_vLayeredLightList for the _cluster_ being 
-        // processed by this thread. And the TG is processing the tile. 
-        // 'iSpaceAvail' is how many total lights are in this cluster.
-        // This allocation might be roughly over, because CheckIntersectionBasic is a very basic check.
-
-        // XRTODO - DONE: For stereo, we don't have to adjust anything into g_LayeredSingleIdxBuffer. Each thread is processing it's own
-        // cluster, so we just need to make sure there is enough memory allocated in g_vLayeredLightList for two eyes worth of
-        // lists.  The offset we get from start is good enough.  We do have to store the offset into the 
-        // stereo-corrected half of g_LayeredOffset.
 	}
 
 	// All our cull data are in the same list, but at render time envLights are separated so we need to shift the index
 	// to make it work correctly
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-    // TODO: Why is this indexed like this?
+    // NOTE: Why is this indexed like this?
 	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
 	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DecalIndexShift;
 
@@ -461,16 +406,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)
 	{
-        // Process in chunks of 4 lights from the coarse tile list
-
 		int p = i>>2;
 		int m = i&3;
-        // XRTODO - DONE: Pass in eyeIndex to FetchPlane, as it looks into g_data (SFiniteLightBound)
 		if(i<24) lightPlanes[6*m+p] = FetchPlane(min(iNrCoarseLights-1,ll+m), p, eyeIndex);
-
-        // The first 24 threads in the TG each generate 1 plane equation.  There are
-        // 6 planes per light, and we process 4 lights at a time, hence, 24 threads.
-        // We could do more, but this might be all the LDS that can be spared...
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
@@ -478,16 +416,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 		for(int l=ll; l<min(iNrCoarseLights,(ll+4)); l++)
 		{
-            // XRTODO - DONE: Stereo-ize CheckIntersection by passing in eyeIndex to GetViewPosFromLinDepth
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase, eyeIndex) )
 			{
-                // XRTODO - DONE: Stereo-ize index into _LightVolumeData, run coarseList[l] thru GenerateLightCullDataIndex
                 const int lightVolIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
                 uint lightCategory = _LightVolumeData[lightVolIndex].lightCategory;
 				++categoryListCount[lightCategory];
 				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
 			    
-                // TODO: I think there _might_ be a potential bug here. The way this code seems to work is that
+                // NOTE: I think there _might_ be a potential bug here. The way this code seems to work is that
                 // as each light comes in, they are added to the allocated list in g_vLayeredLightList.
                 // As each light is added, the respective category count is incremented, and the raw light index is
                 // altered by subtracting the shift associated with the category.  So these light indices are category
@@ -502,14 +438,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 	}
 
-    // We now fill information about each light type into g_LayeredOffset
-    // The offset into g_vLayeredLightList, encoded with the number of lights in the category
-    // The encoded offsets are assuming the lights are sorted by category in the cluster list
 	uint localOffs=0;
 
-    // XRTODO - DONE: Stereo-ize this initial 'offs' to jump into the correct half of g_LayeredOffs.
-    // The offsets are organized Category/Cluster/Row/Column.
-    // For stereo, we just add eyeIndex*LIGHTCATEGORY_COUNT*nrClusters*nrTilesX*nrTilesY
     offs = GenerateLayeredOffsetBufferIndex(0, tileIDX, i, nrTilesX, nrTilesY, nrClusters, eyeIndex);
 	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{
@@ -523,20 +453,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	}
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-    // XRTODO - DONE: Stereo-ize this, as this is per-eye set of tiles
-    // Add eyeIndex*nrTilesY*nrTilesX to this index
     const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIDX, nrTilesX, nrTilesY, eyeIndex);
 	if(threadID==0) g_logBaseBuffer[logBaseIndex] = suggestedBase;
 #endif
 }
 
 
-// XRTODO - DONE: Must be stereo-ized because it fetches from g_data
-// Pass in eyeIndex
 float4 FetchPlane(int l, int p, uint eyeIndex)
 {
-    // XRTODO - DONE: Use eyeIndex and coarseList[l] to index into g_data
-    // use GenerateLightCullDataIndex
     const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
     SFiniteLightBound lgtDat = g_data[lightBoundIndex];
 
@@ -553,26 +477,20 @@ float4 FetchPlane(int l, int p, uint eyeIndex)
 
 
 
-// XRTODO - DONE: Stereo-ize for a bunch of use cases! Pass in eyeIndex!
-// Needed for GetViewPosFromLinDepth, GetOnePixDiagWorldDistAtDepthOne, and g_data
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate, uint eyeIndex)
 {
-    // XRTODO - DONE: Stereo-ize access with eyeIndex
 #if USE_LEFT_HAND_CAMERA_SPACE
     float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0, eyeIndex);
 #else
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0, eyeIndex);
 #endif
 
-    // XRTODO - DONE: Stereo-ize access with eyeIndex
     float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne(eyeIndex);
 	float halfTileSizeAtZDistOne = (TILE_SIZE_CLUSTERED/2)*onePixDiagDist;		// scale by half a tile
 
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
-        // XRTODO - DONE: Stereo-ize access with eyeIndex and GenerateLightCullDataIndex
-        // Use it on coarseList[l], use result to index g_data
         const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
         SFiniteLightBound lgtDat = g_data[lightBoundIndex];
 
@@ -612,7 +530,6 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 #ifdef EXACT_EDGE_TESTS
 
-// XRTODO - DONE: Stereo-ize for access to GetViewPosFromLinDepth, use eyeIndex
 float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane, uint eyeIndex)
 {
 	float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
@@ -621,18 +538,15 @@ float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane, u
 #if !USE_LEFT_HAND_CAMERA_SPACE
 	z = -z;
 #endif
-    // XRTODO - DONE: Pass in eyeIndex
     return GetViewPosFromLinDepth( float2(x, y), z, eyeIndex);
 }
 
-// XRTODO - DONE: Stereo-ize for access to GetTileVertex, use eyeIndex
 void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex)
 {
 	int iSection = e0>>2;		// section 0 is side edges, section 1 is near edges and section 2 is far edges
 	int iSwizzle = e0&0x3;
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
-    // XRTODO - DONE: Pass in eyeIndex
     vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane, eyeIndex);
 
 #if USE_LEFT_HAND_CAMERA_SPACE
@@ -644,8 +558,6 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 	vE0 = iSection == 0 ? edgeSectionZero : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
 }
 
-// XRTODO - DONE: Stereo-ize with eyeIndex, used for indexing _LightVolumeData and g_data, 
-// and with GetFrustEdge and GetTileVertex functions
 int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex)
 {
 	if(threadID==0) lightOffs2 = 0;
@@ -661,11 +573,9 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
-        // XRTODO - DONE: stereo-ize index used to access _LightVolumeData (and g_data), use GenerateLightCullDataIndex and eyeIndex
         const int lightCullIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
 		UNITY_BRANCH if (_LightVolumeData[lightCullIndex].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
-            // XRTODO - DONE: stereo-ize index used to access g_data, use the same index generated above from idxCoarse
             SFiniteLightBound lgtDat = g_data[lightCullIndex];
 
 			const float3 boxX = lgtDat.boxAxisX.xyz;
@@ -685,7 +595,6 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 
 
 				float3 vP1, vE1;
-                // XRTODO - DONE: Stereo-ize to use GetFrustEdge, use eyeIndex
                 GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, fTileFarPlane, eyeIndex);
 
 				// potential separation plane
@@ -704,7 +613,6 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 				positive=0; negative=0;
 				for(int j=0; j<8; j++)
 				{
-                    // XRTODO - DONE: Stereo-ize to use GetTileVertex, use eyeIndex
                     float3 vPf = GetTileVertex(viTilLL, viTilUR, j, fTileFarPlane, eyeIndex);
 					float fSignDist = dot(vN, vPf-vP0);
 					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
