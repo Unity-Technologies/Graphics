@@ -54,6 +54,7 @@ MonoBehaviour:
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     supportForwardOnly: 0
+    enableUltraQualitySSS: 0
     supportDBuffer: 1
     supportMSAA: 0
     msaaSampleCount: 1

@@ -231,8 +231,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
-            // We don't need the debug of Default camera at runtime (each camera have its own debug settings)
-            FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
+            // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
+            FrameSettings.RegisterDebug("Scene View", m_Asset.GetFrameSettings());
 #endif
 
             InitializeRenderTextures();
