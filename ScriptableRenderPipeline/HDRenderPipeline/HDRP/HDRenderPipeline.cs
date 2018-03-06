@@ -433,6 +433,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
+            FrameSettings.UnRegisterDebug("Scene View");
 #endif
         }
 
