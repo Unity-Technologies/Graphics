@@ -274,8 +274,8 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateThing(KeyDownEvent evt)
         {
-            VisualElement picked = panel.Pick(evt.imguiEvent.mousePosition);
-            VFXContextUI context = picked.GetFirstAncestorOfType<VFXContextUI>();
+            VisualElement picked = panel.Pick(evt.originalMousePosition);
+            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
 
             if (context != null)
             {
