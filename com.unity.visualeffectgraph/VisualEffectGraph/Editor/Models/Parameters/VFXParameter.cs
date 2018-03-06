@@ -27,6 +27,36 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Max;
 
+        public bool canHaveRange
+        {
+            get
+            {
+                return type == typeof(float) || type == typeof(int) || type == typeof(uint);
+            }
+        }
+
+        public bool hasRange
+        {
+            get { return canHaveRange && m_Min != null && m_Min.type != null && m_Max != null && m_Max.type != null; }
+
+            set
+            {
+                if (value != hasRange)
+                {
+                    if (value)
+                    {
+                        m_Min = new VFXSerializableObject(type);
+                        m_Max = new VFXSerializableObject(type);
+                    }
+                    else
+                    {
+                        m_Min = null;
+                        m_Max = null;
+                    }
+                }
+            }
+        }
+
         [System.Serializable]
         public struct NodeLinkedSlot
         {
