@@ -680,12 +680,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Decompress feature-agnostic data from the G-Buffer.
     float3 baseColor = inGBuffer0.rgb;
 
-    bsdfData.specularOcclusion   = inGBuffer0.a; // Later possibly overwritten by SSS
-    bsdfData.perceptualRoughness = inGBuffer1.a;
-
     float3 packNormalWS = inGBuffer1.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
     bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
+    bsdfData.perceptualRoughness = inGBuffer1.a;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
@@ -737,6 +735,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         {
             FillMaterialTransmission(sssData.diffusionProfile, inGBuffer2.g, bsdfData);
         }
+    }
+    else
+    {
+        bsdfData.specularOcclusion = inGBuffer0.a;
     }
 
     // Special handling for anisotropy: When anisotropy is present in a tile, the whole tile will use anisotropy to avoid divergent evaluation of GGX that increase the cost
@@ -1335,7 +1337,6 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
     bool mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
 
-    // TODO: move this before BSDF() to save VGPRs.
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION) && !mixedThicknessMode)
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
@@ -1396,57 +1397,11 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     float  LdotV = dot(L, V);
 
-    float3 transmittance      = bsdfData.transmittance;
-    bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
+    bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
+                                && NdotL < 0 && lightData.shadowIndex >= 0;
 
-    UNITY_BRANCH
-    if (mixedThicknessMode && NdotL < 0 && lightData.shadowIndex >= 0)
+    if (mixedThicknessMode)
     {
-        // Recompute transmittance using the thickness value computed from the shadow map.
-        #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-
-        // Compute the distance from the light to the back face of the object along the light direction.
-        float distBackFaceToLight = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
-                                                                              s_linear_clamp_sampler, posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
-
-        // Our subsurface scattering models use the semi-infinite planar slab assumption.
-        // Therefore, we need to find the thickness along the normal.
-        float distFrontFaceToLight   = distances.x;
-        float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
-        float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
-        float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
-
-    #if SHADEROPTIONS_USE_DISNEY_SSS
-        // We need to make sure it's not less than the baked thickness to minimize light leaking.
-        float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
-
-        float3 S = _ShapeParams[bsdfData.diffusionProfile];
-
-        // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
-    #if 0
-        float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
-    #else
-        // Help the compiler.
-        float  k = (-1.0 / 3.0) * LOG2_E;
-        float3 p = (k * thicknessDelta) * S;
-        float3 expOneThird = exp2(p);
-    #endif
-
-        transmittance *= expOneThird;
-
-    #else // SHADEROPTIONS_USE_DISNEY_SSS
-
-        // We need to make sure it's not less than the baked thickness to minimize light leaking.
-        thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
-
-        transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
-                                                    _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
-                                                    _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
-                                                    _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
-                                                    _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
-                                                    thicknessInMillimeters);
-    #endif // SHADEROPTIONS_USE_DISNEY_SSS
-
         // Make sure we do not sample the shadow map twice.
         lightData.shadowIndex = -1;
         // Note: we do not modify the distance to the light, or the light angle for the back face.
@@ -1476,9 +1431,58 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.specular *= intensity * lightData.specularScale;
     }
 
-    // TODO: move this before BSDF() to save VGPRs.
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
+        float3 transmittance = bsdfData.transmittance;
+
+        if (mixedThicknessMode)
+        {
+            // Recompute transmittance using the thickness value computed from the shadow map.
+            #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
+
+            // Compute the distance from the light to the back face of the object along the light direction.
+            float distBackFaceToLight = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
+                                                                                  s_linear_clamp_sampler, posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+
+            // Our subsurface scattering models use the semi-infinite planar slab assumption.
+            // Therefore, we need to find the thickness along the normal.
+            float distFrontFaceToLight   = distances.x;
+            float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
+            float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
+            float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
+
+        #if SHADEROPTIONS_USE_DISNEY_SSS
+            // We need to make sure it's not less than the baked thickness to minimize light leaking.
+            float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
+
+            float3 S = _ShapeParams[bsdfData.diffusionProfile];
+
+            // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
+        #if 0
+            float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
+        #else
+            // Help the compiler.
+            float  k = (-1.0 / 3.0) * LOG2_E;
+            float3 p = (k * thicknessDelta) * S;
+            float3 expOneThird = exp2(p);
+        #endif
+
+            transmittance *= expOneThird;
+
+        #else // SHADEROPTIONS_USE_DISNEY_SSS
+
+            // We need to make sure it's not less than the baked thickness to minimize light leaking.
+            thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
+
+            transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
+                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
+                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
+                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
+                                                        _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
+                                                        thicknessInMillimeters);
+        #endif // SHADEROPTIONS_USE_DISNEY_SSS
+        }
+
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
