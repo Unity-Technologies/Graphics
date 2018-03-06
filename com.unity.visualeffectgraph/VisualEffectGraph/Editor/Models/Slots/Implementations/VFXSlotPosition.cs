@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
             return base.CanConvertFrom(type) || type == typeof(Vector4) ||  type == typeof(Vector3);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expresssion, Type sourceSlotType)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expresssion, VFXSlot sourceSlot)
         {
             if (expresssion.valueType == VFXValueType.Float3)
                 return expresssion;

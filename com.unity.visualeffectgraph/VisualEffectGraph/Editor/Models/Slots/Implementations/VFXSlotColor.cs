@@ -15,13 +15,13 @@ namespace UnityEditor.VFX
                 || type == typeof(Vector4);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, Type sourceSlotType)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
             if (expression.valueType == VFXValueType.Float3)
             {
                 return VFXOperatorUtility.CastFloat(expression, VFXValueType.Float4, 1.0f);
             }
-            return base.ConvertExpression(expression, sourceSlotType);
+            return base.ConvertExpression(expression, sourceSlot);
         }
     }
 }

@@ -655,7 +655,7 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot == null ? null : startSlot.m_LinkedInSlot.GetType()); // TODO Handle structural modification
+                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s =>
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
@@ -771,7 +771,7 @@ namespace UnityEditor.VFX
             return type == null || property.type == type;
         }
 
-        protected virtual VFXExpression ConvertExpression(VFXExpression expression, Type sourceSlotType)
+        protected virtual VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
             return expression;
         }
