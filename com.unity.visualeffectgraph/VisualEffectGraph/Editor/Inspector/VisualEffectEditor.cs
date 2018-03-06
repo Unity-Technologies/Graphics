@@ -270,9 +270,31 @@ public class VisualEffectEditor : Editor
         m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
+        EditorApplication.contextualPropertyMenu += PropertyMenuCallback;
+
         InitSlots();
 
         m_Infos.Clear();
+    }
+
+    void PropertyMenuCallback(GenericMenu menu, SerializedProperty property)
+    {
+        if (property.serializedObject == serializedObject && property.propertyPath.StartsWith("m_PropertySheet.") && property.propertyPath.EndsWith(".m_Value"))
+        {
+            menu.AddItem(EditorGUIUtility.TrTextContent("Revert to VisuaEffect Asset Value"), false, OnRevertToAsset, property.propertyPath);
+        }
+    }
+
+    void OnRevertToAsset(object pp)
+    {
+        string propertyPath = (string)pp;
+
+        string overridePath = propertyPath.Substring(0, propertyPath.Length - "m_Value".Length) + "m_Overridden";
+
+        var overrideProperty = serializedObject.FindProperty(overridePath);
+        if (overrideProperty != null)
+            overrideProperty.boolValue = false;
+        serializedObject.ApplyModifiedProperties();
     }
 
     void OnDisable()
@@ -283,6 +305,7 @@ public class VisualEffectEditor : Editor
             effect.pause = false;
             effect.playRate = 1.0f;
         }
+        EditorApplication.contextualPropertyMenu -= PropertyMenuCallback;
     }
 
     struct Infos
@@ -378,7 +401,7 @@ public class VisualEffectEditor : Editor
                     GUI.color = AnimationMode.animatedPropertyColor;
                 }
 
-                EditorGUIUtility.SetBoldDefaultFont(overrideProperty.boolValue);
+                string properyName = field.exposedName + (overrideProperty.boolValue ? "*" : "");
 
                 EditorGUI.BeginChangeCheck();
                 if (field.rangeAttribute != null)
@@ -392,7 +415,7 @@ public class VisualEffectEditor : Editor
                 {
                     Vector4 vVal = property.vector4Value;
                     Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                    c = EditorGUILayout.ColorField(EditorGUIUtility.TextContent(field.exposedName), c, true, true, true);
+                    c = EditorGUILayout.ColorField(EditorGUIUtility.TextContent(properyName), c, true, true, true);
 
                     if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
                         property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
@@ -400,14 +423,14 @@ public class VisualEffectEditor : Editor
                 else if (field.type == typeof(Vector4))
                 {
                     var oldVal = property.vector4Value;
-                    var newVal = EditorGUILayout.Vector4Field(field.exposedName, oldVal);
+                    var newVal = EditorGUILayout.Vector4Field(properyName, oldVal);
                     if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
                     {
                         property.vector4Value = newVal;
                     }
                 }
                 else
-                    EditorGUILayout.PropertyField(property, EditorGUIUtility.TextContent(field.exposedName), true);
+                    EditorGUILayout.PropertyField(property, new GUIContent(properyName), true);
 
                 if (EditorGUI.EndChangeCheck())
                 {
