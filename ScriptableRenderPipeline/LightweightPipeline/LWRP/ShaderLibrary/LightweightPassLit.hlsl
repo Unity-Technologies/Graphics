@@ -24,7 +24,7 @@ struct LightweightVertexOutput
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
     half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.w
+    half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.z
 #else
     half3  normal                   : TEXCOORD3;
     half3 viewDir                   : TEXCOORD6;
@@ -44,7 +44,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.positionWS = IN.posWSShininess.xyz;
 
 #ifdef _NORMALMAP
-    half3 viewDir = half3(IN.tangent.w, IN.binormal.w, IN.normal.w);
+    half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
     inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
 #else
     half3 viewDir = IN.viewDir;
