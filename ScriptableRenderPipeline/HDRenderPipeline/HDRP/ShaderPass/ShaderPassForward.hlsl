@@ -64,6 +64,12 @@ void Frag(PackedVaryingsToPS packedInput,
 
     // We need to skip lighting when doing debug pass because the debug pass is done before lighting so some buffers may not be properly initialized potentially causing crashes on PS4.
 #ifdef DEBUG_DISPLAY
+    // Init in debug display mode to quiet warning
+    #ifdef OUTPUT_SPLIT_LIGHTING
+    outDiffuseLighting = 0;
+    ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
+    #endif
+
     if (_DebugLightingMode != DEBUGLIGHTINGMODE_NONE || _DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
 #endif
     {
