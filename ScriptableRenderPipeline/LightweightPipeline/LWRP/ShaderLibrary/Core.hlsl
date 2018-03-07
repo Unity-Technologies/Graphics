@@ -74,7 +74,7 @@ void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tan
 half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
 {
     half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
-#ifdef SHADER_API_MOBILE
+#if !SHADER_HINT_NICE_QUALITY
     return mul(normalTangent, tangentToWorld);
 #else
     return normalize(mul(normalTangent, tangentToWorld));
