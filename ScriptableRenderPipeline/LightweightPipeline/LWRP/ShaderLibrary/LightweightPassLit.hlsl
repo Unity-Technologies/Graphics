@@ -57,10 +57,10 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 #endif
 
 #if SHADER_HINT_NICE_QUALITY
-    inputData.viewDirectionWS = SafeNormalize(IN.viewDir);
+    inputData.viewDirectionWS = SafeNormalize(viewDir);
 #else
     // View direction is already normalized in vertex. Small acceptable error to save ALU.
-    inputData.viewDirectionWS = IN.viewDir;
+    inputData.viewDirectionWS = viewDir;
 #endif
 
     inputData.shadowCoord = IN.shadowCoord;
