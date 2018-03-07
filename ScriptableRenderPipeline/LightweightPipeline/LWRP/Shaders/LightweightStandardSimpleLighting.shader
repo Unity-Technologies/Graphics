@@ -95,6 +95,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimple
+            #define BUMP_SCALE_NOT_SUPPORTED 1
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
@@ -128,6 +129,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex ShadowPassVertex
             #pragma fragment LitPassFragmentSimpleNull
 
+            #define BUMP_SCALE_NOT_SUPPORTED 1
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
@@ -160,6 +162,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragmentSimpleNull
         
+            #define BUMP_SCALE_NOT_SUPPORTED 1
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
