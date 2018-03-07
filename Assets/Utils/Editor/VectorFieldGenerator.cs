@@ -137,7 +137,7 @@ public class VectorFieldGenerator : EditorWindow
                     float r = br.ReadSingle();
                     float g = br.ReadSingle();
                     float b = br.ReadSingle();
-                    if(unsignedNormalized)
+                    if (unsignedNormalized)
                     {
                         r = r * 0.5f + 0.5f;
                         g = g * 0.5f + 0.5f;
