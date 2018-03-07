@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public ChannelEnumMaskControlView(string label, int slotId, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
+            AddStyleSheetPath("Styles/Controls/ChannelEnumMaskControlView");
             m_Node = node;
             m_PropertyInfo = propertyInfo;
             m_SlotId = slotId;
