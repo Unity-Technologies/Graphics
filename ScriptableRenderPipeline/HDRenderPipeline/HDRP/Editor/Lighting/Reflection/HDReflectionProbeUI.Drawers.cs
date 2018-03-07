@@ -167,6 +167,7 @@ namespace UnityEditor.Experimental.Rendering
 
             var blendDistance = p.blendDistancePositive.vector3Value.x;
             EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = p.blendDistancePositive.hasMultipleDifferentValues;
             blendDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."), blendDistance, 0, maxBlendDistance);
             if (EditorGUI.EndChangeCheck())
             {
@@ -176,12 +177,14 @@ namespace UnityEditor.Experimental.Rendering
 
             var blendNormalDistance = p.blendNormalDistancePositive.vector3Value.x;
             EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = p.blendNormalDistancePositive.hasMultipleDifferentValues;
             blendNormalDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."), blendNormalDistance, 0, maxBlendDistance);
             if (EditorGUI.EndChangeCheck())
             {
                 p.blendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
                 p.blendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
             }
+            EditorGUI.showMixedValue = false;
 
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Sphere Offset|The center of the sphere in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
@@ -341,7 +344,12 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.renderDynamicObjects, CoreEditorUtils.GetContent("Dynamic Objects|If enabled dynamic objects are also rendered into the cubemap"));
 
-            p.customBakedTexture.objectReferenceValue = EditorGUILayout.ObjectField(CoreEditorUtils.GetContent("Cubemap"), p.customBakedTexture.objectReferenceValue, typeof(Cubemap), false);
+            EditorGUI.showMixedValue = p.customBakedTexture.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            var customBakedTexture = EditorGUILayout.ObjectField(CoreEditorUtils.GetContent("Cubemap"), p.customBakedTexture.objectReferenceValue, typeof(Cubemap), false);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                p.customBakedTexture.objectReferenceValue = customBakedTexture;
         }
 
         static void Drawer_ModeSettingsRealtime(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
