@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UIElements
             e.StopPropagation();
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             m_TextField.value = m_Value != null ? m_Value : "";
         }

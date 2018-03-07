@@ -51,12 +51,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             if (m_ColorField != null)
                 m_ColorField.value = new Color(m_Value.x, m_Value.y, m_Value.z);
 
             m_VectorField.value = m_Value;
+            if (force)
+                m_VectorField.ForceUpdate();
         }
 
         void OnColorValueChanged()

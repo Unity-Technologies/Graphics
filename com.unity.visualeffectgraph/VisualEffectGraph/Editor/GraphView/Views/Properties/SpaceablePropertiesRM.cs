@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
@@ -113,9 +113,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
-            base.UpdateGUI();
+            base.UpdateGUI(force);
             m_VectorField.value = m_Value.vector;
         }
     }
@@ -136,9 +136,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
-            base.UpdateGUI();
+            base.UpdateGUI(force);
             m_VectorField.value = m_Value.position;
         }
     }
@@ -159,9 +159,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
-            base.UpdateGUI();
+            base.UpdateGUI(force);
             m_VectorField.value = m_Value.direction;
         }
     }
