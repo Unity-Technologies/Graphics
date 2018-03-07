@@ -15,7 +15,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef _NORMALMAP
-    #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
+    #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent.xyz, OUT.binormal.xyz, OUT.normal.xyz)
 #else
     #define OUTPUT_NORMAL(IN, OUT) OUT.normal = TransformObjectToWorldNormal(IN.normal)
 #endif
@@ -74,7 +74,11 @@ void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tan
 half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
 {
     half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
+#if !SHADER_HINT_NICE_QUALITY
+    return mul(normalTangent, tangentToWorld);
+#else
     return normalize(mul(normalTangent, tangentToWorld));
+#endif
 }
 
 // TODO: A similar function should be already available in SRP lib on master. Use that instead
