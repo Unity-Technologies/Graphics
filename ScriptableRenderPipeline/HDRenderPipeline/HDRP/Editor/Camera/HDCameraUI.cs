@@ -19,7 +19,8 @@ namespace UnityEditor.Experimental.Rendering
             Inspector = new []
             {
                 SectionPrimarySettings,
-                SectionPhysicalSettings,
+                // Not used for now
+                //SectionPhysicalSettings,
                 SectionCaptureSettings,
                 SectionOutputSettings,
                 SectionXRSettings,
