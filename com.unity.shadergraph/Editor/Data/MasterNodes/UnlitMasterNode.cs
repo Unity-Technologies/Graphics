@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    public class UnlitMasterNode : MasterNode<IUnlitSubShader>, IHasSettings
+    public class UnlitMasterNode : MasterNode<IUnlitSubShader>
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
 
 
         [SerializeField]
-        private SurfaceType m_SurfaceType;
+        SurfaceType m_SurfaceType;
 
         [EnumControl("Surface")]
         public SurfaceType surfaceType
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private AlphaMode m_AlphaMode;
+        AlphaMode m_AlphaMode;
 
         [EnumControl("Blend")]
         public AlphaMode alphaMode
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_TwoSided;
+        bool m_TwoSided;
 
         [ToggleControl("Two Sided")]
         public ToggleData twoSided
@@ -99,11 +99,6 @@ namespace UnityEditor.ShaderGraph
                 AlphaSlotId,
                 AlphaThresholdSlotId
             });
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new UnlitSettingsView(this);
         }
     }
 }
