@@ -42,6 +42,14 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
+                var uiManager = UnityObject.FindObjectOfType<DebugUIHandlerCanvas>();
+
+                // Might be needed to update the reference after domain reload
+                if (uiManager != null)
+                {
+                    m_Root = uiManager.gameObject;
+                }
+
                 return m_Root != null && m_Root.activeInHierarchy;
             }
             set

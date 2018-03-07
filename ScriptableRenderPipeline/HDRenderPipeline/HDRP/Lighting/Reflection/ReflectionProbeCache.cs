@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
-            m_TextureCache = new TextureCacheCubemap();
+            m_TextureCache = new TextureCacheCubemap("ReflectionProbe");
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeFormat, isMipmaped, m_CubeToPano);
             m_IBLFilterGGX = iblFilter;
 
@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.dimension = TextureDimension.Cube;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
-                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflection", mips : true);
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "ReflectionProbeTemp", mips : true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ConvolutionTargetTexture.dimension = TextureDimension.Cube;
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
-                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflection", mips : true);
+                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution", mips : true);
                 m_ConvolutionTargetTexture.Create();
 
                 InitializeProbeBakingStates();
@@ -83,21 +83,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Release()
         {
-            if (m_TextureCache != null)
-            {
-                m_TextureCache.Release();
-                m_TextureCache = null;
-            }
-            if (m_TempRenderTexture != null)
-            {
-                m_TempRenderTexture.Release();
-                m_TempRenderTexture = null;
-            }
-            if (m_ConvolutionTargetTexture != null)
-            {
-                m_ConvolutionTargetTexture.Release();
-                m_ConvolutionTargetTexture = null;
-            }
+            m_TextureCache.Release();
+            CoreUtils.Destroy(m_TempRenderTexture);
+            CoreUtils.Destroy(m_ConvolutionTargetTexture);
+
             m_ProbeBakingState = null;
 
             CoreUtils.Destroy(m_ConvertTextureMaterial);

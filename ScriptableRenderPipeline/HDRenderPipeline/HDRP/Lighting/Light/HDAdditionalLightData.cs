@@ -201,6 +201,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // At first init we need to initialize correctly the default value
             lightData.ConvertPhysicalLightIntensityToLightIntensity();
+
+            // Special treatment for Unity builtin area light. Change it to our rectangle light
+
+            var light = lightData.gameObject.GetComponent<Light>();
+
+            if (light.type == LightType.Area)
+            {
+                lightData.lightTypeExtent = LightTypeExtent.Rectangle;
+            }
         }
 
     }

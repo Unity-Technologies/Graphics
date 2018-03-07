@@ -231,8 +231,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
-            // We don't need the debug of Default camera at runtime (each camera have its own debug settings)
-            FrameSettings.RegisterDebug("Default Camera", m_Asset.GetFrameSettings());
+            // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
+            FrameSettings.RegisterDebug("Scene View", m_Asset.GetFrameSettings());
 #endif
 
             InitializeRenderTextures();
@@ -426,6 +426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
             m_VolumetricLightingModule.Cleanup();
+            m_IBLFilterGGX.Cleanup();
 
             DestroyRenderTextures();
 
@@ -433,6 +434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
+            FrameSettings.UnRegisterDebug("Scene View");
 #endif
         }
 
@@ -631,6 +633,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                             VolumeManager.instance.Update(camera.transform, layerMask);
                         }
+                    }
+
+                    // Disable postprocess if we enable debug mode
+                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.None && m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    {
+                        m_FrameSettings.enablePostprocess = false;
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
