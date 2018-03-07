@@ -48,14 +48,14 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
 #else
     half3 viewDir = IN.viewDir;
-    #ifdef SHADER_API_MOBILE
+    #if !SHADER_HINT_NICE_QUALITY
         inputData.normalWS = IN.normal;
     #else
         inputData.normalWS = normalize(IN.normal);
     #endif
 #endif
 
-#ifdef SHADER_API_MOBILE
+#if !SHADER_HINT_NICE_QUALITY
     // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
     inputData.viewDirectionWS = viewDir;
 #else

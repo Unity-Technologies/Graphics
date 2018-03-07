@@ -17,7 +17,7 @@
     #if defined(SHADER_API_GLES) || (SHADER_TARGET < 30) || !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
-    #elif defined(SHADER_API_MOBILE) && !defined(NICEST_QUALITY)
+    #elif !SHADER_HINT_NICE_QUALITY
         // Evaluates L2 SH in vertex and L0L1 in pixel
         #define EVALUATE_SH_MIXED
     #endif
