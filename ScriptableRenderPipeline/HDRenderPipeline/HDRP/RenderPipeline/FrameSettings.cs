@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -48,8 +49,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableShadowMask = false;
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
-
-        static DebugUI.Widget[] s_DebugEntries;
 
         public void CopyTo(FrameSettings frameSettings)
         {
@@ -219,53 +218,73 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void RegisterDebug(string menuName, FrameSettings frameSettings)
         {
-            s_DebugEntries = new DebugUI.Widget[]
+            List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
+            widgets.AddRange(
+            new DebugUI.Widget[]
             {
-                new DebugUI.BoolField { displayName = "Enable Shadows", getter = () => frameSettings.enableShadow, setter = value => frameSettings.enableShadow = value },
-                new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
-                new DebugUI.BoolField { displayName = "Enable SSR", getter = () => frameSettings.enableSSR, setter = value => frameSettings.enableSSR = value },
-                new DebugUI.BoolField { displayName = "Enable SSAO", getter = () => frameSettings.enableSSAO, setter = value => frameSettings.enableSSAO = value },
-                new DebugUI.BoolField { displayName = "Enable SubsurfaceScattering", getter = () => frameSettings.enableSubsurfaceScattering, setter = value => frameSettings.enableSubsurfaceScattering = value },
-                new DebugUI.BoolField { displayName = "Enable Transmission", getter = () => frameSettings.enableTransmission, setter = value => frameSettings.enableTransmission = value },
+                new DebugUI.Container
+                {
+                    displayName = "Rendering Passes",
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Enable Transparent Prepass", getter = () => frameSettings.enableTransparentPrepass, setter = value => frameSettings.enableTransparentPrepass = value },
+                        new DebugUI.BoolField { displayName = "Enable Transparent Postpass", getter = () => frameSettings.enableTransparentPostpass, setter = value => frameSettings.enableTransparentPostpass = value },
+                        new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
+                        new DebugUI.BoolField { displayName = "Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
+                        new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDBuffer, setter = value => frameSettings.enableDBuffer = value },
+                        new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
+                        new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
+                        new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },
+                        new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
+                    }
+                },
+                new DebugUI.Container
+                {
+                    displayName = "Rendering Settings",
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Forward Only", getter = () => frameSettings.enableForwardRenderingOnly, setter = value => frameSettings.enableForwardRenderingOnly = value },
+                        new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
+                        new DebugUI.BoolField { displayName = "Deferred Depth Prepass ATest Only", getter = () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, setter = value => frameSettings.enableAlphaTestOnlyInDeferredPrepass = value },
+                        new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
+                        new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
+                        new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
+                        new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
+                    }
+                },
+                new DebugUI.Container
+                {
+                    displayName = "XR Settings",
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Enable Stereo Rendering", getter = () => frameSettings.enableStereo, setter = value => frameSettings.enableStereo = value }
+                    }
+                },
+                new DebugUI.Container
+                {
+                    displayName = "Lighting Settings",
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Enable SSR", getter = () => frameSettings.enableSSR, setter = value => frameSettings.enableSSR = value },
+                        new DebugUI.BoolField { displayName = "Enable SSAO", getter = () => frameSettings.enableSSAO, setter = value => frameSettings.enableSSAO = value },
+                        new DebugUI.BoolField { displayName = "Enable SubsurfaceScattering", getter = () => frameSettings.enableSubsurfaceScattering, setter = value => frameSettings.enableSubsurfaceScattering = value },
+                        new DebugUI.BoolField { displayName = "Enable Transmission", getter = () => frameSettings.enableTransmission, setter = value => frameSettings.enableTransmission = value },
+                        new DebugUI.BoolField { displayName = "Enable Shadows", getter = () => frameSettings.enableShadow, setter = value => frameSettings.enableShadow = value },
+                        new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
+                        new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
+                    }
+                }
+            });
 
-                new DebugUI.BoolField { displayName = "Forward Only", getter = () => frameSettings.enableForwardRenderingOnly, setter = value => frameSettings.enableForwardRenderingOnly = value },
-                new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
-                new DebugUI.BoolField { displayName = "Deferred Depth Prepass ATest Only", getter = () => frameSettings.enableAlphaTestOnlyInDeferredPrepass, setter = value => frameSettings.enableAlphaTestOnlyInDeferredPrepass = value },
-
-                new DebugUI.BoolField { displayName = "Enable Transparent Prepass", getter = () => frameSettings.enableTransparentPrepass, setter = value => frameSettings.enableTransparentPrepass = value },
-                new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
-                new DebugUI.BoolField { displayName = "Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
-                new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDBuffer, setter = value => frameSettings.enableDBuffer = value },
-                new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
-                new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
-                new DebugUI.BoolField { displayName = "Enable Transparent Postpass", getter = () => frameSettings.enableTransparentPostpass, setter = value => frameSettings.enableTransparentPostpass = value },
-                new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },
-                new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
-
-                new DebugUI.BoolField { displayName = "Enable Stereo Rendering", getter = () => frameSettings.enableStereo, setter = value => frameSettings.enableStereo = value },
-                new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
-
-                new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
-                new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
-
-                new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
-                new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
-            };
+            LightLoopSettings.RegisterDebug(frameSettings.lightLoopSettings, widgets);
 
             var panel = DebugManager.instance.GetPanel(menuName, true);
-            panel.children.Add(s_DebugEntries);
-
-            LightLoopSettings.RegisterDebug(menuName, frameSettings.lightLoopSettings);
-       }
+            panel.children.Add(widgets.ToArray());
+        }
 
         public static void UnRegisterDebug(string menuName)
         {
-            var panel = DebugManager.instance.GetPanel(menuName);
-
-            if (panel != null)
-                panel.children.Remove(s_DebugEntries);
-
-            LightLoopSettings.UnRegisterDebug(menuName);
+            DebugManager.instance.RemovePanel(menuName);
         }
     }
 }

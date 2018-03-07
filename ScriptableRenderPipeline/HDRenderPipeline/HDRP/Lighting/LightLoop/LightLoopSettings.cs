@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -17,8 +18,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Setup by system
         public bool isFptlEnabled = true;
-
-        static DebugUI.Widget[] s_DebugEntries;
 
         public void CopyTo(LightLoopSettings lightLoopSettings)
         {
@@ -60,28 +59,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.isFptlEnabled = !aggregateFrameSettings.enableForwardRenderingOnly || aggregate.enableFptlForForwardOpaque;
         }
 
-        public static void RegisterDebug(string menuName, LightLoopSettings lightLoopSettings)
+        public static void RegisterDebug(LightLoopSettings lightLoopSettings, List<DebugUI.Widget> widgets)
         {
-            s_DebugEntries = new DebugUI.Widget[]
+            widgets.AddRange(new []
             {
-                new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => lightLoopSettings.enableFptlForForwardOpaque, setter = value => lightLoopSettings.enableFptlForForwardOpaque = value },
-                new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => lightLoopSettings.enableTileAndCluster, setter = value => lightLoopSettings.enableTileAndCluster = value },
-                new DebugUI.BoolField { displayName = "Enable Big Tile", getter = () => lightLoopSettings.enableBigTilePrepass, setter = value => lightLoopSettings.enableBigTilePrepass = value },
-                new DebugUI.BoolField { displayName = "Enable Compute Lighting", getter = () => lightLoopSettings.enableComputeLightEvaluation, setter = value => lightLoopSettings.enableComputeLightEvaluation = value },
-                new DebugUI.BoolField { displayName = "Enable Light Classification", getter = () => lightLoopSettings.enableComputeLightVariants, setter = value => lightLoopSettings.enableComputeLightVariants = value },
-                new DebugUI.BoolField { displayName = "Enable Material Classification", getter = () => lightLoopSettings.enableComputeMaterialVariants, setter = value => lightLoopSettings.enableComputeMaterialVariants = value }
-            };
-
-            var panel = DebugManager.instance.GetPanel(menuName, true);
-            panel.children.Add(s_DebugEntries);
-        }
-
-        public static void UnRegisterDebug(string menuName)
-        {
-            var panel = DebugManager.instance.GetPanel(menuName);
-
-            if (panel != null)
-                panel.children.Remove(s_DebugEntries);
+                new DebugUI.Container
+                {
+                    displayName = "Lighting Settings",
+                    children =
+                    {
+                        new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => lightLoopSettings.enableFptlForForwardOpaque, setter = value => lightLoopSettings.enableFptlForForwardOpaque = value },
+                        new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => lightLoopSettings.enableTileAndCluster, setter = value => lightLoopSettings.enableTileAndCluster = value },
+                        new DebugUI.BoolField { displayName = "Enable Big Tile", getter = () => lightLoopSettings.enableBigTilePrepass, setter = value => lightLoopSettings.enableBigTilePrepass = value },
+                        new DebugUI.BoolField { displayName = "Enable Compute Lighting", getter = () => lightLoopSettings.enableComputeLightEvaluation, setter = value => lightLoopSettings.enableComputeLightEvaluation = value },
+                        new DebugUI.BoolField { displayName = "Enable Light Classification", getter = () => lightLoopSettings.enableComputeLightVariants, setter = value => lightLoopSettings.enableComputeLightVariants = value },
+                        new DebugUI.BoolField { displayName = "Enable Material Classification", getter = () => lightLoopSettings.enableComputeMaterialVariants, setter = value => lightLoopSettings.enableComputeMaterialVariants = value }
+                    }
+                }
+            });
         }
     }
 }

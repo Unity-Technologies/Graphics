@@ -415,6 +415,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
+                m_AdditionalLightData.fadeDistance.floatValue = Mathf.Max(m_AdditionalLightData.fadeDistance.floatValue, 0.01f);
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
         }
@@ -504,7 +505,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var type = settings.lightType;
 
             // Special case for multi-selection: don't resolve light shape or it'll corrupt lights
-            if (type.hasMultipleDifferentValues)
+            if (type.hasMultipleDifferentValues
+                || m_AdditionalLightData.lightTypeExtent.hasMultipleDifferentValues)
             {
                 m_LightShape = (LightShape)(-1);
                 return;

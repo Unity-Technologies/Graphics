@@ -5,6 +5,14 @@
 #include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "Input.hlsl"
 
+#if !defined(SHADER_HINT_NICE_QUALITY)
+#ifdef SHADER_API_MOBILE
+#define SHADER_HINT_NICE_QUALITY 0
+#else
+#define SHADER_HINT_NICE_QUALITY 1
+#endif
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent.xyz, OUT.binormal.xyz, OUT.normal.xyz)

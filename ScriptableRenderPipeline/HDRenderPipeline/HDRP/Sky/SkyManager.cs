@@ -199,6 +199,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Cleanup()
         {
             CoreUtils.Destroy(m_StandardSkyboxMaterial);
+            CoreUtils.Destroy(m_BlitCubemapMaterial);
+            CoreUtils.Destroy(m_OpaqueAtmScatteringMaterial);
 
             m_BakingSky.Cleanup();
             m_VisualSky.Cleanup();
