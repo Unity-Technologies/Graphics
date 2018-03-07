@@ -732,7 +732,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? msaaSamples : 1;
             m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
 
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture) || m_RequireDepthTexture)
                 SetupIntermediateRenderTextures(cmd, renderingConfig, msaaSamples);
 
             context.ExecuteCommandBuffer(cmd);
