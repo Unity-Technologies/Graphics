@@ -40,6 +40,21 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static void GetOutputWithExpressionSlotRecursive(List<VFXSlot> result, IEnumerable<VFXSlot> slots)
+        {
+            foreach (var s in slots)
+            {
+                if (s.DefaultExpr != null) /* actually GetExpression, but this way, we avoid a recursion  */
+                {
+                    result.Add(s);
+                }
+                else
+                {
+                    GetOutputWithExpressionSlotRecursive(result, s.children);
+                }
+            }
+        }
+
         protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         // As connections changed can be triggered from ResyncSlots, we need to make sure it is not reentrant
@@ -81,12 +96,13 @@ namespace UnityEditor.VFX
 
         protected void SetOutputExpressions(VFXExpression[] outputExpressions)
         {
-            if (outputExpressions.Length != GetNbOutputSlots())
-                throw new Exception(string.Format("Numbers of ouput expressions ({0}) does not match number of output slots ({1})", outputExpressions.Length, GetNbOutputSlots()));
+            var outputSlotWithExpression = new List<VFXSlot>();
+            GetOutputWithExpressionSlotRecursive(outputSlotWithExpression, outputSlots);
+            if (outputExpressions.Length != outputSlotWithExpression.Count)
+                throw new Exception(string.Format("Numbers of output expressions ({0}) does not match number of output (with expression)s slots ({1})", outputExpressions.Length, outputSlotWithExpression.Count));
 
-            int i = 0;
-            foreach (var slot in outputSlots)
-                slot.SetExpression(outputExpressions[i++]);
+            for (int i = 0; i < outputSlotWithExpression.Count; ++i)
+                outputSlotWithExpression[i].SetExpression(outputExpressions[i]);
         }
 
         public override void UpdateOutputExpressions()
