@@ -289,7 +289,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
-            Undo.RecordObject(model, "VFXSlotValue");
+            Undo.RecordObject(model.GetMasterSlot(), "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
             model.value = value;
         }
 
