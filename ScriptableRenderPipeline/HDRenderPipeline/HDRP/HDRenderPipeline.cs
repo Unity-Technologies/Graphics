@@ -1480,8 +1480,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
             PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.depthPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
-
-            cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_BufferPyramid.depthPyramid);
         }
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
