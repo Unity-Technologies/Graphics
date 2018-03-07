@@ -68,8 +68,8 @@ namespace UnityEditor.Experimental.Rendering
         {
             operations = 0;
 
-            SetModeTarget(data.mode.intValue);
-            SetShapeTarget(data.influenceShape.intValue);
+            SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
+            SetShapeTarget(data.influenceShape.hasMultipleDifferentValues ? -1 : data.influenceShape.intValue);
 
             isSectionExpandedSeparateProjection.value = data.useSeparateProjectionVolume.boolValue;
             base.Update();
