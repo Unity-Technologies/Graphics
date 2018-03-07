@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    public class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequireNormal, IHasSettings
+    public class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequireNormal
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private Model m_Model = Model.Metallic;
+        Model m_Model = Model.Metallic;
 
         [EnumControl("Workflow")]
         public Model model
@@ -59,41 +59,47 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private SurfaceType m_SurfaceType;
+        SurfaceType m_SurfaceType;
 
-        [EnumControl("Surface")]
-        public SurfaceType surfaceType
+        [SerializeField]
+        bool m_SurfaceTypeHasValue;
+
+        public SurfaceType? surfaceType
         {
-            get { return m_SurfaceType; }
+            get { return m_SurfaceTypeHasValue ? (SurfaceType?)m_SurfaceType : null; }
             set
             {
                 if (m_SurfaceType == value)
                     return;
 
-                m_SurfaceType = value;
-                Dirty(ModificationScope.Graph);
+                if (value.HasValue)
+                    m_SurfaceType = value.Value;
+                m_SurfaceTypeHasValue = value.HasValue;
             }
         }
 
         [SerializeField]
-        private AlphaMode m_AlphaMode;
+        AlphaMode m_AlphaMode;
 
-        [EnumControl("Blend")]
-        public AlphaMode alphaMode
+        [SerializeField]
+        bool m_AlphaModeHasValue;
+
+        public AlphaMode? alphaMode
         {
-            get { return m_AlphaMode; }
+            get { return m_AlphaModeHasValue ? (AlphaMode?)m_AlphaMode : null; }
             set
             {
                 if (m_AlphaMode == value)
                     return;
 
-                m_AlphaMode = value;
-                Dirty(ModificationScope.Graph);
+                if (value.HasValue)
+                    m_AlphaMode = value.Value;
+                m_AlphaModeHasValue = value.HasValue;
             }
         }
 
         [SerializeField]
-        private bool m_TwoSided;
+        bool m_TwoSided;
 
         [ToggleControl("Two Sided")]
         public ToggleData twoSided
@@ -155,11 +161,6 @@ namespace UnityEditor.ShaderGraph
             List<ISlot> slots = new List<ISlot>();
             GetSlots(slots);
             return slots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new PBRSettingsView(this);
         }
     }
 }

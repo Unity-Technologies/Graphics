@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -95,6 +96,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot != null)
                     slots.Add(slot);
             }
+
             GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
             var usedSlots = new List<MaterialSlot>();
@@ -147,8 +149,8 @@ namespace UnityEditor.ShaderGraph
             foreach (var slot in usedSlots)
             {
                 surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
-                                                  + " = surf."
-                                                  + slot.shaderOutputName + ";", true);
+                    + " = surf."
+                    + slot.shaderOutputName + ";", true);
             }
 
             if (!File.Exists(templateLocation))
@@ -171,6 +173,8 @@ namespace UnityEditor.ShaderGraph
             resultPass = resultPass.Replace("${LOD}", "" + materialOptions.lod);
             return resultPass;
         }
+
+        public IMasterNode owner { get; set; }
 
         public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
         {
@@ -199,6 +203,15 @@ namespace UnityEditor.ShaderGraph
             subShader.AddShaderChunk("}", true);
 
             return subShader.GetShaderString(0);
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return null;
+        }
+
+        public void UpdateAfterDeserialization()
+        {
         }
     }
 }
