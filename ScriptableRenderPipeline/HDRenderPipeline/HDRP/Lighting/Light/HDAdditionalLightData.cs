@@ -206,9 +206,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var light = lightData.gameObject.GetComponent<Light>();
 
-            if (light.type == LightType.Area)
+            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
+            if (light.type == LightType.Area && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
+                light.type = LightType.Point; // Same as in HDLightEditor
             }
         }
 

@@ -5,9 +5,17 @@
 #include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "Input.hlsl"
 
+#if !defined(SHADER_HINT_NICE_QUALITY)
+#ifdef SHADER_API_MOBILE
+#define SHADER_HINT_NICE_QUALITY 0
+#else
+#define SHADER_HINT_NICE_QUALITY 1
+#endif
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef _NORMALMAP
-    #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent, OUT.binormal, OUT.normal)
+    #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent.xyz, OUT.binormal.xyz, OUT.normal.xyz)
 #else
     #define OUTPUT_NORMAL(IN, OUT) OUT.normal = TransformObjectToWorldNormal(IN.normal)
 #endif
@@ -38,10 +46,10 @@ void AlphaDiscard(half alpha, half cutoff)
 
 half3 UnpackNormal(half4 packedNormal)
 {
-    // Compiler will optimize the scale away
 #if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGB(packedNormal, 1.0);
+    return UnpackNormalRGBNoScale(packedNormal);
 #else
+        // Compiler will optimize the scale away
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
 #endif
 }
@@ -66,7 +74,11 @@ void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tan
 half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
 {
     half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
+#if !SHADER_HINT_NICE_QUALITY
+    return mul(normalTangent, tangentToWorld);
+#else
     return normalize(mul(normalTangent, tangentToWorld));
+#endif
 }
 
 // TODO: A similar function should be already available in SRP lib on master. Use that instead

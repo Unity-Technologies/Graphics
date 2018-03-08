@@ -136,6 +136,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
+        private const int kShadowBufferBits = 16;
         private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
         private Vector4 m_DirectionalShadowSplitRadii;
 
@@ -1194,7 +1195,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var cmd = CommandBufferPool.Get("Prepare Shadowmap");
             cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
-                m_ShadowSettings.shadowAtlasHeight, kDepthStencilBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
+                m_ShadowSettings.shadowAtlasHeight, kShadowBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
             // LightweightPipeline.SetRenderTarget is meant to be used with camera targets, not shadowmaps
             CoreUtils.SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
 
