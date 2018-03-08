@@ -267,6 +267,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Rectangle:
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Area;
+                    // In case of change, think to update InitDefaultHDAdditionalLightData()
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthRect);
