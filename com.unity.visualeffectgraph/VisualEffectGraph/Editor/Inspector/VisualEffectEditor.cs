@@ -13,6 +13,7 @@ using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.UIElements.GraphView;
 using EditMode = UnityEditorInternal.EditMode;
 using UnityObject = UnityEngine.Object;
+using System.Reflection;
 
 
 static class VisualEffectEditorStyles
@@ -28,8 +29,11 @@ static class VisualEffectEditorStyles
         Stop
     }
 
+    public static readonly GUIStyle toggleStyle;
+
     static VisualEffectEditorStyles()
     {
+        toggleStyle = new GUIStyle("ShurikenCheckMark");
         m_Icons = new GUIContent[1 + (int)Icon.Stop];
         for (int i = 0; i <= (int)Icon.Stop; ++i)
         {
@@ -269,11 +273,34 @@ public class VisualEffectEditor : Editor
         m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
+        //EditorApplication.contextualPropertyMenu += PropertyMenuCallback;
+
         InitSlots();
 
         m_Infos.Clear();
     }
 
+    /*
+    void PropertyMenuCallback(GenericMenu menu, SerializedProperty property)
+    {
+        if (property.serializedObject == serializedObject && property.propertyPath.StartsWith("m_PropertySheet.") && property.propertyPath.EndsWith(".m_Value"))
+        {
+            menu.AddItem(EditorGUIUtility.TrTextContent("Revert to VisuaEffect Asset Value"), false, OnRevertToAsset, property.propertyPath);
+        }
+    }
+
+    void OnRevertToAsset(object pp)
+    {
+        string propertyPath = (string)pp;
+
+        string overridePath = propertyPath.Substring(0, propertyPath.Length - "m_Value".Length) + "m_Overridden";
+
+        var overrideProperty = serializedObject.FindProperty(overridePath);
+        if (overrideProperty != null)
+            overrideProperty.boolValue = false;
+        serializedObject.ApplyModifiedProperties();
+    }
+    */
     void OnDisable()
     {
         VisualEffect effect = ((VisualEffect)targets[0]);
@@ -282,6 +309,7 @@ public class VisualEffectEditor : Editor
             effect.pause = false;
             effect.playRate = 1.0f;
         }
+        //EditorApplication.contextualPropertyMenu -= PropertyMenuCallback;
     }
 
     struct Infos
@@ -292,73 +320,155 @@ public class VisualEffectEditor : Editor
 
     Dictionary<VFXParameterNodeController, Infos> m_Infos = new Dictionary<VFXParameterNodeController, Infos>();
 
+    struct FieldData
+    {
+        public System.Type type;
+        public string exposedName;
+        public string fieldName;
+        public RangeAttribute rangeAttribute;
+    }
+    void RecurseAddFieldNames(System.Type type, string rootName, List<FieldData> fieldNames)
+    {
+        if (type.IsValueType)
+        {
+            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+            foreach (var field in fields)
+            {
+                string fieldName = VisualEffectUtility.GetTypeField(field.FieldType);
+
+                string name = rootName + "_" + field.Name;
+                if (fieldName != null)
+                {
+                    fieldNames.Add(new FieldData { type = field.FieldType, fieldName = fieldName, exposedName = name, rangeAttribute = field.GetCustomAttributes(true).OfType<RangeAttribute>().FirstOrDefault() });
+                }
+                else
+                {
+                    RecurseAddFieldNames(field.FieldType, name, fieldNames);
+                }
+            }
+        }
+    }
+
+    void DisplayProperty(FieldData field, SerializedProperty overrideProperty, SerializedProperty property)
+    {
+        EditorGUILayout.BeginHorizontal();
+
+        GUIContent nameContent = EditorGUIUtility.TextContent(field.exposedName);
+
+        if (!overrideProperty.hasMultipleDifferentValues)
+        {
+            bool result = EditorGUILayout.Toggle(overrideProperty.boolValue, VisualEffectEditorStyles.toggleStyle, GUILayout.Width(16));
+
+            if (overrideProperty.boolValue != result)
+            {
+                overrideProperty.boolValue = result;
+            }
+        }
+        else
+        {
+            //TODO what to do with multiple value
+        }
+
+        EditorGUI.BeginChangeCheck();
+        if (field.rangeAttribute != null)
+        {
+            if (field.type == typeof(float))
+                EditorGUILayout.Slider(property, field.rangeAttribute.min, field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
+            else
+                EditorGUILayout.IntSlider(property, (int)field.rangeAttribute.min, (int)field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
+        }
+        else if (field.type == typeof(Color))
+        {
+            Vector4 vVal = property.vector4Value;
+            Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
+            c = EditorGUILayout.ColorField(nameContent, c, true, true, true);
+
+            if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
+                property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
+        }
+        else if (field.type == typeof(Vector4))
+        {
+            var oldVal = property.vector4Value;
+            var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
+            if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+            {
+                property.vector4Value = newVal;
+            }
+        }
+        else
+        {
+            EditorGUILayout.PropertyField(property, nameContent, true);
+        }
+        if (EditorGUI.EndChangeCheck())
+        {
+            overrideProperty.boolValue = true;
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
     void OnParamGUI(VFXParameter parameter)
     {
         VisualEffect comp = (VisualEffect)target;
 
-        string fieldName = VisualEffectUtility.GetTypeField(parameter.type);
+        string rootFieldName = VisualEffectUtility.GetTypeField(parameter.type);
 
 
-        var vfxField = m_VFXPropertySheet.FindPropertyRelative(fieldName + ".m_Array");
-        SerializedProperty property = null;
-        if (vfxField != null)
+        List<FieldData> fieldNames = new List<FieldData>();
+
+        if (rootFieldName != null)
         {
-            for (int i = 0; i < vfxField.arraySize; ++i)
+            RangeAttribute rangeAttribute = null;
+            if (parameter.hasRange)
             {
-                property = vfxField.GetArrayElementAtIndex(i);
-                var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                if (nameProperty == parameter.exposedName)
-                {
-                    break;
-                }
-                property = null;
+                float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
+                float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
+                rangeAttribute = new RangeAttribute(min, max);
             }
+            fieldNames.Add(new FieldData { type = parameter.type, fieldName = rootFieldName, exposedName = parameter.exposedName, rangeAttribute = rangeAttribute });
         }
-        if (property != null)
+        else // check for a vfx type.
         {
-            SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
-            property = property.FindPropertyRelative("m_Value");
-            string firstpropName = property.name;
+            RecurseAddFieldNames(parameter.type, parameter.exposedName, fieldNames);
+        }
 
-            Color previousColor = GUI.color;
-            var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
-            if (animated)
+        foreach (var field in fieldNames)
+        {
+            var vfxField = m_VFXPropertySheet.FindPropertyRelative(field.fieldName + ".m_Array");
+            SerializedProperty property = null;
+            if (vfxField != null)
             {
-                GUI.color = AnimationMode.animatedPropertyColor;
-            }
-
-            EditorGUIUtility.SetBoldDefaultFont(overrideProperty.boolValue);
-
-            EditorGUI.BeginChangeCheck();
-            if (parameter.type == typeof(Color))
-            {
-                Vector4 vVal = property.vector4Value;
-                Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
-                c = EditorGUILayout.ColorField(EditorGUIUtility.TextContent(parameter.exposedName), c, true, true, true);
-
-                if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
-                    property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
-            }
-            else if (parameter.type == typeof(Vector4))
-            {
-                var oldVal = property.vector4Value;
-                var newVal = EditorGUILayout.Vector4Field(parameter.exposedName, oldVal);
-                if (oldVal.x != newVal.x || oldVal.y != newVal.y || oldVal.z != newVal.z || oldVal.w != newVal.w)
+                for (int i = 0; i < vfxField.arraySize; ++i)
                 {
-                    property.vector4Value = newVal;
+                    property = vfxField.GetArrayElementAtIndex(i);
+                    var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                    if (nameProperty == field.exposedName)
+                    {
+                        break;
+                    }
+                    property = null;
                 }
             }
-            else
-                EditorGUILayout.PropertyField(property, new GUIContent(parameter.exposedName), true);
-
-            if (EditorGUI.EndChangeCheck())
+            if (property != null)
             {
-                overrideProperty.boolValue = true;
-            }
+                SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
+                property = property.FindPropertyRelative("m_Value");
+                string firstpropName = property.name;
 
-            if (animated)
-            {
-                GUI.color = previousColor;
+                Color previousColor = GUI.color;
+                var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
+                if (animated)
+                {
+                    GUI.color = AnimationMode.animatedPropertyColor;
+                }
+
+                DisplayProperty(field, overrideProperty, property);
+
+                if (animated)
+                {
+                    GUI.color = previousColor;
+                }
             }
         }
     }

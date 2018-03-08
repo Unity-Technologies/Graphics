@@ -136,6 +136,15 @@ namespace UnityEditor.VFX.UI
 
         protected abstract void UpdateEnabled();
 
+
+        public void ForceUpdate()
+        {
+            SetValue(m_Provider.value);
+            UpdateGUI(true);
+        }
+
+        public abstract void UpdateGUI(bool force);
+
         public void Update()
         {
             if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
@@ -377,15 +386,13 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            UpdateGUI();
+            UpdateGUI(false);
         }
 
         public override object GetValue()
         {
             return m_Value;
         }
-
-        public abstract void UpdateGUI();
 
         protected T m_Value;
     }
@@ -420,7 +427,7 @@ namespace UnityEditor.VFX.UI
         }
 
         protected ValueControl<T> m_Field;
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             m_Field.SetValue(m_Value);
         }
@@ -481,13 +488,13 @@ namespace UnityEditor.VFX.UI
 
         protected INotifyValueChanged<U> field
         {
-            get {return m_Field; }
+            get { return m_Field; }
         }
 
-        protected virtual bool HasFocus() {return false; }
-        public override void UpdateGUI()
+        protected virtual bool HasFocus() { return false; }
+        public override void UpdateGUI(bool force)
         {
-            if (!HasFocus())
+            if (!HasFocus() || force)
             {
                 try
                 {
@@ -501,6 +508,31 @@ namespace UnityEditor.VFX.UI
         }
 
         public override bool showsEverything { get { return true; } }
+    }
+
+    abstract class SimpleVFXUIPropertyRM<T, U> : SimpleUIPropertyRM<U, U> where T : VFXControl<U>, new()
+    {
+        public SimpleVFXUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+        }
+
+        public override INotifyValueChanged<U> CreateField()
+        {
+            var field = new VFXLabeledField<T, U>(m_Label);
+
+            return field;
+        }
+
+        protected T fieldControl
+        {
+            get { return (base.field as VFXLabeledField<T, U>).control; }
+        }
+        public override void UpdateGUI(bool force)
+        {
+            base.UpdateGUI(force);
+            if (force)
+                fieldControl.ForceUpdate();
+        }
     }
 
 
@@ -525,6 +557,10 @@ namespace UnityEditor.VFX.UI
         }
 
         public EmptyPropertyRM(IPropertyRMProvider provider, float labelWidth) : base(provider, labelWidth)
+        {
+        }
+
+        public override void UpdateGUI(bool force)
         {
         }
 

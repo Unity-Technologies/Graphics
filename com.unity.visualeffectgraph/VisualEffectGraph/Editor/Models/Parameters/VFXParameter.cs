@@ -27,6 +27,36 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Max;
 
+        public bool canHaveRange
+        {
+            get
+            {
+                return type == typeof(float) || type == typeof(int) || type == typeof(uint);
+            }
+        }
+
+        public bool hasRange
+        {
+            get { return canHaveRange && m_Min != null && m_Min.type != null && m_Max != null && m_Max.type != null; }
+
+            set
+            {
+                if (value != hasRange)
+                {
+                    if (value)
+                    {
+                        m_Min = new VFXSerializableObject(type);
+                        m_Max = new VFXSerializableObject(type);
+                    }
+                    else
+                    {
+                        m_Min = null;
+                        m_Max = null;
+                    }
+                }
+            }
+        }
+
         [System.Serializable]
         public struct NodeLinkedSlot
         {
@@ -133,10 +163,35 @@ namespace UnityEditor.VFX
 
             if (cause == InvalidationCause.kSettingChanged)
             {
-                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
-                outputSlots[0].InvalidateExpressionTree();
-                Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
+                var valueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+                bool valueExprChanged = true;
+                if (m_ValueExpr.Length == valueExpr.Length)
+                {
+                    valueExprChanged = false;
+                    for (int i = 0; i < m_ValueExpr.Length; ++i)
+                    {
+                        if (m_ValueExpr[i].ValueMode != valueExpr[i].ValueMode
+                            ||  m_ValueExpr[i].valueType != valueExpr[i].valueType)
+                        {
+                            valueExprChanged = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (valueExprChanged)
+                {
+                    m_ValueExpr = valueExpr;
+                    outputSlots[0].InvalidateExpressionTree();
+                    Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
+                }
+                /* TODO : Allow VisualEffectApi to update only exposed name */
+                else if (exposed)
+                {
+                    Invalidate(InvalidationCause.kExpressionGraphChanged);
+                }
             }
+
             if (cause == InvalidationCause.kParamChanged)
             {
                 for (int i = 0; i < m_ExprSlots.Length; ++i)

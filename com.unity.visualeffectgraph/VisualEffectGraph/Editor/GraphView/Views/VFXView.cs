@@ -414,6 +414,16 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(OnDragPerform);
 
             graphViewChanged = VFXGraphViewChanged;
+
+            Undo.undoRedoPerformed = OnUndoPerformed;
+        }
+
+        void OnUndoPerformed()
+        {
+            foreach (var anchor in allDataAnchors)
+            {
+                anchor.ForceUpdate();
+            }
         }
 
         void ToggleBlackboard()
