@@ -26,6 +26,17 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                foreach (var param in GetExpressionsFromSlots(this))
+                    yield return param;
+
+                yield return new VFXNamedExpression(VFXOperatorUtility.OneExpression[3] / inputSlots[0][1].GetExpression(), "invVolumeSize");
+            }
+        }
+
         public override string source
         {
             get
@@ -35,7 +46,7 @@ float3 halfSize = Volume_size * 0.5;
 
 // Warp positions
 float3 delta = (position - Volume_center) + halfSize;
-delta = delta - floor(delta / Volume_size) * Volume_size;
+delta = frac(delta * invVolumeSize) * Volume_size;
 position = Volume_center + delta - halfSize;
 ";
             }
