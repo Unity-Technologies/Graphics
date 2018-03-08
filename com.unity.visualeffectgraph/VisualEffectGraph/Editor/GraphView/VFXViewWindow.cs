@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
@@ -49,13 +51,30 @@ namespace  UnityEditor.VFX.UI
         }
         public void LoadAsset(VisualEffectAsset asset)
         {
-            if (graphView.controller == null || graphView.controller.model != asset)
-            {
-                bool differentAsset = asset != m_DisplayedAsset;
+            string assetPath = AssetDatabase.GetAssetPath(asset);
 
-                m_AssetName = asset.name;
-                m_DisplayedAsset = asset;
-                graphView.controller = VFXViewController.GetController(asset, true);
+            VisualEffectResource resource = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VisualEffectResource>().FirstOrDefault();
+
+            //Transitionning code
+            if (resource == null)
+            {
+                resource = new VisualEffectResource();
+
+                AssetDatabase.AddObjectToAsset(resource, AssetDatabase.GetAssetPath(asset));
+            }
+
+            LoadResource(resource);
+        }
+
+        public void LoadResource(VisualEffectResource resource)
+        {
+            if (graphView.controller == null || graphView.controller.model != resource)
+            {
+                bool differentAsset = resource != m_DisplayedAsset;
+
+                m_AssetName = resource.name;
+                m_DisplayedAsset = resource;
+                graphView.controller = VFXViewController.GetController(resource, true);
 
                 if (differentAsset)
                 {
@@ -64,16 +83,32 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        protected VisualEffectAsset GetCurrentAsset()
+        protected VisualEffectResource GetCurrentAsset()
         {
             var objs = Selection.objects;
 
-            VisualEffectAsset selectedAsset = null;
-            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
+            VisualEffectResource selectedAsset = null;
+            if (objs != null && objs.Length == 1)
             {
-                selectedAsset = objs[0] as VisualEffectAsset;
+                if (objs[0] is VisualEffectAsset)
+                {
+                    VisualEffectAsset asset = objs[0] as VisualEffectAsset;
+
+                    selectedAsset = asset.GetResource();
+                    //Transitionning code
+                    if (selectedAsset == null)
+                    {
+                        selectedAsset = new VisualEffectResource();
+
+                        AssetDatabase.AddObjectToAsset(selectedAsset, AssetDatabase.GetAssetPath(asset));
+                    }
+                }
+                else if (objs[0] is VisualEffectResource)
+                {
+                    selectedAsset = objs[0] as VisualEffectResource;
+                }
             }
-            else if (m_DisplayedAsset != null)
+            if (selectedAsset == null && m_DisplayedAsset != null)
             {
                 selectedAsset = m_DisplayedAsset;
             }
@@ -89,10 +124,10 @@ namespace  UnityEditor.VFX.UI
             this.GetRootVisualContainer().Add(graphView);
 
 
-            VisualEffectAsset currentAsset = GetCurrentAsset();
+            var currentAsset = GetCurrentAsset();
             if (currentAsset != null)
             {
-                LoadAsset(currentAsset);
+                LoadResource(currentAsset);
             }
 
             autoCompile = true;
@@ -176,7 +211,7 @@ namespace  UnityEditor.VFX.UI
         }
 
         [SerializeField]
-        private VisualEffectAsset m_DisplayedAsset;
+        private VisualEffectResource m_DisplayedAsset;
 
         [SerializeField]
         Vector3 m_ViewPosition;

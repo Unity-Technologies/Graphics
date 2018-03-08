@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 
 using Object = UnityEngine.Object;
 
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         private int m_lastGraphUndoCursor;
     }
 
-    partial class VFXViewController : Controller<VisualEffectAsset>
+    partial class VFXViewController : Controller<VisualEffectResource>
     {
         [NonSerialized]
         private bool m_reentrant;

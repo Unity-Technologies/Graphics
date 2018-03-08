@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -30,7 +31,7 @@ namespace UnityEditor.VFX
 
         public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
-            List<VFXSystemDesc> outSystemDescs,
+            List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex)
@@ -42,7 +43,7 @@ namespace UnityEditor.VFX
             foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                 mappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
-            var task = new VFXTaskDesc()
+            var task = new VFXEditorTaskDesc()
             {
                 processor = shader,
                 values = mappings.ToArray(),
@@ -68,9 +69,9 @@ namespace UnityEditor.VFX
             if (subMaskIndex != -1)
                 mappings.Add(new VFXMapping("subMeshMask", subMaskIndex));
 
-            outSystemDescs.Add(new VFXSystemDesc()
+            outSystemDescs.Add(new VFXEditorSystemDesc()
             {
-                tasks = new VFXTaskDesc[1] { task },
+                tasks = new VFXEditorTaskDesc[1] { task },
                 values = mappings.ToArray(),
                 type = VFXSystemType.Mesh,
             });

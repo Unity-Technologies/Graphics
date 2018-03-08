@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -149,7 +149,7 @@ namespace UnityEditor.VFX
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
-                VisualEffectAsset asset = GetAsset();
+                VisualEffectResource asset = GetAsset();
                 if (asset != null)
                 {
                     var settings = asset.rendererSettings;

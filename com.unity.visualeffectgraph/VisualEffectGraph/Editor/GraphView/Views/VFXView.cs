@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -468,7 +469,7 @@ namespace UnityEditor.VFX.UI
                     m_ToggleDebug.on = controller.graph.displaySubAssets;
 
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
-                    VisualEffectAsset asset = controller.model;
+                    var asset = controller.model;
                     if (asset == null)
                     {
                         this.controller = null;
@@ -800,10 +801,10 @@ namespace UnityEditor.VFX.UI
 
         public void CreateTemplateSystem(string path, Vector2 tPos)
         {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            if (asset != null)
+            var resource = AssetDatabase.LoadAllAssetsAtPath(path).OfType<VisualEffectResource>().FirstOrDefault();
+            if (resource != null)
             {
-                VFXViewController templateController = VFXViewController.GetController(asset, true);
+                VFXViewController templateController = VFXViewController.GetController(resource, true);
                 templateController.useCount++;
 
                 var data = VFXCopyPaste.SerializeElements(templateController.allChildren, Rect.zero);

@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEngine.Graphing;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
@@ -272,7 +271,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VisualEffectAsset GetAsset()
+        public VisualEffectResource GetAsset()
         {
             var graph = GetGraph();
             if (graph != null)

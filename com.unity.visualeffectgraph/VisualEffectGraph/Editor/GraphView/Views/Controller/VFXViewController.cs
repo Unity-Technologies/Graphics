@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
-    internal partial class VFXViewController : Controller<VisualEffectAsset>
+    internal partial class VFXViewController : Controller<VisualEffectResource>
     {
         private int m_UseCount;
         public int useCount
@@ -885,10 +885,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static Dictionary<VisualEffectAsset, VFXViewController> s_Controllers = new Dictionary<VisualEffectAsset, VFXViewController>();
+        static Dictionary<VisualEffectResource, VFXViewController> s_Controllers = new Dictionary<VisualEffectResource, VFXViewController>();
 
-        public static VFXViewController GetController(VisualEffectAsset asset, bool forceUpdate = false)
+        public static VFXViewController GetController(VisualEffectResource asset, bool forceUpdate = false)
         {
+            //TRANSITION : delete VFXAsset as it should be in Library
+
+            string assetPath = AssetDatabase.GetAssetPath(asset);
+
+
             VFXViewController controller;
             if (!s_Controllers.TryGetValue(asset, out controller))
             {
@@ -915,7 +920,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewController(VisualEffectAsset vfx) : base(vfx)
+        VFXViewController(VisualEffectResource vfx) : base(vfx)
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 

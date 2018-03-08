@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -261,7 +262,7 @@ namespace UnityEditor.VFX
 
         public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
-            List<VFXSystemDesc> outSystemDescs,
+            List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex)
@@ -335,7 +336,7 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
             }
 
-            var taskDescs = new List<VFXTaskDesc>();
+            var taskDescs = new List<VFXEditorTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
 
@@ -346,7 +347,7 @@ namespace UnityEditor.VFX
 
                 var contextData = contextToCompiledData[context];
 
-                var taskDesc = new VFXTaskDesc();
+                var taskDesc = new VFXEditorTaskDesc();
                 taskDesc.type = context.taskType;
 
                 bufferMappings.Clear();
@@ -380,12 +381,12 @@ namespace UnityEditor.VFX
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).ToArray();
-                taskDesc.processor = contextToCompiledData[context].processor;
+                taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
 
                 taskDescs.Add(taskDesc);
             }
 
-            outSystemDescs.Add(new VFXSystemDesc()
+            outSystemDescs.Add(new VFXEditorSystemDesc()
             {
                 flags = systemFlag,
                 tasks = taskDescs.ToArray(),

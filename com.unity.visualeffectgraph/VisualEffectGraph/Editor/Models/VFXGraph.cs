@@ -24,12 +24,12 @@ namespace UnityEditor.VFX
         [MenuItem("VFX Editor/Build VFXCache")]
         public static void Build()
         {
-            var vfxAssets = new List<VisualEffectAsset>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
+            var vfxAssets = new List<VisualEffectResource>();
+            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectResource");
             foreach (var guid in vfxAssetsGuid)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+                var vfxAsset = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VisualEffectResource>().FirstOrDefault();
                 if (vfxAsset != null)
                 {
                     vfxAssets.Add(vfxAsset);
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
 
             foreach (var vfxAsset in vfxAssets)
             {
-                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset.GetInstanceID())));
+                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
                 vfxAsset.GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetOrCreateGraph().OnSaved();
             }
@@ -47,22 +47,6 @@ namespace UnityEditor.VFX
     }
 #endif
 
-
-    public class VisualEffectAssetPostProcessor : AssetPostprocessor
-    {
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            foreach (var path in importedAssets)
-            {
-                VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                if (asset != null)
-                {
-                    asset.GetOrCreateGraph();
-                }
-            }
-        }
-    }
-
     public class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         static string[] OnWillSaveAssets(string[] paths)
@@ -70,7 +54,7 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VisualEffectAssetModicationProcessor.OnWillSaveAssets");
             foreach (string path in paths)
             {
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+                var vfxAsset = AssetDatabase.LoadAllAssetsAtPath(path).OfType<VisualEffectResource>().FirstOrDefault();
                 if (vfxAsset != null)
                 {
                     var graph = vfxAsset.GetOrCreateGraph();
@@ -84,9 +68,17 @@ namespace UnityEditor.VFX
 
     static class VisualEffectAssetExtensions
     {
-        public static VFXGraph GetOrCreateGraph(this VisualEffectAsset asset)
+        public static VFXGraph GetOrCreateGraph(this VisualEffectResource asset)
         {
             ScriptableObject g = asset.graph;
+            if (g == null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                AssetDatabase.ImportAsset(assetPath);
+                // LoadAssetAtpath does not work here
+                g = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VFXGraph>().FirstOrDefault();
+            }
+
             if (g == null)
             {
                 g = ScriptableObject.CreateInstance<VFXGraph>();
@@ -101,15 +93,22 @@ namespace UnityEditor.VFX
             return graph;
         }
 
-        public static void UpdateSubAssets(this VisualEffectAsset asset)
+        public static void UpdateSubAssets(this VisualEffectResource asset)
         {
             asset.GetOrCreateGraph().UpdateSubAssets();
+        }
+
+        public static VisualEffectResource GetResource(this VisualEffectAsset asset)
+        {
+            VisualEffectResource resource = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset)).OfType<VisualEffectResource>().FirstOrDefault();
+
+            return resource;
         }
     }
 
     class VFXGraph : VFXModel
     {
-        public VisualEffectAsset visualEffectAsset
+        public VisualEffectResource visualEffectAsset
         {
             get
             {
@@ -120,6 +119,7 @@ namespace UnityEditor.VFX
                 if (m_Owner != value)
                 {
                     m_Owner = value;
+                    m_Owner.graph = this;
                     m_ExpressionGraphDirty = true;
                 }
             }
@@ -476,6 +476,6 @@ namespace UnityEditor.VFX
 
         public bool saved { get { return m_saved; } }
 
-        private VisualEffectAsset m_Owner;
+        private VisualEffectResource m_Owner;
     }
 }

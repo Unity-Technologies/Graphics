@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEditor.VFX;
@@ -34,12 +35,12 @@ namespace UnityEditor
         [MenuItem("Assets/Create/Visual Effect", false, 306)]
         public static void CreateVisualEffectAsset()
         {
-            VisualEffectAsset asset = new VisualEffectAsset();
+            VisualEffectResource asset = new VisualEffectResource();
 
             VFXViewController controller = VFXViewController.GetController(asset);
             controller.useCount++;
 
-            VisualEffectAsset template = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(templatePath + "/" + templateAssetName);
+            var template = AssetDatabase.LoadAssetAtPath<VisualEffectResource>(templatePath + "/" + templateAssetName);
             if (template != null)
             {
                 VFXViewController templateController = VFXViewController.GetController(template);

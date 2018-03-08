@@ -649,7 +649,7 @@ public class VisualEffectEditor : Editor
             m_asset = component.visualEffectAsset;
             if (m_asset != null)
             {
-                m_graph = m_asset.GetOrCreateGraph();
+                m_graph = m_asset.GetResource().GetOrCreateGraph();
             }
         }
 

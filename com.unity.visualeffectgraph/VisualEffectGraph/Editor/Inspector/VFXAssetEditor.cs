@@ -30,9 +30,9 @@ public class VisualEffectAssetEditor : Editor
     void OnEnable()
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
-
-        VFXGraph graph = asset.GetOrCreateGraph();
         /*
+        VFXGraph graph = asset.GetOrCreateGraph();
+
         m_Outputs = graph.children.OfType<VFXAbstractParticleOutput>().ToList();
 
         outputList = new ReorderableList(m_Outputs, typeof(VFXAbstractParticleOutput));
@@ -51,7 +51,7 @@ public class VisualEffectAssetEditor : Editor
         }
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
-
+        /*
         foreach (var shaderSource in asset.shaderSources)
         {
             if (shaderSource.shader != null)
@@ -71,15 +71,15 @@ public class VisualEffectAssetEditor : Editor
                     GUILayout.Label(new GUIContent(error.message, error.warning != 0 ? VisualEffectAssetEditorStyles.warningIcon : VisualEffectAssetEditorStyles.errorIcon, string.Format("{0} line:{1} shader:{2}", error.messageDetails, error.line, shaderSource.name)));
                 }
             }
-        }
+        }*/
     }
 
-    void OpenTempFile(VFXShaderSourceDesc shader)
+    /*void OpenTempFile(VFXShaderSourceDesc shader)
     {
         string path = AssetDatabase.GetAssetPath(target);
         string name = Path.GetFileNameWithoutExtension(path);
         string fileName = "Temp/" + name + "_" + shader.name;
         File.WriteAllText(fileName, shader.source);
         EditorUtility.RevealInFinder(fileName);
-    }
+    }*/
 }

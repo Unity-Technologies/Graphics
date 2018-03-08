@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
 
@@ -16,7 +17,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
         public VFXMapping[] parameters;
-        public Object processor;
+        public int indexInShaderSource;
     }
 
     class VFXGraphCompiledData
@@ -290,7 +291,7 @@ namespace UnityEditor.VFX
             return data;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXEditorSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             var spawners = CollectSpawnersHierarchy(contexts);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
@@ -316,7 +317,7 @@ namespace UnityEditor.VFX
                 };
 
                 var contextData = contextToCompiledData[spawnContext];
-                outSystemDescs.Add(new VFXSystemDesc()
+                outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
                     buffers = buffers,
                     capacity = 0u,
@@ -359,13 +360,14 @@ namespace UnityEditor.VFX
                                 processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
                             }
 
-                            return new VFXTaskDesc
+                            return new VFXEditorTaskDesc
                             {
                                 type = spawnerBlock.spawnerType,
                                 buffers = new VFXMapping[0],
                                 values = cpuExpression.ToArray(),
                                 parameters = contextData.parameters,
                                 processor = processor,
+                                shaderSourceIndex = -1
                             };
                         }).ToArray()
                 });
@@ -463,13 +465,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VisualEffectAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void SaveShaderFiles(VisualEffectResource asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
             {
-                var assetPath = AssetDatabase.GetAssetPath(asset);
-
                 VFXShaderSourceDesc[] descs = new VFXShaderSourceDesc[generatedCodeData.Count];
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)
@@ -484,15 +484,11 @@ namespace UnityEditor.VFX
 
                 asset.shaderSources = descs;
 
-                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
-
-                descs = asset.shaderSources;
-
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
                     var contextData = contextToCompiledData[generated.context];
-                    contextData.processor = descs[i].shader;
+                    contextData.indexInShaderSource = i;
                     contextToCompiledData[generated.context] = contextData;
                 }
             }
@@ -618,7 +614,7 @@ namespace UnityEditor.VFX
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
-                var systemDescs = new List<VFXSystemDesc>();
+                var systemDescs = new List<VFXEditorSystemDesc>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
@@ -642,6 +638,9 @@ namespace UnityEditor.VFX
                 m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
                 m_Graph.visualEffectAsset.MarkRuntimeVersion();
+
+                var assetPath = AssetDatabase.GetAssetPath(visualEffectAsset);
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
             }
             catch (Exception e)
             {
@@ -705,7 +704,7 @@ namespace UnityEditor.VFX
             m_Graph.visualEffectAsset.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
-        public VisualEffectAsset visualEffectAsset
+        public VisualEffectResource visualEffectAsset
         {
             get
             {

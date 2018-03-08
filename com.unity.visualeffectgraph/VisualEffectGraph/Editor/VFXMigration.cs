@@ -1,9 +1,11 @@
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
 using UnityEditor.VFX;
+using UnityEditor.Experimental.VFX;
 
 public class VFXMigration
 {
@@ -71,7 +73,7 @@ public class VFXMigration
         {
             if (Path.GetExtension(path) == ".vfx")
             {
-                var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.VFX.VisualEffectAsset>(path);
+                var asset = AssetDatabase.LoadAllAssetsAtPath(path).OfType<VisualEffectResource>().FirstOrDefault();
                 if (asset != null)
                 {
                     try
