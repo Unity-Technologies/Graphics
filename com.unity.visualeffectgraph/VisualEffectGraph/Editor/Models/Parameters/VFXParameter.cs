@@ -163,10 +163,35 @@ namespace UnityEditor.VFX
 
             if (cause == InvalidationCause.kSettingChanged)
             {
-                m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
-                outputSlots[0].InvalidateExpressionTree();
-                Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
+                var valueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
+                bool valueExprChanged = true;
+                if (m_ValueExpr.Length == valueExpr.Length)
+                {
+                    valueExprChanged = false;
+                    for (int i = 0; i < m_ValueExpr.Length; ++i)
+                    {
+                        if (m_ValueExpr[i].ValueMode != valueExpr[i].ValueMode
+                            ||  m_ValueExpr[i].valueType != valueExpr[i].valueType)
+                        {
+                            valueExprChanged = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (valueExprChanged)
+                {
+                    m_ValueExpr = valueExpr;
+                    outputSlots[0].InvalidateExpressionTree();
+                    Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
+                }
+                /* TODO : Allow VisualEffectApi to update only exposed name */
+                else if (exposed)
+                {
+                    Invalidate(InvalidationCause.kExpressionGraphChanged);
+                }
             }
+
             if (cause == InvalidationCause.kParamChanged)
             {
                 for (int i = 0; i < m_ExprSlots.Length; ++i)
