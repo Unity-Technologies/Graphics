@@ -11,8 +11,18 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Vector4 m_Value;
 
+        const string kInputSlotXName = "X";
+        const string kInputSlotYName = "Y";
+        const string kInputSlotZName = "Z";
+        const string kInputSlotWName = "W";
+        const string kOutputSlotName = "Out";
+
         public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Out";
+        public const int InputSlotXId = 1;
+        public const int InputSlotYId = 2;
+        public const int InputSlotZId = 3;
+        public const int InputSlotWId = 4;
+
 
         public Vector4Node()
         {
@@ -27,70 +37,39 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new Vector1MaterialSlot(InputSlotXId, kInputSlotXName, kInputSlotXName, SlotType.Input, m_Value.x));
+            AddSlot(new Vector1MaterialSlot(InputSlotYId, kInputSlotYName, kInputSlotYName, SlotType.Input, m_Value.y, label1: "Y"));
+            AddSlot(new Vector1MaterialSlot(InputSlotZId, kInputSlotZName, kInputSlotZName, SlotType.Input, m_Value.z, label1: "Z"));
+            AddSlot(new Vector1MaterialSlot(InputSlotWId, kInputSlotWName, kInputSlotWName, SlotType.Input, m_Value.w, label1: "W"));
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-        }
-
-        [MultiFloatControl("")]
-        public Vector4 value
-        {
-            get { return m_Value; }
-            set
-            {
-                if (m_Value == value)
-                    return;
-
-                m_Value = value;
-
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            if (!generationMode.IsPreview())
-                return;
-
-            properties.AddShaderProperty(new Vector4ShaderProperty()
-            {
-                overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false,
-                value = value
-            });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, InputSlotXId, InputSlotYId, InputSlotZId, InputSlotWId });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (generationMode.IsPreview())
-                return;
+            var inputXValue = GetSlotValue(InputSlotXId, generationMode);
+            var inputYValue = GetSlotValue(InputSlotYId, generationMode);
+            var inputZValue = GetSlotValue(InputSlotZId, generationMode);
+            var inputWValue = GetSlotValue(InputSlotWId, generationMode);
+            var outputName = GetVariableNameForSlot(outputSlotId);
 
             var s = string.Format("{0}4 {1} = {0}4({2},{3},{4},{5});",
                 precision,
-                GetVariableNameForNode(),
-                NodeUtils.FloatToShaderValue(m_Value.x),
-                NodeUtils.FloatToShaderValue(m_Value.y),
-                NodeUtils.FloatToShaderValue(m_Value.z),
-                NodeUtils.FloatToShaderValue(m_Value.w));
+                outputName,
+                inputXValue,
+                inputYValue,
+                inputZValue,
+                inputWValue);
             visitor.AddShaderChunk(s, true);
-        }
-
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return GetVariableNameForNode();
-        }
-
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            properties.Add(new PreviewProperty(PropertyType.Vector4)
-            {
-                name = GetVariableNameForNode(),
-                vector4Value = m_Value
-            });
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            return new Vector4ShaderProperty { value = value };
+            var slotX = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
+            var slotY = FindInputSlot<Vector1MaterialSlot>(InputSlotYId);
+            var slotZ = FindInputSlot<Vector1MaterialSlot>(InputSlotZId);
+            var slotW = FindInputSlot<Vector1MaterialSlot>(InputSlotWId);
+            return new Vector4ShaderProperty { value = new Vector4(slotX.value, slotY.value, slotZ.value, slotW.value) };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

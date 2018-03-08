@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return new Vector4(value.x, value.y, value.z, 0); }
         }
-        
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return string.Format("float3 {0}{1}", referenceName, delimiter);
@@ -38,7 +38,11 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            return new Vector3Node { value = value };
+            var node = new Vector3Node();
+            node.FindInputSlot<Vector1MaterialSlot>(Vector3Node.InputSlotXId).value = value.x;
+            node.FindInputSlot<Vector1MaterialSlot>(Vector3Node.InputSlotYId).value = value.y;
+            node.FindInputSlot<Vector1MaterialSlot>(Vector3Node.InputSlotZId).value = value.z;
+            return node;
         }
     }
 }

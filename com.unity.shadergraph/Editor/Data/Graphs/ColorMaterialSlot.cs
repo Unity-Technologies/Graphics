@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             Vector4 value,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, slotType, value, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, value, shaderStage, hidden: hidden)
         {
         }
 
