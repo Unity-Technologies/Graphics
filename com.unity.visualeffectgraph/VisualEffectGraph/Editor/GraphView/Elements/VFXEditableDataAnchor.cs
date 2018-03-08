@@ -150,6 +150,11 @@ namespace UnityEditor.VFX.UI
             m_PropertyRM.SetLabelWidth(label);
         }
 
+        public void ForceUpdate()
+        {
+            m_PropertyRM.ForceUpdate();
+        }
+
         void BuildProperty()
         {
             if (m_PropertyRM != null)

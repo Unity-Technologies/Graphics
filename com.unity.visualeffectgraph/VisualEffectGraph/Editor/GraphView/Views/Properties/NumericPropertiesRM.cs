@@ -1,18 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
-using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
-using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using VFXVector2Field = UnityEditor.VFX.UIElements.VFXVector2Field;
-using VFXVector4Field = UnityEditor.VFX.UIElements.VFXVector4Field;
-using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 
 namespace UnityEditor.VFX.UI
 {
@@ -58,7 +47,7 @@ namespace UnityEditor.VFX.UI
 
         void OnFocusLost(BlurEvent e)
         {
-            UpdateGUI();
+            UpdateGUI(true);
         }
 
         protected override bool HasFocus()
@@ -77,7 +66,7 @@ namespace UnityEditor.VFX.UI
             return RangeShouldCreateSlider(range) != (m_Slider == null);
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             if (m_Slider != null)
             {
@@ -85,7 +74,7 @@ namespace UnityEditor.VFX.UI
 
                 m_Slider.range = range;
             }
-            base.UpdateGUI();
+            base.UpdateGUI(force);
         }
 
         public abstract T FilterValue(Vector2 range, T value);

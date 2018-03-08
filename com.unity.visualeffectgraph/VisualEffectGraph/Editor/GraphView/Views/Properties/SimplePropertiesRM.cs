@@ -33,17 +33,10 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Vector4PropertyRM : SimpleUIPropertyRM<Vector4, Vector4>
+    class Vector4PropertyRM : SimpleVFXUIPropertyRM<VFXVector4Field, Vector4>
     {
         public Vector4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-        }
-
-        public override INotifyValueChanged<Vector4> CreateField()
-        {
-            var field = new VFXLabeledField<VFXVector4Field, Vector4>(m_Label);
-
-            return field;
         }
 
         public override float GetPreferredControlWidth()
@@ -71,17 +64,10 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
+    class Vector2PropertyRM : SimpleVFXUIPropertyRM<VFXVector2Field, Vector2>
     {
         public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-        }
-
-        public override INotifyValueChanged<Vector2> CreateField()
-        {
-            var field = new VFXLabeledField<VFXVector2Field, Vector2>(m_Label);
-
-            return field;
         }
 
         public override float GetPreferredControlWidth()
@@ -90,17 +76,10 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class FlipBookPropertyRM : SimpleUIPropertyRM<FlipBook, FlipBook>
+    class FlipBookPropertyRM : SimpleVFXUIPropertyRM<VFXFlipBookField, FlipBook>
     {
         public FlipBookPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-        }
-
-        public override INotifyValueChanged<FlipBook> CreateField()
-        {
-            var field = new VFXLabeledField<VFXFlipBookField, FlipBook>(m_Label);
-
-            return field;
         }
 
         public override float GetPreferredControlWidth()

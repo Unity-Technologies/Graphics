@@ -274,8 +274,8 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateThing(KeyDownEvent evt)
         {
-            VisualElement picked = panel.Pick(evt.imguiEvent.mousePosition);
-            VFXContextUI context = picked.GetFirstAncestorOfType<VFXContextUI>();
+            VisualElement picked = panel.Pick(evt.originalMousePosition);
+            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
 
             if (context != null)
             {
@@ -414,6 +414,16 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(OnDragPerform);
 
             graphViewChanged = VFXGraphViewChanged;
+
+            Undo.undoRedoPerformed = OnUndoPerformed;
+        }
+
+        void OnUndoPerformed()
+        {
+            foreach (var anchor in allDataAnchors)
+            {
+                anchor.ForceUpdate();
+            }
         }
 
         void ToggleBlackboard()

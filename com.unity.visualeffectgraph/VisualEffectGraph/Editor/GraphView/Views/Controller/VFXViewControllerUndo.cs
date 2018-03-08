@@ -222,6 +222,17 @@ namespace UnityEditor.VFX.UI
                     m_graphUndoStack = new VFXGraphUndoStack(graph);
                 }
             }
+
+            if (graph != null) // SOme graph value might have been modified by serialization
+            {
+                foreach (var element in AllSlotContainerControllers)
+                {
+                    foreach (var slot in (element.model as IVFXSlotContainer).inputSlots)
+                    {
+                        slot.value = slot.value;
+                    }
+                }
+            }
         }
     }
 }

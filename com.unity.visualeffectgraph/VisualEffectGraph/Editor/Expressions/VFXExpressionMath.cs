@@ -120,6 +120,25 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionLog2 : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionLog2() : this(VFXValue<float>.Default) {}
+
+        public VFXExpressionLog2(VFXExpression parent) : base(parent, VFXExpressionOp.Log2Op)
+        {
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("log2({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Log(input, 2.0f);
+        }
+    }
+
     class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
     {
         public VFXExpressionAbs() : this(VFXValue<float>.Default) {}

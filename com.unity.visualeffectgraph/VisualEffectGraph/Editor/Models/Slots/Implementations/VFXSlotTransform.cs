@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
             return base.CanConvertFrom(type) || type == typeof(Matrix4x4);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
             if (expression.valueType == VFXValueType.Matrix4x4)
                 return expression;

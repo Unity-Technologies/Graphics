@@ -129,7 +129,7 @@ namespace UnityEditor.VFX.UIElements
         public void SetValue(T value)
         {
             m_Value = value;
-            ValueToGUI();
+            ValueToGUI(false);
         }
 
         public T value
@@ -148,6 +148,6 @@ namespace UnityEditor.VFX.UIElements
 
         public System.Action OnValueChanged;
 
-        protected abstract void ValueToGUI();
+        protected abstract void ValueToGUI(bool force);
     }
 }
