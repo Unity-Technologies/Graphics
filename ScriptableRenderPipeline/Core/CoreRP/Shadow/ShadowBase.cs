@@ -391,6 +391,14 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_GlobalOverrides[(int)shadowType].enabled = enabled;
         }
+
+        public bool GetGlobalShadowOverride( GPUShadowType shadowType, ref GPUShadowAlgorithm algo )
+        {
+            if( m_GlobalOverrides[(int)shadowType].enabled )
+                algo = ShadowUtils.Pack( m_GlobalOverrides[(int)shadowType].algorithm, m_GlobalOverrides[(int)shadowType].variant, m_GlobalOverrides[(int)shadowType].precision );
+            
+            return m_GlobalOverrides[(int)shadowType].enabled;
+        }
     }
 
     // This is the struct passed into shaders
