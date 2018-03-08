@@ -106,7 +106,9 @@ namespace UnityEditor.ShaderGraph
                 case FloatType.Integer:
                     return new IntegerNode { value = (int)value };
                 default:
-                    return new Vector1Node { value = value };
+                    var node = new Vector1Node();
+                    node.FindInputSlot<Vector1MaterialSlot>(Vector1Node.InputSlotXId).value = value;
+                    return node;
             }
         }
     }
