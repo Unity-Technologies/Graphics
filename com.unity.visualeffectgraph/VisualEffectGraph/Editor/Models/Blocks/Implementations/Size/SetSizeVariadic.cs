@@ -5,28 +5,6 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-
-    static class VariadicSizeUtility
-    {
-        public enum SizeMode
-        {
-            X = 0,
-            XY = 1,
-            XYZ = 2,
-        }
-
-        public static IEnumerable<VFXAttributeInfo> GetAttributes(SizeMode mode, VFXAttributeMode attrMode)
-        {
-            yield return new VFXAttributeInfo(VFXAttribute.SizeX, attrMode);
-
-            if ((int)mode > 0)
-                yield return new VFXAttributeInfo(VFXAttribute.SizeY, attrMode);
-
-            if ((int)mode > 1)
-                yield return new VFXAttributeInfo(VFXAttribute.SizeZ, attrMode);
-        }
-    }
-
     class AttributeVariantVariadicSize : IVariantProvider
     {
         public Dictionary<string, object[]> variants
@@ -35,7 +13,7 @@ namespace UnityEditor.VFX.Block
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "SizeMode", new object[]{VariadicSizeUtility.SizeMode.X, VariadicSizeUtility.SizeMode.XY, VariadicSizeUtility.SizeMode.XYZ} },
+                    { "SizeMode", Enum.GetValues(typeof(VariadicSizeUtility.SizeMode)).Cast<object>().ToArray() },
                 };
             }
         }
@@ -64,9 +42,6 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
-
                 if (Random != RandomMode.Off)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite); 
 
@@ -99,7 +74,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var typeName = "InputPropertiesX";
+                var typeName = string.Empty;
                 switch (SizeMode)
                 {
                     case VariadicSizeUtility.SizeMode.X:
@@ -117,27 +92,27 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesX
         {
-            public float Value = 0.1f;
+            public float Value = VFXAttribute.kDefaultSize;
             public float Min = 0.0f;
-            public float Max = 0.1f;
+            public float Max = VFXAttribute.kDefaultSize;
             [Range(0.0f, 1.0f),Tooltip("Size Blending factor")]
             public float Blend = 0.5f;
         }
 
         public class InputPropertiesXY
         {
-            public Vector2 Value = Vector2.one * 0.1f;
+            public Vector2 Value = Vector2.one * VFXAttribute.kDefaultSize;
             public Vector2 Min = Vector2.one * 0.0f;
-            public Vector2 Max = Vector2.one * 0.1f;
+            public Vector2 Max = Vector2.one * VFXAttribute.kDefaultSize;
             [Tooltip("Size Blending factor")]
             public Vector2 Blend = new Vector2(0.5f,0.5f);
         }
 
         public class InputPropertiesXYZ
         {
-            public Vector3 Value = Vector3.one * 0.1f;
+            public Vector3 Value = Vector3.one * VFXAttribute.kDefaultSize;
             public Vector3 Min = Vector3.one * 0.0f;
-            public Vector3 Max = Vector3.one * 0.1f;
+            public Vector3 Max = Vector3.one * VFXAttribute.kDefaultSize;
             [Tooltip("Size Blending factor")]
             public Vector3 Blend = new Vector3(0.5f, 0.5f, 0.5f);
         }
@@ -168,6 +143,7 @@ namespace UnityEditor.VFX.Block
             return source;
         }
 
+
         public override string source
         {
             get
@@ -184,16 +160,18 @@ namespace UnityEditor.VFX.Block
                 if(Random == RandomMode.PerComponent)
                     randomString = "RAND";
 
-                if ((int)SizeMode == 0)
+
+                if (SizeMode == VariadicSizeUtility.SizeMode.X)
+                {
                     outSource += GetVariadicSource(VFXAttribute.SizeX, randomString);
+                }
                 else
-                    outSource += GetVariadicSource(VFXAttribute.SizeX, randomString, ".x");
-
-                if ((int)SizeMode > 0)
-                    outSource += GetVariadicSource(VFXAttribute.SizeY, randomString, ".y");
-
-                if ((int)SizeMode > 1)
-                outSource += GetVariadicSource(VFXAttribute.SizeZ, randomString, ".z");
+                {
+                    for (int channel = 0; channel <= (int)SizeMode; ++channel)
+                    {
+                        outSource += GetVariadicSource(VariadicSizeUtility.Attribute[channel], randomString, VariadicSizeUtility.ChannelName[channel]);
+                    }
+                }
 
                 return outSource;
             }
