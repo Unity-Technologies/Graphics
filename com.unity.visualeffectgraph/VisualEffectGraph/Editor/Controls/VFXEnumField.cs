@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             m_DropDownButton.text = System.Enum.GetName(m_EnumType, m_Value);
         }

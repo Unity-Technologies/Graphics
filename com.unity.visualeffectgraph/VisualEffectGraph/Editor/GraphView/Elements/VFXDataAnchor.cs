@@ -6,6 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Collections.Generic;
 using Type = System.Type;
 using System.Linq;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -44,6 +45,7 @@ namespace UnityEditor.VFX.UI
 
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
+            Profiler.BeginSample("VFXDataAnchor.VFXDataAnchor");
             AddStyleSheetPath("VFXDataAnchor");
             AddToClassList("VFXDataAnchor");
             AddStyleSheetPath("VFXTypeColor");
@@ -64,6 +66,7 @@ namespace UnityEditor.VFX.UI
             m_Node = node;
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
+            Profiler.EndSample();
         }
 
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
@@ -357,11 +360,24 @@ namespace UnityEditor.VFX.UI
             }
 
             // If linking to a new parameter, copy the slot value
-            if (direction == Direction.Input && newNode is VFXParameterNodeController)
+            if (direction == Direction.Input)
             {
-                VFXParameter parameter = (newNode as VFXParameterNodeController).parentController.model;
-
-                CopyValueToParameter(parameter);
+                if (newNode is VFXParameterNodeController)
+                {
+                    VFXParameter parameter = (newNode as VFXParameterNodeController).parentController.model;
+                    CopyValueToParameter(parameter);
+                }
+                else if (newNode is VFXOperatorController)
+                {
+                    var inlineOperator = (newNode as VFXOperatorController).model as VFXInlineOperator;
+                    if (inlineOperator)
+                    {
+                        if (VFXConverter.CanConvert(inlineOperator.type))
+                            inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                        else
+                            inlineOperator.inputSlots[0].value = controller.model.value;
+                    }
+                }
             }
         }
 

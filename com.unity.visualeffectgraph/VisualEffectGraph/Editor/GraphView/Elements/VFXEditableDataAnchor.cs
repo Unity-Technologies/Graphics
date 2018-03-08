@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -98,20 +99,38 @@ namespace UnityEditor.VFX.UI
 
         PropertyRM      m_PropertyRM;
 
+        VFXView m_View;
+
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXEditableDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
+            Profiler.BeginSample("VFXEditableDataAnchor.Create");
             var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
+            Profiler.EndSample();
             return anchor;
         }
 
         protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            m_View = GetFirstAncestorOfType<VFXView>();
+            m_View.allDataAnchors.Add(this);
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent e)
+        {
+            if (m_View != null)
+                m_View.allDataAnchors.Remove(this);
         }
 
         public float GetPreferredLabelWidth()
@@ -129,6 +148,11 @@ namespace UnityEditor.VFX.UI
         public void SetLabelWidth(float label)
         {
             m_PropertyRM.SetLabelWidth(label);
+        }
+
+        public void ForceUpdate()
+        {
+            m_PropertyRM.ForceUpdate();
         }
 
         void BuildProperty()

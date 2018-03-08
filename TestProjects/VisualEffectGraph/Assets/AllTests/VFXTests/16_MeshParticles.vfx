@@ -917,7 +917,7 @@ MonoBehaviour:
   - {fileID: 114342071248033808}
   m_exposedName: exposedName
   m_exposed: 0
-  m_order: 0
+  m_Order: 0
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1114,12 +1114,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 2
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
   preRefraction: 0
-  twoSided: 0
 --- !u!114 &114188793358913408
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4674,12 +4676,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 1
   preRefraction: 0
-  twoSided: 0
 --- !u!114 &114797579344502896
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5136,12 +5140,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
   preRefraction: 0
-  twoSided: 0
 --- !u!114 &114849367105866056
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5347,12 +5353,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 4
+  cullMode: 0
+  zWriteMode: 0
+  zTestMode: 0
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
   preRefraction: 0
-  twoSided: 0
 --- !u!114 &114893539770069574
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7584,7 +7592,7 @@ VisualEffectAsset:
         index: 109
       - nameId: bounds_size
         index: 101
-      processor: {fileID: 7200000, guid: 1c95f9a6069d8e84e927a017a8ec856e, type: 3}
+      processor: {fileID: 7200000, guid: 278207b08a734544ea33c3b70e62624b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -7601,7 +7609,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 135
       params: []
-      processor: {fileID: 7200000, guid: dcf8f41df619d794ba858c4c8170130d, type: 3}
+      processor: {fileID: 7200000, guid: fa729c2073c40f541bafce686ed5a296, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7622,7 +7630,7 @@ VisualEffectAsset:
         index: 127
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7afd8d102e682124f89b6e70ebee2ee2, type: 3}
+      processor: {fileID: 4800000, guid: 5dbecb70f7b4c414f8f99209abd7ab82, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7647,7 +7655,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: db3bdecf79c069640a209384d91ddaaa, type: 3}
+      processor: {fileID: 4800000, guid: 3d27b6b509bea4f44b4dce49f5abd465, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7670,7 +7678,7 @@ VisualEffectAsset:
         index: 138
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 52271a2363b472b43899be889e873dfa, type: 3}
+      processor: {fileID: 4800000, guid: 185ebbee23a87a3459e5821981f88b13, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7691,7 +7699,7 @@ VisualEffectAsset:
         index: 110
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: fdcbe1050b10a90459aeadb0ff7f980d, type: 3}
+      processor: {fileID: 4800000, guid: 1dd84fb264f72684184058938ab5bb0a, type: 3}
   - type: 2
     flags: 0
     capacity: 0

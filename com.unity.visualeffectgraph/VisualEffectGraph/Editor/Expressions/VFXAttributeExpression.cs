@@ -97,6 +97,12 @@ namespace UnityEditor.VFX
                 attributeName = "angleZ";
             }
 
+            if (attributeName == "phase")
+            {
+                Debug.LogWarning("Found an attribute phase which is deprecated. Use random operator instead. Please fix that!");
+                return new VFXAttribute("phase", VFXValueType.Float);
+            }
+
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
                 throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));

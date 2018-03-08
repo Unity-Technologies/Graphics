@@ -168,7 +168,7 @@ namespace UnityEditor.VFX.UIElements
             return EventPropagation.Stop;
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             Object value = GetValue();
             var temp = EditorGUIUtility.ObjectContent(value, editedType);
