@@ -2,7 +2,7 @@
     "version": "0.1.33",
     "unity": "2018.1",
     "dependencies": {
-        "com.unity.postprocessing": "0.2.0"
+        "com.unity.postprocessing": "2.0.2-preview"
     },
     "subPackages": [
         "Core",
