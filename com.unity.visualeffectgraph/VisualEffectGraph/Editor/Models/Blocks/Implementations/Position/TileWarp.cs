@@ -11,7 +11,8 @@ namespace UnityEditor.VFX.Block
     {
         public class InputProperties
         {
-            public AABox Area = AABox.defaultValue;
+            [Tooltip("Volume that will contain the tiled/warped particles")]
+            public AABox Volume = AABox.defaultValue;
         }
 
         public override string name { get { return "Tile/Warp Positions"; } }
@@ -22,7 +23,6 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -31,12 +31,12 @@ namespace UnityEditor.VFX.Block
             get
             {
                 return @"
-float3 halfSize = Area_size * 0.5;
+float3 halfSize = Volume_size * 0.5;
 
 // Warp positions
-float3 delta = (position - Area_center) + halfSize;
-delta = delta - floor(delta / Area_size) * Area_size;
-position = Area_center + delta - halfSize;
+float3 delta = (position - Volume_center) + halfSize;
+delta = delta - floor(delta / Volume_size) * Volume_size;
+position = Volume_center + delta - halfSize;
 ";
             }
         }
