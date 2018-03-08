@@ -4,6 +4,6 @@
     "version": "1.0.0-beta",
     "unity": "2018.1",
     "dependencies": {
-        "com.unity.postprocessing": "2.0.0-beta"
+        "com.unity.postprocessing": "2.0.2-preview"
     }
 }
