@@ -139,7 +139,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         RenderStateBlock m_DepthStateOpaque;
-        RenderStateBlock m_DepthStateOpaqueWithPrepass;
 
         // Detect when windows size is changing
         int m_CurrentWidth;
@@ -378,14 +377,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DepthStateOpaque = new RenderStateBlock
             {
                 depthState = new DepthState(true, CompareFunction.LessEqual),
-                mask = RenderStateMask.Depth
-            };
-
-            // When doing a prepass, we don't need to write the depth anymore.
-            // Moreover, we need to use DepthEqual because for alpha tested materials we don't do the clip in the shader anymore (otherwise HiZ does not work on PS4)
-            m_DepthStateOpaqueWithPrepass = new RenderStateBlock
-            {
-                depthState = new DepthState(false, CompareFunction.Equal),
                 mask = RenderStateMask.Depth
             };
         }
@@ -1111,7 +1102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // In case of forward only rendering we have a depth prepass. In case of deferred renderer, it is optional
             bool addFullDepthPrepass = m_FrameSettings.enableForwardRenderingOnly || m_FrameSettings.enableDepthPrepassWithDeferredRendering;
-            bool addAlphaTestedOnly = !m_FrameSettings.enableForwardRenderingOnly && m_FrameSettings.enableDepthPrepassWithDeferredRendering && m_FrameSettings.enableAlphaTestOnlyInDeferredPrepass;
+            bool addAlphaTestedOnly = !m_FrameSettings.enableForwardRenderingOnly && !m_FrameSettings.enableDepthPrepassWithDeferredRendering;
 
             var camera = hdCamera.camera;
 
@@ -1161,20 +1152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(enableShadowMask), m_CameraDepthStencilBuffer);
-
-                // Render opaque objects into GBuffer
-                if (m_FrameSettings.enableDepthPrepassWithDeferredRendering)
-                {
-                    // When using depth prepass for opaque alpha test only we need to use regular depth test for normal opaque objects.
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest, m_FrameSettings.enableAlphaTestOnlyInDeferredPrepass ? m_DepthStateOpaque : m_DepthStateOpaqueWithPrepass);
-                    // but for opaque alpha tested object we use a depth equal and no depth write. And we rely on the shader pass GbufferWithDepthPrepass
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferWithPrepassName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_OpaqueAlphaTest, m_DepthStateOpaqueWithPrepass);
-                }
-                else
-                {
-                    // No depth prepass, use regular depth test - Note that we will render opaque then opaque alpha tested (based on the RenderQueue system)
-                    RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque, m_DepthStateOpaque);
-                }
+                RenderOpaqueRenderList(cull, camera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque);
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
