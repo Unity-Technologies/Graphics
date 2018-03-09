@@ -137,7 +137,7 @@ inline half ComputeCascadeIndex(float3 positionWS)
 
 float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
 {
-    #ifdef _SHADOWS_CASCADE
+#ifdef _SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
     return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 #else
@@ -153,7 +153,11 @@ float4 ComputeShadowCoord(float4 clipPos)
 
 half RealtimeShadowAttenuation(float4 shadowCoord)
 {
+#if NO_SHADOWS
+    return 1.0h;
+#else
     return SampleScreenSpaceShadowMap(shadowCoord);
+#endif
 }
 
 #endif
