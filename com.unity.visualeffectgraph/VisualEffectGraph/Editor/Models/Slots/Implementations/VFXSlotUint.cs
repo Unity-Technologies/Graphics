@@ -20,12 +20,12 @@ namespace UnityEditor.VFX
 
         sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
-            if (expression.valueType == VFXValueType.Uint)
+            if (expression.valueType == VFXValueType.Uint32)
             {
                 return expression;
             }
 
-            if (expression.valueType == VFXValueType.Int)
+            if (expression.valueType == VFXValueType.Int32)
             {
                 return new VFXExpressionCastIntToUint(expression);
             }

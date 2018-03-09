@@ -16,6 +16,6 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.BakeCurve; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.BakeCurve; } }
     }
 }

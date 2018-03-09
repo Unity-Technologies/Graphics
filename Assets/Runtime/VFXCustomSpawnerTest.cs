@@ -4,7 +4,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    public class VFXCustomSpawnerTest : VFXSpawnerFunction
+    public class VFXCustomSpawnerTest : VFXSpawnerCallbacks
     {
         static public float s_SpawnCount = 101.0f;
         static public float s_LifeTime = 17.0f;

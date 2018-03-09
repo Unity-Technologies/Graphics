@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("Incorrect VFXExpressionExtractComponent");
             }
 
-            m_Operation = VFXExpressionOp.ExtractComponentOp;
+            m_Operation = VFXExpressionOperation.ExtractComponent;
             m_additionnalOperands = new int[] { iChannel, TypeToSize(parent.valueType) };
         }
 

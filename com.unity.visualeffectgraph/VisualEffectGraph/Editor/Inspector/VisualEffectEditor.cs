@@ -152,11 +152,11 @@ public class SlotValueBinder : VFXPropertySlotObserver
     {
         switch (m_Slot.ValueType)
         {
-            case VFXValueType.Int:
+            case VFXValueType.Int32:
                 if (m_Component.HasInt(m_Name))
                     m_Slot.Set<int>(m_Component.GetInt(m_Name));
                 break;
-            case VFXValueType.Uint:
+            case VFXValueType.Uint32:
                 if (m_Component.HasUInt(m_Name))
                     m_Slot.Set<UInt32>(m_Component.GetUInt(m_Name));
                 break;

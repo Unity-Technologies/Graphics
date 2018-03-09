@@ -23,10 +23,10 @@ namespace UnityEditor.VFX
             if (expression.valueType == VFXValueType.Float)
                 return expression;
 
-            if (expression.valueType == VFXValueType.Int)
+            if (expression.valueType == VFXValueType.Int32)
                 return new VFXExpressionCastIntToFloat(expression);
 
-            if (expression.valueType == VFXValueType.Uint)
+            if (expression.valueType == VFXValueType.Uint32)
                 return new VFXExpressionCastUintToFloat(expression);
 
             if (expression.valueType == VFXValueType.Float2

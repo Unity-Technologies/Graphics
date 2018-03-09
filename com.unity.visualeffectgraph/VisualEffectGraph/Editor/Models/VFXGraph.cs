@@ -378,7 +378,7 @@ namespace UnityEditor.VFX
                     foreach (var obj in persistentObjects)
                         if (obj is ScriptableObject && !currentObjects.Contains(obj as ScriptableObject))
                         {
-                            AssetDatabase.RemoveObject(obj);
+                            AssetDatabase.RemoveObjectFromAsset(obj);
                             modified = true;
                         }
                 }

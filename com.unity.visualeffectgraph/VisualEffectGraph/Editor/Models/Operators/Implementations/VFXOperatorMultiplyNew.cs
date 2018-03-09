@@ -225,9 +225,9 @@ namespace UnityEditor.VFX
                     return Vector3.one;
                 case VFXValueType.Float4:
                     return Vector4.one;
-                case VFXValueType.Int:
+                case VFXValueType.Int32:
                     return 1;
-                case VFXValueType.Uint:
+                case VFXValueType.Uint32:
                     return (uint)1;
             }
             return null;

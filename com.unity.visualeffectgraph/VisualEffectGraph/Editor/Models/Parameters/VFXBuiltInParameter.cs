@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
     class VFXBuiltInParameter : VFXOperator
     {
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
-        protected VFXExpressionOp m_expressionOp;
+        protected VFXExpressionOperation m_expressionOp;
 
         override public string name { get { return m_expressionOp.ToString(); } }
 
@@ -35,15 +35,15 @@ namespace UnityEditor.VFX
                 switch (m_expressionOp)
                 {
                     // Do to reorganization, some indices have changed
-                    case VFXExpressionOp.TanOp:         m_expressionOp = VFXExpressionOp.DeltaTimeOp; break;
-                    case VFXExpressionOp.ASinOp:        m_expressionOp = VFXExpressionOp.TotalTimeOp; break;
-                    case VFXExpressionOp.ACosOp:        m_expressionOp = VFXExpressionOp.SystemSeedOp; break;
-                    case VFXExpressionOp.RGBtoHSVOp:    m_expressionOp = VFXExpressionOp.LocalToWorldOp; break;
-                    case VFXExpressionOp.HSVtoRGBOp:    m_expressionOp = VFXExpressionOp.WorldToLocalOp; break;
+                    case VFXExpressionOperation.Tan:         m_expressionOp = VFXExpressionOperation.DeltaTime; break;
+                    case VFXExpressionOperation.ASin:        m_expressionOp = VFXExpressionOperation.TotalTime; break;
+                    case VFXExpressionOperation.ACos:        m_expressionOp = VFXExpressionOperation.SystemSeed; break;
+                    case VFXExpressionOperation.RGBtoHSV:    m_expressionOp = VFXExpressionOperation.LocalToWorld; break;
+                    case VFXExpressionOperation.HSVtoRGB:    m_expressionOp = VFXExpressionOperation.WorldToLocal; break;
 
                     default:
                         Debug.LogWarning(string.Format("Expression operator for the BuiltInParameter is invalid ({0}). Reset to none", m_expressionOp));
-                        m_expressionOp = VFXExpressionOp.NoneOp;
+                        m_expressionOp = VFXExpressionOperation.None;
                         break;
                 }
             }

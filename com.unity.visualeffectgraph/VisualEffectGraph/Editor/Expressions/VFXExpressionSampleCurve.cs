@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             : base(Flags.None, new VFXExpression[2] { curve, time })
         {}
 
-        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.SampleCurve; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleCurve; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {

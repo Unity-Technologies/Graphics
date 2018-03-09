@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     class VFXSpawnerConstantRate : VFXAbstractSpawner
     {
         public override string name { get { return "ConstantRate"; } }
-        public override VFXTaskType spawnerType { get { return VFXTaskType.SpawnerConstantRate; } }
+        public override VFXTaskType spawnerType { get { return VFXTaskType.ConstantRateSpawner; } }
         public class InputProperties
         {
             [Min(0)]
