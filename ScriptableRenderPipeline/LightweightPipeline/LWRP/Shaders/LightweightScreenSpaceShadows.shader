@@ -69,13 +69,13 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 #if UNITY_REVERSED_Z
             deviceDepth = 1 - deviceDepth;
 #endif
-            deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position. 
+            deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position.
 
             float3 vpos = ComputeViewSpacePosition(i.texcoord.zw, deviceDepth, unity_CameraInvProjection);
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
-            
+
             //Fetch shadow coordinates for cascade.
-            float4 coords  = ComputeScreenSpaceShadowCoords(wpos);
+            float4 coords  = TransformWorldToShadowCoord(wpos);
 
             return SampleShadowmap(coords);
         }
