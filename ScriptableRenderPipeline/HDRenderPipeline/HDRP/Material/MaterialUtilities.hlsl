@@ -11,7 +11,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
-        float4 SHCoefficients[7];
+        real4 SHCoefficients[7];
         SHCoefficients[0] = unity_SHAr;
         SHCoefficients[1] = unity_SHAg;
         SHCoefficients[2] = unity_SHAb;
