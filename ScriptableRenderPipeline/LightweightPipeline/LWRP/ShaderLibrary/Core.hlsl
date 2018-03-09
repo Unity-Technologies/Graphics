@@ -71,14 +71,40 @@ void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tan
     binormalWS = cross(normalWS, tangentWS) * sign;
 }
 
+half3 FragmentNormalWS(half3 normal)
+{
+#if !SHADER_HINT_NICE_QUALITY
+    // World normal is already normalized in vertex. Small acceptable error to save ALU.
+    return normal;
+#else
+    return normalize(normal);
+#endif
+}
+
+half3 FragmentViewDirWS(half3 viewDir)
+{
+#if !SHADER_HINT_NICE_QUALITY
+    // View direction is already normalized in vertex. Small acceptable error to save ALU.
+    return viewDir;
+#else
+    return SafeNormalize(viewDir);
+#endif
+}
+
+half3 VertexViewDirWS(half3 viewDir)
+{
+#if !SHADER_HINT_NICE_QUALITY
+    // Normalize in vertex and avoid renormalizing it in frag to save ALU.
+    return SafeNormalize(viewDir);
+#else
+    return viewDir;
+#endif
+}
+
 half3 TangentToWorldNormal(half3 normalTangent, half3 tangent, half3 binormal, half3 normal)
 {
     half3x3 tangentToWorld = half3x3(tangent, binormal, normal);
-#if !SHADER_HINT_NICE_QUALITY
-    return mul(normalTangent, tangentToWorld);
-#else
-    return normalize(mul(normalTangent, tangentToWorld));
-#endif
+    return FragmentNormalWS(mul(normalTangent, tangentToWorld));
 }
 
 // TODO: A similar function should be already available in SRP lib on master. Use that instead
