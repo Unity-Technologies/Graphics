@@ -287,5 +287,19 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(resultF, expressionF.Get<float>());
             Assert.AreEqual(resultG, expressionG.Get<float>());
         }
+
+        [Test]
+        public void ProcessVanDerCorputSequence()
+        {
+            var expectedSequence = new[] { 0.0f, 1.0f / 2.0f, 1.0f / 4.0f, 3.0f / 4.0f, 1.0 / 8.0f, 5.0f / 8.0f, 3.0f / 8.0f, 7.0f / 8.0f, 1.0f / 16.0f, 9.0f / 16.0f, 5.0f / 16.0f, 13.0f / 16.0f, 3.0f / 16.0f, 11.0f / 16.0f, 7.0f / 16.0f, 15.0f / 16.0f };
+            for (uint i = 0u; i < (uint)expectedSequence.Length; ++i)
+            {
+                var result = VFXOperatorUtility.VanDerCorputSequence(VFXValue.Constant(i));
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var resultCompiled = context.Compile(result);
+                var resultFloat = resultCompiled.Get<float>();
+                Assert.AreEqual(expectedSequence[i], resultFloat);
+            }
+        }
     }
 }
