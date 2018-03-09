@@ -498,7 +498,16 @@ namespace UnityEditor.VFX.UI
             {
                 try
                 {
-                    m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+                    {
+                        try
+                        {
+                            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
+                        }
+                    }
                 }
                 catch (System.Exception ex)
                 {
