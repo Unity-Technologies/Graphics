@@ -1484,7 +1484,9 @@ namespace UnityEngine.Experimental.Rendering
 
                     int sa, sv, sp;
                     asd.GetShadowAlgorithm( out sa, out sv, out sp );
-                    sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
+                    GPUShadowAlgorithm packed_algo = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
+                    GetGlobalShadowOverride( shadowType, ref packed_algo );
+                    sreq.shadowAlgorithm = packed_algo;
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
                     totalSlots--;

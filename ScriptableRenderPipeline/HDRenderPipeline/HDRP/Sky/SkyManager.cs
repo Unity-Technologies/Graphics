@@ -14,9 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkyResolution256 = 256,
         SkyResolution512 = 512,
         SkyResolution1024 = 1024,
-        // TODO: Anything above 1024 cause a crash in Unity...
-        //SkyResolution2048 = 2048,
-        //SkyResolution4096 = 4096
+        SkyResolution2048 = 2048,
+        SkyResolution4096 = 4096
     }
 
     public enum EnvironementUpdateMode

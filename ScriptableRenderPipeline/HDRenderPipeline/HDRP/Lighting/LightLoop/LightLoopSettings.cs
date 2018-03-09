@@ -68,8 +68,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     displayName = "Lighting Settings",
                     children =
                     {
+                        // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
+                        //new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => lightLoopSettings.enableTileAndCluster, setter = value => lightLoopSettings.enableTileAndCluster = value },
                         new DebugUI.BoolField { displayName = "Enable Fptl for Forward Opaque", getter = () => lightLoopSettings.enableFptlForForwardOpaque, setter = value => lightLoopSettings.enableFptlForForwardOpaque = value },
-                        new DebugUI.BoolField { displayName = "Enable Tile/Cluster", getter = () => lightLoopSettings.enableTileAndCluster, setter = value => lightLoopSettings.enableTileAndCluster = value },
                         new DebugUI.BoolField { displayName = "Enable Big Tile", getter = () => lightLoopSettings.enableBigTilePrepass, setter = value => lightLoopSettings.enableBigTilePrepass = value },
                         new DebugUI.BoolField { displayName = "Enable Compute Lighting", getter = () => lightLoopSettings.enableComputeLightEvaluation, setter = value => lightLoopSettings.enableComputeLightEvaluation = value },
                         new DebugUI.BoolField { displayName = "Enable Light Classification", getter = () => lightLoopSettings.enableComputeLightVariants, setter = value => lightLoopSettings.enableComputeLightVariants = value },
