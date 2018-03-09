@@ -1100,15 +1100,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
             // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
             // If a forward material have no depth prepass, then lighting can be incorrect (deferred sahdowing, SSAO), this may be acceptable depends on usage
-            bool addFullDepthPrepass = m_FrameSettings.enableForwardRenderingOnly || m_FrameSettings.enableDepthPrepassWithDeferredRendering;
-            bool addAlphaTestedOnly = !m_FrameSettings.enableForwardRenderingOnly && !m_FrameSettings.enableDepthPrepassWithDeferredRendering;
+            bool addFullDepthPrepass = forcePrepass || m_FrameSettings.enableForwardRenderingOnly || m_FrameSettings.enableDepthPrepassWithDeferredRendering;
 
             var camera = hdCamera.camera;
 
-            using (new ProfilingSample(cmd, addAlphaTestedOnly ? "Depth Prepass alpha test" : "Depth Prepass", CustomSamplerId.DepthPrepass.GetSampler()))
+            using (new ProfilingSample(cmd, !addFullDepthPrepass ? "Depth Prepass alpha test" : "Depth Prepass", CustomSamplerId.DepthPrepass.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
-                if (forcePrepass || (addFullDepthPrepass && !addAlphaTestedOnly)) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
+                if (addFullDepthPrepass) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
                 {
                     // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
                     // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
@@ -1119,8 +1118,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
                     RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
 
-                    // Render Alpha test only if requested
-                    if (addAlphaTestedOnly)
+                    // Alpha tested materials always have a prepass.
+                    if (!addFullDepthPrepass)
                     {
                         var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
                         RenderOpaqueRenderList(cull, camera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
