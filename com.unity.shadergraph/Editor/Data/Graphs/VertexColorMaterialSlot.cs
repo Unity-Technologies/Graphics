@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         public VertexColorMaterialSlot(int slotId, string displayName, string shaderOutputName,
                                        ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, shaderStage, hidden: hidden)
         {}
 
         public override VisualElement InstantiateControl()
