@@ -126,6 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEnableMotionVectorForVertexAnimation = "_EnableMotionVectorForVertexAnimation";
 
         protected const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
+        protected const string kZTestGBuffer = "_ZTestGBuffer";
         protected const string kZTestModeDistortion = "_ZTestModeDistortion";
 
         // See comment in LitProperties.hlsl
@@ -354,6 +355,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_BLENDMODE_ALPHA", false);
             CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
             CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
+
+            if(alphaTestEnable)
+            {
+                material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.Equal);
+            }
+            else
+            {
+                material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+            }
 
             // If the material use the kZTestDepthEqualForOpaque it mean it require depth equal test for opaque but transparent are not affected
             if (material.HasProperty(kZTestDepthEqualForOpaque))

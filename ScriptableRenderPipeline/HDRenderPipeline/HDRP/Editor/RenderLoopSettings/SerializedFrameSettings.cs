@@ -18,7 +18,6 @@ namespace UnityEditor.Experimental.Rendering
 
         public SerializedProperty enableForwardRenderingOnly;
         public SerializedProperty enableDepthPrepassWithDeferredRendering;
-        public SerializedProperty enableAlphaTestOnlyInDeferredPrepass;
 
         public SerializedProperty enableTransparentPrepass;
         public SerializedProperty enableMotionVectors;
@@ -57,7 +56,6 @@ namespace UnityEditor.Experimental.Rendering
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
             enableForwardRenderingOnly = root.Find((FrameSettings d) => d.enableForwardRenderingOnly);
             enableDepthPrepassWithDeferredRendering = root.Find((FrameSettings d) => d.enableDepthPrepassWithDeferredRendering);
-            enableAlphaTestOnlyInDeferredPrepass = root.Find((FrameSettings d) => d.enableAlphaTestOnlyInDeferredPrepass);
             enableTransparentPrepass = root.Find((FrameSettings d) => d.enableTransparentPrepass);
             enableMotionVectors = root.Find((FrameSettings d) => d.enableMotionVectors);
             enableObjectMotionVectors = root.Find((FrameSettings d) => d.enableObjectMotionVectors);
