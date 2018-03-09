@@ -19,7 +19,7 @@ struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-    float3 posWS                    : TEXCOORD2;
+    float4 posWSShininess           : TEXCOORD2;    // xyz: posWS, w: Shininess * 128
 
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -41,7 +41,7 @@ struct LightweightVertexOutput
 
 void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputData inputData)
 {
-    inputData.positionWS = IN.posWS.xyz;
+    inputData.positionWS = IN.posWSShininess.xyz;
 
 #ifdef _NORMALMAP
     half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
@@ -85,10 +85,11 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 
-    o.posWS = TransformObjectToWorld(v.vertex.xyz);
-    o.clipPos = TransformWorldToHClip(o.posWS);
+    o.posWSShininess.xyz = TransformObjectToWorld(v.vertex.xyz);
+    o.posWSShininess.w = _Shininess * 128.0;
+    o.clipPos = TransformWorldToHClip(o.posWSShininess.xyz);
 
-    half3 viewDir = GetCameraPositionWS() - o.posWS;
+    half3 viewDir = GetCameraPositionWS() - o.posWSShininess.xyz;
 #if !SHADER_HINT_NICE_QUALITY
     // Normalize in vertex and avoid renormalizing it in frag to save ALU.
     viewDir = SafeNormalize(viewDir);
@@ -106,13 +107,14 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
     OUTPUT_NORMAL(v, o);
 
-    // We either sample GI from lightmap or SH. lightmap UV and vertex SH coefficients
-    // are packed in lightmapUVOrVertexSH to save interpolator.
-    // The following funcions initialize
+    // We either sample GI from lightmap or SH.
+    // Lightmap UV and vertex SH coefficients use the same interpolator ("float2 lightmapUV" for lightmap or "half3 vertexSH" for SH)
+    // see DECLARE_LIGHTMAP_OR_SH macro.
+    // The following funcions initialize the correct variable with correct data
     OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
     OUTPUT_SH(o.normal.xyz, o.vertexSH);
 
-    half3 vertexLight = VertexLighting(o.posWS, o.normal.xyz);
+    half3 vertexLight = VertexLighting(o.posWSShininess.xyz, o.normal.xyz);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
     o.shadowCoord = ComputeShadowCoord(o.clipPos);
@@ -167,7 +169,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 
     half3 emission = Emission(uv);
     half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
-    half shininess = _Shininess * 128.0h;
+    half shininess = IN.posWSShininess.w;
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);

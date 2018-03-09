@@ -1328,13 +1328,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     {
         // TODO: perform bilinear filtering of the shadow map.
         // Recompute transmittance using the thickness value computed from the shadow map.
-    #if 0
-        // Does not work, I get a compiler crash...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Cascade(lightLoopContext.shadowContext, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
-    #else
-        #define SHADOW_DISPATCH_DIR_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Cascade(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX], posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
-    #endif
+        float3 occluderPosWS = GetDirectionalShadowClosestSample(lightLoopContext.shadowContext, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
 
         float thicknessInUnits       = distance(posInput.positionWS, occluderPosWS);
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
@@ -1442,13 +1436,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     {
         // TODO: perform bilinear filtering of the shadow map.
         // Recompute transmittance using the thickness value computed from the shadow map.
-    #if 0
-        // Does not work, I get a compiler crash...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Punctual(lightLoopContext.shadowContext, posInput.positionWS, lightData.shadowIndex, L);
-    #else
-        #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX], posInput.positionWS, lightData.shadowIndex, L);
-    #endif
+        float3 occluderPosWS = GetPunctualShadowClosestSample(lightLoopContext.shadowContext, posInput.positionWS, lightData.shadowIndex, L);
 
         float thicknessInUnits       = distance(posInput.positionWS, occluderPosWS);
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;

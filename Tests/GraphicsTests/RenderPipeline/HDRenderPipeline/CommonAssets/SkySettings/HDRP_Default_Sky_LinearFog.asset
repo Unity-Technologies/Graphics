@@ -99,7 +99,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
     min: 0
-  skyHDRI:
+  hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!114 &114595935599516216

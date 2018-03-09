@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 supportedLightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
                 rendererSupportsLightProbeProxyVolumes = true,
                 rendererSupportsMotionVectors = true,
-                rendererSupportsReceiveShadows = true,
+                rendererSupportsReceiveShadows = false,
                 rendererSupportsReflectionProbes = true
             };
 
