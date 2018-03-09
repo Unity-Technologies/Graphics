@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public class ShadowSettings
     {
         public bool     enabled;
+        public bool     screenSpace;
         public int      shadowAtlasWidth;
         public int      shadowAtlasHeight;
 
@@ -33,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     defaultShadowSettings = new ShadowSettings();
                     defaultShadowSettings.enabled = true;
+                    defaultShadowSettings.screenSpace = true;
                     defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
                     defaultShadowSettings.directionalLightCascadeCount = 1;
                     defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
@@ -344,13 +346,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
-                {
                     DepthPass(ref context, frameRenderingConfiguration);
 
-                    // Only screen space shadowmap mode is supported.
-                    if (shadows)
-                        ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
-                }
+                if (shadows && m_ShadowSettings.screenSpace)
+                    ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
 
                 if (!shadows)
                 {
@@ -404,9 +403,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     bool shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight, shadowOriginalIndex, ref context);
                     if (shadowsRendered)
                     {
-                        lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS)
-                            ? LightShadows.Hard
-                            : mainLight.light.shadows;
+                        lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS) ? LightShadows.Hard : mainLight.light.shadows;
+
+                        // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
+                        // GLES2 platform is forced to hard single cascade shadows.
+                        if (!m_ShadowSettings.screenSpace)
+                            lightData.shadowMapSampleType = LightShadows.Hard;
                     }
                     else
                     {
@@ -424,9 +426,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
-            SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]);
             SetShadowCollectPassKeywords(cmd, visibleLights[lightData.mainLightIndex], ref lightData);
-
 
             // TODO: Support RenderScale for the SSSM target.  Should probably move allocation elsewhere, or at
             // least propogate RenderTextureDescriptor generation
@@ -606,7 +606,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void BuildShadowSettings()
         {
             m_ShadowSettings = ShadowSettings.Default;
-            m_ShadowSettings.directionalLightCascadeCount = m_Asset.CascadeCount;
+            m_ShadowSettings.screenSpace = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            m_ShadowSettings.directionalLightCascadeCount = (m_ShadowSettings.screenSpace) ? m_Asset.CascadeCount : 1;
 
             m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
@@ -672,7 +673,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (shadows)
             {
-                m_RequireDepthTexture = true;
+                m_RequireDepthTexture = m_ShadowSettings.screenSpace;
 
                 if (!msaaEnabled)
                     intermediateTexture = true;
@@ -1104,7 +1105,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
-        private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight)
+        private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, ref ScriptableRenderContext context)
         {
             Light light = shadowLight.light;
 
@@ -1121,6 +1122,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
             float invHalfShadowResolution = 0.5f * invShadowResolution;
+            cmd.Clear();
             cmd.SetGlobalMatrixArray(ShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray(ShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
@@ -1130,6 +1132,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset3, new Vector4(invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
+            context.ExecuteCommandBuffer(cmd);
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
@@ -1152,7 +1155,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
-           
+
             bool linearFogModeEnabled = false;
             bool exponentialFogModeEnabled = false;
             if (RenderSettings.fog)
@@ -1235,6 +1238,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
             }
+
+            if (success)
+                SetupShadowReceiverConstants(cmd, shadowLight, ref context);
 
             CommandBufferPool.Release(cmd);
             return success;
