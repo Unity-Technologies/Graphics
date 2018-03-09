@@ -7,6 +7,12 @@
 
 #define MAX_SHADOW_CASCADES 4
 
+#ifdef SHADER_API_GLES
+#define SHADOWS_SCREEN 0
+#else
+#define SHADOWS_SCREEN 1
+#endif
+
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowMap);
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
@@ -135,7 +141,7 @@ inline half ComputeCascadeIndex(float3 positionWS)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
+float4 TransformWorldToShadowCoord(float3 positionWS)
 {
 #ifdef _SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
@@ -155,8 +161,11 @@ half RealtimeShadowAttenuation(float4 shadowCoord)
 {
 #if NO_SHADOWS
     return 1.0h;
-#else
+#elif SHADOWS_SCREEN
     return SampleScreenSpaceShadowMap(shadowCoord);
+#else
+
+    return SampleShadowmap(shadowCoord);
 #endif
 }
 

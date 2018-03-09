@@ -12,7 +12,6 @@ struct LightweightVertexInput
     float2 texcoord : TEXCOORD0;
     float2 lightmapUV : TEXCOORD1;
     UNITY_VERTEX_INPUT_INSTANCE_ID
-
 };
 
 struct LightweightVertexOutput
@@ -100,7 +99,12 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half3 vertexLight = VertexLighting(o.posWSShininess.xyz, o.normal.xyz);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+
+#if SHADOWS_SCREEN
     o.shadowCoord = ComputeShadowCoord(o.clipPos);
+#else
+    o.shadowCoord = TransformWorldToShadowCoord(o.posWSShininess.xyz);
+#endif
 
     return o;
 }
