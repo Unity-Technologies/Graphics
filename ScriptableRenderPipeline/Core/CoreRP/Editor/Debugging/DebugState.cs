@@ -10,6 +10,12 @@ namespace UnityEditor.Experimental.Rendering
         [SerializeField]
         protected string m_QueryPath;
 
+        // We need this to keep track of the state modified in the current frame.
+        // This helps reduces the cost of re-applying states to original widgets and is also needed
+        // when two states point to the same value (e.g. when using split enums like HDRP does for
+        // the `fullscreenDebugMode`.
+        internal static DebugState m_CurrentDirtyState;
+
         public string queryPath
         {
             get { return m_QueryPath; }
