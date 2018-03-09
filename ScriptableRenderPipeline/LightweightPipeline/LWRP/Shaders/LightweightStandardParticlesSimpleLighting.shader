@@ -2,7 +2,7 @@
 // Only directional light is supported for lit particles
 // No shadow
 // No distortion
-Shader "LightweightPipeline/Particles/Standard (Physically Based)"
+Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 {
     Properties
     {
@@ -11,12 +11,21 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _MetallicGlossMap("Metallic", 2D) = "white" {}
-        [Gamma] _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
-        _Glossiness("Smoothness", Range(0.0, 1.0)) = 0.5
+        _Shininess("Shininess", Range(0.01, 1.0)) = 1.0
+        _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
 
-        _BumpScale("Scale", Float) = 1.0
-        _BumpMap("Normal Map", 2D) = "bump" {}
+        _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5
+        [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
+
+        [HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
+        _SpecColor("Specular", Color) = (1.0, 1.0, 1.0)
+        _SpecGlossMap("Specular", 2D) = "white" {}
+        [HideInInspector] _GlossinessSource("Glossiness Source", Float) = 0.0
+        [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [ToggleOff] _GlossyReflections("Glossy Reflections", Float) = 1.0
+
+        [HideInInspector] _BumpScale("Scale", Float) = 1.0
+        [NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
 
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
@@ -63,12 +72,14 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
             #pragma target 2.0
 
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature _METALLICGLOSSMAP
+            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature _ _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
+            #define BUMP_SCALE_NOT_SUPPORTED 1
             #define NO_SHADOWS 1
 
             #include "LWRP/ShaderLibrary/Particles.hlsl"
@@ -77,6 +88,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
             {
                 VertexOutputLit o;
+
                 OUTPUT_NORMAL(v, o);
 
                 o.color = v.color * _Color;
@@ -84,6 +96,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
                 o.posWS.w = ComputeFogFactor(o.clipPos.z);
                 o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
+                o.viewDirShininess.w = _Shininess * 128.0h;
                 vertTexcoord(v, o);
                 vertFading(o, o.posWS, o.clipPos);
                 return o;
@@ -91,14 +104,19 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
 
             half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
             {
-                SurfaceData surfaceData;
-                InitializeSurfaceData(IN, surfaceData);
+                half4 albedo = Albedo(IN);
+                half alpha = AlphaBlendAndTest(albedo.a);
+                half3 diffuse = AlphaModulate(albedo.rgb, alpha);
+                half3 normalTS = NormalTS(IN);
+                half3 emission = Emission(IN);
+                half4 specularGloss = SpecularGloss(IN, albedo.a);
+                half shininess = IN.viewDirShininess.w;
 
                 InputData inputData;
-                InitializeInputData(IN, surfaceData.normalTS, inputData);
+                InitializeInputData(IN, normalTS, inputData);
 
-                half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo,
-                    surfaceData.metallic, half3(0, 0, 0), surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+                half4 color = LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+
                 ApplyFog(color.rgb, inputData.fogCoord);
                 return color;
             }
@@ -107,6 +125,6 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
         }
     }
 
-    Fallback "LightweightPipeline/Particles/Standard (Simple Lighting)"
+    Fallback "LightweightPipeline/Particles/Standard Unlit"
     CustomEditor "LightweightStandardParticlesShaderGUI"
 }
