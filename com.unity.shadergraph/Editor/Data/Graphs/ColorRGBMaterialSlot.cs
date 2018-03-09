@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             Color value,
             ShaderStage shaderStage = ShaderStage.Dynamic,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, slotType, (Vector4)value, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, (Vector4)value, shaderStage, hidden: hidden)
         {
         }
 
