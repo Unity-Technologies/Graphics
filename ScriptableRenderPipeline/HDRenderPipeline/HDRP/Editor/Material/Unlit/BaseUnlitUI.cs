@@ -356,7 +356,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
             CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
-            if(alphaTestEnable)
+            // Alpha tested materials always have a prepass where we perform the clip.
+            // Then during Gbuffer pass we don't perform the clip test, so we need to use depth equal in this case.
+            if (alphaTestEnable)
             {
                 material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.Equal);
             }
