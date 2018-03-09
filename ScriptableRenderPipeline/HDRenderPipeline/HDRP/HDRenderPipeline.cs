@@ -1089,7 +1089,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
         // Forward only renderer: We always render everything
-        // Deferred renderer: We render a depth prepass only if engine request it. We can decide if we render everything or only opaque alpha tested object.
+        // Deferred renderer: We always render depth prepass for alpha tested (optimization), other object are render based on engine configuration.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
         void RenderDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool forcePrepass)
         {
@@ -1099,8 +1099,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
             // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
             // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
-
-            // In case of forward only rendering we have a depth prepass. In case of deferred renderer, it is optional
+            // If a forward material have no depth prepass, then lighting can be incorrect (deferred sahdowing, SSAO), this may be acceptable depends on usage
             bool addFullDepthPrepass = m_FrameSettings.enableForwardRenderingOnly || m_FrameSettings.enableDepthPrepassWithDeferredRendering;
             bool addAlphaTestedOnly = !m_FrameSettings.enableForwardRenderingOnly && !m_FrameSettings.enableDepthPrepassWithDeferredRendering;
 
