@@ -354,7 +354,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!shadows)
                 {
                     var setRT = CommandBufferPool.Get("Generate Small Shadow Buffer");
-                    setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+                    int shadowmapID = m_ShadowSettings.screenSpace ? m_ScreenSpaceShadowMapRTID : m_ShadowMapRTID;
+                    setRT.GetTemporaryRT(shadowmapID, 4, 4, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
                     setRT.Blit(Texture2D.whiteTexture, m_ScreenSpaceShadowMapRT);
                     context.ExecuteCommandBuffer(setRT);
                 }
