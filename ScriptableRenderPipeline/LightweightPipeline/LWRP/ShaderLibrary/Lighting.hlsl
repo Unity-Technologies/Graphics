@@ -478,7 +478,8 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
 {
     half3 halfVec = SafeNormalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
-    half3 specularReflection = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
+    half modifier = pow(NdotH, shininess) * specularGloss.a;
+    half3 specularReflection = specularGloss.rgb * modifier;
     return lightColor * specularReflection;
 }
 
@@ -566,8 +567,8 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     }
 #endif
 
-    half3 finalColor = diffuseColor * diffuse + emission;
-    finalColor += inputData.vertexLighting * diffuse;
+    half3 fullDiffuse = diffuseColor + inputData.vertexLighting;
+    half3 finalColor = fullDiffuse * diffuse + emission;
     
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;

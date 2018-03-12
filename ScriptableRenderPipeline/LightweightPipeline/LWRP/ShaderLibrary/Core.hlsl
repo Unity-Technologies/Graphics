@@ -46,10 +46,10 @@ void AlphaDiscard(half alpha, half cutoff)
 
 half3 UnpackNormal(half4 packedNormal)
 {
-    // Compiler will optimize the scale away
 #if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGB(packedNormal, 1.0);
+    return UnpackNormalRGBNoScale(packedNormal);
 #else
+        // Compiler will optimize the scale away
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
 #endif
 }
