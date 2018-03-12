@@ -18,19 +18,21 @@ struct LightweightVertexInput
 struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
-    float4 lightmapUVOrVertexSH     : TEXCOORD1; // holds either lightmapUV or vertex SH. depending on LIGHTMAP_ON
+    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
     float3 posWS                    : TEXCOORD2;
-    half3  normal                   : TEXCOORD3;
 
 #ifdef _NORMALMAP
-    half3 tangent                   : TEXCOORD4;
-    half3 binormal                  : TEXCOORD5;
+    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.w
+#else
+    half3  normal                   : TEXCOORD3;
+    half3 viewDir                   : TEXCOORD6;
 #endif
 
-    half3 viewDir                   : TEXCOORD6;
     half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
 
-    float4 shadowCoord               : TEXCOORD8;
+    float4 shadowCoord              : TEXCOORD8;
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -42,23 +44,30 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.positionWS = IN.posWS.xyz;
 
 #ifdef _NORMALMAP
-    inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
+    half3 viewDir = half3(IN.tangent.w, IN.binormal.w, IN.normal.w);
+    inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
 #else
-    inputData.normalWS = normalize(IN.normal);
+    half3 viewDir = IN.viewDir;
+    #if !SHADER_HINT_NICE_QUALITY
+        // World normal is already normalized in vertex. Small acceptable error to save ALU.
+        inputData.normalWS = IN.normal;
+    #else
+        inputData.normalWS = normalize(IN.normal);
+    #endif
 #endif
 
 #if SHADER_HINT_NICE_QUALITY
-    inputData.viewDirectionWS = SafeNormalize(IN.viewDir);
+    inputData.viewDirectionWS = SafeNormalize(viewDir);
 #else
-    // View direction is already normalize in vertex. Small acceptable error to save ALU.
-    inputData.viewDirectionWS = IN.viewDir;
+    // View direction is already normalized in vertex. Small acceptable error to save ALU.
+    inputData.viewDirectionWS = viewDir;
 #endif
 
     inputData.shadowCoord = IN.shadowCoord;
 
     inputData.fogCoord = IN.fogFactorAndVertexLight.x;
     inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SampleGI(IN.lightmapUVOrVertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(IN.lightmapUV, IN.vertexSH, inputData.normalWS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,11 +88,18 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.posWS = TransformObjectToWorld(v.vertex.xyz);
     o.clipPos = TransformWorldToHClip(o.posWS);
 
-    o.viewDir = GetCameraPositionWS() - o.posWS;
-
+    half3 viewDir = GetCameraPositionWS() - o.posWS;
 #if !SHADER_HINT_NICE_QUALITY
     // Normalize in vertex and avoid renormalizing it in frag to save ALU.
-    o.viewDir = SafeNormalize(o.viewDir);
+    viewDir = SafeNormalize(viewDir);
+#endif
+
+#ifdef _NORMALMAP
+    o.normal.w = viewDir.x;
+    o.tangent.w = viewDir.y;
+    o.binormal.w = viewDir.z;
+#else
+    o.viewDir = viewDir;
 #endif
 
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
@@ -92,10 +108,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     // We either sample GI from lightmap or SH. lightmap UV and vertex SH coefficients
     // are packed in lightmapUVOrVertexSH to save interpolator.
     // The following funcions initialize
-    OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUVOrVertexSH);
-    OUTPUT_SH(o.normal, o.lightmapUVOrVertexSH);
+    OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
+    OUTPUT_SH(o.normal.xyz, o.vertexSH);
 
-    half3 vertexLight = VertexLighting(o.posWS, o.normal);
+    half3 vertexLight = VertexLighting(o.posWS, o.normal.xyz);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
     o.shadowCoord = ComputeShadowCoord(o.clipPos);

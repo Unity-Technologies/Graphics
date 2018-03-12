@@ -66,7 +66,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma target 3.0
+            #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords

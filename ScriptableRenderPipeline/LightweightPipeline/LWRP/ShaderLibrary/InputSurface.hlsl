@@ -78,7 +78,6 @@ half4 SpecularGloss(half2 uv, half alpha)
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv);
-    specularGloss.rgb = specularGloss.rgb;
 #elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
 #endif
