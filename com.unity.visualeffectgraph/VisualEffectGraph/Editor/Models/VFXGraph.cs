@@ -59,6 +59,7 @@ namespace UnityEditor.VFX
                 {
                     var graph = vfxAsset.GetOrCreateGraph();
                     graph.OnSaved();
+                    vfxAsset.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
             Profiler.EndSample();
