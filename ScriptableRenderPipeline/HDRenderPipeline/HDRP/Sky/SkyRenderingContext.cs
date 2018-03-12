@@ -138,6 +138,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // We do our own hash here because Unity does not provide correct hash for builtin types
+        // Moreover, we don't want to test every single parameters of the light so we filter them here in this specific function.
+        int GetSunLightHashCode(Light light)
+        {
+            HDAdditionalLightData ald = light.GetComponent<HDAdditionalLightData>();
+            unchecked
+            {
+                int hash = 13;
+                hash = hash * 23 + (light.GetHashCode() * 23 + light.transform.position.GetHashCode()) * 23 + light.transform.rotation.GetHashCode();
+                hash = hash * 23 + light.color.GetHashCode();
+                hash = hash * 23 + light.colorTemperature.GetHashCode();
+                hash = hash * 23 + light.intensity.GetHashCode();
+                hash = hash * 23 + light.range.GetHashCode();
+                if (light.cookie != null)
+                {
+                    hash = hash * 23 + (int)light.cookie.updateCount;
+                    hash = hash * 23 + (int)light.cookie.GetInstanceID();
+                }
+                if (ald != null)
+                {
+                    hash = hash * 23 + ald.lightDimmer.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         public bool UpdateEnvironment(SkyUpdateContext skyContext, HDCamera camera, Light sunLight, bool updateRequired, CommandBuffer cmd)
         {
             bool result = false;
@@ -153,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int sunHash = 0;
                 if (sunLight != null)
-                    sunHash = (sunLight.GetHashCode() * 23 + sunLight.transform.position.GetHashCode()) * 23 + sunLight.transform.rotation.GetHashCode();
+                    sunHash = GetSunLightHashCode(sunLight);
                 int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
 
                 bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);

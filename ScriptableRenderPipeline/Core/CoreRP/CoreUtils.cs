@@ -182,6 +182,18 @@ namespace UnityEngine.Experimental.Rendering
             return temp;
         }
 
+        public static string GetTextureAutoName(int width, int height, TextureFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
+        {
+            string temp;
+            if(depth == 0)
+                temp = string.Format("{0}x{1}_{2}{3}", width, height, format, mips ? "_Mips" : "");
+            else
+                temp = string.Format("{0}x{1}x{2}_{3}{4}", width, height, depth, format, mips ? "_Mips" : "");
+            temp = String.Format("{0}_{1}_{2}", name == "" ? "Texture" : name, (dim == TextureDimension.None) ? "" : dim.ToString(), temp);
+
+            return temp;
+        }
+
         public static void ClearCubemap(CommandBuffer cmd, RenderTexture renderTexture, Color clearColor, bool clearMips = false)
         {
             int mipCount = 1;

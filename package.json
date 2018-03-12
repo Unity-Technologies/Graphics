@@ -4,6 +4,6 @@
 	"unity": "2018.1",
 	"description": "Render pipelines using SRP",
 	"dependencies": {
-    	"com.unity.postprocessing": "0.1.2"
+    	"com.unity.postprocessing": "2.0.2-preview"
 	}
 }

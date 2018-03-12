@@ -92,13 +92,25 @@ namespace UnityEngine.Experimental.Rendering
         // UI stuff
         protected struct ValRange
         {
-            GUIContent  Name;
+#if UNITY_EDITOR
+            GUIContent Name;
             float       ValMin;
-            float       ValDef;
             float       ValMax;
+#endif
+            float       ValDef;
             float       ValScale;
 
-            public ValRange( string name, float valMin, float valDef, float valMax, float valScale ) { Name = new GUIContent( name ); ValMin = valMin; ValDef = valDef; ValMax = valMax; ValScale = valScale; }
+            public ValRange( string name, float valMin, float valDef, float valMax, float valScale )
+            {
+#if UNITY_EDITOR
+                Name = new GUIContent( name );
+                ValMin = valMin;
+                ValMax = valMax;
+#endif
+                ValDef = valDef;
+                ValScale = valScale;
+            }
+
 #if UNITY_EDITOR
             public void Slider( ref int currentVal ) { currentVal = ShadowUtils.Asint( ValScale * UnityEditor.EditorGUILayout.Slider( Name, ShadowUtils.Asfloat( currentVal ) / ValScale, ValMin, ValMax ) ); }
 #else
@@ -1472,7 +1484,9 @@ namespace UnityEngine.Experimental.Rendering
 
                     int sa, sv, sp;
                     asd.GetShadowAlgorithm( out sa, out sv, out sp );
-                    sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
+                    GPUShadowAlgorithm packed_algo = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
+                    GetGlobalShadowOverride( shadowType, ref packed_algo );
+                    sreq.shadowAlgorithm = packed_algo;
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
                     totalSlots--;

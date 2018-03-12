@@ -1063,10 +1063,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // bake lighting function
 //-----------------------------------------------------------------------------
 
-// GetBakedDiffuseLigthing function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
+// GetBakedDiffuseLighting function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
 // In forward it must be add to the final contribution.
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
-float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
+float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
@@ -1328,13 +1328,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     {
         // TODO: perform bilinear filtering of the shadow map.
         // Recompute transmittance using the thickness value computed from the shadow map.
-    #if 0
-        // Does not work, I get a compiler crash...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Cascade(lightLoopContext.shadowContext, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
-    #else
-        #define SHADOW_DISPATCH_DIR_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Cascade(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX], posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
-    #endif
+        float3 occluderPosWS = GetDirectionalShadowClosestSample(lightLoopContext.shadowContext, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, float4(L, 0));
 
         float thicknessInUnits       = distance(posInput.positionWS, occluderPosWS);
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
@@ -1442,13 +1436,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     {
         // TODO: perform bilinear filtering of the shadow map.
         // Recompute transmittance using the thickness value computed from the shadow map.
-    #if 0
-        // Does not work, I get a compiler crash...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Punctual(lightLoopContext.shadowContext, posInput.positionWS, lightData.shadowIndex, L);
-    #else
-        #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
-        float3 occluderPosWS = EvalShadow_GetClosestSample_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX], posInput.positionWS, lightData.shadowIndex, L);
-    #endif
+        float3 occluderPosWS = GetPunctualShadowClosestSample(lightLoopContext.shadowContext, posInput.positionWS, lightData.shadowIndex, L);
 
         float thicknessInUnits       = distance(posInput.positionWS, occluderPosWS);
         float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
@@ -1931,7 +1919,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        float3 capturePositionWS = lightData.capturePositionWS;
         R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // Test again for clear coat
@@ -1948,7 +1936,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        float3 capturePositionWS = lightData.capturePositionWS;
         R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // TODO: add distance based roughness
@@ -1973,7 +1961,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
-    float3 sampleDirectionDiscardWS = GetSampleDirectionDiscardWS(lightData);
+    float3 sampleDirectionDiscardWS = lightData.sampleDirectionDiscardWS;
     if (dot(sampleDirectionDiscardWS, R) < 0)
         return lighting;
 
@@ -2021,8 +2009,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 #endif // LIT_DISPLAY_REFERENCE_IBL
 
+    weight *= lightData.weight;
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    envLighting *= weight * lightData.dimmer;
+    envLighting *= weight * lightData.multiplier;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting;
@@ -2088,7 +2077,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     float3 modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
-    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLigthing().
+    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value

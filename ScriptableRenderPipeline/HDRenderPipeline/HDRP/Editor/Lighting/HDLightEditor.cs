@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -9,6 +10,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
+        [MenuItem("CONTEXT/Light/Remove HD Light", false,0)]
+        static void RemoveLight(MenuCommand menuCommand)
+        {
+            GameObject go = ( (Light) menuCommand.context ).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Undo.IncrementCurrentGroup();
+            Undo.DestroyObjectImmediate(go.GetComponent<Light>());
+            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
+            Undo.DestroyObjectImmediate(go.GetComponent<AdditionalShadowData>());
+        }
+
         sealed class SerializedLightData
         {
             public SerializedProperty directionalIntensity;
@@ -267,6 +281,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Rectangle:
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Area;
+                    // In case of change, think to update InitDefaultHDAdditionalLightData()
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthRect);
@@ -401,6 +416,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
+                m_AdditionalLightData.fadeDistance.floatValue = Mathf.Max(m_AdditionalLightData.fadeDistance.floatValue, 0.01f);
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
         }
@@ -490,7 +506,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var type = settings.lightType;
 
             // Special case for multi-selection: don't resolve light shape or it'll corrupt lights
-            if (type.hasMultipleDifferentValues)
+            if (type.hasMultipleDifferentValues
+                || m_AdditionalLightData.lightTypeExtent.hasMultipleDifferentValues)
             {
                 m_LightShape = (LightShape)(-1);
                 return;

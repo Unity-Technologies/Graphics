@@ -9,7 +9,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)
         // Punctual light (point, spot) are convert to candela (cd = lumens / steradian)
-        // Area light are convert to luminance (cd/(m^2*steradian)) with the following formulation: Luminous Power / (Area * PI * steradian)
+
+        // For our isotropic area lights which expect radiance(W / (sr* m^2)) in the shader:
+        // power = Integral{area, Integral{hemisphere, radiance * <N, L>}},
+        // power = area * Pi * radiance,
+        // radiance = power / (area * Pi).
+        // We use photometric unit, so radiance is luminance and power is luminous power
 
         // Ref: Moving Frostbite to PBR
         // Also good ref: https://www.radiance-online.org/community/workshops/2004-fribourg/presentations/Wandachowicz_paper.pdf
@@ -55,14 +60,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // convert intensity (lumen) to nits
         public static float CalculateLineLightIntensity(float intensity, float lineWidth)
         {
-            // Line lights in the shader expect intensity (W / sr).
-            // In the UI, we specify luminous flux(power) in lumens.
-            // First, it needs to be converted to radiometric units(radiant flux, W).
-            // Then we must recall how to compute power from intensity for a line light:
-            // power = Integral{length, Integral{sphere, intensity}}.
-            // For an isotropic line light, intensity is constant, so
-            // power = length * (4 * Pi) * intensity,
-            // intensity = power / (length * (4 * Pi)).
+            //Line lights expect radiance (W / (sr * m^2)) in the shader.
+            //In the UI, we specify luminous flux (power) in lumens.
+            //First, it needs to be converted to radiometric units (radiant flux, W).
+
+            //Then we must recall how to compute power from radiance:
+
+            //radiance = differential_power / (differrential_projected_area * differential_solid_angle),
+            //radiance = differential_power / (differrential_area * differential_solid_angle * <N, L>),
+            //power = Integral{area, Integral{hemisphere, radiance * <N, L>}}.
+
+            //Unlike tube lights, our line lights have no surface area, so the integral becomes:
+
+            //power = Integral{length, Integral{sphere, radiance}}.
+
+            //For an isotropic line light, radiance is constant, therefore:
+
+            //power = length * (4 * Pi) * radiance,
+            //radiance = power / (length * (4 * Pi)).
             return intensity / (4.0f * Mathf.PI * lineWidth);
         }
     }
