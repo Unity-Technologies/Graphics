@@ -214,10 +214,8 @@ half AlphaBlendAndTest(half alpha)
 #else
     half result = 1.0h;
 #endif
+    AlphaDiscard(result, _Cutoff, 0.0001h);
 
-#if defined(_ALPHATEST_ON)
-    clip(result - _Cutoff + 0.0001h);
-#endif
     return result;
 }
 
