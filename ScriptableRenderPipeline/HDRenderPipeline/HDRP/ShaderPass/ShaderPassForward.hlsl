@@ -81,7 +81,7 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 diffuseLighting;
         float3 specularLighting;
         BakeLightingData bakeLightingData;
-        bakeLightingData.bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
+        bakeLightingData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
 #ifdef SHADOWS_SHADOWMASK
         bakeLightingData.bakeShadowMask = float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3);
 #endif

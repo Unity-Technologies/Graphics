@@ -50,7 +50,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             return o;
         }
 
-        half Fragment(Interpolators i) : SV_Target
+        half4 Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
 #if !defined(UNITY_STEREO_INSTANCING_ENABLED)
