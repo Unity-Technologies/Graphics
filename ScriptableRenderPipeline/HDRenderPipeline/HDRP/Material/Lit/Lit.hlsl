@@ -1397,15 +1397,16 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     float  LdotV = dot(L, V);
 
-    bool   mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
-                                && NdotL < 0 && lightData.shadowIndex >= 0;
+    bool mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
+                              && NdotL < 0 && lightData.shadowIndex >= 0;
+
+    // Save the original version for the transmission code below.
+    int shadowIndex = lightData.shadowIndex;
 
     if (mixedThicknessMode)
     {
         // Make sure we do not sample the shadow map twice.
         lightData.shadowIndex = -1;
-        // Note: we do not modify the distance to the light, or the light angle for the back face.
-        // This is a performance-saving optimization which makes sense as long as the thickness is small.
     }
 
     float3 color;
@@ -1441,8 +1442,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
             #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
 
             // Compute the distance from the light to the back face of the object along the light direction.
+            // Important: use the original (saved) shadow index here!
             float distBackFaceToLight = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
-                                                                                  s_linear_clamp_sampler, posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+                                                                                  s_linear_clamp_sampler, posInput.positionWS, shadowIndex, L, lightData.positionWS);
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.
@@ -1483,6 +1485,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         #endif // SHADEROPTIONS_USE_DISNEY_SSS
         }
 
+        // Note: we do not modify the distance to the light, or the light angle for the back face.
+        // This is a performance-saving optimization which makes sense as long as the thickness is small.
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
