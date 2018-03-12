@@ -17,7 +17,8 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influenceRight = float3(1.0, 0.0, 0.0);
     output.influencePositionWS = float3(0.0, 0.0, 0.0);
 
-    output.dimmer = 1.0;
+    output.weight = 1.0;
+    output.multiplier = 1.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
