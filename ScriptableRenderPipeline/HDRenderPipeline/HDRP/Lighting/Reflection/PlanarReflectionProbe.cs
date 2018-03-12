@@ -1,4 +1,5 @@
-﻿using UnityEngine.Rendering;
+﻿using UnityEngine.Serialization;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -18,8 +19,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
-        [Range(0, 1)]
-        float m_Dimmer = 1;
+        [FormerlySerializedAsAttribute("m_Dimmer")]
+        float m_Multiplier = 1.0f;
+        [SerializeField]
+        [Range(0.0f, 1.0f)]
+        float m_Weight = 1.0f;
         [SerializeField]
         ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
         [SerializeField]
@@ -73,7 +77,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
-        public float dimmer { get { return m_Dimmer; } }
+        public float weight { get { return m_Weight; } }
+        public float multiplier { get { return m_Multiplier; } }
         public ReflectionProbeMode mode { get { return m_Mode; } }
         public Matrix4x4 influenceToWorld
         {
