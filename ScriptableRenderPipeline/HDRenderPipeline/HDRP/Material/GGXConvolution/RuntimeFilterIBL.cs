@@ -61,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GgxIblSampleData.enableRandomWrite = true;
                 m_GgxIblSampleData.filterMode = FilterMode.Point;
                 m_GgxIblSampleData.name = CoreUtils.GetRenderTargetAutoName(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, RenderTextureFormat.ARGBHalf, "GGXIblSampleData");
+                m_GgxIblSampleData.hideFlags = HideFlags.HideAndDontSave;
                 m_GgxIblSampleData.Create();
 
                 m_ComputeGgxIblSampleDataCS.SetTexture(m_ComputeGgxIblSampleDataKernel, "output", m_GgxIblSampleData);
@@ -76,6 +77,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var lookAt = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
                 m_faceWorldToViewMatrixMatrices[i] = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
             }
+        }
+
+        public void Cleanup()
+        {
+            CoreUtils.Destroy(m_GgxConvolveMaterial);
+            CoreUtils.Destroy(m_GgxIblSampleData);
         }
 
         void FilterCubemapCommon(   CommandBuffer cmd,

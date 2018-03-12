@@ -120,6 +120,9 @@ float4 unity_ProbesOcclusion;
 // HDR environment map decode instructions
 half4 unity_SpecCube0_HDR;
 
+// HDR lightmap decode instructions
+half4 unity_Lightmap_HDR;
+
 // These are set internally by the engine upon request by RendererConfiguration.
 // Check GetRendererSettings in LightweightPipeline.cs
 half4 unity_LightIndicesOffsetAndCount;

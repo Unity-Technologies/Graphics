@@ -25,7 +25,7 @@
 //#define SHADOW_DISPATCH_USE_SEPARATE_PUNC_ALGOS	    // enables separate resources and algorithms for spot and point lights
 
 // directional
-#define SHADOW_DISPATCH_DIR_TEX   3
+#define SHADOW_DISPATCH_DIR_TEX   0
 #define SHADOW_DISPATCH_DIR_SMP   0
 #define SHADOW_DISPATCH_DIR_ALG   GPUSHADOWALGORITHM_PCF_TENT_5X5   // all cascades
 #define SHADOW_DISPATCH_DIR_ALG_0 GPUSHADOWALGORITHM_PCF_TENT_7X7   // 1st cascade
@@ -33,15 +33,15 @@
 #define SHADOW_DISPATCH_DIR_ALG_2 GPUSHADOWALGORITHM_PCF_TENT_3X3   // 3rd cascade
 #define SHADOW_DISPATCH_DIR_ALG_3 GPUSHADOWALGORITHM_PCF_1TAP       // 4th cascade
 // point
-#define SHADOW_DISPATCH_POINT_TEX 3
+#define SHADOW_DISPATCH_POINT_TEX 0
 #define SHADOW_DISPATCH_POINT_SMP 0
 #define SHADOW_DISPATCH_POINT_ALG GPUSHADOWALGORITHM_PCF_TENT_3X3
 // spot
-#define SHADOW_DISPATCH_SPOT_TEX 3
+#define SHADOW_DISPATCH_SPOT_TEX 0
 #define SHADOW_DISPATCH_SPOT_SMP 0
 #define SHADOW_DISPATCH_SPOT_ALG GPUSHADOWALGORITHM_PCF_TENT_3X3
 //punctual
-#define SHADOW_DISPATCH_PUNC_TEX 3
+#define SHADOW_DISPATCH_PUNC_TEX 0
 #define SHADOW_DISPATCH_PUNC_SMP 0
 #define SHADOW_DISPATCH_PUNC_ALG GPUSHADOWALGORITHM_PCF_TENT_3X3
 
@@ -64,6 +64,12 @@ float GetDirectionalShadowAttenuation( ShadowContext shadowContext, float3 posit
 {
 	return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
+
+float3 GetDirectionalShadowClosestSample( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real4 L )
+{
+	return EvalShadow_GetClosestSample_Cascade( shadowContext, shadowContext.tex2DArray[SHADOW_DISPATCH_DIR_TEX], positionWS, normalWS, index, L );
+}
+
 #endif
 
 
@@ -103,6 +109,11 @@ float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 position
 float GetPunctualShadowAttenuation( ShadowContext shadowContext, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, float2 positionSS )
 {
 	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
+}
+
+float3 GetPunctualShadowClosestSample( ShadowContext shadowContext, real3 positionWS, int index, real3 L )
+{
+	return EvalShadow_GetClosestSample_Punctual( shadowContext, shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX], positionWS, index, L );
 }
 #endif
 

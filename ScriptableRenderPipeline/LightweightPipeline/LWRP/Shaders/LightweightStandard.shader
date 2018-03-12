@@ -77,7 +77,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
-            #pragma target 3.0
+            #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords

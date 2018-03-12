@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public abstract void CreateBuffers();
 
-        public void BindBufferAsTextures(CommandBuffer cmd)
+        public virtual void BindBufferAsTextures(CommandBuffer cmd)
         {
             for (int i = 0; i < m_BufferCount; ++i)
             {

@@ -96,6 +96,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.computeGgxIblSampleData = Load<ComputeShader>(HDRenderPipelinePath + "Material/GGXConvolution/ComputeGgxIblSampleData.compute");
                 newAsset.GGXConvolve = Load<Shader>(HDRenderPipelinePath + "Material/GGXConvolution/GGXConvolve.shader");
                 newAsset.opaqueAtmosphericScattering = Load<Shader>(HDRenderPipelinePath + "Sky/OpaqueAtmosphericScattering.shader");
+                newAsset.hdriSky = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/HDRISky.shader");
+                newAsset.proceduralSky = Load<Shader>(HDRenderPipelinePath + "Sky/ProceduralSky/ProceduralSky.shader");
 
                 // Utilities / Core
                 newAsset.encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");

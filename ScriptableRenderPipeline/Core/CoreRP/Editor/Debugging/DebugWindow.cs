@@ -132,6 +132,7 @@ namespace UnityEditor.Experimental.Rendering
         void OnDestroy()
         {
             DebugManager.instance.onSetDirty -= MarkDirty;
+            Undo.ClearUndo(m_Settings);
 
             if (m_WidgetStates != null)
             {
@@ -205,17 +206,29 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        public void ApplyStates()
+        public void ApplyStates(bool forceApplyAll = false)
         {
-            foreach (var state in m_WidgetStates)
+            if (!forceApplyAll && DebugState.m_CurrentDirtyState != null)
             {
-                var widget = DebugManager.instance.GetItem(state.Key) as DebugUI.IValueField;
-
-                if (widget == null)
-                    continue;
-
-                widget.SetValue(state.Value.GetValue());
+                ApplyState(DebugState.m_CurrentDirtyState.queryPath, DebugState.m_CurrentDirtyState);
+                DebugState.m_CurrentDirtyState = null;
+                return;
             }
+
+            foreach (var state in m_WidgetStates)
+                ApplyState(state.Key, state.Value);
+
+            DebugState.m_CurrentDirtyState = null;
+        }
+
+        void ApplyState(string queryPath, DebugState state)
+        {
+            var widget = DebugManager.instance.GetItem(queryPath) as DebugUI.IValueField;
+
+            if (widget == null)
+                return;
+
+            widget.SetValue(state.GetValue());
         }
 
         void OnUndoRedoPerformed()
@@ -225,7 +238,7 @@ namespace UnityEditor.Experimental.Rendering
             // Something has been undone / redone, re-apply states to the debug tree
             if (stateHash != m_Settings.currentStateHash)
             {
-                ApplyStates();
+                ApplyStates(true);
                 m_Settings.currentStateHash = stateHash;
             }
 
@@ -316,9 +329,11 @@ namespace UnityEditor.Experimental.Rendering
                         if (m_Settings.selectedPanel == i && Event.current.type == EventType.Repaint)
                             s_Styles.selected.Draw(elementRect, false, false, false, false);
 
-                        if (GUI.Toggle(elementRect, m_Settings.selectedPanel == i, panel.displayName, s_Styles.sectionElement))
+                        EditorGUI.BeginChangeCheck();
+                        GUI.Toggle(elementRect, m_Settings.selectedPanel == i, panel.displayName, s_Styles.sectionElement);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(m_Settings, "Debug Panel Selection");
+                            Undo.RegisterCompleteObjectUndo(m_Settings, "Debug Panel Selection");
                             m_Settings.selectedPanel = i;
                         }
                     }
