@@ -49,17 +49,18 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 #else
     half3 viewDir = IN.viewDir;
     #if !SHADER_HINT_NICE_QUALITY
+        // World normal is already normalized in vertex. Small acceptable error to save ALU.
         inputData.normalWS = IN.normal;
     #else
         inputData.normalWS = normalize(IN.normal);
     #endif
 #endif
 
-#if !SHADER_HINT_NICE_QUALITY
-    // viewDirection should be normalized here, but we avoid doing it as it's close enough and we save some ALU.
-    inputData.viewDirectionWS = viewDir;
+#if SHADER_HINT_NICE_QUALITY
+    inputData.viewDirectionWS = SafeNormalize(viewDir);
 #else
-    inputData.viewDirectionWS = normalize(viewDir);
+    // View direction is already normalized in vertex. Small acceptable error to save ALU.
+    inputData.viewDirectionWS = viewDir;
 #endif
 
     inputData.shadowCoord = IN.shadowCoord;
@@ -86,13 +87,19 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     o.posWS = TransformObjectToWorld(v.vertex.xyz);
     o.clipPos = TransformWorldToHClip(o.posWS);
+
+    half3 viewDir = GetCameraPositionWS() - o.posWS;
+#if !SHADER_HINT_NICE_QUALITY
+    // Normalize in vertex and avoid renormalizing it in frag to save ALU.
+    viewDir = SafeNormalize(viewDir);
+#endif
+
 #ifdef _NORMALMAP
-    half3 viewDir = SafeNormalize(GetCameraPositionWS() - o.posWS);
     o.normal.w = viewDir.x;
     o.tangent.w = viewDir.y;
     o.binormal.w = viewDir.z;
 #else
-    o.viewDir = SafeNormalize(GetCameraPositionWS() - o.posWS);
+    o.viewDir = viewDir;
 #endif
 
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
