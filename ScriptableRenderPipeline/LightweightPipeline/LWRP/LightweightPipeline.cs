@@ -320,7 +320,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
+                {
+                    cmd.EndSample("LightweightPipeline.Render");
+                    context.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
                     continue;
+                }
 
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
                         m_CurrCamera.farClipPlane);
