@@ -524,7 +524,8 @@ namespace UnityEditor.VFX.UI
 
         public override void OnPersistentDataReady()
         {
-            // prevent default that messes with view restoration from the VFXViewWindow
+            // warning : default could messes with view restoration from the VFXViewWindow (TODO : check this)
+            base.OnPersistentDataReady();
         }
 
         void NewControllerSet()
