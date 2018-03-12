@@ -31,9 +31,9 @@ namespace UnityEditor.VFX
             var format = "";
             switch (type)
             {
-                case VFXValueType.Bool:
-                case VFXValueType.Int:
-                case VFXValueType.Uint:
+                case VFXValueType.Boolean:
+                case VFXValueType.Int32:
+                case VFXValueType.Uint32:
                 case VFXValueType.Float:
                     format = "({0}){1}";
                     break;
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
             // special cases of ToString
             switch (type)
             {
-                case VFXValueType.Bool:
+                case VFXValueType.Boolean:
                     value = value.ToString().ToLower();
                     break;
                 case VFXValueType.Float2:
