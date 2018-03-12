@@ -73,9 +73,10 @@ public class VFXMigration
         {
             if (Path.GetExtension(path) == ".vfx")
             {
-                var asset = AssetDatabase.LoadAllAssetsAtPath(path).OfType<VisualEffectResource>().FirstOrDefault();
+                var asset = VisualEffectResource.GetResourceAtPath(path);
                 if (asset != null)
                 {
+                    asset.ValidateAsset();
                     try
                     {
                         var graph = asset.GetOrCreateGraph();

@@ -53,14 +53,13 @@ namespace  UnityEditor.VFX.UI
         {
             string assetPath = AssetDatabase.GetAssetPath(asset);
 
-            VisualEffectResource resource = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VisualEffectResource>().FirstOrDefault();
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
 
             //Transitionning code
             if (resource == null)
             {
                 resource = new VisualEffectResource();
-
-                AssetDatabase.AddObjectToAsset(resource, AssetDatabase.GetAssetPath(asset));
+                resource.SetAssetPath(AssetDatabase.GetAssetPath(asset));
             }
 
             LoadResource(resource);
@@ -98,14 +97,43 @@ namespace  UnityEditor.VFX.UI
                     //Transitionning code
                     if (selectedAsset == null)
                     {
-                        selectedAsset = new VisualEffectResource();
-
-                        AssetDatabase.AddObjectToAsset(selectedAsset, AssetDatabase.GetAssetPath(asset));
+                        string assetPath = AssetDatabase.GetAssetPath(asset);
+                        selectedAsset = VisualEffectResource.GetResourceAtPath(assetPath);
+                        if (selectedAsset == null)
+                        {
+                            selectedAsset = new VisualEffectResource();
+                            selectedAsset.SetAssetPath(assetPath);
+                        }
                     }
                 }
                 else if (objs[0] is VisualEffectResource)
                 {
                     selectedAsset = objs[0] as VisualEffectResource;
+                }
+                else if (objs[0] is VFXModel)
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(objs[0]);
+
+                    selectedAsset = VisualEffectResource.GetResourceAtPath(assetPath);
+
+                    if (selectedAsset == null)
+                    {
+                        selectedAsset = new VisualEffectResource();
+                        selectedAsset.SetAssetPath(assetPath);
+                    }
+                }
+            }
+            if (selectedAsset == null)
+            {
+                int instanceID = Selection.activeInstanceID;
+
+                if (instanceID != 0)
+                {
+                    string path = AssetDatabase.GetAssetPath(instanceID);
+                    if (path.EndsWith(".vfx"))
+                    {
+                        selectedAsset = VisualEffectResource.GetResourceAtPath(path);
+                    }
                 }
             }
             if (selectedAsset == null && m_DisplayedAsset != null)

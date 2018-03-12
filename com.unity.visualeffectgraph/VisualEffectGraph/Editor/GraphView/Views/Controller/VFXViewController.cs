@@ -890,7 +890,7 @@ namespace UnityEditor.VFX.UI
         public static VFXViewController GetController(VisualEffectResource asset, bool forceUpdate = false)
         {
             //TRANSITION : delete VFXAsset as it should be in Library
-
+            asset.ValidateAsset();
             string assetPath = AssetDatabase.GetAssetPath(asset);
 
 

@@ -801,7 +801,7 @@ namespace UnityEditor.VFX.UI
 
         public void CreateTemplateSystem(string path, Vector2 tPos)
         {
-            var resource = AssetDatabase.LoadAllAssetsAtPath(path).OfType<VisualEffectResource>().FirstOrDefault();
+            var resource = VisualEffectResource.GetResourceAtPath(path);
             if (resource != null)
             {
                 VFXViewController templateController = VFXViewController.GetController(resource, true);

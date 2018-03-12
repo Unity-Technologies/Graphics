@@ -549,10 +549,12 @@ namespace UnityEditor.VFX
                 var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models);
 
-                foreach (var c in models.OfType<VFXContext>()) // Unflag all contexts
+                var contexts = models.OfType<VFXContext>().ToArray();
+
+                foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
 
-                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
+                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled()).ToArray();
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
                 foreach (var c in compilableContexts) // Flag compiled contexts

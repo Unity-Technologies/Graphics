@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Experimental.VFX;
@@ -10,7 +11,7 @@ using UnityEditor.VFX.UI;
 namespace UnityEditor
 {
     [InitializeOnLoad]
-    public class VisualEffectAssetEditorUtility
+    public static class VisualEffectAssetEditorUtility
     {
         public const string templatePath = "Assets/VFXEditor/Editor/Templates";
 
@@ -35,12 +36,12 @@ namespace UnityEditor
         [MenuItem("Assets/Create/Visual Effect", false, 306)]
         public static void CreateVisualEffectAsset()
         {
-            VisualEffectResource asset = new VisualEffectResource();
+            VisualEffectResource resource = new VisualEffectResource();
 
-            VFXViewController controller = VFXViewController.GetController(asset);
+            VFXViewController controller = VFXViewController.GetController(resource);
             controller.useCount++;
 
-            var template = AssetDatabase.LoadAssetAtPath<VisualEffectResource>(templatePath + "/" + templateAssetName);
+            var template = VisualEffectResource.GetResourceAtPath(templatePath + "/" + templateAssetName);
             if (template != null)
             {
                 VFXViewController templateController = VFXViewController.GetController(template);
@@ -54,9 +55,26 @@ namespace UnityEditor
             }
             controller.graph.RecompileIfNeeded();
 
-            ProjectWindowUtil.CreateAsset(asset, "New VFX.vfx");
+            ProjectWindowUtil.CreateAsset(resource, "New VFX.vfx");
 
             controller.useCount--;
+        }
+
+        [MenuItem("VFX Editor/Make All Assets Visible")]
+        public static void MakeAllVisible()
+        {
+            string path = AssetDatabase.GetAssetPath(Selection.activeInstanceID);
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                {
+                    if (asset != null)
+                        asset.hideFlags = HideFlags.None;
+                }
+            }
+
+            AssetDatabase.ImportAsset(path);
         }
     }
 }
