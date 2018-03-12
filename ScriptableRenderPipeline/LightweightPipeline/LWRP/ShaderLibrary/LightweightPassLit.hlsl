@@ -105,9 +105,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     // initializes o.normal and if _NORMALMAP also o.tangent and o.binormal
     OUTPUT_NORMAL(v, o);
 
-    // We either sample GI from lightmap or SH. lightmap UV and vertex SH coefficients
-    // are packed in lightmapUVOrVertexSH to save interpolator.
-    // The following funcions initialize
+    // We either sample GI from lightmap or SH.
+    // Lightmap UV and vertex SH coefficients use the same interpolator ("float2 lightmapUV" for lightmap or "half3 vertexSH" for SH)
+    // see DECLARE_LIGHTMAP_OR_SH macro.
+    // The following funcions initialize the correct variable with correct data
     OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
     OUTPUT_SH(o.normal.xyz, o.vertexSH);
 
