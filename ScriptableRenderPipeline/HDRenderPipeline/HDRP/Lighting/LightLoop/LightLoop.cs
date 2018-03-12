@@ -1285,7 +1285,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
             envLightData.influenceShapeType = probe.influenceShapeType;
-            envLightData.dimmer = probe.dimmer;
+            envLightData.weight = probe.weight;
+            envLightData.multiplier = probe.multiplier;
             envLightData.influenceExtents = probe.influenceExtents;
             envLightData.blendNormalDistancePositive = probe.blendNormalDistancePositive;
             envLightData.blendNormalDistanceNegative = probe.blendNormalDistanceNegative;
