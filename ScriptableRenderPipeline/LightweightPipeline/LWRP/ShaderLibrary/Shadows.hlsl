@@ -40,8 +40,6 @@ CBUFFER_END
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z >= UNITY_RAW_FAR_CLIP_VALUE
 #endif
 
-#define OUTSIDE_SHADOW_BOUNDS(shadowCoord) shadowCoord.x <= 0 || shadowCoord.x >= 1 || shadowCoord.y <= 0 || shadowCoord.y >= 1 || BEYOND_SHADOW_FAR(shadowCoord)
-
 half GetShadowStrength()
 {
     return _ShadowData.x;
@@ -127,7 +125,7 @@ inline real SampleShadowmap(float4 shadowCoord)
 #endif
 
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
-    return (OUTSIDE_SHADOW_BOUNDS(shadowCoord)) ? 1.0 : attenuation;
+    return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
 }
 
 inline half ComputeCascadeIndex(float3 positionWS)
