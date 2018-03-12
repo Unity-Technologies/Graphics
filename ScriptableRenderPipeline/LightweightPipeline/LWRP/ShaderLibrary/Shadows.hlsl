@@ -159,11 +159,14 @@ float4 ComputeShadowCoord(float4 clipPos)
 
 half RealtimeShadowAttenuation(float4 shadowCoord)
 {
-#if SHADOWS_SCREEN
+#if NO_SHADOWS
+    return 1.0h;    
+#elif SHADOWS_SCREEN
     return SampleScreenSpaceShadowMap(shadowCoord);
-#endif
+#else
 
     return SampleShadowmap(shadowCoord);
+#endif
 }
 
 #endif

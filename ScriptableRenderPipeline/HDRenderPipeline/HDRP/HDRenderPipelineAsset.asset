@@ -24,7 +24,6 @@ MonoBehaviour:
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
     enableDepthPrepassWithDeferredRendering: 0
-    enableAlphaTestOnlyInDeferredPrepass: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
     enableObjectMotionVectors: 1
