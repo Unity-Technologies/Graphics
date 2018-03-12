@@ -232,7 +232,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CameraRenderTargetID.depth = Shader.PropertyToID("_CameraDepthTexture");
             CameraRenderTargetID.depthCopy = Shader.PropertyToID("_CameraCopyDepthTexture");
 
-            m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapRTID);
             m_ScreenSpaceShadowMapRT = new RenderTargetIdentifier(m_ScreenSpaceShadowMapRTID);
 
             m_ColorRT = new RenderTargetIdentifier(CameraRenderTargetID.color);
@@ -1336,9 +1335,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             cmd.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
                     m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
+            cmd.EnableScissorRect(new Rect(m_ShadowSlices[cascadeIndex].atlasX + 4, m_ShadowSlices[cascadeIndex].atlasY + 4,
+                m_ShadowSlices[cascadeIndex].shadowResolution - 8, m_ShadowSlices[cascadeIndex].shadowResolution - 8));
+
             cmd.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
             context.DrawShadows(ref settings);
+            cmd.DisableScissorRect();
+            context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
 
