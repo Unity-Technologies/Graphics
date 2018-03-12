@@ -27,12 +27,12 @@ struct LightweightVertexOutput
     half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.z
 #else
     half3  normal                   : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD6;
+    half3 viewDir                   : TEXCOORD4;
 #endif
 
-    half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
+    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
-    float4 shadowCoord              : TEXCOORD8;
+    float4 shadowCoord              : TEXCOORD7;
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
