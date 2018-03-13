@@ -36,6 +36,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _8x = 8
     }
 
+    public enum TextureScale
+    {
+        Full,
+        Half,
+        Quarter
+    }
+
     public enum DefaultMaterialType
     {
         Standard = 0,
@@ -57,6 +64,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
+        [SerializeField] private bool m_RequiresDistortionTexture = false;
+        [SerializeField] private TextureScale m_DistortionTextureScale = TextureScale.Half;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
@@ -213,6 +222,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_RequireSoftParticles; }
         }
 
+        public bool RequireDistortionTexture
+        {
+            get { return m_RequiresDistortionTexture; }
+        }
+
+        public TextureScale DistortionTextureScale
+        {
+            get { return m_DistortionTextureScale; }
+            set { m_DistortionTextureScale = value; }
+        }
+
         public bool SupportsHDR
         {
             get { return m_SupportsHDR; }
@@ -341,6 +361,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader ScreenSpaceShadowShader
         {
             get { return resources != null ? resources.ScreenSpaceShadowShader : null; }
+        }
+
+        public Shader SamplingShader
+        {
+            get { return resources != null ? resources.SamplingShader : null; }
         }
     }
 }
