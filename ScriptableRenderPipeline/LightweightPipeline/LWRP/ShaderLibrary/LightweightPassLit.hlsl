@@ -27,12 +27,12 @@ struct LightweightVertexOutput
     half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.z
 #else
     half3  normal                   : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD6;
+    half3 viewDir                   : TEXCOORD4;
 #endif
 
-    half4 fogFactorAndVertexLight   : TEXCOORD7; // x: fogFactor, yzw: vertex light
+    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
-    float4 shadowCoord              : TEXCOORD8;
+    float4 shadowCoord              : TEXCOORD7;
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -48,23 +48,11 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
     inputData.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
 #else
     half3 viewDir = IN.viewDir;
-    #if !SHADER_HINT_NICE_QUALITY
-        // World normal is already normalized in vertex. Small acceptable error to save ALU.
-        inputData.normalWS = IN.normal;
-    #else
-        inputData.normalWS = normalize(IN.normal);
-    #endif
+    inputData.normalWS = FragmentNormalWS(IN.normal);
 #endif
 
-#if SHADER_HINT_NICE_QUALITY
-    inputData.viewDirectionWS = SafeNormalize(viewDir);
-#else
-    // View direction is already normalized in vertex. Small acceptable error to save ALU.
-    inputData.viewDirectionWS = viewDir;
-#endif
-
+    inputData.viewDirectionWS = FragmentViewDirWS(viewDir);
     inputData.shadowCoord = IN.shadowCoord;
-
     inputData.fogCoord = IN.fogFactorAndVertexLight.x;
     inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(IN.lightmapUV, IN.vertexSH, inputData.normalWS);
@@ -89,11 +77,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     o.posWSShininess.w = _Shininess * 128.0;
     o.clipPos = TransformWorldToHClip(o.posWSShininess.xyz);
 
-    half3 viewDir = GetCameraPositionWS() - o.posWSShininess.xyz;
-#if !SHADER_HINT_NICE_QUALITY
-    // Normalize in vertex and avoid renormalizing it in frag to save ALU.
-    viewDir = SafeNormalize(viewDir);
-#endif
+    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - o.posWSShininess.xyz);
 
 #ifdef _NORMALMAP
     o.normal.w = viewDir.x;
