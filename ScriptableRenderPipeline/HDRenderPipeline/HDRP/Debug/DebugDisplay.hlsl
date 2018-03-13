@@ -187,9 +187,12 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     }
 
     // 4. Display leading 0
-    for (int i = 0; i < leading0; ++i)
+    if (leading0 > 0)
     {
-        DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
+        for (int i = 0; i < leading0; ++i)
+        {
+            DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
+        }
     }
 
     // 5. Display sign

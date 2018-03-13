@@ -72,10 +72,10 @@ real3 TransformObjectToWorldNormal(real3 normalOS)
 }
 
 // Transforms position from object space to homogenous space
-float4 TransformObjectToHClip(float3 positionWS)
+float4 TransformObjectToHClip(float3 positionOS)
 {
     // More efficient than computing M*VP matrix product
-    return mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), float4(positionWS, 1.0)));
+    return mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)));
 }
 
 // Tranforms position from world space to homogenous space

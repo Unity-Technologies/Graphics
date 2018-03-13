@@ -61,6 +61,14 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3923df8ac3ccc9c438171dac7c7cc3b6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _IridescenceMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _IridescenceThicknessMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: f23830c1beb532d4a8bf9a720ef56e25, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -169,6 +177,9 @@ Material:
     - _IOR: 1
     - _InitialBend: 1
     - _InvTilingScale: 1
+    - _Ior: 1
+    - _IridescenceMask: 1
+    - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
     - _Metallic: 1
@@ -218,6 +229,7 @@ Material:
     - _UVDetail: 0
     - _UVEmissive: 0
     - _ZTestDepthEqualForOpaque: 3
+    - _ZTestGBuffer: 4
     - _ZTestMode: 4
     - _ZTestModeDistortion: 4
     - _ZWrite: 1
@@ -228,6 +240,7 @@ Material:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
+    - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}

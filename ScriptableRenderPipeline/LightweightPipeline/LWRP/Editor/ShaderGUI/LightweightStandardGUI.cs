@@ -20,8 +20,10 @@ namespace UnityEditor
 
         private static class Styles
         {
+            public static GUIContent twoSidedText = new GUIContent("Two Sided", "Render front and back faces");
+            public static GUIContent alphaClipText = new GUIContent("Alpha Clip", "Enable Alpha Clip");
             public static GUIContent albedoText = new GUIContent("Albedo", "Albedo (RGB) and Transparency (A)");
-            public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
+            public static GUIContent clipThresholdText = new GUIContent("Clip Threshold", "Threshold for alpha clip");
             public static GUIContent specularMapText = new GUIContent("Specular", "Specular (RGB) and Smoothness (A)");
             public static GUIContent metallicMapText = new GUIContent("Metallic", "Metallic (R) and Smoothness (A)");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness value");
@@ -39,20 +41,25 @@ namespace UnityEditor
             public static string secondaryMapsText = "Secondary Maps";
             public static string forwardText = "Forward Rendering Options";
             public static string workflowModeText = "Workflow Mode";
-            public static string renderingMode = "Rendering Mode";
+            public static string surfaceType = "Surface Type";
+            public static string blendingMode = "Blending Mode";
             public static string advancedText = "Advanced Options";
             public static readonly string[] workflowNames = Enum.GetNames(typeof(WorkflowMode));
+            public static readonly string[] surfaceNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] metallicSmoothnessChannelNames = {"Metallic Alpha", "Albedo Alpha"};
             public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
         }
 
         private MaterialProperty workflowMode;
+        private MaterialProperty surfaceType;
         private MaterialProperty blendMode;
+        private MaterialProperty culling;
+        private MaterialProperty alphaClip;
 
         private MaterialProperty albedoColor;
         private MaterialProperty albedoMap;
-        private MaterialProperty alphaCutoff;
+        private MaterialProperty alphaThreshold;
 
         private MaterialProperty smoothness;
         private MaterialProperty smoothnessScale;
@@ -75,10 +82,13 @@ namespace UnityEditor
         public override void FindProperties(MaterialProperty[] properties)
         {
             workflowMode = FindProperty("_WorkflowMode", properties);
-            blendMode = FindProperty("_Mode", properties);
+            surfaceType = FindProperty("_Surface", properties);
+            blendMode = FindProperty("_Blend", properties);
+            culling = FindProperty("_Cull", properties);
+            alphaClip  = FindProperty("_AlphaClip", properties);
             albedoColor = FindProperty("_Color", properties);
             albedoMap = FindProperty("_MainTex", properties);
-            alphaCutoff = FindProperty("_Cutoff", properties);
+            alphaThreshold = FindProperty("_Cutoff", properties);
 
             smoothness = FindProperty("_Glossiness", properties);
             smoothnessScale = FindProperty("_GlossMapScale", properties, false);
@@ -115,7 +125,19 @@ namespace UnityEditor
             EditorGUI.BeginChangeCheck();
             {
                 DoPopup(Styles.workflowModeText, workflowMode, Styles.workflowNames);
-                DoPopup(Styles.renderingMode, blendMode, Styles.blendNames);
+                DoPopup(Styles.surfaceType, surfaceType, Styles.surfaceNames);
+                if ((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
+                    DoPopup(Styles.blendingMode, blendMode, Styles.blendNames);
+
+                EditorGUI.BeginChangeCheck();
+                bool twoSidedEnabled = EditorGUILayout.Toggle(Styles.twoSidedText, culling.floatValue == 0);
+                if (EditorGUI.EndChangeCheck())
+                    culling.floatValue = twoSidedEnabled ? 0 : 2;
+
+                EditorGUI.BeginChangeCheck();
+                bool alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipText, alphaClip.floatValue == 1);
+                if (EditorGUI.EndChangeCheck())
+                    alphaClip.floatValue = alphaClipEnabled ? 1 : 0;
 
                 // Primary properties
                 GUILayout.Label(Styles.primaryMapsText, EditorStyles.boldLabel);
@@ -167,18 +189,22 @@ namespace UnityEditor
                 return;
             }
 
-            BlendMode blendMode = BlendMode.Opaque;
+            SurfaceType surfaceType = SurfaceType.Opaque;
+            BlendMode blendMode = BlendMode.Alpha;
             if (oldShader.name.Contains("/Transparent/Cutout/"))
             {
-                blendMode = BlendMode.Cutout;
+                surfaceType = SurfaceType.Opaque;
+                material.SetFloat("_AlphaClip", 1);
             }
             else if (oldShader.name.Contains("/Transparent/"))
             {
                 // NOTE: legacy shaders did not provide physically based transparency
                 // therefore Fade mode
-                blendMode = BlendMode.Fade;
+                surfaceType = SurfaceType.Transparent;
+                blendMode = BlendMode.Alpha;
             }
-            material.SetFloat("_Mode", (float)blendMode);
+            material.SetFloat("_Surface", (float)surfaceType);
+            material.SetFloat("_Blend", (float)blendMode);
 
             if (oldShader.name.Equals("Standard (Specular setup)"))
             {
@@ -201,9 +227,9 @@ namespace UnityEditor
         void DoAlbedoArea(Material material)
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.albedoText, albedoMap, albedoColor);
-            if (((BlendMode)material.GetFloat("_Mode") == BlendMode.Cutout))
+            if (material.GetFloat("_AlphaClip") == 1)
             {
-                m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
+                m_MaterialEditor.ShaderProperty(alphaThreshold, Styles.clipThresholdText.text, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
             }
         }
 

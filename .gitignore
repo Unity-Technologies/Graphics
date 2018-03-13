@@ -5,6 +5,7 @@ DataSource/*
 Library/*
 obj/*
 Temp/*
+.DS_Store
 *.aspx
 *.browser
 *.csproj
@@ -17,5 +18,7 @@ Temp/*
 *.resS
 *.sdf
 *.sln
+*.sublime-project
+*.sublime-workspace
 *.suo
 *.userprefs

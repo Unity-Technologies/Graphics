@@ -50,16 +50,21 @@ real3 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, bool perspProj )
 	return EvalShadow_GetTexcoords( sd, positionWS, ndc, perspProj );
 }
 
-uint2 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real2 closestSampleNDC, bool perspProj )
+real2 EvalShadow_GetTexcoords( ShadowData sd, real3 positionWS, out real2 closestSampleNDC, bool perspProj )
 {
 	real4 posCS = EvalShadow_WorldToShadow( sd, positionWS, perspProj );
 	real2 posNDC = perspProj ? (posCS.xy / posCS.w) : posCS.xy;
 	// calc TCs
 	real2 posTC = posNDC * 0.5 + 0.5;
 	closestSampleNDC = (floor(posTC * sd.textureSize.zw) + 0.5) * sd.texelSizeRcp.zw * 2.0 - 1.0.xx;
-	return uint2( (posTC * sd.scaleOffset.xy + sd.scaleOffset.zw) * sd.textureSize.xy );
+	return posTC * sd.scaleOffset.xy + sd.scaleOffset.zw;
 }
 
+uint2 EvalShadow_GetIntTexcoords( ShadowData sd, real3 positionWS, out real2 closestSampleNDC, bool perspProj )
+{
+	real2 texCoords = EvalShadow_GetTexcoords(sd, positionWS, closestSampleNDC, perspProj);
+	return uint2(texCoords * sd.textureSize.xy);
+}
 
 //
 //	Biasing functions
@@ -410,7 +415,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 				wposDir = -sphere.xyz + positionWS;
 		float   distSq  = dot( wposDir, wposDir );
 		relDistance = distSq / sphere.w;
-		if( relDistance <= 1.0 )
+		if( relDistance > 0.0 && relDistance <= 1.0 )
 		{ 
 			splitSphere = sphere.xyz;
 			wposDir    /= sqrt( distSq );
@@ -652,7 +657,7 @@ real3 EvalShadow_GetClosestSample_Point( ShadowContext shadowContext, real3 posi
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, true );
 
 	// load the texel
 	uint texIdx, sampIdx;
@@ -674,7 +679,7 @@ real3 EvalShadow_GetClosestSample_Point( ShadowContext shadowContext, Texture2DA
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, true );
 
 	// load the texel
 	closestNDC.z = LOAD_TEXTURE2D_ARRAY_LOD( tex, texelIdx, sd.slice, 0 ).x;
@@ -690,7 +695,7 @@ real3 EvalShadow_GetClosestSample_Spot( ShadowContext shadowContext, real3 posit
 	ShadowData sd = shadowContext.shadowDatas[index];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, true );
 
 	// load the texel
 	uint texIdx, sampIdx;
@@ -709,7 +714,7 @@ real3 EvalShadow_GetClosestSample_Spot( ShadowContext shadowContext, Texture2DAr
 	ShadowData sd = shadowContext.shadowDatas[index];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, true );
 
 	// load the texel
 	closestNDC.z = LOAD_TEXTURE2D_ARRAY_LOD( tex, texelIdx, sd.slice, 0 ).x;
@@ -730,7 +735,7 @@ real3 EvalShadow_GetClosestSample_Punctual( ShadowContext shadowContext, real3 p
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, true );
 
 	// load the texel
 	uint texIdx, sampIdx;
@@ -753,7 +758,7 @@ real3 EvalShadow_GetClosestSample_Punctual( ShadowContext shadowContext, Texture
 	sd = shadowContext.shadowDatas[index + faceIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, true );
 
 	// load the texel
 	closestNDC.z = LOAD_TEXTURE2D_ARRAY_LOD( tex, texelIdx, sd.slice, 0 ).x;
@@ -761,6 +766,30 @@ real3 EvalShadow_GetClosestSample_Punctual( ShadowContext shadowContext, Texture
 	// reconstruct depth position
 	real4 closestWS = mul( closestNDC, sd.shadowToWorld );
 	return closestWS.xyz / closestWS.w;
+}
+
+real EvalShadow_SampleClosestDistance_Punctual( ShadowContext shadowContext, Texture2DArray tex, SamplerState sampl,
+												real3 positionWS, int index, real3 L, real3 lightPositionWS )
+{
+	// get the algorithm
+	ShadowData sd = shadowContext.shadowDatas[index];
+	uint shadowType;
+	UnpackShadowType( sd.shadowType, shadowType );
+	// load the right shadow data for the current face
+	int faceIndex = shadowType == GPUSHADOWTYPE_POINT ? (CubeMapFaceID( -L ) + 1) : 0;
+	sd = shadowContext.shadowDatas[index + faceIndex];
+
+	real4 closestNDC = { 0,0,0,1 };
+	real2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, true );
+
+	// sample the shadow map
+	closestNDC.z = SAMPLE_TEXTURE2D_ARRAY_LOD( tex, sampl, texelIdx, sd.slice, 0 ).x;
+
+	// reconstruct depth position
+	real4 closestWS = mul( closestNDC, sd.shadowToWorld );
+	real3 occluderPosWS = closestWS.xyz / closestWS.w;
+
+	return distance( occluderPosWS, lightPositionWS );
 }
 
 real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real4 L )
@@ -771,12 +800,12 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, real3 po
 	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
 	
 	if( shadowSplitIndex < 0 )
-		return 1.0;
+		return 0.0;
 
 	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, false );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, false );
 
 	// load the texel
 	uint texIdx, sampIdx;
@@ -796,12 +825,12 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, Texture2
 	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
 	
 	if( shadowSplitIndex < 0 )
-		return 1.0;
+		return 0.0;
 
 	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
 
 	real4 closestNDC = { 0,0,0,1 };
-	uint2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, false );
+	uint2 texelIdx = EvalShadow_GetIntTexcoords( sd, positionWS, closestNDC.xy, false );
 
 	// load the texel
 	uint texIdx, sampIdx;

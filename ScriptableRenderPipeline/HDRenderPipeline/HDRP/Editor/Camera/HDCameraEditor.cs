@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering.PostProcessing;
@@ -10,6 +11,18 @@ namespace UnityEditor.Experimental.Rendering
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
+        [MenuItem("CONTEXT/Camera/Remove HD Camera", false, 0)]
+        static void RemoveLight(MenuCommand menuCommand)
+        {
+            GameObject go = ((Camera)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Undo.SetCurrentGroupName("Remove HD Camera");
+            Undo.DestroyObjectImmediate(go.GetComponent<Camera>());
+            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalCameraData>());
+        }
+
         SerializedHDCamera m_SerializedCamera;
         HDCameraUI m_UIState = new HDCameraUI();
 
