@@ -103,6 +103,16 @@ namespace UnityEditor.VFX
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(asset));
 
+            if (resource == null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                if (resource == null)
+                {
+                    resource = new VisualEffectResource();
+                    resource.SetAssetPath(assetPath);
+                }
+            }
             return resource;
         }
     }

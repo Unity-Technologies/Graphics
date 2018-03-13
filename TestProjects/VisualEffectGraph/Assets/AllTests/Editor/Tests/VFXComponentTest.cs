@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -41,6 +42,7 @@ namespace UnityEditor.VFX.Test
         [OneTimeSetUp]
         public void Init()
         {
+            System.IO.Directory.CreateDirectory("Assets/Temp");
             m_cubeEmpty = GameObject.CreatePrimitive(PrimitiveType.Cube);
             m_sphereEmpty = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
@@ -113,6 +115,47 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(m_pathTextureCube_B);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_A);
             AssetDatabase.DeleteAsset(m_pathTextureCubeArray_B);
+
+
+            for (int i = 1; i <= m_TempFileCounter; ++i)
+            {
+                try
+                {
+                    AssetDatabase.DeleteAsset(string.Format(tempFileFormat, i));
+                }
+                catch (System.Exception) // Don't stop if we fail to delete one asset
+                {
+                }
+            }
+        }
+
+        int m_TempFileCounter = 0;
+
+        string tempFileFormat = "Assets/Temp/vfx{0}.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            m_TempFileCounter++;
+            string tempFilePath = string.Format(tempFileFormat, m_TempFileCounter);
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+
+
+            System.IO.File.WriteAllText(tempFilePath, "");
+
+            AssetDatabase.ImportAsset(tempFilePath); // This will create the VisualEffectAsset.
+
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempFilePath);
+
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            graph.visualEffectAsset = resource;
+
+            return graph;
         }
 
         [UnityTest]
@@ -120,7 +163,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateComponentAndCheckDimensionConstraint()
         {
             EditorApplication.ExecuteMenuItem("Window/Game");
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var allType = ScriptableObject.CreateInstance<AllType>();
@@ -162,7 +205,6 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -170,7 +212,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
 
             yield return null;
 
@@ -496,7 +538,8 @@ namespace UnityEditor.VFX.Test
             Action<VFXValueType, VisualEffect, string, object> fnSet = bindingModes ? fnSet_UsingBindings : fnSet_UsingSerializedProperty;
 
             EditorApplication.ExecuteMenuItem("Window/Game");
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            var graph = MakeTemporaryGraph();
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var allType = ScriptableObject.CreateInstance<AllType>();
@@ -568,7 +611,6 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -576,7 +618,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
 
             yield return null;
 

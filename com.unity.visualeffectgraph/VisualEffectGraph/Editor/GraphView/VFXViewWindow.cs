@@ -97,13 +97,6 @@ namespace  UnityEditor.VFX.UI
                     //Transitionning code
                     if (selectedAsset == null)
                     {
-                        string assetPath = AssetDatabase.GetAssetPath(asset);
-                        selectedAsset = VisualEffectResource.GetResourceAtPath(assetPath);
-                        if (selectedAsset == null)
-                        {
-                            selectedAsset = new VisualEffectResource();
-                            selectedAsset.SetAssetPath(assetPath);
-                        }
                     }
                 }
                 else if (objs[0] is VisualEffectResource)
