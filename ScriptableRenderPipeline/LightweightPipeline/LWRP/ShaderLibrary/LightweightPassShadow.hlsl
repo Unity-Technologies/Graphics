@@ -11,11 +11,11 @@ LightweightVertexOutput ShadowPassVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = LitPassVertex(v);
 
-    float invNdotL = 1.0 - saturate(dot(_LightDirection, o.normal));
+    float invNdotL = 1.0 - saturate(dot(_LightDirection, o.normal.xyz));
     float scale = invNdotL * _ShadowBias.y;
 
     // normal bias is negative since we want to apply an inset normal offset
-    o.posWSShininess.xyz = o.normal * scale.xxx + o.posWSShininess.xyz;
+    o.posWSShininess.xyz = o.normal.xyz * scale.xxx + o.posWSShininess.xyz;
     float4 clipPos = TransformWorldToHClip(o.posWSShininess.xyz);
 
     // _ShadowBias.x sign depens on if platform has reversed z buffer
