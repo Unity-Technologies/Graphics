@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -13,12 +14,43 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXDebugExpressionTest
     {
+        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+
+
+            System.IO.File.WriteAllText(tempFilePath, "");
+
+            AssetDatabase.ImportAsset(tempFilePath); // This will create the VisualEffectAsset.
+
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempFilePath);
+
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            graph.visualEffectAsset = resource;
+
+            return graph;
+        }
+
+        [TearDown]
+        public void CleanUp()
+        {
+            AssetDatabase.DeleteAsset(tempFilePath);
+        }
+
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentTotalTime()
         {
             EditorApplication.ExecuteMenuItem("Window/Game");
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -36,13 +68,12 @@ namespace UnityEditor.VFX.Test
             spawnerContext.AddChild(constantRate);
             graph.AddChild(spawnerContext);
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
 
             var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
             var camera = cameraObj.AddComponent<Camera>();

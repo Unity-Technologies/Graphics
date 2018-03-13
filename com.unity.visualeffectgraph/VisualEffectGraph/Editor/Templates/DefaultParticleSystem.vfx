@@ -523,7 +523,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
   m_Name: VFXBasicInitialize
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114651986201653434}
+  m_Parent: {fileID: 114697869863106756}
   m_Children:
   - {fileID: 114025884244312252}
   - {fileID: 114271204891525672}
@@ -607,7 +607,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0b9e6b9139e58d4c957ec54595da7d3, type: 3}
   m_Name: VFXQuadOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114651986201653434}
+  m_Parent: {fileID: 114697869863106756}
   m_Children:
   - {fileID: 114843545431835356}
   - {fileID: 114355360060674480}
@@ -787,7 +787,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
   m_Name: VFXBasicUpdate
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114651986201653434}
+  m_Parent: {fileID: 114697869863106756}
   m_Children: []
   m_UIPosition: {x: 68.59077, y: 717.1597}
   m_UICollapsed: 0
@@ -847,7 +847,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73a13919d81fb7444849bae8b5c812a2, type: 3}
   m_Name: VFXBasicSpawner
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114651986201653434}
+  m_Parent: {fileID: 114697869863106756}
   m_Children:
   - {fileID: 114193941493372174}
   m_UIPosition: {x: 67.24439, y: 21.4546}
@@ -863,28 +863,6 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114378104080370812}
       slotIndex: 0
---- !u!114 &114651986201653434
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 114592171084504942}
-  - {fileID: 114378104080370812}
-  - {fileID: 114498537633067934}
-  - {fileID: 114421384271978552}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_UIInfos: {fileID: 114734427112424004}
-  m_saved: 1
 --- !u!114 &114696470230460026
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -916,6 +894,28 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114697869863106756
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: VFXGraph
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114592171084504942}
+  - {fileID: 114378104080370812}
+  - {fileID: 114498537633067934}
+  - {fileID: 114421384271978552}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_UIInfos: {fileID: 114734427112424004}
+  m_saved: 1
 --- !u!114 &114707136197287146
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1225,7 +1225,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: DefaultParticleSystem
-  m_Graph: {fileID: 114651986201653434}
+  m_Graph: {fileID: 114697869863106756}
   m_ShaderSources:
   - compute: 1
     name: Temp_compute_b_initialize_Runtime.compute
