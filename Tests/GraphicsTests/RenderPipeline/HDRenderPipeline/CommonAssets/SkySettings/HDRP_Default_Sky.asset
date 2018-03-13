@@ -28,7 +28,7 @@ MonoBehaviour:
   active: 1
   rotation:
     m_OverrideState: 1
-    m_Value: 160
+    m_Value: 200
     min: 0
     max: 360
   exposure:
