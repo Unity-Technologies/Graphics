@@ -263,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EnvironmentAndArea = 6,
             EnvironmentAndAreaAndPunctual = 7,
 			Decal = 8,
-            DensityVolumes = 9
+            DensityVolumes = 16
         };
 
         public const int k_MaxDirectionalLightsOnScreen = 4;
