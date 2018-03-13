@@ -5,6 +5,8 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -17,6 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         WindowDraggable m_WindowDraggable;
         ResizeBorderFrame m_ResizeBorderFrame;
         public Blackboard blackboard { get; private set; }
+        Label m_PathLabel;
 
         public Action onDragFinished
         {
@@ -40,10 +43,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 scrollable = true,
                 title = assetName,
+                subTitle = "my awesome subtitle",
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
+
+            m_PathLabel = blackboard.shadow.ElementAt(0).Q<Label>("subTitleLabel");
+            m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+
+            /*
+             * 1. Register event on double click
+             * 2. Spawn a text field on top of the label using absolute position
+             *    (tip: add it to blackboard.parent)
+             * 3. Focus the text field using Focus
+             */
 
             m_WindowDraggable = new WindowDraggable(blackboard.shadow.Children().First().Q("header"));
             blackboard.AddManipulator(m_WindowDraggable);
@@ -56,6 +70,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in graph.properties)
                 AddProperty(property);
             blackboard.Add(m_Section);
+        }
+
+        void OnMouseDownEvent(MouseDownEvent evt)
+        {
+            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
+            {
+                StartEditingPath();
+            }
+        }
+
+        void StartEditingPath()
+        {
+            TextField tField = new TextField();
+            tField.text = "Muppet";
+            tField.style.positionType = PositionType.Absolute;
+            var position = m_PathLabel.ChangeCoordinatesTo(blackboard, Vector2.zero);
+            tField.style.positionLeft = position.x;
+            tField.style.positionTop = position.y;
+
+            blackboard.shadow.Add(tField);
+
+            Debug.Log(m_PathLabel.text);
         }
 
         void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
