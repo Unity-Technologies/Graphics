@@ -235,6 +235,7 @@ public class SlotValueBinder : VFXPropertySlotObserver
 }
 */
 [CustomEditor(typeof(VisualEffect))]
+[CanEditMultipleObjects]
 public class VisualEffectEditor : Editor
 {
     public static bool CanSetOverride = false;
@@ -615,7 +616,7 @@ public class VisualEffectEditor : Editor
         {
             EditorGUILayout.PropertyField(m_VisualEffectAsset, m_Contents.AssetPath);
 
-            GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+            GUI.enabled = component.visualEffectAsset != null && serializedObject.targetObjects.Length == 1; // Enabled state will be kept for all content until the end of the inspectorGUI.
             if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
@@ -623,67 +624,74 @@ public class VisualEffectEditor : Editor
                 window.LoadAsset(component.visualEffectAsset);
             }
         }
-
-        //Seed
-        EditorGUI.BeginChangeCheck();
-        using (new GUILayout.HorizontalScope())
+        if (serializedObject.targetObjects.Length == 1)
         {
-            using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue))
+            //Seed
+            EditorGUI.BeginChangeCheck();
+            using (new GUILayout.HorizontalScope())
             {
-                EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-                if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue))
                 {
-                    m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
-                    component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                    EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
+                    if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                    {
+                        m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
+                        component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                    }
                 }
             }
-        }
-        EditorGUILayout.PropertyField(m_ReseedOnPlay, m_Contents.ReseedOnPlay);
-        bool reinit = EditorGUI.EndChangeCheck();
+            EditorGUILayout.PropertyField(m_ReseedOnPlay, m_Contents.ReseedOnPlay);
+            bool reinit = EditorGUI.EndChangeCheck();
 
-        //Field
-        GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
-        if (m_graph == null || m_asset != component.visualEffectAsset)
-        {
-            m_asset = component.visualEffectAsset;
-            if (m_asset != null)
+            //Field
+            GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
+
+            if (m_graph == null || m_asset != component.visualEffectAsset)
             {
-                m_graph = m_asset.GetResource().GetOrCreateGraph();
+                m_asset = component.visualEffectAsset;
+                if (m_asset != null)
+                {
+                    m_graph = m_asset.GetResource().GetOrCreateGraph();
+                }
             }
-        }
 
-        if (m_graph != null)
-        {
-            var newList = m_graph.children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
-            foreach (var parameter in newList)
+            if (m_graph != null)
             {
-                OnParamGUI(parameter);
+                var newList = m_graph.children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+                foreach (var parameter in newList)
+                {
+                    OnParamGUI(parameter);
+                }
             }
-        }
 
-        serializedObject.ApplyModifiedProperties();
-        if (reinit)
+            serializedObject.ApplyModifiedProperties();
+            if (reinit)
+            {
+                component.Reinit();
+            }
+
+            EditMode.DoEditModeInspectorModeButton(
+                EditMode.SceneViewEditMode.Collider,
+                "Edit Asset Values",
+                UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle.editModeButton,
+                this
+                );
+            GUI.enabled = true;
+
+            s_IsEditingAsset = EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this);
+
+            if (s_IsEditingAsset && !m_WasEditingAsset)
+            {
+                VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                window.LoadAsset(component.visualEffectAsset);
+            }
+            m_WasEditingAsset = s_IsEditingAsset;
+        }
+        else
         {
-            component.Reinit();
+            serializedObject.ApplyModifiedProperties();
         }
-
-        EditMode.DoEditModeInspectorModeButton(
-            EditMode.SceneViewEditMode.Collider,
-            "Edit Asset Values",
-            UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle.editModeButton,
-            this
-            );
-        GUI.enabled = true;
-
-        s_IsEditingAsset = EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this);
-
-        if (s_IsEditingAsset && !m_WasEditingAsset)
-        {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.LoadAsset(component.visualEffectAsset);
-        }
-        m_WasEditingAsset = s_IsEditingAsset;
     }
 
     bool m_WasEditingAsset;

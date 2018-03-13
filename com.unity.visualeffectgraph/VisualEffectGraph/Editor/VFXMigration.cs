@@ -6,15 +6,18 @@ using UnityEditor;
 using System.IO;
 using UnityEditor.VFX;
 using UnityEditor.Experimental.VFX;
+using UnityEngine.Experimental.VFX;
 
 public class VFXMigration
 {
+    /*
     [MenuItem("VFX Editor/Migrate to .vfx")]
     static void Migrate()
     {
         MigrateFolder("Assets");
         AssetDatabase.Refresh();
     }
+    */
 
     [MenuItem("VFX Editor/Resave All VFX assets")]
     static void Resave()
@@ -73,13 +76,20 @@ public class VFXMigration
         {
             if (Path.GetExtension(path) == ".vfx")
             {
-                var asset = VisualEffectResource.GetResourceAtPath(path);
+                VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+                if (asset == null)
+                {
+                    AssetDatabase.ImportAsset(path);
+                    asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+                }
+
+                var resource = asset.GetResource();
                 if (asset != null)
                 {
-                    asset.ValidateAsset();
+                    resource.ValidateAsset();
                     try
                     {
-                        var graph = asset.GetOrCreateGraph();
+                        var graph = resource.GetOrCreateGraph();
                         graph.RecompileIfNeeded();
                         EditorUtility.SetDirty(graph);
                     }

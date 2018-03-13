@@ -116,8 +116,6 @@ namespace UnityEditor.VFX.Test
 
         public void CreateTestAsset(string name)
         {
-            m_Asset = new VisualEffectAsset();
-
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);
             if (!Directory.Exists(directoryPath))
@@ -125,13 +123,14 @@ namespace UnityEditor.VFX.Test
                 Directory.CreateDirectory(directoryPath);
             }
 
-            AssetDatabase.CreateAsset(m_Asset, filePath);
+            System.IO.File.WriteAllText(filePath, "");
+            AssetDatabase.ImportAsset(filePath);
+            m_Asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath);
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
-            m_ViewController = VFXViewController.GetController(m_Asset, true);
+            m_ViewController = VFXViewController.GetController(m_Asset.GetResource(), true);
             window.graphView.controller = m_ViewController;
-            //m_View = m_ViewController.View;
         }
 
         void DestroyTestAsset(string name)
