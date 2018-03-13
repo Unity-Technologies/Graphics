@@ -75,22 +75,25 @@ namespace UnityEditor.VFX
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
-                if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
+                if (name != VFXAttribute.EventCount.name)
                 {
-                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Current));
+                    if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
+                    {
+                        r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Current));
+                    }
+                    else
+                    {
+                        r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
+                    }
                 }
                 else
-                {
-                    r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
-                }
-
-                if (attribute.name == VFXAttribute.EventCount.name)
                 {
                     var linkedOutCount = context.allLinkedOutputSlot.Count();
                     for (uint i = 0; i < linkedOutCount; ++i)
                     {
-                        r.WriteFormat("uint {0}_{1} = 0u;", attribute.name, VFXCodeGeneratorHelper.GeneratePrefix(i));
+                        r.WriteLineFormat("uint {0}_{1} = 0u;", name, VFXCodeGeneratorHelper.GeneratePrefix(i));
                     }
+                    r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
                 }
                 r.WriteLine();
             }
@@ -445,7 +448,7 @@ namespace UnityEditor.VFX
                 bool needEventCount = nameParameter.Contains(VFXAttribute.EventCount.name);
                 if (needEventCount)
                 {
-                    blockCallFunction.WriteLine("eventCount = 0;");
+                    blockCallFunction.WriteLine(VFXAttribute.EventCount.name + " = 0;");
                 }
                 blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, contextData.gpuMapper, expressionToNameLocal);
                 if (needEventCount)
@@ -455,7 +458,7 @@ namespace UnityEditor.VFX
                         var eventIndex = linkedEventOut.IndexOf(outputSlot);
                         if (eventIndex == -1)
                             throw new InvalidOperationException("Cannot retrieve output slot index");
-                        blockCallFunction.WriteLineFormat("eventCount_{0} += eventCount;", VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
+                        blockCallFunction.WriteLineFormat("{0}_{1} += {0};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
                     }
                 }
                 if (needScope)
