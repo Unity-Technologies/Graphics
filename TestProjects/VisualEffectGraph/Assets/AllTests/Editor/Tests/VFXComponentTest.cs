@@ -131,7 +131,7 @@ namespace UnityEditor.VFX.Test
 
         int m_TempFileCounter = 0;
 
-        string tempFileFormat = "Assets/Temp/vfx{0}.vfx";
+        string tempFileFormat = "Assets/TmpTests/vfx{0}.vfx";
 
         VFXGraph MakeTemporaryGraph()
         {

@@ -65,6 +65,16 @@ namespace UnityEditor.VFX
             Profiler.EndSample();
             return paths;
         }
+
+        static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions option)
+        {
+            if (assetPath.EndsWith(".vfx"))
+            {
+                VisualEffectResource.DeleteAtPath(assetPath);
+            }
+
+            return AssetDeleteResult.DidDelete;
+        }
     }
 
     static class VisualEffectAssetExtensions
