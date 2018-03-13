@@ -70,7 +70,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
+    o.uv = TransformMainTextureCoord(v.texcoord);
 
     o.posWSShininess.xyz = TransformObjectToWorld(v.vertex.xyz);
     o.posWSShininess.w = _Shininess * 128.0;
@@ -126,13 +126,6 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     return color;
 }
 
-// Used for Standard shader
-half4 LitPassFragmentNull(LightweightVertexOutput IN) : SV_Target
-{
-    LitPassFragment(IN);
-    return 0;
-}
-
 // Used for StandardSimpleLighting shader
 half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 {
@@ -163,13 +156,5 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 
     return LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
 };
-
-
-// Used for StandardSimpleLighting shader
-half4 LitPassFragmentSimpleNull(LightweightVertexOutput IN) : SV_Target
-{
-    half4 result = LitPassFragmentSimple(IN);
-    return result.a;
-}
 
 #endif
