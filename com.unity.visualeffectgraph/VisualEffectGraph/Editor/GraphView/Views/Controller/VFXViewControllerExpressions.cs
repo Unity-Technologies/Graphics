@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    partial class VFXViewController : Controller<VisualEffectAsset>
+    partial class VFXViewController : Controller<VisualEffectResource>
     {
         public void RecompileExpressionGraphIfNeeded()
         {

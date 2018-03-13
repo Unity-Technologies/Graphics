@@ -74,4 +74,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/VFXTests/01_Animator_Bis.unity
     guid: 3675efc31fd30e84a8dd336859d6d76d
+  - enabled: 1
+    path: Assets/VFXTests/RenderStates.unity
+    guid: 9c3bfb9910ba6154a82704376c436e16
   m_configObjects: {}
