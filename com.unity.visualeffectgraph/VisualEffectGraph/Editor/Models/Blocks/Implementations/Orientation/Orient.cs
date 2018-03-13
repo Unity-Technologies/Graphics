@@ -5,7 +5,21 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Orientation")]
+    class OrientationModeProvider : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "mode", Enum.GetValues(typeof(Orient.Mode)).Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+
+    [VFXInfo(category = "Orientation", variantProvider = typeof(OrientationModeProvider))]
     class Orient : VFXBlock
     {
         public enum Mode
@@ -22,7 +36,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting]
         public Mode mode;
 
-        public override string name { get { return "Orient"; } }
+        public override string name { get { return "Orient : " + ObjectNames.NicifyVariableName(mode.ToString()); } }
 
         public override VFXContextType compatibleContexts   { get { return VFXContextType.kOutput; } }
         public override VFXDataType compatibleData          { get { return VFXDataType.kParticle; } }
@@ -90,7 +104,7 @@ axisY = cross(axisZ,axisX);
 
                     case Mode.LookAtPosition:
                         return @"
-axisZ = normalize(position - Position_position);
+axisZ = normalize(position - Position);
 axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
 axisY = cross(axisZ,axisX);
 ";
@@ -131,6 +145,21 @@ axisZ = cross(axisX,axisY);
                         throw new NotImplementedException();
                 }
             }
+        }
+
+        public override void Sanitize()
+        {
+            if (mode == Mode.LookAtPosition)
+            {
+                /* Slot of type position has changed from undefined VFXSlot to VFXSlotPosition*/
+                if (GetNbInputSlots() > 0 && !(GetInputSlot(0) is VFXSlotPosition))
+                {
+                    var oldValue = GetInputSlot(0).value;
+                    RemoveSlot(GetInputSlot(0));
+                    AddSlot(VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue));
+                }
+            }
+            base.Sanitize();
         }
     }
 }

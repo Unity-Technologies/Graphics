@@ -5,12 +5,23 @@ using UnityEditor.Experimental.VFX;
 using UnityEngine;
 
 using Object = UnityEngine.Object;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXViewController : Controller<VisualEffectResource>
+    class VFXRecompileEvent : EventBase<VFXRecompileEvent>, IPropagatableEvent
     {
-        public event System.Action onRecompileEvent;
+        public VFXViewController controller;
+        protected override void Init()
+        {
+            base.Init();
+            flags = EventFlags.Bubbles | EventFlags.Capturable;
+            controller = null;
+        }
+    }
+
+    partial class VFXViewController : Controller<VisualEffectAsset>
+    {
         public void RecompileExpressionGraphIfNeeded()
         {
             if (!ExpressionGraphDirty)
@@ -28,9 +39,9 @@ namespace UnityEditor.VFX.UI
                 Debug.LogException(e);
             }
 
-            if (onRecompileEvent != null)
+            using (VFXRecompileEvent e = VFXRecompileEvent.GetPooled())
             {
-                onRecompileEvent();
+                SendEvent(e);
             }
         }
 

@@ -537,7 +537,19 @@ namespace UnityEditor.VFX
         public void Compile()
         {
             // Prevent doing anything ( and especially showing progesses ) in an empty graph.
-            if (m_Graph.children.Count() < 1) return;
+            if (m_Graph.children.Count() < 1)
+            {
+                // Cleaning
+                if (m_Graph.visualEffectAsset != null)
+                {
+                    m_Graph.visualEffectAsset.ClearPropertyData();
+                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
+                }
+
+                m_ExpressionGraph = new VFXExpressionGraph();
+                m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+                return;
+            }
 
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try

@@ -343,7 +343,7 @@ namespace UnityEditor.VFX.Test
             VFXView view = window.graphView;
             view.controller = m_ViewController;
 
-            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.vfx", Vector2.zero);
+            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/Simple Particle System.vfx", Vector2.zero);
         }
     }
 }

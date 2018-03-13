@@ -142,7 +142,7 @@ namespace UnityEditor.VFXToolbox
                 }
 
                 cache.PointCount = pcache.elementCount;
-                cache.surfaces = new Texture[surfaces.Count];
+                cache.surfaces = new Texture2D[surfaces.Count];
 
                 Dictionary<OutProperty, Color> outValues = new Dictionary<OutProperty, Color>();
                 foreach (var kvp in outProperties)
@@ -179,6 +179,7 @@ namespace UnityEditor.VFXToolbox
                 foreach (var kvp in surfaces)
                 {
                     kvp.Value.Apply();
+                    kvp.Value.hideFlags = HideFlags.HideInHierarchy;
                     ctx.AddObjectToAsset(kvp.Key.Name, kvp.Value);
                     cache.surfaces[k] = kvp.Value;
                     k++;

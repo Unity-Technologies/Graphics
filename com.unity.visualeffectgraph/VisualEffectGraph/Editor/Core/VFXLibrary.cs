@@ -138,6 +138,7 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXBlock>> GetBlocks()         { LoadIfNeeded(); return m_BlockDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return m_OperatorDescs; }
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
+        public static IEnumerable<Type> GetSlotsType()                              { LoadSlotsIfNeeded(); return m_SlotDescs.Keys; }
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters()     { LoadIfNeeded(); return m_ParametersDescs; }
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)

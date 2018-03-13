@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             m_DropDownButton.text = m_Value;
         }

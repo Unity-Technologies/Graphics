@@ -59,6 +59,33 @@ namespace UnityEditor.VFX
 
         override public string name { get { return string.Format("{0} {1}", location.ToString(), attribute); } }
 
+        public override void Sanitize()
+        {
+            if (attribute == "phase") // Replace old phase attribute with random operator
+            {
+                Debug.Log("Sanitizing Graph: Automatically replace CPahse Attribute Parameter with a Fixed Random Operator");
+
+                var randOp = ScriptableObject.CreateInstance<VFXOperatorRandom>();
+                randOp.constant = true;
+                randOp.seed = VFXOperatorRandom.SeedMode.PerParticle;
+
+                // transfer position
+                randOp.position = position;
+
+                // Transfer links
+                var links = GetOutputSlot(0).LinkedSlots.ToArray();
+                GetOutputSlot(0).UnlinkAll();
+                foreach (var s in links)
+                    randOp.GetOutputSlot(0).Link(s);
+
+                // Replace operator
+                var parent = GetParent();
+                Detach();
+                randOp.Attach(parent);
+            }
+            base.Sanitize();
+        }
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var attribute = VFXAttribute.Find(this.attribute);

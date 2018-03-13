@@ -409,29 +409,17 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return portType == typeof(float) || portType == typeof(int) || portType == typeof(uint);
+                return parameter.canHaveRange;
             }
         }
 
         public bool hasRange
         {
-            get { return canHaveRange && parameter.m_Min != null && parameter.m_Min.type != null && parameter.m_Max != null && parameter.m_Max.type != null; }
+            get { return parameter.hasRange; }
 
             set
             {
-                if (value != hasRange)
-                {
-                    if (value)
-                    {
-                        parameter.m_Min = new VFXSerializableObject(portType);
-                        parameter.m_Max = new VFXSerializableObject(portType);
-                    }
-                    else
-                    {
-                        parameter.m_Min = null;
-                        parameter.m_Max = null;
-                    }
-                }
+                parameter.hasRange = value;
             }
         }
 

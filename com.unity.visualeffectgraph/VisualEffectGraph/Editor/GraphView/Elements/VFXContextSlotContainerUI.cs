@@ -6,6 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -25,19 +26,7 @@ namespace UnityEditor.VFX.UI
             VFXContextDataAnchorController anchorController = controller as VFXContextDataAnchorController;
 
             VFXEditableDataAnchor anchor = VFXBlockDataAnchor.Create(anchorController, node);
-
-            anchorController.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
-
             return anchor;
-        }
-
-        protected override void OnPortRemoved(Port anchor)
-        {
-            if (anchor is VFXEditableDataAnchor)
-            {
-                var viewController = controller.viewController;
-                viewController.onRecompileEvent += (anchor as VFXEditableDataAnchor).OnRecompile;
-            }
         }
 
         // On purpose -- until we support Drag&Drop I suppose

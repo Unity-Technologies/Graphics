@@ -10,11 +10,14 @@ namespace UnityEditor.VFX
         sealed protected override bool CanConvertFrom(Type type)
         {
             return base.CanConvertFrom(type)
-                ||  type == typeof(float)
-                ||  type == typeof(uint)
-                ||  type == typeof(int)
-                ||  type == typeof(Vector4)
-                ||  type == typeof(Color);
+                || type == typeof(float)
+                || type == typeof(uint)
+                || type == typeof(int)
+                || type == typeof(Vector4)
+                || type == typeof(Color)
+                || type == typeof(Vector)
+                || type == typeof(Position)
+                || type == typeof(DirectionType);
         }
 
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
@@ -22,7 +25,7 @@ namespace UnityEditor.VFX
             return new VFXValue<Vector3>(Vector3.zero, mode);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
             if (expression.valueType == VFXValueType.Float3)
                 return expression;

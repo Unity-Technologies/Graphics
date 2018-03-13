@@ -785,19 +785,7 @@ namespace UnityEditor.VFX.UI
 
             if (!type.IsPrimitive)
             {
-                if (type == typeof(Matrix4x4))
-                {
-                    parameter.value = Matrix4x4.identity;
-                }
-                else
-                {
-                    FieldInfo defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
-
-                    if (defaultField != null)
-                    {
-                        parameter.value = defaultField.GetValue(null);
-                    }
-                }
+                parameter.value = VFXTypeExtension.GetDefaultField(type);
             }
 
             return model;
@@ -1145,8 +1133,9 @@ namespace UnityEditor.VFX.UI
         {
             List<VFXNodeController> controller = null;
             m_SyncedModels.TryGetValue(model, out controller);
+            if (controller == null) return null;
 
-            return controller.First(t => t.id == id);
+            return controller.FirstOrDefault(t => t.id == id);
         }
 
         public VFXParameterController GetParameterController(VFXParameter parameter)
