@@ -52,7 +52,11 @@
     half  FunctionName(half  Parameter1) { FunctionBody; } \
     half2 FunctionName(half2 Parameter1) { FunctionBody; } \
     half3 FunctionName(half3 Parameter1) { FunctionBody; } \
-    half4 FunctionName(half4 Parameter1) { FunctionBody; }
+    half4 FunctionName(half4 Parameter1) { FunctionBody; } \
+    float  FunctionName(float  Parameter1) { FunctionBody; } \
+    float2 FunctionName(float2 Parameter1) { FunctionBody; } \
+    float3 FunctionName(float3 Parameter1) { FunctionBody; } \
+    float4 FunctionName(float4 Parameter1) { FunctionBody; }
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_1_INT(FunctionName, Parameter1, FunctionBody) \
@@ -82,7 +86,11 @@
     half  FunctionName(half  Parameter1, half  Parameter2) { FunctionBody; } \
     half2 FunctionName(half2 Parameter1, half2 Parameter2) { FunctionBody; } \
     half3 FunctionName(half3 Parameter1, half3 Parameter2) { FunctionBody; } \
-    half4 FunctionName(half4 Parameter1, half4 Parameter2) { FunctionBody; }
+    half4 FunctionName(half4 Parameter1, half4 Parameter2) { FunctionBody; } \
+    float  FunctionName(float  Parameter1, float  Parameter2) { FunctionBody; } \
+    float2 FunctionName(float2 Parameter1, float2 Parameter2) { FunctionBody; } \
+    float3 FunctionName(float3 Parameter1, float3 Parameter2) { FunctionBody; } \
+    float4 FunctionName(float4 Parameter1, float4 Parameter2) { FunctionBody; }
 
 
 #ifdef SHADER_API_GLES
@@ -113,7 +121,11 @@
     half  FunctionName(half  Parameter1, half  Parameter2, half  Parameter3) { FunctionBody; } \
     half2 FunctionName(half2 Parameter1, half2 Parameter2, half2 Parameter3) { FunctionBody; } \
     half3 FunctionName(half3 Parameter1, half3 Parameter2, half3 Parameter3) { FunctionBody; } \
-    half4 FunctionName(half4 Parameter1, half4 Parameter2, half4 Parameter3) { FunctionBody; }
+    half4 FunctionName(half4 Parameter1, half4 Parameter2, half4 Parameter3) { FunctionBody; } \
+    float  FunctionName(float  Parameter1, float  Parameter2, float  Parameter3) { FunctionBody; } \
+    float2 FunctionName(float2 Parameter1, float2 Parameter2, float2 Parameter3) { FunctionBody; } \
+    float3 FunctionName(float3 Parameter1, float3 Parameter2, float3 Parameter3) { FunctionBody; } \
+    float4 FunctionName(float4 Parameter1, float4 Parameter2, float4 Parameter3) { FunctionBody; }
 
 #ifdef SHADER_API_GLES
     #define TEMPLATE_3_INT(FunctionName, Parameter1, Parameter2, Parameter3, FunctionBody) \
@@ -148,23 +160,47 @@
     void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
     void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
 #else
-    #define TEMPLATE_SWAP(FunctionName) \
-    void FunctionName(inout real  a, inout real  b) { real  t = a; a = b; b = t; } \
-    void FunctionName(inout real2 a, inout real2 b) { real2 t = a; a = b; b = t; } \
-    void FunctionName(inout real3 a, inout real3 b) { real3 t = a; a = b; b = t; } \
-    void FunctionName(inout real4 a, inout real4 b) { real4 t = a; a = b; b = t; } \
-    void FunctionName(inout int    a, inout int    b) { int    t = a; a = b; b = t; } \
-    void FunctionName(inout int2   a, inout int2   b) { int2   t = a; a = b; b = t; } \
-    void FunctionName(inout int3   a, inout int3   b) { int3   t = a; a = b; b = t; } \
-    void FunctionName(inout int4   a, inout int4   b) { int4   t = a; a = b; b = t; } \
-    void FunctionName(inout uint   a, inout uint   b) { uint   t = a; a = b; b = t; } \
-    void FunctionName(inout uint2  a, inout uint2  b) { uint2  t = a; a = b; b = t; } \
-    void FunctionName(inout uint3  a, inout uint3  b) { uint3  t = a; a = b; b = t; } \
-    void FunctionName(inout uint4  a, inout uint4  b) { uint4  t = a; a = b; b = t; } \
-    void FunctionName(inout bool   a, inout bool   b) { bool   t = a; a = b; b = t; } \
-    void FunctionName(inout bool2  a, inout bool2  b) { bool2  t = a; a = b; b = t; } \
-    void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
-    void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
+    #if HAS_HALF
+        #define TEMPLATE_SWAP(FunctionName) \
+        void FunctionName(inout real  a, inout real  b) { real  t = a; a = b; b = t; } \
+        void FunctionName(inout real2 a, inout real2 b) { real2 t = a; a = b; b = t; } \
+        void FunctionName(inout real3 a, inout real3 b) { real3 t = a; a = b; b = t; } \
+        void FunctionName(inout real4 a, inout real4 b) { real4 t = a; a = b; b = t; } \
+        void FunctionName(inout float  a, inout float  b) { float  t = a; a = b; b = t; } \
+        void FunctionName(inout float2 a, inout float2 b) { float2 t = a; a = b; b = t; } \
+        void FunctionName(inout float3 a, inout float3 b) { float3 t = a; a = b; b = t; } \
+        void FunctionName(inout float4 a, inout float4 b) { float4 t = a; a = b; b = t; } \
+        void FunctionName(inout int    a, inout int    b) { int    t = a; a = b; b = t; } \
+        void FunctionName(inout int2   a, inout int2   b) { int2   t = a; a = b; b = t; } \
+        void FunctionName(inout int3   a, inout int3   b) { int3   t = a; a = b; b = t; } \
+        void FunctionName(inout int4   a, inout int4   b) { int4   t = a; a = b; b = t; } \
+        void FunctionName(inout uint   a, inout uint   b) { uint   t = a; a = b; b = t; } \
+        void FunctionName(inout uint2  a, inout uint2  b) { uint2  t = a; a = b; b = t; } \
+        void FunctionName(inout uint3  a, inout uint3  b) { uint3  t = a; a = b; b = t; } \
+        void FunctionName(inout uint4  a, inout uint4  b) { uint4  t = a; a = b; b = t; } \
+        void FunctionName(inout bool   a, inout bool   b) { bool   t = a; a = b; b = t; } \
+        void FunctionName(inout bool2  a, inout bool2  b) { bool2  t = a; a = b; b = t; } \
+        void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
+        void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
+    #else
+        #define TEMPLATE_SWAP(FunctionName) \
+        void FunctionName(inout real  a, inout real  b) { real  t = a; a = b; b = t; } \
+        void FunctionName(inout real2 a, inout real2 b) { real2 t = a; a = b; b = t; } \
+        void FunctionName(inout real3 a, inout real3 b) { real3 t = a; a = b; b = t; } \
+        void FunctionName(inout real4 a, inout real4 b) { real4 t = a; a = b; b = t; } \
+        void FunctionName(inout int    a, inout int    b) { int    t = a; a = b; b = t; } \
+        void FunctionName(inout int2   a, inout int2   b) { int2   t = a; a = b; b = t; } \
+        void FunctionName(inout int3   a, inout int3   b) { int3   t = a; a = b; b = t; } \
+        void FunctionName(inout int4   a, inout int4   b) { int4   t = a; a = b; b = t; } \
+        void FunctionName(inout uint   a, inout uint   b) { uint   t = a; a = b; b = t; } \
+        void FunctionName(inout uint2  a, inout uint2  b) { uint2  t = a; a = b; b = t; } \
+        void FunctionName(inout uint3  a, inout uint3  b) { uint3  t = a; a = b; b = t; } \
+        void FunctionName(inout uint4  a, inout uint4  b) { uint4  t = a; a = b; b = t; } \
+        void FunctionName(inout bool   a, inout bool   b) { bool   t = a; a = b; b = t; } \
+        void FunctionName(inout bool2  a, inout bool2  b) { bool2  t = a; a = b; b = t; } \
+        void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
+        void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
+    #endif
 #endif
 
 
