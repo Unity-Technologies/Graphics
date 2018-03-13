@@ -28,25 +28,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   rotation:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
     min: 0
     max: 360
   exposure:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   multiplier:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
     min: 0
   updateMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   updatePeriod:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
     min: 0
-  skyHDRI:
+  hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 75f8ba90acb52d14d9ead53b2a9e4190, type: 3}
 --- !u!114 &114436604167779146
@@ -83,6 +83,42 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 500
     min: 0
+  cascadeShadowSplitCount:
+    m_OverrideState: 0
+    m_Value: 4
+    min: 1
+    max: 4
+  cascadeShadowSplit0:
+    m_OverrideState: 0
+    m_Value: 0.05
+    min: 0
+    max: 1
+  cascadeShadowSplit1:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0
+    max: 1
+  cascadeShadowSplit2:
+    m_OverrideState: 0
+    m_Value: 0.3
+    min: 0
+    max: 1
+  cascadeShadowBorder0:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  cascadeShadowBorder1:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  cascadeShadowBorder2:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  cascadeShadowBorder3:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
 --- !u!114 &114660440207994068
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -98,4 +134,40 @@ MonoBehaviour:
   maxShadowDistance:
     m_OverrideState: 1
     m_Value: 50
+    min: 0
+  cascadeShadowSplitCount:
+    m_OverrideState: 0
+    m_Value: 4
+    min: 1
+    max: 4
+  cascadeShadowSplit0:
+    m_OverrideState: 0
+    m_Value: 0.05
+    min: 0
+    max: 1
+  cascadeShadowSplit1:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0
+    max: 1
+  cascadeShadowSplit2:
+    m_OverrideState: 0
+    m_Value: 0.3
+    min: 0
+    max: 1
+  cascadeShadowBorder0:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  cascadeShadowBorder1:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  cascadeShadowBorder2:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  cascadeShadowBorder3:
+    m_OverrideState: 0
+    m_Value: 0
     min: 0
