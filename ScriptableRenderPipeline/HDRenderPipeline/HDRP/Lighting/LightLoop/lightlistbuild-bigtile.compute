@@ -4,6 +4,7 @@
 #include "LightLoop.cs.hlsl"
 #include "LightingConvexHullUtils.hlsl"
 #include "SortingComputeUtils.hlsl"
+#include "LightCullUtils.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
@@ -15,11 +16,14 @@
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
-uniform float4x4 g_mInvScrProjection;
-uniform float4x4 g_mScrProjection;
+
+uniform float4x4 g_mInvScrProjectionArr[2];
+uniform float4x4 g_mScrProjectionArr[2];
+
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform uint g_isOrthographic;
+// TODO: These aren't used, we should remove them
 uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
 
@@ -38,8 +42,12 @@ RWStructuredBuffer<uint> g_vLightList : register( u0 );		// don't support RWBuff
 groupshared unsigned int lightsListLDS[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE];
 groupshared uint lightOffs;
 
+// TODO: Remove this function and g_mInvScrProjectionArr from constants.
+// Only usage of that constant.
 float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 {
+    float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[0];
+
     // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
 	// however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
@@ -52,8 +60,10 @@ float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
     //return v4Pres.z / v4Pres.w;
 }
 
-float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
+float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth, uint eyeIndex)
 {
+    float4x4 g_mScrProjection = g_mScrProjectionArr[eyeIndex];
+
 	bool isOrthographic = g_isOrthographic!=0;
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
@@ -72,8 +82,10 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 	return float3(isOrthographic ? p.xy : (fLinDepth*p.xy), fLinDepth);
 }
 
-float GetOnePixDiagWorldDistAtDepthOne()
+float GetOnePixDiagWorldDistAtDepthOne(uint eyeIndex)
 {
+    float4x4 g_mScrProjection = g_mScrProjectionArr[eyeIndex];
+
 	float fSx = g_mScrProjection[0].x;
 	float fSy = g_mScrProjection[1].y;
 
@@ -82,11 +94,11 @@ float GetOnePixDiagWorldDistAtDepthOne()
 
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
+void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate, uint eyeIndex);
 #endif
 
 #ifdef EXACT_EDGE_TESTS
-void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR);
+void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, uint eyeIndex);
 #endif
 
 
@@ -95,6 +107,8 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 [numthreads(NR_THREADS, 1, 1)]
 void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
+    uint eyeIndex = u3GroupID.z;
+
 	uint2 tileIDX = u3GroupID.xy;
 	uint t=threadID;
 
@@ -109,24 +123,27 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-
+    // Raw pixel coordinates of tile
 	uint2 viTilLL = 64*tileIDX;
 	uint2 viTilUR = min( viTilLL+uint2(64,64), uint2(iWidth, iHeight) );			// not width and height minus 1 since viTilUR represents the end of the tile corner.
 
+    // 'Normalized' coordinates of tile, for use with AABB bounds in g_vBoundsBuffer
 	float2 vTileLL = float2(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight);
 	float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
 
 	// build coarse list using AABB
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
-		const float2 vMi = g_vBoundsBuffer[l].xy;
-		const float2 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xy;
+        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
+        const float2 vMi = g_vBoundsBuffer[boundsIndices.min].xy;
+        const float2 vMa = g_vBoundsBuffer[boundsIndices.max].xy;
 
 		if( all(vMa>vTileLL) && all(vMi<vTileUR))
 		{
 			unsigned int uInc = 1;
 			unsigned int uIndex;
 			InterlockedAdd(lightOffs, uInc, uIndex);
+
 			if(uIndex<MAX_NR_BIGTILE_LIGHTS) lightsListLDS[uIndex] = l;		// add to light list
 		}
 	}
@@ -138,11 +155,11 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	int iNrCoarseLights = min(lightOffs,MAX_NR_BIGTILE_LIGHTS);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-	SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(64/2,64/2), uint2(iWidth-1, iHeight-1))) );
+	SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(64/2,64/2), uint2(iWidth-1, iHeight-1))), eyeIndex );
 #endif
 
 #ifdef EXACT_EDGE_TESTS
-	CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy);
+	CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, eyeIndex);
 #endif
 
 
@@ -156,7 +173,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
 
-	int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
+    int offs = tileIDX.y*nrBigTilesX + tileIDX.x + (eyeIndex * nrBigTilesX * nrBigTilesY);
 
 	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
 		g_vLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*offs + i] = i==0 ? iNrCoarseLights : lightsListLDS[max(i-1, 0)];
@@ -164,20 +181,21 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
-void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
+void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate, uint eyeIndex)
 {
 #if USE_LEFT_HAND_CAMERA_SPACE
-	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0, eyeIndex);
 #else
-	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0, eyeIndex);
 #endif
 
-	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
+	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne(eyeIndex);
 	float halfTileSizeAtZDistOne = 32*onePixDiagDist;		// scale by half a tile
 
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
-		SFiniteLightBound lgtDat = g_data[lightsListLDS[l]];
+        const int boundIndex = GenerateLightCullDataIndex(lightsListLDS[l], g_iNrVisibLights, eyeIndex);
+        SFiniteLightBound lgtDat = g_data[boundIndex];
 
 		if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius, g_isOrthographic!=0) )
 			lightsListLDS[l]=UINT_MAX;
@@ -196,7 +214,7 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
 
 
 #ifdef EXACT_EDGE_TESTS
-float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
+float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane, uint eyeIndex)
 {
 	float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
 	float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
@@ -204,16 +222,16 @@ float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
 #if !USE_LEFT_HAND_CAMERA_SPACE
 	z = -z;
 #endif
-	return GetViewPosFromLinDepth( float2(x, y), z);
+	return GetViewPosFromLinDepth( float2(x, y), z, eyeIndex);
 }
 
-void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane)
+void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane, uint eyeIndex)
 {
 	int iSection = e0>>2;		// section 0 is side edges, section 1 is near edges and section 2 is far edges
 	int iSwizzle = e0&0x3;
 
 	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
-	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane);
+	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane, eyeIndex);
 
 #if USE_LEFT_HAND_CAMERA_SPACE
 	float3 edgeSectionZero = g_isOrthographic==0 ? vP0 : float3(0.0,0.0,1.0);
@@ -224,7 +242,7 @@ void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, u
 	vE0 = iSection == 0 ? edgeSectionZero : (((iSwizzle & 0x2) == 0 ? 1.0f : (-1.0f)) * ((int)(iSwizzle & 0x1) == (iSwizzle >> 1) ? float3(1, 0, 0) : float3(0, 1, 0)));
 }
 
-void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR)
+void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, uint eyeIndex)
 {
 	const bool bOnlyNeedFrustumSideEdges = true;
 	const int nrFrustEdges = bOnlyNeedFrustumSideEdges ? 4 : 8;	// max 8 since we never need to test 4 far edges of frustum since they are identical vectors to near edges and plane is placed at vP0 on light hull.
@@ -233,12 +251,14 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	for(int l=0; l<iNrCoarseLights; l++)
 	{
 		const uint idxCoarse = lightsListLDS[l];
+        const int bufIdxCoarse = GenerateLightCullDataIndex(idxCoarse, g_iNrVisibLights, eyeIndex);
 
 		bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
-		if(canEnter) canEnter = _LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+
+        if(canEnter) canEnter = _LightVolumeData[bufIdxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		UNITY_BRANCH if(canEnter)
 		{
-			SFiniteLightBound lgtDat = g_data[idxCoarse];
+            SFiniteLightBound lgtDat = g_data[bufIdxCoarse];
 
 			const float3 boxX = lgtDat.boxAxisX.xyz;
 			const float3 boxY = lgtDat.boxAxisY.xyz;
@@ -257,7 +277,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 
 
 				float3 vP1, vE1;
-				GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, g_fFarPlane);
+				GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, g_fFarPlane, eyeIndex);
 
 				// potential separation plane
 				float3 vN = cross(vE0, vE1);
@@ -275,7 +295,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 				positive=0; negative=0;
 				for(int j=0; j<8; j++)
 				{
-					float3 vPf = GetTileVertex(viTilLL, viTilUR, j, g_fFarPlane);
+					float3 vPf = GetTileVertex(viTilLL, viTilUR, j, g_fFarPlane, eyeIndex);
 					float fSignDist = dot(vN, vPf-vP0);
 					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
 				}

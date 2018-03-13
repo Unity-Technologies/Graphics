@@ -11,11 +11,12 @@ sub_packages = {}
 sub_package_folders = {}
 publish_order = []
 
-packages = {
-    ("com.unity.render-pipelines.core", os.path.join("ScriptableRenderPipeline", "Core")),
-    ("com.unity.render-pipelines.high-definition", os.path.join("ScriptableRenderPipeline", "HDRenderPipeline")),
-    ("com.unity.render-pipelines.lightweight", os.path.join("ScriptableRenderPipeline", "LightweightPipeline"))
-}
+def packages_list():
+    return [
+        ("com.unity.render-pipelines.core", os.path.join("ScriptableRenderPipeline", "Core")),
+        ("com.unity.render-pipelines.high-definition", os.path.join("ScriptableRenderPipeline", "HDRenderPipeline")),
+        ("com.unity.render-pipelines.lightweight", os.path.join("ScriptableRenderPipeline", "LightweightPipeline"))
+    ]
 
 def prepare(logger):
     file_path = os.path.join("./ScriptableRenderPipeline", "master-package.json")
@@ -127,11 +128,11 @@ def prepare(logger):
         with open(package_path, 'w') as file:
             json.dump(sub_package, file, indent=4, sort_keys=True)
 
-def packages_list():
-    package_list = []
+    import unity_package_build
     for name in publish_order:
-        package_list.append((name, sub_package_folders[name]))
-    return package_list
+        package_path = os.path.join(sub_package_folders[name])
+        unity_package_build.copy_file_to_project("LICENSE.md", ".", package_path, logger)
+        unity_package_build.copy_file_to_project("CHANGELOG.md", ".", package_path, logger)
 
 def cleanup(logger):
     logger.info("Removing temporary files:")
@@ -143,31 +144,16 @@ def cleanup(logger):
         logger.info("  {}".format(file))
         os.remove(file)
 
-
-# helper function for preparations of tests
-def copy_path_to_project(path, repo_path, project_target_path, logger):
-    logger.info("Copying {}".format(path))
-    if platform.system() == "Windows":
-        subprocess.call(["robocopy", os.path.join(repo_path, path), os.path.join(project_target_path, os.path.dirname(path)), "/e", "/np"])
-    else:
-        shutil.copytree(os.path.join(repo_path, path),os.path.join(project_target_path, path))
-
-def copy_file_to_project(path, repo_path, project_target_path, logger):
-    logger.info("Copying {}".format(path))
-    if platform.system() == "Windows":
-        subprocess.call(["robocopy", os.path.join(repo_path, os.path.dirname(path)), os.path.join(project_target_path, os.path.dirname(path)), os.path.basename(path), "/np"])
-    else:
-        shutil.copy(os.path.join(repo_path, path), os.path.join(project_target_path, path))
-
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
+    import unity_package_build
     dest_path = os.path.join(project_path, "Assets", "ScriptableRenderLoop")
-    copy_path_to_project("ImageTemplates", repo_path, dest_path, logger)
-    copy_path_to_project("Tests", repo_path, dest_path, logger)
-    copy_file_to_project("SRPMARKER", repo_path, dest_path, logger)
-    copy_file_to_project("SRPMARKER.meta", repo_path, dest_path, logger)
-    copy_file_to_project("ImageTemplates.meta", repo_path, dest_path, logger)
-    copy_file_to_project("Tests.meta", repo_path, dest_path, logger)
+    unity_package_build.copy_path_to_project("ImageTemplates", repo_path, dest_path, logger)
+    unity_package_build.copy_path_to_project("Tests", repo_path, dest_path, logger)
+    unity_package_build.copy_file_to_project("SRPMARKER", repo_path, dest_path, logger)
+    unity_package_build.copy_file_to_project("SRPMARKER.meta", repo_path, dest_path, logger)
+    unity_package_build.copy_file_to_project("ImageTemplates.meta", repo_path, dest_path, logger)
+    unity_package_build.copy_file_to_project("Tests.meta", repo_path, dest_path, logger)
 
 if __name__ == "__main__":
     import sys

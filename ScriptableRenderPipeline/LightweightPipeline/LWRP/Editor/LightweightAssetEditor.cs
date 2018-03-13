@@ -1,5 +1,7 @@
+using System.Linq;
 using UnityEditor;
 using UnityEditor.AnimatedValues;
+using UnityEditor.Experimental.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -105,22 +107,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     EditorGUILayout.PropertyField(prop, content);
         }
 
-        protected void DoPopup(GUIContent label, SerializedProperty property, string[] options)
-        {
-            var mode = property.intValue;
-            EditorGUI.BeginChangeCheck();
-
-            if (mode >= options.Length)
-                Debug.LogError(string.Format("Invalid option while trying to set {0}", label.text));
-
-            mode = EditorGUILayout.Popup(label, mode, options);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Undo.RecordObject(property.objectReferenceValue, property.name);
-                property.intValue = mode;
-            }
-        }
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -149,22 +135,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             EditorGUILayout.LabelField(Styles.shadowLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            DoPopup(Styles.shadowType, m_ShadowTypeProp, Styles.shadowTypeOptions);
+            CoreEditorUtils.DrawPopup(Styles.shadowType, m_ShadowTypeProp, Styles.shadowTypeOptions);
             EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
-
             EditorGUILayout.PropertyField(m_ShadowNearPlaneOffsetProp, Styles.shadowNearPlaneOffset);
-            EditorGUILayout.PropertyField(m_ShadowDistanceProp, Styles.shadowDistante);
-            DoPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
+            m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistante, m_ShadowDistanceProp.floatValue));
+            CoreEditorUtils.DrawPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
             ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
             if (cascades == ShadowCascades.FOUR_CASCADES)
-            {
-                EditorGUILayout.PropertyField(m_ShadowCascade4SplitProp, Styles.shadowCascadeSplit);
-            }
+                CoreEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
             else if (cascades == ShadowCascades.TWO_CASCADES)
-            {
-                EditorGUILayout.PropertyField(m_ShadowCascade2SplitProp, Styles.shadowCascadeSplit);
-            }
+                CoreEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
 
             EditorGUI.indentLevel--;
 

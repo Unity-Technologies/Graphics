@@ -2,6 +2,7 @@ Shader "Hidden/HDRenderPipeline/DrawTransmittanceGraph"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Cull   Off

@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+#if UNITY_EDITOR
+using UnityEditor.Experimental.Rendering.LightweightPipeline;
+#endif
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
@@ -13,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public class ShadowSettings
     {
         public bool     enabled;
+        public bool     screenSpace;
         public int      shadowAtlasWidth;
         public int      shadowAtlasHeight;
 
@@ -21,7 +25,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Vector3  directionalLightCascades;
         public float    directionalLightNearPlaneOffset;
 
-        public RenderTextureFormat renderTextureFormat;
+        public RenderTextureFormat shadowmapTextureFormat;
+        public RenderTextureFormat screenspaceShadowmapTextureFormat;
 
         static ShadowSettings defaultShadowSettings = null;
 
@@ -33,12 +38,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     defaultShadowSettings = new ShadowSettings();
                     defaultShadowSettings.enabled = true;
+                    defaultShadowSettings.screenSpace = true;
                     defaultShadowSettings.shadowAtlasHeight = defaultShadowSettings.shadowAtlasWidth = 4096;
                     defaultShadowSettings.directionalLightCascadeCount = 1;
                     defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                     defaultShadowSettings.directionalLightNearPlaneOffset = 5;
                     defaultShadowSettings.maxShadowDistance = 1000.0F;
-                    defaultShadowSettings.renderTextureFormat = RenderTextureFormat.Shadowmap;
+                    defaultShadowSettings.shadowmapTextureFormat = RenderTextureFormat.Shadowmap;
+                    defaultShadowSettings.screenspaceShadowmapTextureFormat = RenderTextureFormat.R8;
                 }
                 return defaultShadowSettings;
             }
@@ -136,6 +143,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private MixedLightingSetup m_MixedLightingSetup;
 
         private const int kDepthStencilBufferBits = 32;
+        private const int kShadowBufferBits = 16;
         private Vector4[] m_DirectionalShadowSplitDistances = new Vector4[kMaxCascades];
         private Vector4 m_DirectionalShadowSplitRadii;
 
@@ -262,6 +270,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_BlitMaterial);
+
+#if UNITY_EDITOR
+            SceneViewDrawMode.ResetDrawMode();
+#endif
         }
 
         private void SetRenderingFeatures()
@@ -279,6 +291,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 rendererSupportsReceiveShadows = true,
                 rendererSupportsReflectionProbes = true
             };
+            SceneViewDrawMode.SetupDrawMode();
 #endif
         }
 
@@ -298,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 RenderPipeline.BeginCameraRendering(camera);
 
                 bool sceneViewCamera = camera.cameraType == CameraType.SceneView;
-                bool stereoEnabled = XRSettings.isDeviceActive && !sceneViewCamera;
+                bool stereoEnabled = XRSettings.isDeviceActive && !sceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
                 m_CurrCamera = camera;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
@@ -309,7 +322,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
+                {
+                    cmd.EndSample("LightweightPipeline.Render");
+                    context.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
                     continue;
+                }
 
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
                         m_CurrCamera.farClipPlane);
@@ -343,18 +361,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
-                {
-                    DepthPass(ref context);
+                    DepthPass(ref context, frameRenderingConfiguration);
 
-                    // Only screen space shadowmap mode is supported.
-                    if (shadows)
-                        ShadowCollectPass(visibleLights, ref context, ref lightData);
-                }
+                if (shadows && m_ShadowSettings.screenSpace)
+                    ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
 
                 if (!shadows)
                 {
                     var setRT = CommandBufferPool.Get("Generate Small Shadow Buffer");
-                    setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+                    if (m_ShadowSettings.screenSpace)
+                        setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.screenspaceShadowmapTextureFormat);
+                    else
+                        setRT.GetTemporaryRT(m_ShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.shadowmapTextureFormat);
                     setRT.Blit(Texture2D.whiteTexture, m_ScreenSpaceShadowMapRT);
                     context.ExecuteCommandBuffer(setRT);
                 }
@@ -403,9 +421,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     bool shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight, shadowOriginalIndex, ref context);
                     if (shadowsRendered)
                     {
-                        lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS)
-                            ? LightShadows.Hard
-                            : mainLight.light.shadows;
+                        lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS) ? LightShadows.Hard : mainLight.light.shadows;
+
+                        // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
+                        // GLES2 platform is forced to hard single cascade shadows.
+                        if (!m_ShadowSettings.screenSpace)
+                            lightData.shadowMapSampleType = LightShadows.Hard;
                     }
                     else
                     {
@@ -419,21 +440,43 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        private void ShadowCollectPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
+        private void ShadowCollectPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData, FrameRenderingConfiguration frameRenderingConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
 
-            SetupShadowReceiverConstants(cmd, visibleLights[lightData.mainLightIndex]);
             SetShadowCollectPassKeywords(cmd, visibleLights[lightData.mainLightIndex], ref lightData);
 
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
-            cmd.Blit(null, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
+            // TODO: Support RenderScale for the SSSM target.  Should probably move allocation elsewhere, or at
+            // least propogate RenderTextureDescriptor generation
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+            {
+                var desc = XRSettings.eyeTextureDesc;
+                desc.depthBufferBits = 0;
+                desc.colorFormat = m_ShadowSettings.screenspaceShadowmapTextureFormat;
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, desc, FilterMode.Bilinear);
+            }
+            else
+            {
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, m_ShadowSettings.screenspaceShadowmapTextureFormat);
+            }
+
+            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
+            // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
+            // stereo functionality, we use the screen-space shadow map as the source (until we have
+            // a better solution).
+            // An alternative would be DrawProcedural, but that would require further changes in the shader.
+            cmd.Blit(m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowMapRT, m_ScreenSpaceShadowsMaterial);
+
+            StartStereoRendering(ref context, frameRenderingConfiguration);
 
             context.ExecuteCommandBuffer(cmd);
+
+            StopStereoRendering(ref context, frameRenderingConfiguration);
+
             CommandBufferPool.Release(cmd);
         }
 
-        private void DepthPass(ref ScriptableRenderContext context)
+        private void DepthPass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
             SetRenderTarget(cmd, m_DepthRT, ClearFlag.Depth);
@@ -448,7 +491,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 renderQueueRange = RenderQueueRange.opaque
             };
 
+            StartStereoRendering(ref context, frameRenderingConfiguration);
+
             context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
+
+            StopStereoRendering(ref context, frameRenderingConfiguration);
         }
 
         private void ForwardPass(List<VisibleLight> visibleLights, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context, ref LightData lightData, bool stereoEnabled)
@@ -577,14 +624,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void BuildShadowSettings()
         {
             m_ShadowSettings = ShadowSettings.Default;
-            m_ShadowSettings.directionalLightCascadeCount = m_Asset.CascadeCount;
+            m_ShadowSettings.screenSpace = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+            m_ShadowSettings.directionalLightCascadeCount = (m_ShadowSettings.screenSpace) ? m_Asset.CascadeCount : 1;
 
             m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.maxShadowDistance = m_Asset.ShadowDistance;
-            m_ShadowSettings.renderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+            m_ShadowSettings.shadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
+
+            m_ShadowSettings.screenspaceShadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
+                    ? RenderTextureFormat.R8
+                    : RenderTextureFormat.ARGB32;
 
             switch (m_ShadowSettings.directionalLightCascadeCount)
             {
@@ -643,7 +695,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (shadows)
             {
-                m_RequireDepthTexture = true;
+                m_RequireDepthTexture = m_ShadowSettings.screenSpace;
 
                 if (!msaaEnabled)
                     intermediateTexture = true;
@@ -695,34 +747,42 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? msaaSamples : 1;
             m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
 
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
-            {
-                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                    SetupIntermediateResourcesStereo(cmd, msaaSamples);
-                else
-                    SetupIntermediateResourcesSingle(cmd, renderingConfig, msaaSamples);
-            }
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture) || m_RequireDepthTexture)
+                SetupIntermediateRenderTextures(cmd, renderingConfig, msaaSamples);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        private void SetupIntermediateResourcesSingle(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
+        private void SetupIntermediateRenderTextures(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
         {
+            RenderTextureDescriptor baseDesc;
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
+                baseDesc = XRSettings.eyeTextureDesc;
+            else
+                baseDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
+
             float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
-            int rtWidth = (int)((float)m_CurrCamera.pixelWidth * renderScale);
-            int rtHeight = (int)((float)m_CurrCamera.pixelHeight * renderScale);
+            baseDesc.width = (int)((float)baseDesc.width * renderScale);
+            baseDesc.height = (int)((float)baseDesc.height * renderScale);
+
+            // TODO: Might be worth caching baseDesc for allocation of other targets (Screen-space Shadow Map?)
 
             if (m_RequireDepthTexture)
             {
-                RenderTextureDescriptor depthRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, RenderTextureFormat.Depth, kDepthStencilBufferBits);
+                var depthRTDesc = baseDesc;
+                depthRTDesc.colorFormat = RenderTextureFormat.Depth;
+                depthRTDesc.depthBufferBits = kDepthStencilBufferBits;
+
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Bilinear);
 
                 if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Bilinear);
             }
 
-            RenderTextureDescriptor colorRTDesc = new RenderTextureDescriptor(rtWidth, rtHeight, m_ColorFormat, kDepthStencilBufferBits);
+            var colorRTDesc = baseDesc;
+            colorRTDesc.colorFormat = m_ColorFormat;
+            colorRTDesc.depthBufferBits = kDepthStencilBufferBits; // TODO: does the color RT always need depth?
             colorRTDesc.sRGB = true;
             colorRTDesc.msaaSamples = msaaSamples;
             colorRTDesc.enableRandomWrite = false;
@@ -738,16 +798,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // color RT to blit the effect.
             if (m_RequireCopyColor)
                 cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, colorRTDesc, FilterMode.Point);
-        }
-
-        private void SetupIntermediateResourcesStereo(CommandBuffer cmd, int msaaSamples)
-        {
-            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor();
-            rtDesc = XRSettings.eyeTextureDesc;
-            rtDesc.colorFormat = m_ColorFormat;
-            rtDesc.msaaSamples = msaaSamples;
-
-            cmd.GetTemporaryRT(CameraRenderTargetID.color, rtDesc, FilterMode.Bilinear);
         }
 
         private void SetupShaderConstants(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
@@ -1077,7 +1127,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
-        private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight)
+        private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, ref ScriptableRenderContext context)
         {
             Light light = shadowLight.light;
 
@@ -1094,6 +1144,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
             float invHalfShadowResolution = 0.5f * invShadowResolution;
+            cmd.Clear();
             cmd.SetGlobalMatrixArray(ShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray(ShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
@@ -1103,6 +1154,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset3, new Vector4(invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
+            context.ExecuteCommandBuffer(cmd);
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
@@ -1125,7 +1177,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
-           
+
             bool linearFogModeEnabled = false;
             bool exponentialFogModeEnabled = false;
             if (RenderSettings.fog)
@@ -1168,8 +1220,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var cmd = CommandBufferPool.Get("Prepare Shadowmap");
             cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
-                m_ShadowSettings.shadowAtlasHeight, kDepthStencilBufferBits, FilterMode.Bilinear, m_ShadowSettings.renderTextureFormat);
-            SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.Depth);
+                m_ShadowSettings.shadowAtlasHeight, kShadowBufferBits, FilterMode.Bilinear, m_ShadowSettings.shadowmapTextureFormat);
+            // LightweightPipeline.SetRenderTarget is meant to be used with camera targets, not shadowmaps
+            CoreUtils.SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
 
             if (shadowLight.lightType == LightType.Spot)
             {
@@ -1207,6 +1260,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
             }
+
+            if (success)
+                SetupShadowReceiverConstants(cmd, shadowLight, ref context);
 
             CommandBufferPool.Release(cmd);
             return success;
@@ -1300,12 +1356,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier colorRT = BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier depthRT = BuiltinRenderTextureType.None;
 
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                context.StartMultiEye(m_CurrCamera);
+            StartStereoRendering(ref context, renderingConfig);
 
             CommandBuffer cmd = CommandBufferPool.Get("SetCameraRenderTarget");
-            bool intermeaditeTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
-            if (intermeaditeTexture)
+            bool intermediateTexture = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture);
+            if (intermediateTexture)
             {
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
@@ -1334,7 +1389,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
-            if (!intermeaditeTexture && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
+            if (!intermediateTexture && !LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DefaultViewport))
                 cmd.SetViewport(m_CurrCamera.pixelRect);
 
             context.ExecuteCommandBuffer(cmd);
@@ -1456,6 +1511,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.CopyTexture(sourceRT, destRT);
             else
                 cmd.Blit(sourceRT, destRT, copyMaterial);
+        }
+
+        private void StartStereoRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (LightweightUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StartMultiEye(m_CurrCamera);
+        }
+
+        private void StopStereoRendering(ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (LightweightUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StopMultiEye(m_CurrCamera);
         }
     }
 }

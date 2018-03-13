@@ -3,10 +3,17 @@
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Core.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
 
-TEXTURE2D(_ScreenSpaceShadowMap);
+#ifdef SHADER_API_GLES
+#define SHADOWS_SCREEN 0
+#else
+#define SHADOWS_SCREEN 1
+#endif
+
+SCREENSPACE_TEXTURE(_ScreenSpaceShadowMap);
 SAMPLER(sampler_ScreenSpaceShadowMap);
 
 TEXTURE2D_SHADOW(_ShadowMap);
@@ -43,10 +50,17 @@ half GetShadowStrength()
 inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
-    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
 
-    // Apply shadow strength
-    return LerpWhiteTo(attenuation, GetShadowStrength());
+    // The stereo transform has to happen after the manual perspective divide
+    shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy, unity_StereoEyeIndex).x;
+#else
+    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
+#endif
+
+    return attenuation;
 }
 
 inline real SampleShadowmap(float4 shadowCoord)
@@ -107,6 +121,11 @@ inline real SampleShadowmap(float4 shadowCoord)
     attenuation = SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
 
+#if SHADER_HINT_NICE_QUALITY
+    // Apply shadow strength
+    attenuation = LerpWhiteTo(attenuation, GetShadowStrength());
+#endif
+
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
     return (OUTSIDE_SHADOW_BOUNDS(shadowCoord)) ? 1.0 : attenuation;
 }
@@ -126,9 +145,9 @@ inline half ComputeCascadeIndex(float3 positionWS)
     return 4 - dot(weights, half4(4, 3, 2, 1));
 }
 
-float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
+float4 TransformWorldToShadowCoord(float3 positionWS)
 {
-    #ifdef _SHADOWS_CASCADE
+#ifdef _SHADOWS_CASCADE
     half cascadeIndex = ComputeCascadeIndex(positionWS);
     return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 #else
@@ -138,12 +157,20 @@ float4 ComputeScreenSpaceShadowCoords(float3 positionWS)
 
 float4 ComputeShadowCoord(float4 clipPos)
 {
+    // TODO: This might have to be corrected for double-wide and texture arrays
     return ComputeScreenPos(clipPos);
 }
 
 half RealtimeShadowAttenuation(float4 shadowCoord)
 {
+#if NO_SHADOWS
+    return 1.0h;
+#elif SHADOWS_SCREEN
     return SampleScreenSpaceShadowMap(shadowCoord);
+#else
+
+    return SampleShadowmap(shadowCoord);
+#endif
 }
 
 #endif
