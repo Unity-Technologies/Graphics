@@ -3,7 +3,7 @@
 //  It's been ported to HDRP in order to have a basic procedural sky
 //  It has been left mostly untouched but has been adapted to run per-pixel instead of per vertex
 // ==================================================================================================
-Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
+Shader "Hidden/HDRenderPipeline/Sky/ProceduralSky"
 {
     HLSLINCLUDE
 
@@ -61,7 +61,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
 
     static const float kCameraHeight = 0.0001;
 
-    #define kRAYLEIGH (lerp(0.0, 0.0025, pow(_AtmosphereThickness,2.5)))      // Rayleigh constant
+    #define kRAYLEIGH (lerp(0.0, 0.0025, PositivePow(_AtmosphereThickness,2.5)))      // Rayleigh constant
     #define kMIE 0.0010             // Mie constant
     #define kSUN_BRIGHTNESS 20.0    // Sun brightness
 
@@ -135,8 +135,8 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
         float3 kScatteringWavelength = lerp (
             kDefaultScatteringWavelength-kVariableRangeForScatteringWavelength,
             kDefaultScatteringWavelength+kVariableRangeForScatteringWavelength,
-            float3(1,1,1) - _SkyTint); // using Tint in sRGB gamma allows for more visually linear interpolation and to keep (.5) at (128, gray in sRGB) point
-        float3 kInvWavelength = 1.0 / pow(kScatteringWavelength, 4);
+            float3(1,1,1) - _SkyTint.xyz); // using Tint in sRGB gamma allows for more visually linear interpolation and to keep (.5) at (128, gray in sRGB) point
+        float3 kInvWavelength = 1.0 / float3(PositivePow(kScatteringWavelength.x, 4), PositivePow(kScatteringWavelength.y, 4), PositivePow(kScatteringWavelength.z, 4));
 
         float kKrESun = kRAYLEIGH * kSUN_BRIGHTNESS;
         float kKr4PI = kRAYLEIGH * 4.0 * 3.14159265;
@@ -244,7 +244,7 @@ Shader "Hidden/HDRenderPipeline/Sky/SkyProcedural"
             cIn = frontColor * (kInvWavelength * kKrESun + kKmESun);
             cOut = clamp(attenuate, 0.0, 1.0);
 
-            groundColor = _SkyParam.y * (cIn + _GroundColor * _GroundColor * cOut);
+            groundColor = _SkyParam.y * (cIn + _GroundColor.rgb * _GroundColor.rgb * cOut);
         }
 
         float3 sunColor = float3(0.0, 0.0, 0.0);

@@ -116,7 +116,7 @@ Shader "HDRenderPipeline/Unlit"
     SubShader
     {
         // This tags allow to use the shader replacement features
-        Tags{ "RenderType" = "HDUnlitShader" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDUnlitShader" }
 
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not be the meta pass.
 

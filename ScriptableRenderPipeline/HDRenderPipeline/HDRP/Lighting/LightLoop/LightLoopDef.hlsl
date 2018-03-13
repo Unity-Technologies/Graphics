@@ -13,7 +13,7 @@ uint _NumTileFtplY;
 // these uniforms are only needed for when OPAQUES_ONLY is NOT defined
 // but there's a problem with our front-end compilation of compute shaders with multiple kernels causing it to error
 //#ifdef USE_CLUSTERED_LIGHTLIST
-float4x4 g_mInvScrProjection;
+float4x4 g_mInvScrProjection; // TODO: remove, unused in HDRP
 
 float g_fClustScale;
 float g_fClustBase;
@@ -53,6 +53,7 @@ TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
 TEXTURE2D_ARRAY(_Env2DTextures);
 float4x4 _Env2DCaptureVP[MAX_ENV2D_LIGHT];
 
+// XRTODO: Need to stereo-ize access
 TEXTURE2D(_DeferredShadowTexture);
 
 CBUFFER_START(UnityPerLightLoop)
@@ -215,6 +216,7 @@ float GetLightClusterMinLinearDepth(uint2 tileIndex, uint clusterIndex)
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
     {
+        // XRTODO: Stereo-ize access to g_logBaseBuffer
         logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
     }
 
@@ -226,7 +228,8 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
     float logBase = g_fClustBase;
     if (g_isLogBaseBufferEnabled)
     {
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
+        const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
+        logBase = g_logBaseBuffer[logBaseIndex];
     }
 
     return SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
@@ -235,7 +238,9 @@ uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
 void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
 {
     int nrClusters = (1 << g_iLog2NumClusters);
-    const int idx = ((lightCategory * nrClusters + clusterIndex) * _NumTileClusteredY + tileIndex.y) * _NumTileClusteredX + tileIndex.x;
+
+    const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
+
     uint dataPair = g_vLayeredOffsetsBuffer[idx];
     start = dataPair & 0x7ffffff;
     lightCount = (dataPair >> 27) & 31;
@@ -243,6 +248,9 @@ void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCateg
 
 void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
+    // Note: XR depends on unity_StereoEyeIndex already being defined,
+    // which means ShaderVariables.hlsl needs to be defined ahead of this!
+
     uint2 tileIndex    = posInput.tileCoord;
     uint  clusterIndex = GetLightClusterIndex(tileIndex, posInput.linearDepth);
 

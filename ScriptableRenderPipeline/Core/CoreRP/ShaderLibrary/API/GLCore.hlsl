@@ -19,6 +19,13 @@
 #define CBUFFER_START(name)
 #define CBUFFER_END
 
+// flow control attributes
+#define UNITY_BRANCH        [branch]
+#define UNITY_FLATTEN       [flatten]
+#define UNITY_UNROLL        [unroll]
+#define UNITY_UNROLLX(_x)   [unroll(_x)]
+#define UNITY_LOOP          [loop]
+
 // OpenGL 4.1 SM 5.0 https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html
 #if (SHADER_TARGET >= 46)
 #define OPENGL4_1_SM5 1

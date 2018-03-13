@@ -35,24 +35,45 @@ real3 SHEvalLinearL2(real3 N, real4 shBr, real4 shBg, real4 shBb, real4 shC)
     return x2 + x3;
 }
 
-real3 SampleSH9(real4 SHCoefficients[7], real3 N)
+#if HAS_HALF
+half3 SampleSH9(half4 SHCoefficients[7], half3 N)
 {
-    real4 shAr = SHCoefficients[0];
-    real4 shAg = SHCoefficients[1];
-    real4 shAb = SHCoefficients[2];
-    real4 shBr = SHCoefficients[3];
-    real4 shBg = SHCoefficients[4];
-    real4 shBb = SHCoefficients[5];
-    real4 shCr = SHCoefficients[6];
+    half4 shAr = SHCoefficients[0];
+    half4 shAg = SHCoefficients[1];
+    half4 shAb = SHCoefficients[2];
+    half4 shBr = SHCoefficients[3];
+    half4 shBg = SHCoefficients[4];
+    half4 shBb = SHCoefficients[5];
+    half4 shCr = SHCoefficients[6];
 
     // Linear + constant polynomial terms
-    real3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
+    half3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
 
     // Quadratic polynomials
     res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
 
     return res;
 }
+#endif
+float3 SampleSH9(float4 SHCoefficients[7], float3 N)
+{
+    float4 shAr = SHCoefficients[0];
+    float4 shAg = SHCoefficients[1];
+    float4 shAb = SHCoefficients[2];
+    float4 shBr = SHCoefficients[3];
+    float4 shBg = SHCoefficients[4];
+    float4 shBb = SHCoefficients[5];
+    float4 shCr = SHCoefficients[6];
+
+    // Linear + constant polynomial terms
+    float3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
+
+    // Quadratic polynomials
+    res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
+
+    return res;
+}
+
 
 // This sample a 3D volume storing SH
 // Volume is store as 3D texture with 4 R, G, B, Occ set of 4 coefficient store atlas in same 3D texture. Occ is use for occlusion.
@@ -99,12 +120,6 @@ float4 SampleProbeOcclusion(TEXTURE3D_ARGS(SHVolumeTexture, SHVolumeSampler), fl
 // It is required for other platform that aren't supporting this format to implement variant of these functions
 // (But these kind of platform should use regular render loop and not news shaders).
 
-// RGBM lightmaps are currently always gamma encoded, so we use a constant of range^2.2 = 5^2.2
-#define LIGHTMAP_RGBM_RANGE 34.493242
-
-// DLDR lightmaps are currently always gamma encoded, so we use a constant of 2.0^2.2 = 4.59
-#define LIGHTMAP_DLDR_RANGE 4.59
-
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderPipeline
 #define EMISSIVE_RGBM_SCALE 97.0
@@ -130,23 +145,22 @@ real4 PackEmissiveRGBM(real3 rgb)
     return rgbm;
 }
 
-real3 UnpackLightmapRGBM(real4 rgbmInput)
+real3 UnpackLightmapRGBM(real4 rgbmInput, real4 decodeInstructions)
 {
-    // RGBM lightmaps are always gamma encoded for now, so decode with that in mind:
-    return rgbmInput.rgb * pow(rgbmInput.a, 2.2) * LIGHTMAP_RGBM_RANGE;
+    return rgbmInput.rgb * pow(rgbmInput.a, decodeInstructions.y) * decodeInstructions.x;
 }
 
-real3 UnpackLightmapDoubleLDR(real4 encodedColor)
+real3 UnpackLightmapDoubleLDR(real4 encodedColor, real4 decodeInstructions)
 {
-    return encodedColor.rgb * LIGHTMAP_DLDR_RANGE;
+    return encodedColor.rgb * decodeInstructions.x;
 }
 
-real3 DecodeLightmap(real4 encodedIlluminance)
+real3 DecodeLightmap(real4 encodedIlluminance, real4 decodeInstructions)
 {
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
-    return UnpackLightmapRGBM(encodedIlluminance);
+    return UnpackLightmapRGBM(encodedIlluminance, decodeInstructions);
 #else // DLDR encoding on mobile platforms
-    return UnpackLightmapDoubleLDR(encodedIlluminance);
+    return UnpackLightmapDoubleLDR(encodedIlluminance, decodeInstructions);
 #endif
 }
 
@@ -159,7 +173,7 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
     return (decodeInstructions.x * pow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
 }
 
-real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool encodedLightmap)
+real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool encodedLightmap, real4 decodeInstructions)
 {
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
@@ -168,7 +182,7 @@ real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 
     if (encodedLightmap)
     {
         real4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
-        illuminance = DecodeLightmap(encodedIlluminance);
+        illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
     }
     else
     {
@@ -177,7 +191,7 @@ real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 
     return illuminance;
 }
 
-real3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap)
+real3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TEXTURE2D_ARGS(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
 {
     // In directional mode Enlighten bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
@@ -195,7 +209,7 @@ real3 SampleDirectionalLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), TE
     if (encodedLightmap)
     {
         real4 encodedIlluminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgba;
-        illuminance = DecodeLightmap(encodedIlluminance);
+        illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
     }
     else
     {
