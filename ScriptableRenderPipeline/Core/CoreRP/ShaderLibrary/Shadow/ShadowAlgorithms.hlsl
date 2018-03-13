@@ -108,7 +108,7 @@ real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgo
 		real3 tcs = EvalShadow_GetTexcoords( sd, pos, perspProj );
 		weight = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, sd.slice ).x;
 	}
-	
+
 	return lerp( 1.0, weight, EvalShadow_ReceiverBiasWeightFlag( sd.normalBias.w ) );
 }
 
@@ -231,7 +231,7 @@ real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3
 	// get the algorithm
 	uint shadowType, shadowAlgorithm;
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
-	// get the texture 
+	// get the texture
 	uint texIdx, sampIdx;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx );
 	// bias the world position
@@ -331,7 +331,7 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 		sd.scaleOffset.zw = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].scaleOffset.zw;
 		sd.slice          = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].slice;
 	}
-	
+
 	uint texIdx, sampIdx;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx );
 	// bias the world position
@@ -416,7 +416,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 		float   distSq  = dot( wposDir, wposDir );
 		relDistance = distSq / sphere.w;
 		if( relDistance > 0.0 && relDistance <= 1.0 )
-		{ 
+		{
 			splitSphere = sphere.xyz;
 			wposDir    /= sqrt( distSq );
 			break;
@@ -565,7 +565,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	uint  payloadOffset;
 	real  alpha;
 	int shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, payloadOffset, alpha);
-	
+
 	if( shadowSplitIndex < 0 )
 		return 1.0;
 
@@ -577,7 +577,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	UnpackShadowmapId( sd.id, texIdx, sampIdx );
 	uint shadowType, shadowAlgorithm;
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
-	
+
 	// normal based bias
 	real3 orig_pos = positionWS;
 	real  recvBiasWeight = EvalShadow_ReceiverBiasWeight( shadowContext, shadowAlgorithm, sd, texIdx, sampIdx, positionWS, normalWS, L, 1.0, false );
@@ -798,7 +798,7 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, real3 po
 	uint payloadOffset;
 	real alpha;
 	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
-	
+
 	if( shadowSplitIndex < 0 )
 		return 0.0;
 
@@ -823,7 +823,7 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, Texture2
 	uint payloadOffset;
 	real alpha;
 	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
-	
+
 	if( shadowSplitIndex < 0 )
 		return 0.0;
 
@@ -840,4 +840,36 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, Texture2
 	// reconstruct depth position
 	real4 closestWS = mul( closestNDC, sd.shadowToWorld );
 	return closestWS.xyz / closestWS.w;
+}
+
+real EvalShadow_SampleClosestDistance_Cascade( ShadowContext shadowContext, Texture2DArray tex, SamplerState sampl,
+	                                           real3 positionWS, real3 normalWS, int index, real4 L, out real3 nearPlanePositionWS )
+{
+	// load the right shadow data for the current face
+	uint payloadOffset;
+	real alpha;
+	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
+
+	if( shadowSplitIndex < 0 )
+		return 0.0;
+
+	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+
+	real4 closestNDC = { 0,0,0,1 };
+	real2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, false );
+
+	// sample the shadow map
+	uint texIdx, sampIdx;
+	UnpackShadowmapId( sd.id, texIdx, sampIdx );
+	closestNDC.z = SAMPLE_TEXTURE2D_ARRAY_LOD( tex, sampl, texelIdx, sd.slice, 0 ).x;
+
+	// reconstruct depth position
+	real4 closestWS = mul( closestNDC, sd.shadowToWorld );
+	real3 occluderPosWS = closestWS.xyz / closestWS.w;
+
+	// TODO: avoid the matrix multiplication here.
+	real4 nearPlanePos = mul( real4( 0,0,1,1 ), sd.shadowToWorld ); // Note the reversed Z
+	nearPlanePositionWS = nearPlanePos.xyz / nearPlanePos.w;
+
+	return distance( occluderPosWS, nearPlanePositionWS );
 }
