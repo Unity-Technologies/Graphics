@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
@@ -24,23 +25,33 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void CreateTestAsset()
         {
-            VisualEffectAsset asset = new VisualEffectAsset();
-
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
+            if (File.Exists(testAssetName))
+            {
+                AssetDatabase.DeleteAsset(testAssetName);
+            }
 
-            AssetDatabase.CreateAsset(asset, testAssetName);
+            System.IO.File.WriteAllText(testAssetName, "");
 
-            m_ViewController = VFXViewController.GetController(asset);
+            AssetDatabase.ImportAsset(testAssetName); // This will create the VisualEffectAsset.
+
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName);
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+
+            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController.useCount++;
+
             m_StartUndoGroupId = Undo.GetCurrentGroup();
         }
 
         [TearDown]
         public void DestroyTestAsset()
         {
+            m_ViewController.useCount--;
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
             AssetDatabase.DeleteAsset(testAssetName);
         }
@@ -178,7 +189,7 @@ namespace UnityEditor.VFX.Test
         {
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.vfx");
 
-            VFXViewController controller = VFXViewController.GetController(asset, true);
+            VFXViewController controller = VFXViewController.GetController(asset.GetResource(), true);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             VFXView view = window.graphView;
