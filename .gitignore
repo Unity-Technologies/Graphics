@@ -5,6 +5,7 @@ DataSource/*
 Library/*
 obj/*
 Temp/*
+.DS_Store
 *.aspx
 *.browser
 *.csproj

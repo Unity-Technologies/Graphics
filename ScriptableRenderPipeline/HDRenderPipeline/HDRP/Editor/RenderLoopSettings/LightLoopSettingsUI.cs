@@ -32,11 +32,13 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_SectionLightLoopSettings(LightLoopSettingsUI s, SerializedLightLoopSettings p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.enableTileAndCluster, _.GetContent("Enable Tile And Cluster"));
+            // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
+            //EditorGUILayout.PropertyField(p.enableTileAndCluster, _.GetContent("Enable Tile And Cluster"));
+            //EditorGUI.indentLevel++;
+
             GUILayout.BeginVertical();
             if (s.isSectionExpandedEnableTileAndCluster.target)
             {
-                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(p.enableFptlForForwardOpaque, _.GetContent("Enable FPTL For Forward Opaque"));
                 EditorGUILayout.PropertyField(p.enableBigTilePrepass, _.GetContent("Enable Big Tile Prepass"));
                 EditorGUILayout.PropertyField(p.enableComputeLightEvaluation, _.GetContent("Enable Compute Light Evaluation"));
@@ -50,10 +52,11 @@ namespace UnityEditor.Experimental.Rendering
                 }
                 EditorGUILayout.EndFadeGroup();
                 GUILayout.EndVertical();
-                EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFadeGroup();
             GUILayout.EndVertical();
+
+            //EditorGUI.indentLevel--;
         }
     }
 }

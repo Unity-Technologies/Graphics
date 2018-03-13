@@ -243,7 +243,7 @@ public class TextureCombiner
 		return combined;
 	}
 
-	private Texture GetRawTexture (Texture original, bool sRGB = false)
+	private Texture GetRawTexture (Texture original, bool sRGBFallback = false)
 	{
 		if (m_RawTextures == null) m_RawTextures = new Dictionary<Texture, Texture>();
 		if (!m_RawTextures.ContainsKey(original))
@@ -257,14 +257,17 @@ public class TextureCombiner
 
 				AssetDatabase.ImportAsset(rawPath);
 
-				TextureImporter rawImporter = (TextureImporter) TextureImporter.GetAtPath(rawPath);
+				TextureImporter rawImporter = (TextureImporter) AssetImporter.GetAtPath(rawPath);
 				rawImporter.textureType = TextureImporterType.Default;
 				rawImporter.mipmapEnabled = false;
 				rawImporter.isReadable = true;
 				rawImporter.filterMode = m_bilinearFilter? FilterMode.Bilinear : FilterMode.Point;
 				rawImporter.npotScale = TextureImporterNPOTScale.None;
 				rawImporter.wrapMode = TextureWrapMode.Clamp;
-				rawImporter.sRGBTexture = sRGB;
+
+			    Texture2D originalTex2D = original as Texture2D;
+                rawImporter.sRGBTexture = (originalTex2D == null)? sRGBFallback : ( AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(original)) as TextureImporter).sRGBTexture;
+
 				rawImporter.maxTextureSize = 8192;
 
 				rawImporter.textureCompression = TextureImporterCompression.Uncompressed;

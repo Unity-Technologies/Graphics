@@ -1065,10 +1065,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // bake lighting function
 //-----------------------------------------------------------------------------
 
-// GetBakedDiffuseLigthing function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
+// GetBakedDiffuseLighting function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
 // In forward it must be add to the final contribution.
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
-float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
+float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
     {
@@ -1401,7 +1401,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                               && NdotL < 0 && lightData.shadowIndex >= 0;
 
     // Save the original version for the transmission code below.
-    int shadowIndex = lightData.shadowIndex;
+    int originalShadowIndex = lightData.shadowIndex;
 
     if (mixedThicknessMode)
     {
@@ -1413,6 +1413,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
                            lightToSample, distances, color, attenuation);
+
+    // Restore the original shadow index.
+    lightData.shadowIndex = originalShadowIndex;
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
@@ -1439,12 +1442,10 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         if (mixedThicknessMode)
         {
             // Recompute transmittance using the thickness value computed from the shadow map.
-            #define SHADOW_DISPATCH_PUNC_TEX 3 // Manually keep it in sync with Shadow.hlsl...
 
             // Compute the distance from the light to the back face of the object along the light direction.
-            // Important: use the original (saved) shadow index here!
-            float distBackFaceToLight = EvalShadow_SampleClosestDistance_Punctual(lightLoopContext.shadowContext, lightLoopContext.shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX],
-                                                                                  s_linear_clamp_sampler, posInput.positionWS, shadowIndex, L, lightData.positionWS);
+            float distBackFaceToLight = GetPunctualShadowClosestDistance(lightLoopContext.shadowContext, s_linear_clamp_sampler,
+                                                                         posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.
@@ -1918,7 +1919,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     {
         projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        float3 capturePositionWS = lightData.capturePositionWS;
         R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // Test again for clear coat
@@ -1935,7 +1936,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = GetCapturePositionWS(lightData);
+        float3 capturePositionWS = lightData.capturePositionWS;
         R = (positionWS + projectionDistance * R) - capturePositionWS;
 
         // TODO: add distance based roughness
@@ -1960,7 +1961,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
-    float3 sampleDirectionDiscardWS = GetSampleDirectionDiscardWS(lightData);
+    float3 sampleDirectionDiscardWS = lightData.sampleDirectionDiscardWS;
     if (dot(sampleDirectionDiscardWS, R) < 0)
         return lighting;
 
@@ -2008,8 +2009,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 #endif // LIT_DISPLAY_REFERENCE_IBL
 
+    weight *= lightData.weight;
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-    envLighting *= weight * lightData.dimmer;
+    envLighting *= weight * lightData.multiplier;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting;
@@ -2075,7 +2077,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     float3 modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
-    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLigthing().
+    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value

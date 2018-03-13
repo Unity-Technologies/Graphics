@@ -14,19 +14,23 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-    #ifdef SHADER_API_GLES
+    #if defined(SHADER_API_GLES) || (SHADER_TARGET < 30) || !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
-    #else
+    #elif !SHADER_HINT_NICE_QUALITY
         // Evaluates L2 SH in vertex and L0L1 in pixel
         #define EVALUATE_SH_MIXED
     #endif
+        // Otherwise evaluate SH fully per-pixel
 #endif
 
+
 #ifdef LIGHTMAP_ON
+    #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
     #define OUTPUT_SH(normalWS, OUT)
 #else
+    #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) half3 shName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
@@ -123,7 +127,7 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 
 half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
-    half4 directionAndAttenuation = lerp(half4(lightInput.position.xyz, 1.0), GetLightDirectionAndAttenuation(lightInput, positionWS), lightInput.position.w);
+    half4 directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
     // Cookies are only computed for main light
     directionAndAttenuation.w *= CookieAttenuation(positionWS);
@@ -333,7 +337,9 @@ half3 SampleSHVertex(half3 normalWS)
 // mixed or fully in pixel. See SampleSHVertex
 half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 {
-#ifdef EVALUATE_SH_MIXED
+#if defined(EVALUATE_SH_VERTEX)
+    return L2Term;
+#elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
     return max(half3(0, 0, 0), L2Term + L0L1Term);
 #endif
@@ -360,24 +366,29 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #ifdef DIRLIGHTMAP_COMBINED
     return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
-        lightmapUV, transformCoords, normalWS, encodedLightmap);
+        lightmapUV, transformCoords, normalWS, encodedLightmap, unity_Lightmap_HDR);
 #else
-    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap);
+    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, unity_Lightmap_HDR);
 #endif
 }
 
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-half3 SampleGI(float4 sampleData, half3 normalWS)
-{
 #ifdef LIGHTMAP_ON
-    return SampleLightmap(sampleData.xy, normalWS);
-#endif
-
-    // If lightmap is not enabled we sample GI from SH
-    return SampleSHPixel(sampleData.xyz, normalWS);
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleGI(lmName, normalWSName)
+half3 SampleGI(float2 sampleData, half3 normalWS)
+{
+    return SampleLightmap(sampleData, normalWS);
 }
+#else
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleGI(shName, normalWSName)
+half3 SampleGI(half3 sampleData, half3 normalWS)
+{
+    // If lightmap is not enabled we sample GI from SH
+    return SampleSHPixel(sampleData, normalWS);
+}
+#endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {
@@ -410,11 +421,10 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
 
 
     // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
-    //    Preserves bounce and other baked lights
-    //    No shadows on the geometry facing away from the light
+    // We only subtract the main direction light. This is accounted in the contribution term below.
     half shadowStrength = GetShadowStrength();
-    half NdotL = saturate(dot(mainLight.direction, normalWS));
-    half3 lambert = mainLight.color * NdotL;
+    half contributionTerm = saturate(dot(mainLight.direction, normalWS)) * (1.0 - _MainLightPosition.w);
+    half3 lambert = mainLight.color * contributionTerm;
     half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.attenuation);
     half3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
 
@@ -439,8 +449,8 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON) && defined(_SHADOWS_ENABLED)
-    bakedGI = lerp(SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI), bakedGI, _MainLightPosition.w);
+#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
+    bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
 
 #if defined(LIGHTMAP_ON)
@@ -468,7 +478,8 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
 {
     half3 halfVec = SafeNormalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
-    half3 specularReflection = specularGloss.rgb * pow(NdotH, shininess) * specularGloss.a;
+    half modifier = pow(NdotH, shininess) * specularGloss.a;
+    half3 specularReflection = specularGloss.rgb * modifier;
     return lightColor * specularReflection;
 }
 
@@ -556,8 +567,8 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     }
 #endif
 
-    half3 finalColor = diffuseColor * diffuse + emission;
-    finalColor += inputData.vertexLighting * diffuse;
+    half3 fullDiffuse = diffuseColor + inputData.vertexLighting;
+    half3 finalColor = fullDiffuse * diffuse + emission;
     
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;

@@ -19,6 +19,13 @@
 #define CBUFFER_START(name)
 #define CBUFFER_END
 
+// flow control attributes
+#define UNITY_BRANCH        [branch]
+#define UNITY_FLATTEN       [flatten]
+#define UNITY_UNROLL        [unroll]
+#define UNITY_UNROLLX(_x)   [unroll(_x)]
+#define UNITY_LOOP          [loop]
+
 // GLES 3.1 + AEP shader feature https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html
 #if (SHADER_TARGET >= 40)
 #define GLES3_1_AEP 1

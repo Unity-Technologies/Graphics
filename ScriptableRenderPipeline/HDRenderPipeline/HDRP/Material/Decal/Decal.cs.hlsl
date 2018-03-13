@@ -38,13 +38,17 @@ struct DecalSurfaceData
 // PackingRules = Exact
 struct DecalData
 {
-	float4x4 worldToDecal;
+    float4x4 worldToDecal;
     float4x4 normalToWorld;
 };
 
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DecalData
 //
+float4x4 GetWorldToDecal(DecalData value)
+{
+	return value.worldToDecal;
+}
 float4x4 GetNormalToWorld(DecalData value)
 {
 	return value.normalToWorld;

@@ -1,10 +1,10 @@
 Shader "HDRenderPipeline/Decal"
 {
     Properties
-    {      
+    {
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 		_NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
-		_MaskMap("MaskMap", 2D) = "white" {}    
+		_MaskMap("MaskMap", 2D) = "white" {}
 		_DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
     }
 
@@ -25,8 +25,8 @@ Shader "HDRenderPipeline/Decal"
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
-	#define UNITY_MATERIAL_DECAL 
-	
+	#define UNITY_MATERIAL_DECAL
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
@@ -51,6 +51,8 @@ Shader "HDRenderPipeline/Decal"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline"}
+
         Pass
         {
             Name "DBuffer"  // Name is not used
@@ -68,7 +70,7 @@ Shader "HDRenderPipeline/Decal"
 			#define SHADERPASS SHADERPASS_DBUFFER
 			#include "../../ShaderVariables.hlsl"
 			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"		
+			#include "ShaderPass/DecalSharePass.hlsl"
 			#include "DecalData.hlsl"
 			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
 

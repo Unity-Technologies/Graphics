@@ -67,7 +67,11 @@ inline half Alpha(half albedoAlpha)
 half3 Normal(float2 uv)
 {
 #if _NORMALMAP
-    return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
+    #if BUMP_SCALE_NOT_SUPPORTED
+        return UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv));
+    #else
+        return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
+    #endif
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif
@@ -78,7 +82,6 @@ half4 SpecularGloss(half2 uv, half alpha)
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv);
-    specularGloss.rgb = specularGloss.rgb;
 #elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
 #endif
@@ -94,25 +97,24 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
     half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
-    specGloss = specGloss = SAMPLE_METALLICSPECULAR(uv);
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a *= _GlossMapScale;
-#endif
-
+    specGloss = SAMPLE_METALLICSPECULAR(uv);
+    #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+        specGloss.a = albedoAlpha * _GlossMapScale;
+    #else
+        specGloss.a *= _GlossMapScale;
+    #endif
 #else // _METALLICSPECGLOSSMAP
-#if _SPECULAR_SETUP
-    specGloss.rgb = _SpecColor.rgb;
-#else
-    specGloss.rgb = _Metallic.rrr;
-#endif
+    #if _SPECULAR_SETUP
+        specGloss.rgb = _SpecColor.rgb;
+    #else
+        specGloss.rgb = _Metallic.rrr;
+    #endif
 
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a = _Glossiness;
-#endif
+    #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+        specGloss.a = albedoAlpha * _GlossMapScale;
+    #else
+        specGloss.a = _Glossiness;
+    #endif
 #endif
 
     return specGloss;

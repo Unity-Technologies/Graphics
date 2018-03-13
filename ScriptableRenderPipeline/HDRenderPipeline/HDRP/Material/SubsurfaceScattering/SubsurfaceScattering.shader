@@ -9,6 +9,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Stencil

@@ -355,7 +355,7 @@ real3 EvalSensitivity(real opd, real shift)
 }
 
 // Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
-real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, real baseLayerFresnel0)
+real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, real3 baseLayerFresnel0)
 {
     // iridescenceThickness unit is micrometer for this equation here. Mean 0.5 is 500nm.
     real Dinc = 3.0 * iridescenceThickness;
