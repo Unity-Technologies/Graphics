@@ -110,7 +110,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(preview);
 
             m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
-            m_PreviewResizeBorderFrame.stayWithinParentBounds = true;
             m_PreviewResizeBorderFrame.maintainAspectRatio = true;
             Add(m_PreviewResizeBorderFrame);
 

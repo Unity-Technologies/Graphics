@@ -34,14 +34,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         WindowDockingLayout m_WindowDockingLayout;
 
-        bool m_StayWithinParentBounds;
-
-        public bool stayWithinParentBounds
-        {
-            get { return m_StayWithinParentBounds; }
-            set { m_StayWithinParentBounds = value; }
-        }
-
         bool m_MaintainAspectRatio;
 
         public bool maintainAspectRatio
@@ -135,19 +127,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void InitialLayoutSetup(GeometryChangedEvent evt)
         {
             m_ResizeTarget.UnregisterCallback<GeometryChangedEvent>(InitialLayoutSetup);
-        }
-
-        Vector2 BoundedMousePosition(Vector2 mousePosition)
-        {
-            mousePosition = m_Container.parent.WorldToLocal(mousePosition);
-
-            if (!stayWithinParentBounds)
-                return mousePosition;
-
-            mousePosition.x = Mathf.Clamp(mousePosition.x, 5f, m_Container.parent.layout.width);
-            mousePosition.y = Mathf.Clamp(mousePosition.y, 5f, m_Container.parent.layout.height);
-
-            return mousePosition;
         }
 
         void HandleResizeFromTop(MouseMoveEvent mouseMoveEvent)
