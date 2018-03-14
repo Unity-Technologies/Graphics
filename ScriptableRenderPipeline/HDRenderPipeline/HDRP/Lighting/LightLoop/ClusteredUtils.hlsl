@@ -97,4 +97,20 @@ float SuggestLogBase25(float tileFarPlane)
     return max(g_fClustBase, suggested_base);
 }
 
+uint GenerateLogBaseBufferIndex(uint2 tileIndex, uint numTilesX, uint numTilesY, uint eyeIndex)
+{
+    uint eyeOffset = eyeIndex * numTilesX * numTilesY;
+    return (eyeOffset + (tileIndex.y * numTilesX) + tileIndex.x);
+}
+
+uint GenerateLayeredOffsetBufferIndex(uint lightCategory, uint2 tileIndex, uint clusterIndex, uint numTilesX, uint numTilesY, int numClusters, uint eyeIndex)
+{
+    // Each eye is split into category, cluster, x, y
+
+    uint eyeOffset = eyeIndex * LIGHTCATEGORY_COUNT * numClusters * numTilesX * numTilesY;
+    int lightOffset = ((lightCategory * numClusters + clusterIndex) * numTilesY + tileIndex.y) * numTilesX + tileIndex.x;
+
+    return (eyeOffset + lightOffset);
+}
+
 #endif

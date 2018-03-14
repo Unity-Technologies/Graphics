@@ -25,7 +25,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Vector3  directionalLightCascades;
         public float    directionalLightNearPlaneOffset;
 
-        public RenderTextureFormat renderTextureFormat;
+        public RenderTextureFormat shadowmapTextureFormat;
+        public RenderTextureFormat screenspaceShadowmapTextureFormat;
 
         static ShadowSettings defaultShadowSettings = null;
 
@@ -43,7 +44,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                     defaultShadowSettings.directionalLightNearPlaneOffset = 5;
                     defaultShadowSettings.maxShadowDistance = 1000.0F;
-                    defaultShadowSettings.renderTextureFormat = RenderTextureFormat.Shadowmap;
+                    defaultShadowSettings.shadowmapTextureFormat = RenderTextureFormat.Shadowmap;
+                    defaultShadowSettings.screenspaceShadowmapTextureFormat = RenderTextureFormat.R8;
                 }
                 return defaultShadowSettings;
             }
@@ -366,8 +368,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!shadows)
                 {
                     var setRT = CommandBufferPool.Get("Generate Small Shadow Buffer");
-                    int shadowmapID = m_ShadowSettings.screenSpace ? m_ScreenSpaceShadowMapRTID : m_ShadowMapRTID;
-                    setRT.GetTemporaryRT(shadowmapID, 4, 4, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);
+                    if (m_ShadowSettings.screenSpace)
+                        setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.screenspaceShadowmapTextureFormat);
+                    else
+                        setRT.GetTemporaryRT(m_ShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.shadowmapTextureFormat);
                     setRT.Blit(Texture2D.whiteTexture, m_ScreenSpaceShadowMapRT);
                     context.ExecuteCommandBuffer(setRT);
                 }
@@ -453,15 +457,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 var desc = XRSettings.eyeTextureDesc;
                 desc.depthBufferBits = 0;
-                desc.colorFormat = RenderTextureFormat.R8;
+                desc.colorFormat = m_ShadowSettings.screenspaceShadowmapTextureFormat;
                 cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, desc, FilterMode.Bilinear);
             }
             else
             {
-                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, m_ShadowSettings.screenspaceShadowmapTextureFormat);
             }
 
-            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that 
+            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
             // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
             // stereo functionality, we use the screen-space shadow map as the source (until we have
             // a better solution).
@@ -631,9 +635,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShadowSettings.shadowAtlasWidth = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.shadowAtlasHeight = m_Asset.ShadowAtlasResolution;
             m_ShadowSettings.maxShadowDistance = m_Asset.ShadowDistance;
-            m_ShadowSettings.renderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+            m_ShadowSettings.shadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
+
+            m_ShadowSettings.screenspaceShadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
+                    ? RenderTextureFormat.R8
+                    : RenderTextureFormat.ARGB32;
 
             switch (m_ShadowSettings.directionalLightCascadeCount)
             {
@@ -1218,7 +1226,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var cmd = CommandBufferPool.Get("Prepare Shadowmap");
             RenderTextureDescriptor shadowmapDescriptor = new RenderTextureDescriptor(m_ShadowSettings.shadowAtlasWidth,
-                m_ShadowSettings.shadowAtlasHeight, m_ShadowSettings.renderTextureFormat, kShadowBufferBits);
+                m_ShadowSettings.shadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, kShadowBufferBits);
             shadowmapDescriptor.shadowSamplingMode = ShadowSamplingMode.CompareDepths;
             m_ShadowMapRT = RenderTexture.GetTemporary(shadowmapDescriptor);
             m_ShadowMapRT.filterMode = FilterMode.Bilinear;
@@ -1378,23 +1386,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     depthRT = m_DepthRT;
             }
 
-            if (ForceClear())
+            ClearFlag clearFlag = ClearFlag.None;
+            CameraClearFlags cameraClearFlags = m_CurrCamera.clearFlags;
+            if (cameraClearFlags != CameraClearFlags.Nothing)
             {
-                SetRenderTarget(cmd, colorRT, depthRT, ClearFlag.All);
+                clearFlag |= ClearFlag.Depth;
+                if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
+                    clearFlag |= ClearFlag.Color;
             }
-            else
-            {
-                ClearFlag clearFlag = ClearFlag.None;
-                CameraClearFlags cameraClearFlags = m_CurrCamera.clearFlags;
-                if (cameraClearFlags != CameraClearFlags.Nothing)
-                {
-                    clearFlag |= ClearFlag.Depth;
-                    if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
-                        clearFlag |= ClearFlag.Color;
-                }
 
-                SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
-            }
+            SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
@@ -1486,13 +1487,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int GetLightUnsortedIndex(int index)
         {
             return (index < m_SortedLightIndexMap.Count) ? m_SortedLightIndexMap[index] : index;
-        }
-
-        private bool ForceClear()
-        {
-            // Clear RenderTarget to avoid tile initialization on mobile GPUs
-            // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
-            return (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer);
         }
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)

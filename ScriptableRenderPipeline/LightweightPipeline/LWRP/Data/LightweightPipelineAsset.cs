@@ -162,6 +162,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
+            if (editorResources == null)
+                return null;
 
             switch (materialType)
             {

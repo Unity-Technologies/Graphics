@@ -558,13 +558,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     float amplitude = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue);
 
                     heightAmplitude[layerIndex].floatValue = amplitude * 0.01f; // Conversion centimeters to meters.
-                    heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / amplitude;
+                    heightCenter[layerIndex].floatValue = -(heightMin[layerIndex].floatValue + offset) / Mathf.Max(1e-6f, amplitude);
                 }
                 else
                 {
                     float amplitude = heightTessAmplitude[layerIndex].floatValue;
                     heightAmplitude[layerIndex].floatValue = amplitude * 0.01f;
-                    heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / amplitude + heightTessCenter[layerIndex].floatValue;
+                    heightCenter[layerIndex].floatValue = -heightOffset[layerIndex].floatValue / Mathf.Max(1e-6f, amplitude) + heightTessCenter[layerIndex].floatValue;
                 }
             }
         }

@@ -49,12 +49,17 @@ struct SurfaceData
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //
 ///////////////////////////////////////////////////////////////////////////////
-inline half Alpha(half albedoAlpha)
+float2 TransformMainTextureCoord(float2 uv)
 {
-#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
-    half alpha = _Color.a;
-#else
+    return TRANSFORM_TEX(uv, _MainTex);
+}
+
+half Alpha(half albedoAlpha)
+{
+#if !defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A) && !defined(_GLOSSINESS_FROM_BASE_ALPHA)
     half alpha = albedoAlpha * _Color.a;
+#else
+    half alpha = _Color.a;
 #endif
 
 #if defined(_ALPHATEST_ON)
@@ -62,6 +67,11 @@ inline half Alpha(half albedoAlpha)
 #endif
 
     return alpha;
+}
+
+half4 MainTexture(float2 uv)
+{
+    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
 }
 
 half3 Normal(float2 uv)
@@ -147,7 +157,7 @@ half3 Emission(float2 uv)
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
-    half4 albedoAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    half4 albedoAlpha = MainTexture(uv);
 
     half4 specGloss = MetallicSpecGloss(uv, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _Color.rgb;

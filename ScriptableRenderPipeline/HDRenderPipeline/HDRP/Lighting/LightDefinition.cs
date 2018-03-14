@@ -147,8 +147,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector3 boxSideFadePositive;
         public Vector3 boxSideFadeNegative;
-        public float dimmer;
-        public float unused01;
+        public float weight;
+        public float multiplier;
 
         public Vector3 sampleDirectionDiscardWS;
         // Sampling properties

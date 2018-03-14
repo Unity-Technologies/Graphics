@@ -83,6 +83,8 @@
 #define TEMPLATE_2_REAL TEMPLATE_2_HALF
 #define TEMPLATE_3_REAL TEMPLATE_3_HALF
 
+#define HAS_HALF 1
+
 #else
 
 #define real float
@@ -104,6 +106,8 @@
 #define TEMPLATE_2_REAL TEMPLATE_2_FLT
 #define TEMPLATE_3_REAL TEMPLATE_3_FLT
 
+#define HAS_HALF 0
+
 #endif // SHADER_API_MOBILE
 
 #endif // #ifndef real
@@ -112,7 +116,7 @@
 // (Note only 45 and above support compute shader)
 #ifdef  SHADER_STAGE_COMPUTE
 #   ifndef SHADER_TARGET
-#       if defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
+#       if defined(SHADER_API_METAL)
 #       define SHADER_TARGET 45
 #       else
 #       define SHADER_TARGET 50

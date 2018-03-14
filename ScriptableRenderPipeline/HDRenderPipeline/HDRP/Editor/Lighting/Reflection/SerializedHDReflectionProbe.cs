@@ -40,7 +40,8 @@ namespace UnityEditor.Experimental.Rendering
         internal SerializedProperty blendNormalDistanceNegative;
         internal SerializedProperty boxSideFadePositive;
         internal SerializedProperty boxSideFadeNegative;
-        internal SerializedProperty dimmer;
+        internal SerializedProperty weight;
+        internal SerializedProperty multiplier;
 
         internal SerializedProperty proxyVolumeComponent;
 
@@ -75,7 +76,8 @@ namespace UnityEditor.Experimental.Rendering
             boxReprojectionVolumeSize = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeSize);
             boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeCenter);
             sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.sphereReprojectionVolumeRadius);
-            dimmer = addso.Find((HDAdditionalReflectionData d) => d.dimmer);
+            weight = addso.Find((HDAdditionalReflectionData d) => d.weight);
+            multiplier = addso.Find((HDAdditionalReflectionData d) => d.multiplier);
             blendDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendDistancePositive);
             blendDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendDistanceNegative);
             blendNormalDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistancePositive);
