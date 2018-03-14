@@ -465,13 +465,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        bool IsConsolePlatform()
+        {
+            return  SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+        }
+
         bool NeedDepthBufferCopy()
         {
-            // For now we consider only PS4 to be able to read from a bound depth buffer.
-            // TODO: test/implement for other platforms.
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12;
+            // For now we consider all console to be able to read from a bound depth buffer.
+            return !IsConsolePlatform();
         }
 
         bool NeedStencilBufferCopy()
@@ -1461,12 +1465,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RenderTargetIdentifier source = m_CameraColorBuffer;
 
-#if UNITY_EDITOR
-                bool tempHACK = true;
-#else
-                // In theory in the player the only place where we have post process is the main camera with the RTHandle reference size, so we won't need to copy.
-                bool tempHACK = false;
-#endif
+                // For console we are not allowed to resize the windows, so don't use our hack.
+                bool tempHACK = !IsConsolePlatform();
+
                 if (tempHACK)
                 {
                     // TEMPORARY:

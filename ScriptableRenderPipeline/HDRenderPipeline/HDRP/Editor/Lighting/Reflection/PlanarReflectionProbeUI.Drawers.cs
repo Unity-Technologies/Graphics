@@ -155,7 +155,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionInfluenceSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.dimmer, _.GetContent("Dimmer"));
+            EditorGUILayout.PropertyField(d.weight, _.GetContent("Weight"));
+           
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(d.multiplier, _.GetContent("Multiplier"));
+            if (EditorGUI.EndChangeCheck())
+                d.multiplier.floatValue = Mathf.Max(0.0f, d.multiplier.floatValue);
         }
 
         static void Drawer_FieldCaptureType(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)

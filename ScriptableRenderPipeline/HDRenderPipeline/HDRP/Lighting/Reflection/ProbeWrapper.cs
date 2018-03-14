@@ -33,7 +33,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public abstract ReflectionProbeMode mode { get; }
         public abstract Texture texture { get; }
         // Position of the center of the probe in capture space
-        public abstract float dimmer { get; }
+        public abstract float weight { get; }
+        public abstract float multiplier { get; }
         public abstract Matrix4x4 influenceToWorld { get; }
         public abstract EnvShapeType influenceShapeType { get; }
         public abstract Vector3 influenceExtents { get; }
@@ -91,7 +92,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Texture texture { get { return probe.texture; } }
         public override ReflectionProbeMode mode { get { return probe.probe.mode; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(additional.influenceShape); } }
-        public override float dimmer { get { return additional.dimmer; } }
+        public override float weight { get { return additional.weight; } }
+        public override float multiplier { get { return additional.multiplier; } }
         public override Vector3 influenceExtents
         {
             get
@@ -163,7 +165,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override Matrix4x4 influenceToWorld { get { return planarReflectionProbe.influenceToWorld; } }
         public override Texture texture { get { return planarReflectionProbe.texture; } }
         public override EnvShapeType influenceShapeType { get { return ConvertShape(planarReflectionProbe.influenceVolume.shapeType); } }
-        public override float dimmer { get { return planarReflectionProbe.dimmer; } }
+        public override float weight { get { return planarReflectionProbe.weight; } }
+        public override float multiplier { get { return planarReflectionProbe.multiplier; } }
         public override Vector3 influenceExtents
         {
             get

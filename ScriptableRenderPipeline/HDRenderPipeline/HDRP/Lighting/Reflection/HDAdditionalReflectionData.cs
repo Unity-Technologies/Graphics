@@ -1,4 +1,5 @@
-﻿using UnityEngine.Experimental.Rendering.HDPipeline;
+﻿using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -12,8 +13,10 @@ namespace UnityEngine.Experimental.Rendering
 #pragma warning restore 414
 
         public ShapeType influenceShape;
-        [Range(0.0f,1.0f)]
-        public float dimmer = 1.0f;
+        [FormerlySerializedAsAttribute("dimmer")]
+        public float multiplier = 1.0f;
+        [Range(0.0f, 1.0f)]
+        public float weight = 1.0f;
         public float influenceSphereRadius = 3.0f;
         public float sphereReprojectionVolumeRadius = 1.0f;
         public bool useSeparateProjectionVolume = false;

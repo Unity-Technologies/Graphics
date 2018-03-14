@@ -162,9 +162,9 @@ half3 NormalTS(VertexOutputLit IN)
 {
 #if defined(_NORMALMAP)
     #if BUMP_SCALE_NOT_SUPPORTED
-        return UnpackNormal(readTexture(_BumpMap, sampler_BumpMap, IN));
+        return UnpackNormal(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN));
     #else
-        return UnpackNormalScale(readTexture(_BumpMap, sampler_BumpMap, IN), _BumpScale);
+        return UnpackNormalScale(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN), _BumpScale);
     #endif
 #else
     return half3(0.0h, 0.0h, 1.0h);
@@ -174,7 +174,7 @@ half3 NormalTS(VertexOutputLit IN)
 half3 Emission(VertexOutputLit IN)
 {
 #if defined(_EMISSION)
-    return readTexture(_EmissionMap, sampler_EmissionMap, IN).rgb * _EmissionColor.rgb;
+    return readTexture(TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap), IN).rgb * _EmissionColor.rgb;
 #else
     return half3(0.0h, 0.0h, 0.0h);
 #endif
@@ -196,7 +196,7 @@ half4 SpecularGloss(VertexOutputLit IN, half alpha)
 {
     half4 specularGloss = half4(0.0h, 0.0h, 0.0h, 1.0h);
 #ifdef _SPECGLOSSMAP
-    specularGloss = readTexture(_SpecGlossMap, sampler_SpecGlossMap, IN);
+    specularGloss = readTexture(TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap), IN);
 #elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
 #endif
@@ -233,7 +233,7 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
     half4 albedo = Albedo(IN);
 
 #if defined(_METALLICGLOSSMAP)
-    half2 metallicGloss = readTexture(_MetallicGlossMap, sampler_MetallicGlossMap, IN).ra * half2(1.0, _Glossiness);
+    half2 metallicGloss = readTexture(TEXTURE2D_PARAM(_MetallicGlossMap, sampler_MetallicGlossMap), IN).ra * half2(1.0, _Glossiness);
 #else
     half2 metallicGloss = half2(_Metallic, _Glossiness);
 #endif
