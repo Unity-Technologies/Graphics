@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class LitGUI : BaseLitGUI
+    public class LitGUI : BaseLitGUI
     {
         protected static class Styles
         {
