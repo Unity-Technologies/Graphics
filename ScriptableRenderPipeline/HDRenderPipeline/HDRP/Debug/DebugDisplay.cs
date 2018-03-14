@@ -340,6 +340,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             list.Add(new DebugUI.BoolField { displayName = "Override Normal", getter = () => lightingDebugSettings.overrideNormal, setter = value => lightingDebugSettings.overrideNormal = value });
 
+            list.Add(new DebugUI.BoolField { displayName = "Override Specular Color", getter = () => lightingDebugSettings.overrideSpecularColor, setter = value => lightingDebugSettings.overrideSpecularColor = value, onValueChanged = RefreshLightingDebug });
+            if (lightingDebugSettings.overrideSpecularColor)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.ColorField { displayName = "Specular Color", getter = () => lightingDebugSettings.overrideSpecularColorValue, setter = value => lightingDebugSettings.overrideSpecularColorValue = value, showAlpha = false, hdr = false }
+                    }
+                });
+            }
+
             list.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug", getter = () => (int)lightingDebugSettings.tileClusterDebug, setter = value => lightingDebugSettings.tileClusterDebug = (LightLoop.TileClusterDebug)value, autoEnum = typeof(LightLoop.TileClusterDebug), onValueChanged = RefreshLightingDebug });
             if (lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.None && lightingDebugSettings.tileClusterDebug != LightLoop.TileClusterDebug.MaterialFeatureVariants)
             {
