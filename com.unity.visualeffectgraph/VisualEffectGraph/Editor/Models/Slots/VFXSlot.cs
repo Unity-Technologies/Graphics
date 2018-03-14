@@ -139,7 +139,11 @@ namespace UnityEditor.VFX
         {
             if (!expr.Equals(m_LinkedInExpression))
             {
-                PropagateToTree(s => s.m_LinkedInExpression = null);
+                PropagateToTree(s =>
+                    {
+                        s.m_LinkedInExpression = null;
+                        s.m_LinkedInSlot = null;
+                    });
                 m_LinkedInExpression = expr;
                 InvalidateExpressionTree();
             }
@@ -314,10 +318,6 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
 
-            // TMP auto conversion due to renaming (not to lose the value)
-            if (m_Property.name == "texture")
-                m_Property.name = "mainTexture";
-
             if (m_LinkedSlots == null)
                 m_LinkedSlots = new List<VFXSlot>();
 
@@ -334,8 +334,11 @@ namespace UnityEditor.VFX
         public override void Sanitize()
         {
             // Remove invalid links (without owners)
-            foreach (var link in LinkedSlots)
-                if (link.owner == null || ((VFXModel)(link.owner)).GetGraph() != GetGraph())
+            if (owner == null)
+                UnlinkAll();
+
+            foreach (var link in LinkedSlots.ToArray())
+                if (link.owner == null || ((VFXModel)(link.owner)).GetGraph() != ((VFXModel)owner).GetGraph())
                     Unlink(link);
 
             // Here we check if hierarchy of type match with slot hierarchy
@@ -580,6 +583,7 @@ namespace UnityEditor.VFX
             if (expression != null)
             {
                 destSlot.m_LinkedInExpression = expression;
+                destSlot.m_LinkedInSlot = refSlot;
             }
             else if (destSlot.GetType() == refSlot.GetType())
             {
@@ -617,6 +621,7 @@ namespace UnityEditor.VFX
                 masterSlot.PropagateToChildren(s =>
                     {
                         s.m_LinkedInExpression = null;
+                        s.m_LinkedInSlot = null;
                     });
 
                 var linkedChildren = masterSlot.allChildrenWhere(s => s.HasLink());
@@ -635,7 +640,11 @@ namespace UnityEditor.VFX
                         return;
                 }
                 else
-                    masterSlot.PropagateToChildren(s => s.m_LinkedInExpression = null);
+                    masterSlot.PropagateToChildren(s =>
+                        {
+                            s.m_LinkedInExpression = null;
+                            s.m_LinkedInSlot = null;
+                        });
             }
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
@@ -650,7 +659,7 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression); // TODO Handle structural modification
+                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s =>
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
@@ -766,7 +775,7 @@ namespace UnityEditor.VFX
             return type == null || property.type == type;
         }
 
-        protected virtual VFXExpression ConvertExpression(VFXExpression expression)
+        protected virtual VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
             return expression;
         }
@@ -782,6 +791,7 @@ namespace UnityEditor.VFX
         // Expression cache
         private VFXExpression m_DefaultExpression; // The default expression
         private VFXExpression m_LinkedInExpression; // The current linked expression to the slot
+        private VFXSlot m_LinkedInSlot; // The origin of linked slot from linked expression (always null for output slot, and null if m_LinkedInExpression is null)
         private VFXExpression m_InExpression; // correctly converted expression
         private VFXExpression m_OutExpression; // output expression that can be fetched
 
