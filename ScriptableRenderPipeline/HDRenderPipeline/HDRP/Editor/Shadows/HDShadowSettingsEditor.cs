@@ -16,9 +16,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedDataParameter[] m_CascadeShadowSplits = new SerializedDataParameter[3];
         SerializedDataParameter[] m_CascadeShadowBorders = new SerializedDataParameter[4];
 
-        // For now we don't use borders so we hide the UI.
-        bool m_bShowBorders = false;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<HDShadowSettings>(serializedObject);
@@ -50,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     PropertyField(m_CascadeShadowSplits[i], CoreEditorUtils.GetContent(string.Format("Split {0}", i + 1)));
                 }
 
-                if(m_bShowBorders)
+                if(LightLoop.s_UseCascadeBorders)
                 {
                     EditorGUILayout.Space();
 
