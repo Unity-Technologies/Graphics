@@ -5,6 +5,6 @@
         "com.unity.render-pipelines.core"
     ],
     "dependencies": {
-        "com.unity.shadergraph": "1.1.1-preview"
+        "com.unity.shadergraph": "1.1.2-preview"
     }
 }
