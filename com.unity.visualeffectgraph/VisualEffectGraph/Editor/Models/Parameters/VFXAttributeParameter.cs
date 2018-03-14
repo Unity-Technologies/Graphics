@@ -9,23 +9,15 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.All;
+            return VFXAttribute.AllExpectLocalOnly;
         }
     }
 
-    class WritableAttributeProvider : IStringProvider
+    class ReadWritableAttributeProvider : IStringProvider
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllWritable;
-        }
-    }
-
-    class ReadOnlyAttributeProvider : IStringProvider
-    {
-        public string[] GetAvailableString()
-        {
-            return VFXAttribute.AllReadOnly;
+            return VFXAttribute.AllReadWritable;
         }
     }
 
@@ -37,7 +29,21 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.All.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllExpectLocalOnly.Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+
+    class AttributeVariantReadWritable : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() }
                 };
             }
         }

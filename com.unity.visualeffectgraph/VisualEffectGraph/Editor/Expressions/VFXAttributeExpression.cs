@@ -46,14 +46,20 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.Float3);
         public static readonly VFXAttribute EventCount          = new VFXAttribute("eventCount", VFXValueType.Uint32);
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, ParticleIndex };
-        public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, ParticleIndex };
+        public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount };
+
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
+        public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
         public static readonly string[] AllLocalOnly = AllAttributeLocalOnly.Select(e => e.name).ToArray();
+        public static readonly string[] AllWriteOnly = AllAttributeWriteOnly.Select(e => e.name).ToArray();
+
+        public static readonly string[] AllExpectLocalOnly = All.Except(AllLocalOnly).ToArray();
         public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
+        public static readonly string[] AllReadWritable = All.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {

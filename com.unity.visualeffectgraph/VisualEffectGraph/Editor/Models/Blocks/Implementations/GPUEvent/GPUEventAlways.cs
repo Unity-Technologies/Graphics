@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Block.Test
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.EventCount, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.EventCount, VFXAttributeMode.Write);
             }
         }
 

@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Block.Test
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.EventCount, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.EventCount, VFXAttributeMode.Write);
             }
         }
         public override IEnumerable<VFXNamedExpression> parameters
@@ -46,12 +46,7 @@ namespace UnityEditor.VFX.Block.Test
         {
             get
             {
-                return
-                    @"if (age + deltaTime > lifetime || !alive)
-{
-    eventCount += count;
-}
-";
+                return "eventCount = (age + deltaTime > lifetime || !alive) ? count : 0;";
             }
         }
     }
