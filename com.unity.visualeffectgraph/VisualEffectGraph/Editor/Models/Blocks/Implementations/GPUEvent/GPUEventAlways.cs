@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Block.Test
         {
             get
             {
-                return "eventCount += count;";
+                return "eventCount = count;";
             }
         }
     }
