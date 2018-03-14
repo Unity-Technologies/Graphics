@@ -14,11 +14,11 @@
 
 #include "../../../ShaderConfig.cs.hlsl"
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET == 1)
-    // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
+    // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
     #define VBUFFER_TILE_SIZE   8
     #define VBUFFER_SLICE_COUNT 64
 #else
-    // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
+    // E.g. for 1080p: (1920/4)x(1080/4)x(128) = 16,588,800 voxels
     #define VBUFFER_TILE_SIZE   4
     #define VBUFFER_SLICE_COUNT 128
 #endif
@@ -26,8 +26,7 @@
 #define SUPPORT_ASYMMETRY       1 // Support asymmetric phase functions
 #define SUPPORT_PUNCTUAL_LIGHTS 1 // Punctual lights contribute to fog lighting
 
-#define GROUP_SIZE_1D 16
-#define GROUP_SIZE_2D (GROUP_SIZE_1D * GROUP_SIZE_1D)
+#define GROUP_SIZE_1D 8
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0) // Switch between the full and the empty shader
 
@@ -540,9 +539,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     }
 }
 
-[numthreads(GROUP_SIZE_2D, 1, 1)]
+[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
 void VolumetricLighting(uint2 groupId       : SV_GroupID,
-                        uint  groupThreadId : SV_GroupThreadID)
+                        uint2 groupThreadId : SV_GroupThreadID)
 {
     // Perform compile-time checks.
     if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_CLUSTERED)) return;
@@ -552,8 +551,7 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     uint laneIndex = groupThreadId % 64;
     uint quadIndex = laneIndex / 4;
 
-    // Arrange threads in the Morton order to optimally match the memory layout of GCN tiles.
-    uint2 groupCoord  = DecodeMorton2D(groupThreadId);
+    uint2 groupCoord  = groupThreadId;
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupCoord;
     uint2 tileCoord   = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
@@ -563,11 +561,12 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     if (voxelsPerClusterTile >= 64)
     {
         // TODO: this is a compile-time test, make sure the compiler actually scalarizes.
-        tileCoord = WaveReadFirstLane(tileCoord);
+        tileCoord = groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
     }
 
-    UNITY_BRANCH if (voxelCoord.x >= (uint)_VBufferResolution.x ||
-                 voxelCoord.y >= (uint)_VBufferResolution.y)
+    UNITY_BRANCH
+    if (voxelCoord.x >= (uint)_VBufferResolution.x ||
+        voxelCoord.y >= (uint)_VBufferResolution.y)
     {
         return;
     }
