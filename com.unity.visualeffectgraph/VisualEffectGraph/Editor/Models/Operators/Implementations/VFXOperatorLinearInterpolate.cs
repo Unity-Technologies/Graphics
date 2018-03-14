@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             public FloatN s = new FloatN(0.5f);
         }
 
-        override public string name { get { return "Linear Interpolate"; } }
+        override public string name { get { return "Lerp (Linear Interpolate)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

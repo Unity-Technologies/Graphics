@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Math")]
     class VFXOperatorComplement : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Complement (1-x)"; } }
+        override public string name { get { return "One Minus (1-x)"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

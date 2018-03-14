@@ -5,12 +5,11 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Math")]
     class VFXOperatorCeil : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Ceil"; } }
+        override public string name { get { return "Ceiling"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            // ceil(x) = -floor(-x)
-            return new[] { VFXOperatorUtility.Negate(new VFXExpressionFloor(VFXOperatorUtility.Negate(inputExpression[0]))) };
+            return new[] { VFXOperatorUtility.Ceil(inputExpression[0]) };
         }
     }
 }

@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
             public FloatN newRangeMax = new FloatN(10.0f);
         }
 
-        override public string name { get { return "Fit (Clamped)"; } }
+        override public string name { get { return "Remap (Clamped)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
