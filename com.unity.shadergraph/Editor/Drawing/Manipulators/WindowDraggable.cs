@@ -22,11 +22,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action OnDragFinished;
 
-        public WindowDraggable(VisualElement handle = null)
+        public WindowDraggable(VisualElement handle = null, VisualElement container = null)
         {
             m_Handle = handle;
             m_Active = false;
             m_WindowDockingLayout = new WindowDockingLayout();
+
+            if (container != null)
+                container.RegisterCallback<GeometryChangedEvent>(OnParentGeometryChanged);
         }
 
         protected override void RegisterCallbacksOnTarget()
@@ -128,8 +131,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_WindowDockingLayout.dockingLeft)
                 {
-                    target.style.positionRight = StyleValue<float>.Create(float.NaN);
                     target.style.positionLeft = StyleValue<float>.Create(0f);
+                    target.style.positionRight = StyleValue<float>.Create(float.NaN);
                 }
                 else
                 {
@@ -142,14 +145,44 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_WindowDockingLayout.dockingTop)
                 {
-                    target.style.positionBottom = StyleValue<float>.Create(float.NaN);
                     target.style.positionTop = StyleValue<float>.Create(0f);
+                    target.style.positionBottom = StyleValue<float>.Create(float.NaN);
                 }
                 else
                 {
                     target.style.positionTop = StyleValue<float>.Create(float.NaN);
                     target.style.positionBottom = StyleValue<float>.Create(0f);
                 }
+            }
+        }
+
+        void OnParentGeometryChanged(GeometryChangedEvent geometryChangedEvent)
+        {
+            // Check if the parent window can no longer contain the target window.
+            // If the window is out of bounds, make one edge clamp to the border of the
+            // parent window.
+            if (target.layout.xMin < 0f)
+            {
+                target.style.positionLeft = StyleValue<float>.Create(0f);
+                target.style.positionRight = StyleValue<float>.Create(float.NaN);
+            }
+
+            if (target.layout.xMax > geometryChangedEvent.newRect.width)
+            {
+                target.style.positionLeft = StyleValue<float>.Create(float.NaN);
+                target.style.positionRight = StyleValue<float>.Create(0f);
+            }
+
+            if (target.layout.yMax > geometryChangedEvent.newRect.height)
+            {
+                target.style.positionTop = StyleValue<float>.Create(float.NaN);
+                target.style.positionBottom = StyleValue<float>.Create(0f);
+            }
+
+            if (target.layout.yMin < 0f)
+            {
+                target.style.positionTop = StyleValue<float>.Create(0f);
+                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
             }
         }
     }

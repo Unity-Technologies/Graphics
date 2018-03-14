@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
 
-                WindowDraggable masterPreviewViewDraggable = new WindowDraggable();
+                WindowDraggable masterPreviewViewDraggable = new WindowDraggable(null, this);
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
                 m_GraphView.Add(m_MasterPreviewView);
 
