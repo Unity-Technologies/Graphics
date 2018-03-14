@@ -34,6 +34,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         IMasterNode m_MasterNode;
         Mesh m_PreviousMesh;
 
+        bool m_Expanded = true;
+
+        public bool expanded
+        {
+            get { return m_Expanded;}
+        }
+
+        Vector2 m_ExpandedPreviewSize;
+
+        VisualElement m_CollapsePreviewContainer;
+        VisualElement m_CollapsePreviewButton;
+        ResizeBorderFrame m_PreviewResizeBorderFrame;
+
+        public ResizeBorderFrame previewResizeBorderFrame
+        {
+            get { return m_PreviewResizeBorderFrame; }
+        }
+
         VisualElement m_Preview;
 
         public VisualElement preview
@@ -59,7 +77,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             var topContainer = new VisualElement() { name = "top" };
             {
                 var title = new Label(assetName.Split('/').Last()) { name = "title" };
+
+                // Add preview collapse button on top of preview
+                m_CollapsePreviewContainer = new VisualElement { name = "collapse-container" };
+                m_CollapsePreviewContainer.AddToClassList("collapse-container");
+                m_CollapsePreviewButton = new VisualElement { name = "icon" };
+                m_CollapsePreviewButton.AddToClassList("icon");
+                m_CollapsePreviewContainer.Add(m_CollapsePreviewButton);
+                m_CollapsePreviewContainer.AddManipulator(new Clickable(() =>
+                {
+                    m_Graph.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                    m_Expanded ^= true;
+                    UpdateExpandedButtonState();
+                    UpdatePreviewVisibility();
+                }));
+
                 topContainer.Add(title);
+                topContainer.Add(m_CollapsePreviewContainer);
             }
             Add(topContainer);
 
@@ -72,6 +106,40 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
             Add(preview);
+
+            m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
+            m_PreviewResizeBorderFrame.stayWithinParentBounds = true;
+            m_PreviewResizeBorderFrame.maintainAspectRatio = true;
+            Add(m_PreviewResizeBorderFrame);
+
+            m_ExpandedPreviewSize = new Vector2(256f, 256f);
+        }
+
+        void UpdateExpandedButtonState()
+        {
+            m_CollapsePreviewButton.RemoveFromClassList(!m_Expanded ? "expanded" : "collapsed");
+            m_CollapsePreviewButton.AddToClassList(!m_Expanded ? "collapsed" : "expanded");
+        }
+
+        void UpdatePreviewVisibility()
+        {
+            if (m_Expanded)
+            {
+                RemoveFromClassList("collapsed");
+                AddToClassList("expanded");
+                m_PreviewResizeBorderFrame.visible = true;
+                previewTextureView.style.width = StyleValue<float>.Create(m_ExpandedPreviewSize.x);
+                previewTextureView.style.height = StyleValue<float>.Create(m_ExpandedPreviewSize.y);
+            }
+            else
+            {
+                m_ExpandedPreviewSize = previewTextureView.layout.size;
+                m_PreviewResizeBorderFrame.visible = false;
+                previewTextureView.style.width = StyleValue<float>.Create(0f);
+                previewTextureView.style.height = StyleValue<float>.Create(0f);
+                RemoveFromClassList("expanded");
+                AddToClassList("collapsed");
+            }
         }
 
         Image CreatePreview(Texture texture)
@@ -156,6 +224,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void RefreshRenderTextureSize()
         {
+            if (!expanded)
+                return;
+
             var currentWidth = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.width : -1;
             var currentHeight = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.height : -1;
 
