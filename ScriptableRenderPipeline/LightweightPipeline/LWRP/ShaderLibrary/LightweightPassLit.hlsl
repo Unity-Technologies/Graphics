@@ -31,7 +31,9 @@ struct LightweightVertexOutput
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
+#ifdef _SHADOWS_ENABLED
     float4 shadowCoord              : TEXCOORD7;
+#endif
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -51,7 +53,11 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 #endif
 
     inputData.viewDirectionWS = FragmentViewDirWS(viewDir);
+#ifdef _SHADOWS_ENABLED
     inputData.shadowCoord = IN.shadowCoord;
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
     inputData.fogCoord = IN.fogFactorAndVertexLight.x;
     inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(IN.lightmapUV, IN.vertexSH, inputData.normalWS);
@@ -100,10 +106,12 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
+#ifdef _SHADOWS_ENABLED
 #if SHADOWS_SCREEN
     o.shadowCoord = ComputeShadowCoord(o.clipPos);
 #else
     o.shadowCoord = TransformWorldToShadowCoord(o.posWSShininess.xyz);
+#endif
 #endif
 
     return o;
