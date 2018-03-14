@@ -77,14 +77,15 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             Matrix4x4 value = this.value;
             for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
             {
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
-                    m_FloatFields[i, j].value = value[i, j];
+                    if (!m_FloatFields[i, j].control.hasFocus || force)
+                        m_FloatFields[i, j].value = value[i, j];
                 }
             }
         }

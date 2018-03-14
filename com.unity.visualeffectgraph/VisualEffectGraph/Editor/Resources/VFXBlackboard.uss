@@ -7,3 +7,17 @@
 {
     flex:0;
 }
+
+
+VFXBlackboardRow.hovered #pill #selection-border
+{
+    border-color: #44C0FF;
+    border-left-width:1;
+    border-top-width:1;
+    border-right-width:1;
+    border-bottom-width:1;
+    position-left:1;
+    position-right:1;
+    position-top:1;
+    position-bottom:1;
+}

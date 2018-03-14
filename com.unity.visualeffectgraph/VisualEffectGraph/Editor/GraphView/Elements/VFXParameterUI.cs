@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -38,14 +39,24 @@ namespace UnityEditor.VFX.UI
 
         public static string GetUXMLPath(string name)
         {
+            string path = null;
+            if (s_Cache.TryGetValue(name, out path))
+            {
+                return path;
+            }
             return GetUXMLPathRecursive("Assets", name);
         }
 
+        static Dictionary<string, string> s_Cache = new Dictionary<string, string>();
+
         static string GetUXMLPathRecursive(string path, string name)
         {
+            Profiler.BeginSample("UXMLHelper.GetUXMLPathRecursive");
             string localFileName = path + "/" + folderName + "/" + name;
             if (System.IO.File.Exists(localFileName))
             {
+                Profiler.EndSample();
+                s_Cache[name] = localFileName;
                 return localFileName;
             }
 
@@ -55,10 +66,14 @@ namespace UnityEditor.VFX.UI
                 {
                     string result = GetUXMLPathRecursive(dir, name);
                     if (result != null)
+                    {
+                        Profiler.EndSample();
                         return result;
+                    }
                 }
             }
 
+            Profiler.EndSample();
             return null;
         }
     }
@@ -100,6 +115,26 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveFromClassList("exposed");
             }
+        }
+
+        protected internal override void ExecuteDefaultAction(EventBase evt)
+        {
+            if (evt.GetEventTypeId() == MouseEnterEvent.TypeId() || evt.GetEventTypeId() == MouseLeaveEvent.TypeId())
+            {
+                VFXView view = GetFirstAncestorOfType<VFXView>();
+                if (view != null)
+                {
+                    VFXBlackboard blackboard = view.blackboard;
+
+                    VFXBlackboardRow row = blackboard.GetRowFromController(controller.parentController);
+
+                    if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                        row.AddToClassList("hovered");
+                    else
+                        row.RemoveFromClassList("hovered");
+                }
+            }
+            base.ExecuteDefaultAction(evt);
         }
     }
 }

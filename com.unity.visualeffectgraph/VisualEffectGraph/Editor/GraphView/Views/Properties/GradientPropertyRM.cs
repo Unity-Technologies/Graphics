@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
             m_GradientField.SetEnabled(propertyEnabled);
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             m_GradientField.value = m_Value;
         }

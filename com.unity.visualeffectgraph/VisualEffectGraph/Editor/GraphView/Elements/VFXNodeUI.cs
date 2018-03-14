@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -67,7 +68,9 @@ namespace UnityEditor.VFX.UI
         {
             if (e.controller == controller)
             {
+                Profiler.BeginSample(GetType().Name + "::SelfChange()");
                 SelfChange();
+                Profiler.EndSample();
             }
             else if (e.controller is VFXDataAnchorController)
             {
@@ -91,6 +94,7 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void SyncSettings()
         {
+            Profiler.BeginSample("VFXNodeUI.SyncSettings");
             if (settingsContainer == null && controller.settings != null)
             {
                 object settings = controller.settings;
@@ -140,6 +144,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
+            Profiler.EndSample();
         }
 
         protected virtual bool syncInput
@@ -149,15 +154,19 @@ namespace UnityEditor.VFX.UI
 
         void SyncAnchors()
         {
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors");
             if (syncInput)
                 SyncAnchors(controller.inputPorts, inputContainer);
             SyncAnchors(controller.outputPorts, outputContainer);
+            Profiler.EndSample();
         }
 
         void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container)
         {
             var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
 
+
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors Delete");
             var deletedControllers = existingAnchors.Keys.Except(ports).ToArray();
 
             foreach (var deletedController in deletedControllers)
@@ -165,20 +174,27 @@ namespace UnityEditor.VFX.UI
                 container.Remove(existingAnchors[deletedController]);
                 existingAnchors.Remove(deletedController);
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors New");
             var order = ports.Select((t, i) => new KeyValuePair<VFXDataAnchorController, int>(t, i)).ToDictionary(t => t.Key, t => t.Value);
 
             var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
 
             foreach (var newController in newAnchors)
             {
+                Profiler.BeginSample("VFXNodeUI.InstantiateDataAnchor");
                 var newElement = InstantiateDataAnchor(newController, this);
+                Profiler.EndSample();
+
                 (newElement as VFXDataAnchor).controller = newController;
 
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors Reorder");
             //Reorder anchors.
             if (ports.Count > 0)
             {
@@ -194,10 +210,12 @@ namespace UnityEditor.VFX.UI
                     correctOrder[i].PlaceInFront(correctOrder[i - 1]);
                 }
             }
+            Profiler.EndSample();
         }
 
         protected virtual void SelfChange()
         {
+            Profiler.BeginSample("VFXNodeUI.SelfChange");
             if (controller == null)
                 return;
 
@@ -223,8 +241,11 @@ namespace UnityEditor.VFX.UI
 
             SyncSettings();
             SyncAnchors();
+            Profiler.BeginSample("VFXNodeUI.SelfChange The Rest");
             RefreshExpandedState();
             RefreshLayout();
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         public override bool expanded
@@ -246,21 +267,12 @@ namespace UnityEditor.VFX.UI
             if (controller.direction == Direction.Input)
             {
                 VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(controller, node);
-                controller.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
 
                 return anchor;
             }
             else
             {
                 return VFXOutputDataAnchor.Create(controller, node);
-            }
-        }
-
-        protected override void OnPortRemoved(Port anchor)
-        {
-            if (anchor is VFXEditableDataAnchor)
-            {
-                controller.viewController.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
             }
         }
 

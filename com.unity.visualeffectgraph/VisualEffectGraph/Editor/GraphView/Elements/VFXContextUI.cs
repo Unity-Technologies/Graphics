@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -43,6 +44,8 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange();
 
+
+            Profiler.BeginSample("VFXContextUI.CreateBlockProvider");
             if (m_BlockProvider == null)
             {
                 m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
@@ -50,8 +53,12 @@ namespace UnityEditor.VFX.UI
                         AddBlock(mPos, d);
                     });
             }
+            Profiler.EndSample();
 
             m_HeaderIcon.image = GetIconForVFXType(controller.context.inputType);
+
+
+            Profiler.BeginSample("VFXContextUI.SetAllStyleClasses");
 
             VFXContextType contextType = controller.context.contextType;
             foreach (var value in System.Enum.GetNames(typeof(VFXContextType)))
@@ -60,19 +67,38 @@ namespace UnityEditor.VFX.UI
             }
             AddToClassList(ContextEnumToClassName(contextType.ToString()));
 
-            var inputType = controller.context.ownedType;
+            var inputType = controller.context.inputType;
+            if (inputType == VFXDataType.kNone)
+            {
+                inputType = controller.context.ownedType;
+            }
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("inputType" + ContextEnumToClassName(value));
+            }
+            AddToClassList("inputType" + ContextEnumToClassName(inputType.ToString()));
+
+            var outputType = controller.context.outputType;
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("outputType" + ContextEnumToClassName(value));
+            }
+            AddToClassList("outputType" + ContextEnumToClassName(outputType.ToString()));
+
+            var type = controller.context.ownedType;
             foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
             {
                 RemoveFromClassList("type" + ContextEnumToClassName(value));
             }
-            AddToClassList("type" + ContextEnumToClassName(inputType.ToString()));
+            AddToClassList("type" + ContextEnumToClassName(type.ToString()));
+
 
             foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
             {
                 m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
             }
             m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
-
+            Profiler.EndSample();
 
             if (controller.context.outputType == VFXDataType.kNone)
             {
@@ -87,8 +113,8 @@ namespace UnityEditor.VFX.UI
                 m_FooterIcon.image = GetIconForVFXType(controller.context.outputType);
             }
 
+            Profiler.BeginSample("VFXContextUI.CreateInputFlow");
             HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
-
             foreach (var inanchorcontroller in controller.flowInputAnchors)
             {
                 var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
@@ -108,8 +134,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
             }
+            Profiler.EndSample();
 
-
+            Profiler.BeginSample("VFXContextUI.CreateInputFlow");
             HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
 
             foreach (var outanchorcontroller in controller.flowOutputAnchors)
@@ -131,6 +158,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
             }
+            Profiler.EndSample();
 
             RefreshContext();
         }
@@ -371,14 +399,19 @@ namespace UnityEditor.VFX.UI
 
         private void InstantiateBlock(VFXBlockController blockController)
         {
+            Profiler.BeginSample("VFXContextUI.InstantiateBlock");
+            Profiler.BeginSample("VFXContextUI.new VFXBlockUI");
             var blockUI = new VFXBlockUI();
+            Profiler.EndSample();
             blockUI.controller = blockController;
 
             m_BlockContainer.Add(blockUI);
+            Profiler.EndSample();
         }
 
         public void RefreshContext()
         {
+            Profiler.BeginSample("VFXContextUI.RefreshContext");
             var blockControllers = controller.blockControllers;
 
             // recreate the children list based on the controller list to keep the order.
@@ -407,6 +440,7 @@ namespace UnityEditor.VFX.UI
                     InstantiateBlock(blockController);
                 }
             }
+            Profiler.EndSample();
         }
 
         Texture2D GetIconForVFXType(VFXDataType type)

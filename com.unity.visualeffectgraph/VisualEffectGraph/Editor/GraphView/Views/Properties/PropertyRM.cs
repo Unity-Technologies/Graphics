@@ -136,6 +136,15 @@ namespace UnityEditor.VFX.UI
 
         protected abstract void UpdateEnabled();
 
+
+        public void ForceUpdate()
+        {
+            SetValue(m_Provider.value);
+            UpdateGUI(true);
+        }
+
+        public abstract void UpdateGUI(bool force);
+
         public void Update()
         {
             if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
@@ -377,15 +386,13 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            UpdateGUI();
+            UpdateGUI(false);
         }
 
         public override object GetValue()
         {
             return m_Value;
         }
-
-        public abstract void UpdateGUI();
 
         protected T m_Value;
     }
@@ -420,7 +427,7 @@ namespace UnityEditor.VFX.UI
         }
 
         protected ValueControl<T> m_Field;
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             m_Field.SetValue(m_Value);
         }
@@ -456,11 +463,18 @@ namespace UnityEditor.VFX.UI
 
         public void OnValueChanged(ChangeEvent<U> e)
         {
-            T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
-            if (!newValue.Equals(m_Value))
+            try
             {
-                m_Value = newValue;
-                NotifyValueChanged();
+                T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+                if (!newValue.Equals(m_Value))
+                {
+                    m_Value = newValue;
+                    NotifyValueChanged();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("Catching exception to not break graph in OnValueChanged" + ex.Message);
             }
         }
 
@@ -474,17 +488,51 @@ namespace UnityEditor.VFX.UI
 
         protected INotifyValueChanged<U> field
         {
-            get {return m_Field; }
+            get { return m_Field; }
         }
 
-        protected virtual bool HasFocus() {return false; }
-        public override void UpdateGUI()
+        protected virtual bool HasFocus() { return false; }
+        public override void UpdateGUI(bool force)
         {
-            if (!HasFocus())
-                m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+            if (!HasFocus() || force)
+            {
+                try
+                {
+                    m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
+                }
+            }
         }
 
         public override bool showsEverything { get { return true; } }
+    }
+
+    abstract class SimpleVFXUIPropertyRM<T, U> : SimpleUIPropertyRM<U, U> where T : VFXControl<U>, new()
+    {
+        public SimpleVFXUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+        }
+
+        public override INotifyValueChanged<U> CreateField()
+        {
+            var field = new VFXLabeledField<T, U>(m_Label);
+
+            return field;
+        }
+
+        protected T fieldControl
+        {
+            get { return (base.field as VFXLabeledField<T, U>).control; }
+        }
+        public override void UpdateGUI(bool force)
+        {
+            base.UpdateGUI(force);
+            if (force)
+                fieldControl.ForceUpdate();
+        }
     }
 
 
@@ -509,6 +557,10 @@ namespace UnityEditor.VFX.UI
         }
 
         public EmptyPropertyRM(IPropertyRMProvider provider, float labelWidth) : base(provider, labelWidth)
+        {
+        }
+
+        public override void UpdateGUI(bool force)
         {
         }
 

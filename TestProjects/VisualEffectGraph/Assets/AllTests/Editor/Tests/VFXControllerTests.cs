@@ -48,6 +48,108 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(testAssetName);
         }
 
+        static private bool[] usePosition = { true, false };
+        [Test]
+        public void LinkPositionOrVectorAndDirection([ValueSource("usePosition")] bool usePosition)
+        {
+            var crossDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name.Contains("Cross"));
+            var positionDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.Contains("Position"));
+            var vectorDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name == "Vector");
+            var directionDesc = VFXLibrary.GetParameters().FirstOrDefault(o => o.name.Contains("Direction"));
+
+            var cross = m_ViewController.AddVFXOperator(new Vector2(1, 1), crossDesc);
+            var position = m_ViewController.AddVFXParameter(new Vector2(2, 2), positionDesc);
+            var vector = m_ViewController.AddVFXParameter(new Vector2(3, 3), vectorDesc);
+            var direction = m_ViewController.AddVFXParameter(new Vector2(4, 4), directionDesc);
+
+            m_ViewController.ApplyChanges();
+
+            Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
+                {
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
+                };
+
+            var controllerCross = fnFindController(cross);
+
+            var vA = new Vector3(2, 3, 4);
+            position.outputSlots[0].value = new Position() { position = vA };
+            vector.outputSlots[0].value = new Vector() { vector = vA };
+
+            var vB = new Vector3(5, 6, 7);
+            direction.outputSlots[0].value = new DirectionType() { direction = vB };
+
+            var edgeControllerAppend_A = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).First(), fnFindController(usePosition ? position : vector).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_A);
+            m_ViewController.ApplyChanges();
+
+            var edgeControllerAppend_B = new VFXDataEdgeController(controllerCross.inputPorts.Where(o => o.portType == typeof(Vector3)).Last(), fnFindController(direction).outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_B);
+            m_ViewController.ApplyChanges();
+
+            m_ViewController.ForceReload();
+
+            Assert.AreEqual(1, cross.inputSlots[0].LinkedSlots.Count());
+            Assert.AreEqual(1, cross.inputSlots[1].LinkedSlots.Count());
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+
+            var currentA = context.Compile(cross.inputSlots[0].GetExpression()).Get<Vector3>();
+            var currentB = context.Compile(cross.inputSlots[1].GetExpression()).Get<Vector3>();
+            var result = context.Compile(cross.outputSlots[0].GetExpression()).Get<Vector3>();
+
+            Assert.AreEqual((double)vA.x, (double)currentA.x, 0.001f);
+            Assert.AreEqual((double)vA.y, (double)currentA.y, 0.001f);
+            Assert.AreEqual((double)vA.z, (double)currentA.z, 0.001f);
+
+            Assert.AreEqual((double)vB.normalized.x, (double)currentB.x, 0.001f);
+            Assert.AreEqual((double)vB.normalized.y, (double)currentB.y, 0.001f);
+            Assert.AreEqual((double)vB.normalized.z, (double)currentB.z, 0.001f);
+
+            var expectedResult = Vector3.Cross(vA, vB.normalized);
+            Assert.AreEqual((double)expectedResult.x, (double)result.x, 0.001f);
+            Assert.AreEqual((double)expectedResult.y, (double)result.y, 0.001f);
+            Assert.AreEqual((double)expectedResult.z, (double)result.z, 0.001f);
+        }
+
+        [Test]
+        public void LinkToDirection()
+        {
+            var directionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && (o.model as VFXInlineOperator).type == typeof(DirectionType));
+            var vector3Desc = VFXLibrary.GetOperators().FirstOrDefault(o => o.model is VFXInlineOperator && (o.model as VFXInlineOperator).type == typeof(Vector3));
+
+            var direction = m_ViewController.AddVFXOperator(new Vector2(1, 1), directionDesc);
+            var vector3 = m_ViewController.AddVFXOperator(new Vector2(2, 2), vector3Desc);
+            m_ViewController.ApplyChanges();
+
+            Func<IVFXSlotContainer, VFXNodeController> fnFindController = delegate(IVFXSlotContainer slotContainer)
+                {
+                    var allController = m_ViewController.allChildren.OfType<VFXNodeController>();
+                    return allController.FirstOrDefault(o => o.slotContainer == slotContainer);
+                };
+
+            var vA = new Vector3(8, 9, 6);
+            vector3.inputSlots[0].value = vA;
+
+            var controllerDirection = fnFindController(direction);
+            var controllerVector3 = fnFindController(vector3);
+
+            var edgeControllerAppend_A = new VFXDataEdgeController(controllerDirection.inputPorts.First(), controllerVector3.outputPorts.First());
+            m_ViewController.AddElement(edgeControllerAppend_A);
+            m_ViewController.ApplyChanges();
+
+            m_ViewController.ForceReload();
+
+            Assert.AreEqual(1, direction.inputSlots[0].LinkedSlots.Count());
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+
+            var result = context.Compile(direction.outputSlots[0].GetExpression()).Get<Vector3>();
+
+            Assert.AreEqual((double)vA.normalized.x, (double)result.x, 0.001f);
+            Assert.AreEqual((double)vA.normalized.y, (double)result.y, 0.001f);
+            Assert.AreEqual((double)vA.normalized.z, (double)result.z, 0.001f);
+        }
+
         [Test]
         public void CascadedOperatorAdd()
         {
@@ -141,6 +243,8 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(slot.collapsed);
                 slot.collapsed = false;
             }
+
+            m_ViewController.ApplyChanges();
 
             var totalSlotCount = cross.inputSlots.Concat(cross.outputSlots).Count();
             for (int step = 1; step < totalSlotCount; step++)
@@ -418,6 +522,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, fnCountEdge());
 
             Undo.PerformUndo();
+            m_ViewController.ApplyChanges();
             Assert.AreEqual(0, fnCountEdge());
             Assert.NotNull(fnFindController(typeof(VFXOperatorCosine)));
             Assert.NotNull(fnFindController(typeof(VFXOperatorSine)));

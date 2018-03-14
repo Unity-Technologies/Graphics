@@ -32,5 +32,19 @@ namespace UnityEditor.VFX
         }
 
         public GroupInfo[] groupInfos;
+
+        public Rect uiBounds;
+
+        internal void Sanitize(VFXGraph graph)
+        {
+            foreach (var groupInfo in groupInfos)
+            {
+                //Check first, rebuild after because in most case the content will be valid, saving an allocation.
+                if (groupInfo.content.Any(t => !graph.children.Contains(t.model)))
+                {
+                    groupInfo.content = groupInfo.content.Where(t => graph.children.Contains(t.model)).ToArray();
+                }
+            }
+        }
     }
 }

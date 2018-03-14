@@ -25,9 +25,19 @@ VFXContextUI > #node-border
 
 /*  update */
 
-VFXContextUI.typeparticle  > #node-border
+VFXContextUI.outputTypenone > #node-border
 {
-    border-color: #BF9220;
+    end-color:#FF00FF;
+}
+
+
+VFXContextUI.inputTypeparticle > #node-border
+{
+start-color:#BF9220;
+}
+VFXContextUI.outputTypeparticle > #node-border
+{
+    end-color:#BF9220;
 }
 
 VFXFlowAnchor.port.EdgeConnector.typeparticle
@@ -37,9 +47,11 @@ VFXFlowAnchor.port.EdgeConnector.typeparticle
 
 /*  output */
 
+
 VFXContextUI.typemesh  > #node-border
 {
-    border-color: #3b5e92;
+    start-color: #3b5e92;
+    end-color: #3b5e92;
 }
 
 VFXFlowAnchor.port.EdgeConnector.typemesh
@@ -49,9 +61,13 @@ VFXFlowAnchor.port.EdgeConnector.typemesh
 
 /* spawner */
 
-VFXContextUI.typespawnevent  > #node-border,VFXContextUI.typeevent  > #node-border
+VFXContextUI.inputTypespawnevent  > #node-border,VFXContextUI.inputTypeevent  > #node-border
 {
-    border-color: #17AB6A;
+    start-color: #17AB6A;
+}
+VFXContextUI.outputTypespawnevent  > #node-border,VFXContextUI.outputTypeevent  > #node-border
+{
+    end-color: #17AB6A;
 }
 
 VFXFlowAnchor.port.EdgeConnector.typespawnevent, VFXFlowAnchor.port.EdgeConnector.typeevent
