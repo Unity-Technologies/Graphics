@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
 
             var task = new VFXEditorTaskDesc()
             {
-                processor = shader,
+                externalProcessor = shader,
                 values = mappings.ToArray(),
                 type = VFXTaskType.Output
             };

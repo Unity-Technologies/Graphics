@@ -366,8 +366,7 @@ namespace UnityEditor.VFX
                                 buffers = new VFXMapping[0],
                                 values = cpuExpression.ToArray(),
                                 parameters = contextData.parameters,
-                                processor = processor,
-                                shaderSourceIndex = -1
+                                externalProcessor = processor
                             };
                         }).ToArray()
                 });
