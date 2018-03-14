@@ -77,6 +77,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Size = layout.size;
         }
 
+        public void ClampToParentWindow()
+        {
+            m_HorizontalOffset = Mathf.Max(0f, m_HorizontalOffset);
+            m_VerticalOffset = Mathf.Max(0f, m_VerticalOffset);
+        }
+
         public void ApplyPosition(VisualElement target)
         {
             if (dockingLeft)

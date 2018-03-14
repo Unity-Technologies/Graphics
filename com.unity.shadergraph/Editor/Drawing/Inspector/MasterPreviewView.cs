@@ -246,6 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 WindowDockingLayout dockingLayout = new WindowDockingLayout();
                 dockingLayout.CalculateDockingCornerAndOffset(layout, parent.layout);
+                dockingLayout.ClampToParentWindow();
                 dockingLayout.ApplyPosition(this);
                 m_RecalculateLayout = false;
             }
