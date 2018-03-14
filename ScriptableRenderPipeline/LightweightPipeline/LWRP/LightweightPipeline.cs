@@ -373,12 +373,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (sceneViewCamera)
                     CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
 #endif
-                if (m_ShadowMapRT)
-                {
-                    cmd.ReleaseTemporaryRT(m_ShadowMapRTID);
-                    m_ShadowMapRT = null;
-                }
-
                 cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowMapRTID);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depthCopy);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
@@ -391,6 +385,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CommandBufferPool.Release(cmd);
 
                 context.Submit();
+                if (m_ShadowMapRT)
+                {
+                    RenderTexture.ReleaseTemporary(m_ShadowMapRT);
+                    m_ShadowMapRT = null;
+                }
             }
         }
 
