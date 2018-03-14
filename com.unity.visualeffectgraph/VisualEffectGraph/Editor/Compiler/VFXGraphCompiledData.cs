@@ -478,31 +478,50 @@ namespace UnityEditor.VFX
                 }
 
                 System.IO.Directory.CreateDirectory(currentCacheFolder);
-                for (int i = 0; i < generatedCodeData.Count; ++i)
+
+                Profiler.BeginSample("VFXEditor.SaveShaderFiles.WriteAsset");
+                var generatedIntermediateData = generatedCodeData.Select((generated, i) =>
+                    {
+                        var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                        var newContent = generated.content.ToString();
+
+                        var oldContent = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : string.Empty;
+                        bool hasChanged = oldContent != newContent;
+                        if (hasChanged)
+                        {
+                            System.IO.File.WriteAllText(path, newContent);
+                        }
+
+                        return new
+                        {
+                            context = generated.context,
+                            needImport = hasChanged,
+                            path = path
+                        };
+                    }).ToArray();
+                Profiler.EndSample();
+
+                if (generatedIntermediateData.Any(o => o.needImport))
                 {
-                    var generated = generatedCodeData[i];
-                    var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
-
-                    string oldContent = "";
-                    if (System.IO.File.Exists(path))
+                    Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
+                    AssetDatabase.StartAssetEditing();
+                    foreach (var import in generatedIntermediateData.Where(o => o.needImport))
                     {
-                        oldContent = System.IO.File.ReadAllText(path);
+                        AssetDatabase.ImportAsset(import.path);
                     }
-                    var newContent = generated.content.ToString();
-                    bool hasChanged = oldContent != newContent;
-                    if (hasChanged)
-                    {
-                        System.IO.File.WriteAllText(path, newContent);
-                        Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
-                        AssetDatabase.ImportAsset(path);
-                        Profiler.EndSample();
-                    }
+                    AssetDatabase.StopAssetEditing();
+                    Profiler.EndSample();
+                }
 
-                    Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
+                Profiler.BeginSample("VFXEditor.SaveShaderFiles.LoadAsset");
+                foreach (var generated in generatedIntermediateData)
+                {
+                    var imported = AssetDatabase.LoadAssetAtPath<Object>(generated.path);
                     var contextData = contextToCompiledData[generated.context];
                     contextData.processor = imported;
                     contextToCompiledData[generated.context] = contextData;
                 }
+                Profiler.EndSample();
             }
             finally
             {
