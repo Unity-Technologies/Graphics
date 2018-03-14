@@ -630,13 +630,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    // Disable postprocess if we enable debug mode
-                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.None && m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+
+                    // Disable post process if we enable debug mode or if the post process layer is disabled
+                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None || m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
                     {
                         m_FrameSettings.enablePostprocess = false;
                     }
 
-                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                     var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
 
                     Resize(hdCamera);
@@ -885,7 +886,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         StartStereoRendering(renderContext, hdCamera.camera);
 
                         // Final blit
-                        if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
+                        if (m_FrameSettings.enablePostprocess)
                         {
                             RenderPostProcess(hdCamera, cmd, postProcessLayer);
                         }
