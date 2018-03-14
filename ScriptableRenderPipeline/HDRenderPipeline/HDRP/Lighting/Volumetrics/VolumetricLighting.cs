@@ -596,8 +596,8 @@ public class VolumetricLightingModule
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  vBuffer.GetLightingHistoryBuffer());  // Read
             }
 
-            // The shader defines GROUP_SIZE_1D = 16.
-            cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 15) / 16, (h + 15) / 16, 1);
+            // The shader defines GROUP_SIZE_1D = 8.
+            cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, 1);
         }
     }
 } // class VolumetricLightingModule
