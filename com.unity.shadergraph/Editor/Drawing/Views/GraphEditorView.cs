@@ -125,16 +125,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
                 m_GraphView.Add(m_MasterPreviewView);
 
-                ResizeBorderFrame masterPreviewResizeBorderFrame = new ResizeBorderFrame(m_MasterPreviewView.previewTextureView, m_MasterPreviewView) { name = "resizeBorderFrame" };
-                masterPreviewResizeBorderFrame.stayWithinParentBounds = true;
-                masterPreviewResizeBorderFrame.maintainAspectRatio = true;
-                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
-                m_MasterPreviewView.Add(masterPreviewResizeBorderFrame);
-
                 m_BlackboardProvider.onDragFinished += UpdateSerializedWindowLayout;
                 m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
                 masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
-                masterPreviewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+                m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
@@ -502,7 +496,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
             m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
-            m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.previewTextureView.layout.size;
+
+            if (m_MasterPreviewView.expanded)
+            {
+                m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.previewTextureView.layout.size;
+            }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(k_FloatingWindowsLayoutKey, serializedWindowLayout);
