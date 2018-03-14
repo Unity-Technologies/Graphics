@@ -716,8 +716,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         continue;
                     }
 
-                    // Frustum cull density volumes on CPU.
+                    // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
                     DensityVolumeList densityVolumes = m_VolumetricLightingModule.PrepareVisibleDensityVolumeList(hdCamera, cmd);
+
+                    // Perform the voxelization step which fills the density 3D texture.
+                    // Requires the clustered lighting data structure to be built.
+                    m_VolumetricLightingModule.VoxelizeDensityVolumes(densityVolumes);
 
                     // Note: Legacy Unity behave like this for ShadowMask
                     // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.

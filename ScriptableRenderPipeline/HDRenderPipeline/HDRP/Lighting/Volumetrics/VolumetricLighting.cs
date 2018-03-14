@@ -182,6 +182,7 @@ public class VolumetricLightingModule
 
     public VolumetricLightingPreset preset { get { return (VolumetricLightingPreset)Math.Min(ShaderConfig.s_VolumetricLightingPreset, (int)VolumetricLightingPreset.Count); } }
 
+    ComputeShader m_VolumeVoxelizationCS = null;
     ComputeShader m_VolumetricLightingCS = null;
 
     List<VBuffer>                 m_VBuffers                = null;
@@ -195,12 +196,13 @@ public class VolumetricLightingModule
 
     float       m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
     float       m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
-    const float k_LogScale         = 0.5f;
+    const float k_LogScale         = 0.5f;  // Tweak constant, controls the logarithmic depth distribution
 
     public void Build(HDRenderPipelineAsset asset)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
+        m_VolumeVoxelizationCS          = asset.renderPipelineResources.volumeVoxelizationCS;
         m_VolumetricLightingCS          = asset.renderPipelineResources.volumetricLightingCS;
         m_VBuffers                      = new List<VBuffer>();
         m_VisibleVolumeBounds           = new List<OrientedBBox>();
@@ -213,6 +215,7 @@ public class VolumetricLightingModule
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
+        m_VolumeVoxelizationCS = null;
         m_VolumetricLightingCS = null;
 
         for (int i = 0, n = m_VBuffers.Count; i < n; i++)
@@ -436,8 +439,10 @@ public class VolumetricLightingModule
         // Collect all visible finite volume data, and upload it to the GPU.
         HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
 
-        foreach (HomogeneousDensityVolume volume in volumes)
+        for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
         {
+            HomogeneousDensityVolume volume = volumes[i];
+
             // Only test active finite volumes.
             if (volume.enabled && volume.parameters.IsLocalVolume())
             {
@@ -464,6 +469,10 @@ public class VolumetricLightingModule
         densityVolumes.properties = m_VisibleVolumeProperties;
 
         return densityVolumes;
+    }
+
+    public void VoxelizeDensityVolumes(DensityVolumeList densityVolumes)
+    {
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
