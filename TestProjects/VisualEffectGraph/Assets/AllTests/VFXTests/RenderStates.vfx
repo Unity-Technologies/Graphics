@@ -1179,6 +1179,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
 --- !u!114 &114282714545869646
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5646,24 +5652,6 @@ VisualEffectAsset:
         structure: 1
         element: 0
   - type: 1
-    size: 1
-    capacity: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
-  - type: 2
-    size: 2048
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 1
     size: 1408
     capacity: 128
     layout:
@@ -5716,24 +5704,6 @@ VisualEffectAsset:
         structure: 1
         element: 0
   - type: 1
-    size: 1
-    capacity: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
-  - type: 2
-    size: 128
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 1
     size: 704
     capacity: 64
     layout:
@@ -5779,6 +5749,42 @@ VisualEffectAsset:
         bucket: 640
         structure: 1
         element: 0
+  - type: 1
+    size: 1
+    capacity: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  - type: 2
+    size: 2048
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  - type: 2
+    size: 128
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
   - type: 1
     size: 1
     capacity: 1
@@ -5846,6 +5852,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 1
@@ -5861,6 +5868,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 2
@@ -5876,6 +5884,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 3
@@ -5891,15 +5900,16 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 2048
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
-      index: 2
-    - nameId: deadListCount
       index: 3
+    - nameId: deadList
+      index: 4
+    - nameId: deadListCount
+      index: 5
     - nameId: spawner_input
       index: 3
     values:
@@ -5913,11 +5923,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
+        index: 4
       - nameId: deadListCount
-        index: 3
+        index: 5
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 3
       values:
       - nameId: SizeX_b
         index: 72
@@ -5936,18 +5946,18 @@ VisualEffectAsset:
         index: 83
       - nameId: bounds_size
         index: 80
-      processor: {fileID: 7200000, guid: 5bbe29edde172dc42ba5071ff03cd5cd, type: 3}
+      processor: {fileID: 7200000, guid: 2897aa4d9b693694f957c33d6297f185, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 4
       values:
       - nameId: deltaTime_b
         index: 101
       params: []
-      processor: {fileID: 7200000, guid: 6ccf7b18c85af0f4d8b621d0ccead57b, type: 3}
+      processor: {fileID: 7200000, guid: 03cbe1f870f610d428775a8e902b1468, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5958,7 +5968,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 1
-      processor: {fileID: 4800000, guid: e387c6e364f8270449d1c2154dddab5f, type: 3}
+      processor: {fileID: 4800000, guid: 9fcc7abff12362449a2f195ca99db6fa, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5971,19 +5981,20 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: -1
-      processor: {fileID: 4800000, guid: 2ec97478aef70564bbd17d379f2da36f, type: 3}
+      processor: {fileID: 4800000, guid: 1373a22da22d8c04998a25e0391a1c22, type: 3}
   - type: 1
     flags: 1
     capacity: 128
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 4
+      index: 1
     - nameId: sourceAttributeBuffer
-      index: 5
-    - nameId: deadList
       index: 6
-    - nameId: deadListCount
+    - nameId: deadList
       index: 7
+    - nameId: deadListCount
+      index: 8
     - nameId: spawner_input
       index: 2
     values:
@@ -5995,13 +6006,13 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       - nameId: deadListIn
-        index: 6
-      - nameId: deadListCount
         index: 7
+      - nameId: deadListCount
+        index: 8
       - nameId: sourceAttributeBuffer
-        index: 5
+        index: 6
       values:
       - nameId: SizeX_b
         index: 105
@@ -6030,22 +6041,22 @@ VisualEffectAsset:
         index: 84
       - nameId: bounds_size
         index: 87
-      processor: {fileID: 7200000, guid: b8e0ab586f944ec49880e95dc8759884, type: 3}
+      processor: {fileID: 7200000, guid: 369805291e0ee264880f96fadcf26401, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       - nameId: deadListOut
-        index: 6
+        index: 7
       values:
       - nameId: deltaTime_b
         index: 101
       params: []
-      processor: {fileID: 7200000, guid: 34fc78bd8ab241948bafb06b1e7c3a14, type: 3}
+      processor: {fileID: 7200000, guid: 122be4358e049c148b0bc53ae63f2e01, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       values:
       - nameId: Color_b
         index: 57
@@ -6060,11 +6071,11 @@ VisualEffectAsset:
         index: 86
       - nameId: sortPriority
         index: -1
-      processor: {fileID: 4800000, guid: 6e77c024d83bfc14d92ace4afcfa4e77, type: 3}
+      processor: {fileID: 4800000, guid: 6d91e9f146e75074087198fd95fc666b, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       values:
       - nameId: SizeX_b
         index: 94
@@ -6079,13 +6090,14 @@ VisualEffectAsset:
         index: 85
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 1181827067bc6b147b40fd008ec31398, type: 3}
+      processor: {fileID: 4800000, guid: 7b026c92e6e669d4481425daab9b1ab5, type: 3}
   - type: 1
     flags: 1
     capacity: 64
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 8
+      index: 2
     - nameId: sourceAttributeBuffer
       index: 9
     - nameId: deadList
@@ -6103,7 +6115,7 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       - nameId: deadListIn
         index: 10
       - nameId: deadListCount
@@ -6128,11 +6140,11 @@ VisualEffectAsset:
         index: 74
       - nameId: bounds_size
         index: 71
-      processor: {fileID: 7200000, guid: 41e180b9f1e59cb489399e0784514dcf, type: 3}
+      processor: {fileID: 7200000, guid: e12d7641475d9f147bb5fd906fa27b8c, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       - nameId: deadListOut
         index: 10
       values:
@@ -6141,11 +6153,11 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 101
       params: []
-      processor: {fileID: 7200000, guid: 33d7a6eccbe40cc4daba7c644aa13556, type: 3}
+      processor: {fileID: 7200000, guid: afe71591b4505ba4ea880f19c153d290, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       values:
       - nameId: Color_b
         index: 63
@@ -6154,11 +6166,11 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 3
-      processor: {fileID: 4800000, guid: 5bfef6703d35e164581f158f74bbeab9, type: 3}
+      processor: {fileID: 4800000, guid: f86c33edbf59c1a46b120b9f920a5fbd, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       values:
       - nameId: Color_b
         index: 70
@@ -6167,7 +6179,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 2
-      processor: {fileID: 4800000, guid: dba52a75b780f454caec74f1d681ac66, type: 3}
+      processor: {fileID: 4800000, guid: 45bdde0143f24b24eb79e11599ee4dcc, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 000000000100000002000000

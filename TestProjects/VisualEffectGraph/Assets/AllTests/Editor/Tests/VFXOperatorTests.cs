@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AttributeEquality()
         {
-            foreach (var attribute in VFXAttribute.All)
+            foreach (var attribute in VFXAttribute.AllExpectLocalOnly)
             {
                 var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXCurrentAttributeParameter));
                 var a = desc.CreateInstance();

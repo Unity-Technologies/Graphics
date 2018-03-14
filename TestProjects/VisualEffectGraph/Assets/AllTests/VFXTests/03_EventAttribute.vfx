@@ -721,7 +721,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114297048489511008}
+  - {fileID: 114753075886620610}
   m_expressionOp: 7
 --- !u!114 &114211819069052836
 MonoBehaviour:
@@ -1067,39 +1067,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114297048489511008
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114297048489511008}
-  m_MasterData:
-    m_Owner: {fileID: 114197853915439368}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 
-  m_Property:
-    name: TotalTimeOp
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114838251029533326}
 --- !u!114 &114300944499360208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2721,6 +2688,39 @@ MonoBehaviour:
   m_Direction: 1
   m_LinkedSlots:
   - {fileID: 114107482737861984}
+--- !u!114 &114753075886620610
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114753075886620610}
+  m_MasterData:
+    m_Owner: {fileID: 114197853915439368}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 
+  m_Property:
+    name: TotalTime
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114838251029533326}
 --- !u!114 &114756599877890744
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3071,7 +3071,7 @@ MonoBehaviour:
       m_Tooltip: The operand.
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114297048489511008}
+  - {fileID: 114753075886620610}
 --- !u!114 &114845826109064290
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4260,6 +4260,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 1
@@ -4291,6 +4292,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 2
@@ -4320,6 +4322,7 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 320
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
@@ -4371,7 +4374,7 @@ VisualEffectAsset:
         index: 65
       - nameId: bounds_size
         index: 66
-      processor: {fileID: 7200000, guid: f16511fb3a2652341ae7dc1f51649bb5, type: 3}
+      processor: {fileID: 7200000, guid: 081f8ae740898224b841c4a543a87cf0, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4382,7 +4385,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 59
       params: []
-      processor: {fileID: 7200000, guid: a54618a01e069eb498a60294f6828c51, type: 3}
+      processor: {fileID: 7200000, guid: f5e4c9090c176dc4b8e9a1c0feef5083, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4399,7 +4402,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 05a711b6c4b2d2b4092fdf11c01b0ed6, type: 3}
+      processor: {fileID: 4800000, guid: 0003de51bfc1b414e85acdc9745a82f7, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 0000000001000000

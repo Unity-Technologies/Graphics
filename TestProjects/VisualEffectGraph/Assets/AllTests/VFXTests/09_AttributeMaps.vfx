@@ -2926,6 +2926,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
 --- !u!114 &114782163398082670
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4469,6 +4475,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 1
@@ -4484,6 +4491,7 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 60032
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
@@ -4533,7 +4541,7 @@ VisualEffectAsset:
         index: 54
       - nameId: bounds_size
         index: 70
-      processor: {fileID: 7200000, guid: efa9590277a319148a7f57a87946b7cf, type: 3}
+      processor: {fileID: 7200000, guid: 83a4f10ff65229e4e9863f157cd6425a, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4556,7 +4564,7 @@ VisualEffectAsset:
       - nameId: VectorField_b
         index: 66
       params: []
-      processor: {fileID: 7200000, guid: 9f0cffb5c1346ba46bc42df05548c9cd, type: 3}
+      processor: {fileID: 7200000, guid: 5576e953debc9344e9324bd3b576abdd, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4593,7 +4601,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 2041b09dbeaf4904097394644a0bd1ea, type: 3}
+      processor: {fileID: 4800000, guid: 96df0b53513b9e64090af4bf369d1fb3, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

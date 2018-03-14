@@ -5811,6 +5811,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 1
@@ -5826,6 +5827,7 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 65536
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
@@ -5879,7 +5881,7 @@ VisualEffectAsset:
         index: 74
       - nameId: bounds_size
         index: 84
-      processor: {fileID: 7200000, guid: f9f2ee93d384f934f9a3f089ca6280bf, type: 3}
+      processor: {fileID: 7200000, guid: 8e47a1c716384fd4b86389198eee774a, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5906,7 +5908,7 @@ VisualEffectAsset:
       - nameId: gradient_d
         index: 87
       params: []
-      processor: {fileID: 7200000, guid: 43bc38155188c7f48aa3d88be9bdc137, type: 3}
+      processor: {fileID: 7200000, guid: 6de3261c088f3f54eaf14858f4656a2c, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5919,7 +5921,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 9899716266f5162409fece6312c7c883, type: 3}
+      processor: {fileID: 4800000, guid: be9aeeed7eab7fd4e8ea31212dace9ae, type: 3}
     - type: 1073741824
       buffers:
       - nameId: attributeBuffer
@@ -5938,7 +5940,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7c1e294ae39f1524b8816e3ba869df53, type: 3}
+      processor: {fileID: 4800000, guid: ac2407cdbfba63e4f9115ac50d77a410, type: 3}
     - type: 1073741825
       buffers:
       - nameId: attributeBuffer
@@ -5959,7 +5961,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 8cd6b675a99c7b9409bf98e4baac8658, type: 3}
+      processor: {fileID: 4800000, guid: 34ec5219e8c35a2428d7b2bd0208d541, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -5982,7 +5984,7 @@ VisualEffectAsset:
         index: 85
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: df7988e794984a645bfacca363a13441, type: 3}
+      processor: {fileID: 4800000, guid: 1d44391a1a79c634db2887b25a705f66, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

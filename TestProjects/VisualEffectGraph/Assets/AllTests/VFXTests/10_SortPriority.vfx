@@ -567,6 +567,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
 --- !u!114 &114133943784246096
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5518,23 +5524,33 @@ VisualEffectAsset:
         structure: 1
         element: 0
   - type: 1
-    size: 1
-    capacity: 1
+    size: 70000
+    capacity: 10000
     layout:
-    - name: spawnCount
+    - name: lifetime
       type: 1
       offset:
         bucket: 0
         structure: 1
         element: 0
-  - type: 2
-    size: 10000
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
+    - name: position
+      type: 3
+      offset:
+        bucket: 10000
+        structure: 4
+        element: 0
+    - name: alive
+      type: 17
+      offset:
+        bucket: 50000
+        structure: 1
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 60000
+        structure: 1
+        element: 0
   - type: 1
     size: 70000
     capacity: 10000
@@ -5582,33 +5598,23 @@ VisualEffectAsset:
     capacity: 0
     layout: []
   - type: 1
-    size: 70000
-    capacity: 10000
+    size: 1
+    capacity: 1
     layout:
-    - name: lifetime
+    - name: spawnCount
       type: 1
       offset:
         bucket: 0
         structure: 1
         element: 0
-    - name: position
-      type: 3
-      offset:
-        bucket: 10000
-        structure: 4
-        element: 0
-    - name: alive
-      type: 17
-      offset:
-        bucket: 50000
-        structure: 1
-        element: 0
-    - name: age
-      type: 1
-      offset:
-        bucket: 60000
-        structure: 1
-        element: 0
+  - type: 2
+    size: 10000
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
   - type: 1
     size: 1
     capacity: 1
@@ -5654,6 +5660,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 0
     buffers:
     - nameId: spawner_output
       index: 1
@@ -5669,15 +5676,16 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 10000
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
-      index: 2
-    - nameId: deadListCount
       index: 3
+    - nameId: deadList
+      index: 4
+    - nameId: deadListCount
+      index: 5
     - nameId: spawner_input
       index: 1
     values:
@@ -5691,11 +5699,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
+        index: 4
       - nameId: deadListCount
-        index: 3
+        index: 5
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 3
       values:
       - nameId: Lifetime_b
         index: 56
@@ -5714,18 +5722,18 @@ VisualEffectAsset:
         index: 62
       - nameId: bounds_size
         index: 60
-      processor: {fileID: 7200000, guid: 9cd4b73df40abdb49b2a0a10e449b014, type: 3}
+      processor: {fileID: 7200000, guid: 1b480f79b35585d429aef263844d2493, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 4
       values:
       - nameId: deltaTime_b
         index: 74
       params: []
-      processor: {fileID: 7200000, guid: 958796271e21d804383eb32b703c825d, type: 3}
+      processor: {fileID: 7200000, guid: b1e36c1e89450964b81b3086903c2359, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5740,19 +5748,20 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 2
-      processor: {fileID: 4800000, guid: 520f70f5d3535a446a57166cbf3e3421, type: 3}
+      processor: {fileID: 4800000, guid: fbac2247b4a6a074b8a922deb6c7c64b, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 4
+      index: 1
     - nameId: sourceAttributeBuffer
-      index: 5
-    - nameId: deadList
       index: 6
-    - nameId: deadListCount
+    - nameId: deadList
       index: 7
+    - nameId: deadListCount
+      index: 8
     - nameId: spawner_input
       index: 1
     values:
@@ -5764,13 +5773,13 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       - nameId: deadListIn
-        index: 6
-      - nameId: deadListCount
         index: 7
+      - nameId: deadListCount
+        index: 8
       - nameId: sourceAttributeBuffer
-        index: 5
+        index: 6
       values:
       - nameId: Lifetime_b
         index: 59
@@ -5785,22 +5794,22 @@ VisualEffectAsset:
         index: 79
       - nameId: bounds_size
         index: 68
-      processor: {fileID: 7200000, guid: 0e311d5da9ac59c448f9b548320cd97c, type: 3}
+      processor: {fileID: 7200000, guid: 967e72d60eba2cb48a7750df39f4c047, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       - nameId: deadListOut
-        index: 6
+        index: 7
       values:
       - nameId: deltaTime_b
         index: 74
       params: []
-      processor: {fileID: 7200000, guid: 20d4d16f668bd9b40a711391761a5516, type: 3}
+      processor: {fileID: 7200000, guid: 921354e376d911947ab828e3ab4f5863, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       values:
       - nameId: Alpha_b
         index: 78
@@ -5811,13 +5820,14 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 1
-      processor: {fileID: 4800000, guid: c92562cd6f706194c9ed650ea7fb5f93, type: 3}
+      processor: {fileID: 4800000, guid: e97c423db480928428469b21ed548e75, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 8
+      index: 2
     - nameId: sourceAttributeBuffer
       index: 9
     - nameId: deadList
@@ -5835,7 +5845,7 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       - nameId: deadListIn
         index: 10
       - nameId: deadListCount
@@ -5854,22 +5864,22 @@ VisualEffectAsset:
         index: 69
       - nameId: bounds_size
         index: 67
-      processor: {fileID: 7200000, guid: 17aa623a61288b74d8ebad1741181b10, type: 3}
+      processor: {fileID: 7200000, guid: 28fd4adc1e559e240be25853cc26217b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       - nameId: deadListOut
         index: 10
       values:
       - nameId: deltaTime_b
         index: 74
       params: []
-      processor: {fileID: 7200000, guid: f0f239ec80a5d884aa69e6e63d150405, type: 3}
+      processor: {fileID: 7200000, guid: b51c3a4142824d442b1144aaac2fa956, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 8
+        index: 2
       values:
       - nameId: Alpha_b
         index: 78
@@ -5880,7 +5890,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 0cf56a1f4f9875943b55195b438c89ee, type: 3}
+      processor: {fileID: 4800000, guid: 0789c5dab29b34648a3b4b71a9c890d6, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
