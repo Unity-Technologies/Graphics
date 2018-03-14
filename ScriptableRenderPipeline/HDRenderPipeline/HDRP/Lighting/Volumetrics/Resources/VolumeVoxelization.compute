@@ -1,0 +1,21 @@
+//--------------------------------------------------------------------------------------------------
+// Definitions
+//--------------------------------------------------------------------------------------------------
+
+#pragma kernel VolumeVoxelization
+
+// #pragma enable_d3d11_debug_symbols
+
+#include "../../../ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_VOLUME_VOXELIZATION
+
+#include "../../../ShaderConfig.cs.hlsl"
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET == 1)
+    // E.g. for 1080p: (1920/8)x(1080/8)x(128) =  4,147,200 voxels
+    #define VBUFFER_TILE_SIZE   8
+    #define VBUFFER_SLICE_COUNT 64
+#else
+    // E.g. for 1080p: (1920/4)x(1080/4)x(256) = 33,177,600 voxels
+    #define VBUFFER_TILE_SIZE   4
+    #define VBUFFER_SLICE_COUNT 128
+#endif
