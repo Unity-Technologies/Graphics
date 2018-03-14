@@ -7,14 +7,19 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         HLSLINCLUDE
 
         #pragma prefer_hlslcc gles
-        //Keep compiler quiet about Shadows.hlsl. 
+        //Keep compiler quiet about Shadows.hlsl.
         #include "CoreRP/ShaderLibrary/Common.hlsl"
         #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
         #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "LWRP/ShaderLibrary/Core.hlsl"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
-        SCREENSPACE_TEXTURE(_CameraDepthTexture);
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        TEXTURE2D_ARRAY(_CameraDepthTexture);
+#else
+        TEXTURE2D(_CameraDepthTexture);
+#endif // defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+
         SAMPLER(sampler_CameraDepthTexture);
 
         struct VertexInput
