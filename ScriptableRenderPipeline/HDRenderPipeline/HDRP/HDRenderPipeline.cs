@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly LightLoop m_LightLoop = new LightLoop();
         readonly ShadowSettings m_ShadowSettings = new ShadowSettings();
-        readonly VolumetricLightingModule m_VolumetricLightingModule = new VolumetricLightingModule();
+        readonly VolumetricLightingSystem m_VolumetricLightingSystem = new VolumetricLightingSystem();
 
         // Debugging
         MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
@@ -226,7 +226,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.Build(asset, m_IBLFilterGGX);
 
-            m_VolumetricLightingModule.Build(asset);
+            m_VolumetricLightingSystem.Build(asset);
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -416,7 +416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SSSBufferManager.Cleanup();
             m_SkyManager.Cleanup();
-            m_VolumetricLightingModule.Cleanup();
+            m_VolumetricLightingSystem.Cleanup();
             m_IBLFilterGGX.Cleanup();
 
             DestroyRenderTextures();
@@ -442,7 +442,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            m_VolumetricLightingModule.ResizeVBuffer(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VolumetricLightingSystem.ResizeVBuffer(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight);
 
             // update recorded window resolution
             m_CurrentWidth = hdCamera.actualWidth;
@@ -461,7 +461,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
 
-                m_VolumetricLightingModule.PushGlobalParams(hdCamera, cmd);
+                m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd);
             }
         }
 
@@ -717,11 +717,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
-                    DensityVolumeList densityVolumes = m_VolumetricLightingModule.PrepareVisibleDensityVolumeList(hdCamera, cmd);
+                    DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd);
 
                     // Perform the voxelization step which fills the density 3D texture.
-                    // Requires the clustered lighting data structure to be built.
-                    m_VolumetricLightingModule.VoxelizeDensityVolumes(densityVolumes);
+                    // Requires the clustered lighting data structure to be built, and can run async.
+                    m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings);
 
                     // Note: Legacy Unity behave like this for ShadowMask
                     // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -847,7 +847,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
-                        m_VolumetricLightingModule.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
+                        m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -1293,7 +1293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBuffer, m_CameraDepthStencilBuffer, cmd);
 
-            if (visualEnv.fogType != FogType.None || m_VolumetricLightingModule.preset != VolumetricLightingModule.VolumetricLightingPreset.Off)
+            if (visualEnv.fogType != FogType.None || m_VolumetricLightingSystem.preset != VolumetricLightingSystem.VolumetricLightingPreset.Off)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 

@@ -1,0 +1,59 @@
+//--------------------------------------------------------------------------------------------------
+// Definitions
+//--------------------------------------------------------------------------------------------------
+
+#pragma kernel VolumeVoxelizationBruteforce VolumeVoxelization=VolumeVoxelizationBruteforce LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumeVoxelizationClustered  VolumeVoxelization=VolumeVoxelizationClustered  LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+
+// #pragma enable_d3d11_debug_symbols
+
+#include "../../ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_VOLUME_VOXELIZATION
+
+#include "../../ShaderConfig.cs.hlsl"
+#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET == 1)
+    // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
+    #define VBUFFER_TILE_SIZE   8
+    #define VBUFFER_SLICE_COUNT 64
+#else
+    // E.g. for 1080p: (1920/4)x(1080/4)x(128) = 16,588,800 voxels
+    #define VBUFFER_TILE_SIZE   4
+    #define VBUFFER_SLICE_COUNT 128
+#endif
+
+#define GROUP_SIZE_1D 8
+
+//--------------------------------------------------------------------------------------------------
+// Included headers
+//--------------------------------------------------------------------------------------------------
+
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/GeometryUtils.cs.hlsl"
+
+#include "../../ShaderVariables.hlsl"
+#include "VolumetricLighting.cs.hlsl"
+
+#define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
+#include "../Lighting.hlsl" // Includes Material.hlsl
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+
+//--------------------------------------------------------------------------------------------------
+// Inputs & outputs
+//--------------------------------------------------------------------------------------------------
+
+StructuredBuffer<OrientedBBox>            _VolumeBounds;
+StructuredBuffer<DensityVolumeProperties> _VolumeProperties;
+
+RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
+
+//--------------------------------------------------------------------------------------------------
+// Implementation
+//--------------------------------------------------------------------------------------------------
+
+[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
+void VolumeVoxelization(uint2 groupId       : SV_GroupID,
+                        uint2 groupThreadId : SV_GroupThreadID)
+{
+
+}

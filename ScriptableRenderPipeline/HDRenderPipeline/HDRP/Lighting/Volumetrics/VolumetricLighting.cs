@@ -90,7 +90,7 @@ public struct DensityVolumeList
     public List<DensityVolumeProperties> properties;
 }
 
-public class VolumetricLightingModule
+public class VolumetricLightingSystem
 {
     public enum VolumetricLightingPreset
     {
@@ -101,34 +101,37 @@ public class VolumetricLightingModule
     }
     class VBuffer
     {
-        public long                     viewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
-        public RenderTexture[]          lightingRTEX = null;
-        public RenderTargetIdentifier[] lightingRTID = null;
-        public RenderTexture            densityRTEX  = null;
-        public RenderTargetIdentifier   densityRTID  =   -1; // RenderTargetIdentifier cannot be NULL
+        const int k_IndexDensity  = 0;
+        const int k_IndexIntegral = 1;
+        const int k_IndexHistory  = 2; // Depends on frame ID
+        const int k_IndexFeedback = 3; // Depends on frame ID
+
+        long                     m_ViewID       =   -1; // -1 is invalid; positive for Game Views, 0 otherwise
+        RenderTexture[]          m_Textures     = null;
+        RenderTargetIdentifier[] m_Identifiers  = null;
+
+        public RenderTargetIdentifier GetDensityBuffer()
+        {
+            Debug.Assert(m_ViewID >= 0);
+            return m_Identifiers[k_IndexDensity];
+        }
 
         public RenderTargetIdentifier GetLightingIntegralBuffer() // Of the current frame
         {
-            Debug.Assert(viewID >= 0);
-            return lightingRTID[0];
+            Debug.Assert(m_ViewID >= 0);
+            return m_Identifiers[k_IndexIntegral];
         }
 
         public RenderTargetIdentifier GetLightingHistoryBuffer() // From the previous frame
         {
-            Debug.Assert(viewID > 0); // Game View only
-            return lightingRTID[1 + ((Time.renderedFrameCount + 0) & 1)];
+            Debug.Assert(m_ViewID > 0); // Game View only
+            return m_Identifiers[k_IndexHistory + (Time.renderedFrameCount & 1)];
         }
 
         public RenderTargetIdentifier GetLightingFeedbackBuffer() // For the next frame
         {
-            Debug.Assert(viewID > 0); // Game View only
-            return lightingRTID[1 + ((Time.renderedFrameCount + 1) & 1)];
-        }
-
-        public RenderTargetIdentifier GetDensityBuffer()
-        {
-            Debug.Assert(viewID >= 0);
-            return densityRTID;
+            Debug.Assert(m_ViewID > 0); // Game View only
+            return m_Identifiers[k_IndexFeedback - (Time.renderedFrameCount & 1)];
         }
 
         public void Create(long viewID, int w, int h, int d)
@@ -139,45 +142,69 @@ public class VolumetricLightingModule
             // Clean up first.
             Destroy();
 
-            // The required number of buffers depends on the view type.
+            // Only Game Views need history and feedback buffers.
             bool isGameView = viewID > 0;
-            int  n = isGameView ? 3 : 1;
+            int  n          = isGameView ? 4 : 2;
 
-            this.viewID       = viewID;
-            this.lightingRTEX = new RenderTexture[n];
-            this.lightingRTID = new RenderTargetIdentifier[n];
+            m_ViewID      = viewID;
+            m_Textures    = new RenderTexture[n];
+            m_Identifiers = new RenderTargetIdentifier[n];
 
             for (int i = 0; i < n; i++)
             {
-                this.lightingRTEX[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                this.lightingRTEX[i].hideFlags         = HideFlags.HideAndDontSave;
-                this.lightingRTEX[i].filterMode        = FilterMode.Trilinear;   // Custom
-                this.lightingRTEX[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
-                this.lightingRTEX[i].volumeDepth       = d;
-                this.lightingRTEX[i].enableRandomWrite = true;
-                this.lightingRTEX[i].name = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("Volumetric{0}", i));
-                this.lightingRTEX[i].Create();
-                this.lightingRTID[i] = new RenderTargetIdentifier(this.lightingRTEX[i]);
+                m_Textures[i] = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                m_Textures[i].hideFlags         = HideFlags.HideAndDontSave;
+                m_Textures[i].filterMode        = FilterMode.Trilinear;   // Custom
+                m_Textures[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
+                m_Textures[i].volumeDepth       = d;
+                m_Textures[i].enableRandomWrite = true;
+                m_Textures[i].name              = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("VBuffer{0}", i));
+                m_Textures[i].Create();
+
+                // TODO: clear the texture. Clearing 3D textures does not appear to work right now.
+
+                m_Identifiers[i] = new RenderTargetIdentifier(m_Textures[i]);
             }
         }
 
         public void Destroy()
         {
-            if (this.lightingRTEX != null)
+            if (m_Textures != null)
             {
-                for (int i = 0, n = this.lightingRTEX.Length; i < n; i++)
+                for (int i = 0, n = m_Textures.Length; i < n; i++)
                 {
-                    if (this.lightingRTEX[i] != null)
+                    if (m_Textures[i] != null)
                     {
-                        this.lightingRTEX[i].Release();
+                        m_Textures[i].Release();
                     }
                 }
             }
 
-            this.viewID       =   -1;
-            this.lightingRTEX = null;
-            this.lightingRTID = null;
+            m_ViewID      =   -1;
+            m_Textures    = null;
+            m_Identifiers = null;
         }
+        public void GetResolution(ref int w, ref int h, ref int d)
+        {
+            Debug.Assert(m_Textures    != null);
+            Debug.Assert(m_Textures[0] != null);
+            Debug.Assert(m_Identifiers != null);
+
+            w = m_Textures[0].width;
+            h = m_Textures[0].height;
+            d = m_Textures[0].volumeDepth;
+        }
+
+        public long GetViewID()
+        {
+            return m_ViewID;
+        }
+
+        public bool IsValid()
+        {
+            return m_ViewID >= 0 && m_Textures != null && m_Textures[0] != null;
+        }
+
     } // class VBuffer
 
     public VolumetricLightingPreset preset { get { return (VolumetricLightingPreset)Math.Min(ShaderConfig.s_VolumetricLightingPreset, (int)VolumetricLightingPreset.Count); } }
@@ -246,14 +273,11 @@ public class VolumetricLightingModule
 
         if (vBuffer != null)
         {
-            Debug.Assert(vBuffer.lightingRTEX    != null);
-            Debug.Assert(vBuffer.lightingRTEX[0] != null);
-            Debug.Assert(vBuffer.lightingRTID    != null);
+            int width = 0, height = 0, depth = 0;
+            vBuffer.GetResolution(ref width, ref height, ref depth);
 
             // Found, check resolution.
-            if (w == vBuffer.lightingRTEX[0].width  &&
-                h == vBuffer.lightingRTEX[0].height &&
-                d == vBuffer.lightingRTEX[0].volumeDepth)
+            if (w == width && h == height && d == depth)
             {
                 // Everything matches, nothing to do here.
                 return;
@@ -282,7 +306,7 @@ public class VolumetricLightingModule
             for (int i = 0; i < n; i++)
             {
                 // Check whether domain reload killed it...
-                if (viewID == m_VBuffers[i].viewID && m_VBuffers[i].lightingRTEX != null && m_VBuffers[i].lightingRTEX[0] != null)
+                if (viewID == m_VBuffers[i].GetViewID() && m_VBuffers[i].IsValid())
                 {
                     vBuffer = m_VBuffers[i];
                 }
@@ -405,11 +429,11 @@ public class VolumetricLightingModule
         cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, globalVolumeProperties.extinction);
         cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  asymmetry);
 
-        int w = 0, h = 0, d = 0;
-        ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
-
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
+
+        int w = 0, h = 0, d = 0;
+        vBuffer.GetResolution(ref w, ref h, ref d);
 
         SetPreconvolvedAmbientLightProbe(cmd, asymmetry);
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
@@ -471,8 +495,40 @@ public class VolumetricLightingModule
         return densityVolumes;
     }
 
-    public void VoxelizeDensityVolumes(DensityVolumeList densityVolumes)
+    public void VolumeVoxelizationPass(DensityVolumeList densityVolumes, HDCamera camera, CommandBuffer cmd, FrameSettings settings)
     {
+        if (preset == VolumetricLightingPreset.Off) return;
+
+        int numVisibleVolumes = m_VisibleVolumeBounds.Count;
+
+        if (numVisibleVolumes == 0)
+        {
+            // Clear the render target instead of running the shader.
+            // CoreUtils.SetRenderTarget(cmd, vBuffer.GetDensityBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+            // return;
+
+            // Clearing 3D textures does not seem to work!
+            // Use the workaround by running the full shader with 0 density.
+        }
+
+        VBuffer vBuffer = FindVBuffer(camera.GetViewID());
+        Debug.Assert(vBuffer != null);
+
+        int w = 0, h = 0, d = 0;
+        vBuffer.GetResolution(ref w, ref h, ref d);
+
+        bool enableClustered = settings.lightLoopSettings.enableTileAndCluster;
+
+        int kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClustered"
+                                                                       : "VolumeVoxelizationBruteforce");
+                                   
+        camera.SetupComputeShader( m_VolumeVoxelizationCS, cmd);
+        cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,     s_VisibleVolumeBoundsBuffer);
+        cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeProperties, s_VisibleVolumePropertiesBuffer);
+        cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,   vBuffer.GetDensityBuffer());
+
+        // The shader defines GROUP_SIZE_1D = 8.
+        cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, 1);
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
@@ -514,7 +570,7 @@ public class VolumetricLightingModule
         return coords;
     }
 
-    public void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd, FrameSettings frameSettings)
+    public void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd, FrameSettings settings)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
@@ -529,33 +585,33 @@ public class VolumetricLightingModule
             if (globalVolume == null)
             {
                 // Clear the render target instead of running the shader.
-                // CoreUtils.SetRenderTarget(cmd, GetVBufferLightingIntegral(viewOffset), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetLightingIntegralBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetLightingFeedbackBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 // return;
 
                 // Clearing 3D textures does not seem to work!
-                // Use the workaround by running the full shader with no volume.
+                // Use the workaround by running the full shader with 0 density.
             }
 
-            bool enableClustered    = frameSettings.lightLoopSettings.enableTileAndCluster;
+            // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
+            bool enableClustered    = settings.lightLoopSettings.enableTileAndCluster;
             bool enableReprojection = Application.isPlaying && camera.camera.cameraType == CameraType.Game;
 
             int kernel;
 
             if (enableReprojection)
             {
-                // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
                 kernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClusteredReproj"
-                                                                           : "VolumetricLightingAllLightsReproj");
+                                                                           : "VolumetricLightingBruteforceReproj");
             }
             else
             {
                 kernel = m_VolumetricLightingCS.FindKernel(enableClustered ? "VolumetricLightingClustered"
-                                                                           : "VolumetricLightingAllLights");
-
+                                                                           : "VolumetricLightingBruteforce");
             }
 
             int w = 0, h = 0, d = 0;
-            ComputeVBufferResolutionAndScale(preset, (int)camera.screenSize.x, (int)camera.screenSize.y, ref w, ref h, ref d);
+            vBuffer.GetResolution(ref w, ref h, ref d);
 
             // Compose the matrix which allows us to compute the world space view direction.
             float     vFoV       = camera.camera.fieldOfView * Mathf.Deg2Rad;

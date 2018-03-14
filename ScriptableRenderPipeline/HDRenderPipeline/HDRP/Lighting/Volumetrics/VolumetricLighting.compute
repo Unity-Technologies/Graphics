@@ -2,17 +2,17 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#pragma kernel VolumetricLightingAllLights       VolumetricLighting=VolumetricLightingAllLights       ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
-#pragma kernel VolumetricLightingAllLightsReproj VolumetricLighting=VolumetricLightingAllLightsReproj ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
-#pragma kernel VolumetricLightingClustered       VolumetricLighting=VolumetricLightingClustered       ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
-#pragma kernel VolumetricLightingClusteredReproj VolumetricLighting=VolumetricLightingClusteredReproj ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingBruteforce       VolumetricLighting=VolumetricLightingBruteforce       ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingBruteforceReproj VolumetricLighting=VolumetricLightingBruteforceReproj ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingClustered        VolumetricLighting=VolumetricLightingClustered        ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingClusteredReproj  VolumetricLighting=VolumetricLightingClusteredReproj  ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
 // #pragma enable_d3d11_debug_symbols
 
-#include "../../../ShaderPass/ShaderPass.cs.hlsl"
+#include "../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
 
-#include "../../../ShaderConfig.cs.hlsl"
+#include "../../ShaderConfig.cs.hlsl"
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET == 1)
     // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
     #define VBUFFER_TILE_SIZE   8
@@ -37,15 +37,14 @@
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/Filtering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
-#include "CoreRP/ShaderLibrary/SpaceFillingCurves.hlsl"
 
-#include "../../../ShaderVariables.hlsl"
-#include "../VolumetricLighting.cs.hlsl"
-#include "../VBuffer.hlsl"
+#include "../../ShaderVariables.hlsl"
+#include "VolumetricLighting.cs.hlsl"
+#include "VBuffer.hlsl"
 
 #define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
-#include "../../Lighting.hlsl" // Includes Material.hlsl
-#include "../../LightEvaluation.hlsl"
+#include "../Lighting.hlsl" // Includes Material.hlsl
+#include "../LightEvaluation.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 

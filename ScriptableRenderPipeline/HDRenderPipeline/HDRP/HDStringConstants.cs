@@ -322,5 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferLightingHistory     = Shader.PropertyToID("_VBufferLightingHistory");
         public static readonly int _VBufferLightingFeedback    = Shader.PropertyToID("_VBufferLightingFeedback");
         public static readonly int _VBufferSampleOffset        = Shader.PropertyToID("_VBufferSampleOffset");
+        public static readonly int _VolumeBounds               = Shader.PropertyToID("_VolumeBounds");
+        public static readonly int _VolumeProperties           = Shader.PropertyToID("_VBufferDensity");
     }
 }
