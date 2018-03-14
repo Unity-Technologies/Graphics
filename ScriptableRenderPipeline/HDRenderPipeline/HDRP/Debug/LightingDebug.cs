@@ -46,6 +46,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 overrideAlbedo = false;
         public Color                overrideAlbedoValue = new Color(0.5f, 0.5f, 0.5f);
         public bool                 overrideNormal = false;
+        public bool                 overrideSpecularColor = false;
+        public Color                overrideSpecularColorValue = new Color(1.0f, 1.0f, 1.0f);
+
 
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
