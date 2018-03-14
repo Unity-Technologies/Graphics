@@ -22,11 +22,8 @@ struct VertexOutput
     float4 clipPos      : SV_POSITION;
 };
 
-VertexOutput ShadowPassVertex(VertexInput v)
+float4 GetShadowPositionHClip(VertexInput v)
 {
-    VertexOutput o;
-    UNITY_SETUP_INSTANCE_ID(v);
-
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldDir(v.normal);
 
@@ -46,8 +43,16 @@ VertexOutput ShadowPassVertex(VertexInput v)
     clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
 #endif
 
+    return clipPos;
+}
+
+VertexOutput ShadowPassVertex(VertexInput v)
+{
+    VertexOutput o;
+    UNITY_SETUP_INSTANCE_ID(v);
+
     o.uv = TransformMainTextureCoord(v.texcoord);
-    o.clipPos = clipPos;
+    o.clipPos = GetShadowPositionHClip(v);
     return o;
 }
 
