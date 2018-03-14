@@ -20,7 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty capturePositionMode;
         public SerializedProperty captureMirrorPlaneLocalPosition;
         public SerializedProperty captureMirrorPlaneLocalNormal;
-        public SerializedProperty dimmer;
+        public SerializedProperty weight;
+        public SerializedProperty multiplier;
         public SerializedProperty mode;
         public SerializedProperty refreshMode;
         public SerializedProperty customTexture;
@@ -55,7 +56,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             capturePositionMode = serializedObject.Find((PlanarReflectionProbe p) => p.capturePositionMode);
             captureMirrorPlaneLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalPosition);
             captureMirrorPlaneLocalNormal = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalNormal);
-            dimmer = serializedObject.Find((PlanarReflectionProbe p) => p.dimmer);
+            weight = serializedObject.Find((PlanarReflectionProbe p) => p.weight);
+            multiplier = serializedObject.Find((PlanarReflectionProbe p) => p.multiplier);
             mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
             refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);
             customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);

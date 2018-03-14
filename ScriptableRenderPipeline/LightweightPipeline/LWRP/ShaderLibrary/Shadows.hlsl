@@ -78,40 +78,40 @@ inline real SampleShadowmap(float4 shadowCoord)
         attenuation = dot(attenuation4, 0.25);
     #else
         #ifdef _SHADOWS_CASCADE //Assume screen space shadows when cascades enabled
-            real fetchesWeights[16];
-            real2 fetchesUV[16];
+            float fetchesWeights[16];
+            float2 fetchesUV[16];
             SampleShadow_ComputeSamples_Tent_7x7(_ShadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
-            attenuation  = fetchesWeights[0]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[0].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[1]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[1].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[2]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[2].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[3]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[3].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[4]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[4].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[5]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[5].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[6]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[6].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[7]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[7].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[8]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[8].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[9]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[9].xy,  shadowCoord.z));
-            attenuation += fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[10].xy, shadowCoord.z));
-            attenuation += fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[11].xy, shadowCoord.z));
-            attenuation += fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[12].xy, shadowCoord.z));
-            attenuation += fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[13].xy, shadowCoord.z));
-            attenuation += fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[14].xy, shadowCoord.z));
-            attenuation += fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[15].xy, shadowCoord.z));
+            attenuation  = fetchesWeights[0]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[1]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[2]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[3]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[4]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[5]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[6]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[7]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[8]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[9]  * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[9].xy,  shadowCoord.z));
+            attenuation += fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[10].xy, shadowCoord.z));
+            attenuation += fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[11].xy, shadowCoord.z));
+            attenuation += fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[12].xy, shadowCoord.z));
+            attenuation += fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[13].xy, shadowCoord.z));
+            attenuation += fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[14].xy, shadowCoord.z));
+            attenuation += fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
         #else
-            real fetchesWeights[9];
-            real2 fetchesUV[9];
+            float fetchesWeights[9];
+            float2 fetchesUV[9];
             SampleShadow_ComputeSamples_Tent_5x5(_ShadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
-            attenuation  = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[0].xy, shadowCoord.z));
-            attenuation += fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[1].xy, shadowCoord.z));
-            attenuation += fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[2].xy, shadowCoord.z));
-            attenuation += fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[3].xy, shadowCoord.z));
-            attenuation += fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[4].xy, shadowCoord.z));
-            attenuation += fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[5].xy, shadowCoord.z));
-            attenuation += fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[6].xy, shadowCoord.z));
-            attenuation += fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[7].xy, shadowCoord.z));
-            attenuation += fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, real3(fetchesUV[8].xy, shadowCoord.z));
+            attenuation  = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z));
+            attenuation += fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z));
+            attenuation += fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z));
+            attenuation += fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z));
+            attenuation += fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z));
+            attenuation += fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z));
+            attenuation += fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z));
+            attenuation += fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z));
+            attenuation += fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z));
         #endif
     #endif
 #else

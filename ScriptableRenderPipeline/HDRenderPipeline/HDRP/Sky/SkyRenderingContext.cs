@@ -151,9 +151,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hash = hash * 23 + light.colorTemperature.GetHashCode();
                 hash = hash * 23 + light.intensity.GetHashCode();
                 hash = hash * 23 + light.range.GetHashCode();
-                if(light.cookie != null)
+                if (light.cookie != null)
+                {
                     hash = hash * 23 + (int)light.cookie.updateCount;
-                hash = hash * 23 + ald.lightDimmer.GetHashCode();
+                    hash = hash * 23 + (int)light.cookie.GetInstanceID();
+                }
+                if (ald != null)
+                {
+                    hash = hash * 23 + ald.lightDimmer.GetHashCode();
+                }
 
                 return hash;
             }

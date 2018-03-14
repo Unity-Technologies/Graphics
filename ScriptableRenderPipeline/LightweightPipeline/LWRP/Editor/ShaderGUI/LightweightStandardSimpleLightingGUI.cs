@@ -177,6 +177,12 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         StandardSimpleLightingUpgrader.UpdateMaterialKeywords(material);
     }
 
+    private bool RequiresAlpha()
+    {
+        SurfaceType surfaceType = (SurfaceType) surfaceTypeProp.floatValue;
+        return alphaClip.floatValue > 0.0f || surfaceType == SurfaceType.Transparent;
+    }
+
     private void DoSurfaceArea()
     {
         int surfaceTypeValue = (int)surfaceTypeProp.floatValue;
@@ -203,7 +209,7 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         bool alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipLabel, alphaClip.floatValue == 1);
         if (EditorGUI.EndChangeCheck())
             alphaClip.floatValue = alphaClipEnabled ? 1 : 0;
-        
+
         EditorGUILayout.Space();
 
         if ((SurfaceType)surfaceTypeValue == SurfaceType.Opaque)
@@ -237,17 +243,25 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularGlossMapLabels[(int)glossinessSourceProp.floatValue], specularGlossMapProp, hasSpecularMap ? null : specularColorProp);
 
             EditorGUI.indentLevel += 2;
-            GUI.enabled = hasSpecularMap;
-            int glossinessSource = hasSpecularMap ? (int)glossinessSourceProp.floatValue : (int)GlossinessSource.BaseAlpha;
-            EditorGUI.BeginChangeCheck();
-            glossinessSource = EditorGUILayout.Popup(Styles.glossinessSourceLabel, glossinessSource, Styles.glossinessSourceNames);
-            if (EditorGUI.EndChangeCheck())
-                glossinessSourceProp.floatValue = glossinessSource;
-            GUI.enabled = true;
+            if (RequiresAlpha())
+            {
+                GUI.enabled = false;
+                glossinessSourceProp.floatValue = (float)EditorGUILayout.Popup(Styles.glossinessSourceLabel, (int) GlossinessSource.SpecularAlpha, Styles.glossinessSourceNames);
+                GUI.enabled = true;
+            }
+            else
+            {
+                int glossinessSource = (int)glossinessSourceProp.floatValue;
+                EditorGUI.BeginChangeCheck();
+                glossinessSource = EditorGUILayout.Popup(Styles.glossinessSourceLabel, glossinessSource, Styles.glossinessSourceNames);
+                if (EditorGUI.EndChangeCheck())
+                    glossinessSourceProp.floatValue = glossinessSource;
+                GUI.enabled = true;
+            }
 
             EditorGUI.BeginChangeCheck();
             float shininess = EditorGUILayout.Slider(Styles.shininessLabel, shininessProp.floatValue,
-                    kMinShininessValue, 1.0f);
+                kMinShininessValue, 1.0f);
             if (EditorGUI.EndChangeCheck())
                 shininessProp.floatValue = shininess;
             EditorGUI.indentLevel -= 2;
