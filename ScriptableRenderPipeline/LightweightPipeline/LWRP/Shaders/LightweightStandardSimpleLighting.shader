@@ -88,7 +88,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ _SHADOW_ENABLED
+            #pragma multi_compile _ _SHADOWS_ENABLED
 
             //--------------------------------------
             // GPU Instancing
