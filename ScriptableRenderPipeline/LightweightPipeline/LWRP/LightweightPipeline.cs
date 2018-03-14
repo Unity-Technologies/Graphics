@@ -1369,23 +1369,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     depthRT = m_DepthRT;
             }
 
-            if (ForceClear())
+            ClearFlag clearFlag = ClearFlag.None;
+            CameraClearFlags cameraClearFlags = m_CurrCamera.clearFlags;
+            if (cameraClearFlags != CameraClearFlags.Nothing)
             {
-                SetRenderTarget(cmd, colorRT, depthRT, ClearFlag.All);
+                clearFlag |= ClearFlag.Depth;
+                if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
+                    clearFlag |= ClearFlag.Color;
             }
-            else
-            {
-                ClearFlag clearFlag = ClearFlag.None;
-                CameraClearFlags cameraClearFlags = m_CurrCamera.clearFlags;
-                if (cameraClearFlags != CameraClearFlags.Nothing)
-                {
-                    clearFlag |= ClearFlag.Depth;
-                    if (cameraClearFlags == CameraClearFlags.Color || cameraClearFlags == CameraClearFlags.Skybox)
-                        clearFlag |= ClearFlag.Color;
-                }
 
-                SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
-            }
+            SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
@@ -1477,13 +1470,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int GetLightUnsortedIndex(int index)
         {
             return (index < m_SortedLightIndexMap.Count) ? m_SortedLightIndexMap[index] : index;
-        }
-
-        private bool ForceClear()
-        {
-            // Clear RenderTarget to avoid tile initialization on mobile GPUs
-            // https://community.arm.com/graphics/b/blog/posts/mali-performance-2-how-to-correctly-handle-framebuffers
-            return (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer);
         }
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
