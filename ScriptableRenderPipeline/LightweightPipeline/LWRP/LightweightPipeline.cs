@@ -314,20 +314,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CurrCamera = camera;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
-                var cmd = CommandBufferPool.Get("");
-                cmd.BeginSample("LightweightPipeline.Render");
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
 
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
-                {
-                    cmd.EndSample("LightweightPipeline.Render");
-                    context.ExecuteCommandBuffer(cmd);
-                    CommandBufferPool.Release(cmd);
                     continue;
-                }
 
+                var cmd = CommandBufferPool.Get("");
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowSettings.maxShadowDistance,
                         m_CurrCamera.farClipPlane);
 
@@ -389,13 +381,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.color);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.copyColor);
-
-                cmd.EndSample("LightweightPipeline.Render");
-
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
                 context.Submit();
+
                 if (m_ShadowMapRT)
                 {
                     RenderTexture.ReleaseTemporary(m_ShadowMapRT);
