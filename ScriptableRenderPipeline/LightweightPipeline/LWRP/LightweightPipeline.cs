@@ -366,17 +366,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (shadows && m_ShadowSettings.screenSpace)
                     ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
 
-                if (!shadows)
-                {
-                    var setRT = CommandBufferPool.Get("Generate Small Shadow Buffer");
-                    if (m_ShadowSettings.screenSpace)
-                        setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.screenspaceShadowmapTextureFormat);
-                    else
-                        setRT.GetTemporaryRT(m_ShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.shadowmapTextureFormat);
-                    setRT.Blit(Texture2D.whiteTexture, m_ScreenSpaceShadowMapRT);
-                    context.ExecuteCommandBuffer(setRT);
-                }
-
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
 
