@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXValue.Constant(Mathf.Epsilon) };
+            return new[] { VFXOperatorUtility.EpsilonExpression[1] };
         }
     }
 }
