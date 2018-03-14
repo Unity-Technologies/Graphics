@@ -128,6 +128,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 RemoveFromClassList("collapsed");
                 AddToClassList("expanded");
                 m_PreviewResizeBorderFrame.visible = true;
+
+                style.positionLeft = StyleValue<float>.Create(float.NaN);
+                style.positionBottom = StyleValue<float>.Create(float.NaN);
+                style.positionRight = StyleValue<float>.Create(parent.layout.width - layout.xMax);
+                style.positionTop = StyleValue<float>.Create(layout.yMin);
+
                 previewTextureView.style.width = StyleValue<float>.Create(m_ExpandedPreviewSize.x);
                 previewTextureView.style.height = StyleValue<float>.Create(m_ExpandedPreviewSize.y);
             }
@@ -135,6 +141,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 m_ExpandedPreviewSize = previewTextureView.layout.size;
                 m_PreviewResizeBorderFrame.visible = false;
+
+                style.positionLeft = StyleValue<float>.Create(float.NaN);
+                style.positionBottom = StyleValue<float>.Create(float.NaN);
+                style.positionRight = StyleValue<float>.Create(parent.layout.width - layout.xMax);
+                style.positionTop = StyleValue<float>.Create(layout.yMin);
+
                 previewTextureView.style.width = StyleValue<float>.Create(0f);
                 previewTextureView.style.height = StyleValue<float>.Create(0f);
                 RemoveFromClassList("expanded");
@@ -230,13 +242,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             var currentWidth = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.width : -1;
             var currentHeight = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.height : -1;
 
-            var targetWidth = m_PreviewTextureView.contentRect.width;
-            var targetHeight = m_PreviewTextureView.contentRect.height;
+            var targetWidth = Mathf.Max(1f, m_PreviewTextureView.contentRect.width);
+            var targetHeight = Mathf.Max(1f, m_PreviewTextureView.contentRect.height);
 
             if (Mathf.Approximately(currentWidth, targetHeight) && Mathf.Approximately(currentHeight, targetWidth))
                 return;
 
-            m_PreviewManager.ResizeMasterPreview(m_PreviewTextureView.contentRect.size);
+            m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
         }
 
         public void UpdateRenderTextureOnNextLayoutChange()
