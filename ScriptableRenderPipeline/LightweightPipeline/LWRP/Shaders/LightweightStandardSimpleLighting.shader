@@ -51,7 +51,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         Pass

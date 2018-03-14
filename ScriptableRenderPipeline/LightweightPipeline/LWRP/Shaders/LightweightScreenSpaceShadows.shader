@@ -2,7 +2,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "LightweightPipeline" }
+        Tags{ "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
 
         HLSLINCLUDE
 

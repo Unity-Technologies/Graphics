@@ -58,7 +58,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         // Lightweight Pipeline tag is required. If Lightweight pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Lightweight Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         // ------------------------------------------------------------------
