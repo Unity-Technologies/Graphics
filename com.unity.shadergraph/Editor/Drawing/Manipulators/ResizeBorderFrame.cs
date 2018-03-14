@@ -9,21 +9,6 @@ public class ResizeBorderFrame : VisualElement
 {
     List<ResizeSideHandle> m_ResizeSideHandles;
 
-    bool m_StayWithinParentBounds;
-
-    public bool stayWithinParentBounds
-    {
-        get { return m_StayWithinParentBounds; }
-        set
-        {
-            m_StayWithinParentBounds = value;
-            foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
-            {
-                resizeHandle.stayWithinParentBounds = value;
-            }
-        }
-    }
-
     bool m_MaintainApsectRatio;
 
     public bool maintainAspectRatio
@@ -59,7 +44,7 @@ public class ResizeBorderFrame : VisualElement
 
         m_ResizeSideHandles = new List<ResizeSideHandle>();
 
-        // Add resize handles along the border 
+        // Add resize handles along the border
         m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopLeft));
         m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Top));
         m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopRight));

@@ -49,7 +49,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.AddManipulator(m_WindowDraggable);
 
             m_ResizeBorderFrame = new ResizeBorderFrame(blackboard) { name = "resizeBorderFrame" };
-            m_ResizeBorderFrame.stayWithinParentBounds = true;
             blackboard.shadow.Add(m_ResizeBorderFrame);
 
             m_Section = new BlackboardSection { headerVisible = false };
