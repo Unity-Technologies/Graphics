@@ -115,8 +115,8 @@ struct EnvLightData
     float3 blendNormalDistanceNegative;
     float3 boxSideFadePositive;
     float3 boxSideFadeNegative;
-    float dimmer;
-    float unused01;
+    float weight;
+    float multiplier;
     float3 sampleDirectionDiscardWS;
     int envIndex;
 };
@@ -340,13 +340,13 @@ float3 GetBoxSideFadeNegative(EnvLightData value)
 {
 	return value.boxSideFadeNegative;
 }
-float GetDimmer(EnvLightData value)
+float GetWeight(EnvLightData value)
 {
-	return value.dimmer;
+	return value.weight;
 }
-float GetUnused01(EnvLightData value)
+float GetMultiplier(EnvLightData value)
 {
-	return value.unused01;
+	return value.multiplier;
 }
 float3 GetSampleDirectionDiscardWS(EnvLightData value)
 {

@@ -107,7 +107,12 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_AdditionalSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.dimmer);
+            EditorGUILayout.PropertyField(p.weight);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(p.multiplier);
+            if (EditorGUI.EndChangeCheck())
+                p.multiplier.floatValue = Mathf.Max(0.0f, p.multiplier.floatValue);
 
             if (p.so.targetObjects.Length == 1)
             {

@@ -2,19 +2,24 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 {
     SubShader
     {
-        Tags{ "RenderPipeline" = "LightweightPipeline" }
+        Tags{ "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
 
         HLSLINCLUDE
 
         #pragma prefer_hlslcc gles
-        //Keep compiler quiet about Shadows.hlsl. 
+        //Keep compiler quiet about Shadows.hlsl.
         #include "CoreRP/ShaderLibrary/Common.hlsl"
         #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
         #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "LWRP/ShaderLibrary/Core.hlsl"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
-        SCREENSPACE_TEXTURE(_CameraDepthTexture);
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        TEXTURE2D_ARRAY(_CameraDepthTexture);
+#else
+        TEXTURE2D(_CameraDepthTexture);
+#endif // defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+
         SAMPLER(sampler_CameraDepthTexture);
 
         struct VertexInput
@@ -50,7 +55,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             return o;
         }
 
-        half Fragment(Interpolators i) : SV_Target
+        half4 Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
 #if !defined(UNITY_STEREO_INSTANCING_ENABLED)
@@ -69,13 +74,13 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 #if UNITY_REVERSED_Z
             deviceDepth = 1 - deviceDepth;
 #endif
-            deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position. 
+            deviceDepth = 2 * deviceDepth - 1; //NOTE: Currently must massage depth before computing CS position.
 
             float3 vpos = ComputeViewSpacePosition(i.texcoord.zw, deviceDepth, unity_CameraInvProjection);
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
-            
+
             //Fetch shadow coordinates for cascade.
-            float4 coords  = ComputeScreenSpaceShadowCoords(wpos);
+            float4 coords  = TransformWorldToShadowCoord(wpos);
 
             return SampleShadowmap(coords);
         }

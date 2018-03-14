@@ -115,6 +115,12 @@ float3 GetPunctualShadowClosestSample( ShadowContext shadowContext, real3 positi
 {
 	return EvalShadow_GetClosestSample_Punctual( shadowContext, shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX], positionWS, index, L );
 }
+
+float GetPunctualShadowClosestDistance( ShadowContext shadowContext, SamplerState sampl, real3 positionWS, int index, float3 L, float3 lightPositionWS)
+{
+	return EvalShadow_SampleClosestDistance_Punctual( shadowContext, shadowContext.tex2DArray[SHADOW_DISPATCH_PUNC_TEX], sampl, positionWS, index, L, lightPositionWS );
+}
+
 #endif
 
 // cleanup the defines

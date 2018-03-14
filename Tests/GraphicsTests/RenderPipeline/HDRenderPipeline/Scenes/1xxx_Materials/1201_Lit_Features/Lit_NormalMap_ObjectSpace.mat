@@ -220,6 +220,7 @@ Material:
     - _UVDetail: 0
     - _UVEmissive: 0
     - _ZTestDepthEqualForOpaque: 3
+    - _ZTestGBuffer: 4
     - _ZTestMode: 8
     - _ZTestModeDistortion: 8
     - _ZWrite: 1

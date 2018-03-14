@@ -1285,7 +1285,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
             envLightData.influenceShapeType = probe.influenceShapeType;
-            envLightData.dimmer = probe.dimmer;
+            envLightData.weight = probe.weight;
+            envLightData.multiplier = probe.multiplier;
             envLightData.influenceExtents = probe.influenceExtents;
             envLightData.blendNormalDistancePositive = probe.blendNormalDistancePositive;
             envLightData.blendNormalDistanceNegative = probe.blendNormalDistanceNegative;
@@ -1836,7 +1837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (uint)logVolume << 20 | (uint)lightVolumeType << 17 | listType << 16 | ((uint)probeIndex & 0xFFFF);
         }
 
-        void VoxelLightListGeneration(CommandBuffer cmd, HDCamera hdCamera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
+        void VoxelLightListGeneration(CommandBuffer cmd, HDCamera hdCamera, Matrix4x4[] projscrArr, Matrix4x4[] invProjscrArr, RenderTargetIdentifier cameraDepthBufferRT)
         {
             Camera camera = hdCamera.camera;
             // clear atomic offset index
@@ -1848,8 +1849,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-            cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjection, projscr);
-            cmd.SetComputeMatrixParam(buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscr);
+            cmd.SetComputeMatrixArrayParam(buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, projscrArr);
+            cmd.SetComputeMatrixArrayParam(buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, invProjscrArr);
 
             cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
 
@@ -1890,7 +1891,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var numTilesX = GetNumTileClusteredX(hdCamera);
             var numTilesY = GetNumTileClusteredY(hdCamera);
-            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
+            int numEyes = m_FrameSettings.enableStereo ? 2 : 1;
+            //cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
+            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, numEyes);
         }
 
         public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
@@ -1918,6 +1921,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var invProjscrArr = new Matrix4x4[2];
             if (m_FrameSettings.enableStereo)
             {
+                // XRTODO: If possible, we could generate a non-oblique stereo projection
+                // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
+                // the same FOV as the original projection matrix (which would mean padding each half
+                // of the frustum with the max half-angle). We don't need the light information in 
+                // real projection space.  We just use screen space to figure out what is proximal
+                // to a cluster or tile.
+                // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
                 for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
                     projArr[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);
@@ -2047,7 +2057,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-            VoxelLightListGeneration(cmd, hdCamera, projscrArr[0], invProjscrArr[0], cameraDepthBufferRT);
+            VoxelLightListGeneration(cmd, hdCamera, projscrArr, invProjscrArr, cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {

@@ -35,24 +35,45 @@ real3 SHEvalLinearL2(real3 N, real4 shBr, real4 shBg, real4 shBb, real4 shC)
     return x2 + x3;
 }
 
-real3 SampleSH9(real4 SHCoefficients[7], real3 N)
+#if HAS_HALF
+half3 SampleSH9(half4 SHCoefficients[7], half3 N)
 {
-    real4 shAr = SHCoefficients[0];
-    real4 shAg = SHCoefficients[1];
-    real4 shAb = SHCoefficients[2];
-    real4 shBr = SHCoefficients[3];
-    real4 shBg = SHCoefficients[4];
-    real4 shBb = SHCoefficients[5];
-    real4 shCr = SHCoefficients[6];
+    half4 shAr = SHCoefficients[0];
+    half4 shAg = SHCoefficients[1];
+    half4 shAb = SHCoefficients[2];
+    half4 shBr = SHCoefficients[3];
+    half4 shBg = SHCoefficients[4];
+    half4 shBb = SHCoefficients[5];
+    half4 shCr = SHCoefficients[6];
 
     // Linear + constant polynomial terms
-    real3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
+    half3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
 
     // Quadratic polynomials
     res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
 
     return res;
 }
+#endif
+float3 SampleSH9(float4 SHCoefficients[7], float3 N)
+{
+    float4 shAr = SHCoefficients[0];
+    float4 shAg = SHCoefficients[1];
+    float4 shAb = SHCoefficients[2];
+    float4 shBr = SHCoefficients[3];
+    float4 shBg = SHCoefficients[4];
+    float4 shBb = SHCoefficients[5];
+    float4 shCr = SHCoefficients[6];
+
+    // Linear + constant polynomial terms
+    float3 res = SHEvalLinearL0L1(N, shAr, shAg, shAb);
+
+    // Quadratic polynomials
+    res += SHEvalLinearL2(N, shBr, shBg, shBb, shCr);
+
+    return res;
+}
+
 
 // This sample a 3D volume storing SH
 // Volume is store as 3D texture with 4 R, G, B, Occ set of 4 coefficient store atlas in same 3D texture. Occ is use for occlusion.
