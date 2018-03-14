@@ -16,6 +16,7 @@ int _DebugMipMapMode; // Match enum DebugMipMapMode
 float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 float4 _DebugLightingNormal; // x == bool override
+float4 _DebugLightingSpecularColor; // x == bool override, yzw = specular color
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float _DebugEnvironmentProxyDepthScale;
 CBUFFER_END
