@@ -41,6 +41,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             get { return m_Expanded;}
         }
 
+        bool m_RecalculateLayout;
+
         Vector2 m_ExpandedPreviewSize;
 
         VisualElement m_CollapsePreviewContainer;
@@ -113,6 +115,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Add(m_PreviewResizeBorderFrame);
 
             m_ExpandedPreviewSize = new Vector2(256f, 256f);
+            m_RecalculateLayout = false;
+            previewTextureView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         void UpdateExpandedButtonState()
@@ -152,6 +156,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 RemoveFromClassList("expanded");
                 AddToClassList("collapsed");
             }
+
+            m_RecalculateLayout = true;
         }
 
         Image CreatePreview(Texture texture)
@@ -234,8 +240,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged });
         }
 
-        public void RefreshRenderTextureSize()
+        void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            if (m_RecalculateLayout)
+            {
+                WindowDockingLayout dockingLayout = new WindowDockingLayout();
+                dockingLayout.CalculateDockingCornerAndOffset(layout, parent.layout);
+                dockingLayout.ApplyPosition(this);
+                m_RecalculateLayout = false;
+            }
+
             if (!expanded)
                 return;
 
@@ -249,17 +263,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 return;
 
             m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
-        }
-
-        public void UpdateRenderTextureOnNextLayoutChange()
-        {
-            RegisterCallback<GeometryChangedEvent>(AdaptRenderTextureOnLayoutChange);
-        }
-
-        void AdaptRenderTextureOnLayoutChange(GeometryChangedEvent evt)
-        {
-            UnregisterCallback<GeometryChangedEvent>(AdaptRenderTextureOnLayoutChange);
-            RefreshRenderTextureSize();
         }
 
         void OnScroll(float scrollValue)

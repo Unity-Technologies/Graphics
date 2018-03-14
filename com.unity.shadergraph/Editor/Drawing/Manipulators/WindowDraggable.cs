@@ -151,9 +151,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     target.style.positionBottom = StyleValue<float>.Create(0f);
                 }
             }
-
-            m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
-            m_WindowDockingLayout.ApplyPosition(target);
         }
     }
 }
