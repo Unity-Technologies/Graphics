@@ -3121,7 +3121,7 @@ VisualEffectAsset:
         index: 24
       - nameId: bounds_size
         index: 22
-      processor: {fileID: 7200000, guid: a7b317a3c47c0404887b1635ed51c291, type: 3}
+      processor: {fileID: 7200000, guid: fe0def9d8318e3942a29027503a57863, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -3138,7 +3138,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 32
       params: []
-      processor: {fileID: 7200000, guid: 9920ba140529bdf449930f0d07cdcfce, type: 3}
+      processor: {fileID: 7200000, guid: b9360eb8443c1e442b8d9cc99601e783, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3149,7 +3149,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 64f6444e2f3940f4ea617b3c012adf7f, type: 3}
+      processor: {fileID: 4800000, guid: 82c9881b3eaf0074dac93acd1d7102e8, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3166,7 +3166,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 305c5bf03ca9e164f823fa848cae8a70, type: 3}
+      processor: {fileID: 4800000, guid: 689434edd79195e4c96f556c511288e6, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3181,7 +3181,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 2c454cbdb2754a846a98b4efb66bbf9e, type: 3}
+      processor: {fileID: 4800000, guid: 0270eb6a08c5c61498ee1938ff2a083b, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -3198,7 +3198,7 @@ VisualEffectAsset:
         index: 27
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 6f2b183bfb731f14f858b45ec6e8d774, type: 3}
+      processor: {fileID: 4800000, guid: 8e3c1ad3a6605be44871f03e98e1defc, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

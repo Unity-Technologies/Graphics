@@ -334,8 +334,11 @@ namespace UnityEditor.VFX
         public override void Sanitize()
         {
             // Remove invalid links (without owners)
-            foreach (var link in LinkedSlots)
-                if (link.owner == null || ((VFXModel)(link.owner)).GetGraph() != GetGraph())
+            if (owner == null)
+                UnlinkAll();
+
+            foreach (var link in LinkedSlots.ToArray())
+                if (link.owner == null || ((VFXModel)(link.owner)).GetGraph() != ((VFXModel)owner).GetGraph())
                     Unlink(link);
 
             // Here we check if hierarchy of type match with slot hierarchy
