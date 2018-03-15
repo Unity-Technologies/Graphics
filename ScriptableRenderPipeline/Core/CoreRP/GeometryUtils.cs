@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -92,15 +92,11 @@ namespace UnityEngine.Experimental.Rendering
     public static class GeometryUtils
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
-        // 'cameraRelativeOffset' can be used to intersect a world-space OBB with a camera-relative frustum.
-        public static bool Overlap(OrientedBBox obb, Vector3 cameraRelativeOffset,
-                                   Frustum frustum, int numPlanes, int numCorners)
+        public static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
         {
-            Vector3 center = obb.center + cameraRelativeOffset;
-
             bool overlap = true;
 
-            // Test the OBB against frustum planes. Frustum planes have inward-facing.
+            // Test the OBB against frustum planes. Frustum planes are inward-facing.
             // The OBB is outside if it's entirely behind one of the frustum planes.
             // See "Real-Time Rendering", 3rd Edition, 16.10.2.
             for (int i = 0; overlap && i < numPlanes; i++)
@@ -114,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering
                                       + obb.extentZ * Mathf.Abs(Vector3.Dot(n, obb.forward));
 
                 // Negative distance -> center behind the plane (outside).
-                float centerToPlaneDist = Vector3.Dot(n, center) + d;
+                float centerToPlaneDist = Vector3.Dot(n, obb.center) + d;
 
                 // outside = maxHalfDiagProj < -centerToPlaneDist
                 // outside = maxHalfDiagProj + centerToPlaneDist < 0
@@ -148,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Merge 2 loops. Continue as long as all points are outside either plane.
                 for (int j = 0; j < numCorners; j++)
                 {
-                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - center);
+                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - obb.center);
                     outsidePos = outsidePos && ( proj > plane.distance);
                     outsideNeg = outsideNeg && (-proj > plane.distance);
                 }
