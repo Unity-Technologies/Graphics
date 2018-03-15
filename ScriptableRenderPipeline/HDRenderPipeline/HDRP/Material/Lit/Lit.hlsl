@@ -1478,7 +1478,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
             // We need to make sure it's not less than the baked thickness to minimize light leaking.
             float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
 
-            float3 S = _ShapeParams[bsdfData.diffusionProfile];
+            float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
 
             // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
         #if 0
