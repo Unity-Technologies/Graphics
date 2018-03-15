@@ -2667,6 +2667,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
 --- !u!114 &114833589730317984
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3978,7 +3984,7 @@ VisualEffectAsset:
         index: 82
       - nameId: bounds_size
         index: 88
-      processor: {fileID: 7200000, guid: 8f40e419af30d3243ab32655921b7847, type: 3}
+      processor: {fileID: 7200000, guid: 0a560af345c03934faf06b9e7d92bfb2, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -3989,7 +3995,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 84
       params: []
-      processor: {fileID: 7200000, guid: 4ca18119c5fdced46a6f58d7d0eabf74, type: 3}
+      processor: {fileID: 7200000, guid: 8fed1972bfc2d1b40ad265c502842451, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4016,7 +4022,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 8a8e9ffdafd58d649acfd5a44bf9d26c, type: 3}
+      processor: {fileID: 4800000, guid: 55215c889791aa348a49eb5349a49aa3, type: 3}
   - type: 2
     flags: 0
     capacity: 0

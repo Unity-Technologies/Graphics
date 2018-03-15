@@ -10,9 +10,9 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             [Tooltip("The transform.")]
-            public Transform transform = new Transform();
+            public Transform transform = Transform.defaultValue;
             [Tooltip("The vector to be transformed.")]
-            public Vector vector = new Vector();
+            public Vector vector = Vector.defaultValue;
         }
 
         public class OutputProperties
