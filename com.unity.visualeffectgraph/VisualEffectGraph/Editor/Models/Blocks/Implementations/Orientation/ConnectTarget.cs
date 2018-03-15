@@ -25,10 +25,13 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
+            [Tooltip("The position that will correspond to the top end of the particle")]
             public Position TargetPosition = Position.defaultValue;
+            [Tooltip("The direction that will the particle face towards")]
             public DirectionType LookDirection = DirectionType.defaultValue;
+            [Tooltip("The position that will the particle look at")]
             public Position LookAtPosition = Position.defaultValue;
-
+            [Range(0.0f,1.0f), Tooltip("The position (relative to the segment) that will act as a pivot.")]
             public float PivotPosition = 0.5f;
         }
 
