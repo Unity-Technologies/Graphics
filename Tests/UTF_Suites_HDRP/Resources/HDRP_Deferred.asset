@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95285c6cacdfe25449799296c7d847ae, type: 3}
+  m_Name: HDRP_Deferred
+  m_EditorClassIdentifier: 
+  suiteName: HDRPDeferred
+  isDebugSuite: 0
+  defaultTestSettings: {fileID: 0}
+  defaultRenderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
+    type: 2}
+  groups:
+  - groupName: 1xxxMaterials
+    tests:
+    - name: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/1xxx_Materials/1101_Unlit.unity
+      scene: {fileID: 102900000, guid: 7fe3f9e94b4355641ba1534c54d5c356, type: 3}
+      scenePath: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/1xxx_Materials/1101_Unlit.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: 64
+      run: 1
+  suiteVersion: 15
