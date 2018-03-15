@@ -27,6 +27,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CascadeShadowBorders[1] = cascadeShadowBorder1;
                 m_CascadeShadowBorders[2] = cascadeShadowBorder2;
                 m_CascadeShadowBorders[3] = cascadeShadowBorder3;
+
+
+                /* Borders are currently broken if cascade count is not 4. Enable this when it's fixed.
+                // For now we don't use shadow cascade borders but we still want to have the last split fading out.
+                if(!LightLoop.s_UseCascadeBorders)
+                {
+                    m_CascadeShadowBorders[cascadeShadowSplitCount - 1] = 0.2f;
+                }
+                */
                 return m_CascadeShadowBorders;
             }
         }
