@@ -484,6 +484,7 @@ namespace UnityEngine.Experimental.Rendering
                     sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
                 else
                     sp.Set( 0.0f, 0.0f, 0.0f, 0.0f );
+                sp.p3 = (int) sr.facecount;
                 payload[payloadOffset] = sp;
                 payloadOffset++;
 
