@@ -36,28 +36,17 @@ namespace UnityEditor
         [MenuItem("Assets/Create/Visual Effect", false, 306)]
         public static void CreateVisualEffectAsset()
         {
-            VisualEffectResource resource = new VisualEffectResource();
-
-            VFXViewController controller = VFXViewController.GetController(resource);
-            controller.useCount++;
-
-            var template = VisualEffectResource.GetResourceAtPath(templatePath + "/" + templateAssetName);
-            if (template != null)
+            string templateString = "";
+            try
             {
-                VFXViewController templateController = VFXViewController.GetController(template);
-                templateController.useCount++;
-
-                var data = VFXCopyPaste.SerializeElements(templateController.allChildren, Rect.zero);
-
-                VFXCopyPaste.UnserializeAndPasteElements(controller, Vector2.zero, data);
-
-                templateController.useCount--;
+                templateString = System.IO.File.ReadAllText(templatePath + "/" + templateAssetName);
             }
-            controller.graph.RecompileIfNeeded();
+            catch (System.Exception e)
+            {
+                Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
+            }
 
-            ProjectWindowUtil.CreateAsset(resource, "New VFX.vfx");
-
-            controller.useCount--;
+            ProjectWindowUtil.CreateAssetWithContent("New VFX.vfx", templateString);
         }
 
         [MenuItem("VFX Editor/Make All Assets Visible")]

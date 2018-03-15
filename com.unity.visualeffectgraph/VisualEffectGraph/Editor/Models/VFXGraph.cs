@@ -218,19 +218,7 @@ namespace UnityEditor.VFX
                 RecompileIfNeeded();
                 float currentStep = 0;
                 float stepCount = 1;
-
-                // hide all sub assets
-                var assets = allAssets;
-                foreach (var asset in assets)
-                {
-                    asset.hideFlags |= HideFlags.HideInHierarchy;
-                }
-                hideFlags |= HideFlags.HideInHierarchy;
-
-                EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
                 m_saved = true;
-
-                //this.visualEffectAsset.WriteAsset();
             }
             catch (Exception e)
             {
@@ -269,44 +257,6 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
         }
 
-        IEnumerable<Object> allAssets
-        {
-            get {return AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader || o is VFXUI); }
-        }
-
-        public  bool displaySubAssets
-        {
-            get {return (hideFlags & HideFlags.HideInHierarchy) == 0; }
-            set
-            {
-                var persistentAssets = allAssets;
-
-                if (value)
-                {
-                    hideFlags &= ~HideFlags.HideInHierarchy;
-                }
-                else
-                {
-                    hideFlags |= HideFlags.HideInHierarchy;
-                }
-
-                foreach (var asset in persistentAssets)
-                {
-                    if (value)
-                    {
-                        asset.hideFlags &= ~HideFlags.HideInHierarchy;
-                    }
-                    else
-                    {
-                        asset.hideFlags |= HideFlags.HideInHierarchy;
-                    }
-                }
-
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(visualEffectAsset));
-            }
-        }
-
-
         public void ClearCompileData()
         {
             m_CompiledData = null;
@@ -323,9 +273,6 @@ namespace UnityEditor.VFX
 
             try
             {
-                var persistentObjects = new HashSet<Object>(allAssets);
-                persistentObjects.Remove(this);
-
                 var currentObjects = new HashSet<ScriptableObject>();
                 currentObjects.Add(this);
                 CollectDependencies(currentObjects);

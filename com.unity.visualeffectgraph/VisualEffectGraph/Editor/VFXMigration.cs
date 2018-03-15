@@ -84,8 +84,13 @@ public class VFXMigration
                     asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
                 }
 
+                if (asset == null)
+                {
+                    Debug.LogError("Couldn't Import vfx" + path);
+                }
+
                 var resource = asset.GetResource();
-                if (asset != null)
+                if (resource != null)
                 {
                     resource.ValidateAsset();
                     try
@@ -111,6 +116,7 @@ public class VFXMigration
     {
         public string assetPath;
         public Dictionary<string, Dictionary<string, object>> values;
+        public Dictionary<string, Dictionary<string, bool>> prefabOverrides;
     }
 
     class FileVFXComponents
@@ -127,18 +133,43 @@ public class VFXMigration
         List<FileVFXComponents> files = new List<FileVFXComponents>();
         var sceneGuids = AssetDatabase.FindAssets("t:Scene");
 
+
+        HashSet<GameObject> usedPrefabs = new HashSet<GameObject>();
+
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene); // load a new scene to make sure we don't have multiple scenes loaded
 
         foreach (var guid in sceneGuids)
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
 
-            EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
-            files.Add(FindComponentsInScene());
+            try
+            {
+                EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            }
+            catch (System.Exception)
+            {
+                //Ignore exception thrown when opening scenes.
+            }
+            files.Add(FindComponentsInScene(usedPrefabs));
         }
+
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene); // load a new scene to make sure we don't have multiple scenes loaded
 
+        List<FileVFXComponents> prefabsInfos = new List<FileVFXComponents>();
+        foreach (var prefab in usedPrefabs)
+        {
+            prefabsInfos.Add(FindComponentsInPrefab(prefab));
+            Debug.Log("Found prefab : " + AssetDatabase.GetAssetPath(prefab));
+        }
+
         Resave(); // Convert to the new format with the vfx assets in the library
+
+        foreach (var prefab in prefabsInfos)
+        {
+            SetComponentInPrefab(prefab);
+        }
+
+        AssetDatabase.SaveAssets();
 
         foreach (var file in files)
         {
@@ -152,10 +183,19 @@ public class VFXMigration
     [MenuItem("VFX Editor/Migrate Components in Current Scene")]
     public static void MigrateComponentsCurrentScnene()
     {
-        FileVFXComponents components = FindComponentsInScene();
+        HashSet<GameObject> prefabs = new HashSet<GameObject>();
+        FileVFXComponents components = FindComponentsInScene(prefabs);
 
+        List<FileVFXComponents> prefabsInfos = new List<FileVFXComponents>();
+        foreach (var prefab in prefabs)
+        {
+            prefabsInfos.Add(FindComponentsInPrefab(prefab));
+            Debug.Log("Found prefab : " + AssetDatabase.GetAssetPath(prefab));
+        }
 
-        foreach (var path in components.componentPaths.Values)
+        return;
+
+        foreach (var path in components.componentPaths.Values.Union(prefabsInfos.SelectMany(t => t.componentPaths.Values)).Distinct())
         {
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path.assetPath);
             if (asset == null)
@@ -186,30 +226,62 @@ public class VFXMigration
         EditorSceneManager.SaveScene(EditorSceneManager.GetSceneByPath(components.path));
     }
 
-    static FileVFXComponents FindComponentsInScene()
+    static FileVFXComponents FindComponentsInScene(HashSet<GameObject> prefabs)
     {
-        var objects = EditorSceneManager.GetActiveScene().GetRootGameObjects();
-
-        FileVFXComponents infos = new FileVFXComponents();
-        infos.path = EditorSceneManager.GetActiveScene().path;
-        infos.componentPaths = new Dictionary<string, ComponentData>();
-
-        foreach (var obj in objects)
+        string path = EditorSceneManager.GetActiveScene().path;
+        try
         {
-            FindVFXInGameObjectRecurse(infos, obj, "");
-        }
+            var objects = EditorSceneManager.GetActiveScene().GetRootGameObjects();
 
-        return infos;
+            FileVFXComponents infos = new FileVFXComponents();
+            infos.path = path;
+            infos.componentPaths = new Dictionary<string, ComponentData>();
+
+            foreach (var obj in objects)
+            {
+                FindVFXInGameObjectRecurse(infos, obj, "", prefabs, false);
+            }
+
+            return infos;
+        }
+        catch (System.Exception)
+        {
+            Debug.Log("Error analyzing scene" + path);
+
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            throw;
+        }
     }
 
-    static void FindComponentsInScene(FileVFXComponents infos)
+    static FileVFXComponents FindComponentsInPrefab(GameObject prefab)
     {
-        var objects = EditorSceneManager.GetActiveScene().GetRootGameObjects();
-
-        foreach (var obj in objects)
+        string path = AssetDatabase.GetAssetPath(prefab);
+        try
         {
-            FindVFXInGameObjectRecurse(infos, obj, "");
+            FileVFXComponents infos = new FileVFXComponents();
+            infos.path = path;
+            infos.componentPaths = new Dictionary<string, ComponentData>();
+
+            FindVFXInGameObjectRecurse(infos, prefab, "", null, false);
+
+            return infos;
         }
+        catch (System.Exception)
+        {
+            Debug.Log("Error analyzing prefab" + path);
+
+            throw;
+        }
+    }
+
+    static void SetComponentInPrefab(FileVFXComponents infos)
+    {
+        var go = AssetDatabase.LoadAssetAtPath<GameObject>(infos.path);
+
+        SetVFXInGameObjectRecurse(infos, go, "");
+
+        EditorUtility.SetDirty(go);
     }
 
     static void SetComponentsInScene(FileVFXComponents infos)
@@ -222,17 +294,29 @@ public class VFXMigration
         }
     }
 
-    static void FindVFXInGameObjectRecurse(FileVFXComponents infos, GameObject go, string path)
+    static void FindVFXInGameObjectRecurse(FileVFXComponents infos, GameObject go, string path, HashSet<GameObject> prefabs, bool isInPrefab)
     {
+        if (prefabs != null && !isInPrefab && PrefabUtility.GetCorrespondingObjectFromSource(go) != null)
+        {
+            prefabs.Add(PrefabUtility.GetCorrespondingObjectFromSource(go) as GameObject);
+
+            isInPrefab = true;
+        }
         VisualEffect effect = go.GetComponent<VisualEffect>();
         if (effect != null)
         {
+            string componentPath = path + "/" + effect.name;
             if (!object.ReferenceEquals(effect.visualEffectAsset, null))
             {
                 string assetPath = AssetDatabase.GetAssetPath(effect.visualEffectAsset.GetInstanceID());
-                string componentPath = path + "/" + effect.name;
+
+                if (string.IsNullOrEmpty(assetPath) || effect.visualEffectAsset == null)
+                {
+                    throw new System.InvalidOperationException("Effect+" + componentPath + " of scene" + infos.path + " invalid. Please fix it before migration");
+                }
 
                 Dictionary<string, Dictionary<string, object>> values = new Dictionary<string, Dictionary<string, object>>();
+                Dictionary<string, Dictionary<string, bool>> prefaboverride = new Dictionary<string, Dictionary<string, bool>>();
 
                 SerializedObject obj = new SerializedObject(effect);
 
@@ -240,6 +324,7 @@ public class VFXMigration
                 {
                     Debug.Log("");
                 }
+                bool hasOneValue = false;
 
                 foreach (var setter in m_Setters)
                 {
@@ -253,21 +338,50 @@ public class VFXMigration
                         {
                             var elementProp = arrayProp.GetArrayElementAtIndex(i);
 
-                            if (elementProp.FindPropertyRelative("m_Overridden").boolValue)
+                            var overridenProp = elementProp.FindPropertyRelative("m_Overridden");
+                            bool overridenInPrefab = isInPrefab && overridenProp.prefabOverride;
+
+                            var valueProp = elementProp.FindPropertyRelative("m_Value");
+
+                            if ((!isInPrefab && overridenProp.boolValue) || (isInPrefab && valueProp.prefabOverride))
                             {
-                                values[setter.Key].Add(elementProp.FindPropertyRelative("m_Name").stringValue, setter.Value.get(elementProp.FindPropertyRelative("m_Value")));
+                                values[setter.Key].Add(elementProp.FindPropertyRelative("m_Name").stringValue, setter.Value.get(valueProp));
+                                hasOneValue = true;
+                            }
+
+                            if (overridenInPrefab)
+                            {
+                                if (!prefaboverride.ContainsKey(setter.Key))
+                                {
+                                    prefaboverride[setter.Key] = new Dictionary<string, bool>();
+                                }
+                                prefaboverride[setter.Key].Add(elementProp.FindPropertyRelative("m_Name").stringValue, overridenProp.boolValue);
+                                hasOneValue = true;
                             }
                         }
                     }
                 }
 
-                infos.componentPaths.Add(componentPath, new ComponentData() { assetPath = assetPath, values = values });
+                //Skip components that are in a prefab and don't have overridden parameters because some have the same path.
+                bool hasAssetSet = !isInPrefab || obj.FindProperty("m_Asset").prefabOverride;
+                if (hasOneValue || hasAssetSet)
+                {
+                    if (infos.componentPaths.ContainsKey(componentPath))
+                    {
+                        Debug.LogError("Two components have the path" + componentPath);
+                    }
+                    infos.componentPaths.Add(componentPath, new ComponentData() { assetPath = hasAssetSet ? assetPath : null, values = values, prefabOverrides = prefaboverride });
+                }
+            }
+            else
+            {
+                Debug.LogWarning("VisualEffect has no asset" + componentPath + " of scene" + infos.path);
             }
         }
 
         foreach (UnityEngine.Transform child in go.transform)
         {
-            FindVFXInGameObjectRecurse(infos, child.gameObject, path + "/" + go.name);
+            FindVFXInGameObjectRecurse(infos, child.gameObject, path + "/" + go.name, prefabs, isInPrefab);
         }
     }
 
@@ -285,16 +399,25 @@ public class VFXMigration
                 //if (effect.visualEffectAsset == null)
                 {
                     string assetPath = componentData.assetPath;
-                    VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(componentData.assetPath);
-
-
-                    if (assetPath.Contains("Gradient"))
+                    if (assetPath != null)
                     {
-                        Debug.Log("");
-                    }
+                        VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(componentData.assetPath);
 
-                    EditorUtility.SetDirty(effect);
-                    effect.visualEffectAsset = asset;
+                        if (asset == null)
+                        {
+                            Debug.Log("Couldn't load used asset:" + componentData.assetPath);
+                        }
+
+                        EditorUtility.SetDirty(effect);
+                        effect.visualEffectAsset = asset;
+                    }
+                    else
+                    {
+                        if (effect.visualEffectAsset == null)
+                        {
+                            Debug.LogError("Component " + componentPath + " asset should have been set with its prefab be didn't in scene " + infos.path);
+                        }
+                    }
                     effect.SetVisualEffectAssetDirty(true);
 
                     SerializedObject obj = new SerializedObject(effect);
@@ -313,6 +436,7 @@ public class VFXMigration
                                 if (elementProp.FindPropertyRelative("m_Name").stringValue == setter.Key)
                                 {
                                     m_Setters[value.Key].set(elementProp.FindPropertyRelative("m_Value"), setter.Value);
+
                                     elementProp.FindPropertyRelative("m_Overridden").boolValue = true;
                                     found = true;
                                     break;
@@ -326,6 +450,25 @@ public class VFXMigration
                             else
                             {
                                 Debug.Log("Asset : " + assetPath + " restored parameter " + setter.Key + " of type " + value.Key.Substring(2) + "referenced from " + componentPath + " in scene" + infos.path);
+                            }
+                        }
+                    }
+
+                    foreach (var value in componentData.prefabOverrides)
+                    {
+                        string property = "m_PropertySheet." + value.Key + ".m_Array";
+                        SerializedProperty arrayProp = obj.FindProperty(property);
+                        foreach (var setter in value.Value)
+                        {
+                            for (int i = 0; i < arrayProp.arraySize; ++i)
+                            {
+                                var elementProp = arrayProp.GetArrayElementAtIndex(i);
+
+                                if (elementProp.FindPropertyRelative("m_Name").stringValue == setter.Key)
+                                {
+                                    elementProp.FindPropertyRelative("m_Overridden").boolValue = setter.Value;
+                                    break;
+                                }
                             }
                         }
                     }
