@@ -421,7 +421,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
-            UnregisterDebugItems(k_PanelRendering, m_DebugLightingItems);
+            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
         }
 
         void UnregisterDebugItems(string panelName, DebugUI.Widget[] items)

@@ -31,7 +31,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
             float3(1.0, 1.0, 1.0)
         };
 
-        diffuseLighting = float3(0.0, 0.0, 0.0);
+        diffuseLighting = float3(1.0, 1.0, 1.0);
         if (_DirectionalLightCount > 0)
         {
             int shadowIdx = _DirectionalLightDatas[0].shadowIndex;
