@@ -21,15 +21,13 @@ namespace UnityEditor.VFX
         {
             int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
 
-            VFXExpression input;
+            var zerofive = VFXOperatorUtility.HalfExpression[size];
+            var expression = VFXOperatorUtility.Mad(inputExpression[0], zerofive, zerofive);
 
             if (Clamp)
-                input = VFXOperatorUtility.Clamp(inputExpression[0], VFXOperatorUtility.Negate(VFXOperatorUtility.OneExpression[size]), VFXOperatorUtility.OneExpression[size]);
+                return new[] { VFXOperatorUtility.Saturate(expression) };
             else
-                input = inputExpression[0];
-
-            var zerofive = VFXOperatorUtility.HalfExpression[size];
-            return new[] { VFXOperatorUtility.Mad(input, zerofive, zerofive) };
+                return new[] { expression };
         }
     }
 }

@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorComplement : VFXOperatorUnaryFloatOperation
+    class VFXOperatorOneMinus : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "One Minus (1-x)"; } }
 
