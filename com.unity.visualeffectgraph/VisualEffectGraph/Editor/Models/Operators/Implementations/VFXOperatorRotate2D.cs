@@ -31,11 +31,11 @@ namespace UnityEditor.VFX
             var centerX = inputExpression[1].x;
             var centerY = inputExpression[1].y;
 
-            var angleCoordX = new VFXExpressionSin(inputExpression[2]);
-            var angleCoordY = new VFXExpressionCos(inputExpression[2]);
+            var sinAngle = new VFXExpressionSin(inputExpression[2]);
+            var cosAngle = new VFXExpressionCos(inputExpression[2]);
 
-            var outPosX = centerX + ((posX * angleCoordY) + (posY * angleCoordX));
-            var outPosY = centerY - ((posX * angleCoordX) - (posY * angleCoordY));
+            var outPosX = centerX + ((posX * cosAngle) - (posY * sinAngle));
+            var outPosY = centerY + ((posX * sinAngle) + (posY * cosAngle));
 
             return new[] { new VFXExpressionCombine(outPosX, outPosY) };
         }

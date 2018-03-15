@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
             var sinAngle = VFXOperatorUtility.CastFloat(new VFXExpressionSin(angle), VFXValueType.Float3);
             var cosAngle = VFXOperatorUtility.CastFloat(new VFXExpressionCos(angle), VFXValueType.Float3);
 
-            return new[] { projPoint + ((uAxis * cosAngle) + (vAxis * sinAngle)) };
+            return new[] { projPoint + (uAxis * cosAngle) + (vAxis * sinAngle) };
         }
     }
 }
