@@ -6,6 +6,9 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Math")]
     class VFXOperatorRemapToZeroOne : VFXOperatorFloatUnifiedWithVariadicOutput
     {
+        [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
+        public bool Clamp = false;
+
         public class InputProperties
         {
             [Tooltip("The value to be remapped into the new range.")]
@@ -17,7 +20,16 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
-            return new[] { VFXOperatorUtility.Fit(inputExpression[0], VFXOperatorUtility.Negate(VFXOperatorUtility.OneExpression[size]), VFXOperatorUtility.OneExpression[size],  VFXOperatorUtility.ZeroExpression[size], VFXOperatorUtility.OneExpression[size]) };
+
+            VFXExpression input;
+
+            if (Clamp)
+                input = VFXOperatorUtility.Clamp(inputExpression[0], VFXOperatorUtility.Negate(VFXOperatorUtility.OneExpression[size]), VFXOperatorUtility.OneExpression[size]);
+            else
+                input = inputExpression[0];
+
+            var zerofive = VFXOperatorUtility.HalfExpression[size];
+            return new[] { VFXOperatorUtility.Mad(input, zerofive, zerofive) };
         }
     }
 }

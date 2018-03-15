@@ -50,6 +50,11 @@ namespace UnityEditor.VFX
             return (minusOne * input);
         }
 
+        static public VFXExpression Mad(VFXExpression input, VFXExpression scale, VFXExpression bias)
+        {
+            return input * scale + bias;
+        }
+
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
         {
             //Max(Min(x, max), min))
