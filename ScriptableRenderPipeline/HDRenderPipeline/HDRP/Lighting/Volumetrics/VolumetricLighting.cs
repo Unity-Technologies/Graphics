@@ -454,7 +454,7 @@ public class VolumetricLightingSystem
 
         if (ShaderConfig.s_CameraRelativeRendering != 0)
         {
-            camOffset = -camPosition; // Camera-relative
+            camOffset = camPosition; // Camera-relative
         }
 
         m_VisibleVolumeBounds.Clear();
@@ -473,8 +473,11 @@ public class VolumetricLightingSystem
                 // TODO: cache these?
                 var obb = OrientedBBox.Create(volume.transform);
 
+                // Handle camera-relative rendering.
+                obb.center -= camOffset;
+
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                if (GeometryUtils.Overlap(obb, camOffset, camera.frustum, 6, 8))
+                if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
                 {
                     // TODO: cache these?
                     var properties = volume.parameters.GetProperties();
