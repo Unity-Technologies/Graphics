@@ -1499,7 +1499,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"d2038625ec9188f4985a51186be54f66","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"49cb5aa34272b034d8b754c65d9cdbfa","type":3}}'
   m_Property:
     name: mainTexture
     m_serializedType:
@@ -2966,7 +2966,7 @@ VisualEffectAsset:
     m_NamedObject:
       m_Array:
       - m_ExpressionIndex: 20
-        m_Value: {fileID: 0}
+        m_Value: {fileID: 2800000, guid: 49cb5aa34272b034d8b754c65d9cdbfa, type: 3}
       - m_ExpressionIndex: 23
         m_Value: {fileID: 0}
       - m_ExpressionIndex: 29
@@ -3123,7 +3123,7 @@ VisualEffectAsset:
         index: 24
       - nameId: bounds_size
         index: 22
-      processor: {fileID: 7200000, guid: abcb34155f5b9fa41a2fead7bbf47c90, type: 3}
+      processor: {fileID: 7200000, guid: b8f501cdec007504695c79a21d49d309, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -3140,7 +3140,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 32
       params: []
-      processor: {fileID: 7200000, guid: 6a2a612ecc9844f44a25203013cd47bc, type: 3}
+      processor: {fileID: 7200000, guid: 37f4f1baba95e824daf75f5912ba0000, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3151,7 +3151,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 633a0216ca9567945a7db590ceef62fe, type: 3}
+      processor: {fileID: 4800000, guid: e5fe5a2bf7bfd99418f911b37fda6708, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3168,7 +3168,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: d3e4ebb73bc69694bb0d4a359587400e, type: 3}
+      processor: {fileID: 4800000, guid: f05c98a765490a3479dcfa3935c18b0e, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3183,7 +3183,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: ca84b42b032e8c345ae1dc86d707b767, type: 3}
+      processor: {fileID: 4800000, guid: dba08627182ea0c4183e6665b09a07bc, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -3200,7 +3200,7 @@ VisualEffectAsset:
         index: 27
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 1fcefca5518cc8946a586a10055df0aa, type: 3}
+      processor: {fileID: 4800000, guid: a44fb2cafc7d01642aeab614f070fe48, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

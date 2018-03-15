@@ -658,6 +658,40 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114093227099518402
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30cf2e25945865b43b7bf617cb60e203, type: 3}
+  m_Name: VFXSlotMatrix4x4
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114093227099518402}
+  m_MasterData:
+    m_Owner: {fileID: 114773682988844608}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Matrix4x4, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: 
+  m_Property:
+    name: LocalToWorld
+    m_serializedType:
+      m_SerializableType: UnityEngine.Matrix4x4, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    attributes: []
+  m_Direction: 1
+  m_LinkedSlots:
+  - {fileID: 114767901983384342}
+  - {fileID: 114101930587489630}
 --- !u!114 &114099121547897990
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -765,7 +799,7 @@ MonoBehaviour:
       m_Tooltip: The transform.
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114874470609654414}
+  - {fileID: 114093227099518402}
 --- !u!114 &114102368234356244
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3540,7 +3574,7 @@ MonoBehaviour:
       m_Tooltip: The transform.
   m_Direction: 0
   m_LinkedSlots:
-  - {fileID: 114874470609654414}
+  - {fileID: 114093227099518402}
 --- !u!114 &114772091200556280
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3597,7 +3631,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
-  - {fileID: 114874470609654414}
+  - {fileID: 114093227099518402}
   m_expressionOp: 9
 --- !u!114 &114783746078457912
 MonoBehaviour:
@@ -3916,40 +3950,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114874470609654414
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30cf2e25945865b43b7bf617cb60e203, type: 3}
-  m_Name: VFXSlotMatrix4x4
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114874470609654414}
-  m_MasterData:
-    m_Owner: {fileID: 114773682988844608}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEngine.Matrix4x4, UnityEngine.CoreModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: 
-  m_Property:
-    name: LocalToWorld
-    m_serializedType:
-      m_SerializableType: UnityEngine.Matrix4x4, UnityEngine.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-    attributes: []
-  m_Direction: 1
-  m_LinkedSlots:
-  - {fileID: 114767901983384342}
-  - {fileID: 114101930587489630}
 --- !u!114 &114879977578755638
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4886,7 +4886,7 @@ VisualEffectAsset:
         index: 51
       - nameId: bounds_size
         index: 45
-      processor: {fileID: 7200000, guid: 7d2f5e9d6b7d3c24b8a90691e80de24b, type: 3}
+      processor: {fileID: 7200000, guid: d46d14478968fe04da7c56c8c1514e35, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4899,7 +4899,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 53
       params: []
-      processor: {fileID: 7200000, guid: fd15c3b8ea70e824f8d356c0cff8a4f5, type: 3}
+      processor: {fileID: 7200000, guid: 089d03bc5980973429bc0c3c4d70a39e, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4912,7 +4912,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: a62f5254a6441e84388601b3e20e38a5, type: 3}
+      processor: {fileID: 4800000, guid: 8b7bca4b5ae26934c9c9328a96f6975a, type: 3}
   - type: 1
     flags: 1
     capacity: 44
@@ -4956,7 +4956,7 @@ VisualEffectAsset:
         index: 46
       - nameId: bounds_size
         index: 58
-      processor: {fileID: 7200000, guid: 754597e47a8764c44a425b0ac1c1617f, type: 3}
+      processor: {fileID: 7200000, guid: 4e2fb91875c8d1140af9892b9e059fdc, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4969,7 +4969,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 53
       params: []
-      processor: {fileID: 7200000, guid: 52e16bcc696934f44a2ce92a13f152b9, type: 3}
+      processor: {fileID: 7200000, guid: 2dd0fc1d20b9a0048890938a5eb085d0, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4982,7 +4982,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 4c7e6647ff2f4ea4982ed6518fd7adc3, type: 3}
+      processor: {fileID: 4800000, guid: 63c7f42cf73f9454c9d1883a11fcb586, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

@@ -783,6 +783,7 @@ VisualEffectAsset:
   - type: 2
     flags: 0
     capacity: 0
+    layer: 0
     buffers: []
     values:
     - nameId: mesh
