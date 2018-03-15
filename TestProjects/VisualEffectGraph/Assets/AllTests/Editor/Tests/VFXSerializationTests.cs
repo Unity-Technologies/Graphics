@@ -353,9 +353,9 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
-                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTimeOp.ToString()).CreateInstance();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
                     asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
-                    Assert.AreEqual(VFXExpressionOperation.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                 };
 
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
