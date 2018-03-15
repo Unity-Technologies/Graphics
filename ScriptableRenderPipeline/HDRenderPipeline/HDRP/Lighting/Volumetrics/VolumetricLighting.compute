@@ -609,9 +609,9 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
 #else
 
-[numthreads(GROUP_SIZE_2D, 1, 1)]
+[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
 void VolumetricLighting(uint2 groupId       : SV_GroupID,
-                        uint  groupThreadId : SV_GroupThreadID)
+                        uint2 groupThreadId : SV_GroupThreadID)
 {
     // Reduce compile times if the feature is disabled.
 }
