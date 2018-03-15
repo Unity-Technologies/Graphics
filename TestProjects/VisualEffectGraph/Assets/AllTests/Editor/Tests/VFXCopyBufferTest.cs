@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ProcessBasicTest()
         {
-            Assert.IsTrue(VisualEffect.DebugCopyBufferComputeTest());
+            Assert.IsTrue(UnityEditor.Experimental.VFX.VisualEffectTest.DebugCopyBufferComputeTest());
         }
     }
 }

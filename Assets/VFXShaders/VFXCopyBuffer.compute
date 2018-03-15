@@ -3,22 +3,23 @@
 #include "HLSLSupport.cginc"
 
 CBUFFER_START(Uniform)
-	uint destOffset;
-	uint fromOffset;
-	uint size;
+    uint dstOffset;
+    uint srcOffset;
+    uint size;
 CBUFFER_END
 
-ByteAddressBuffer fromBuffer;
-RWByteAddressBuffer destBuffer;
+ByteAddressBuffer srcBuffer;
+RWByteAddressBuffer dstBuffer;
 
 #define NB_THREADS_PER_GROUP 64
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXCopyBuffer(uint3 id : SV_DispatchThreadID)
 {
-	if (id.x < size)
-	{
-		uint address = id.x << 2;
-		uint load = fromBuffer.Load(address + fromOffset);
-		destBuffer.Store(address + destOffset, load);
-	}
+    if (id.x < size) /* One dword is copied by thread */
+    {
+        uint srcAddress = (id.x + srcOffset) << 2;
+        uint dstAddress = (id.x + dstOffset) << 2;
+        uint load = srcBuffer.Load(srcAddress);
+        dstBuffer.Store(dstAddress, load);
+    }
 }
