@@ -153,7 +153,28 @@ public class VFXMigration
             files.Add(FindComponentsInScene(usedPrefabs));
         }
 
+
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene); // load a new scene to make sure we don't have multiple scenes loaded
+
+
+        int countReferenced = usedPrefabs.Count();
+        var prefabGuids = AssetDatabase.FindAssets("t:Prefab");
+        foreach (var guid in sceneGuids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+            if (prefab != null)
+            {
+                usedPrefabs.Add(prefab);
+            }
+        }
+
+        if (countReferenced < usedPrefabs.Count())
+        {
+            Debug.Log("found :" + (usedPrefabs.Count() - countReferenced) + " prefabs not used in any scene");
+        }
 
         List<FileVFXComponents> prefabsInfos = new List<FileVFXComponents>();
         foreach (var prefab in usedPrefabs)
