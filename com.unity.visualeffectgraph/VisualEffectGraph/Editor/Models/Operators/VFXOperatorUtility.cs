@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<int, VFXExpression> ThreeExpression = GenerateExpressionConstant(3.0f);
         public static readonly Dictionary<int, VFXExpression> PiExpression = GenerateExpressionConstant(Mathf.PI);
         public static readonly Dictionary<int, VFXExpression> TauExpression = GenerateExpressionConstant(2.0f * Mathf.PI);
+        public static readonly Dictionary<int, VFXExpression> EpsilonExpression = GenerateExpressionConstant(1e-5f);
         public static readonly Dictionary<int, VFXExpression> E_NapierConstantExpression = GenerateExpressionConstant(Mathf.Exp(1));
 
         // unified binary op
