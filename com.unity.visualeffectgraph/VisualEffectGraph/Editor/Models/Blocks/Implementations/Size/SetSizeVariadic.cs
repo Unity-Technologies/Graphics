@@ -22,7 +22,6 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Size", variantProvider = typeof(AttributeVariantVariadicSize))]
     class SetSizeVariadic : VFXBlock
     {
-        
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How the size should be handled (X = Square Sprites/Uniform 3D, XY = Rectangle Sprites, XYZ = 3D Particles")]
         public VariadicSizeUtility.SizeMode SizeMode = VariadicSizeUtility.SizeMode.X;
 
@@ -43,13 +42,12 @@ namespace UnityEditor.VFX.Block
             get
             {
                 if (Random != RandomMode.Off)
-                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite); 
+                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
 
                 var attrMode = (Composition == AttributeCompositionMode.Overwrite) ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
 
                 foreach (var info in VariadicSizeUtility.GetAttributes(SizeMode, attrMode))
                     yield return info;
-
             }
         }
 
@@ -95,7 +93,7 @@ namespace UnityEditor.VFX.Block
             public float Value = VFXAttribute.kDefaultSize;
             public float Min = 0.0f;
             public float Max = VFXAttribute.kDefaultSize;
-            [Range(0.0f, 1.0f),Tooltip("Size Blending factor")]
+            [Range(0.0f, 1.0f), Tooltip("Size Blending factor")]
             public float Blend = 0.5f;
         }
 
@@ -105,7 +103,7 @@ namespace UnityEditor.VFX.Block
             public Vector2 Min = Vector2.one * 0.0f;
             public Vector2 Max = Vector2.one * VFXAttribute.kDefaultSize;
             [Tooltip("Size Blending factor")]
-            public Vector2 Blend = new Vector2(0.5f,0.5f);
+            public Vector2 Blend = new Vector2(0.5f, 0.5f);
         }
 
         public class InputPropertiesXYZ
@@ -119,7 +117,7 @@ namespace UnityEditor.VFX.Block
 
         public static string GetRandomMacroString(RandomMode random, VFXAttribute attribute, params string[] parameters)
         {
-            if(random == RandomMode.Off)
+            if (random == RandomMode.Off)
                 return parameters[0];
             else
                 return string.Format("lerp({0},{1},{2})", parameters);
@@ -143,7 +141,6 @@ namespace UnityEditor.VFX.Block
             return source;
         }
 
-
         public override string source
         {
             get
@@ -151,13 +148,13 @@ namespace UnityEditor.VFX.Block
                 string outSource = "";
                 string randomString = "";
 
-                if(Random == RandomMode.Uniform)
+                if (Random == RandomMode.Uniform)
                 {
                     outSource += "float random = RAND;";
                     randomString = "random";
                 }
 
-                if(Random == RandomMode.PerComponent)
+                if (Random == RandomMode.PerComponent)
                     randomString = "RAND";
 
 

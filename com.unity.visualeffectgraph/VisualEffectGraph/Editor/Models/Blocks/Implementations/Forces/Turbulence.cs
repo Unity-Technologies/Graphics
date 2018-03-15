@@ -50,7 +50,6 @@ namespace UnityEditor.VFX.Block
                     if (input.name == "FieldTransform")
                         yield return new VFXNamedExpression(new VFXExpressionInverseMatrix(input.exp), "InvFieldTransform");
                     yield return input;
-
                 }
 
                 // Clamp (1..10) for octaves

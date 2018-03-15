@@ -28,7 +28,5 @@ namespace UnityEditor.VFX.Block
         public static readonly VFXAttribute[] Attribute = new VFXAttribute[] { VFXAttribute.SizeX, VFXAttribute.SizeY, VFXAttribute.SizeZ };
 
         public static readonly string[] ChannelName = { ".x", ".y", ".z" };
-
     }
 }
-

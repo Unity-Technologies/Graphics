@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "m_customType", VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerFunction)).Select(o => new SerializableType(o) as object).ToArray() }
+                    { "m_customType", VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks)).Select(o => new SerializableType(o) as object).ToArray() }
                 };
             }
         }
@@ -44,6 +44,6 @@ namespace UnityEditor.VFX
 
         public override sealed string name { get { return m_customType == null ? "null" : ((Type)m_customType).Name; } }
         public override sealed Type customBehavior { get { return m_customType; } }
-        public override sealed VFXTaskType spawnerType { get { return VFXTaskType.SpawnerCustomCallback; } }
+        public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
 }

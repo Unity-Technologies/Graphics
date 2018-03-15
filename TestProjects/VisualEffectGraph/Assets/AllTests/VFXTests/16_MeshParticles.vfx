@@ -3219,6 +3219,12 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  uiBounds:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
 --- !u!114 &114574152931840100
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7592,7 +7598,7 @@ VisualEffectAsset:
         index: 109
       - nameId: bounds_size
         index: 101
-      processor: {fileID: 7200000, guid: 278207b08a734544ea33c3b70e62624b, type: 3}
+      processor: {fileID: 7200000, guid: 45b8ec8c4e3e18441b01780e69e2b424, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -7609,7 +7615,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 135
       params: []
-      processor: {fileID: 7200000, guid: fa729c2073c40f541bafce686ed5a296, type: 3}
+      processor: {fileID: 7200000, guid: f7f7530f854ada444bed893c42cd6d24, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7630,7 +7636,7 @@ VisualEffectAsset:
         index: 127
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 5dbecb70f7b4c414f8f99209abd7ab82, type: 3}
+      processor: {fileID: 4800000, guid: b7225810e1722b04aaea1e9e3fbaeb93, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7655,7 +7661,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 3d27b6b509bea4f44b4dce49f5abd465, type: 3}
+      processor: {fileID: 4800000, guid: f1773f3a63bd83d4cb5fe177f58d2ca4, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7678,7 +7684,7 @@ VisualEffectAsset:
         index: 138
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 185ebbee23a87a3459e5821981f88b13, type: 3}
+      processor: {fileID: 4800000, guid: cf9428d2bf60dd8448a7ca949618058e, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7699,7 +7705,7 @@ VisualEffectAsset:
         index: 110
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 1dd84fb264f72684184058938ab5bb0a, type: 3}
+      processor: {fileID: 4800000, guid: bff448d1c70a02843a1a947447526baf, type: 3}
   - type: 2
     flags: 0
     capacity: 0

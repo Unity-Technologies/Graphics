@@ -36,7 +36,7 @@ namespace UnityEditor.VFX
 
         public Mode ValueMode { get { return m_Mode; } }
 
-        sealed public override VFXExpressionOp operation { get { return VFXExpressionOp.ValueOp; } }
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.Value; } }
 
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {

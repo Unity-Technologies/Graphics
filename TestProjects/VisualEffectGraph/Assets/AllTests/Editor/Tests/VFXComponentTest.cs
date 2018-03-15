@@ -257,8 +257,8 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Float2: return new Vector2(3.0f, 4.0f);
                         case VFXValueType.Float3: return new Vector3(8.0f, 9.0f, 10.0f);
                         case VFXValueType.Float4: return new Vector4(11.0f, 12.0f, 13.0f, 14.0f);
-                        case VFXValueType.Int: return 15;
-                        case VFXValueType.Uint: return 16u;
+                        case VFXValueType.Int32: return 15;
+                        case VFXValueType.Uint32: return 16u;
                         case VFXValueType.Curve: return new AnimationCurve(new Keyframe(0, 13), new Keyframe(1, 14));
                         case VFXValueType.ColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
                         case VFXValueType.Mesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
@@ -267,7 +267,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Texture3D: return m_texture3D_A;
                         case VFXValueType.TextureCube: return m_textureCube_A;
                         case VFXValueType.TextureCubeArray: return m_textureCubeArray_A;
-                        case VFXValueType.Bool: return true;
+                        case VFXValueType.Boolean: return true;
                         case VFXValueType.Matrix4x4: return Matrix4x4.identity;
                     }
                     Assert.Fail();
@@ -282,8 +282,8 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Float2: return new Vector2(53.0f, 54.0f);
                         case VFXValueType.Float3: return new Vector3(58.0f, 59.0f, 510.0f);
                         case VFXValueType.Float4: return new Vector4(511.0f, 512.0f, 513.0f, 514.0f);
-                        case VFXValueType.Int: return 515;
-                        case VFXValueType.Uint: return 516u;
+                        case VFXValueType.Int32: return 515;
+                        case VFXValueType.Uint32: return 516u;
                         case VFXValueType.Curve: return new AnimationCurve(new Keyframe(0, 47), new Keyframe(0.5f, 23), new Keyframe(1.0f, 17));
                         case VFXValueType.ColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
                         case VFXValueType.Mesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
@@ -292,7 +292,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Texture3D: return m_texture3D_B;
                         case VFXValueType.TextureCube: return m_textureCube_B;
                         case VFXValueType.TextureCubeArray: return m_textureCubeArray_B;
-                        case VFXValueType.Bool: return false;
+                        case VFXValueType.Boolean: return false;
                         case VFXValueType.Matrix4x4: return Matrix4x4.LookAt(new Vector3(1, 2, 3), new Vector3(4, 5, 6), Vector3.up);
                     }
                     Assert.Fail();
@@ -307,8 +307,8 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Float2: return vfx.HasVector2(name);
                         case VFXValueType.Float3: return vfx.HasVector3(name);
                         case VFXValueType.Float4: return vfx.HasVector4(name);
-                        case VFXValueType.Int: return vfx.HasInt(name);
-                        case VFXValueType.Uint: return vfx.HasUInt(name);
+                        case VFXValueType.Int32: return vfx.HasInt(name);
+                        case VFXValueType.Uint32: return vfx.HasUInt(name);
                         case VFXValueType.Curve: return vfx.HasAnimationCurve(name);
                         case VFXValueType.ColorGradient: return vfx.HasGradient(name);
                         case VFXValueType.Mesh: return vfx.HasMesh(name);
@@ -317,7 +317,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Texture3D: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex3D;
                         case VFXValueType.TextureCube: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Cube;
                         case VFXValueType.TextureCubeArray: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.CubeArray;
-                        case VFXValueType.Bool: return vfx.HasBool(name);
+                        case VFXValueType.Boolean: return vfx.HasBool(name);
                         case VFXValueType.Matrix4x4: return vfx.HasMatrix4x4(name);
                     }
                     Assert.Fail();
@@ -332,8 +332,8 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Float2: return vfx.GetVector2(name);
                         case VFXValueType.Float3: return vfx.GetVector3(name);
                         case VFXValueType.Float4: return vfx.GetVector4(name);
-                        case VFXValueType.Int: return vfx.GetInt(name);
-                        case VFXValueType.Uint: return vfx.GetUInt(name);
+                        case VFXValueType.Int32: return vfx.GetInt(name);
+                        case VFXValueType.Uint32: return vfx.GetUInt(name);
                         case VFXValueType.Curve: return vfx.GetAnimationCurve(name);
                         case VFXValueType.ColorGradient: return vfx.GetGradient(name);
                         case VFXValueType.Mesh: return vfx.GetMesh(name);
@@ -342,7 +342,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Texture3D:
                         case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray: return vfx.GetTexture(name);
-                        case VFXValueType.Bool: return vfx.GetBool(name);
+                        case VFXValueType.Boolean: return vfx.GetBool(name);
                         case VFXValueType.Matrix4x4: return vfx.GetMatrix4x4(name);
                     }
                     Assert.Fail();
@@ -357,8 +357,8 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Float2: vfx.SetVector2(name, (Vector2)value); break;
                         case VFXValueType.Float3: vfx.SetVector3(name, (Vector3)value); break;
                         case VFXValueType.Float4: vfx.SetVector4(name, (Vector4)value); break;
-                        case VFXValueType.Int: vfx.SetInt(name, (int)value); break;
-                        case VFXValueType.Uint: vfx.SetUInt(name, (uint)value); break;
+                        case VFXValueType.Int32: vfx.SetInt(name, (int)value); break;
+                        case VFXValueType.Uint32: vfx.SetUInt(name, (uint)value); break;
                         case VFXValueType.Curve: vfx.SetAnimationCurve(name, (AnimationCurve)value); break;
                         case VFXValueType.ColorGradient: vfx.SetGradient(name, (Gradient)value); break;
                         case VFXValueType.Mesh: vfx.SetMesh(name, (Mesh)value); break;
@@ -367,7 +367,7 @@ namespace UnityEditor.VFX.Test
                         case VFXValueType.Texture3D:
                         case VFXValueType.TextureCube:
                         case VFXValueType.TextureCubeArray: vfx.SetTexture(name, (Texture)value); break;
-                        case VFXValueType.Bool: vfx.SetBool(name, (bool)value); break;
+                        case VFXValueType.Boolean: vfx.SetBool(name, (bool)value); break;
                         case VFXValueType.Matrix4x4: vfx.SetMatrix4x4(name, (Matrix4x4)value); break;
                     }
                 };
@@ -468,8 +468,8 @@ namespace UnityEditor.VFX.Test
                                     case VFXValueType.Float2: return property.vector2Value;
                                     case VFXValueType.Float3: return property.vector3Value;
                                     case VFXValueType.Float4: return property.vector4Value;
-                                    case VFXValueType.Int: return property.intValue;
-                                    case VFXValueType.Uint: return property.intValue; // there isn't uintValue
+                                    case VFXValueType.Int32: return property.intValue;
+                                    case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
                                     case VFXValueType.Curve: return property.animationCurveValue;
                                     case VFXValueType.ColorGradient: return property.gradientValue;
                                     case VFXValueType.Mesh: return property.objectReferenceValue;
@@ -478,7 +478,7 @@ namespace UnityEditor.VFX.Test
                                     case VFXValueType.Texture3D:
                                     case VFXValueType.TextureCube:
                                     case VFXValueType.TextureCubeArray: return property.objectReferenceValue;
-                                    case VFXValueType.Bool: return property.boolValue;
+                                    case VFXValueType.Boolean: return property.boolValue;
                                     case VFXValueType.Matrix4x4: return fnMatrixFromSerializedProperty(property);
                                 }
                                 Assert.Fail();
@@ -513,8 +513,8 @@ namespace UnityEditor.VFX.Test
                                     case VFXValueType.Float2: propertyValue.vector2Value = (Vector2)value; break;
                                     case VFXValueType.Float3: propertyValue.vector3Value = (Vector3)value; break;
                                     case VFXValueType.Float4: propertyValue.vector4Value = (Vector4)value; break;
-                                    case VFXValueType.Int: propertyValue.intValue = (int)value; break;
-                                    case VFXValueType.Uint: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
+                                    case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
+                                    case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
                                     case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
                                     case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
                                     case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
@@ -523,7 +523,7 @@ namespace UnityEditor.VFX.Test
                                     case VFXValueType.Texture3D:
                                     case VFXValueType.TextureCube:
                                     case VFXValueType.TextureCubeArray: propertyValue.objectReferenceValue = (UnityEngine.Object)value;   break;
-                                    case VFXValueType.Bool: propertyValue.boolValue = (bool)value; break;
+                                    case VFXValueType.Boolean: propertyValue.boolValue = (bool)value; break;
                                     case VFXValueType.Matrix4x4: fnMatrixToSerializedProperty(propertyValue, (Matrix4x4)value); break;
                                 }
                                 propertyOverriden.boolValue = true;

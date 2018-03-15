@@ -241,7 +241,17 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2}", model.name, model.GetType(), e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2} {3}", model.name, model.GetType(), e, e.StackTrace));
+                }
+
+            if (m_UIInfos != null)
+                try
+                {
+                    m_UIInfos.Sanitize(this);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
             if (m_UIInfos != null)
