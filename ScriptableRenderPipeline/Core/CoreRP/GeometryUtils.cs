@@ -59,11 +59,11 @@ namespace UnityEngine.Experimental.Rendering
     {
         // 3 x float4 = 48 bytes.
         // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.
-        public Vector3 center;
-        public float   extentX;
         public Vector3 right;
-        public float   extentY;
+        public float   extentX;
         public Vector3 up;
+        public float   extentY;
+        public Vector3 center;
         public float   extentZ;
 
         public Vector3 forward { get { return Vector3.Cross(up, right); } }
