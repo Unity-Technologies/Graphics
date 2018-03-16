@@ -314,31 +314,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
---- !u!114 &114175368558848616
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 114792578739552882}
-  - {fileID: 114575927712798874}
-  - {fileID: 114806364651043532}
-  - {fileID: 114891747285385810}
-  - {fileID: 114647577318380780}
-  - {fileID: 114545129920000872}
-  - {fileID: 114219390408621712}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_UIInfos: {fileID: 114231452192305226}
-  m_saved: 1
 --- !u!114 &114181942277193260
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -519,7 +494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -911,7 +886,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -1000,7 +975,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
   m_Name: VFXBasicUpdate
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children: []
   m_UIPosition: {x: 1980.1863, y: 103.64122}
   m_UICollapsed: 0
@@ -1088,7 +1063,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf77bdf94b619e24a92fca7c3f75ddb3, type: 3}
   m_Name: VFXOperatorCrossProduct
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children: []
   m_UIPosition: {x: 954.83356, y: 549.1118}
   m_UICollapsed: 0
@@ -1467,7 +1442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0b9e6b9139e58d4c957ec54595da7d3, type: 3}
   m_Name: VFXQuadOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children:
   - {fileID: 114048700727034872}
   m_UIPosition: {x: 1974.8335, y: 338.1118}
@@ -1504,7 +1479,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -1603,7 +1578,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf77bdf94b619e24a92fca7c3f75ddb3, type: 3}
   m_Name: VFXOperatorCrossProduct
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114175368558848616}
+  m_Parent: {fileID: 114944812527948404}
   m_Children: []
   m_UIPosition: {x: 1406.8335, y: 548.1118}
   m_UICollapsed: 0
@@ -1711,6 +1686,31 @@ MonoBehaviour:
   m_Direction: 1
   m_LinkedSlots:
   - {fileID: 114490695020445978}
+--- !u!114 &114944812527948404
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: VFXGraph
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114792578739552882}
+  - {fileID: 114575927712798874}
+  - {fileID: 114806364651043532}
+  - {fileID: 114891747285385810}
+  - {fileID: 114647577318380780}
+  - {fileID: 114545129920000872}
+  - {fileID: 114219390408621712}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_UIInfos: {fileID: 114231452192305226}
+  m_saved: 1
 --- !u!114 &114956230055637208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1827,7 +1827,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: CopyPasteTest
-  m_Graph: {fileID: 114175368558848616}
+  m_Graph: {fileID: 114944812527948404}
   m_ShaderSources: []
   m_Infos:
     m_Expressions:

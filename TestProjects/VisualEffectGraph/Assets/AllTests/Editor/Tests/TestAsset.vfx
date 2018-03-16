@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a4fafe57d357aa45a701ba22aa6a49e, type: 3}
   m_Name: VFXOperatorAdd
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114840501556896588}
+  m_Parent: {fileID: 114061212802474430}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -21,6 +21,30 @@ MonoBehaviour:
   - {fileID: 114451710450516872}
   m_OutputSlots:
   - {fileID: 114130155557443396}
+--- !u!114 &114061212802474430
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: VFXGraph
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114728395063945522}
+  - {fileID: 114806187176570744}
+  - {fileID: 114473159940169392}
+  - {fileID: 114977458455472868}
+  - {fileID: 114638473226913198}
+  - {fileID: 114047068427672398}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_UIInfos: {fileID: 0}
+  m_saved: 1
 --- !u!114 &114130155557443396
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -379,7 +403,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f574644f84c35a64e94e2cfae807c1a3, type: 3}
   m_Name: VFXPointOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114840501556896588}
+  m_Parent: {fileID: 114061212802474430}
   m_Children:
   - {fileID: 114155643770284568}
   m_UIPosition: {x: 0, y: 0}
@@ -545,7 +569,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f574644f84c35a64e94e2cfae807c1a3, type: 3}
   m_Name: VFXPointOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114840501556896588}
+  m_Parent: {fileID: 114061212802474430}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -648,7 +672,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
   m_Name: VFXBasicInitialize
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114840501556896588}
+  m_Parent: {fileID: 114061212802474430}
   m_Children:
   - {fileID: 114850903804657560}
   m_UIPosition: {x: 0, y: 0}
@@ -816,7 +840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
   m_Name: VFXBasicUpdate
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114840501556896588}
+  m_Parent: {fileID: 114061212802474430}
   m_Children:
   - {fileID: 114839237809197254}
   m_UIPosition: {x: 0, y: 0}
@@ -853,30 +877,6 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots: []
   m_Disabled: 0
---- !u!114 &114840501556896588
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 114728395063945522}
-  - {fileID: 114806187176570744}
-  - {fileID: 114473159940169392}
-  - {fileID: 114977458455472868}
-  - {fileID: 114638473226913198}
-  - {fileID: 114047068427672398}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_UIInfos: {fileID: 0}
-  m_saved: 1
 --- !u!114 &114850903804657560
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -938,7 +938,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
   m_Name: VFXBasicInitialize
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114840501556896588}
+  m_Parent: {fileID: 114061212802474430}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -990,7 +990,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: TestAsset
-  m_Graph: {fileID: 114840501556896588}
+  m_Graph: {fileID: 114061212802474430}
   m_ShaderSources: []
   m_Infos:
     m_Expressions:

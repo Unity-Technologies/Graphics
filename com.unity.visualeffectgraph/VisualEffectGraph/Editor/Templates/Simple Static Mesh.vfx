@@ -1,24 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &114044576383392884
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 114391022796175754}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_UIInfos: {fileID: 114327527808569384}
-  m_saved: 1
 --- !u!114 &114103760355277424
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -173,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c71b248ba46954449b47392dc6c3bf9, type: 3}
   m_Name: VFXStaticMeshOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114044576383392884}
+  m_Parent: {fileID: 114822240739441582}
   m_Children: []
   m_UIPosition: {x: 634.4177, y: -181.92554}
   m_UICollapsed: 0
@@ -461,6 +442,25 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114822240739441582
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: VFXGraph
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114391022796175754}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_UIInfos: {fileID: 114327527808569384}
+  m_saved: 1
 --- !u!114 &114825109293638946
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -617,7 +617,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Simple Static Mesh
-  m_Graph: {fileID: 114044576383392884}
+  m_Graph: {fileID: 114822240739441582}
   m_ShaderSources: []
   m_Infos:
     m_Expressions:

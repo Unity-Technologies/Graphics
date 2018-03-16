@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -866.2237, y: 544.9279}
   m_UICollapsed: 0
@@ -541,7 +541,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d33fb94df928ef4c986f97607706b82, type: 3}
   m_Name: VFXBuiltInParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -1908.3439, y: -834.90137}
   m_UICollapsed: 1
@@ -826,6 +826,35 @@ MonoBehaviour:
       m_Tooltip: The position to be transformed.
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114219391767788050
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+  m_Name: VFXGraph
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 114280324403005594}
+  - {fileID: 114978657291914718}
+  - {fileID: 114967288652437010}
+  - {fileID: 114886110431456336}
+  - {fileID: 114577405790901024}
+  - {fileID: 114155774272602464}
+  - {fileID: 114788487100381896}
+  - {fileID: 114748446854562552}
+  - {fileID: 114055849663728558}
+  - {fileID: 114556453381267000}
+  - {fileID: 114860822937042888}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_UIInfos: {fileID: 0}
+  m_saved: 1
 --- !u!114 &114219725884729734
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1047,7 +1076,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dfea48843f53fc438eabc12a3a30abc, type: 3}
   m_Name: VFXBasicInitialize
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children:
   - {fileID: 114546554524272358}
   - {fileID: 114597671008042842}
@@ -2253,7 +2282,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -1076.3052, y: -82.778625}
   m_UICollapsed: 0
@@ -2315,7 +2344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0fd9aaa5acbd6447be250d361ee1b17, type: 3}
   m_Name: VFXOperatorTransformPosition
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -909.40625, y: -719.8789}
   m_UICollapsed: 0
@@ -2826,35 +2855,6 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114858441583674810}
---- !u!114 &114690118887451068
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 114280324403005594}
-  - {fileID: 114978657291914718}
-  - {fileID: 114967288652437010}
-  - {fileID: 114886110431456336}
-  - {fileID: 114577405790901024}
-  - {fileID: 114155774272602464}
-  - {fileID: 114788487100381896}
-  - {fileID: 114748446854562552}
-  - {fileID: 114055849663728558}
-  - {fileID: 114556453381267000}
-  - {fileID: 114860822937042888}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_UIInfos: {fileID: 0}
-  m_saved: 1
 --- !u!114 &114697976478237600
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3100,7 +3100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 889be8bf1ed0c954a9ed096ce41655ea, type: 3}
   m_Name: VFXOperatorMultiply
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -1555.0284, y: -815.99414}
   m_UICollapsed: 0
@@ -3336,7 +3336,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f0e993a2dd96014f97909d38604e9b9, type: 3}
   m_Name: VFXCurrentAttributeParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -1318.7256, y: -514.45}
   m_UICollapsed: 1
@@ -3800,7 +3800,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children: []
   m_UIPosition: {x: -1080.9722, y: 148.00066}
   m_UICollapsed: 0
@@ -3831,7 +3831,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f574644f84c35a64e94e2cfae807c1a3, type: 3}
   m_Name: VFXPointOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children:
   - {fileID: 114585987812165100}
   m_UIPosition: {x: -302.00748, y: 484.78653}
@@ -4175,7 +4175,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
   m_Name: VFXBasicUpdate
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children:
   - {fileID: 114408599751737326}
   - {fileID: 114829644158138782}
@@ -4237,7 +4237,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73a13919d81fb7444849bae8b5c812a2, type: 3}
   m_Name: VFXBasicSpawner
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114690118887451068}
+  m_Parent: {fileID: 114219391767788050}
   m_Children:
   - {fileID: 114314351397735054}
   m_UIPosition: {x: -598.32715, y: -1395.5991}
@@ -4363,14 +4363,302 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: 05_MotionVectors
-  m_Graph: {fileID: 114690118887451068}
+  m_Graph: {fileID: 114219391767788050}
   m_ShaderSources:
   - compute: 1
     name: Temp_compute_b_initialize_Runtime.compute
+    source: "#pragma kernel CSMain\r\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP
+      64\r\n#define VFX_USE_POSITION_CURRENT 1\r\n#define VFX_USE_SEED_CURRENT 1\r\n#define
+      VFX_USE_DIRECTION_CURRENT 1\r\n#define VFX_USE_LIFETIME_CURRENT 1\r\n#define
+      VFX_USE_ALIVE_CURRENT 1\r\n#define VFX_USE_VELOCITY_CURRENT 1\r\n#define VFX_USE_AGE_CURRENT
+      1\r\n#define VFX_USE_OLDPOSITION_CURRENT 1\r\n\r\n#include \"Assets/VFXShaders/Common/VFXCommonCompute.cginc\"\r\n#define
+      VFX_LOCAL_SPACE 1\r\n#include \"Assets/VFXShaders/VFXCommon.cginc\"\r\n\r\n\r\nCBUFFER_START(parameters)\r\n
+      \   float4x4 uniform_h;\r\n    float3 Torus_center_b;\r\n    float Torus_majorRadius_b;\r\n
+      \   float3 box_center_e;\r\n    float Torus_minorRadius_b;\r\n    float3 box_size_e;\r\n
+      \   float Torus_arc_b;\r\n    float3 Sphere_center_f;\r\n    float volumeFactor_b;\r\n
+      \   float r_b;\r\n    float Lifetime_d;\r\n    float Sphere_radius_f;\r\n    uint
+      PADDING_0;\r\nCBUFFER_END\r\n\r\n\r\n\r\nRWByteAddressBuffer attributeBuffer;\r\nByteAddressBuffer
+      sourceAttributeBuffer;\r\n\r\nCBUFFER_START(initParams)\r\n    uint nbSpawned;\t\t//
+      Numbers of particle spawned\r\n    uint spawnIndex;\t// Index of the first particle
+      spawned\r\n\tuint systemSeed;\r\nCBUFFER_END\r\n\r\n#if VFX_USE_ALIVE_CURRENT
+      \r\nConsumeStructuredBuffer<uint> deadListIn;\r\nByteAddressBuffer deadListCount;
+      // This is bad to use a SRV to fetch deadList count but Unity API currently
+      prevent from copying to CB\r\n#endif\r\n\r\nvoid PositionTorus_4A7(inout float3
+      position, inout uint seed, inout float3 direction, float3 Torus_center, float
+      Torus_majorRadius, float Torus_minorRadius, float Torus_arc, float volumeFactor,
+      float r) /*positionMode:ThicknessRelative spawnMode:Randomized */\r\n{\r\n    float3
+      u = RAND3;float arc = Torus_arc;\r\n    float R = sqrt(volumeFactor + (1.0f
+      - volumeFactor) * u.z);\r\n    \r\n    float sinTheta,cosTheta;\r\n    sincos(u.x
+      * UNITY_TWO_PI,sinTheta,cosTheta);\r\n    \r\n    float2 s1_1 = R * r * float2(cosTheta,
+      sinTheta) + float2(1,0);\r\n    float2 s1_2 = R * r * float2(-cosTheta, sinTheta)
+      + float2(1,0);\r\n    float w = s1_1.x / (s1_1.x + s1_2.x);\r\n    \r\n    float3
+      t;\r\n    float phi;\r\n    if (u.y < w)\r\n    {\r\n        phi = arc * u.y
+      / w;\r\n        t = float3(s1_1.x, 0, s1_1.y);\r\n    }\r\n    else\r\n    {\r\n
+      \       phi = arc * (u.y - w) / (1.0f - w);\r\n        t = float3(s1_2.x, 0,
+      s1_2.y);\r\n    }\r\n    \r\n    float s,c;\r\n    sincos(phi,c,s);\r\n    float3
+      t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);\r\n    \r\n    position
+      += Torus_center + Torus_majorRadius * t2;\r\n    direction = t2;\r\n    \r\n}\r\nvoid
+      SetAttribute_9AB89B11(inout float3 position, float3 Position) /*attribute:position
+      Composition:Overwrite Random:Off */\r\n{\r\n    position = Position;\r\n}\r\nvoid
+      SetAttribute_48F87EB1(inout float lifetime, float Lifetime) /*attribute:lifetime
+      Composition:Overwrite Random:Off */\r\n{\r\n    lifetime = Lifetime;\r\n}\r\nvoid
+      KillAABox_0(float3 position, inout bool alive, float3 box_center, float3 box_size)
+      /*mode:Solid */\r\n{\r\n    \r\n    float3 dir = position - box_center;\r\n
+      \   float3 absDir = abs(dir);\r\n    float3 size = box_size * 0.5f;\r\n    bool
+      collision = all(absDir <= size);\r\n    if (collision)\r\n        alive = true;\r\n}\r\nvoid
+      KillSphere_0(float3 position, inout bool alive, float3 Sphere_center, float
+      Sphere_radius, float colliderSign) /*mode:Solid */\r\n{\r\n    \r\n    float3
+      dir = position - Sphere_center;\r\n    float sqrLength = dot(dir, dir);\r\n
+      \   if (colliderSign * sqrLength <= colliderSign * Sphere_radius * Sphere_radius)\r\n
+      \       alive = false;\r\n}\r\n\r\n\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
+      CSMain(uint3 id : SV_DispatchThreadID)\r\n{\r\n\tuint maxThreadId = nbSpawned;\r\n#if
+      VFX_USE_ALIVE_CURRENT\r\n\tmaxThreadId = min(maxThreadId, deadListCount.Load(0x0));\r\n#endif\r\n\r\n
+      \   if (id.x < maxThreadId)\r\n    {\r\n\t\tuint particleIndex = id.x + spawnIndex;\r\n\t\tint
+      sourceIndex = 0;\r\n\t\t/*//Loop with 1 iteration generate a wrong IL Assembly
+      (and actually, useless code)\r\n\t\tuint currentSumSpawnCount = 0u;\r\n\t\tfor
+      (sourceIndex=0; sourceIndex<1; sourceIndex++)\r\n\t\t{\r\n\t\t    currentSumSpawnCount
+      += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\r\n\t\t
+      \   if (id.x < currentSumSpawnCount)\r\n\t\t    {\r\n\t\t        break;\r\n\t\t
+      \   }\r\n\t\t}\r\n\t\t*/\r\n\t\t\r\n\r\n        float3 position = float3(0,0,0);\r\n
+      \       uint seed = (uint)0;\r\n        float3 direction = float3(0,0,1);\r\n
+      \       float lifetime = (float)0;\r\n        bool alive = (bool)true;\r\n        float3
+      velocity = float3(0,0,0);\r\n        float age = (float)0;\r\n        float3
+      oldPosition = float3(0,0,0);\r\n        \r\n\r\n\t\t\t\t\r\n#if VFX_USE_PARTICLEID_CURRENT\r\n\t\tparticleId
+      = particleIndex;\r\n#endif\r\n#if VFX_USE_SEED_CURRENT\r\n\t\tseed = WangHash(particleIndex
+      ^ systemSeed);\r\n#endif\r\n\t\t\r\n        PositionTorus_4A7(/*inout*/position,
+      /*inout*/seed, /*inout*/direction, Torus_center_b, Torus_majorRadius_b, Torus_minorRadius_b,
+      Torus_arc_b, volumeFactor_b, r_b);\r\n        {\r\n            float tmp_y =
+      position[0];\r\n            float tmp_z = position[1];\r\n            float
+      tmp_ba = position[2];\r\n            float3 tmp_bb = float3(tmp_y, tmp_z, tmp_ba);\r\n
+      \           float3 tmp_bc = mul(uniform_h, float4(tmp_bb, 1.0)).xyz;\r\n            SetAttribute_9AB89B11(/*inout*/position,
+      tmp_bc);\r\n        }\r\n        SetAttribute_48F87EB1(/*inout*/lifetime, Lifetime_d);\r\n
+      \       KillAABox_0(position, /*inout*/alive, box_center_e, box_size_e);\r\n
+      \       {\r\n            KillSphere_0(position, /*inout*/alive, Sphere_center_f,
+      Sphere_radius_f, (float)1);\r\n        }\r\n        \r\n\r\n\r\n#if VFX_USE_ALIVE_CURRENT\t\t\r\n
+      \       if (alive)\r\n        {\t\r\n            uint index = deadListIn.Consume();\r\n
+      \           attributeBuffer.Store3((index * 0x8 + 0x0) << 2,asuint(position));\r\n
+      \           attributeBuffer.Store((index * 0x1 + 0x7A1200) << 2,asuint(lifetime));\r\n
+      \           attributeBuffer.Store((index * 0x8 + 0x3) << 2,uint(alive));\r\n
+      \           attributeBuffer.Store3((index * 0x4 + 0x895440) << 2,asuint(velocity));\r\n
+      \           attributeBuffer.Store((index * 0x8 + 0x4) << 2,asuint(age));\r\n
+      \           attributeBuffer.Store3((index * 0x4 + 0xC65D40) << 2,asuint(oldPosition));\r\n
+      \           \r\n\r\n        }\r\n#else\r\n\t\tuint index = particleIndex;\r\n\t\tattributeBuffer.Store3((index
+      * 0x8 + 0x0) << 2,asuint(position));\r\n\t\tattributeBuffer.Store((index * 0x1
+      + 0x7A1200) << 2,asuint(lifetime));\r\n\t\tattributeBuffer.Store((index * 0x8
+      + 0x3) << 2,uint(alive));\r\n\t\tattributeBuffer.Store3((index * 0x4 + 0x895440)
+      << 2,asuint(velocity));\r\n\t\tattributeBuffer.Store((index * 0x8 + 0x4) <<
+      2,asuint(age));\r\n\t\tattributeBuffer.Store3((index * 0x4 + 0xC65D40) << 2,asuint(oldPosition));\r\n\t\t\r\n\r\n#endif\t\t\r\n
+      \   }\r\n}"
   - compute: 1
     name: Temp_compute_c_update_Runtime.compute
+    source: "#pragma kernel CSMain\r\n#include \"HLSLSupport.cginc\"\r\n#define NB_THREADS_PER_GROUP
+      64\r\n#define VFX_USE_POSITION_CURRENT 1\r\n#define VFX_USE_LIFETIME_CURRENT
+      1\r\n#define VFX_USE_ALIVE_CURRENT 1\r\n#define VFX_USE_VELOCITY_CURRENT 1\r\n#define
+      VFX_USE_AGE_CURRENT 1\r\n#define VFX_USE_MASS_CURRENT 1\r\n#define VFX_USE_OLDPOSITION_CURRENT
+      1\r\n\r\n#include \"Assets/VFXShaders/Common/VFXCommonCompute.cginc\"\r\n#define
+      VFX_LOCAL_SPACE 1\r\n#include \"Assets/VFXShaders/VFXCommon.cginc\"\r\n\r\n\r\nCBUFFER_START(parameters)\r\n
+      \   float3 box_center_b;\r\n    float Elasticity_b;\r\n    float3 box_size_b;\r\n
+      \   float Friction_b;\r\n    float3 Sphere_center_c;\r\n    float LifetimeLoss_b;\r\n
+      \   float3 Force_d;\r\n    float deltaTime_b;\r\n    float Sphere_radius_c;\r\n
+      \   float Elasticity_c;\r\n    float Friction_c;\r\n    float LifetimeLoss_c;\r\nCBUFFER_END\r\n\r\n\r\nvoid
+      CollisionAABox_0(inout float3 position, inout float3 velocity, inout float age,
+      float lifetime, float mass, float3 box_center, float3 box_size, float Elasticity,
+      float Friction, float LifetimeLoss, float deltaTime, float colliderSign) /*mode:Solid
+      roughSurface:False */\r\n{\r\n    \r\n    float3 nextPos = position + velocity
+      * deltaTime;\r\n    float3 dir = nextPos - box_center;\r\n    float3 absDir
+      = abs(dir);\r\n    float3 size = box_size * 0.5f;\r\n    bool collision = all(absDir
+      <= size);\r\n    if (collision)\r\n    {\r\n        float3 distanceToEdge =
+      (absDir - size);\r\n        float3 absDistanceToEdge = abs(distanceToEdge);\r\n
+      \   \r\n        float3 n;\r\n    \r\n        if (absDistanceToEdge.x < absDistanceToEdge.y
+      && absDistanceToEdge.x < absDistanceToEdge.z)\r\n            n = float3(colliderSign
+      * sign(dir.x), 0.0f, 0.0f);\r\n        else if (absDistanceToEdge.y < absDistanceToEdge.z)\r\n
+      \           n = float3(0.0f, colliderSign * sign(dir.y), 0.0f);\r\n        else\r\n
+      \           n = float3(0.0f, 0.0f, colliderSign * sign(dir.z));\r\n    \r\n
+      \       position -= n * distanceToEdge * colliderSign;\r\n        \r\n        float
+      projVelocity = dot(n, velocity);\r\n        projVelocity *= mass;\r\n    \r\n
+      \       float3 normalVelocity = projVelocity * n;\r\n        float3 tangentVelocity
+      = velocity - normalVelocity;\r\n    \r\n        if (projVelocity < 0)\r\n            velocity
+      -= ((1 + Elasticity) * projVelocity) * n;\r\n        velocity -= Friction *
+      tangentVelocity;\r\n    \r\n        age += (LifetimeLoss * lifetime);\r\n    \r\n
+      \   }\r\n}\r\nvoid CollisionSphere_0(inout float3 position, inout float3 velocity,
+      inout float age, float lifetime, float mass, float3 Sphere_center, float Sphere_radius,
+      float Elasticity, float Friction, float LifetimeLoss, float deltaTime, float
+      colliderSign) /*mode:Solid roughSurface:False */\r\n{\r\n    \r\n    float3
+      nextPos = position + velocity * deltaTime;\r\n    float3 dir = nextPos - Sphere_center;\r\n
+      \   float sqrLength = dot(dir, dir);\r\n    if (colliderSign * sqrLength <=
+      colliderSign * Sphere_radius * Sphere_radius)\r\n    {\r\n        float dist
+      = sqrt(sqrLength);\r\n        float3 n = colliderSign * dir / dist;\r\n    \r\n
+      \       float projVelocity = dot(n, velocity);\r\n        projVelocity *= mass;\r\n
+      \   \r\n        float3 normalVelocity = projVelocity * n;\r\n        float3
+      tangentVelocity = velocity - normalVelocity;\r\n    \r\n        if (projVelocity
+      < 0)\r\n            velocity -= ((1 + Elasticity) * projVelocity) * n;\r\n        velocity
+      -= Friction * tangentVelocity;\r\n    \r\n        age += (LifetimeLoss * lifetime);\r\n
+      \   \r\n        position -= n * (dist - Sphere_radius) * colliderSign;\r\n    }\r\n}\r\nvoid
+      Force_0(inout float3 velocity, float mass, float3 Force, float deltaTime) /*Mode:Absolute
+      */\r\n{\r\n    velocity += (Force / mass) * deltaTime;\r\n}\r\nvoid EulerIntegration(inout
+      float3 position, float3 velocity, float deltaTime)\r\n{\r\n    position += velocity
+      * deltaTime;\r\n}\r\nvoid AgeAndDie(inout float age, float lifetime, inout bool
+      alive, float deltaTime)\r\n{\r\n    age += deltaTime;\r\n    if(age > lifetime)\r\n
+      \   {\r\n        alive = false;\r\n    }\r\n}\r\n\r\n\r\n\r\nRWByteAddressBuffer
+      attributeBuffer;\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\nAppendStructuredBuffer<uint>
+      deadListOut;\r\n#endif\r\n\r\n#if VFX_HAS_INDIRECT_DRAW\r\nAppendStructuredBuffer<uint>
+      indirectBuffer;\r\n#endif\r\n\r\nCBUFFER_START(updateParams)\r\n    uint nbMax;\r\n\tuint
+      systemSeed;\r\nCBUFFER_END\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
+      CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)\r\n{\r\n
+      \   uint index = id.x;\r\n\tif (id.x < nbMax)\r\n\t{\r\n#if VFX_USE_ALIVE_CURRENT\r\n\t\tbool
+      alive = (attributeBuffer.Load((index * 0x8 + 0x3) << 2));\r\n\t\t\r\n\r\n\t\tif
+      (alive)\r\n\t\t{\r\n\t\t\tfloat3 position = asfloat(attributeBuffer.Load3((index
+      * 0x8 + 0x0) << 2));\r\n\t\t\tfloat lifetime = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x7A1200) << 2));\r\n\t\t\tfloat3 velocity = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x895440) << 2));\r\n\t\t\tfloat age = asfloat(attributeBuffer.Load((index
+      * 0x8 + 0x4) << 2));\r\n\t\t\tfloat mass = (float)1;\r\n\t\t\tfloat3 oldPosition
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0xC65D40) << 2));\r\n\t\t\t\r\n\r\n\t\t\t\r\n#if
+      VFX_USE_OLDPOSITION_CURRENT\r\n\t\t\toldPosition = position;\r\n#endif\r\n\t\t\t\r\n\t\t\t{\r\n\t\t\t
+      \   CollisionAABox_0(/*inout*/position, /*inout*/velocity, /*inout*/age, lifetime,
+      mass, box_center_b, box_size_b, Elasticity_b, Friction_b, LifetimeLoss_b, deltaTime_b,
+      (float)1);\r\n\t\t\t}\r\n\t\t\t{\r\n\t\t\t    CollisionSphere_0(/*inout*/position,
+      /*inout*/velocity, /*inout*/age, lifetime, mass, Sphere_center_c, Sphere_radius_c,
+      Elasticity_c, Friction_c, LifetimeLoss_c, deltaTime_b, (float)1);\r\n\t\t\t}\r\n\t\t\tForce_0(/*inout*/velocity,
+      mass, Force_d, deltaTime_b);\r\n\t\t\tEulerIntegration(/*inout*/position, velocity,
+      deltaTime_b);\r\n\t\t\tAgeAndDie(/*inout*/age, lifetime, /*inout*/alive, deltaTime_b);\r\n\t\t\t\r\n\r\n\t\t\tif
+      (alive)\r\n\t\t\t{\r\n\t\t\t\tattributeBuffer.Store3((index * 0x8 + 0x0) <<
+      2,asuint(position));\r\n\t\t\t\tattributeBuffer.Store3((index * 0x4 + 0x895440)
+      << 2,asuint(velocity));\r\n\t\t\t\tattributeBuffer.Store((index * 0x8 + 0x4)
+      << 2,asuint(age));\r\n\t\t\t\tattributeBuffer.Store3((index * 0x4 + 0xC65D40)
+      << 2,asuint(oldPosition));\r\n\t\t\t\t\r\n\r\n#if VFX_HAS_INDIRECT_DRAW\r\n\t\t\t\tindirectBuffer.Append(index);\r\n#endif\r\n\t\t\t}\r\n\t\t\telse\r\n\t\t\t{\t\r\n\t\t\t\tattributeBuffer.Store((index
+      * 0x8 + 0x3) << 2,uint(alive));\r\n\t\t\t\t\r\n\r\n\t\t\t\tdeadListOut.Append(index);\r\n\t\t\t}\r\n\t\t}\r\n#else\r\n\t\tfloat3
+      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\r\n\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x7A1200) << 2));\r\n\t\tbool
+      alive = (attributeBuffer.Load((index * 0x8 + 0x3) << 2));\r\n\t\tfloat3 velocity
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x895440) << 2));\r\n\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x8 + 0x4) << 2));\r\n\t\tfloat
+      mass = (float)1;\r\n\t\tfloat3 oldPosition = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0xC65D40) << 2));\r\n\t\t\r\n\r\n\t\t\r\n#if VFX_USE_OLDPOSITION_CURRENT\r\n\t\toldPosition
+      = position;\r\n#endif\r\n\t\t\r\n\t\t{\r\n\t\t    CollisionAABox_0(/*inout*/position,
+      /*inout*/velocity, /*inout*/age, lifetime, mass, box_center_b, box_size_b, Elasticity_b,
+      Friction_b, LifetimeLoss_b, deltaTime_b, (float)1);\r\n\t\t}\r\n\t\t{\r\n\t\t
+      \   CollisionSphere_0(/*inout*/position, /*inout*/velocity, /*inout*/age, lifetime,
+      mass, Sphere_center_c, Sphere_radius_c, Elasticity_c, Friction_c, LifetimeLoss_c,
+      deltaTime_b, (float)1);\r\n\t\t}\r\n\t\tForce_0(/*inout*/velocity, mass, Force_d,
+      deltaTime_b);\r\n\t\tEulerIntegration(/*inout*/position, velocity, deltaTime_b);\r\n\t\tAgeAndDie(/*inout*/age,
+      lifetime, /*inout*/alive, deltaTime_b);\r\n\t\t\r\n\r\n\t\tattributeBuffer.Store3((index
+      * 0x8 + 0x0) << 2,asuint(position));\r\n\t\tattributeBuffer.Store((index * 0x8
+      + 0x3) << 2,uint(alive));\r\n\t\tattributeBuffer.Store3((index * 0x4 + 0x895440)
+      << 2,asuint(velocity));\r\n\t\tattributeBuffer.Store((index * 0x8 + 0x4) <<
+      2,asuint(age));\r\n\t\tattributeBuffer.Store3((index * 0x4 + 0xC65D40) << 2,asuint(oldPosition));\r\n\t\t\r\n\r\n#endif\r\n\t}\r\n}"
   - compute: 0
     name: Temp_shader_d_point output_Runtime.shader
+    source: "Shader \"Hidden/VFX/ParticlePoints\"\r\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tTags
+      { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\"
+      }\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\tZTest
+      LEqual\r\n\t\tZWrite On\r\n\t\tCull Off\r\n\t\t\r\n\t\r\n\t\t\t\r\n\t\tHLSLINCLUDE\r\n\t\t#if
+      !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\r\n\t\t#define VFX_LOCAL_SPACE
+      1\r\n\t\t#endif\r\n\t\t\r\n\t\t#include \"HLSLSupport.cginc\"\r\n\t\t#define
+      NB_THREADS_PER_GROUP 64\r\n\t\t#define VFX_USE_POSITION_CURRENT 1\r\n\t\t#define
+      VFX_USE_LIFETIME_CURRENT 1\r\n\t\t#define VFX_USE_ALIVE_CURRENT 1\r\n\t\t#define
+      VFX_USE_AGE_CURRENT 1\r\n\t\t#define VFX_USE_COLOR_CURRENT 1\r\n\t\t#define
+      VFX_USE_ALPHA_CURRENT 1\r\n\t\t#define VFX_USE_OLDPOSITION_CURRENT 1\r\n\t\t#define
+      IS_OPAQUE_PARTICLE 1\r\n\t\t#define USE_ALPHA_TEST 1\r\n\t\t#define USE_MOTION_VECTORS_PASS
+      1\r\n\t\t\r\n\t\t\r\n\t\t\r\n\t\t#include \"Assets/VFXShaders/RenderPipeline/Legacy/VFXCommon.cginc\"\r\n\t\t#define
+      VFX_LOCAL_SPACE 1\r\n\t\t#include \"Assets/VFXShaders/VFXCommon.cginc\"\r\n\t\t\r\n\r\n\t\tCBUFFER_START(parameters)\r\n\t\t
+      \   float gradient_b;\r\n\t\t    float alphaThreshold;\r\n\t\t    uint2 PADDING_0;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\r\n\t\tvoid
+      ColorOverLife_26AC1(float age, float lifetime, inout float3 color, float gradient)
+      /*mode:Color ColorComposition:Scale AlphaComposition:Scale */\r\n\t\t{\r\n\t\t
+      \   \r\n\t\t    float4 sampledColor = SampleGradient(gradient, age/lifetime);\r\n\t\t
+      \   color *= sampledColor.rgb;\r\n\t\t    \r\n\t\t}\r\n\t\t\r\n\r\n\t\t\r\n\t\t#define
+      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\r\n\t\t#define
+      IS_TRANSPARENT_PARTICLE (!IS_OPAQUE_PARTICLE)\r\n\t\t\r\n\t\tByteAddressBuffer
+      attributeBuffer;\t\r\n\t\t\r\n\t\t#if VFX_HAS_INDIRECT_DRAW\r\n\t\tStructuredBuffer<uint>
+      indirectBuffer;\t\r\n\t\t#endif\t\r\n\t\t\r\n\t\tCBUFFER_START(outputParams)\r\n\t\t\tfloat
+      nbMax;\r\n\t\t\tfloat systemSeed;\r\n\t\tCBUFFER_END\r\n\t\t\r\n\t\tENDHLSL\r\n\t\t\r\n\r\n\t\t\r\n\t\t//
+      Forward pass\r\n\t\tPass\r\n\t\t{\t\t\r\n\t\t\tTags { \"LightMode\"=\"ForwardBase\"
+      }\r\n\t\t\r\n\t\t\tHLSLPROGRAM\r\n\t\t\t#pragma target 4.5\r\n\t\t\t\r\n\t\t\tstruct
+      ps_input\r\n\t\t\t{\r\n\t\t\t\tfloat4 pos : SV_POSITION;\r\n\t\t\t\t#if VFX_NEEDS_COLOR_INTERPOLATOR\r\n\t\t\t\tnointerpolation
+      float4 color : COLOR0;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if USE_SOFT_PARTICLE ||
+      USE_ALPHA_TEST\r\n\t\t\t\tnointerpolation float2 builtInInterpolants : TEXCOORD0;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if
+      USE_SOFT_PARTICLE\r\n\t\t\t\tfloat4 projPos : TEXCOORD1;\t\t\r\n\t\t\t\t#endif\r\n\t\t\t};\r\n\t\t\t\r\n\t\t\tstruct
+      ps_output\r\n\t\t\t{\r\n\t\t\t\tfloat4 color : SV_Target0;\r\n\t\t\t};\r\n\t\t\r\n\t\t#define
+      VFX_VARYING_PS_INPUTS ps_input\r\n\t\t#define VFX_VARYING_POSCS pos\r\n\t\t#define
+      VFX_VARYING_POSSS projPos\r\n\t\t#define VFX_VARYING_COLOR color.rgb\r\n\t\t#define
+      VFX_VARYING_ALPHA color.a\r\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+      builtInInterpolants.x\r\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\r\n\t\t\t\r\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\r\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\r\n\t\t\t#endif\r\n\t\t\t\r\n\t\t\t#pragma
+      vertex vert\r\n\t\t\t\r\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID,
+      uint instanceID : SV_InstanceID)\r\n\t\t\t{\r\n\t\t\t\tuint index = id;\r\n\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\r\n\t\t\t\tindex = indirectBuffer[index];\r\n\t\t\t#endif\r\n\t\t\t\tVFX_VARYING_PS_INPUTS
+      o = (VFX_VARYING_PS_INPUTS)0;\r\n\t\t\t\to.VFX_VARYING_POSCS = -1;\r\n\t\t\t\tif
+      (index < asuint(nbMax))\r\n\t\t\t\t{\r\n\t\t\t\t\tbool alive = (attributeBuffer.Load((index
+      * 0x8 + 0x3) << 2));\r\n\t\t\t\t\t\r\n\r\n\t\t\t\t\tif (alive)\r\n\t\t\t\t\t{\r\n\t\t\t\t\t\tfloat3
+      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\r\n\t\t\t\t\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x7A1200) << 2));\r\n\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x8 + 0x4) << 2));\r\n\t\t\t\t\t\tfloat3
+      color = float3(1,1,1);\r\n\t\t\t\t\t\tfloat alpha = (float)1;\r\n\t\t\t\t\t\tfloat3
+      oldPosition = asfloat(attributeBuffer.Load3((index * 0x4 + 0xC65D40) << 2));\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\tColorOverLife_26AC1(age,
+      lifetime, /*inout*/color, gradient_b);\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tif
+      (!alive)\r\n\t\t\t\t\t\t\treturn o;\r\n\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_POSCS
+      = TransformPositionVFXToClip(position);\r\n\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_COLOR
+      = color;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT
+      && defined(VFX_VARYING_ALPHA) \r\n\t\t\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+      = invSoftParticlesFadeDistance;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      (VFX_NEEDS_POSSS || USE_SOFT_PARTICLE) && defined(VFX_VARYING_POSSS)\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_POSSS
+      = VFXGetPOSSS(o.pos);\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      = alphaThreshold;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t\treturn
+      o;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t#include \"Assets/VFXShaders/VFXCommonOutput.cginc\"\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t\t\r\n\t\t\t#pragma
+      fragment frag\r\n\t\t\tps_output frag(ps_input i)\r\n\t\t\t{\r\n\t\t\t\tps_output
+      o = (ps_output)0;\r\n\t\t\t\to.color = VFXGetFragmentColor(i);\r\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\r\n\t\t\t\treturn
+      o;\r\n\t\t\t}\r\n\t\t\tENDHLSL\r\n\t\t}\r\n\t\t\r\n\r\n\t\t// Motion Vectors
+      pass\r\n\t\tPass\r\n\t\t{\t\t\r\n\t\t\tName \"MOTIONVECTORS\"\r\n\t\t\tTags
+      { \"LightMode\"=\"MotionVectors\" }\r\n\t\t\r\n\t\t\tZWrite Off\r\n\t\t\tBlend
+      Off\r\n\t\t\t\r\n\t\t\tHLSLPROGRAM\r\n\t\t\t#pragma target 4.5\r\n\t\t\t\r\n\t\t\tfloat4x4
+      _NonJitteredVP;\r\n\t\t\tfloat4x4 _PreviousVP;\r\n\t\t\t\r\n\t\t\tstruct ps_input\r\n\t\t\t{\r\n\t\t\t\tfloat4
+      pos : SV_POSITION;\r\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT\r\n\t\t\t\tnointerpolation
+      float3 builtInInterpolants : TEXCOORD0;\r\n\t\t\t\t#endif\r\n\t\t\t\t#if USE_SOFT_PARTICLE\r\n\t\t\t\tfloat4
+      projPos : TEXCOORD1;\t\t\r\n\t\t\t\t#endif\r\n\t\t\t\t\r\n\t\t\t\tfloat4 previousPos
+      : TEXCOORD2;\r\n\t\t\t\tfloat4 currentPos : TEXCOORD3;\r\n\t\t\t};\r\n\t\t\t\r\n\t\t\tstruct
+      ps_output\r\n\t\t\t{\r\n\t\t\t\tfloat2 motion : SV_Target0;\r\n\t\t\t};\r\n\t\t\r\n\t\t#define
+      VFX_VARYING_PS_INPUTS ps_input\r\n\t\t#define VFX_VARYING_POSCS pos\r\n\t\t#define
+      VFX_VARYING_POSSS projPos\r\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.z\r\n\t\t#define
+      VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\r\n\t\t#define
+      VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\r\n\t\t\t\r\n\t\t\r\n\t\t\r\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\r\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\r\n\t\t\t#endif\r\n\t\t\t\r\n\t\t\t#pragma
+      vertex vert\r\n\t\t\t\r\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID,
+      uint instanceID : SV_InstanceID)\r\n\t\t\t{\r\n\t\t\t\tuint index = id;\r\n\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\r\n\t\t\t\tindex = indirectBuffer[index];\r\n\t\t\t#endif\r\n\t\t\t\tVFX_VARYING_PS_INPUTS
+      o = (VFX_VARYING_PS_INPUTS)0;\r\n\t\t\t\to.VFX_VARYING_POSCS = -1;\r\n\t\t\t\tif
+      (index < asuint(nbMax))\r\n\t\t\t\t{\r\n\t\t\t\t\tbool alive = (attributeBuffer.Load((index
+      * 0x8 + 0x3) << 2));\r\n\t\t\t\t\t\r\n\r\n\t\t\t\t\tif (alive)\r\n\t\t\t\t\t{\r\n\t\t\t\t\t\tfloat3
+      position = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\r\n\t\t\t\t\t\tfloat
+      lifetime = asfloat(attributeBuffer.Load((index * 0x1 + 0x7A1200) << 2));\r\n\t\t\t\t\t\tfloat
+      age = asfloat(attributeBuffer.Load((index * 0x8 + 0x4) << 2));\r\n\t\t\t\t\t\tfloat3
+      color = float3(1,1,1);\r\n\t\t\t\t\t\tfloat alpha = (float)1;\r\n\t\t\t\t\t\tfloat3
+      oldPosition = asfloat(attributeBuffer.Load3((index * 0x4 + 0xC65D40) << 2));\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\tColorOverLife_26AC1(age,
+      lifetime, /*inout*/color, gradient_b);\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\tif
+      (!alive)\r\n\t\t\t\t\t\t\treturn o;\r\n\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\to.VFX_VARYING_POSCS
+      = TransformPositionVFXToClip(position);\r\n\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_COLOR
+      = color;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT
+      && defined(VFX_VARYING_ALPHA) \r\n\t\t\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+      = invSoftParticlesFadeDistance;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      (VFX_NEEDS_POSSS || USE_SOFT_PARTICLE) && defined(VFX_VARYING_POSSS)\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_POSSS
+      = VFXGetPOSSS(o.pos);\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t#if
+      USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      = alphaThreshold;\r\n\t\t\t\t\t\t\t\t#endif\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\to.previousPos
+      = mul(_PreviousVP, float4(oldPosition,1.0f));\r\n\t\t\t\t\t\t\t\to.currentPos
+      = mul(_NonJitteredVP, float4(position,1.0f));\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t\treturn
+      o;\r\n\t\t\t}\r\n\t\t\t\r\n\t\t\t#include \"Assets/VFXShaders/VFXCommonOutput.cginc\"\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t\t\r\n\t\t\t#pragma
+      fragment frag\r\n\t\t\tps_output frag(ps_input i)\r\n\t\t\t{\r\n\t\t\t\tps_output
+      o = (ps_output)0;\r\n\t\t\t\tfloat alpha = VFXGetFragmentColor(i).a;\r\n\t\t\t\tVFXClipFragmentColor(alpha,i);\r\n\t\t\t\t\r\n\t\t\t\tfloat3
+      p0 = i.previousPos.xyz / i.previousPos.w;\r\n\t\t\t\tfloat3 p1 = i.currentPos.xyz
+      / i.currentPos.w;\r\n\t\t\t\t\r\n\t\t\t\tp0.xy = (p0.xy + 1.0f) / 2.0f;\r\n\t\t\t\tp1.xy
+      = (p1.xy + 1.0f) / 2.0f;\r\n\t\t\r\n\t\t\t\t#if UNITY_UV_STARTS_AT_TOP\r\n\t\t\t\tp0.y
+      = 1 - p0.y;\r\n\t\t\t\tp1.y = 1 - p1.y;\r\n\t\t\t\t#endif\r\n\t\t\t\t\r\n\t\t\t\to.motion
+      = (p1 - p0).xy;\r\n\t\t\t\t\r\n\t\t\t\treturn o;\r\n\t\t\t}\r\n\t\t\tENDHLSL\r\n\t\t}\r\n\t\t\r\n\r\n\t\t\r\n\t}\r\n}\r\n"
   m_Infos:
     m_Expressions:
       m_Expressions:

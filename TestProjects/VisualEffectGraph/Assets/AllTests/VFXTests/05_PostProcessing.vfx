@@ -336,7 +336,7 @@ MonoBehaviour:
     paradeExposure: 0.12
     vectorscopeExposure: 0.12
     vectorscopeShowBackground: 1
---- !u!114 &114468770079422050
+--- !u!114 &114247016097524588
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -360,7 +360,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: 05_PostProcessing
-  m_Graph: {fileID: 114468770079422050}
+  m_Graph: {fileID: 114247016097524588}
   m_ShaderSources: []
   m_Infos:
     m_Expressions:
