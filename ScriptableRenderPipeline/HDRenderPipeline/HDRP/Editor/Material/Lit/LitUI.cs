@@ -62,9 +62,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Iridescence
-            public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Control intensity of the iridescence");
+            public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask (R)", "Control intensity of the iridescence");
             public static GUIContent iridescenceThicknessText = new GUIContent("Iridescence Layer Thickness");
-            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map");
+            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map (R)");
             public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Layer Thickness remap");
 
             // Clear Coat
