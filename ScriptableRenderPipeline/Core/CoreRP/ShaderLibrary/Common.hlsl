@@ -77,6 +77,19 @@
 #define real4x3 half4x3
 #define real4x4 half4x4
 
+#define half min16float
+#define half2 min16float2
+#define half3 min16float3
+#define half4 min16float4
+
+#define half2x2 min16float2x2
+#define half2x3 min16float2x3
+#define half3x2 min16float3x2
+#define half3x3 min16float3x3
+#define half3x4 min16float3x4
+#define half4x3 min16float4x3
+#define half4x4 min16float4x4
+
 #define REAL_MIN HALF_MIN
 #define REAL_MAX HALF_MAX
 #define TEMPLATE_1_REAL TEMPLATE_1_HALF
