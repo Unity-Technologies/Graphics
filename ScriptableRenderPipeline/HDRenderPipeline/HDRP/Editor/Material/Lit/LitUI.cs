@@ -495,9 +495,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
             if (iridescenceThicknessMap.textureValue != null)
             {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
                 // Display the remap of texture values.
                 Vector2 remap = iridescenceThicknessRemap.vectorValue;
                 EditorGUI.BeginChangeCheck();
@@ -510,7 +510,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 // Allow the user to set the constant value of thickness if no thickness map is provided.
-                m_MaterialEditor.ShaderProperty(iridescenceThickness, Styles.iridescenceThicknessText);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);                
             }
         }
 
