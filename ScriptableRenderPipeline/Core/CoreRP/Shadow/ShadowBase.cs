@@ -738,15 +738,6 @@ namespace UnityEngine.Experimental.Rendering
             m_HeightRcp         = 1.0f / initializer.height;
             m_MaxPayloadCount   = initializer.maxPayloadCount;
             m_ShadowSupport     = initializer.shadowSupport;
-
-            if( IsNativeDepth() && m_Slices > 1 )
-            {
-                // TODO: Right now when using any of the SetRendertarget functions we ultimately end up in RenderTextureD3D11.cpp
-                //       SetRenderTargetD3D11Internal. This function sets the correct slice only for RTVs, whereas depth textures only
-                //       support one DSV. So there's currently no way to have individual DSVs per slice to render into (ignoring going through a geometry shader and selecting the slice there).
-                Debug.LogError( "Unity does not allow direct rendering into specific depth slices, yet. Defaulting back to one array slice." );
-                m_Slices = 1;
-            }
         }
 
         protected bool IsNativeDepth()

@@ -218,7 +218,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     children =
                     {
-                        new DebugUI.UIntField { displayName = "Shadow Atlas Index", getter = () => lightingDebugSettings.shadowAtlasIndex, setter = value => lightingDebugSettings.shadowAtlasIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetShadowAtlasCount() - 1u }
+                        new DebugUI.UIntField { displayName = "Shadow Atlas Index", getter = () => lightingDebugSettings.shadowAtlasIndex, setter = value => lightingDebugSettings.shadowAtlasIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetShadowAtlasCount() - 1u },
+                        new DebugUI.UIntField { displayName = "Shadow Slice Index", getter = () => lightingDebugSettings.shadowSliceIndex, setter = value => lightingDebugSettings.shadowSliceIndex = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetShadowSliceCount(lightingDebugSettings.shadowAtlasIndex) - 1u }
                     }
                 });
             }
