@@ -38,6 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
         public uint                 shadowAtlasIndex = 0;
+        public uint                 shadowSliceIndex = 0;
         public float                shadowMinValue = 0.0f;
         public float                shadowMaxValue = 1.0f;
 
