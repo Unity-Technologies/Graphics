@@ -494,8 +494,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_FloatingWindowsLayout == null)
                 m_FloatingWindowsLayout = new FloatingWindowsLayout();
 
-            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, layout);
-            m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, layout);
+            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
+            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
+
+            m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, m_GraphView.layout);
+            m_FloatingWindowsLayout.blackboardLayout.ClampToParentWindow();
 
             if (m_MasterPreviewView.expanded)
             {
