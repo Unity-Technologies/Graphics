@@ -93,6 +93,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (masterRenderData.shaderData == null && masterNode != null)
                 masterRenderData.shaderData = shaderData;
+
+            var subGraphOutputNode = node as SubGraphOutputNode;
+
+            if (masterRenderData.shaderData == null && subGraphOutputNode != null)
+                masterRenderData.shaderData = shaderData;
         }
 
         void OnNodeModified(INode node, ModificationScope scope)
