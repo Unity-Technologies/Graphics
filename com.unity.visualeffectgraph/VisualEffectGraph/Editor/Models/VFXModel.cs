@@ -271,11 +271,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VisualEffectResource GetAsset()
+        public VisualEffectResource GetResource()
         {
             var graph = GetGraph();
             if (graph != null)
-                return graph.visualEffectAsset;
+                return graph.visualEffectResource;
             return null;
         }
 

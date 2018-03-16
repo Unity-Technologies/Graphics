@@ -69,10 +69,10 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView.controller == null || graphView.controller.model != resource)
             {
-                bool differentAsset = resource != m_DisplayedAsset;
+                bool differentAsset = resource != m_DisplayedResource;
 
                 m_AssetName = resource.name;
-                m_DisplayedAsset = resource;
+                m_DisplayedResource = resource;
                 graphView.controller = VFXViewController.GetController(resource, true);
 
                 if (differentAsset)
@@ -82,41 +82,24 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        protected VisualEffectResource GetCurrentAsset()
+        protected VisualEffectResource GetCurrentResource()
         {
             var objs = Selection.objects;
 
-            VisualEffectResource selectedAsset = null;
+            VisualEffectResource selectedResource = null;
             if (objs != null && objs.Length == 1)
             {
                 if (objs[0] is VisualEffectAsset)
                 {
                     VisualEffectAsset asset = objs[0] as VisualEffectAsset;
-
-                    selectedAsset = asset.GetResource();
-                    //Transitionning code
-                    if (selectedAsset == null)
-                    {
-                    }
+                    selectedResource = asset.GetResource();
                 }
                 else if (objs[0] is VisualEffectResource)
                 {
-                    selectedAsset = objs[0] as VisualEffectResource;
-                }
-                else if (objs[0] is VFXModel)
-                {
-                    string assetPath = AssetDatabase.GetAssetPath(objs[0]);
-
-                    selectedAsset = VisualEffectResource.GetResourceAtPath(assetPath);
-
-                    if (selectedAsset == null)
-                    {
-                        selectedAsset = new VisualEffectResource();
-                        selectedAsset.SetAssetPath(assetPath);
-                    }
+                    selectedResource = objs[0] as VisualEffectResource;
                 }
             }
-            if (selectedAsset == null)
+            if (selectedResource == null)
             {
                 int instanceID = Selection.activeInstanceID;
 
@@ -125,15 +108,15 @@ namespace  UnityEditor.VFX.UI
                     string path = AssetDatabase.GetAssetPath(instanceID);
                     if (path.EndsWith(".vfx"))
                     {
-                        selectedAsset = VisualEffectResource.GetResourceAtPath(path);
+                        selectedResource = VisualEffectResource.GetResourceAtPath(path);
                     }
                 }
             }
-            if (selectedAsset == null && m_DisplayedAsset != null)
+            if (selectedResource == null && m_DisplayedResource != null)
             {
-                selectedAsset = m_DisplayedAsset;
+                selectedResource = m_DisplayedResource;
             }
-            return selectedAsset;
+            return selectedResource;
         }
 
         protected void OnEnable()
@@ -145,7 +128,7 @@ namespace  UnityEditor.VFX.UI
             this.GetRootVisualContainer().Add(graphView);
 
 
-            var currentAsset = GetCurrentAsset();
+            var currentAsset = GetCurrentResource();
             if (currentAsset != null)
             {
                 LoadResource(currentAsset);
@@ -232,7 +215,7 @@ namespace  UnityEditor.VFX.UI
         }
 
         [SerializeField]
-        private VisualEffectResource m_DisplayedAsset;
+        private VisualEffectResource m_DisplayedResource;
 
         [SerializeField]
         Vector3 m_ViewPosition;

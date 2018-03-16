@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
 
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
 
-            graph.visualEffectAsset = resource;
+            graph.visualEffectResource = resource;
 
             return graph;
         }
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Test
 
             var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
             var camera = cameraObj.AddComponent<Camera>();

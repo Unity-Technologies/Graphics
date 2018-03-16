@@ -153,7 +153,7 @@ namespace UnityEditor.VFX.Test
 
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
 
-            graph.visualEffectAsset = resource;
+            graph.visualEffectResource = resource;
 
             return graph;
         }
@@ -212,7 +212,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             yield return null;
 
@@ -618,7 +618,7 @@ namespace UnityEditor.VFX.Test
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             yield return null;
 

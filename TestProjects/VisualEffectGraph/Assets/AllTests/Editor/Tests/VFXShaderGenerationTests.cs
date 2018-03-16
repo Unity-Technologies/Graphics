@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Test
 
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
 
-            graph.visualEffectAsset = resource;
+            graph.visualEffectResource = resource;
 
             return graph;
         }

@@ -29,14 +29,6 @@ namespace UnityEditor.VFX
             m_Graph = graph;
         }
 
-        static public string baseCacheFolder
-        {
-            get
-            {
-                return "Assets/VFXCache";
-            }
-        }
-
         private struct GeneratedCodeData
         {
             public VFXContext context;
@@ -464,7 +456,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VisualEffectResource asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -481,7 +473,7 @@ namespace UnityEditor.VFX
                     descs[i].compute = generated.computeShader;
                 }
 
-                asset.shaderSources = descs;
+                resource.shaderSources = descs;
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
@@ -539,10 +531,10 @@ namespace UnityEditor.VFX
             if (m_Graph.children.Count() < 1)
             {
                 // Cleaning
-                if (m_Graph.visualEffectAsset != null)
+                if (m_Graph.visualEffectResource != null)
                 {
-                    m_Graph.visualEffectAsset.ClearPropertyData();
-                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
+                    m_Graph.visualEffectResource.ClearPropertyData();
+                    m_Graph.visualEffectResource.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -615,15 +607,15 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.ToArray();
                 expressionSheet.exposed = exposedParameterDescs.ToArray();
 
-                m_Graph.visualEffectAsset.ClearPropertyData();
-                m_Graph.visualEffectAsset.SetExpressionSheet(expressionSheet);
+                m_Graph.visualEffectResource.ClearPropertyData();
+                m_Graph.visualEffectResource.SetExpressionSheet(expressionSheet);
 
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Importing shaders", 7 / nbSteps);
-                SaveShaderFiles(m_Graph.visualEffectAsset, generatedCodeData, contextToCompiledData);
+                SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
@@ -648,11 +640,11 @@ namespace UnityEditor.VFX
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
-                m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.visualEffectResource.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
-                m_Graph.visualEffectAsset.MarkRuntimeVersion();
+                m_Graph.visualEffectResource.MarkRuntimeVersion();
 
-                var assetPath = AssetDatabase.GetAssetPath(visualEffectAsset);
+                var assetPath = AssetDatabase.GetAssetPath(visualEffectResource);
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
             }
             catch (Exception e)
@@ -660,10 +652,10 @@ namespace UnityEditor.VFX
                 Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
 
                 // Cleaning
-                if (m_Graph.visualEffectAsset != null)
+                if (m_Graph.visualEffectResource != null)
                 {
-                    m_Graph.visualEffectAsset.ClearPropertyData();
-                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
+                    m_Graph.visualEffectResource.ClearPropertyData();
+                    m_Graph.visualEffectResource.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -714,16 +706,16 @@ namespace UnityEditor.VFX
                 }
             }
 
-            m_Graph.visualEffectAsset.SetValueSheet(m_ExpressionValues.ToArray());
+            m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
-        public VisualEffectResource visualEffectAsset
+        public VisualEffectResource visualEffectResource
         {
             get
             {
                 if (m_Graph != null)
                 {
-                    return m_Graph.visualEffectAsset;
+                    return m_Graph.visualEffectResource;
                 }
                 return null;
             }

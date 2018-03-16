@@ -813,9 +813,9 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null)
                 {
-                    var asset = controller.model;
-                    if (asset != null)
-                        return asset.cullingFlags;
+                    var resource = controller.model;
+                    if (resource != null)
+                        return resource.cullingFlags;
                 }
                 return VFXCullingFlags.CullDefault;
             }
@@ -824,9 +824,9 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null)
                 {
-                    var asset = controller.model;
-                    if (asset != null)
-                        asset.cullingFlags = value;
+                    var resource = controller.model;
+                    if (resource != null)
+                        resource.cullingFlags = value;
                 }
             }
         }
@@ -852,10 +852,10 @@ namespace UnityEditor.VFX.UI
         {
             if (controller != null)
             {
-                var asset = controller.model;
-                if (asset != null)
+                var resource = controller.model;
+                if (resource != null)
                 {
-                    asset.rendererSettings = settings;
+                    resource.rendererSettings = settings;
                     controller.graph.SetExpressionGraphDirty();
                 }
             }

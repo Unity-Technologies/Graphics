@@ -1,13 +1,11 @@
 //#define USE_SHADER_AS_SUBASSET
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEditor.Experimental.VFX;
+using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
-
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -15,21 +13,16 @@ namespace UnityEditor.VFX
 #if !USE_SHADER_AS_SUBASSET
     public class VFXCacheManager : EditorWindow
     {
-        [MenuItem("VFX Editor/Clear VFXCache")]
-        public static void Clear()
-        {
-            FileUtil.DeleteFileOrDirectory(VFXGraphCompiledData.baseCacheFolder);
-        }
 
-        [MenuItem("VFX Editor/Build VFXCache")]
+        [MenuItem("VFX Editor/Build All VFXs")]
         public static void Build()
         {
-            var vfxAssets = new List<VisualEffectResource>();
-            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectResource");
+            var vfxAssets = new List<VisualEffectAsset>();
+            var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
             foreach (var guid in vfxAssetsGuid)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                var vfxAsset = VisualEffectResource.GetResourceAtPath(assetPath);
+                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
                 if (vfxAsset != null)
                 {
                     vfxAssets.Add(vfxAsset);
@@ -39,8 +32,8 @@ namespace UnityEditor.VFX
             foreach (var vfxAsset in vfxAssets)
             {
                 Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
-                vfxAsset.GetOrCreateGraph().SetExpressionGraphDirty();
-                vfxAsset.GetOrCreateGraph().OnSaved();
+                vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
+                vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
             }
             AssetDatabase.SaveAssets();
         }
@@ -54,12 +47,12 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VisualEffectAssetModicationProcessor.OnWillSaveAssets");
             foreach (string path in paths.Where(t => t.EndsWith(".vfx")))
             {
-                var vfxAsset = VisualEffectResource.GetResourceAtPath(path);
-                if (vfxAsset != null)
+                var vfxResource = VisualEffectResource.GetResourceAtPath(path);
+                if (vfxResource != null)
                 {
-                    var graph = vfxAsset.GetOrCreateGraph();
+                    var graph = vfxResource.GetOrCreateGraph();
                     graph.OnSaved();
-                    vfxAsset.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
             Profiler.EndSample();
@@ -79,12 +72,12 @@ namespace UnityEditor.VFX
 
     static class VisualEffectAssetExtensions
     {
-        public static VFXGraph GetOrCreateGraph(this VisualEffectResource asset)
+        public static VFXGraph GetOrCreateGraph(this VisualEffectResource resource)
         {
-            ScriptableObject g = asset.graph;
+            ScriptableObject g = resource.graph;
             if (g == null)
             {
-                string assetPath = AssetDatabase.GetAssetPath(asset);
+                string assetPath = AssetDatabase.GetAssetPath(resource);
                 AssetDatabase.ImportAsset(assetPath);
 
                 g = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VFXGraph>().FirstOrDefault();
@@ -94,19 +87,19 @@ namespace UnityEditor.VFX
             {
                 g = ScriptableObject.CreateInstance<VFXGraph>();
                 g.name = "VFXGraph";
-                asset.graph = g;
+                resource.graph = g;
                 g.hideFlags |= HideFlags.HideInHierarchy;
                 ((VFXGraph)g).UpdateSubAssets();
             }
 
             VFXGraph graph = (VFXGraph)g;
-            graph.visualEffectAsset = asset;
+            graph.visualEffectResource = resource;
             return graph;
         }
 
-        public static void UpdateSubAssets(this VisualEffectResource asset)
+        public static void UpdateSubAssets(this VisualEffectResource resource)
         {
-            asset.GetOrCreateGraph().UpdateSubAssets();
+            resource.GetOrCreateGraph().UpdateSubAssets();
         }
 
         public static VisualEffectResource GetResource(this VisualEffectAsset asset)
@@ -129,7 +122,7 @@ namespace UnityEditor.VFX
 
     class VFXGraph : VFXModel
     {
-        public VisualEffectResource visualEffectAsset
+        public VisualEffectResource visualEffectResource
         {
             get
             {
@@ -300,7 +293,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                visualEffectAsset.SetDependencies(currentObjects.Cast<Object>().ToArray());
+                visualEffectResource.SetDependencies(currentObjects.Cast<Object>().ToArray());
             }
             catch (Exception e)
             {
@@ -324,17 +317,12 @@ namespace UnityEditor.VFX
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
-                //Debug.Log("UPDATE SUB ASSETS");
-                if (UpdateSubAssets())
-                {
-                    //AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
-                }
+                UpdateSubAssets();
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kExpressionGraphChanged)
             {
-                //Debug.Log("ASSET DIRTY " + cause);
                 EditorUtility.SetDirty(this);
             }
 
@@ -376,9 +364,10 @@ namespace UnityEditor.VFX
 
             if (considerGraphDirty || m_ExpressionValuesDirty)
             {
+                var vfxAsset = compiledData.visualEffectResource.asset;
                 foreach (var component in VFXManager.GetComponents())
                 {
-                    if (component.visualEffectAsset == compiledData.visualEffectAsset)
+                    if (component.visualEffectAsset == vfxAsset)
                     {
                         component.SetVisualEffectAssetDirty(considerGraphDirty);
                     }

@@ -875,18 +875,18 @@ namespace UnityEditor.VFX.UI
 
         static Dictionary<VisualEffectResource, VFXViewController> s_Controllers = new Dictionary<VisualEffectResource, VFXViewController>();
 
-        public static VFXViewController GetController(VisualEffectResource asset, bool forceUpdate = false)
+        public static VFXViewController GetController(VisualEffectResource resource, bool forceUpdate = false)
         {
             //TRANSITION : delete VFXAsset as it should be in Library
-            asset.ValidateAsset();
-            string assetPath = AssetDatabase.GetAssetPath(asset);
+            resource.ValidateAsset();
+            string assetPath = AssetDatabase.GetAssetPath(resource);
 
 
             VFXViewController controller;
-            if (!s_Controllers.TryGetValue(asset, out controller))
+            if (!s_Controllers.TryGetValue(resource, out controller))
             {
-                controller = new VFXViewController(asset);
-                s_Controllers[asset] = controller;
+                controller = new VFXViewController(resource);
+                s_Controllers[resource] = controller;
             }
             else
             {

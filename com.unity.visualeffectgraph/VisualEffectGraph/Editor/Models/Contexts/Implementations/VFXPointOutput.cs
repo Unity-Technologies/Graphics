@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
 
-                var asset = GetAsset();
+                var asset = GetResource();
                 if (asset != null && asset.rendererSettings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
                     yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Read);
             }

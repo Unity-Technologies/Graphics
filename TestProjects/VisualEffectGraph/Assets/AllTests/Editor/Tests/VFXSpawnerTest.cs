@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
 
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
 
-            graph.visualEffectAsset = resource;
+            graph.visualEffectResource = resource;
 
             return graph;
         }
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Test
 
             var gameObj = new GameObject("CreateAssetAndComponentSpawner");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
             var camera = cameraObj.AddComponent<Camera>();
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX.Test
 
             var gameObj = new GameObject("CreateEventStartAndStop");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateEventStartAndStop_Camera");
             var camera = cameraObj.AddComponent<Camera>();
@@ -251,7 +251,7 @@ namespace UnityEditor.VFX.Test
 
             var gameObj = new GameObject("CreateCustomSpawnerAndComponent");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset.asset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateCustomSpawnerAndComponent_Camera");
             var camera = cameraObj.AddComponent<Camera>();
