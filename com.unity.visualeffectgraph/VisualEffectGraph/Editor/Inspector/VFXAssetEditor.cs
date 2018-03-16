@@ -7,11 +7,12 @@ using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using System.IO;
 
-using Object = UnityEngine.Object;
+using UnityObject = UnityEngine.Object;
 using UnityEditorInternal;
 
 
@@ -43,6 +44,9 @@ public class VisualEffectAssetEditor : Editor
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
 
+
+        bool enabled = GUI.enabled;
+        GUI.enabled = true;
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         if (GUILayout.Button("Open Editor"))
@@ -51,35 +55,62 @@ public class VisualEffectAssetEditor : Editor
         }
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
-        /*
-        foreach (var shaderSource in asset.shaderSources)
+
+
+        VisualEffectResource resource = asset.GetResource();
+
+        if (resource == null) return;
+
+
+        UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
+        
+        foreach (var shader in objects.Where(t=>t is Shader || t is ComputeShader))
         {
-            if (shaderSource.shader != null)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
-                GUILayout.Label(shaderSource.name);
+                GUILayout.Label(shader.name);
                 if (GUILayout.Button("Reveal"))
                 {
-                    OpenTempFile(shaderSource);
+                    OpenTempFile(shader);
                 }
                 GUILayout.EndHorizontal();
-                var errors = shaderSource.compute ? ShaderUtil.GetComputeShaderErrors(shaderSource.shader as ComputeShader) : ShaderUtil.GetShaderErrors(shaderSource.shader as Shader);
+                /*
+                var errors = ShaderUtil.GetShaderErrors(shader as Shader);
 
                 foreach (var error in errors)
                 {
                     GUILayout.Label(new GUIContent(error.message, error.warning != 0 ? VisualEffectAssetEditorStyles.warningIcon : VisualEffectAssetEditorStyles.errorIcon, string.Format("{0} line:{1} shader:{2}", error.messageDetails, error.line, shaderSource.name)));
-                }
+                }*/
             }
-        }*/
+        }
+        GUI.enabled = enabled;
     }
 
-    /*void OpenTempFile(VFXShaderSourceDesc shader)
+    void OpenTempFile(UnityObject shader)
     {
-        string path = AssetDatabase.GetAssetPath(target);
-        string name = Path.GetFileNameWithoutExtension(path);
-        string fileName = "Temp/" + name + "_" + shader.name;
-        File.WriteAllText(fileName, shader.source);
-        EditorUtility.RevealInFinder(fileName);
-    }*/
+        string source = GetShaderSource(shader);
+
+        if( ! string.IsNullOrEmpty(source))
+        {
+            string path = AssetDatabase.GetAssetPath(target);
+            string name = Path.GetFileNameWithoutExtension(path);
+            string fileName = "Temp/" + name + "_" + shader.name.Replace("/","_");
+            File.WriteAllText(fileName, source);
+            EditorUtility.RevealInFinder(fileName);
+        }
+    }
+
+
+    string GetShaderSource(UnityObject shader)
+    {
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+        VisualEffectResource resource = asset.GetResource();
+
+        int index = resource.GetShaderIndex(shader);
+        if( index < 0 || index >= resource.shaderSources.Length)
+            return "";
+
+        return resource.shaderSources[index].source;
+    }
 }
