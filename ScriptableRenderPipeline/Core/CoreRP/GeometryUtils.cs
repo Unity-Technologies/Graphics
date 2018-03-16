@@ -109,6 +109,7 @@ namespace UnityEngine.Experimental.Rendering
                                       + obb.extentY * Mathf.Abs(Vector3.Dot(n, obb.up)) 
                                       + obb.extentZ * Mathf.Abs(Vector3.Dot(n, obb.forward));
 
+                // Positive distance -> center in front of the plane.
                 // Negative distance -> center behind the plane (outside).
                 float centerToPlaneDist = Vector3.Dot(n, obb.center) + d;
 

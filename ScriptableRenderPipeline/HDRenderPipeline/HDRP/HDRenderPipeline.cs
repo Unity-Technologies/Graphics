@@ -719,10 +719,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
                     DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd);
 
-                    // Perform the voxelization step which fills the density 3D texture.
-                    // Requires the clustered lighting data structure to be built, and can run async.
-                    m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings);
-
                     // Note: Legacy Unity behave like this for ShadowMask
                     // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
                     // However there is no C# function that we can query to know what mode have been select in Lighting Panel and it will be wrong anyway. Lighting Panel setup what will be the next bake mode. But until light is bake, it is wrong.
@@ -842,8 +838,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
-                        // The pass only requires the volume properties, and can run async.
-                        //
+                        // Perform the voxelization step which fills the density 3D texture.
+                        // Requires the clustered lighting data structure to be built, and can run async.
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings);
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.

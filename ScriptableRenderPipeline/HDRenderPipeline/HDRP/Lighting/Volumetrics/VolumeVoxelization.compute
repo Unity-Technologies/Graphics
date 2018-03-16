@@ -47,13 +47,180 @@ StructuredBuffer<DensityVolumeProperties> _VolumeProperties;
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
+// TODO: avoid creating another Constant Buffer...
+CBUFFER_START(UnityVolumetricLighting)
+    float4x4 _VBufferCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
+    float4   _VBufferSampleOffset;     // Not used by this shader
+    float    _CornetteShanksConstant;  // Not used by this shader
+    uint     _NumVisibleDensityVolumes;
+CBUFFER_END
+
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
+
+void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 rayUnDirWS,
+                                 float4 planeEquationUp, float4 planeEquationRight,
+                                 float3 planeNormalFwd, float faceExtent)
+{
+    float n  = _VBufferDepthDecodingParams.x + _VBufferDepthDecodingParams.z;
+    float z0 = n;                          // Start the computation from the near plane
+    float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
+
+#if defined(SHADER_API_METAL)
+    [fastopt]
+    for (uint slice = 0; slice < VBUFFER_SLICE_COUNT; slice++)
+#else
+    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.w); // Prevent unrolling...
+
+    // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
+    for (uint slice = 0; slice < sliceCountHack; slice++)
+#endif
+    {
+        float e1 = slice * de + de; // (slice + 1) / sliceCount
+    #if defined(SHADER_API_METAL)
+        // Warning: this compiles, but it's nonsense. Use DecodeLogarithmicDepthGeneralized().
+        float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthDecodingParams);
+    #else
+        float z1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDepthDecodingParams);
+    #endif
+
+        float  z = z0 + 0.5 * (z1 - z0);
+        float3 voxelCenterWS = rayOriginWS + z * rayUnDirWS; // Works due to the length of of the dir
+
+        float4 planeEquationForward = float4(planeNormalFwd, dot(-planeNormalFwd, voxelCenterWS));
+
+        float4 planes[3] = { planeEquationRight, planeEquationUp, planeEquationForward };
+
+        // If the box overlaps all 3 planes, it overlaps the center of the voxel.
+        // Otherwise, we have to determine partial coverage.
+        // We approximate the voxel with a parallelepiped with a square front face.
+        float voxelExtents[3] = { faceExtent * z, faceExtent * z, 0.5 * (z1 - z0) };
+
+        _VBufferDensity[uint3(voxelCoord, slice)] = 0;
+
+        for (uint i = 0; i < _NumVisibleDensityVolumes; i++)
+        {
+            // Perform plane-box overlap test.
+            // See "Real-Time Rendering", 3rd Edition, 16.10.2.
+            OrientedBBox obb = _VolumeBounds[i];
+
+            float3 obb_forward = cross(obb.up, obb.right);
+
+            // Compute the fractional overlap between the voxel and the box.
+            float overlapFraction = 1;
+
+            for (uint p = 0; p < 3; p++)
+            {
+                float3 N = planes[p].xyz;
+                float  d = planes[p].w;
+
+                // Max projection of the half-diagonal onto the normal (always positive).
+                float maxHalfDiagProj = obb.extentX * abs(dot(N, obb.right))
+                                      + obb.extentY * abs(dot(N, obb.up))
+                                      + obb.extentZ * abs(dot(N, obb_forward));
+
+                // Positive distance -> center in front of the plane.
+                // Negative distance -> center behind the plane.
+                float centerToPlaneDist = dot(N, obb.center) + d;
+
+                // Compute min/max distances from the plane to the box.
+                float minBoxToPlaneDist = abs(centerToPlaneDist) - maxHalfDiagProj;
+                float maxBoxToPlaneDist = abs(centerToPlaneDist) + maxHalfDiagProj;
+
+                // Check whether the plane overlaps the box.
+                bool overlap = minBoxToPlaneDist <= 0;
+
+                float dMin = minBoxToPlaneDist;
+                float dMax = maxBoxToPlaneDist;
+                float vExt = voxelExtents[p];
+                float iExt = rcp(vExt);
+
+                // Simplify:
+                // if (overlap)
+                //     overlapFraction *= saturate((min(dMax, vExt) + min(-dMin, vExt)) / (2 * vExt));
+                // else
+                //     overlapFraction *= saturate((min(dMax, vExt) - min( dMin, vExt)) / (2 * vExt));
+
+                float a = min(1, dMax * iExt);
+                float b = min(1, abs(dMin) * iExt);
+
+                overlapFraction *= saturate(0.5 * (a + (overlap ? b : -b)));
+            }
+
+            if (overlapFraction > 0)
+            {
+                // There is an overlap. Sample the 3D texture, or load the constant value.
+                _VBufferDensity[uint3(voxelCoord, slice)] = overlapFraction;// * _VolumeProperties[i].extinction;
+            }
+        }
+
+        z0 = z1;
+    }
+}
 
 [numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
 void VolumeVoxelization(uint2 groupId       : SV_GroupID,
                         uint2 groupThreadId : SV_GroupThreadID)
 {
+    // Perform compile-time checks.
+    if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_CLUSTERED)) return;
 
+    uint2 groupCoord  = groupThreadId;
+    uint2 groupOffset = groupId * GROUP_SIZE_1D;
+    uint2 voxelCoord  = groupOffset + groupCoord;
+    uint2 tileCoord   = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
+
+    uint voxelsPerClusterTile = Sq((uint)(TILE_SIZE_CLUSTERED / VBUFFER_TILE_SIZE));
+
+    if (voxelsPerClusterTile >= 64)
+    {
+        // TODO: this is a compile-time test, make sure the compiler actually scalarizes.
+        tileCoord = groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
+    }
+
+    UNITY_BRANCH
+    if (voxelCoord.x >= (uint)_VBufferResolution.x ||
+        voxelCoord.y >= (uint)_VBufferResolution.y)
+    {
+        return;
+    }
+
+    // Perform semi-conservative solid voxelization with partial coverage.
+    // See "A Topological Approach to Voxelization" by Samuli Laine, 5.2.1.
+    // The intersection target is rather efficient (3 planes), and, as Samuli notes,
+    // can work for inputs other than 1D primitives.
+    // Reminder: our voxel is a skewed pyramid frustum.
+
+    // Compute two orthogonal directions.
+    float2 centerCoord = voxelCoord + float2( 0.5,  0.5);
+    float2 leftCoord   = voxelCoord + float2(-0.5,  0.5);
+    float2 upCoord     = voxelCoord + float2( 0.5, -0.5);
+
+    // TODO: avoid 2x matrix multiplications by precomputing the world-space offset on the vs_Z=1 plane.
+    // Compute 2x ray directions s.t. its ViewSpace(rayDirWS).z = 1.
+    float3 centerDirWS = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float3 leftDirWS   = mul(-float3(leftCoord,   1), (float3x3)_VBufferCoordToViewDirWS);
+    float3 upDirWS     = mul(-float3(upCoord,     1), (float3x3)_VBufferCoordToViewDirWS);
+
+    // Construct 3x plane normals.
+    float3 planeNormalFwd   = GetViewForwardDir();
+    float3 planeNormalUp    = normalize(cross(centerDirWS, leftDirWS));
+    float3 planeNormalRight = normalize(cross(centerDirWS, upDirWS));
+
+    // Compose 2x plane equations (they pass through the camera).
+    // The 3rd plane equation depends on the slice, so we'll have to update it inside the loop.
+    float3 cameraPositionWS   = GetCurrentViewPosition();
+    float4 planeEquationUp    = float4(planeNormalUp,    dot(-planeNormalUp,    cameraPositionWS));
+    float4 planeEquationRight = float4(planeNormalRight, dot(-planeNormalRight, cameraPositionWS));
+
+    // We approximate the voxel with a parallelepiped with a square front face.
+    // Compute the extents (half-dimensions) of the front face on the vs_Z=1 plane.
+    // TODO: directly compute the inverse.
+    // TODO: precompute and load this value from the constant buffer. It's a constant!
+    float faceExtent = 0.5 * distance(leftDirWS, centerDirWS);
+
+    FillVolumetricDensityBuffer(voxelCoord, cameraPositionWS, centerDirWS,
+                                planeEquationUp, planeEquationRight,
+                                planeNormalFwd, faceExtent);
 }
