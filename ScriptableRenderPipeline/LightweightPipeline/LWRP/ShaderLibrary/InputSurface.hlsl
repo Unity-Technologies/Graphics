@@ -77,7 +77,7 @@ half4 MainTexture(float2 uv)
 half3 Normal(float2 uv)
 {
 #if _NORMALMAP
-    #if BUMP_SCALE_NOT_SUPPORTED
+    #if !SHADER_HINT_NICE_QUALITY
         return UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv));
     #else
         return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
