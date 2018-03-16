@@ -109,11 +109,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Recalculate which corner to dock to
             m_WindowDockingLayout.CalculateDockingCornerAndOffset(target.layout, target.parent.layout);
-
-            // Make sure that the window offset is non-negative (remains in screen).
-            Vector2 positionOffset = new Vector2(m_WindowDockingLayout.horizontalOffset, m_WindowDockingLayout.verticalOffset);
-            positionOffset.x = Mathf.Max(positionOffset.x, 0f);
-            positionOffset.y = Mathf.Max(positionOffset.y, 0f);
+            m_WindowDockingLayout.ClampToParentWindow();
 
             // Use the docking results to figure which of left/right and top/bottom needs to be set.
             m_WindowDockingLayout.ApplyPosition(target);
