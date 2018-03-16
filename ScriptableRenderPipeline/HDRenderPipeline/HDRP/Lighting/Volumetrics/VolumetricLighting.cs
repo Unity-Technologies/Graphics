@@ -449,89 +449,103 @@ public class VolumetricLightingSystem
 
         if (preset == VolumetricLightingPreset.Off) return densityVolumes;
 
-        Vector3 camPosition = camera.camera.transform.position;
-        Vector3 camOffset   = Vector3.zero; // World-origin-relative
-
-        if (ShaderConfig.s_CameraRelativeRendering != 0)
+        using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
         {
-            camOffset = camPosition; // Camera-relative
-        }
+            Vector3 camPosition = camera.camera.transform.position;
+            Vector3 camOffset   = Vector3.zero; // World-origin-relative
 
-        m_VisibleVolumeBounds.Clear();
-        m_VisibleVolumeProperties.Clear();
-
-        // Collect all visible finite volume data, and upload it to the GPU.
-        HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
-
-        for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
-        {
-            HomogeneousDensityVolume volume = volumes[i];
-
-            // Only test active finite volumes.
-            if (volume.enabled && volume.parameters.IsLocalVolume())
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                // TODO: cache these?
-                var obb = OrientedBBox.Create(volume.transform);
+                camOffset = camPosition; // Camera-relative
+            }
 
-                // Handle camera-relative rendering.
-                obb.center -= camOffset;
+            m_VisibleVolumeBounds.Clear();
+            m_VisibleVolumeProperties.Clear();
 
-                // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
+            // Collect all visible finite volume data, and upload it to the GPU.
+            HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
+
+            for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
+            {
+                HomogeneousDensityVolume volume = volumes[i];
+
+                // Only test active finite volumes.
+                if (volume.enabled && volume.parameters.IsLocalVolume())
                 {
                     // TODO: cache these?
-                    var properties = volume.parameters.GetProperties();
+                    var obb = OrientedBBox.Create(volume.transform);
 
-                    m_VisibleVolumeBounds.Add(obb);
-                    m_VisibleVolumeProperties.Add(properties);
+                    // Handle camera-relative rendering.
+                    obb.center -= camOffset;
+
+                    // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                    if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
+                    {
+                        // TODO: cache these?
+                        var properties = volume.parameters.GetProperties();
+
+                        m_VisibleVolumeBounds.Add(obb);
+                        m_VisibleVolumeProperties.Add(properties);
+                    }
                 }
             }
+
+            s_VisibleVolumeBoundsBuffer.SetData(m_VisibleVolumeBounds);
+            s_VisibleVolumePropertiesBuffer.SetData(m_VisibleVolumeProperties);
+
+            // Fill the struct with pointers in order to share the data with the light loop.
+            densityVolumes.bounds     = m_VisibleVolumeBounds;
+            densityVolumes.properties = m_VisibleVolumeProperties;
+
+            return densityVolumes;
         }
-
-        s_VisibleVolumeBoundsBuffer.SetData(m_VisibleVolumeBounds);
-        s_VisibleVolumePropertiesBuffer.SetData(m_VisibleVolumeProperties);
-
-        // Fill the struct with pointers in order to share the data with the light loop.
-        densityVolumes.bounds     = m_VisibleVolumeBounds;
-        densityVolumes.properties = m_VisibleVolumeProperties;
-
-        return densityVolumes;
     }
 
     public void VolumeVoxelizationPass(DensityVolumeList densityVolumes, HDCamera camera, CommandBuffer cmd, FrameSettings settings)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        int numVisibleVolumes = m_VisibleVolumeBounds.Count;
-
-        if (numVisibleVolumes == 0)
+        using (new ProfilingSample(cmd, "Volume Voxelization"))
         {
-            // Clear the render target instead of running the shader.
-            // CoreUtils.SetRenderTarget(cmd, vBuffer.GetDensityBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
-            // return;
+            int numVisibleVolumes = m_VisibleVolumeBounds.Count;
 
-            // Clearing 3D textures does not seem to work!
-            // Use the workaround by running the full shader with 0 density.
-        }
+            if (numVisibleVolumes == 0)
+            {
+                // Clear the render target instead of running the shader.
+                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetDensityBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                // return;
 
-        VBuffer vBuffer = FindVBuffer(camera.GetViewID());
-        Debug.Assert(vBuffer != null);
+                // Clearing 3D textures does not seem to work!
+                // Use the workaround by running the full shader with 0 density.
+            }
 
-        int w = 0, h = 0, d = 0;
-        vBuffer.GetResolution(ref w, ref h, ref d);
+            VBuffer vBuffer = FindVBuffer(camera.GetViewID());
+            Debug.Assert(vBuffer != null);
 
-        bool enableClustered = settings.lightLoopSettings.enableTileAndCluster;
+            int w = 0, h = 0, d = 0;
+            vBuffer.GetResolution(ref w, ref h, ref d);
 
-        int kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClustered"
-                                                                       : "VolumeVoxelizationBruteforce");
+            bool enableClustered = settings.lightLoopSettings.enableTileAndCluster;
+
+            int kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClustered"
+                                                                           : "VolumeVoxelizationBruteforce");
+
+            float     vFoV       = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
+            Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
                                    
-        camera.SetupComputeShader( m_VolumeVoxelizationCS, cmd);
-        cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,     s_VisibleVolumeBoundsBuffer);
-        cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeProperties, s_VisibleVolumePropertiesBuffer);
-        cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,   vBuffer.GetDensityBuffer());
+            camera.SetupComputeShader( m_VolumeVoxelizationCS, cmd);
+            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,   vBuffer.GetDensityBuffer());
+            cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,     s_VisibleVolumeBoundsBuffer);
+            cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeProperties, s_VisibleVolumePropertiesBuffer);
 
-        // The shader defines GROUP_SIZE_1D = 8.
-        cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, 1);
+            // TODO: set the constant buffer data only once.
+            cmd.SetComputeMatrixParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,  transform);
+            cmd.SetComputeIntParam(    m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes, numVisibleVolumes);
+
+            // The shader defines GROUP_SIZE_1D = 8.
+            cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, 1);
+        }
     }
 
     // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
@@ -645,9 +659,10 @@ public class VolumetricLightingSystem
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], rfc);
 
             // TODO: set 'm_VolumetricLightingPreset'.
-            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(asymmetry));
-            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
+            // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
+            cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
+            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(asymmetry));
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
             if (enableReprojection)
             {

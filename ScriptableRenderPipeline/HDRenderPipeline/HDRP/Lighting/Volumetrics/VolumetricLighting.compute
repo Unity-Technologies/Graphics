@@ -58,9 +58,10 @@ TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval 
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4   _VBufferSampleOffset;              // {x, y, z}, w = rendered frame count
     float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
-    float    _CornetteShanksConstant;           // CornetteShanksPhasePartConstant(_GlobalAsymmetry)
+    float4   _VBufferSampleOffset;              // Not used by this shader
+    float    _CornetteShanksConstant;           // Not used by this shader
+    uint     _NumVisibleDensityVolumes;
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -393,6 +394,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     {
         float e1 = slice * de + de; // (slice + 1) / sliceCount
 #if defined(SHADER_API_METAL)
+        // Warning: this compiles, but it's nonsense. Use DecodeLogarithmicDepthGeneralized().
         float z1 = DecodeLogarithmicDepth(e1, _VBufferDepthDecodingParams);
 #else
         float z1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDepthDecodingParams);
@@ -545,14 +547,8 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
     // Perform compile-time checks.
     if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_CLUSTERED)) return;
 
-    // Note: any factor of 64 is a suitable wave size for our algorithm.
-    uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
-    uint laneIndex = groupThreadId % 64;
-    uint quadIndex = laneIndex / 4;
-
-    uint2 groupCoord  = groupThreadId;
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
-    uint2 voxelCoord  = groupOffset + groupCoord;
+    uint2 voxelCoord  = groupOffset + groupThreadId;
     uint2 tileCoord   = voxelCoord * VBUFFER_TILE_SIZE / TILE_SIZE_CLUSTERED;
 
     uint voxelsPerClusterTile = Sq((uint)(TILE_SIZE_CLUSTERED / VBUFFER_TILE_SIZE));
@@ -570,24 +566,25 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
         return;
     }
 
-    float2 centerCoord = voxelCoord + 0.5;
+    float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 #if ENABLE_REPROJECTION
     float2 strataCoord = centerCoord + _VBufferSampleOffset.xy;
 #else
     float2 strataCoord = centerCoord;
 #endif
 
-    // Compute the (tile-stratified) ray direction s.t. its ViewSpace(rayDirWS).z = 1.
-    float3 strataDirWS     = mul(-float3(strataCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
-    float  strataDirLenSq  = dot(strataDirWS, strataDirWS);
-    float  strataDirLenRcp = rsqrt(strataDirLenSq);
-    float  strataDirLen    = strataDirLenSq * strataDirLenRcp;
-
+    // TODO: avoid 2x matrix multiplications by precomputing the world-space offset on the Z=1 plane.
     // Compute the (tile-centered) ray direction s.t. its ViewSpace(rayDirWS).z = 1.
     float3 centerDirWS     = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
     float  centerDirLenSq  = dot(centerDirWS, centerDirWS);
     float  centerDirLenRcp = rsqrt(centerDirLenSq);
     float  centerDirLen    = centerDirLenSq * centerDirLenRcp;
+
+    // Compute the (tile-stratified) ray direction s.t. its ViewSpace(rayDirWS).z = 1.
+    float3 strataDirWS     = mul(-float3(strataCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
+    float  strataDirLenSq  = dot(strataDirWS, strataDirWS);
+    float  strataDirLenRcp = rsqrt(strataDirLenSq);
+    float  strataDirLen    = strataDirLenSq * strataDirLenRcp;
 
     DualRay ray;
 
