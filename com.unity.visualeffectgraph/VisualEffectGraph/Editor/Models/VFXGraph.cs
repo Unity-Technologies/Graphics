@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
                 VisualEffectResource.DeleteAtPath(assetPath);
             }
 
-            return AssetDeleteResult.DidDelete;
+            return AssetDeleteResult.DidNotDelete;
         }
     }
 

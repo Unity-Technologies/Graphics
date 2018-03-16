@@ -314,7 +314,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
---- !u!114 &114166368330613628
+--- !u!114 &114175368558848616
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -519,7 +519,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -911,7 +911,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -1000,7 +1000,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc095764ededfa4bb32fa602511ea4b, type: 3}
   m_Name: VFXBasicUpdate
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children: []
   m_UIPosition: {x: 1980.1863, y: 103.64122}
   m_UICollapsed: 0
@@ -1088,7 +1088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf77bdf94b619e24a92fca7c3f75ddb3, type: 3}
   m_Name: VFXOperatorCrossProduct
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children: []
   m_UIPosition: {x: 954.83356, y: 549.1118}
   m_UICollapsed: 0
@@ -1467,7 +1467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0b9e6b9139e58d4c957ec54595da7d3, type: 3}
   m_Name: VFXQuadOutput
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children:
   - {fileID: 114048700727034872}
   m_UIPosition: {x: 1974.8335, y: 338.1118}
@@ -1504,7 +1504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330e0fca1717dde4aaa144f48232aa64, type: 3}
   m_Name: VFXParameter
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
@@ -1603,7 +1603,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf77bdf94b619e24a92fca7c3f75ddb3, type: 3}
   m_Name: VFXOperatorCrossProduct
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114166368330613628}
+  m_Parent: {fileID: 114175368558848616}
   m_Children: []
   m_UIPosition: {x: 1406.8335, y: 548.1118}
   m_UICollapsed: 0
@@ -1827,7 +1827,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: CopyPasteTest
-  m_Graph: {fileID: 114166368330613628}
+  m_Graph: {fileID: 114175368558848616}
   m_ShaderSources: []
   m_Infos:
     m_Expressions:
