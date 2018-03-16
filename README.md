@@ -7,6 +7,10 @@ For a more detailed overview of the planned features and philosophy behind SRP, 
 
 This feature is currently a work in progress. We cannot promise that features will work as expected in their current state. Some features may change or be removed before we move to a full release.  
 
+[Lightweight Pipeline Blogpost](https://blogs.unity3d.com/2018/02/21/the-lightweight-render-pipeline-optimizing-real-time-performance/)
+
+[High Definition Pipeline Blogpost](https://blogs.unity3d.com/2018/03/16/the-high-definition-render-pipeline-focused-on-visual-quality/)
+
 ## How to use the latest version
 __Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. You should always use the latest release tag and latest Unity beta version for testing purposes.__
 To use the latest version of the SRP, follow the instructions below:
