@@ -1174,7 +1174,7 @@ namespace UnityEditor.VFX.UI
 
                 if (Selection.activeObject != controller.model)
                 {
-                    Selection.activeObject = controller.model;
+                    Selection.activeObject = controller.model.asset;
                 }
             }
         }
