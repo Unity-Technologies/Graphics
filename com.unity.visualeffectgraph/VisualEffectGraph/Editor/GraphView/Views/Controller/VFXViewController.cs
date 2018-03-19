@@ -163,10 +163,12 @@ namespace UnityEditor.VFX.UI
 
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
-            bool changed = false;
-            input.model.CleanupLinkedSlots();
-
+        
             VFXSlot inputSlot = input.model;
+            if( inputSlot == null)
+                return false;
+
+            bool changed = false;
             if (input.HasLink())
             {
                 VFXNodeController operatorControllerFrom = null;
@@ -681,7 +683,7 @@ namespace UnityEditor.VFX.UI
                     allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>
                         {
                             var candidate = o as VFXDataAnchorController;
-                            return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
+                            return startAnchorOperatorController.CanLink(candidate);
                         }).ToList();
                 }
             }

@@ -8,6 +8,7 @@ using System.Linq;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using UnityEngine.Experimental.VFX;
+using VFXEditableOperator = UnityEditor.VFX.VFXOperatorMultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -51,6 +52,16 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
+        public bool hasUpcommingSlot
+        {
+            get
+            {
+                return model is VFXEditableOperator;
+            }
+        }
+
+        VFXUpcommingDataAnchorController m_UpcommingDataAnchor;
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
@@ -62,6 +73,14 @@ namespace UnityEditor.VFX.UI
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
+            }
+            if( hasUpcommingSlot )
+            {
+                if( m_UpcommingDataAnchor == null)
+                {
+                    m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this,false);
+                }
+                newAnchors.Add(m_UpcommingDataAnchor);
             }
             m_InputPorts = newAnchors;
             newAnchors = new List<VFXDataAnchorController>();

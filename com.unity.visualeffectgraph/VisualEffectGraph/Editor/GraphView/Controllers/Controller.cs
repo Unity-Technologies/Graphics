@@ -88,16 +88,19 @@ namespace UnityEditor.VFX.UI
         public Controller(T model)
         {
             m_Model = model;
-
-            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
+            if( m_Model != null)
+                m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
         }
 
         public override void OnDisable()
         {
             try
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_Handle);
-                m_Handle = null;
+                if( m_Handle != null)
+                {
+                    DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+                    m_Handle = null;
+                }
             }
             catch (ArgumentException e)
             {

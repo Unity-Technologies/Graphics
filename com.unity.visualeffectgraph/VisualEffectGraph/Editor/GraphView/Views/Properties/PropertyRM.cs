@@ -280,30 +280,32 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = null;
             Type type = controller.portType;
-
-            if (type.IsEnum)
+            if( type != null)
             {
-                propertyType = typeof(EnumPropertyRM);
-            }
-            else
-            {
-                while (type != typeof(object) && type != null)
+                if (type.IsEnum)
                 {
-                    if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                    propertyType = typeof(EnumPropertyRM);
+                }
+                else
+                {
+                    while (type != typeof(object) && type != null)
                     {
-                        foreach (var inter in type.GetInterfaces())
+                        if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                         {
-                            if (m_TypeDictionary.TryGetValue(inter, out propertyType))
+                            foreach (var inter in type.GetInterfaces())
                             {
-                                break;
+                                if (m_TypeDictionary.TryGetValue(inter, out propertyType))
+                                {
+                                    break;
+                                }
                             }
                         }
+                        if (propertyType != null)
+                        {
+                            break;
+                        }
+                        type = type.BaseType;
                     }
-                    if (propertyType != null)
-                    {
-                        break;
-                    }
-                    type = type.BaseType;
                 }
             }
             if (propertyType == null)
