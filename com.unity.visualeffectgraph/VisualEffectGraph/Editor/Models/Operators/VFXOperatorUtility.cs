@@ -51,6 +51,11 @@ namespace UnityEditor.VFX
             return (minusOne * input);
         }
 
+        static public VFXExpression Mad(VFXExpression input, VFXExpression scale, VFXExpression bias)
+        {
+            return input * scale + bias;
+        }
+
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
         {
             //Max(Min(x, max), min))
@@ -61,13 +66,20 @@ namespace UnityEditor.VFX
         static public VFXExpression Saturate(VFXExpression input)
         {
             //Max(Min(x, 1.0f), 0.0f))
-            return Clamp(input, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+            int size = VFXExpression.TypeToSize(input.valueType);
+            return Clamp(input, ZeroExpression[size], OneExpression[size]);
         }
 
         static public VFXExpression Frac(VFXExpression input)
         {
             //x - floor(x)
             return input - new VFXExpressionFloor(input);
+        }
+
+        static public VFXExpression Ceil(VFXExpression input)
+        {
+            // ceil(x) = -floor(-x)
+            return Negate(new VFXExpressionFloor(Negate(input)));
         }
 
         static public VFXExpression Round(VFXExpression input)
@@ -176,6 +188,21 @@ namespace UnityEditor.VFX
                 sum.Push(top + bottom);
             }
             return sum.Pop();
+        }
+
+        static public VFXExpression Cross(VFXExpression lhs, VFXExpression rhs)
+        {
+            Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression, VFXExpression> ab_Minus_cd = delegate(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpression d)
+                {
+                    return (a * b - c * d);
+                };
+
+            return new VFXExpressionCombine(new[]
+            {
+                ab_Minus_cd(lhs.y, rhs.z, lhs.z, rhs.y),
+                ab_Minus_cd(lhs.z, rhs.x, lhs.x, rhs.z),
+                ab_Minus_cd(lhs.x, rhs.y, lhs.y, rhs.x),
+            });
         }
 
         static public VFXExpression Distance(VFXExpression x, VFXExpression y)
