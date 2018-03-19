@@ -37,6 +37,11 @@ namespace UnityEditor.VFX.UI
 
         public static string ContextEnumToClassName(string name)
         {
+            if (name[0] != 'k')
+            {
+                Debug.LogError("Fix this since k has been removed from enums");
+            }
+
             return name.Substring(1).ToLower();
         }
 

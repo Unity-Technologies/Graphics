@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (selectedType == type)
                     selectedIndex = cpt++;
-                menu.AddItem(EditorGUIUtility.TrTextContent(type.ToString().Substring(1)), selectedType == type, OnChangeType, type);
+                menu.AddItem(EditorGUIUtility.TrTextContent(type.ToString()), selectedType == type, OnChangeType, type);
             }
             m_CurrentIndex = index;
             menu.Popup(button.worldBound, selectedIndex);
@@ -164,6 +164,7 @@ namespace UnityEditor.VFX.UI
 
             public OperandInfo(VFXMultiOperatorEdit owner, VFXEditableOperator op, int index)
             {
+                this.AddStyleSheetPathWithSkinVariant("VFXControls");
                 m_Owner = owner;
                 field = new VFXStringField("name");
                 field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
@@ -180,7 +181,7 @@ namespace UnityEditor.VFX.UI
             public void Set(VFXEditableOperator op)
             {
                 field.value = op.GetOperandName(index);
-                type.text = op.GetOperandType(index).ToString().Substring(1);
+                type.text = op.GetOperandType(index).ToString();
             }
         }
     }
