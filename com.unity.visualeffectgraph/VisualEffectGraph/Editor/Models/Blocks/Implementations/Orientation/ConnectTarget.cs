@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
 
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Write);
 
             }
@@ -78,9 +78,9 @@ namespace UnityEditor.VFX.Block
                 }
 
                 return string.Format(@"
-sizeY = length(position - TargetPosition);
-
-axisY = normalize(TargetPosition-position);
+axisY = TargetPosition-position;
+sizeY = length(axisY);
+axisY /= sizeY;
 axisZ = {0};
 axisX = normalize(cross(axisY,axisZ));
 axisZ = cross(axisX,axisY);
