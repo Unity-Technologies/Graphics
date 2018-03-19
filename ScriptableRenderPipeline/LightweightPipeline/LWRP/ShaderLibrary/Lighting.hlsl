@@ -201,6 +201,7 @@ struct BRDFData
     half roughness;
     half roughness2;
     half grazingTerm;
+    half normalizationTerm; // stores (roughness + 0.5) * 4.0 BRDF term. roughness + 0.5 comes from an approximation of V * F.
 };
 
 half ReflectivitySpecular(half3 specular)
@@ -245,6 +246,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
     outBRDFData.roughness = PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness);
     outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
+    outBRDFData.normalizationTerm = (outBRDFData.roughness + 0.5h) * 4.0h;
 
 #ifdef _ALPHAPREMULTIPLY_ON
     outBRDFData.diffuse *= alpha;
@@ -280,7 +282,7 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
     half d = NoH * NoH * (brdfData.roughness2 - 1.h) + 1.00001h;
 
     half LoH2 = LoH * LoH;
-    half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * (brdfData.roughness + 0.5h) * 4);
+    half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.normalizationTerm);
 
     // on mobiles (where half actually means something) denominator have risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
