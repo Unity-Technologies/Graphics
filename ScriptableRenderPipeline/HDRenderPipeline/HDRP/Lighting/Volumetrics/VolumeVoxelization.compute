@@ -99,13 +99,33 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
 
         _VBufferDensity[uint3(voxelCoord, slice)] = 0;
 
+        float3 voxelScattering = _GlobalScattering;
+        float  voxelExtinction = _GlobalExtinction;
+
         for (uint i = 0; i < _NumVisibleDensityVolumes; i++)
         {
-            // Perform plane-box overlap test.
-            // See "Real-Time Rendering", 3rd Edition, 16.10.2.
             OrientedBBox obb = _VolumeBounds[i];
 
             float3 obb_forward = cross(obb.up, obb.right);
+
+            // Express the voxel center in the local coordinate system of the box.
+            float3 voxelCenterBoxRelative = voxelCenterWS - obb.center;
+            float3 voxelCenterBoxLocal    = float3(dot(obb.right,   voxelCenterBoxRelative),
+                                                   dot(obb.up,      voxelCenterBoxRelative),
+                                                   dot(obb_forward, voxelCenterBoxRelative));
+
+            // Compute the point inside the box closest to the voxel center.
+            float3 closestPointBoxLocal = float3(CopySign(min(obb.extentX, abs(voxelCenterBoxLocal.x)), voxelCenterBoxLocal.x),
+                                                 CopySign(min(obb.extentY, abs(voxelCenterBoxLocal.y)), voxelCenterBoxLocal.y),
+                                                 CopySign(min(obb.extentZ, abs(voxelCenterBoxLocal.z)), voxelCenterBoxLocal.z));
+
+            // Convert it to world-space coordinates.
+            float3 closestPointWS = obb.center + obb.right   * closestPointBoxLocal.x
+                                               + obb.up      * closestPointBoxLocal.y
+                                               + obb_forward * closestPointBoxLocal.z;
+
+            // The farthest point is on the opposite side of the box.
+            float3 farthestPointWS = 2 * obb.center - closestPointWS;
 
             // Compute the fractional overlap between the voxel and the box.
             float overlapFraction = 1;
@@ -115,43 +135,55 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
                 float3 N = planes[p].xyz;
                 float  d = planes[p].w;
 
-                // Max projection of the half-diagonal onto the normal (always positive).
-                float maxHalfDiagProj = obb.extentX * abs(dot(N, obb.right))
-                                      + obb.extentY * abs(dot(N, obb.up))
-                                      + obb.extentZ * abs(dot(N, obb_forward));
+                // Compute the signed distance from both points to the plane.
+                // Positive distance -> point in front of the plane.
+                // Negative distance -> point behind the plane.
+                float signedDistanceClosest  = dot(float4(closestPointWS,  1), planes[p]);
+                float signedDistanceFarthest = dot(float4(farthestPointWS, 1), planes[p]);
 
-                // Positive distance -> center in front of the plane.
-                // Negative distance -> center behind the plane.
-                float centerToPlaneDist = dot(N, obb.center) + d;
+                bool overlap = abs(signedDistanceClosest) <= voxelExtents[i];
 
-                // Compute min/max distances from the plane to the box.
-                float minBoxToPlaneDist = abs(centerToPlaneDist) - maxHalfDiagProj;
-                float maxBoxToPlaneDist = abs(centerToPlaneDist) + maxHalfDiagProj;
+                overlapFraction *= overlap ? 1 : 0;
 
-                // Check whether the plane overlaps the box.
-                bool overlap = minBoxToPlaneDist <= 0;
+                // // Max projection of the half-diagonal onto the normal (always positive).
+                // float maxHalfDiagProj = obb.extentX * abs(dot(N, obb.right))
+                //                       + obb.extentY * abs(dot(N, obb.up))
+                //                       + obb.extentZ * abs(dot(N, obb_forward));
 
-                float dMin = minBoxToPlaneDist;
-                float dMax = maxBoxToPlaneDist;
-                float vExt = voxelExtents[p];
-                float iExt = rcp(vExt);
+                // float centerToPlaneDist = dot(N, obb.center) + d;
 
-                // Simplify:
-                // if (overlap)
-                //     overlapFraction *= saturate((min(dMax, vExt) + min(-dMin, vExt)) / (2 * vExt));
-                // else
-                //     overlapFraction *= saturate((min(dMax, vExt) - min( dMin, vExt)) / (2 * vExt));
+                // // Compute min/max distances from the plane to the box.
+                // float minBoxToPlaneDist = abs(centerToPlaneDist) - maxHalfDiagProj;
+                // float maxBoxToPlaneDist = abs(centerToPlaneDist) + maxHalfDiagProj;
 
-                float a = min(1, dMax * iExt);
-                float b = min(1, abs(dMin) * iExt);
+                // // Check whether the plane overlaps the box.
+                // bool overlap = minBoxToPlaneDist <= 0;
 
-                overlapFraction *= saturate(0.5 * (a + (overlap ? b : -b)));
+                // float dMin = minBoxToPlaneDist;
+                // float dMax = maxBoxToPlaneDist;
+                // float vExt = voxelExtents[p];
+                // float iExt = rcp(vExt);
+
+                // // Simplify:
+                // // if (overlap)
+                // //     overlapFraction *= saturate((min(dMax, vExt) + min(-dMin, vExt)) / (2 * vExt));
+                // // else
+                // //     overlapFraction *= saturate((min(dMax, vExt) - min( dMin, vExt)) / (2 * vExt));
+
+                // float a = min(1, dMax * iExt);
+                // float b = min(1, abs(dMin) * iExt);
+
+                // overlapFraction *= saturate(0.5 * (a + (overlap ? b : -b)));
+                // overlapFraction *= overlap ? 1 : 0;
             }
 
             if (overlapFraction > 0)
             {
                 // There is an overlap. Sample the 3D texture, or load the constant value.
-                _VBufferDensity[uint3(voxelCoord, slice)] = overlapFraction;// * _VolumeProperties[i].extinction;
+                voxelScattering += overlapFraction * _VolumeProperties[i].scattering;
+                voxelExtinction += overlapFraction * _VolumeProperties[i].extinction;
+
+                _VBufferDensity[uint3(voxelCoord, slice)] = float4(voxelExtinction, voxelScattering);
             }
         }
 
