@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
@@ -10,7 +11,9 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
+            [Tooltip("The value to compare")]
             public FloatN Value = 0.0f;
+            [Tooltip("The threshold from which the function will return one")]
             public FloatN Threshold = 0.5f;
         }
 
