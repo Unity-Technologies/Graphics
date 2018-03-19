@@ -210,10 +210,18 @@ namespace UnityEditor.VFX
             return (v * invLengthVector);
         }
 
-        static public VFXExpression Fmod(VFXExpression x, VFXExpression y)
+        static public VFXExpression Modulo(VFXExpression x, VFXExpression y)
         {
-            //frac(x / y) * y
-            return VFXOperatorUtility.Frac(x / y) * y;
+            if (VFXExpression.IsFloatValueType(x.valueType))
+            {
+                //fmod : frac(x / y) * y
+                return Frac(x / y) * y;
+            }
+            else
+            {
+                //Std 1152 If the quotient a/b is representable, the expression (a/b)*b + a%b shall equal a.
+                return x - (x / y) * y;
+            }
         }
 
         static public VFXExpression Fit(VFXExpression value, VFXExpression oldRangeMin, VFXExpression oldRangeMax, VFXExpression newRangeMin, VFXExpression newRangeMax)
@@ -428,7 +436,7 @@ namespace UnityEditor.VFX
 
         static public VFXExpression CastFloat(VFXExpression from, VFXValueType toValueType, float defaultValue = 0.0f)
         {
-            if (!VFXExpressionFloatOperation.IsFloatValueType(from.valueType) || !VFXExpressionFloatOperation.IsFloatValueType(toValueType))
+            if (!VFXExpressionNumericOperation.IsFloatValueType(from.valueType) || !VFXExpressionNumericOperation.IsFloatValueType(toValueType))
             {
                 throw new ArgumentException(string.Format("Invalid CastFloat : {0} to {1}", from, toValueType));
             }

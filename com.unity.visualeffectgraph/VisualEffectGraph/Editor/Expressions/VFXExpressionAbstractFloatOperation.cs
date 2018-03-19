@@ -6,40 +6,65 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXExpressionFloatOperation : VFXExpression
+    abstract class VFXExpressionNumericOperation : VFXExpression
     {
-        protected VFXExpressionFloatOperation(VFXExpression[] parents)
+        protected VFXExpressionNumericOperation(VFXExpression[] parents)
             : base(Flags.None, parents)
         {
             m_additionnalOperands = new int[] {};
         }
 
-        static private float[] ToFloatArray(float input) { return new float[] { input }; }
-        static private float[] ToFloatArray(Vector2 input) { return new float[] { input.x, input.y }; }
-        static private float[] ToFloatArray(Vector3 input) { return new float[] { input.x, input.y, input.z }; }
-        static private float[] ToFloatArray(Vector4 input) { return new float[] { input.x, input.y, input.z, input.w }; }
-        static protected float[] ToFloatArray(VFXExpression input)
+        static private object[] ToObjectArray(float input) { return new object[] { input }; }
+        static private object[] ToObjectArray(Vector2 input) { return new object[] { input.x, input.y }; }
+        static private object[] ToObjectArray(Vector3 input) { return new object[] { input.x, input.y, input.z }; }
+        static private object[] ToObjectArray(Vector4 input) { return new object[] { input.x, input.y, input.z, input.w }; }
+        static protected object[] ToObjectArray(VFXExpression input)
         {
             switch (input.valueType)
             {
-                case VFXValueType.Float: return ToFloatArray(input.Get<float>());
-                case VFXValueType.Float2: return ToFloatArray(input.Get<Vector2>());
-                case VFXValueType.Float3: return ToFloatArray(input.Get<Vector3>());
-                case VFXValueType.Float4: return ToFloatArray(input.Get<Vector4>());
+                case VFXValueType.Float: return ToObjectArray(input.Get<float>());
+                case VFXValueType.Float2: return ToObjectArray(input.Get<Vector2>());
+                case VFXValueType.Float3: return ToObjectArray(input.Get<Vector3>());
+                case VFXValueType.Float4: return ToObjectArray(input.Get<Vector4>());
+                case VFXValueType.Int32: return new object[] { input.Get<int>() };
+                case VFXValueType.Uint32: return new object[] { input.Get<uint>() };
             }
             return null;
         }
 
-        protected VFXExpression ToFloatN(float[] input, VFXValue.Mode mode)
+        static protected VFXExpression ToVFXValue(object[] input, VFXValue.Mode mode)
         {
-            switch (input.Length)
+            if (input[0] is int)
             {
-                case 1: return new VFXValue<float>(input[0], mode);
-                case 2: return new VFXValue<Vector2>(new Vector2(input[0], input[1]), mode);
-                case 3: return new VFXValue<Vector3>(new Vector3(input[0], input[1], input[2]), mode);
-                case 4: return new VFXValue<Vector4>(new Vector4(input[0], input[1], input[2], input[3]), mode);
+                if (input.Length != 1)
+                    throw new InvalidOperationException("VFXExpressionMathOperation : Unexpected size of int");
+                return new VFXValue<int>((int)input[0], mode);
+            }
+            else if (input[0] is uint)
+            {
+                if (input.Length != 1)
+                    throw new InvalidOperationException("VFXExpressionMathOperation : Unexpected size of uint");
+                return new VFXValue<uint>((uint)input[0], mode);
+            }
+            else if (input[0] is float)
+            {
+                if (input.OfType<float>().Count() != input.Length)
+                    throw new InvalidOperationException("VFXExpressionMathOperation : Unexpected type of float among other float");
+
+                switch (input.Length)
+                {
+                    case 1: return new VFXValue<float>((float)input[0], mode);
+                    case 2: return new VFXValue<Vector2>(new Vector2((float)input[0], (float)input[1]), mode);
+                    case 3: return new VFXValue<Vector3>(new Vector3((float)input[0], (float)input[1], (float)input[2]), mode);
+                    case 4: return new VFXValue<Vector4>(new Vector4((float)input[0], (float)input[1], (float)input[2], (float)input[3]), mode);
+                }
             }
             return null;
+        }
+
+        static protected bool IsNumeric(VFXValueType type)
+        {
+            return IsFloatValueType(type) || type == VFXValueType.Uint32 || type == VFXValueType.Int32;
         }
 
         sealed public override VFXExpressionOperation operation { get { return m_Operation; } }
@@ -47,7 +72,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var newExpression = (VFXExpressionFloatOperation)base.Reduce(reducedParents);
+            var newExpression = (VFXExpressionNumericOperation)base.Reduce(reducedParents);
             newExpression.m_additionnalOperands = m_additionnalOperands.Select(o => o).ToArray();
             newExpression.m_Operation = m_Operation;
             return newExpression;
@@ -57,56 +82,103 @@ namespace UnityEditor.VFX
         protected VFXExpressionOperation m_Operation;
     }
 
-    abstract class VFXExpressionUnaryFloatOperation : VFXExpressionFloatOperation
+    abstract class VFXExpressionUnaryMathOperation : VFXExpressionNumericOperation
     {
-        protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOperation operation) : base(new VFXExpression[1] { parent })
+        protected VFXExpressionUnaryMathOperation(VFXExpression parent, VFXExpressionOperation operation) : base(new VFXExpression[1] { parent })
         {
-            if (!IsFloatValueType(parent.valueType))
+            if (!IsNumeric(parent.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionUnaryFloatOperation");
+                throw new ArgumentException("Incorrect VFXExpressionUnaryMathOperation");
             }
-
-            m_additionnalOperands = new int[] { TypeToSize(parent.valueType) };
+            m_additionnalOperands = new int[] { (int)parent.valueType };
             m_Operation = operation;
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
         {
-            var source = ToFloatArray(reducedParents[0]);
-            var result = new float[source.Length];
-            for (int iChannel = 0; iChannel < source.Length; ++iChannel)
-            {
-                result[iChannel] = ProcessUnaryOperation(source[iChannel]);
-            }
-            return ToFloatN(result, VFXValue.Mode.Constant);
-        }
+            var source = ToObjectArray(reducedParents[0]);
+            var result = new object[source.Length];
 
-        sealed public override string GetCodeString(string[] parents)
-        {
-            return GetUnaryOperationCode(parents[0]);
+            if (source[0] is float)
+            {
+                result = source.Select(o => (object)ProcessUnaryOperation((float)o)).ToArray();
+            }
+            else if (source[0] is int)
+            {
+                result = source.Select(o => (object)ProcessUnaryOperation((int)o)).ToArray();
+            }
+            else if (source[0] is uint)
+            {
+                result = source.Select(o => (object)ProcessUnaryOperation((uint)o)).ToArray();
+            }
+            else
+            {
+                throw new InvalidOperationException("Unexpected type in VFXExpressionUnaryMathOperation");
+            }
+            return ToVFXValue(result, VFXValue.Mode.Constant);
         }
 
         abstract protected float ProcessUnaryOperation(float input);
+        abstract protected int ProcessUnaryOperation(int input);
+        abstract protected uint ProcessUnaryOperation(uint input);
+
+        sealed public override string GetCodeString(string[] parents)
+        {
+            var valueType = this.parents.First().valueType;
+            valueType = IsFloatValueType(valueType) ? VFXValueType.Float : valueType;
+            return GetUnaryOperationCode(parents[0], valueType);
+        }
+
+        abstract protected string GetUnaryOperationCode(string x, VFXValueType type);
+    }
+
+    abstract class VFXExpressionUnaryFloatOperation : VFXExpressionUnaryMathOperation
+    {
+        public VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOperation operation) : base(parent, operation)
+        {
+            if (!IsFloatValueType(parent.valueType))
+            {
+                throw new ArgumentException("Incorrect VFXExpressionUnaryFloatOperation");
+            }
+        }
+
+        sealed protected override int ProcessUnaryOperation(int input)
+        {
+            throw new NotImplementedException();
+        }
+
+        sealed protected override uint ProcessUnaryOperation(uint input)
+        {
+            throw new NotImplementedException();
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
+        {
+            if (type != VFXValueType.Float)
+                throw new InvalidOperationException("VFXExpressionUnaryFloatOperation : Unexpected type");
+
+            return GetUnaryOperationCode(x);
+        }
 
         abstract protected string GetUnaryOperationCode(string x);
     }
 
-    abstract class VFXExpressionBinaryFloatOperation : VFXExpressionFloatOperation
+    abstract class VFXExpressionBinaryMathOperation : VFXExpressionNumericOperation
     {
-        protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
+        protected VFXExpressionBinaryMathOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
             : base(new VFXExpression[2] { parentLeft, parentRight })
         {
-            if (!IsFloatValueType(parentLeft.valueType) || !IsFloatValueType(parentRight.valueType))
+            if (!IsNumeric(parentLeft.valueType) || !IsNumeric(parentLeft.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (not float type)");
+                throw new ArgumentException("Incorrect VFXExpressionBinaryMathOperation (not numeric type)");
             }
 
             if (parentRight.valueType != parentLeft.valueType)
             {
-                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (incompatible float type)");
+                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (incompatible numeric type)");
             }
 
-            m_additionnalOperands = new int[] { TypeToSize(parentLeft.valueType) };
+            m_additionnalOperands = new int[] { (int)parentLeft.valueType };
             m_Operation = operation;
         }
 
@@ -115,73 +187,83 @@ namespace UnityEditor.VFX
             var parentLeft = reducedParents[0];
             var parentRight = reducedParents[1];
 
-            float[] sourceLeft = ToFloatArray(parentLeft);
-            float[] sourceRight = ToFloatArray(parentRight);
+            var sourceLeft = ToObjectArray(parentLeft);
+            var sourceRight = ToObjectArray(parentRight);
 
-            var result = new float[sourceLeft.Length];
-            for (int iChannel = 0; iChannel < sourceLeft.Length; ++iChannel)
+            var result = new object[sourceLeft.Length];
+            if (sourceLeft[0] is float)
             {
-                result[iChannel] = ProcessBinaryOperation(sourceLeft[iChannel], sourceRight[iChannel]);
+                for (int iChannel = 0; iChannel < sourceLeft.Length; ++iChannel)
+                {
+                    result[iChannel] = ProcessBinaryOperation((float)sourceLeft[iChannel], (float)sourceRight[iChannel]);
+                }
             }
-
-            return ToFloatN(result, VFXValue.Mode.Constant);
+            else if (sourceLeft[0] is int)
+            {
+                for (int iChannel = 0; iChannel < sourceLeft.Length; ++iChannel)
+                {
+                    result[iChannel] = ProcessBinaryOperation((int)sourceLeft[iChannel], (int)sourceRight[iChannel]);
+                }
+            }
+            else if (sourceLeft[0] is uint)
+            {
+                for (int iChannel = 0; iChannel < sourceLeft.Length; ++iChannel)
+                {
+                    result[iChannel] = ProcessBinaryOperation((uint)sourceLeft[iChannel], (uint)sourceRight[iChannel]);
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Unexpected type in VFXExpressionUnaryMathOperation");
+            }
+            return ToVFXValue(result, VFXValue.Mode.Constant);
         }
+
+        abstract protected float ProcessBinaryOperation(float x, float y);
+        abstract protected int ProcessBinaryOperation(int x, int y);
+        abstract protected uint ProcessBinaryOperation(uint x, uint y);
 
         sealed public override string GetCodeString(string[] parents)
         {
-            return GetBinaryOperationCode(parents[0], parents[1]);
+            var valueType = this.parents.First().valueType;
+            valueType = IsFloatValueType(valueType) ? VFXValueType.Float : valueType;
+            return GetBinaryOperationCode(parents[0], parents[1], valueType);
         }
 
-        protected abstract float ProcessBinaryOperation(float left, float right);
-        protected abstract string GetBinaryOperationCode(string a, string b);
+        abstract protected string GetBinaryOperationCode(string x, string y, VFXValueType type);
     }
 
-    abstract class VFXExpressionTernaryFloatOperation : VFXExpressionFloatOperation
+    abstract class VFXExpressionBinaryFloatOperation : VFXExpressionBinaryMathOperation
     {
-        protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOperation operation)
-            : base(new VFXExpression[3] { a, b, c })
+        protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
+            : base(parentLeft, parentRight, operation)
         {
-            if (!IsFloatValueType(a.valueType)
-                || !IsFloatValueType(b.valueType)
-                || !IsFloatValueType(c.valueType))
+            if (!IsFloatValueType(parentLeft.valueType) || !IsFloatValueType(parentRight.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (not float type)");
+                throw new ArgumentException("Incorrect VFXExpressionBinaryFloatOperation (not float type)");
             }
-
-            if (a.valueType != b.valueType || b.valueType != c.valueType)
-            {
-                throw new ArgumentException("Incorrect VFXExpressionTernaryFloatOperation (incompatible float type)");
-            }
-
-            m_additionnalOperands = new int[] { TypeToSize(a.valueType) };
-            m_Operation = operation;
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        sealed protected override int ProcessBinaryOperation(int x, int y)
         {
-            var a = reducedParents[0];
-            var b = reducedParents[1];
-            var c = reducedParents[2];
+            throw new NotImplementedException();
+        }
 
-            float[] source_a = ToFloatArray(a);
-            float[] source_b = ToFloatArray(b);
-            float[] source_c = ToFloatArray(c);
+        sealed protected override uint ProcessBinaryOperation(uint x, uint y)
+        {
+            throw new NotImplementedException();
+        }
 
-            var result = new float[source_a.Length];
-            for (int iChannel = 0; iChannel < source_a.Length; ++iChannel)
+        sealed protected override string GetBinaryOperationCode(string x, string y, VFXValueType type)
+        {
+            if (type != VFXValueType.Float)
             {
-                result[iChannel] = ProcessTernaryOperation(source_a[iChannel], source_b[iChannel], source_c[iChannel]);
+                throw new InvalidOperationException("Invalid VFXExpressionBinaryFloatOperation");
             }
 
-            return ToFloatN(result, VFXValue.Mode.Constant);
+            return GetBinaryOperationCode(x, y);
         }
 
-        sealed public override string GetCodeString(string[] parents)
-        {
-            return GetTernaryOperationCode(parents[0], parents[1], parents[2]);
-        }
-
-        protected abstract float ProcessTernaryOperation(float a, float b, float c);
-        protected abstract string GetTernaryOperationCode(string a, string b, string c);
+        protected abstract string GetBinaryOperationCode(string x, string y);
     }
 }

@@ -271,21 +271,57 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ProcessOperatorFmod()
+        public void ProcessOperatorModuloFloat()
         {
             var a = -1.5f;
             var b = 0.2f;
-            var result = Mathf.Repeat(a, b);
+            var ab = Mathf.Repeat(a, b);
 
             var value_a = new VFXValue<float>(a);
             var value_b = new VFXValue<float>(b);
 
-            var expression = VFXOperatorUtility.Fmod(value_a, value_b);
+            var expression = VFXOperatorUtility.Modulo(value_a, value_b);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpression = context.Compile(expression);
 
-            Assert.AreEqual(result, resultExpression.Get<float>(), 0.001f);
+            Assert.AreEqual(ab, resultExpression.Get<float>(), 0.001f);
+        }
+
+        [Test]
+        public void ProcessOperatorModuloInt()
+        {
+            var a = 78;
+            var b = 7;
+            var ab = a % b;
+
+            var value_a = new VFXValue<int>(a);
+            var value_b = new VFXValue<int>(b);
+
+            var expression = VFXOperatorUtility.Modulo(value_a, value_b);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(expression);
+
+            Assert.AreEqual(ab, resultExpression.Get<int>());
+        }
+
+        [Test]
+        public void ProcessOperatorModuloBigInt()
+        {
+            var a = 16777303;
+            var b = 7;
+            var ab = a % b;
+
+            var value_a = new VFXValue<int>(a);
+            var value_b = new VFXValue<int>(b);
+
+            var expression = VFXOperatorUtility.Modulo(value_a, value_b);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(expression);
+
+            Assert.AreEqual(ab, resultExpression.Get<int>());
         }
 
         [Test]
