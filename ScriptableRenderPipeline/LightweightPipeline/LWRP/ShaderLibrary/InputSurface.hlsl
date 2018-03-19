@@ -19,7 +19,6 @@ half4 _EmissionColor;
 half _Cutoff;
 half _Glossiness;
 half _GlossMapScale;
-half _SmoothnessTextureChannel;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
