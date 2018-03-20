@@ -1395,10 +1395,20 @@ namespace UnityEditor.VFX.UI
             controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
         }
 
+        void AddStickyNote(Vector2 position)
+        {
+            StickyNote note = new StickyNote(position);
+
+            AddElement(note);
+            note.style.borderBottom = 0;
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
                 (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(evt.mousePosition); },
+                (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
             evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {

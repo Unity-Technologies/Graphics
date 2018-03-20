@@ -1,0 +1,75 @@
+.sticky-note
+{
+    flex-direction:column;
+    align-items:stretch;    
+    background-color:#F6FF9A;
+    layer:100;
+    border-radius:0;
+    margin-bottom: 0;
+    border-left-width:0;
+    border-top-width:0;
+    border-bottom-width:0;
+    border-right-width:0;
+}
+
+.sticky-note .resizer
+{
+    margin-bottom:2;
+    margin-right:2;
+}
+
+.sticky-note * 
+{
+    text-color:#000000;
+}
+
+.sticky-note > #node-border
+{
+    flex:1;
+    flex-direction:column;
+    align-items:stretch;   
+}
+
+* #title, * #title * 
+{
+    font-size:20;
+}
+* #contents, * #content * 
+{
+    font-size:11;
+    word-wrap:true;
+}
+
+* #title.not-empty
+{
+    height:24;
+}
+
+* #contents
+{
+    flex:1;
+}
+
+* TextField
+{
+    position-type: absolute;
+    position-left:0;
+    position-right:0;
+    position-top:0;
+    position-bottom:0;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+}
+* #title TextField
+{
+    height:24;
+}
+
+* #title TextField:focus
+{
+    position-type: relative;
+    height:15;
+}
+
