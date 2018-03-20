@@ -161,7 +161,7 @@ half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VertexOutputLit IN)
 half3 NormalTS(VertexOutputLit IN)
 {
 #if defined(_NORMALMAP)
-    #if !SHADER_HINT_NICE_QUALITY
+    #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN));
     #else
         return UnpackNormalScale(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN), _BumpScale);
