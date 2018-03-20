@@ -288,29 +288,66 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(ab, resultExpression.Get<float>(), 0.001f);
         }
 
+        private static float[] ProcessOperatorAbs_a = new[] { -0.1f, 0.0f, 3.0f };
         [Test]
-        public void ProcessOperatorModuloInt()
+        public void ProcessOperatorSign([ValueSource("ProcessOperatorAbs_a")] float a)
         {
-            var a = 78;
-            var b = 7;
-            var ab = a % b;
+            var r = Mathf.Sign(a);
+            var value_a = new VFXValue<float>(a);
 
-            var value_a = new VFXValue<int>(a);
-            var value_b = new VFXValue<int>(b);
-
-            var expression = VFXOperatorUtility.Modulo(value_a, value_b);
-
+            var expression = new VFXExpressionSign(value_a);
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultExpression = context.Compile(expression);
 
-            Assert.AreEqual(ab, resultExpression.Get<int>());
+            Assert.AreEqual(r, resultExpression.Get<float>());
         }
 
         [Test]
-        public void ProcessOperatorModuloBigInt()
+        public void ProcessOperatorAbs([ValueSource("ProcessOperatorAbs_a")] float a)
         {
-            var a = 16777303;
-            var b = 7;
+            var r = Mathf.Abs(a);
+            var value_a = new VFXValue<float>(a);
+
+            var expression = new VFXExpressionAbs(value_a);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(expression);
+
+            Assert.AreEqual(r, resultExpression.Get<float>());
+        }
+
+        private static int[] ProcessOperatorAbsInt_a = new[] { -51, 0, 16787153 };
+        [Test]
+        public void ProcessOperatorAbsInt([ValueSource("ProcessOperatorAbsInt_a")] int a)
+        {
+            var r = Mathf.Abs(a);
+            var value_a = new VFXValue<int>(a);
+
+            var expression = new VFXExpressionAbs(value_a);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpression = context.Compile(expression);
+
+            Assert.AreEqual(r, resultExpression.Get<int>());
+        }
+
+        [Test]
+        public void ProcessOperatorAbsUInt()
+        {
+            var value_a = new VFXValue<uint>(0u);
+            Assert.Throws<NotImplementedException>(() => new VFXExpressionAbs(value_a));
+        }
+
+        [Test]
+        public void ProcessOperatorSignUInt()
+        {
+            var value_a = new VFXValue<uint>(0u);
+            Assert.Throws<NotImplementedException>(() => new VFXExpressionSign(value_a));
+        }
+
+        private static int[] ProcessOperatorModuloInt_a = new[] { 78, 16777303 };
+        private static int[] ProcessOperatorModuloInt_b = new[] { 7 };
+        [Test]
+        public void ProcessOperatorModuloInt([ValueSource("ProcessOperatorModuloInt_a")] int a, [ValueSource("ProcessOperatorModuloInt_b")] int b)
+        {
             var ab = a % b;
 
             var value_a = new VFXValue<int>(a);

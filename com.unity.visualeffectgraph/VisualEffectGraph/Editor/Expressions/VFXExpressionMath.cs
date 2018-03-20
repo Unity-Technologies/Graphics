@@ -139,17 +139,31 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionAbs : VFXExpressionUnaryFloatOperation
+    class VFXExpressionAbs : VFXExpressionUnaryNumericOperation
     {
         public VFXExpressionAbs() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionAbs(VFXExpression parent) : base(parent, VFXExpressionOperation.Abs)
         {
+            if (parent.valueType == VFXValueType.Uint32)
+                throw new NotImplementedException("Unexpected type for VFXExpressionAbs");
         }
 
-        sealed protected override string GetUnaryOperationCode(string x)
+        sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
         {
+            if (type == VFXValueType.Uint32)
+                throw new NotImplementedException("Unexpected type for VFXExpressionAbs");
             return string.Format("abs({0})", x);
+        }
+
+        protected override uint ProcessUnaryOperation(uint input)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override int ProcessUnaryOperation(int input)
+        {
+            return Mathf.Abs(input);
         }
 
         sealed protected override float ProcessUnaryOperation(float input)
@@ -158,17 +172,31 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSign : VFXExpressionUnaryFloatOperation
+    class VFXExpressionSign : VFXExpressionUnaryNumericOperation
     {
         public VFXExpressionSign() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionSign(VFXExpression parent) : base(parent, VFXExpressionOperation.Sign)
         {
+            if (parent.valueType == VFXValueType.Uint32)
+                throw new NotImplementedException("Unexpected type for VFXExpressionSign");
         }
 
-        sealed protected override string GetUnaryOperationCode(string x)
+        sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
         {
+            if (type == VFXValueType.Uint32)
+                throw new NotImplementedException("Unexpected type for VFXExpressionSign");
             return string.Format("sign({0})", x);
+        }
+
+        protected override uint ProcessUnaryOperation(uint input)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override int ProcessUnaryOperation(int input)
+        {
+            return (input > 0 ? 1 : 0) - (input < 0 ? 1 : 0);
         }
 
         sealed protected override float ProcessUnaryOperation(float input)
