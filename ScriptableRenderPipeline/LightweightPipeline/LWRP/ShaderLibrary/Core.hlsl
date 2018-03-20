@@ -69,9 +69,10 @@ half3 UnpackNormalScale(half4 packedNormal, half bumpScale)
 
 void OutputTangentToWorld(half4 vertexTangent, half3 vertexNormal, out half3 tangentWS, out half3 binormalWS, out half3 normalWS)
 {
+    // mikkts space compliant. only normalize when extracting normal at frag.
     half sign = vertexTangent.w * GetOddNegativeScale();
     normalWS = TransformObjectToWorldNormal(vertexNormal);
-    tangentWS = normalize(mul((half3x3)UNITY_MATRIX_M, vertexTangent.xyz));
+    tangentWS = TransformObjectToWorldDir(vertexTangent.xyz);
     binormalWS = cross(normalWS, tangentWS) * sign;
 }
 
