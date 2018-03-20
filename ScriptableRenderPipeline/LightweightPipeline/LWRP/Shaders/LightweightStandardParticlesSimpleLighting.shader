@@ -79,6 +79,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
+            #define BUMP_SCALE_NOT_SUPPORTED 1
             #define NO_SHADOWS 1
 
             #include "LWRP/ShaderLibrary/Particles.hlsl"

@@ -13,6 +13,10 @@
 #endif
 #endif
 
+#ifndef BUMP_SCALE_NOT_SUPPORTED
+#define BUMP_SCALE_NOT_SUPPORTED !SHADER_HINT_NICE_QUALITY
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef _NORMALMAP
     #define OUTPUT_NORMAL(IN, OUT) OutputTangentToWorld(IN.tangent, IN.normal, OUT.tangent.xyz, OUT.binormal.xyz, OUT.normal.xyz)
