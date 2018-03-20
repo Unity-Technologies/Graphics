@@ -71,7 +71,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.Add(m_Section);
         }
 
-
         void OnMouseDownEvent(MouseDownEvent evt)
         {
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
