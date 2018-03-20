@@ -1292,7 +1292,7 @@ namespace UnityEditor.VFX.UI
 
         protected internal override bool canCopySelection
         {
-            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any(); }
+            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any() || selection.OfType<VFXStickyNote>().Any(); }
         }
 
         IEnumerable<Controller> ElementsToController(IEnumerable<GraphElement> elements)
@@ -1309,7 +1309,7 @@ namespace UnityEditor.VFX.UI
                     CollectElements((element as GroupNode).containedElements, elementsToCopySet);
                     elementsToCopySet.Add(element);
                 }
-                else if (element is Node || element is VFXContextUI)
+                else if (element is Node || element is VFXContextUI || element is VFXStickyNote)
                 {
                     elementsToCopySet.Add(element);
                 }
