@@ -156,8 +156,8 @@ namespace UnityEditor.VFX.UI
                     copiedGroupUI.groupInfos[i] = new VFXUI.GroupInfo() { title = info.title, position = info.position };
 
                     // only keep nodes that are copied because a node can not be in two groups at the same time.
-                    if (info.content != null)
-                        copiedGroupUI.groupInfos[i].content = info.content.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model)).ToArray();
+                    if (info.contents != null)
+                        copiedGroupUI.groupInfos[i].contents = info.contents.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model)).ToArray();
                 }
             }
             return copiedGroupUI;
@@ -673,23 +673,23 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var groupInfos in copiedUI.groupInfos)
                 {
-                    for (int i = 0; i < groupInfos.content.Length; ++i)
+                    for (int i = 0; i < groupInfos.contents.Length; ++i)
                     {
                         // if we link the parameter node to an existing parameter instead of the copied parameter we have to patch the groupnode content to point the that parameter with the correct id.
-                        if (groupInfos.content[i].model is VFXParameter)
+                        if (groupInfos.contents[i].model is VFXParameter)
                         {
-                            VFXParameter parameter = groupInfos.content[i].model as VFXParameter;
+                            VFXParameter parameter = groupInfos.contents[i].model as VFXParameter;
                             var paramInfo = copyData.parameters.FirstOrDefault(t => t.copiedParameter == parameter);
                             if (paramInfo.parameter != null) // parameter will not be null unless the struct returned is the default.
                             {
-                                groupInfos.content[i].model = paramInfo.parameter;
-                                groupInfos.content[i].id = paramInfo.idMap[groupInfos.content[i].id];
+                                groupInfos.contents[i].model = paramInfo.parameter;
+                                groupInfos.contents[i].id = paramInfo.idMap[groupInfos.contents[i].id];
                             }
                         }
                     }
                 }
 
-                ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo() { title = t.title, position = new Rect(t.position.position + pasteOffset, t.position.size), content = t.content })).ToArray();
+                ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo() { title = t.title, position = new Rect(t.position.position + pasteOffset, t.position.size), contents = t.contents })).ToArray();
             }
 
             CopyDataEdges(copyData, allSerializedObjects);

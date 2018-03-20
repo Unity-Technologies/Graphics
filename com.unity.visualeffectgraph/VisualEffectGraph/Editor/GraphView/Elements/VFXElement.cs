@@ -13,4 +13,8 @@ namespace UnityEditor.VFX.UI
     {
         void OnMoved();
     }
+    interface IVFXResizable
+    {
+        void OnResized();
+    }
 }

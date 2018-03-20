@@ -415,6 +415,8 @@ namespace UnityEditor.VFX.UI
 
             graphViewChanged = VFXGraphViewChanged;
 
+            elementResized = VFXElementResized;
+
             Undo.undoRedoPerformed = OnUndoPerformed;
         }
 
@@ -511,6 +513,7 @@ namespace UnityEditor.VFX.UI
                 m_ToggleCastShadows.SetEnabled(false);
                 m_ToggleMotionVectors.SetEnabled(false);
             }
+            SyncStickyNotes();
 
             // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
             SelectionUpdated();
@@ -582,7 +585,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                Dictionary<VFXGroupNodeController, VFXGroupNode> dic = new Dictionary<VFXGroupNodeController, VFXGroupNode>();
+                var dic = new Dictionary<VFXGroupNodeController, VFXGroupNode>();
                 foreach (var layer in contentViewContainer.Children())
                 {
                     foreach (var graphElement in layer.Children())
@@ -595,6 +598,24 @@ namespace UnityEditor.VFX.UI
                 }
 
 
+                return dic;
+            }
+        }
+        Dictionary<VFXStickyNoteController, VFXStickyNote> stickyNotes
+        {
+            get
+            {
+                var dic = new Dictionary<VFXStickyNoteController, VFXStickyNote>();
+                foreach (var layer in contentViewContainer.Children())
+                {
+                    foreach (var graphElement in layer.Children())
+                    {
+                        if (graphElement is VFXStickyNote)
+                        {
+                            dic[(graphElement as VFXStickyNote).controller] = graphElement as VFXStickyNote;
+                        }
+                    }
+                }
                 return dic;
             }
         }
@@ -711,6 +732,35 @@ namespace UnityEditor.VFX.UI
                 if (addNew && panel != null)
                 {
                     (panel as BaseVisualElementPanel).ValidateLayout();
+                }
+            }
+        }
+        void SyncStickyNotes()
+        {
+            var stickyNotes = this.stickyNotes;
+
+            if (controller == null)
+            {
+                foreach (var kv in stickyNotes)
+                {
+                    RemoveElement(kv.Value);
+                }
+            }
+            else
+            {
+                var deletedControllers = stickyNotes.Keys.Except(controller.stickyNotes);
+
+                foreach (var deletedController in deletedControllers)
+                {
+                    RemoveElement(stickyNotes[deletedController]);
+                }
+
+                foreach (var newController in controller.stickyNotes.Except(stickyNotes.Keys))
+                {
+                    var newElement = new VFXStickyNote();
+                    AddElement(newElement);
+                    newElement.style.borderBottom = 0; // because of resizable hack in GraphView.AddElement where newElement.style.borderBottom is set to 6
+                    newElement.controller = newController;
                 }
             }
         }
@@ -1012,7 +1062,13 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
+        void VFXElementResized(VisualElement element)
+        {
+            if( element is IVFXResizable)
+            {
+                (element as IVFXResizable).OnResized();
+            }
+        }
         GraphViewChange VFXGraphViewChanged(GraphViewChange change)
         {
             if (change.movedElements != null && change.movedElements.Count > 0)
@@ -1397,10 +1453,7 @@ namespace UnityEditor.VFX.UI
 
         void AddStickyNote(Vector2 position)
         {
-            StickyNote note = new StickyNote(position);
-
-            AddElement(note);
-            note.style.borderBottom = 0;
+            controller.AddStickyNote(position);
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)

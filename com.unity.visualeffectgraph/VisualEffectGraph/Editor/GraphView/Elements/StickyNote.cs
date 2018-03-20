@@ -19,10 +19,6 @@ namespace UnityEditor.VFX.UI
             return evt;
         }
 
-        protected override void Init()
-        {
-        }
-
         public enum Change
         {
             title,

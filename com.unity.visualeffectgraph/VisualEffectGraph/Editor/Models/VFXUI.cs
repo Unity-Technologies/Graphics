@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEngine.Serialization;
 
 using Object = UnityEngine.Object;
 
@@ -24,14 +25,29 @@ namespace UnityEditor.VFX
     class VFXUI : ScriptableObject
     {
         [System.Serializable]
-        public class GroupInfo
+        public class UIInfo
         {
             public string title;
             public Rect position;
-            public VFXNodeID[] content;
+        }
+
+        [System.Serializable]
+        public class GroupInfo : UIInfo
+        {
+            [FormerlySerializedAs("content")]
+            public VFXNodeID[] contents;
+        }
+
+        [System.Serializable]
+        public class StickyNoteInfo : UIInfo
+        {
+            public string contents;
+
+            public string theme;
         }
 
         public GroupInfo[] groupInfos;
+        public StickyNoteInfo[] stickyNoteInfos;
 
         public Rect uiBounds;
 
@@ -40,9 +56,9 @@ namespace UnityEditor.VFX
             foreach (var groupInfo in groupInfos)
             {
                 //Check first, rebuild after because in most case the content will be valid, saving an allocation.
-                if (groupInfo.content.Any(t => !graph.children.Contains(t.model)))
+                if (groupInfo.contents.Any(t => !graph.children.Contains(t.model)))
                 {
-                    groupInfo.content = groupInfo.content.Where(t => graph.children.Contains(t.model)).ToArray();
+                    groupInfo.contents = groupInfo.contents.Where(t => graph.children.Contains(t.model)).ToArray();
                 }
             }
         }
