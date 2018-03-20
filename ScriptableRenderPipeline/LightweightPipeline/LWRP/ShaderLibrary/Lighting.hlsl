@@ -201,7 +201,11 @@ struct BRDFData
     half roughness;
     half roughness2;
     half grazingTerm;
-    half normalizationTerm; // stores (roughness + 0.5) * 4.0 BRDF term. roughness + 0.5 comes from an approximation of V * F.
+
+    // We save some light invariant BRDF terms so we don't have to recompute
+    // them in the light loop. Take a look at DirectBRDF function for detailed explaination.
+    half normalizationTerm;     // roughness * 4.0 + 2.0
+    half roughness2MinusOne;    // roughness² - 1.0
 };
 
 half ReflectivitySpecular(half3 specular)
@@ -246,7 +250,9 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
     outBRDFData.roughness = PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness);
     outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
-    outBRDFData.normalizationTerm = (outBRDFData.roughness + 0.5h) * 4.0h;
+
+    outBRDFData.normalizationTerm = outBRDFData.roughness * 4.0h + 2.0h;
+    outBRDFData.roughness2MinusOne = outBRDFData.roughness2 - 1.0h;
 
 #ifdef _ALPHAPREMULTIPLY_ON
     outBRDFData.diffuse *= alpha;
@@ -277,9 +283,16 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
     half LoH = saturate(dot(lightDirectionWS, halfDir));
 
     // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
+    // BRDFspec = (D * V * F) / 4.0
+    // D = roughness² / ( NoH² * (roughness² - 1) + 1 )²
+    // V * F = 1.0 / ( LoH² * (roughness + 0.5) )
     // See "Optimizing PBR for Mobile" from Siggraph 2015 moving mobile graphics course
     // https://community.arm.com/events/1155
-    half d = NoH * NoH * (brdfData.roughness2 - 1.h) + 1.00001h;
+
+    // Final BRDFspec = roughness² / ( NoH² * (roughness² - 1) + 1 )² * (LoH² * (roughness + 0.5) * 4.0)
+    // We further optimize a few light invariant terms
+    // brdfData.normalizationTerm = (roughness + 0.5) * 4.0 rewritten as roughness * 4.0 + 2.0 to a fit a MAD.
+    half d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001h;
 
     half LoH2 = LoH * LoH;
     half specularTerm = brdfData.roughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.normalizationTerm);
