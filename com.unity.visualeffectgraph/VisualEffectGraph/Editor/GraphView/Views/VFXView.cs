@@ -1453,14 +1453,16 @@ namespace UnityEditor.VFX.UI
 
         void AddStickyNote(Vector2 position)
         {
+            position = contentViewContainer.WorldToLocal(position);
             controller.AddStickyNote(position);
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            Vector2 mousePosition = evt.mousePosition;
             evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
                 (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
-            evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(evt.mousePosition); },
+            evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
                 (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
             evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
