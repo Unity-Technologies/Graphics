@@ -37,6 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RTHandle         depthBuffer;
         public HDCamera         hdCamera;
 
+        public DebugDisplaySettings debugSettings;
+
         public static RenderTargetIdentifier nullRT = -1;
     }
 
@@ -294,9 +296,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
         {
-            m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, cmd);
+            m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)

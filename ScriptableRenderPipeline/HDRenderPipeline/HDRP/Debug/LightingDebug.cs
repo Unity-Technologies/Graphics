@@ -56,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float                environmentProxyDepthScale = 20;
 
+        public float                debugExposure = 0.0f;
+
         public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
         public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;
     }

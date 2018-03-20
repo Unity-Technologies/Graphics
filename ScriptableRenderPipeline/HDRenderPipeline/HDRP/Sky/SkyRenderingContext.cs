@@ -235,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return result;
         }
 
-        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, CommandBuffer cmd)
+        public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
         {
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
             {
@@ -250,6 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
                     m_BuiltinParameters.hdCamera = hdCamera;
+                    m_BuiltinParameters.debugSettings = debugSettings;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
                     skyContext.renderer.RenderSky(m_BuiltinParameters, false);
