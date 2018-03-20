@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
             var expression = inputExpression[0] * inputExpression[1];
             var dX = VFXOperatorUtility.Frac(expression);
             var slope = VFXOperatorUtility.Round(dX);
-            var two = VFXOperatorUtility.TwoExpression[VFXExpression.TypeToSize(expression.valueType)];
+            var two = VFXOperatorUtility.TwoExpression[expression.valueType];
             return new[] { two * (new VFXExpressionAbs(slope - dX)) };
         }
     }

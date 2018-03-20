@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
         protected VFXExpressionBinaryNumericOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
             : base(new VFXExpression[2] { parentLeft, parentRight })
         {
-            if (!IsNumeric(parentLeft.valueType) || !IsNumeric(parentLeft.valueType))
+            if (!IsNumeric(parentLeft.valueType) || !IsNumeric(parentRight.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionBinaryMathOperation (not numeric type)");
             }

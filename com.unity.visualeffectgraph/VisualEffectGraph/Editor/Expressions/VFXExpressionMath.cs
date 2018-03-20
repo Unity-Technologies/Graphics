@@ -196,7 +196,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionAdd : VFXExpressionBinaryFloatOperation
+    class VFXExpressionAdd : VFXExpressionBinaryNumericOperation
     {
         public VFXExpressionAdd() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
@@ -208,7 +208,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var zero = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            var zero = VFXOperatorUtility.ZeroExpression[reducedParents[0].valueType];
             if (zero.Equals(reducedParents[0]))
                 return reducedParents[1];
             if (zero.Equals(reducedParents[1]))
@@ -217,7 +217,7 @@ namespace UnityEditor.VFX
             return base.Reduce(reducedParents);
         }
 
-        sealed protected override string GetBinaryOperationCode(string left, string right)
+        sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
         {
             return string.Format("{0} + {1}", left, right);
         }
@@ -226,9 +226,19 @@ namespace UnityEditor.VFX
         {
             return left + right;
         }
+
+        sealed protected override int ProcessBinaryOperation(int left, int right)
+        {
+            return left + right;
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left + right;
+        }
     }
 
-    class VFXExpressionMul : VFXExpressionBinaryFloatOperation
+    class VFXExpressionMul : VFXExpressionBinaryNumericOperation
     {
         public VFXExpressionMul() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
@@ -240,11 +250,11 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var zero  = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            var zero  = VFXOperatorUtility.ZeroExpression[reducedParents[0].valueType];
             if (zero.Equals(reducedParents[0]) || zero.Equals(reducedParents[1]))
                 return zero;
 
-            var one = VFXOperatorUtility.OneExpression[TypeToSize(reducedParents[0].valueType)];
+            var one = VFXOperatorUtility.OneExpression[reducedParents[0].valueType];
             if (one.Equals(reducedParents[0]))
                 return reducedParents[1];
             if (one.Equals(reducedParents[1]))
@@ -258,13 +268,23 @@ namespace UnityEditor.VFX
             return left * right;
         }
 
-        sealed protected override string GetBinaryOperationCode(string left, string right)
+        sealed protected override int ProcessBinaryOperation(int left, int right)
+        {
+            return left * right;
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left * right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
         {
             return string.Format("{0} * {1}", left, right);
         }
     }
 
-    class VFXExpressionDivide : VFXExpressionBinaryFloatOperation
+    class VFXExpressionDivide : VFXExpressionBinaryNumericOperation
     {
         public VFXExpressionDivide() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
@@ -276,11 +296,11 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var zero = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            var zero = VFXOperatorUtility.ZeroExpression[reducedParents[0].valueType];
             if (zero.Equals(reducedParents[0]))
                 return zero;
 
-            var one = VFXOperatorUtility.OneExpression[TypeToSize(reducedParents[0].valueType)];
+            var one = VFXOperatorUtility.OneExpression[reducedParents[0].valueType];
             if (one.Equals(reducedParents[1]))
                 return reducedParents[0];
 
@@ -292,13 +312,23 @@ namespace UnityEditor.VFX
             return left / right;
         }
 
-        sealed protected override string GetBinaryOperationCode(string left, string right)
+        sealed protected override int ProcessBinaryOperation(int left, int right)
+        {
+            return left / right;
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left / right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
         {
             return string.Format("{0} / {1}", left, right);
         }
     }
 
-    class VFXExpressionSubtract : VFXExpressionBinaryFloatOperation
+    class VFXExpressionSubtract : VFXExpressionBinaryNumericOperation
     {
         public VFXExpressionSubtract() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
@@ -310,7 +340,7 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            var zero = VFXOperatorUtility.ZeroExpression[TypeToSize(reducedParents[0].valueType)];
+            var zero = VFXOperatorUtility.ZeroExpression[reducedParents[0].valueType];
             if (zero.Equals(reducedParents[1]))
                 return reducedParents[0];
 
@@ -322,13 +352,23 @@ namespace UnityEditor.VFX
             return left - right;
         }
 
-        sealed protected override string GetBinaryOperationCode(string left, string right)
+        sealed protected override int ProcessBinaryOperation(int left, int right)
+        {
+            return left - right;
+        }
+
+        sealed protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left - right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
         {
             return string.Format("{0} - {1}", left, right);
         }
     }
 
-    class VFXExpressionMin : VFXExpressionBinaryFloatOperation
+    class VFXExpressionMin : VFXExpressionBinaryNumericOperation
     {
         public VFXExpressionMin() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
@@ -343,13 +383,25 @@ namespace UnityEditor.VFX
             return Mathf.Min(left, right);
         }
 
-        sealed protected override string GetBinaryOperationCode(string left, string right)
+        protected override int ProcessBinaryOperation(int left, int right)
         {
+            return Mathf.Min(left, right);
+        }
+
+        protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left < right ? left : right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
+        {
+            if (type == VFXValueType.Uint32)
+                return string.Format("{0} < {1} ? {0} : {1}", left, right);
             return string.Format("min({0}, {1})", left, right);
         }
     }
 
-    class VFXExpressionMax : VFXExpressionBinaryFloatOperation
+    class VFXExpressionMax : VFXExpressionBinaryNumericOperation
     {
         public VFXExpressionMax() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {
@@ -364,8 +416,20 @@ namespace UnityEditor.VFX
             return Mathf.Max(left, right);
         }
 
-        sealed protected override string GetBinaryOperationCode(string left, string right)
+        protected override int ProcessBinaryOperation(int left, int right)
         {
+            return Mathf.Max(left, right);
+        }
+
+        protected override uint ProcessBinaryOperation(uint left, uint right)
+        {
+            return left > right ? left : right;
+        }
+
+        protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
+        {
+            if (type == VFXValueType.Uint32)
+                return string.Format("{0} > {1} ? {0} : {1}", left, right);
             return string.Format("max({0}, {1})", left, right);
         }
     }
