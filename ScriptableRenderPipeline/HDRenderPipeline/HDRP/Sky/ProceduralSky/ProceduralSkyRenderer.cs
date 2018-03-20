@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sunDirection = -builtinParams.sunLight.transform.forward;
             }
 
-            m_ProceduralSkyMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(m_ProceduralSkyParams.exposure, m_ProceduralSkyParams.multiplier, 0.0f, 0.0f));
+            m_ProceduralSkyMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(GetExposure(m_ProceduralSkyParams, builtinParams.debugSettings), m_ProceduralSkyParams.multiplier, 0.0f, 0.0f));
             m_ProceduralSkyMaterial.SetFloat(_SunSizeParam, m_ProceduralSkyParams.sunSize);
             m_ProceduralSkyMaterial.SetFloat(_SunSizeConvergenceParam, m_ProceduralSkyParams.sunSizeConvergence);
             m_ProceduralSkyMaterial.SetFloat(_AtmoshpereThicknessParam, m_ProceduralSkyParams.atmosphereThickness);
