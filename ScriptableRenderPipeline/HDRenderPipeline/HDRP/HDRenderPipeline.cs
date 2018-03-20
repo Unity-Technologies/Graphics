@@ -1622,6 +1622,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var skyReflection = m_SkyManager.skyReflection;
                     m_SharedPropertyBlock.SetTexture(HDShaderIDs._InputCubemap, skyReflection);
                     m_SharedPropertyBlock.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
+                    m_SharedPropertyBlock.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                     cmd.DrawProcedural(Matrix4x4.identity, m_DebugDisplayLatlong, 0, MeshTopology.Triangles, 3, 1, m_SharedPropertyBlock);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
