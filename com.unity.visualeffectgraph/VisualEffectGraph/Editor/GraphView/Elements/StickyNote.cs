@@ -87,8 +87,15 @@ namespace UnityEditor.VFX.UI
         {
             if (e.clickCount == 2)
             {
+                m_Title.AddToClassList("not-empty");
                 m_TitleField.value = m_Title.text;
                 m_TitleField.visible = true;
+
+                m_TitleField.Focus();
+                m_TitleField.SelectAll();
+
+                e.StopPropagation();
+                e.PreventDefault();
             }
         }
 
@@ -98,6 +105,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_ContentsField.value = m_Contents.text;
                 m_ContentsField.visible = true;
+                m_ContentsField.Focus();
+                e.StopPropagation();
+                e.PreventDefault();
             }
         }
 
