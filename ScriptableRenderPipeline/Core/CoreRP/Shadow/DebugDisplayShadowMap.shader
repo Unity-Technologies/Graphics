@@ -9,6 +9,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
         float4 _TextureScaleBias;
         float _TextureSlice;
         float2 _ValidRange;
+        float _RequireToFlipInputTexture;
         SamplerState ltc_linear_clamp_sampler;
         TEXTURE2D_ARRAY(_AtlasTexture);
 
@@ -27,8 +28,12 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayShadowMap"
         {
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _TextureScaleBias.xy + _TextureScaleBias.zw;
-
+            output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+            if (_RequireToFlipInputTexture > 0.0f)
+            {
+                output.texcoord.y = 1.0f - output.texcoord.y;
+            }
+            output.texcoord = output.texcoord *_TextureScaleBias.xy + _TextureScaleBias.zw;
             return output;
         }
     ENDHLSL
