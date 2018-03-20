@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 scrollable = true,
                 title = assetName.Split('/').Last(),
-                subTitle = graph.path,
+                subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
@@ -126,13 +126,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabel.visible = true;
             m_PathLabelTextField.visible = false;
 
-            if (!m_EditPathCancelled && (m_PathLabel.text != m_PathLabelTextField.text) && (m_PathLabelTextField.text.Trim() != ""))
+            var newPath = m_PathLabelTextField.text;
+            if (!m_EditPathCancelled && (newPath != m_PathLabel.text))
             {
-                m_PathLabel.text = m_PathLabelTextField.text.Trim();
-                m_Graph.path = m_PathLabel.text;
+                newPath = SanitizePath(newPath);
             }
 
+            m_Graph.path = newPath;
+            m_PathLabel.text = FormatPath(newPath);
             m_EditPathCancelled = false;
+        }
+
+        static string FormatPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return "—";
+            return path;
+        }
+
+        static string SanitizePath(string path)
+        {
+            var splitString = path.Split('/');
+            List<string> newStrings = new List<string>();
+            foreach (string s in splitString)
+            {
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    newStrings.Add(s.Trim());
+                }
+            }
+
+            return string.Join("/", newStrings.ToArray());
         }
 
         void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
