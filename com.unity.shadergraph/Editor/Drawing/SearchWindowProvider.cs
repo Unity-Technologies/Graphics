@@ -79,8 +79,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                    var title = asset.subGraph.path.Split('/').Append(asset.name).ToArray();
                     var node = new SubGraphNode { subGraphAsset = asset };
-                    AddEntries(node, new[] { "Sub-graph Assets", asset.name }, nodeEntries);
+                    AddEntries(node, title, nodeEntries);
                 }
             }
 
