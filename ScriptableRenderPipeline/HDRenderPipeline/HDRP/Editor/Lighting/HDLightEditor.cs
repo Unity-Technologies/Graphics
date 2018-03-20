@@ -382,6 +382,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 UpdateLightIntensity();
             }
 
+            settings.DrawBounceIntensity();
+
             settings.DrawLightmapping();
 
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty

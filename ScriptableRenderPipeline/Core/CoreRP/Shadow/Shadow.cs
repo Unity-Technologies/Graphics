@@ -484,6 +484,7 @@ namespace UnityEngine.Experimental.Rendering
                     sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
                 else
                     sp.Set( 0.0f, 0.0f, 0.0f, 0.0f );
+                sp.p3 = (int) sr.facecount;
                 payload[payloadOffset] = sp;
                 payloadOffset++;
 
@@ -708,17 +709,20 @@ namespace UnityEngine.Experimental.Rendering
                 // shadow atlas layouting
                 CachedEntry ce = m_EntryCache[i];
                 Rect vp = ce.current.viewport;
+                curh = curh >= vp.height ? curh : vp.height;
 
                 if( curx + vp.width > xmax )
                 {
                     curx = 0;
                     cury += curh;
+                    curh = vp.height;
                 }
                 if( curx + vp.width > xmax || cury + curh > ymax )
                 {
                     curslice++;
                     curx = 0;
                     cury = 0;
+                    curh = vp.height;
                 }
                 if( curx + vp.width > xmax || cury + curh > ymax || curslice == m_Slices )
                 {
@@ -731,7 +735,6 @@ namespace UnityEngine.Experimental.Rendering
                 ce.current.slice    = curslice;
                 m_EntryCache[i]     = ce;
                 curx += vp.width;
-                curh = curh >= vp.height ? curh : vp.height;
             }
             return true;
         }
