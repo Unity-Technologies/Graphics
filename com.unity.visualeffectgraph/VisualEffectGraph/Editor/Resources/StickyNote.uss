@@ -116,3 +116,37 @@
     height:24;
 }
 
+/* Themes*/
+
+.sticky-note.theme-orange, .theme-orange TextField
+{
+    background-color:#FCD76E;
+}
+.sticky-note.theme-black, .theme-black TextField
+{
+    background-color:#000000;
+}
+.sticky-note.theme-black *
+{
+    text-color: #999999;
+}
+.sticky-note.theme-red, .theme-red TextField
+{
+    background-color:#FF8B8B;
+}
+.sticky-note.theme-green, .theme-green TextField
+{
+    background-color:#6BE6B0;
+}
+.sticky-note.theme-blue, .theme-blue TextField
+{
+    background-color:#8FC1DF;
+}
+.sticky-note.theme-teal, .theme-teal TextField
+{
+    background-color:#84E4E7;
+}
+.sticky-note.theme-purple, .theme-purple TextField
+{
+    background-color:#FBCBF4;
+}

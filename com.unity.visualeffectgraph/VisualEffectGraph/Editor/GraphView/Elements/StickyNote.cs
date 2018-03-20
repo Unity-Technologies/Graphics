@@ -11,6 +11,48 @@ namespace UnityEditor.VFX.UI
 {
     class StickyNote : GraphElement
     {
+        public enum Theme
+        {
+            Classic,
+            Black,
+            Orange,
+            Green,
+            Blue,
+            Red,
+            Purple,
+            Teal
+        }
+
+        Theme m_Theme = Theme.Classic;
+        public Theme theme
+        {
+            get
+            {
+                return m_Theme;
+            }
+            set
+            {
+                m_Theme = value;
+
+                UpdateThemeClasses();
+            }
+        }
+
+        void UpdateThemeClasses()
+        {
+            foreach(Theme value in System.Enum.GetValues(typeof(Theme)))
+            {
+                if( m_Theme != value)
+                {
+                    RemoveFromClassList("theme-"+value.ToString().ToLower());
+                }
+                else
+                {
+                    AddToClassList("theme-"+value.ToString().ToLower());
+                }
+            }
+        }
+
         public static readonly Vector2 defaultSize = new Vector2(100, 100);
 
         public StickyNote(Vector2 position) : this(UXMLHelper.GetUXMLPath("uxml/StickyNote.uxml"), position)
@@ -56,6 +98,26 @@ namespace UnityEditor.VFX.UI
 
             AddToClassList("sticky-note");
             AddToClassList("selectable");
+            UpdateThemeClasses();
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target is StickyNote)
+            {
+                foreach(Theme value in System.Enum.GetValues(typeof(Theme)))
+                {
+                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal,value);
+                }
+                evt.menu.AppendSeparator();
+            }
+        }
+
+        void OnChangeTheme(ContextualMenu.MenuAction action)
+        {
+            theme = (Theme)action.userData;
         }
 
         void OnTitleBlur(BlurEvent e)
