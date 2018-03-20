@@ -261,7 +261,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EnvironmentAndPunctual = 5,
             EnvironmentAndArea = 6,
             EnvironmentAndAreaAndPunctual = 7,
-			Decal = 8
+            Decal = 8
         };
 
         public const int k_MaxDirectionalLightsOnScreen = 4;
@@ -290,6 +290,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
+
+        // For now we don't use shadow cascade borders.
+        static public readonly bool s_UseCascadeBorders = false;
 
         public class LightList
         {
@@ -1397,6 +1400,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int GetShadowAtlasCount()
         {
             return (m_ShadowMgr == null) ? 0 : (int)m_ShadowMgr.GetShadowMapCount();
+        }
+
+        public int GetShadowSliceCount(uint atlasIndex)
+        {
+            return (m_ShadowMgr == null) ? 0 : (int)m_ShadowMgr.GetShadowMapSliceCount(atlasIndex);
         }
 
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
@@ -2519,7 +2527,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                 {
-                    m_ShadowMgr.DisplayShadowMap(cmd, m_DebugShadowMapMaterial, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                    m_ShadowMgr.DisplayShadowMap(cmd, m_DebugShadowMapMaterial, lightingDebug.shadowAtlasIndex, lightingDebug.shadowSliceIndex, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }
