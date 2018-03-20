@@ -9,6 +9,30 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
+    class StickyNodeChangeEvent :  EventBase<StickyNodeChangeEvent>, IPropagatableEvent
+    {
+        public static StickyNodeChangeEvent GetPooled(StickyNote target,Change change)
+        {
+            var evt = GetPooled();
+            evt.target = target;
+            evt.change = change;
+            return evt;
+        }
+
+        protected override void Init()
+        {
+        }
+
+        public enum Change
+        {
+            title,
+            contents,
+            theme
+        }
+
+        public Change change{get; protected set;}
+    }
+
     class StickyNote : GraphElement
     {
         public enum Theme
@@ -32,9 +56,12 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                m_Theme = value;
-
-                UpdateThemeClasses();
+                if( m_Theme != value)
+                {
+                    m_Theme = value;
+                    UpdateThemeClasses();
+                    NotifyChange(StickyNodeChangeEvent.Change.theme);
+                }
             }
         }
 
@@ -115,6 +142,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public string contents
+        {
+            get{return m_Contents.text;}
+            set{m_Contents.text = value;}
+        }
+        public string title
+        {
+            get{return m_Title.text;}
+            set{m_Title.text = value;}
+        }
+
         void OnChangeTheme(ContextualMenu.MenuAction action)
         {
             theme = (Theme)action.userData;
@@ -122,6 +160,7 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(BlurEvent e)
         {
+            bool changed = m_Title.text != m_TitleField.value;
             m_Title.text = m_TitleField.value;
             m_TitleField.visible = false;
 
@@ -135,14 +174,23 @@ namespace UnityEditor.VFX.UI
             }
 
             //Notify change
+            if( changed)
+            {
+                NotifyChange(StickyNodeChangeEvent.Change.title);
+            }
         }
 
         void OnContentsBlur(BlurEvent e)
         {
+            bool changed = m_Contents.text != m_ContentsField.value;
             m_Contents.text = m_ContentsField.value;
             m_ContentsField.visible = false;
 
             //Notify change
+            if( changed)
+            {
+                NotifyChange(StickyNodeChangeEvent.Change.contents);
+            }
         }
 
         void OnTitleMouseDown(MouseDownEvent e)
@@ -158,6 +206,15 @@ namespace UnityEditor.VFX.UI
 
                 e.StopPropagation();
                 e.PreventDefault();
+
+            }
+        }
+
+        void NotifyChange(StickyNodeChangeEvent.Change change)
+        {
+            using (StickyNodeChangeEvent evt = StickyNodeChangeEvent.GetPooled(this,change))
+            {
+                panel.dispatcher.DispatchEvent(evt,panel);
             }
         }
 
