@@ -29,12 +29,16 @@ This page details the initial setup of a project using the High Definition Rende
 ### Using Unity Hub
 To set up a new HDRP project using Unity Hub, click the New button, then select High Definition - Preview from the Template drop-down box. After clicking Create Project, Unity will automatically create a Project with the High Definition Render Pipeline package installed. 
 
+![](Images/GettingStarted1.png)
+
 ## Upgrading an Existing Project
 To upgrade an existing Project, you must first download the High Definition Render Pipeline using the Package Manager UI. 
 
 Navigate to **Window > Package Manager** to open the Package Manager UI. Then click the All button to open the packages list. 
 
 Left click on Render-pipelines.high-definition  to select it, then click the Install button to add HDRP to your project. 
+
+![](Images/GettingStarted2.png)
 
 After you have installed HDRP from the Package Manager UI you must add the HDRP  Asset to the Scriptable Render Pipeline Graphics settings field. 
 
