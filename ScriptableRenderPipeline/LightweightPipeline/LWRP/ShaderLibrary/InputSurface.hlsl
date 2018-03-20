@@ -12,26 +12,25 @@
 #endif
 
 CBUFFER_START(UnityPerMaterial)
-half4 _MainTex_ST;
+float4 _MainTex_ST;
 half4 _Color;
+half4 _SpecColor;
+half4 _EmissionColor;
 half _Cutoff;
 half _Glossiness;
 half _GlossMapScale;
-half _SmoothnessTextureChannel;
 half _Metallic;
-half4 _SpecColor;
 half _BumpScale;
 half _OcclusionStrength;
-half4 _EmissionColor;
 half _Shininess;
 CBUFFER_END
 
-TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
-TEXTURE2D(_MetallicGlossMap); SAMPLER(sampler_MetallicGlossMap);
-TEXTURE2D(_SpecGlossMap); SAMPLER(sampler_SpecGlossMap);
-TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
-TEXTURE2D(_OcclusionMap); SAMPLER(sampler_OcclusionMap);
-TEXTURE2D(_EmissionMap); SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
+TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
+TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 
 // Must match Lightweigth ShaderGraph master node
 struct SurfaceData
