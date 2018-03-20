@@ -1,0 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Experimental.VFX;
+
+[RequireComponent(typeof(VisualEffect))]
+[ExecuteInEditMode]
+public class VFXParameterBinder : MonoBehaviour
+{
+    public List<VFXBindingBase> m_Bindings = new List<VFXBindingBase>();
+
+    private VisualEffect m_VisualEffect;
+
+    private void OnEnable()
+    {
+        m_VisualEffect = GetComponent<VisualEffect>();
+    }
+
+    private void OnDestroy()
+    {
+#if UNITY_EDITOR
+        foreach (var binding in m_Bindings)
+            UnityEditor.Undo.DestroyObjectImmediate(binding);
+#endif
+    }
+
+    // Use this for initialization
+    void Start()
+    {
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        foreach (var binding in m_Bindings)
+            binding.UpdateBinding(m_VisualEffect);
+    }
+}
