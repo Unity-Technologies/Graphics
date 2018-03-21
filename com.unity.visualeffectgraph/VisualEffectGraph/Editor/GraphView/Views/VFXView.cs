@@ -267,17 +267,12 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        protected internal override void ExecuteDefaultAction(EventBase evt)
+        protected void OnKeyDown(KeyDownEvent evt)
         {
-            if (evt.GetEventTypeId() == KeyDownEvent.TypeId())
+            if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
             {
-                if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
-                {
-                    OnCreateThing(evt as KeyDownEvent);
-                }
+                OnCreateThing(evt as KeyDownEvent);
             }
-
-            base.ExecuteDefaultAction(evt);
         }
 
         void OnCreateThing(KeyDownEvent evt)
@@ -420,6 +415,7 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
+            RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             graphViewChanged = VFXGraphViewChanged;
 
@@ -1259,7 +1255,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Blackboard; }
         }
 
-        protected internal override bool canCopySelection
+        protected override bool canCopySelection
         {
             get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any(); }
         }
@@ -1285,7 +1281,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected internal override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
+        protected override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
         {
             CollectElements(elements, elementsToCopySet);
 

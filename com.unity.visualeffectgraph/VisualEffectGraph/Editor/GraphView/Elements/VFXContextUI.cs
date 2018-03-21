@@ -532,11 +532,6 @@ namespace UnityEditor.VFX.UI
 
         VFXBlockProvider m_BlockProvider = null;
 
-        internal override void DoRepaint(IStylePainter painter)
-        {
-            base.DoRepaint(painter);
-        }
-
         // TODO: Remove, unused except for debugging
         // Declare new USS rect-color and use it
         protected override void OnStyleResolved(ICustomStyle styles)
