@@ -3,9 +3,9 @@ using System;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorFractionalPart : VFXOperatorUnaryFloatOperation
+    class VFXOperatorFraction : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Fractional Part"; } }
+        override public string name { get { return "Fraction"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
