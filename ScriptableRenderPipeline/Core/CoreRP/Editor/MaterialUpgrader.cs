@@ -236,8 +236,10 @@ namespace UnityEditor.Experimental.Rendering
             var selection = Selection.objects;
 
             if (selection == null)
-                if (EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok))
-                    return;
+            {
+                EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                return;
+            }
 
             List<Material> selectedMaterials = new List<Material>(selection.Length);
             for (int i = 0; i < selection.Length; ++i)
@@ -249,8 +251,10 @@ namespace UnityEditor.Experimental.Rendering
 
             int selectedMaterialsCount = selectedMaterials.Count;
             if (selectedMaterialsCount == 0)
-                if (EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok))
-                    return;
+            {
+                EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                return;
+            }
 
             if (!EditorUtility.DisplayDialog(DialogText.title, string.Format("The upgrade will overwrite {0} selected material{1}. ", selectedMaterialsCount, selectedMaterialsCount > 1 ? "s" : "") +
                     DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
