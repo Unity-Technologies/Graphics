@@ -11,8 +11,16 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Vector3 m_Value;
 
+        const string kInputSlotXName = "X";
+        const string kInputSlotYName = "Y";
+        const string kInputSlotZName = "Z";
+        const string kOutputSlotName = "Out";
+
         public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Out";
+        public const int InputSlotXId = 1;
+        public const int InputSlotYId = 2;
+        public const int InputSlotZId = 3;
+
 
         public Vector3Node()
         {
@@ -27,69 +35,35 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new Vector1MaterialSlot(InputSlotXId, kInputSlotXName, kInputSlotXName, SlotType.Input, m_Value.x));
+            AddSlot(new Vector1MaterialSlot(InputSlotYId, kInputSlotYName, kInputSlotYName, SlotType.Input, m_Value.y, label1: "Y"));
+            AddSlot(new Vector1MaterialSlot(InputSlotZId, kInputSlotZName, kInputSlotZName, SlotType.Input, m_Value.z, label1: "Z"));
             AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-        }
-
-        [MultiFloatControl("")]
-        public Vector3 value
-        {
-            get { return m_Value; }
-            set
-            {
-                if (m_Value == value)
-                    return;
-
-                m_Value = value;
-
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            if (!generationMode.IsPreview())
-                return;
-
-            properties.AddShaderProperty(new Vector3ShaderProperty()
-            {
-                overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false,
-                value = value
-            });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, InputSlotXId, InputSlotYId, InputSlotZId });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (generationMode.IsPreview())
-                return;
+            var inputXValue = GetSlotValue(InputSlotXId, generationMode);
+            var inputYValue = GetSlotValue(InputSlotYId, generationMode);
+            var inputZValue = GetSlotValue(InputSlotZId, generationMode);
+            var outputName = GetVariableNameForSlot(outputSlotId);
 
             var s = string.Format("{0}3 {1} = {0}3({2},{3},{4});",
                 precision,
-                GetVariableNameForNode(),
-                NodeUtils.FloatToShaderValue(m_Value.x),
-                NodeUtils.FloatToShaderValue(m_Value.y),
-                NodeUtils.FloatToShaderValue(m_Value.z));
-            visitor.AddShaderChunk(s, true);
-        }
-
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return GetVariableNameForNode();
-        }
-
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            properties.Add(new PreviewProperty(PropertyType.Vector3)
-            {
-                name = GetVariableNameForNode(),
-                vector4Value = m_Value
-            });
+                outputName,
+                inputXValue,
+                inputYValue,
+                inputZValue);
+            visitor.AddShaderChunk(s, false);
         }
 
         public IShaderProperty AsShaderProperty()
         {
-            return new Vector3ShaderProperty { value = value };
+            var slotX = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
+            var slotY = FindInputSlot<Vector1MaterialSlot>(InputSlotYId);
+            var slotZ = FindInputSlot<Vector1MaterialSlot>(InputSlotZId);
+            return new Vector3ShaderProperty { value = new Vector3(slotX.value, slotY.value, slotZ.value) };
         }
 
         public int outputSlotId { get { return OutputSlotId; } }

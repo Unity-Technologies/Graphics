@@ -13,20 +13,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         readonly Action<Vector4> m_Set;
         int m_UndoGroup = -1;
 
-        public MultiFloatSlotControlView(INode node, int components, Func<Vector4> get, Action<Vector4> set)
+        public MultiFloatSlotControlView(INode node, string[] labels, Func<Vector4> get, Action<Vector4> set)
         {
             AddStyleSheetPath("Styles/Controls/MultiFloatSlotControlView");
             m_Node = node;
             m_Get = get;
             m_Set = set;
             var initialValue = get();
-            AddField(initialValue, 0, "X");
-            if (components > 1)
-                AddField(initialValue, 1, "Y");
-            if (components > 2)
-                AddField(initialValue, 2, "Z");
-            if (components > 3)
-                AddField(initialValue, 3, "W");
+            for (var i = 0; i < labels.Length; i++)
+                AddField(initialValue, i, labels[i]);
         }
 
         void AddField(Vector4 initialValue, int index, string subLabel)
