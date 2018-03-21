@@ -933,6 +933,8 @@ namespace UnityEditor.VFX.UI
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
 
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(vfx));
+            vfx.name = fileName;
 
             InitializeUndoStack();
             GraphChanged(graph);

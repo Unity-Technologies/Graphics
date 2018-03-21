@@ -71,9 +71,9 @@ namespace  UnityEditor.VFX.UI
             {
                 bool differentAsset = resource != m_DisplayedResource;
 
-                m_AssetName = resource.name;
                 m_DisplayedResource = resource;
                 graphView.controller = VFXViewController.GetController(resource, true);
+                m_AssetName = resource.name;
 
                 if (differentAsset)
                 {
