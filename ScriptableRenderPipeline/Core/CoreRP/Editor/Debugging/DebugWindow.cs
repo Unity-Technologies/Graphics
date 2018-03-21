@@ -119,7 +119,9 @@ namespace UnityEditor.Experimental.Rendering
             if (m_Settings == null)
                 m_Settings = CreateInstance<DebugWindowSettings>();
 
-            if (m_WidgetStates == null)
+            // States are ScriptableObjects (necessary for Undo/Redo) but are not saved on disk so when the editor is closed then reopened, any existing debug window will have its states set to null
+            // Since we don't care about persistance in this case, we just re-init everything.
+            if (m_WidgetStates == null || !AreWidgetStatesValid())
                 m_WidgetStates = new WidgetStateDictionary();
 
             if (s_WidgetStateMap == null || s_WidgetDrawerMap == null || s_TypeMapDirty)
@@ -151,6 +153,18 @@ namespace UnityEditor.Experimental.Rendering
 
                 m_WidgetStates.Clear();
             }
+        }
+
+        bool AreWidgetStatesValid()
+        {
+            foreach (var state in m_WidgetStates)
+            {
+                if(state.Value == null)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         void MarkDirty()
