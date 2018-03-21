@@ -177,6 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
                 m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                 m_BuiltinParameters.hdCamera = null;
+                m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
 
                 int sunHash = 0;
                 if (sunLight != null)
