@@ -1255,7 +1255,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Blackboard; }
         }
 
-        protected override bool canCopySelection
+        protected internal override bool canCopySelection
         {
             get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any(); }
         }
@@ -1281,7 +1281,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
+        protected internal override void CollectCopyableGraphElements(IEnumerable<GraphElement> elements, HashSet<GraphElement> elementsToCopySet)
         {
             CollectElements(elements, elementsToCopySet);
 

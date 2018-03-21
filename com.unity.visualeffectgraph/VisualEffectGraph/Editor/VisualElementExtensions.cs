@@ -5,6 +5,10 @@ using UnityEngine.Experimental.UIElements;
 
 static class VisualElementExtensions
 {
+    public static bool HasFocus(this VisualElement visualElement)
+    {
+        return visualElement.panel.focusController.focusedElement == visualElement;
+    }
     public static void AddStyleSheetPathWithSkinVariant(this VisualElement visualElement, string path)
     {
         visualElement.AddStyleSheetPath(path);

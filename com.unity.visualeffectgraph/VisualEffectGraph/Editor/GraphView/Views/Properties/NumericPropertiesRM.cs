@@ -53,8 +53,8 @@ namespace UnityEditor.VFX.UI
         protected override bool HasFocus()
         {
             if (m_Slider != null)
-                return m_Slider.hasFocus;
-            return m_TextField.hasFocus;
+                return m_Slider.HasFocus();
+            return m_TextField.HasFocus();
         }
 
         public override bool IsCompatible(IPropertyRMProvider provider)

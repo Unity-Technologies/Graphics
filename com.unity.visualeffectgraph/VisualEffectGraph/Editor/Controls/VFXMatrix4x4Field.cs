@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UIElements
             {
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
-                    if (!m_FloatFields[i, j].control.hasFocus || force)
+                    if (!m_FloatFields[i, j].control.HasFocus() || force)
                         m_FloatFields[i, j].value = value[i, j];
                 }
             }
