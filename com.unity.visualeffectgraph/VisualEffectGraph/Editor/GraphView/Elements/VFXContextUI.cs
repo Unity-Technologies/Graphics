@@ -34,7 +34,12 @@ namespace UnityEditor.VFX.UI
         {
             get { return base.controller as VFXContextController; }
         }
+        protected override void OnNewController()
+        {
+            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
 
+            m_CanHaveBlocks = blocks.Any(t => controller.model.AcceptChild(t.model));
+        }
 
         public static string ContextEnumToClassName(string name)
         {
@@ -198,6 +203,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnChange);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
+
+        bool m_CanHaveBlocks = false;
 
         public void OnMoved()
         {
@@ -435,7 +442,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_BlockContainer.Remove(kv.Value);
             }
-            if( blockControllers.Count() > 0)
+            if( blockControllers.Count() > 0 || ! m_CanHaveBlocks)
             {
                 m_NoBlock.RemoveFromHierarchy();
             }

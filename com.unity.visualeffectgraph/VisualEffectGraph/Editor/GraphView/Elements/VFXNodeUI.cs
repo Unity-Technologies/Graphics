@@ -33,11 +33,18 @@ namespace UnityEditor.VFX.UI
                     m_Controller.UnregisterHandler(this);
                 }
                 m_Controller = value;
+                OnNewController();
                 if (m_Controller != null)
                 {
                     m_Controller.RegisterHandler(this);
                 }
             }
+        }
+
+
+        protected virtual void OnNewController()
+        {
+
         }
 
         public VisualElement settingsContainer {get; private set; }
