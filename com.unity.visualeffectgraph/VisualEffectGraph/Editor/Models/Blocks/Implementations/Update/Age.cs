@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Test")]
-    class AgeAndDie : VFXBlock
+    [VFXInfo(category = "Implicit")]
+    class Age : VFXBlock
     {
-        public override string name { get { return "AgeAndDie"; } }
+        public override string name { get { return "Age"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -15,8 +15,6 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -32,12 +30,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return
-                    @"age += deltaTime;
-if(age > lifetime)
-{
-    alive = false;
-}";
+                return "age += deltaTime;";
             }
         }
     }
