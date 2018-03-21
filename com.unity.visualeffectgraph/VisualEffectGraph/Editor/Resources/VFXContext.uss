@@ -294,3 +294,15 @@ VFXContextUI #block-container {
 {
     position-bottom: 0;
 }
+VFXContextUI #no-blocks
+{
+    border-left-width: 1;
+    border-right-width: 1;
+    border-bottom-width: 1;
+    border-top-width: 1;
+    border-color: #393939;
+    text-color: #393939;
+    height: 24;
+    text-alignment: middle-center;
+    border-radius:8;
+}

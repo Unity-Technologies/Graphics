@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.UI
         VisualElement               m_FlowInputConnectorContainer;
         VisualElement               m_FlowOutputConnectorContainer;
         VisualElement               m_BlockContainer;
+        VisualElement               m_NoBlock;
 
         VisualElement               m_DragDisplay;
 
@@ -182,6 +183,7 @@ namespace UnityEditor.VFX.UI
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
 
             m_BlockContainer = this.Q("block-container");
+            m_NoBlock = m_BlockContainer.Q("no-blocks");
 
             m_Footer = this.Q("footer");
 
@@ -432,6 +434,14 @@ namespace UnityEditor.VFX.UI
             foreach (var kv in blocksUIs)
             {
                 m_BlockContainer.Remove(kv.Value);
+            }
+            if( blockControllers.Count() > 0)
+            {
+                m_NoBlock.RemoveFromHierarchy();
+            }
+            else if( m_NoBlock.parent == null)
+            {
+                m_BlockContainer.Add(m_NoBlock);
             }
             foreach (var blockController in blockControllers)
             {

@@ -242,7 +242,6 @@ namespace UnityEditor.VFX.UI
         }
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
-            Debug.Log("AddNodePosition" + mPos);
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(mPos, picked);
 
@@ -1428,7 +1427,6 @@ namespace UnityEditor.VFX.UI
         }
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            Debug.Log("MouseClickPosition"+evt.mousePosition);
             if (evt.target is VFXGroupNode)
             {
                 evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, ContextualMenu.MenuAction.AlwaysEnabled);
