@@ -38,7 +38,12 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            return new Vector4Node { value = value };
+            var node = new Vector4Node();
+            node.FindInputSlot<Vector1MaterialSlot>(Vector4Node.InputSlotXId).value = value.x;
+            node.FindInputSlot<Vector1MaterialSlot>(Vector4Node.InputSlotYId).value = value.y;
+            node.FindInputSlot<Vector1MaterialSlot>(Vector4Node.InputSlotZId).value = value.z;
+            node.FindInputSlot<Vector1MaterialSlot>(Vector4Node.InputSlotWId).value = value.w;
+            return node;
         }
     }
 }

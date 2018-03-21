@@ -10,10 +10,12 @@ namespace UnityEditor.ShaderGraph
     public class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasValue<float>
     {
         [SerializeField]
-        private float m_Value;
+        float m_Value;
 
         [SerializeField]
-        private float m_DefaultValue;
+        float m_DefaultValue;
+
+        string[] m_Labels;
 
         public Vector1MaterialSlot()
         {}
@@ -25,11 +27,13 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             float value,
             ShaderStage shaderStage = ShaderStage.Dynamic,
+            string label1 = "X",
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
         {
             m_DefaultValue = value;
             m_Value = value;
+            m_Labels = new[] { label1 };
         }
 
         public float defaultValue { get { return m_DefaultValue; } }
@@ -42,7 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, 1, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
+            return new MultiFloatSlotControlView(owner, m_Labels, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
         }
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)

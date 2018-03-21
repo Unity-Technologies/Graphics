@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         private Vector4 m_DefaultValue;
+
+        static readonly string[] k_Labels = {"X", "Y", "Z", "W"};
 
         private ConcreteSlotValueType m_ConcreteValueType = ConcreteSlotValueType.Vector4;
 
@@ -44,12 +47,8 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            int components =
-                concreteValueType == ConcreteSlotValueType.Vector4 ? 4 :
-                concreteValueType == ConcreteSlotValueType.Vector3 ? 3 :
-                concreteValueType == ConcreteSlotValueType.Vector2 ? 2 :
-                concreteValueType == ConcreteSlotValueType.Vector1 ? 1 : 0;
-            return new MultiFloatSlotControlView(owner, components, () => value, (newValue) => value = newValue);
+            var labels = k_Labels.Take(concreteValueType.GetChannelCount()).ToArray();
+            return new MultiFloatSlotControlView(owner, labels, () => value, (newValue) => value = newValue);
         }
 
         public override SlotValueType valueType { get { return SlotValueType.DynamicVector; } }

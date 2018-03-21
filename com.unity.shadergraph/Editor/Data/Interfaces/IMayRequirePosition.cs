@@ -2,7 +2,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    interface IMayRequirePosition
+    public interface IMayRequirePosition
     {
         NeededCoordinateSpace RequiresPosition();
     }

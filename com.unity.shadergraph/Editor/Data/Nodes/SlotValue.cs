@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
     public static class SlotValueHelper
     {
-        public static int GetChannelCount(ConcreteSlotValueType type)
+        public static int GetChannelCount(this ConcreteSlotValueType type)
         {
             switch (type)
             {

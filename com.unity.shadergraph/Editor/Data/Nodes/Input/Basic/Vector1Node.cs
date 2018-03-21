@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -11,8 +12,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private float m_Value;
 
+        const string kInputSlotXName = "X";
+        const string kOutputSlotName = "Out";
+
+        public const int InputSlotXId = 1;
         public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Out";
 
         public Vector1Node()
         {
@@ -27,36 +31,9 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            AddSlot(new Vector1MaterialSlot(InputSlotXId, kInputSlotXName, kInputSlotXName, SlotType.Input, m_Value));
             AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-        }
-
-        [MultiFloatControl("")]
-        public float value
-        {
-            get { return m_Value; }
-            set
-            {
-                if (m_Value == value)
-                    return;
-
-                m_Value = value;
-
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            if (!generationMode.IsPreview())
-                return;
-
-            properties.AddShaderProperty(new Vector1ShaderProperty()
-            {
-                overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false,
-                value = value
-            });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId, InputSlotXId });
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -64,7 +41,8 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + NodeUtils.FloatToShaderValue(m_Value) + ";", true);
+            var inputValue = GetSlotValue(InputSlotXId, generationMode);
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + inputValue + ";", false);
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -72,20 +50,12 @@ namespace UnityEditor.ShaderGraph
             return GetVariableNameForNode();
         }
 
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            properties.Add(new PreviewProperty(PropertyType.Vector1)
-            {
-                name = GetVariableNameForNode(),
-                floatValue = m_Value
-            });
-        }
-
         public IShaderProperty AsShaderProperty()
         {
-            return new Vector1ShaderProperty { value = value };
+            var slot = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
+            return new Vector1ShaderProperty { value = slot.value };
         }
 
-        public int outputSlotId { get { return OutputSlotId; } }
+        int IPropertyFromNode.outputSlotId { get { return OutputSlotId; } }
     }
 }
