@@ -21,8 +21,9 @@
     #define VBUFFER_SLICE_COUNT 128
 #endif
 
-#define SOFT_VOXELIZATION
-#define GROUP_SIZE_1D 8
+#define GROUP_SIZE_1D     8
+
+#define SOFT_VOXELIZATION 1 // Hack which attempts to determine the partial coverage of the voxel
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -103,11 +104,11 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
             float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
             float3 voxelCenterUV = voxelCenterBS / obbExtents;
 
-        #ifdef SOFT_VOXELIZATION
+        #if SOFT_VOXELIZATION
             // We need to determine which is the face closest to 'voxelCenterBS'.
-            // TODO: use v_cubeid_f32.
             float minFaceDist = abs(obbExtents.x - abs(voxelCenterBS.x));
 
+            // TODO: use v_cubeid_f32.
             uint axisIndex; float faceDist;
 
             faceDist    = abs(obbExtents.y - abs(voxelCenterBS.y));

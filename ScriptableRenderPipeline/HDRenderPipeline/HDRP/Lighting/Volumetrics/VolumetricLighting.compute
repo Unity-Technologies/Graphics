@@ -419,7 +419,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         // TODO: piecewise linear.
-        // TODO: sample the accurate extinction values for lights.
         float3 scattering = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).rgb;
         float  extinction = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).a;
         float  asymmetry  = _GlobalAsymmetry;
