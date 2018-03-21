@@ -369,7 +369,7 @@ namespace UnityEditor.VFX.UI
             return slot;
         }
 
-        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null)
+        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null, VFXGroupNodeController groupNode = null)
         {
             var copyData = JsonUtility.FromJson<Data>(data);
 
@@ -384,10 +384,10 @@ namespace UnityEditor.VFX.UI
                 copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
             }
 
-            PasteCopy(viewController, center, copyData, allSerializedObjects, view);
+            PasteCopy(viewController, center, copyData, allSerializedObjects, view, groupNode);
         }
 
-        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view)
+        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view, VFXGroupNodeController groupNode)
         {
             Data copyData = (Data)data;
 
@@ -401,7 +401,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteNodes(viewController, center, copyData, allSerializedObjects, view);
+                PasteNodes(viewController, center, copyData, allSerializedObjects, view, groupNode);
             }
         }
 
@@ -546,7 +546,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view)
+        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view, VFXGroupNodeController groupNode)
         {
             var graph = viewController.graph;
             Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
@@ -777,14 +777,22 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
+                if( groupNode != null)
+                {
+                    foreach (var newSlotContainerUI in newSlotContainerUIs)
+                    {
+                        groupNode.AddNode(newSlotContainerUI.controller);
+                    }
+                }
+
                 //Select all groups that are new
                 if (firstCopiedGroup >= 0)
                 {
-                    foreach (var groupNode in elements.OfType<VFXGroupNode>())
+                    foreach (var gn in elements.OfType<VFXGroupNode>())
                     {
-                        if (groupNode.controller.index >= firstCopiedGroup)
+                        if (gn.controller.index >= firstCopiedGroup)
                         {
-                            view.AddToSelection(groupNode);
+                            view.AddToSelection(gn);
                         }
                     }
                 }

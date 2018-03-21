@@ -242,20 +242,29 @@ namespace UnityEditor.VFX.UI
         }
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
+            Debug.Log("AddNodePosition" + mPos);
+            List<VisualElement> picked = new List<VisualElement>();
+            panel.PickAll(mPos, picked);
+
+            VFXGroupNode groupNode = picked.OfType<VFXGroupNode>().FirstOrDefault();
+
             mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
+
+
+            
 
             if (d.modelDescriptor is string)
             {
                 string path = d.modelDescriptor as string;
 
-                CreateTemplateSystem(path, mPos);
+                CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
                 controller.AddGroupNode(mPos);
             }
             else
-                return controller.AddNode(mPos, d.modelDescriptor);
+                return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             return null;
         }
 
@@ -837,7 +846,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void CreateTemplateSystem(string path, Vector2 tPos)
+        public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
         {
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             if (asset != null)
@@ -848,7 +857,7 @@ namespace UnityEditor.VFX.UI
 
                 var data = VFXCopyPaste.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds);
 
-                VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this);
+                VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
 
                 templateController.useCount--;
             }
@@ -1394,11 +1403,25 @@ namespace UnityEditor.VFX.UI
         {
             controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
         }
-
+        void OnCreateNodeInGroupNode(ContextualMenu.MenuAction e)
+        {
+            Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
+            //The targeted groupnode will be determined by a PickAll later
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, m_NodeProvider);
+        }
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            Debug.Log("MouseClickPosition"+evt.mousePosition);
+            if (evt.target is VFXGroupNode)
+            {
+                evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendSeparator();
+            }
+            else
+            {
+                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            }
             evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {

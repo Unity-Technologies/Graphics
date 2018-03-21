@@ -791,7 +791,7 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor)
+        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor, VFXGroupNodeController groupNode)
         {
             VFXModel newNode = null;
             if (modelDescriptor is VFXModelDescriptor<VFXOperator>)
@@ -812,6 +812,11 @@ namespace UnityEditor.VFX.UI
 
                 List<VFXNodeController> nodeControllers = null;
                 m_SyncedModels.TryGetValue(newNode, out nodeControllers);
+
+                if (groupNode != null)
+                {
+                    groupNode.AddNode(nodeControllers.First());
+                }
 
                 if (newNode is VFXParameter)
                 {

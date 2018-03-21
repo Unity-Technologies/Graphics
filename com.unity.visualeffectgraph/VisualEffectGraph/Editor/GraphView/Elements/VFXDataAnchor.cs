@@ -337,7 +337,8 @@ namespace UnityEditor.VFX.UI
             VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
 
             VFXViewController viewController = controller.sourceNode.viewController;
-            VFXNodeController newNode = viewController.AddNode(tPos, desc);
+            VFXNodeController newNode = viewController.AddNode(tPos, desc, null);
+            //TODO manage if the newNode should be in a groupNode
 
             if (newNode == null)
                 return;

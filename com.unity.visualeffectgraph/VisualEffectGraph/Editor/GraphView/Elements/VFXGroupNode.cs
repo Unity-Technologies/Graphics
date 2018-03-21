@@ -37,6 +37,12 @@ namespace UnityEditor.VFX.UI
         public VFXGroupNode()
         {
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
         }
 
         public void OnMoved()
