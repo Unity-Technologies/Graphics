@@ -994,6 +994,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public IEnumerable<VFXNodeUI> GetAllNodes()
+        {
+            foreach (var layer in contentViewContainer.Children())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXNodeUI)
+                    {
+                        yield return element as VFXNodeUI;
+                    }
+                }
+            }
+        }
+
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             if (controller == null) return null;
@@ -1058,11 +1072,38 @@ namespace UnityEditor.VFX.UI
             return change;
         }
 
+        VFXNodeUI GetNodeByController(VFXNodeController controller)
+        {
+            if( controller is VFXBlockController)
+            {
+                var blockController = (controller as VFXBlockController);
+                VFXContextUI context = GetNodeByController(blockController.contextController) as VFXContextUI;
+
+                return context.GetAllBlocks().FirstOrDefault(t => t.controller == blockController);
+            }
+            return GetAllNodes().FirstOrDefault(t => t.controller == controller);
+        }
+
         public VFXDataAnchor GetDataAnchorByController(VFXDataAnchorController controller)
         {
             if (controller == null)
                 return null;
-            return GetAllDataAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
+
+            VFXNodeUI node = GetNodeByController(controller.sourceNode);
+            if( node == null)
+            {
+                Debug.LogError("Can't find the node for a given node controller");
+                return null;
+            }
+
+            VFXDataAnchor anchor = node.GetPorts(controller.direction == Direction.Input, controller.direction == Direction.Output).FirstOrDefault(t => t.controller == controller);
+            if( anchor == null)
+            {
+                // Can happen because the order of the DataWatch is not controlled
+                node.ForceUpdate();
+                anchor = node.GetPorts(controller.direction == Direction.Input, controller.direction == Direction.Output).FirstOrDefault(t => t.controller == controller);
+            }
+            return anchor;
         }
 
         public VFXFlowAnchor GetFlowAnchorByController(VFXFlowAnchorController controller)
@@ -1138,30 +1179,6 @@ namespace UnityEditor.VFX.UI
             foreach (var anchor in GetAllFlowAnchors(input, output))
             {
                 yield return anchor;
-            }
-        }
-
-        public IEnumerable<Node> GetAllNodes()
-        {
-            foreach (var node in nodes.ToList())
-            {
-                yield return node;
-            }
-
-            foreach (var layer in contentViewContainer.Children())
-            {
-                foreach (var element in layer)
-                {
-                    if (element is VFXContextUI)
-                    {
-                        var context = element as VFXContextUI;
-
-                        foreach (var block in context.GetAllBlocks())
-                        {
-                            yield return block;
-                        }
-                    }
-                }
             }
         }
 

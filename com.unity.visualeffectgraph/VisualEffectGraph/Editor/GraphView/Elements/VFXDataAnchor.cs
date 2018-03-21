@@ -225,7 +225,7 @@ namespace UnityEditor.VFX.UI
 
 
             VFXNodeUI endNode = null;
-            foreach (var node in view.GetAllNodes().OfType<VFXNodeUI>())
+            foreach (var node in view.GetAllNodes())
             {
                 if (node.worldBound.Contains(position))
                 {

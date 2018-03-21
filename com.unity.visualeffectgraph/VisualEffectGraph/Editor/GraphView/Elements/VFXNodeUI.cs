@@ -213,6 +213,11 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
+        public void ForceUpdate()
+        {
+            SelfChange();
+        }
+
         protected virtual void SelfChange()
         {
             Profiler.BeginSample("VFXNodeUI.SelfChange");
@@ -276,22 +281,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public IEnumerable<Port> GetPorts(bool input, bool output)
+        public IEnumerable<VFXDataAnchor> GetPorts(bool input, bool output)
         {
             if (input)
             {
                 foreach (var child in inputContainer)
                 {
-                    if (child is Port)
-                        yield return child as Port;
+                    if (child is VFXDataAnchor)
+                        yield return child as VFXDataAnchor;
                 }
             }
             if (output)
             {
                 foreach (var child in outputContainer)
                 {
-                    if (child is Port)
-                        yield return child as Port;
+                    if (child is VFXDataAnchor)
+                        yield return child as VFXDataAnchor;
                 }
             }
         }
