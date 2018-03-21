@@ -381,11 +381,23 @@ namespace UnityEditor.ShaderGraph
             if (m_Properties.Contains(property))
                 return;
 
-            property.displayName = property.displayName.Trim();
-            if (m_Properties.Any(p => p.displayName == property.displayName))
+            m_Properties.Add(property);
+            m_AddedProperties.Add(property);
+        }
+
+        public string SanitizePropertyName(string displayName)
+        {
+            displayName = displayName.Trim();
+            if (m_Properties.Any(p => p.displayName == displayName))
             {
-                var regex = new Regex(@"^" + Regex.Escape(property.displayName) + @" \((\d+)\)$");
-                var existingDuplicateNumbers = m_Properties.Select(p => regex.Match(p.displayName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).ToList();
+                // Strip out the " (n)" part of the name.
+                var baseRegex = new Regex(@"^(.*) \((\d+)\)$");
+                var baseMatch = baseRegex.Match(displayName);
+                if (baseMatch.Success)
+                    displayName = baseMatch.Groups[1].Value;
+
+                var regex = new Regex(@"^" + Regex.Escape(displayName) + @" \((\d+)\)$");
+                var existingDuplicateNumbers = m_Properties.Select(p => regex.Match(p.displayName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).Distinct().ToList();
 
                 var duplicateNumber = 1;
                 existingDuplicateNumbers.Sort();
@@ -401,11 +413,10 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
                 }
-                property.displayName = string.Format("{0} ({1})", property.displayName, duplicateNumber);
+                displayName = string.Format("{0} ({1})", displayName, duplicateNumber);
             }
 
-            m_Properties.Add(property);
-            m_AddedProperties.Add(property);
+            return displayName;
         }
 
         public void RemoveShaderProperty(Guid guid)
