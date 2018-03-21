@@ -6,8 +6,10 @@ using UnityEngine.Experimental.VFX;
 
 public class VFXSphereBinding : VFXBindingBase
 {
-    public SphereCollider Target;
+    [VFXBinding("UnityEditor.VFX.Sphere")]
     public string Parameter = "Sphere";
+    public SphereCollider Target;
+
 
     public override void UpdateBinding(VisualEffect component)
     {

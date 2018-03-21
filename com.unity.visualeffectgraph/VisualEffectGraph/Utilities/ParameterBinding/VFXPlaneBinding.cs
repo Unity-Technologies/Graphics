@@ -6,8 +6,10 @@ using UnityEngine.Experimental.VFX;
 
 public class VFXPlaneBinding : VFXBindingBase
 {
-    public Transform Target;
+    [VFXBinding("UnityEditor.VFX.Plane")]
     public string Parameter = "Plane";
+    public Transform Target;
+
 
     public override void UpdateBinding(VisualEffect component)
     {

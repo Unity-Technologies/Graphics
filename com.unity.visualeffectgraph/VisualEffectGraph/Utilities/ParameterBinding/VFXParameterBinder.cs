@@ -7,9 +7,11 @@ using UnityEngine.Experimental.VFX;
 [ExecuteInEditMode]
 public class VFXParameterBinder : MonoBehaviour
 {
+    [SerializeField]
+    protected bool m_ExecuteInEditor = true;
     public List<VFXBindingBase> m_Bindings = new List<VFXBindingBase>();
-
-    private VisualEffect m_VisualEffect;
+    [SerializeField]
+    protected VisualEffect m_VisualEffect;
 
     private void OnEnable()
     {
@@ -32,6 +34,8 @@ public class VFXParameterBinder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
+
         foreach (var binding in m_Bindings)
             binding.UpdateBinding(m_VisualEffect);
     }

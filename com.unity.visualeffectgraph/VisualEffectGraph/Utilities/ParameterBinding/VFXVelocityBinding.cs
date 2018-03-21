@@ -6,8 +6,10 @@ using UnityEngine.Experimental.VFX;
 
 public class VFXVelocityBinding : VFXBindingBase
 {
-    public Transform Target;
+    [VFXBinding("UnityEngine.Vector3")]
     public string Parameter = "Velocity";
+    public Transform Target;
+
 
     float m_PreviousTime = -1.0f;
     Vector3 m_PreviousPosition = Vector3.zero;

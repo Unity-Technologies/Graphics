@@ -18,7 +18,7 @@ public abstract class VFXBindingBase : MonoBehaviour
         if (!m_Binder.m_Bindings.Contains(this))
             m_Binder.m_Bindings.Add(this);
 
-        hideFlags = HideFlags.HideInInspector; // Hide when ready and confident enough to ship
+        hideFlags = HideFlags.HideInInspector; // Comment to debug
     }
 
     protected virtual void OnDisable()

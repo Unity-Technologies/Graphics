@@ -6,8 +6,9 @@ using UnityEngine.Experimental.VFX;
 
 public class VFXPositionBinding : VFXBindingBase
 {
-    public Transform Target;
+    [VFXBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
     public string Parameter = "Position";
+    public Transform Target;
 
     public override void UpdateBinding(VisualEffect component)
     {
