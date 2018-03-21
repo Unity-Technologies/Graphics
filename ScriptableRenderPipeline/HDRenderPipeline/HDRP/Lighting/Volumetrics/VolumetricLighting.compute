@@ -55,6 +55,7 @@
 RW_TEXTURE3D(float4, _VBufferLightingIntegral); // RGB = radiance, A = optical depth
 RW_TEXTURE3D(float4, _VBufferLightingFeedback); // RGB = radiance, A = interval length
 TEXTURE3D(_VBufferLightingHistory);             // RGB = radiance, A = interval length
+TEXTURE3D(_VBufferDensity);                     // RGB = sqrt(scattering), A = sqrt(extinction)
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
@@ -392,6 +393,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     for (uint slice = 0; slice < sliceCountHack; slice++)
 #endif
     {
+        uint3 voxelCoord = uint3(posInput.positionSS, slice);
+
         float e1 = slice * de + de; // (slice + 1) / sliceCount
 #if defined(SHADER_API_METAL)
         // Warning: this compiles, but it's nonsense. Use DecodeLogarithmicDepthGeneralized().
@@ -416,8 +419,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Sample the participating medium at 'tc' (or 'centerWS').
         // We consider it to be constant along the interval [t0, t1] (within the voxel).
         // TODO: piecewise linear.
-        float3 scattering = _GlobalScattering;
-        float  extinction = max(_GlobalExtinction, FLT_MIN); // Avoid NaNs
+        // TODO: sample the accurate extinction values for lights.
+        float3 scattering = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).rgb;
+        float  extinction = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).a;
         float  asymmetry  = _GlobalAsymmetry;
         
         // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
@@ -439,6 +443,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                        );
                                                    #endif
     #if ENABLE_REPROJECTION
+        float4 feedback = 0;
+
         // Reproject the history at 'centerWS'.
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
         float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
@@ -488,7 +494,13 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // do not support reprojection and should neither read nor write to the history buffer.
         // to the history buffer. This will cause them to alias, but it is the only way
         // to prevent ghosting.
-        _VBufferLightingFeedback[uint3(posInput.positionSS, slice)] = float4(blendedRadiance, dt);
+
+        if (extinction > 0)
+        {
+            feedback = float4(blendedRadiance, dt);
+        }
+
+        _VBufferLightingFeedback[voxelCoord] = feedback;
 
     #if SUPPORT_ASYMMETRY
         // Extrapolate the influence of the phase function on the results of the current frame.
@@ -516,20 +528,27 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float phase = IsotropicPhaseFunction();
     #endif
 
-        // Integrate the contribution of the probe over the interval.
-        // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-        float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+        float4 integral = float4(totalRadiance, opticalDepth);
 
-        totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);
+        if (extinction > 0)
+        {
+            // Integrate the contribution of the probe over the interval.
+            // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
+            float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
 
-        // Compute the optical depth up to the center of the interval.
-        opticalDepth += 0.5 * extinction * dt;
+            totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);
+
+            // Compute the optical depth up to the center of the interval.
+            opticalDepth += 0.5 * extinction * dt;
+
+            integral = float4(totalRadiance, opticalDepth);
+
+            // Compute the optical depth up to the end of the interval.
+            opticalDepth += 0.5 * extinction * dt;
+        }
 
         // Store the voxel data.
-        _VBufferLightingIntegral[uint3(posInput.positionSS, slice)] = float4(totalRadiance, opticalDepth);
-
-        // Compute the optical depth up to the end of the interval.
-        opticalDepth += 0.5 * extinction * dt;
+        _VBufferLightingIntegral[voxelCoord] = integral;
 
         t0 = t1;
 

@@ -21,6 +21,7 @@
     #define VBUFFER_SLICE_COUNT 128
 #endif
 
+#define SOFT_VOXELIZATION
 #define GROUP_SIZE_1D 8
 
 //--------------------------------------------------------------------------------------------------
@@ -60,8 +61,7 @@ CBUFFER_END
 //--------------------------------------------------------------------------------------------------
 
 void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 rayUnDirWS,
-                                 float4 planeEquationUp, float4 planeEquationRight,
-                                 float3 planeNormalFwd, float faceExtent)
+                                 float3 voxelAxisRight, float3 voxelAxisUp, float3 voxelAxisForward)
 {
     float n  = _VBufferDepthDecodingParams.x + _VBufferDepthDecodingParams.z;
     float z0 = n;                          // Start the computation from the near plane
@@ -85,19 +85,9 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
         float z1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDepthDecodingParams);
     #endif
 
-        float  z = z0 + 0.5 * (z1 - z0);
+        float  halfDZ        = 0.5 * (z1 - z0);
+        float  z             = z0 + halfDZ;
         float3 voxelCenterWS = rayOriginWS + z * rayUnDirWS; // Works due to the length of of the dir
-
-        float4 planeEquationForward = float4(planeNormalFwd, dot(-planeNormalFwd, voxelCenterWS));
-
-        float4 planes[3] = { planeEquationRight, planeEquationUp, planeEquationForward };
-
-        // If the box overlaps all 3 planes, it overlaps the center of the voxel.
-        // Otherwise, we have to determine partial coverage.
-        // We approximate the voxel with a parallelepiped with a square front face.
-        float voxelExtents[3] = { faceExtent * z, faceExtent * z, 0.5 * (z1 - z0) };
-
-        _VBufferDensity[uint3(voxelCoord, slice)] = 0;
 
         float3 voxelScattering = _GlobalScattering;
         float  voxelExtinction = _GlobalExtinction;
@@ -106,86 +96,90 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
         {
             OrientedBBox obb = _VolumeBounds[i];
 
-            float3 obb_forward = cross(obb.up, obb.right);
+            float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
+            float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
 
             // Express the voxel center in the local coordinate system of the box.
-            float3 voxelCenterBoxRelative = voxelCenterWS - obb.center;
-            float3 voxelCenterBoxLocal    = float3(dot(obb.right,   voxelCenterBoxRelative),
-                                                   dot(obb.up,      voxelCenterBoxRelative),
-                                                   dot(obb_forward, voxelCenterBoxRelative));
+            float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
+            float3 voxelCenterUV = voxelCenterBS / obbExtents;
 
-            // Compute the point inside the box closest to the voxel center.
-            float3 closestPointBoxLocal = float3(CopySign(min(obb.extentX, abs(voxelCenterBoxLocal.x)), voxelCenterBoxLocal.x),
-                                                 CopySign(min(obb.extentY, abs(voxelCenterBoxLocal.y)), voxelCenterBoxLocal.y),
-                                                 CopySign(min(obb.extentZ, abs(voxelCenterBoxLocal.z)), voxelCenterBoxLocal.z));
+        #ifdef SOFT_VOXELIZATION
+            // We need to determine which is the face closest to 'voxelCenterBS'.
+            // TODO: use v_cubeid_f32.
+            float minFaceDist = abs(obbExtents.x - abs(voxelCenterBS.x));
 
-            // Convert it to world-space coordinates.
-            float3 closestPointWS = obb.center + obb.right   * closestPointBoxLocal.x
-                                               + obb.up      * closestPointBoxLocal.y
-                                               + obb_forward * closestPointBoxLocal.z;
+            uint axisIndex; float faceDist;
 
-            // The farthest point is on the opposite side of the box.
-            float3 farthestPointWS = 2 * obb.center - closestPointWS;
+            faceDist    = abs(obbExtents.y - abs(voxelCenterBS.y));
+            axisIndex   = (faceDist < minFaceDist) ? 1 : 0;
+            minFaceDist = min(faceDist, minFaceDist);
 
-            // Compute the fractional overlap between the voxel and the box.
-            float overlapFraction = 1;
+            faceDist    = abs(obbExtents.z - abs(voxelCenterBS.z));
+            axisIndex   = (faceDist < minFaceDist) ? 2 : axisIndex;
 
-            for (uint p = 0; p < 3; p++)
-            {
-                float3 N = planes[p].xyz;
-                float  d = planes[p].w;
+            float3 N = float3(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 : 0);
 
-                // Compute the signed distance from both points to the plane.
-                // Positive distance -> point in front of the plane.
-                // Negative distance -> point behind the plane.
-                float signedDistanceClosest  = dot(float4(closestPointWS,  1), planes[p]);
-                float signedDistanceFarthest = dot(float4(farthestPointWS, 1), planes[p]);
+            // We have determined the normal of the closest face.
+            // We now have to construct the diagonal of the voxel with the longest extent along this normal.
+            float3 minDiagPointBS, maxDiagPointBS;
 
-                bool overlap = abs(signedDistanceClosest) <= voxelExtents[i];
+            float3 voxelAxisRightBS   = mul(voxelAxisRight,   transpose(obbFrame));
+            float3 voxelAxisUpBS      = mul(voxelAxisUp,      transpose(obbFrame));
+            float3 voxelAxisForwardBS = mul(voxelAxisForward, transpose(obbFrame));
 
-                overlapFraction *= overlap ? 1 : 0;
+            // Start at the center of the voxel.
+            minDiagPointBS = maxDiagPointBS = voxelCenterBS;
 
-                // // Max projection of the half-diagonal onto the normal (always positive).
-                // float maxHalfDiagProj = obb.extentX * abs(dot(N, obb.right))
-                //                       + obb.extentY * abs(dot(N, obb.up))
-                //                       + obb.extentZ * abs(dot(N, obb_forward));
+            bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
+            float mulForward = normalFwd ? halfDZ : -halfDZ;
+            float mulMin     = normalFwd ? z0 : z1;
+            float mulMax     = normalFwd ? z1 : z0;
 
-                // float centerToPlaneDist = dot(N, obb.center) + d;
+            minDiagPointBS -= mulForward * voxelAxisForwardBS;
+            maxDiagPointBS += mulForward * voxelAxisForwardBS;
 
-                // // Compute min/max distances from the plane to the box.
-                // float minBoxToPlaneDist = abs(centerToPlaneDist) - maxHalfDiagProj;
-                // float maxBoxToPlaneDist = abs(centerToPlaneDist) + maxHalfDiagProj;
+            float mulUp = dot(voxelAxisUpBS, N) >= 0 ? 1 : -1;
 
-                // // Check whether the plane overlaps the box.
-                // bool overlap = minBoxToPlaneDist <= 0;
+            minDiagPointBS -= (mulMin * mulUp) * voxelAxisUpBS;
+            maxDiagPointBS += (mulMax * mulUp) * voxelAxisUpBS;
 
-                // float dMin = minBoxToPlaneDist;
-                // float dMax = maxBoxToPlaneDist;
-                // float vExt = voxelExtents[p];
-                // float iExt = rcp(vExt);
+            float mulRight = dot(voxelAxisRightBS, N) >= 0 ? 1 : -1;
 
-                // // Simplify:
-                // // if (overlap)
-                // //     overlapFraction *= saturate((min(dMax, vExt) + min(-dMin, vExt)) / (2 * vExt));
-                // // else
-                // //     overlapFraction *= saturate((min(dMax, vExt) - min( dMin, vExt)) / (2 * vExt));
+            minDiagPointBS -= (mulMin * mulRight) * voxelAxisRightBS;
+            maxDiagPointBS += (mulMax * mulRight) * voxelAxisRightBS;
 
-                // float a = min(1, dMax * iExt);
-                // float b = min(1, abs(dMin) * iExt);
+            // We want to determine the fractional overlap of the diagonal and the box.
+            float3 diagOriginBS = minDiagPointBS;
+            float3 diagUnDirBS  = maxDiagPointBS - minDiagPointBS;
 
-                // overlapFraction *= saturate(0.5 * (a + (overlap ? b : -b)));
-                // overlapFraction *= overlap ? 1 : 0;
-            }
+            float tEntr, tExit;
+
+            IntersectRayAABB(diagOriginBS, diagUnDirBS,
+                             -obbExtents, obbExtents,
+                             0, 1,
+                             tEntr, tExit);
+
+            float overlapFraction = tExit - tEntr;
+
+        #else  // SOFT_VOXELIZATION
+
+            bool overlap = abs(voxelCenterUV.x) <= 1 &&
+                           abs(voxelCenterUV.y) <= 1 &&
+                           abs(voxelCenterUV.z) <= 1;
+
+            float overlapFraction = overlap ? 1 : 0;
+
+        #endif // SOFT_VOXELIZATION
 
             if (overlapFraction > 0)
             {
                 // There is an overlap. Sample the 3D texture, or load the constant value.
                 voxelScattering += overlapFraction * _VolumeProperties[i].scattering;
                 voxelExtinction += overlapFraction * _VolumeProperties[i].extinction;
-
-                _VBufferDensity[uint3(voxelCoord, slice)] = float4(voxelExtinction, voxelScattering);
             }
         }
+
+        _VBufferDensity[uint3(voxelCoord, slice)] = float4(voxelScattering, voxelExtinction);
 
         z0 = z1;
     }
@@ -218,41 +212,24 @@ void VolumeVoxelization(uint2 groupId       : SV_GroupID,
         return;
     }
 
-    // Perform semi-conservative solid voxelization with partial coverage.
-    // See "A Topological Approach to Voxelization" by Samuli Laine, 5.2.1.
-    // The intersection target is rather efficient (3 planes), and, as Samuli notes,
-    // can work for inputs other than 1D primitives.
-    // Reminder: our voxel is a skewed pyramid frustum.
+    // Reminder: our voxel is a skewed pyramid frustum with square front and back faces.
 
-    // Compute two orthogonal directions.
+    // Compute 3x orthogonal directions.
     float2 centerCoord = voxelCoord + float2( 0.5,  0.5);
     float2 leftCoord   = voxelCoord + float2(-0.5,  0.5);
     float2 upCoord     = voxelCoord + float2( 0.5, -0.5);
 
     // TODO: avoid 2x matrix multiplications by precomputing the world-space offset on the vs_Z=1 plane.
-    // Compute 2x ray directions s.t. its ViewSpace(rayDirWS).z = 1.
+    // Compute 3x ray directions s.t. its ViewSpace(rayDirWS).z = 1.
     float3 centerDirWS = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
     float3 leftDirWS   = mul(-float3(leftCoord,   1), (float3x3)_VBufferCoordToViewDirWS);
     float3 upDirWS     = mul(-float3(upCoord,     1), (float3x3)_VBufferCoordToViewDirWS);
 
-    // Construct 3x plane normals.
-    float3 planeNormalFwd   = GetViewForwardDir();
-    float3 planeNormalUp    = normalize(cross(centerDirWS, leftDirWS));
-    float3 planeNormalRight = normalize(cross(centerDirWS, upDirWS));
+    // Compute the axes of the voxel.
+    float3 voxelAxisForward = centerDirWS;
+    float3 voxelAxisUp      = 0.5 * (upDirWS - centerDirWS);
+    float3 voxelAxisRight   = 0.5 * (centerDirWS - leftDirWS);
 
-    // Compose 2x plane equations (they pass through the camera).
-    // The 3rd plane equation depends on the slice, so we'll have to update it inside the loop.
-    float3 cameraPositionWS   = GetCurrentViewPosition();
-    float4 planeEquationUp    = float4(planeNormalUp,    dot(-planeNormalUp,    cameraPositionWS));
-    float4 planeEquationRight = float4(planeNormalRight, dot(-planeNormalRight, cameraPositionWS));
-
-    // We approximate the voxel with a parallelepiped with a square front face.
-    // Compute the extents (half-dimensions) of the front face on the vs_Z=1 plane.
-    // TODO: directly compute the inverse.
-    // TODO: precompute and load this value from the constant buffer. It's a constant!
-    float faceExtent = 0.5 * distance(leftDirWS, centerDirWS);
-
-    FillVolumetricDensityBuffer(voxelCoord, cameraPositionWS, centerDirWS,
-                                planeEquationUp, planeEquationRight,
-                                planeNormalFwd, faceExtent);
+    FillVolumetricDensityBuffer(voxelCoord, GetCurrentViewPosition(), centerDirWS,
+                                voxelAxisRight, voxelAxisUp, voxelAxisForward);
 }
