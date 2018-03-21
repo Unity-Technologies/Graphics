@@ -215,6 +215,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightDistanceAttenuation = Shader.PropertyToID("_AdditionalLightDistanceAttenuation");
             PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
+            PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
 
             ShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_WorldToShadow");
             ShadowConstantBuffer._ShadowData = Shader.PropertyToID("_ShadowData");
@@ -309,15 +310,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Array.Sort(cameras, m_CameraComparer);
             foreach (Camera camera in cameras)
             {
-                RenderPipeline.BeginCameraRendering(camera);
                 m_CurrCamera = camera;
-
                 bool sceneViewCamera = m_CurrCamera.cameraType == CameraType.SceneView;
                 bool stereoEnabled = IsStereoEnabled(m_CurrCamera);
 
                 // XR has it's own scaling mechanism.
                 m_RenderScale = (m_CurrCamera.cameraType == CameraType.Game && !stereoEnabled) ? m_Asset.RenderScale : 1.0f;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
+
+                SetupPerCameraShaderConstants();
+                RenderPipeline.BeginCameraRendering(m_CurrCamera);
+
 
 
                 ScriptableCullingParameters cullingParameters;
@@ -736,9 +739,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 baseDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
 
-            float renderScale = GetRenderScale();
-            baseDesc.width = (int)((float)baseDesc.width * renderScale);
-            baseDesc.height = (int)((float)baseDesc.height * renderScale);
+            baseDesc.width = (int)GetScaledCameraWidth(m_CurrCamera);
+            baseDesc.height = (int)GetScaledCameraHeight(m_CurrCamera);
 
             if (m_RequireDepthTexture)
             {
@@ -967,6 +969,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(PerFrameBuffer._SubtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+        }
+
+        private void SetupPerCameraShaderConstants()
+        {
+            float cameraWidth = GetScaledCameraWidth(m_CurrCamera);
+            float cameraHeight = GetScaledCameraHeight(m_CurrCamera);
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
 
         private void SetupShaderLightConstants(CommandBuffer cmd, List<VisibleLight> lights, ref LightData lightData)
@@ -1424,6 +1433,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private float GetRenderScale()
         {
             return m_RenderScale;
+        }
+
+        private float GetScaledCameraWidth(Camera camera)
+        {
+            return (float) camera.pixelWidth * GetRenderScale();
+        }
+
+        private float GetScaledCameraHeight(Camera camera)
+        {
+            return (float) camera.pixelHeight * GetRenderScale();
         }
 
         private RendererConfiguration GetRendererSettings(ref LightData lightData)
