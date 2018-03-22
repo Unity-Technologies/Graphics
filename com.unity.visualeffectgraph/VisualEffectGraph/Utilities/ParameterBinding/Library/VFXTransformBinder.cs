@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEngine.Experimental.VFX.Utility
 {
     [VFXBinder("Transform/Transform")]
-    public class VFXTransformnBinder : VFXBinderBase
+    public class VFXTransformBinder : VFXBinderBase
     {
         [VFXParameterBinding("UnityEditor.VFX.Transform")]
         public string Parameter = "Transform";
