@@ -88,7 +88,7 @@ public class VFXParameterBinderEditor : Editor
                 m_ElementEditor.serializedObject.ApplyModifiedProperties();
 
             var component = (m_Component.objectReferenceValue as VisualEffect);
-            bool valid = (binding as VFXBindingBase).IsValid(component);
+            bool valid = (binding as VFXBinderBase).IsValid(component);
             if (!valid)
             {
                 EditorGUILayout.HelpBox("This binding is not correctly configured, please ensure Parameter is valid and/or objects are not null", MessageType.Warning);
@@ -140,7 +140,7 @@ public class VFXParameterBinderEditor : Editor
         {
             foreach (Type t in assembly.GetTypes())
             {
-                if (t.BaseType == typeof(VFXBindingBase))
+                if (t.BaseType == typeof(VFXBinderBase))
                     relevantTypes.Add(t);
             }
         }
@@ -183,7 +183,7 @@ public class VFXParameterBinderEditor : Editor
 
     public void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
     {
-        var target = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue as VFXBindingBase;
+        var target = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue as VFXBinderBase;
         var element = target.ToString();
 
         GUI.Label(rect, new GUIContent(element), Styles.labelStyle);

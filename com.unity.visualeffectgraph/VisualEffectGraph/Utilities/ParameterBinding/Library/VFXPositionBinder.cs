@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
 [VFXBinder("Transform/Position")]
-public class VFXPositionBinding : VFXBindingBase
+public class VFXPositionBinder : VFXBinderBase
 {
     [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
     public string Parameter = "Position";

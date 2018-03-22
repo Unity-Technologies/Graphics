@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
 [VFXBinder("Utility/Plane")]
-public class VFXPlaneBinding : VFXBindingBase
+public class VFXPlaneBinder : VFXBinderBase
 {
     [VFXParameterBinding("UnityEditor.VFX.Plane")]
     public string Parameter = "Plane";

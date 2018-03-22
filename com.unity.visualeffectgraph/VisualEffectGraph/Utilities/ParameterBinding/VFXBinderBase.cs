@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
 [ExecuteInEditMode, RequireComponent(typeof(VFXParameterBinder))]
-public abstract class VFXBindingBase : MonoBehaviour
+public abstract class VFXBinderBase : MonoBehaviour
 {
     protected VFXParameterBinder binder;
 

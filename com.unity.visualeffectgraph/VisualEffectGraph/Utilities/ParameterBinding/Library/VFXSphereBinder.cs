@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
 [VFXBinder("Collider/Sphere")]
-public class VFXSphereBinding : VFXBindingBase
+public class VFXSphereBinder : VFXBinderBase
 {
     [VFXParameterBinding("UnityEditor.VFX.Sphere")]
     public string Parameter = "Sphere";

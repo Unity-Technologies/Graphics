@@ -9,7 +9,7 @@ public class VFXParameterBinder : MonoBehaviour
 {
     [SerializeField]
     protected bool m_ExecuteInEditor = true;
-    public List<VFXBindingBase> m_Bindings = new List<VFXBindingBase>();
+    public List<VFXBinderBase> m_Bindings = new List<VFXBinderBase>();
     [SerializeField]
     protected VisualEffect m_VisualEffect;
 

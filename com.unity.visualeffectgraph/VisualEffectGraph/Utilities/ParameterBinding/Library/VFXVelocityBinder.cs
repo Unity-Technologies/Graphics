@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
 [VFXBinder("Utility/Velocity")]
-public class VFXVelocityBinding : VFXBindingBase
+public class VFXVelocityBinder : VFXBinderBase
 {
     [VFXParameterBinding("UnityEngine.Vector3")]
     public string Parameter = "Velocity";
