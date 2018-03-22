@@ -167,7 +167,57 @@ namespace UnityEditor.VFX.UI
         {
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
-            foreach (var edge in dataEdges)
+
+
+            //order edge so that they are from left to right ( edge linking node with the no linked input first)
+            Dictionary<VFXNodeController,int> useCount = new Dictionary<VFXNodeController,int>();
+
+            var orderedEdges = new List<VFXDataEdgeController>();
+
+            var edges = new HashSet<VFXDataEdgeController>(dataEdges);
+
+            // Ensure that operators that can change shape always all their input edges created before their output edges and in the same order
+            bool sortFailed = false;
+            try
+            {
+                while(edges.Count > 0)
+                {
+                    var edgeInputs = edges.GroupBy(t=>t.input.sourceNode).ToDictionary(t=>t.Key,t=>t.Select(u=>u));
+
+                    //Select the edges that have an input node which all its input edges have an output node that have no input edge
+                    // Order them by index
+                    
+                    var edgesWithoutParent = edges.Where(t=>! edgeInputs[t.input.sourceNode].Any(u=>edgeInputs.ContainsKey(u.output.sourceNode))).OrderBy(t=>t.input.model.GetMasterSlot().owner.GetSlotIndex(t.input.model.GetMasterSlot())).ToList();
+                    /*foreach(var gen in edgesWithoutParent)
+                    {
+                        int index = gen.input.model.GetMasterSlot().owner.GetSlotIndex(gen.input.model.GetMasterSlot());
+                        Debug.Log("Edge with input:" + gen.input.sourceNode.title + "index"+ index);
+                    }*/
+                    orderedEdges.AddRange(edgesWithoutParent);
+
+                    int count = edges.Count;
+                    foreach(var e in edgesWithoutParent)
+                    {
+                        edges.Remove(e);
+                    }
+                    if( edges.Count >= count)
+                    {
+                        sortFailed = true;
+                        Debug.LogError("Sorting of data edges failed. Please provide a screenshot of the graph with the selected node to @tristan");
+                        break;
+                    }
+                    //Debug.Log("------------------------------");
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.LogError("Sorting of data edges threw. Please provide a screenshot of the graph with the selected node to @tristan" + e.Message);
+                sortFailed = true;
+            }
+
+            IEnumerable<VFXDataEdgeController> usedEdges = sortFailed? dataEdges : orderedEdges;
+
+            foreach (var edge in usedEdges)
             {
                 DataEdge copyPasteEdge = new DataEdge();
 
@@ -213,6 +263,7 @@ namespace UnityEditor.VFX.UI
 
                 copyData.dataEdges[cpt++] = copyPasteEdge;
             }
+            // Sort the edge so the one that links the node that have the least links 
         }
 
         static void CopyFlowEdges(Data copyData, IEnumerable<VFXFlowEdgeController> flowEdges, ScriptableObject[] allSerializedObjects)
