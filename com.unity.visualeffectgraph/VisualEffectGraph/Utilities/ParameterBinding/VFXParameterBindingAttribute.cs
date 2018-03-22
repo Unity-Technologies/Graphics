@@ -4,13 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [AttributeUsage(AttributeTargets.Field)]
-public class VFXBindingAttribute : PropertyAttribute
+public class VFXParameterBindingAttribute : PropertyAttribute
 {
     public string[] EditorTypes;
 
-    public VFXBindingAttribute(params string[] editorTypes)
+    public VFXParameterBindingAttribute(params string[] editorTypes)
     {
         EditorTypes = editorTypes;
     }
 }
-

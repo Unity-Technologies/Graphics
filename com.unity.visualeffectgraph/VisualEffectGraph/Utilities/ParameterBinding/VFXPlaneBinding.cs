@@ -4,20 +4,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
+[VFXBinder("Utility/Plane")]
 public class VFXPlaneBinding : VFXBindingBase
 {
-    [VFXBinding("UnityEditor.VFX.Plane")]
+    [VFXParameterBinding("UnityEditor.VFX.Plane")]
     public string Parameter = "Plane";
     public Transform Target;
 
+    int Position;
+    int Normal;
+
+    void OnValidate()
+    {
+        Position = GetParameter(Parameter + "_position");
+        Normal = GetParameter(Parameter + "_normal");
+    }
+
+    public override bool IsValid(VisualEffect component)
+    {
+        return Target != null && component.HasVector3(Position) && component.HasVector3(Normal);
+    }
 
     public override void UpdateBinding(VisualEffect component)
     {
-        if (Target != null && component.HasVector3(Parameter + "_position") && component.HasVector3(Parameter + "_normal"))
-        {
-            component.SetVector3(Parameter + "_position", Target.transform.position);
-            component.SetVector3(Parameter + "_normal", Target.transform.up);
-        }
+        component.SetVector3(Position, Target.transform.position);
+        component.SetVector3(Normal, Target.transform.up);
     }
 
     public override string ToString()

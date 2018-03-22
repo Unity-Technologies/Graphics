@@ -6,25 +6,41 @@ using UnityEngine.Experimental.VFX;
 [ExecuteInEditMode, RequireComponent(typeof(VFXParameterBinder))]
 public abstract class VFXBindingBase : MonoBehaviour
 {
-    protected VFXParameterBinder m_Binder;
+    protected VFXParameterBinder binder;
+
+    protected Dictionary<string, int> m_PropertyCache = new Dictionary<string, int>();
+
+    public abstract bool IsValid(VisualEffect component);
+
+    public int GetParameter(string name)
+    {
+        if (m_PropertyCache.ContainsKey(name))
+            return m_PropertyCache[name];
+        else
+        {
+            int id = Shader.PropertyToID(name);
+            m_PropertyCache.Add(name, id);
+            return id;
+        }
+    }
 
     private void Awake()
     {
-        m_Binder = GetComponent<VFXParameterBinder>();
+        binder = GetComponent<VFXParameterBinder>();
     }
 
     protected virtual void OnEnable()
     {
-        if (!m_Binder.m_Bindings.Contains(this))
-            m_Binder.m_Bindings.Add(this);
+        if (!binder.m_Bindings.Contains(this))
+            binder.m_Bindings.Add(this);
 
         hideFlags = HideFlags.HideInInspector; // Comment to debug
     }
 
     protected virtual void OnDisable()
     {
-        if (m_Binder.m_Bindings.Contains(this))
-            m_Binder.m_Bindings.Remove(this);
+        if (binder.m_Bindings.Contains(this))
+            binder.m_Bindings.Remove(this);
     }
 
     public abstract void UpdateBinding(VisualEffect component);

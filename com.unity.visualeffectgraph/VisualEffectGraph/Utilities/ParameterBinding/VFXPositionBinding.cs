@@ -4,16 +4,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
+[VFXBinder("Transform/Position")]
 public class VFXPositionBinding : VFXBindingBase
 {
-    [VFXBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
+    [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
     public string Parameter = "Position";
     public Transform Target;
 
+    public override bool IsValid(VisualEffect component)
+    {
+        return Target != null && component.HasVector3(GetParameter(Parameter));
+    }
+
     public override void UpdateBinding(VisualEffect component)
     {
-        if (Target != null && component.HasVector3(Parameter))
-            component.SetVector3(Parameter, Target.transform.position);
+        component.SetVector3(GetParameter(Parameter), Target.transform.position);
     }
 
     public override string ToString()

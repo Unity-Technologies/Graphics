@@ -18,6 +18,18 @@ public class VFXParameterBinderEditor : Editor
     GenericMenu m_Menu;
     Editor m_ElementEditor;
 
+    static Color validColor = new Color(0.5f, 1.0f, 0.2f);
+    static Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
+
+    static class Styles
+    {
+        public static GUIStyle labelStyle;
+        static Styles()
+        {
+            labelStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset(20, 0, 2, 0) };
+        }
+    }
+
     private void OnEnable()
     {
         BuildMenu();
@@ -31,18 +43,16 @@ public class VFXParameterBinderEditor : Editor
         m_List.onRemoveCallback = RemoveElement;
         m_List.onAddCallback = AddElement;
         m_List.onSelectCallback = SelectElement;
-
     }
 
     private void OnDisable()
     {
-        
     }
 
     public override void OnInspectorGUI()
     {
         EditorGUI.BeginChangeCheck();
-
+        EditorGUILayout.Space();
         EditorGUILayout.PropertyField(m_ExecuteInEditor);
         EditorGUILayout.Space();
         m_List.DoLayoutList();
@@ -52,12 +62,12 @@ public class VFXParameterBinderEditor : Editor
         if (m_ElementEditor != null)
         {
             EditorGUI.BeginChangeCheck();
-            //m_ElementEditor.DrawDefaultInspector();
-            var target = m_ElementEditor.serializedObject.targetObject;
-            var type = target.GetType();
+
+            var binding = m_ElementEditor.serializedObject.targetObject;
+            var type = binding.GetType();
             var fields = type.GetFields();
 
-            foreach(var field in fields)
+            foreach (var field in fields)
             {
                 var property = m_ElementEditor.serializedObject.FindProperty(field.Name);
 
@@ -65,7 +75,7 @@ public class VFXParameterBinderEditor : Editor
                 {
                     EditorGUILayout.PropertyField(property);
 
-                    var attrib = field.GetCustomAttributes(true).OfType<VFXBindingAttribute>().FirstOrDefault<VFXBindingAttribute>();
+                    var attrib = field.GetCustomAttributes(true).OfType<VFXParameterBindingAttribute>().FirstOrDefault<VFXParameterBindingAttribute>();
                     if (attrib != null)
                     {
                         if (GUILayout.Button("v", EditorStyles.miniButton, GUILayout.Width(14)))
@@ -73,8 +83,16 @@ public class VFXParameterBinderEditor : Editor
                     }
                 }
             }
+
             if (EditorGUI.EndChangeCheck())
                 m_ElementEditor.serializedObject.ApplyModifiedProperties();
+
+            var component = (m_Component.objectReferenceValue as VisualEffect);
+            bool valid = (binding as VFXBindingBase).IsValid(component);
+            if (!valid)
+            {
+                EditorGUILayout.HelpBox("This binding is not correctly configured, please ensure Parameter is valid and/or objects are not null", MessageType.Warning);
+            }
         }
     }
 
@@ -84,13 +102,12 @@ public class VFXParameterBinderEditor : Editor
         public string value;
     }
 
-    public void CheckTypeMenu(SerializedProperty property, VFXBindingAttribute attribute, VisualEffectAsset asset)
+    public void CheckTypeMenu(SerializedProperty property, VFXParameterBindingAttribute attribute, VisualEffectAsset asset)
     {
         GenericMenu menu = new GenericMenu();
         var parameters = (asset.graph as UnityEditor.VFX.VFXGraph).children.OfType<UnityEditor.VFX.VFXParameter>();
-        foreach(var param in parameters)
+        foreach (var param in parameters)
         {
-            
             string typeName = param.type.ToString();
             if (attribute.EditorTypes.Contains(typeName))
             {
@@ -128,7 +145,15 @@ public class VFXParameterBinderEditor : Editor
             }
         }
         foreach (Type type in relevantTypes)
-            m_Menu.AddItem(new GUIContent(type.ToString()), false, AddBinding, type);
+        {
+            string name = type.ToString();
+            var attrib = type.GetCustomAttributes(true).OfType<VFXBinderAttribute>().FirstOrDefault<VFXBinderAttribute>();
+
+            if (attrib != null)
+                name = attrib.MenuPath;
+
+            m_Menu.AddItem(new GUIContent(name), false, AddBinding, type);
+        }
     }
 
     public void AddBinding(object type)
@@ -158,8 +183,16 @@ public class VFXParameterBinderEditor : Editor
 
     public void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
     {
-        var element = (m_Elements.GetArrayElementAtIndex(index).objectReferenceValue).ToString();
-        GUI.Label(rect, new GUIContent(element));
+        var target = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue as VFXBindingBase;
+        var element = target.ToString();
+
+        GUI.Label(rect, new GUIContent(element), Styles.labelStyle);
+
+        var component = (m_Component.objectReferenceValue as VisualEffect);
+        bool valid = target.IsValid(component);
+
+        Rect iconRect = new Rect(rect.xMin + 4, rect.yMin + 4, 8, 8);
+        EditorGUI.DrawRect(iconRect, valid ? validColor : invalidColor);
     }
 
     public void RemoveElement(ReorderableList list)

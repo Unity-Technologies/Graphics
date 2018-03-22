@@ -37,6 +37,6 @@ public class VFXParameterBinder : MonoBehaviour
         if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
 
         foreach (var binding in m_Bindings)
-            binding.UpdateBinding(m_VisualEffect);
+            if (binding.IsValid(m_VisualEffect)) binding.UpdateBinding(m_VisualEffect);
     }
 }
