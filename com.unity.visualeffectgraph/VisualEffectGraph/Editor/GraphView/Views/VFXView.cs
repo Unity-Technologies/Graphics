@@ -416,6 +416,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
+            RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
 
             graphViewChanged = VFXGraphViewChanged;
@@ -1412,9 +1413,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void ValidateCommand(ValidateCommandEvent evt)
+        {   
+            if( evt.commandName == "SelectAll")
+            {
+                evt.StopPropagation();
+                if (evt.imguiEvent != null)
+                {
+                    evt.imguiEvent.Use();
+                }
+            }
+        }
+
         public void ExecuteCommand(ExecuteCommandEvent e)
         {
-            Debug.Log("SelectAll");
             if( e.commandName == "SelectAll" )
             {
 
