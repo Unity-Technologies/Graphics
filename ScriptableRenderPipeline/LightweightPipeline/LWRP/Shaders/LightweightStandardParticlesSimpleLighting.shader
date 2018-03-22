@@ -69,6 +69,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
