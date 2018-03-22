@@ -85,6 +85,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
                 o.posWS.w = ComputeFogFactor(o.clipPos.z);
                 o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
+                o.viewDirShininess.w = 0.0;
                 vertTexcoord(v, o);
                 vertFading(o, o.posWS, o.clipPos);
                 return o;
