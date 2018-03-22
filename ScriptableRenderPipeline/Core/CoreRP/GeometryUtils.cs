@@ -77,13 +77,12 @@ namespace UnityEngine.Experimental.Rendering
             Vector3 vecZ = t.localToWorldMatrix.GetColumn(2);
 
             obb.center  = t.position;
-            obb.right   = vecX * 1.0f / (vecX.magnitude);
-            obb.up      = vecY * 1.0f / (vecY.magnitude);
+            obb.right   = vecX * (1.0f / vecX.magnitude);
+            obb.up      = vecY * (1.0f / vecY.magnitude);
 
             obb.extentX = 0.5f * vecX.magnitude;
             obb.extentY = 0.5f * vecY.magnitude;
             obb.extentZ = 0.5f * vecZ.magnitude;
-
 
             return obb;
         }
