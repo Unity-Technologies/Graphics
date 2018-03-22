@@ -31,6 +31,9 @@ Shader "LightweightPipeline/Standard Unlit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+
+            #pragma exclude_renderers d3d11_9x
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_fog
@@ -81,7 +84,7 @@ Shader "LightweightPipeline/Standard Unlit"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                
+
                 o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv0AndFogCoord.xy = TRANSFORM_TEX(v.uv, _MainTex);
                 o.uv0AndFogCoord.z = ComputeFogFactor(o.vertex.z);
@@ -101,7 +104,7 @@ Shader "LightweightPipeline/Standard Unlit"
                 half2 uv = IN.uv0AndFogCoord.xy;
                 half4 texColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 half3 color = texColor.rgb * _Color.rgb;
-                half alpha = texColor.a * _Color.a;     
+                half alpha = texColor.a * _Color.a;
                 AlphaDiscard(alpha, _Cutoff);
 
 #if _SAMPLE_GI
@@ -113,7 +116,7 @@ Shader "LightweightPipeline/Standard Unlit"
                 color *= SampleGI(IN.lightmapOrVertexSH, normalWS);
 #endif
                 ApplyFog(color, IN.uv0AndFogCoord.z);
-       
+
                 return half4(color, alpha);
             }
             ENDHLSL
