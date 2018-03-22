@@ -69,9 +69,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
     float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
 
 #ifdef USE_CLUSTERED_LIGHTLIST
-    // Our voxel is not necessarily completely inside a single light cluster (along Z).
-    // Note that Z-binning can solve this problem, as we can iterate over all Z-bins
-    // to compute min/max light indices, and then use this range for the entire slice.
+    // The voxel can overlap up to 2 light clusters along Z, so we have to iterate over both.
+    // TODO: implement Z-binning which makes Z-range queries easy.
     uint volumeStarts[2], volumeCounts[2];
 
     GetCountAndStartCluster(posInput.tileCoord, GetLightClusterIndex(posInput.tileCoord, z0),
@@ -110,7 +109,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
         GetCountAndStartCluster(posInput.tileCoord, GetLightClusterIndex(posInput.tileCoord, z1),
                                 LIGHTCATEGORY_DENSITY_VOLUME, volumeStarts[1], volumeCounts[1]);
 
-        // We now iterate over all density volumes within the two clusters along Z.
+        // Iterate over all volumes within 2 (not necessarily unique) clusters overlapping the voxel along Z.
         // We need to skip duplicates, but it's not too difficult since volumes are sorted by index.
         uint i = 0, j = 0;
 
@@ -145,10 +144,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
     #else  // USE_CLUSTERED_LIGHTLIST
         {
-            for (uint i = 0; i < _NumVisibleDensityVolumes; i++)
+            for (uint volumeIndex = 0; volumeIndex < _NumVisibleDensityVolumes; volumeIndex++)
             {
-                uint volumeIndex = i;
-
     #endif // USE_CLUSTERED_LIGHTLIST
 
                 OrientedBBox obb = _VolumeBounds[volumeIndex];
