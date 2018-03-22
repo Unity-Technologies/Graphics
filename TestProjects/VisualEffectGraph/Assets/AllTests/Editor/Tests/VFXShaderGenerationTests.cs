@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Test
             var blockSetVelocity = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetVelocity.SetSettingValue("attribute", "velocity");
 
-            var attributeParameter = ScriptableObject.CreateInstance<VFXCurrentAttributeParameter>();
+            var attributeParameter = ScriptableObject.CreateInstance<VFXAttributeParameter>();
             attributeParameter.SetSettingValue("attribute", "color");
 
             var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();

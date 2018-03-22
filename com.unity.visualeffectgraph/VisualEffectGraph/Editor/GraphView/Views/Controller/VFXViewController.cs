@@ -1,4 +1,3 @@
-#define _RESTRICT_SOURCE_CURRENT_ATTRIBUTE
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -656,27 +655,7 @@ namespace UnityEditor.VFX.UI
                     CollectChildOperator(currentOperator, childrenOperators);
 
                     allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
-#if _RESTRICT_SOURCE_CURRENT_ATTRIBUTE
-                    var contextTypeInChildren = childrenOperators.OfType<VFXBlock>().Select(o => o.GetParent().contextType).Distinct();
-                    if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner || o == VFXContextType.kUpdate))
-                    {
-                        var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
 
-                        Func<VFXModel, bool> fnConditionSpawner = delegate(VFXModel model) { return model is VFXAttributeParameter; };
-                        Func<VFXModel, bool> fnConditionUpdate = delegate(VFXModel model) { return model is VFXSourceAttributeParameter; };
-                        var filterForSpawner = contextTypeInChildren.Any(o => o == VFXContextType.kSpawner);
-                        var filterForUpdate = contextTypeInChildren.Any(o => o == VFXContextType.kUpdate);
-
-                        foreach (var attributeParameter in allSlotContainerControllers.Where(o =>
-                                     (!filterForSpawner || fnConditionSpawner(o.model))
-                                     && (!filterForUpdate || fnConditionUpdate(o.model)))
-                                 .Select(o => o.model as VFXOperator))
-                        {
-                            CollectChildOperator(attributeParameter, additionnalExcludeOperator);
-                        }
-                        allSlotContainerControllers = allSlotContainerControllers.Where(o => !additionnalExcludeOperator.Contains(o.slotContainer));
-                    }
-#endif
                     var toSlot = startAnchorOperatorController.model;
                     allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>
                         {
@@ -693,19 +672,7 @@ namespace UnityEditor.VFX.UI
                 CollectParentOperator(currentOperator, parentOperators);
 
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
-#if _RESTRICT_SOURCE_CURRENT_ATTRIBUTE
-                var attributeLocationInParents = parentOperators.OfType<VFXAttributeParameter>().Select(o => o.location).Distinct();
-                if (attributeLocationInParents.Any())
-                {
-                    var filterUpdate = attributeLocationInParents.Any(o => o == VFXAttributeLocation.Source) ? new VFXContextType[] { VFXContextType.kSpawner, VFXContextType.kUpdate } : new VFXContextType[] { VFXContextType.kSpawner };
-                    var additionnalExcludeOperator = new HashSet<IVFXSlotContainer>();
-                    foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && filterUpdate.Contains((o.model as VFXBlock).GetParent().contextType)).Select(o => o.model as VFXBlock))
-                    {
-                        CollectParentOperator(block, additionnalExcludeOperator);
-                    }
-                    allSlotContainerControllers = allSlotContainerControllers.Where(o => !additionnalExcludeOperator.Contains(o.slotContainer));
-                }
-#endif
+
                 allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(o =>
                     {
                         var candidate = o as VFXDataAnchorController;

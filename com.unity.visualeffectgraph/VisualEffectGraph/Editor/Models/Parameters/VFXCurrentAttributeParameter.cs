@@ -1,17 +1,34 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
+// TODO: Remove after migration
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Attribute/Current", variantProvider = typeof(AttributeVariant))]
     class VFXCurrentAttributeParameter : VFXAttributeParameter
     {
-        public override VFXAttributeLocation location
+        VFXCurrentAttributeParameter()
         {
-            get
-            {
-                return VFXAttributeLocation.Current;
-            }
+            location = VFXAttributeLocation.Current;
+        }
+
+        public override void Sanitize()
+        {
+            // Create new operator
+            var attrib = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            attrib.SetSettingValue("location", VFXAttributeLocation.Current);
+            attrib.SetSettingValue("attribute", attribute);
+
+            // Transfer links
+            var links = GetOutputSlot(0).LinkedSlots.ToArray();
+            GetOutputSlot(0).UnlinkAll();
+            foreach (var s in links)
+                attrib.GetOutputSlot(0).Link(s);
+
+            // Replace operator
+            var parent = GetParent();
+            Detach();
+            attrib.Attach(parent);
         }
     }
 }

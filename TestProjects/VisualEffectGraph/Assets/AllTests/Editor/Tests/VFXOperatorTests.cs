@@ -183,7 +183,7 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var attribute in VFXAttribute.All)
             {
-                var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXCurrentAttributeParameter));
+                var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXAttributeParameter));
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
                 Assert.IsNotNull(a);
