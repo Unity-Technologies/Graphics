@@ -42,7 +42,12 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
+            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().
+                    Concat(m_DataEdges.Cast<Controller>()).
+                    Concat(m_FlowEdges.Cast<Controller>()).
+                    Concat(m_ParameterControllers.Values.Cast<Controller>()).
+                    Concat(m_GroupNodeControllers.Cast<Controller>())
+                    ; }
         }
 
         public void LightApplyChanges()
