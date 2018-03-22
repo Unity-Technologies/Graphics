@@ -782,6 +782,7 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
+            parameter.SetSettingValue("m_exposedName", string.Format("New {0}",type.UserFriendlyName()));
 
             if (!type.IsPrimitive)
             {
