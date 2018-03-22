@@ -27,7 +27,7 @@ VFXContextUI > #node-border
 
 VFXContextUI.outputTypenone > #node-border
 {
-    end-color:#FF00FF;
+    end-color:#C24F30;
 }
 
 

@@ -416,6 +416,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
+            RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
 
             graphViewChanged = VFXGraphViewChanged;
 
@@ -1408,6 +1409,22 @@ namespace UnityEditor.VFX.UI
             get
             {
                 return canCopySelection && !selection.Any(t => t is GroupNode);
+            }
+        }
+
+        public void ExecuteCommand(ExecuteCommandEvent e)
+        {
+            Debug.Log("SelectAll");
+            if( e.commandName == "SelectAll" )
+            {
+
+                ClearSelection();
+
+                foreach(var element in graphElements.ToList())
+                {
+                    AddToSelection(element);
+                }
+                e.StopPropagation();
             }
         }
 
