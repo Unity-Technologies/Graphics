@@ -103,7 +103,7 @@ struct VoxelLighting
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
                                     DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float asymmetry
-                                #ifdef LIGHTLOOP_TILE_PASS
+                                #ifdef USE_CLUSTERED_LIGHTLIST
                                     , uint clusterIndices[2], float clusterDepths[2])
                                 #else
                                     )
@@ -159,7 +159,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
     return lighting;
 #endif
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifdef USE_CLUSTERED_LIGHTLIST
     // Loop over 1 or 2 light clusters.
     int cluster = 0;
     do
@@ -171,28 +171,28 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
         {
             tMax = min(t1, ray.strataDirInvViewZ * clusterDepths[1]);
         }
-#else
+#else  // USE_CLUSTERED_LIGHTLIST
         float tMin = t0;
         float tMax = t1;
-#endif // LIGHTLOOP_TILE_PASS
+#endif // USE_CLUSTERED_LIGHTLIST
 
         if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
         {
             uint lightCount, lightStart;
 
-        #ifdef LIGHTLOOP_TILE_PASS
+        #ifdef USE_CLUSTERED_LIGHTLIST
             GetCountAndStartCluster(posInput.tileCoord, clusterIndices[cluster], LIGHTCATEGORY_PUNCTUAL,
                                     lightStart, lightCount);
-        #else
+        #else  // USE_CLUSTERED_LIGHTLIST
             lightCount = _PunctualLightCount;
             lightStart = 0;
-        #endif // LIGHTLOOP_TILE_PASS
+        #endif // USE_CLUSTERED_LIGHTLIST
 
             if (lightCount > 0)
             {
                 LightData light = FetchLight(lightStart, 0);
 
-                uint i = 0, last = lightCount - 1;
+                int i = 0, last = lightCount - 1;
 
                 // Box lights require special handling (see the next while loop).
                 while (i <= last && light.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
@@ -347,11 +347,11 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 }
             }
         }
-#ifdef LIGHTLOOP_TILE_PASS
+#ifdef USE_CLUSTERED_LIGHTLIST
         cluster++;
         // Check whether the voxel is completely inside the light cluster.
     } while ((cluster < 2) && (clusterIndices[0] != clusterIndices[1]));
-#endif // LIGHTLOOP_TILE_PASS
+#endif // USE_CLUSTERED_LIGHTLIST
 
     return lighting;
 }
@@ -373,15 +373,15 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
 
-#ifdef LIGHTLOOP_TILE_PASS
-    // Our voxel is not necessarily completely inside a single light cluster.
+#ifdef USE_CLUSTERED_LIGHTLIST
+    // Our voxel is not necessarily completely inside a single light cluster (along Z).
     // Note that Z-binning can solve this problem, as we can iterate over all Z-bins
     // to compute min/max light indices, and then use this range for the entire slice.
     uint  clusterIndices[2];
     float clusterDepths[2];
     clusterIndices[0] = GetLightClusterIndex(posInput.tileCoord, z0);
     clusterDepths[0]  = GetLightClusterMinLinearDepth(posInput.tileCoord, clusterIndices[0]);
-#endif // LIGHTLOOP_TILE_PASS
+#endif // USE_CLUSTERED_LIGHTLIST
 
 #if defined(SHADER_API_METAL)
     [fastopt]
@@ -405,7 +405,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float t1 = ray.strataDirInvViewZ * z1; // Convert view space Z to distance along the stratified ray
         float dt = t1 - t0;
 
-    #ifdef LIGHTLOOP_TILE_PASS
+    #ifdef USE_CLUSTERED_LIGHTLIST
         clusterIndices[1] = GetLightClusterIndex(posInput.tileCoord, z1);
         clusterDepths[1]  = GetLightClusterMinLinearDepth(posInput.tileCoord, clusterIndices[1]);
     #endif
@@ -436,7 +436,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         VoxelLighting lighting = EvaluateVoxelLighting(context, featureFlags, posInput, centerWS,
                                                        ray, t0, t1, dt, rndVal, extinction, asymmetry
-                                                   #ifdef LIGHTLOOP_TILE_PASS
+                                                   #ifdef USE_CLUSTERED_LIGHTLIST
                                                        , clusterIndices, clusterDepths);
                                                    #else
                                                        );
@@ -506,15 +506,15 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Use max() to prevent division by 0.
         float3 phaseCurrFrame = lighting.radianceComplete * rcp(max(lighting.radianceNoPhase, FLT_MIN));
         blendedRadiance *= phaseCurrFrame;
-    #endif // SUPPORT_ASYMMETRY
+    #endif
 
-    #else  // ENABLE_REPROJECTION
+    #else // ENABLE_REPROJECTION
 
     #if SUPPORT_ASYMMETRY
         float3 blendedRadiance = lighting.radianceComplete;
-    #else  // SUPPORT_ASYMMETRY
+    #else
         float3 blendedRadiance = lighting.radianceNoPhase;
-    #endif // SUPPORT_ASYMMETRY
+    #endif
 
     #endif // ENABLE_REPROJECTION
 
@@ -551,10 +551,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         t0 = t1;
 
-    #ifdef LIGHTLOOP_TILE_PASS
+    #ifdef USE_CLUSTERED_LIGHTLIST
         clusterIndices[0] = clusterIndices[1];
         clusterDepths[0]  = clusterDepths[1];
-    #endif // LIGHTLOOP_TILE_PASS
+    #endif
     }
 }
 

@@ -61,12 +61,22 @@ CBUFFER_END
 // Implementation
 //--------------------------------------------------------------------------------------------------
 
-void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 rayUnDirWS,
+void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, float3 rayUnDirWS,
                                  float3 voxelAxisRight, float3 voxelAxisUp, float3 voxelAxisForward)
 {
     float n  = _VBufferDepthDecodingParams.x + _VBufferDepthDecodingParams.z;
     float z0 = n;                          // Start the computation from the near plane
     float de = rcp(VBUFFER_SLICE_COUNT);   // Log-encoded distance between slices
+
+#ifdef USE_CLUSTERED_LIGHTLIST
+    // Our voxel is not necessarily completely inside a single light cluster (along Z).
+    // Note that Z-binning can solve this problem, as we can iterate over all Z-bins
+    // to compute min/max light indices, and then use this range for the entire slice.
+    uint volumeStarts[2], volumeCounts[2];
+
+    GetCountAndStartCluster(posInput.tileCoord, GetLightClusterIndex(posInput.tileCoord, z0),
+                            LIGHTCATEGORY_DENSITY_VOLUME, volumeStarts[0], volumeCounts[0]);
+#endif // USE_CLUSTERED_LIGHTLIST
 
 #if defined(SHADER_API_METAL)
     [fastopt]
@@ -78,6 +88,8 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
     for (uint slice = 0; slice < sliceCountHack; slice++)
 #endif
     {
+        uint3 voxelCoord = uint3(posInput.positionSS, slice);
+
         float e1 = slice * de + de; // (slice + 1) / sliceCount
     #if defined(SHADER_API_METAL)
         // Warning: this compiles, but it's nonsense. Use DecodeLogarithmicDepthGeneralized().
@@ -93,94 +105,179 @@ void FillVolumetricDensityBuffer(uint2 voxelCoord, float3 rayOriginWS, float3 ra
         float3 voxelScattering = _GlobalScattering;
         float  voxelExtinction = _GlobalExtinction;
 
-        for (uint i = 0; i < _NumVisibleDensityVolumes; i++)
+    #ifdef USE_CLUSTERED_LIGHTLIST
+
+        GetCountAndStartCluster(posInput.tileCoord, GetLightClusterIndex(posInput.tileCoord, z1),
+                                LIGHTCATEGORY_DENSITY_VOLUME, volumeStarts[1], volumeCounts[1]);
+
+        // We now iterate over all density volumes within the two clusters along Z.
+        // We need to skip duplicates, but it's not too difficult since volumes are sorted by index.
+        uint i = 0, j = 0;
+
+        if (i < volumeCounts[0] || j < volumeCounts[1])
         {
-            OrientedBBox obb = _VolumeBounds[i];
+            // At least one of the clusters is non-empty.
+            uint volumeIndices[2];
 
-            float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
-            float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
-
-            // Express the voxel center in the local coordinate system of the box.
-            float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
-            float3 voxelCenterUV = voxelCenterBS / obbExtents;
-
-        #if SOFT_VOXELIZATION
-            // We need to determine which is the face closest to 'voxelCenterBS'.
-            float minFaceDist = abs(obbExtents.x - abs(voxelCenterBS.x));
-
-            // TODO: use v_cubeid_f32.
-            uint axisIndex; float faceDist;
-
-            faceDist    = abs(obbExtents.y - abs(voxelCenterBS.y));
-            axisIndex   = (faceDist < minFaceDist) ? 1 : 0;
-            minFaceDist = min(faceDist, minFaceDist);
-
-            faceDist    = abs(obbExtents.z - abs(voxelCenterBS.z));
-            axisIndex   = (faceDist < minFaceDist) ? 2 : axisIndex;
-
-            float3 N = float3(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 : 0);
-
-            // We have determined the normal of the closest face.
-            // We now have to construct the diagonal of the voxel with the longest extent along this normal.
-            float3 minDiagPointBS, maxDiagPointBS;
-
-            float3 voxelAxisRightBS   = mul(voxelAxisRight,   transpose(obbFrame));
-            float3 voxelAxisUpBS      = mul(voxelAxisUp,      transpose(obbFrame));
-            float3 voxelAxisForwardBS = mul(voxelAxisForward, transpose(obbFrame));
-
-            // Start at the center of the voxel.
-            minDiagPointBS = maxDiagPointBS = voxelCenterBS;
-
-            bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
-            float mulForward = normalFwd ? halfDZ : -halfDZ;
-            float mulMin     = normalFwd ? z0 : z1;
-            float mulMax     = normalFwd ? z1 : z0;
-
-            minDiagPointBS -= mulForward * voxelAxisForwardBS;
-            maxDiagPointBS += mulForward * voxelAxisForwardBS;
-
-            float mulUp = dot(voxelAxisUpBS, N) >= 0 ? 1 : -1;
-
-            minDiagPointBS -= (mulMin * mulUp) * voxelAxisUpBS;
-            maxDiagPointBS += (mulMax * mulUp) * voxelAxisUpBS;
-
-            float mulRight = dot(voxelAxisRightBS, N) >= 0 ? 1 : -1;
-
-            minDiagPointBS -= (mulMin * mulRight) * voxelAxisRightBS;
-            maxDiagPointBS += (mulMax * mulRight) * voxelAxisRightBS;
-
-            // We want to determine the fractional overlap of the diagonal and the box.
-            float3 diagOriginBS = minDiagPointBS;
-            float3 diagUnDirBS  = maxDiagPointBS - minDiagPointBS;
-
-            float tEntr, tExit;
-
-            IntersectRayAABB(diagOriginBS, diagUnDirBS,
-                             -obbExtents, obbExtents,
-                             0, 1,
-                             tEntr, tExit);
-
-            float overlapFraction = tExit - tEntr;
-
-        #else  // SOFT_VOXELIZATION
-
-            bool overlap = abs(voxelCenterUV.x) <= 1 &&
-                           abs(voxelCenterUV.y) <= 1 &&
-                           abs(voxelCenterUV.z) <= 1;
-
-            float overlapFraction = overlap ? 1 : 0;
-
-        #endif // SOFT_VOXELIZATION
-
-            if (overlapFraction > 0)
+            // Fetch two initial indices from both clusters.
+            if (i < volumeCounts[0])
             {
-                // There is an overlap. Sample the 3D texture, or load the constant value.
-                voxelScattering += overlapFraction * _VolumeProperties[i].scattering;
-                voxelExtinction += overlapFraction * _VolumeProperties[i].extinction;
+                volumeIndices[0] = FetchIndex(volumeStarts[0], i);
+            }
+            else
+            {
+                volumeIndices[0] = UINT_MAX;
+            }
+
+            if (j < volumeCounts[1])
+            {
+                volumeIndices[1] = FetchIndex(volumeStarts[1], j);
+            }
+            else
+            {
+                volumeIndices[1] = UINT_MAX;
+            }
+
+            do
+            {
+                // Process volumes in order.
+                uint volumeIndex = min(volumeIndices[0], volumeIndices[1]);
+
+    #else  // USE_CLUSTERED_LIGHTLIST
+        {
+            for (uint i = 0; i < _NumVisibleDensityVolumes; i++)
+            {
+                uint volumeIndex = i;
+
+    #endif // USE_CLUSTERED_LIGHTLIST
+
+                OrientedBBox obb = _VolumeBounds[volumeIndex];
+
+                float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
+                float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
+
+                // Express the voxel center in the local coordinate system of the box.
+                float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
+                float3 voxelCenterUV = voxelCenterBS / obbExtents;
+
+            #if SOFT_VOXELIZATION
+                // We need to determine which is the face closest to 'voxelCenterBS'.
+                float minFaceDist = abs(obbExtents.x - abs(voxelCenterBS.x));
+
+                // TODO: use v_cubeid_f32.
+                uint axisIndex; float faceDist;
+
+                faceDist    = abs(obbExtents.y - abs(voxelCenterBS.y));
+                axisIndex   = (faceDist < minFaceDist) ? 1 : 0;
+                minFaceDist = min(faceDist, minFaceDist);
+
+                faceDist    = abs(obbExtents.z - abs(voxelCenterBS.z));
+                axisIndex   = (faceDist < minFaceDist) ? 2 : axisIndex;
+
+                float3 N = float3(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 : 0);
+
+                // We have determined the normal of the closest face.
+                // We now have to construct the diagonal of the voxel with the longest extent along this normal.
+                float3 minDiagPointBS, maxDiagPointBS;
+
+                float3 voxelAxisRightBS   = mul(voxelAxisRight,   transpose(obbFrame));
+                float3 voxelAxisUpBS      = mul(voxelAxisUp,      transpose(obbFrame));
+                float3 voxelAxisForwardBS = mul(voxelAxisForward, transpose(obbFrame));
+
+                // Start at the center of the voxel.
+                minDiagPointBS = maxDiagPointBS = voxelCenterBS;
+
+                bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
+                float mulForward = normalFwd ? halfDZ : -halfDZ;
+                float mulMin     = normalFwd ? z0 : z1;
+                float mulMax     = normalFwd ? z1 : z0;
+
+                minDiagPointBS -= mulForward * voxelAxisForwardBS;
+                maxDiagPointBS += mulForward * voxelAxisForwardBS;
+
+                float mulUp = dot(voxelAxisUpBS, N) >= 0 ? 1 : -1;
+
+                minDiagPointBS -= (mulMin * mulUp) * voxelAxisUpBS;
+                maxDiagPointBS += (mulMax * mulUp) * voxelAxisUpBS;
+
+                float mulRight = dot(voxelAxisRightBS, N) >= 0 ? 1 : -1;
+
+                minDiagPointBS -= (mulMin * mulRight) * voxelAxisRightBS;
+                maxDiagPointBS += (mulMax * mulRight) * voxelAxisRightBS;
+
+                // We want to determine the fractional overlap of the diagonal and the box.
+                float3 diagOriginBS = minDiagPointBS;
+                float3 diagUnDirBS  = maxDiagPointBS - minDiagPointBS;
+
+                float tEntr, tExit;
+
+                IntersectRayAABB(diagOriginBS, diagUnDirBS,
+                                 -obbExtents, obbExtents,
+                                 0, 1,
+                                 tEntr, tExit);
+
+                float overlapFraction = tExit - tEntr;
+
+            #else  // SOFT_VOXELIZATION
+
+                bool overlap = abs(voxelCenterUV.x) <= 1 &&
+                               abs(voxelCenterUV.y) <= 1 &&
+                               abs(voxelCenterUV.z) <= 1;
+
+                float overlapFraction = overlap ? 1 : 0;
+
+            #endif // SOFT_VOXELIZATION
+
+                if (overlapFraction > 0)
+                {
+                    // There is an overlap. Sample the 3D texture, or load the constant value.
+                    voxelScattering += overlapFraction * _VolumeProperties[volumeIndex].scattering;
+                    voxelExtinction += overlapFraction * _VolumeProperties[volumeIndex].extinction;
+                }
+
+    #ifndef USE_CLUSTERED_LIGHTLIST
             }
         }
+    #else // USE_CLUSTERED_LIGHTLIST
 
-        _VBufferDensity[uint3(voxelCoord, slice)] = float4(voxelScattering, voxelExtinction);
+                // Advance to the next volume in one (or both at the same time) clusters.
+                if (volumeIndex == volumeIndices[0])
+                {
+                    i++;
+
+                    if (i < volumeCounts[0])
+                    {
+                        volumeIndices[0] = FetchIndex(volumeStarts[0], i);
+                    }
+                    else
+                    {
+                        volumeIndices[0] = UINT_MAX;
+                    }
+                }
+
+                if (volumeIndex == volumeIndices[1])
+                {
+                    j++;
+
+                    if (j < volumeCounts[1])
+                    {
+                        volumeIndices[1] = FetchIndex(volumeStarts[1], j);
+                    }
+                    else
+                    {
+                        volumeIndices[1] = UINT_MAX;
+                    }
+                }
+            } while (i < volumeCounts[0] || j < volumeCounts[1]);
+        }
+
+        // We don't need to carry over the cluster index, only the start and the count.
+        volumeStarts[0] = volumeStarts[1];
+        volumeCounts[0] = volumeCounts[1];
+
+    #endif // USE_CLUSTERED_LIGHTLIST
+
+        _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 
         z0 = z1;
     }
@@ -226,11 +323,13 @@ void VolumeVoxelization(uint2 groupId       : SV_GroupID,
     float3 leftDirWS   = mul(-float3(leftCoord,   1), (float3x3)_VBufferCoordToViewDirWS);
     float3 upDirWS     = mul(-float3(upCoord,     1), (float3x3)_VBufferCoordToViewDirWS);
 
-    // Compute the axes of the voxel.
+    // Compute the axes of the voxel. These are not normalized, but rather computed to scale with Z.
     float3 voxelAxisForward = centerDirWS;
     float3 voxelAxisUp      = 0.5 * (upDirWS - centerDirWS);
     float3 voxelAxisRight   = 0.5 * (centerDirWS - leftDirWS);
 
-    FillVolumetricDensityBuffer(voxelCoord, GetCurrentViewPosition(), centerDirWS,
+    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+
+    FillVolumetricDensityBuffer(posInput, GetCurrentViewPosition(), centerDirWS,
                                 voxelAxisRight, voxelAxisUp, voxelAxisForward);
 }

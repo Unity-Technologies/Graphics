@@ -276,14 +276,16 @@ uint GetTileSize()
     return 1;
 }
 
+uint FetchIndex(uint tileOffset, uint lightIndex)
+{
+    return tileOffset + lightIndex;
+}
+
 #endif // LIGHTLOOP_TILE_PASS
 
 LightData FetchLight(uint start, uint i)
 {
-#ifdef LIGHTLOOP_TILE_PASS
     int j = FetchIndex(start, i);
-#else
-    int j = start + i;
-#endif
+
     return _LightDatas[j];
 }

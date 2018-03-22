@@ -1827,11 +1827,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Inject density volumes into the clustered data structure for efficient look up.
                     m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
 
+                    Matrix4x4 worldToViewCR = worldToView;
+
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // The OBBs are camera-relative, the matrix is not. Fix it.
+                        worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
+                    }
+
                     for (int i = 0, n = m_densityVolumeCount; i < n; i++)
                     {
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToView);
+                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR);
                     }
                 }
 
