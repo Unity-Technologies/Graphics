@@ -4,35 +4,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-[VFXBinder("Utility/Plane")]
-public class VFXPlaneBinder : VFXBinderBase
+namespace UnityEngine.Experimental.VFX.Utility
 {
-    [VFXParameterBinding("UnityEditor.VFX.Plane")]
-    public string Parameter = "Plane";
-    public Transform Target;
-
-    int Position;
-    int Normal;
-
-    void OnValidate()
+    [VFXBinder("Utility/Plane")]
+    public class VFXPlaneBinder : VFXBinderBase
     {
-        Position = GetParameter(Parameter + "_position");
-        Normal = GetParameter(Parameter + "_normal");
-    }
+        [VFXParameterBinding("UnityEditor.VFX.Plane")]
+        public string Parameter = "Plane";
+        public Transform Target;
 
-    public override bool IsValid(VisualEffect component)
-    {
-        return Target != null && component.HasVector3(Position) && component.HasVector3(Normal);
-    }
+        int Position;
+        int Normal;
 
-    public override void UpdateBinding(VisualEffect component)
-    {
-        component.SetVector3(Position, Target.transform.position);
-        component.SetVector3(Normal, Target.transform.up);
-    }
+        void OnValidate()
+        {
+            Position = GetParameter(Parameter + "_position");
+            Normal = GetParameter(Parameter + "_normal");
+        }
 
-    public override string ToString()
-    {
-        return string.Format("Plane : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+        public override bool IsValid(VisualEffect component)
+        {
+            return Target != null && component.HasVector3(Position) && component.HasVector3(Normal);
+        }
+
+        public override void UpdateBinding(VisualEffect component)
+        {
+            component.SetVector3(Position, Target.transform.position);
+            component.SetVector3(Normal, Target.transform.up);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Plane : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+        }
     }
 }

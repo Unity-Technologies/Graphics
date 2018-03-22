@@ -3,13 +3,16 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class VFXBinderAttribute : PropertyAttribute
+namespace UnityEngine.Experimental.VFX.Utility
 {
-    public string MenuPath;
-
-    public VFXBinderAttribute(string menuPath)
+    [AttributeUsage(AttributeTargets.Class)]
+    public class VFXBinderAttribute : PropertyAttribute
     {
-        MenuPath = menuPath;
+        public string MenuPath;
+
+        public VFXBinderAttribute(string menuPath)
+        {
+            MenuPath = menuPath;
+        }
     }
 }

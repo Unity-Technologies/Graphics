@@ -3,40 +3,43 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-[RequireComponent(typeof(VisualEffect))]
-[ExecuteInEditMode]
-public class VFXParameterBinder : MonoBehaviour
+namespace UnityEngine.Experimental.VFX.Utility
 {
-    [SerializeField]
-    protected bool m_ExecuteInEditor = true;
-    public List<VFXBinderBase> m_Bindings = new List<VFXBinderBase>();
-    [SerializeField]
-    protected VisualEffect m_VisualEffect;
-
-    private void OnEnable()
+    [RequireComponent(typeof(VisualEffect))]
+    [ExecuteInEditMode]
+    public class VFXParameterBinder : MonoBehaviour
     {
-        m_VisualEffect = GetComponent<VisualEffect>();
-    }
+        [SerializeField]
+        protected bool m_ExecuteInEditor = true;
+        public List<VFXBinderBase> m_Bindings = new List<VFXBinderBase>();
+        [SerializeField]
+        protected VisualEffect m_VisualEffect;
 
-    private void OnDestroy()
-    {
+        private void OnEnable()
+        {
+            m_VisualEffect = GetComponent<VisualEffect>();
+        }
+
+        private void OnDestroy()
+        {
 #if UNITY_EDITOR
-        foreach (var binding in m_Bindings)
-            UnityEditor.Undo.DestroyObjectImmediate(binding);
+            foreach (var binding in m_Bindings)
+                UnityEditor.Undo.DestroyObjectImmediate(binding);
 #endif
-    }
+        }
 
-    // Use this for initialization
-    void Start()
-    {
-    }
+        // Use this for initialization
+        void Start()
+        {
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
+        // Update is called once per frame
+        void Update()
+        {
+            if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
 
-        foreach (var binding in m_Bindings)
-            if (binding.IsValid(m_VisualEffect)) binding.UpdateBinding(m_VisualEffect);
+            foreach (var binding in m_Bindings)
+                if (binding.IsValid(m_VisualEffect)) binding.UpdateBinding(m_VisualEffect);
+        }
     }
 }

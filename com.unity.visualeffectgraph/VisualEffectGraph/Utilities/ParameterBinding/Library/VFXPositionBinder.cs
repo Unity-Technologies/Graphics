@@ -4,25 +4,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-[VFXBinder("Transform/Position")]
-public class VFXPositionBinder : VFXBinderBase
+namespace UnityEngine.Experimental.VFX.Utility
 {
-    [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
-    public string Parameter = "Position";
-    public Transform Target;
-
-    public override bool IsValid(VisualEffect component)
+    [VFXBinder("Transform/Position")]
+    public class VFXPositionBinder : VFXBinderBase
     {
-        return Target != null && component.HasVector3(GetParameter(Parameter));
-    }
+        [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
+        public string Parameter = "Position";
+        public Transform Target;
 
-    public override void UpdateBinding(VisualEffect component)
-    {
-        component.SetVector3(GetParameter(Parameter), Target.transform.position);
-    }
+        public override bool IsValid(VisualEffect component)
+        {
+            return Target != null && component.HasVector3(GetParameter(Parameter));
+        }
 
-    public override string ToString()
-    {
-        return string.Format("Position : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+        public override void UpdateBinding(VisualEffect component)
+        {
+            component.SetVector3(GetParameter(Parameter), Target.transform.position);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Position : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+        }
     }
 }
