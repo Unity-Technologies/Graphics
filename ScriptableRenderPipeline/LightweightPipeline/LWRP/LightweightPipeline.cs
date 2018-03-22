@@ -739,8 +739,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 baseDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
 
-            baseDesc.width = (int)GetScaledCameraWidth(m_CurrCamera);
-            baseDesc.height = (int)GetScaledCameraHeight(m_CurrCamera);
+            float renderScale = GetRenderScale();
+            baseDesc.width = (int)((float)baseDesc.width * renderScale);
+            baseDesc.height = (int)((float)baseDesc.height * renderScale);
 
             if (m_RequireDepthTexture)
             {
