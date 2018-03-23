@@ -123,11 +123,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             ClearClassList();
             AddToClassList("sgblackboard");
 
-//            this.AddManipulator(new Dragger { clampToParentEdges = true });
+            this.AddManipulator(new Dragger { clampToParentEdges = true });
 
             scrollable = false;
 
-//            shadow.Add(new Resizer());
+            shadow.Add(new Resizer());
         }
     }
 }

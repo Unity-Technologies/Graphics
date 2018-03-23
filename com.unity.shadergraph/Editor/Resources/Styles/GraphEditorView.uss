@@ -99,7 +99,7 @@ GraphEditorView > #content > #inspector {
 
 #resizeBorderFrame > .resize.diagonal {
     width: 10;
-    height: 10;
+    height: 6;
 }
 
 #resizeBorderFrame > .resize.diagonal.top-left {
@@ -142,7 +142,7 @@ GraphEditorView > #content > #inspector {
     position-right: 0;
 }
 
-.reszieBorderFrame {
+.resizeBorderFrame {
     position-type: absolute;
     position-top: 0;
     position-right: 0;
