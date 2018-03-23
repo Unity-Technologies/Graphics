@@ -468,6 +468,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void HandleEditorViewChanged(GeometryChangedEvent evt)
+        {
+            m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout);
+        }
+
         void StoreBlackboardLayoutOnGeometryChanged(GeometryChangedEvent evt)
         {
             UpdateSerializedWindowLayout();
@@ -496,6 +501,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
             m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(StoreBlackboardLayoutOnGeometryChanged);
+
+            // After the layout is restored, track changes in layout and make the blackboard have the same behavior as the preview w.r.t. docking.
+            RegisterCallback<GeometryChangedEvent>(HandleEditorViewChanged);
         }
 
         void UpdateSerializedWindowLayout()
