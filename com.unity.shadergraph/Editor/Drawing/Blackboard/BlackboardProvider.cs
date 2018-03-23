@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!string.IsNullOrEmpty(newText) && newText != property.displayName)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Property Name");
-                newText = m_Graph.SanitizePropertyName(newText);
+                newText = m_Graph.SanitizePropertyName(newText, property.guid);
                 property.displayName = newText;
                 field.text = newText;
                 DirtyNodes();

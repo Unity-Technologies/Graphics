@@ -385,10 +385,10 @@ namespace UnityEditor.ShaderGraph
             m_AddedProperties.Add(property);
         }
 
-        public string SanitizePropertyName(string displayName)
+        public string SanitizePropertyName(string displayName, Guid guid = default(Guid))
         {
             displayName = displayName.Trim();
-            if (m_Properties.Any(p => p.displayName == displayName))
+            if (m_Properties.Any(p => p.displayName == displayName && p.guid != guid))
             {
                 // Strip out the " (n)" part of the name.
                 var baseRegex = new Regex(@"^(.*) \((\d+)\)$");
@@ -397,7 +397,7 @@ namespace UnityEditor.ShaderGraph
                     displayName = baseMatch.Groups[1].Value;
 
                 var regex = new Regex(@"^" + Regex.Escape(displayName) + @" \((\d+)\)$");
-                var existingDuplicateNumbers = m_Properties.Select(p => regex.Match(p.displayName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).Distinct().ToList();
+                var existingDuplicateNumbers = m_Properties.Where(p => p.guid != guid).Select(p => regex.Match(p.displayName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).Distinct().ToList();
 
                 var duplicateNumber = 1;
                 existingDuplicateNumbers.Sort();
