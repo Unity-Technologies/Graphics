@@ -119,23 +119,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
             uint volumeIndices[2];
 
             // Fetch two initial indices from both clusters.
-            if (i < volumeCounts[0])
-            {
-                volumeIndices[0] = FetchIndex(volumeStarts[0], i);
-            }
-            else
-            {
-                volumeIndices[0] = UINT_MAX;
-            }
-
-            if (j < volumeCounts[1])
-            {
-                volumeIndices[1] = FetchIndex(volumeStarts[1], j);
-            }
-            else
-            {
-                volumeIndices[1] = UINT_MAX;
-            }
+            volumeIndices[0] = FetchIndexWithBoundsCheck(volumeStarts[0], volumeCounts[0], i);
+            volumeIndices[1] = FetchIndexWithBoundsCheck(volumeStarts[1], volumeCounts[1], j);
 
             do
             {
@@ -241,29 +226,13 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
                 if (volumeIndex == volumeIndices[0])
                 {
                     i++;
-
-                    if (i < volumeCounts[0])
-                    {
-                        volumeIndices[0] = FetchIndex(volumeStarts[0], i);
-                    }
-                    else
-                    {
-                        volumeIndices[0] = UINT_MAX;
-                    }
+                    volumeIndices[0] = FetchIndexWithBoundsCheck(volumeStarts[0], volumeCounts[0], i);
                 }
 
                 if (volumeIndex == volumeIndices[1])
                 {
                     j++;
-
-                    if (j < volumeCounts[1])
-                    {
-                        volumeIndices[1] = FetchIndex(volumeStarts[1], j);
-                    }
-                    else
-                    {
-                        volumeIndices[1] = UINT_MAX;
-                    }
+                    volumeIndices[1] = FetchIndexWithBoundsCheck(volumeStarts[1], volumeCounts[1], j);
                 }
             } while (i < volumeCounts[0] || j < volumeCounts[1]);
         }

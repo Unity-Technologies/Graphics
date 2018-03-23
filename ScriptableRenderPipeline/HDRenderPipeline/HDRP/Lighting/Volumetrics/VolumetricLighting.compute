@@ -181,23 +181,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             uint lightIndices[2];
 
             // Fetch two initial indices from both clusters.
-            if (i < lightCounts[0])
-            {
-                lightIndices[0] = FetchIndex(lightStarts[0], i);
-            }
-            else
-            {
-                lightIndices[0] = UINT_MAX;
-            }
-
-            if (j < lightCounts[1])
-            {
-                lightIndices[1] = FetchIndex(lightStarts[1], j);
-            }
-            else
-            {
-                lightIndices[1] = UINT_MAX;
-            }
+            lightIndices[0] = FetchIndexWithBoundsCheck(lightStarts[0], lightCounts[0], i);
+            lightIndices[1] = FetchIndexWithBoundsCheck(lightStarts[1], lightCounts[1], j);
 
             // Process all punctual lights except for box lights (which are technically not even punctual).
             do
@@ -315,29 +300,13 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 if (lightIndex == lightIndices[0])
                 {
                     i++;
-
-                    if (i < lightCounts[0])
-                    {
-                        lightIndices[0] = FetchIndex(lightStarts[0], i);
-                    }
-                    else
-                    {
-                        lightIndices[0] = UINT_MAX;
-                    }
+                    lightIndices[0] = FetchIndexWithBoundsCheck(lightStarts[0], lightCounts[0], i);
                 }
 
                 if (lightIndex == lightIndices[1])
                 {
                     j++;
-
-                    if (j < lightCounts[1])
-                    {
-                        lightIndices[1] = FetchIndex(lightStarts[1], j);
-                    }
-                    else
-                    {
-                        lightIndices[1] = UINT_MAX;
-                    }
+                    lightIndices[1] = FetchIndexWithBoundsCheck(lightStarts[1], lightCounts[1], j);
                 }
             } while (i < lightCounts[0] || j < lightCounts[1]);
 
@@ -413,29 +382,13 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 if (lightIndex == lightIndices[0])
                 {
                     i++;
-
-                    if (i < lightCounts[0])
-                    {
-                        lightIndices[0] = FetchIndex(lightStarts[0], i);
-                    }
-                    else
-                    {
-                        lightIndices[0] = UINT_MAX;
-                    }
+                    lightIndices[0] = FetchIndexWithBoundsCheck(lightStarts[0], lightCounts[0], i);
                 }
 
                 if (lightIndex == lightIndices[1])
                 {
                     j++;
-
-                    if (j < lightCounts[1])
-                    {
-                        lightIndices[1] = FetchIndex(lightStarts[1], j);
-                    }
-                    else
-                    {
-                        lightIndices[1] = UINT_MAX;
-                    }
+                    lightIndices[1] = FetchIndexWithBoundsCheck(lightStarts[1], lightCounts[1], j);
                 }
             #endif // USE_CLUSTERED_LIGHTLIST
             }
