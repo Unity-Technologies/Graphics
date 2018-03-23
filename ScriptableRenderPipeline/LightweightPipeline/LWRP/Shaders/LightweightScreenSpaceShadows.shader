@@ -82,7 +82,8 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             //Fetch shadow coordinates for cascade.
             float4 coords  = TransformWorldToShadowCoord(wpos);
 
-            return SampleShadowmap(coords);
+            // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
+            return SampleShadowmap(coords, 0.0);
         }
 
         ENDHLSL

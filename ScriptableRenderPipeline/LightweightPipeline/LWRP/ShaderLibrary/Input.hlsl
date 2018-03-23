@@ -26,9 +26,6 @@ CBUFFER_END
 CBUFFER_START(_PerCamera)
 float4 _MainLightPosition;
 half4 _MainLightColor;
-half4 _MainLightDistanceAttenuation;
-half4 _MainLightSpotDir;
-half4 _MainLightSpotAttenuation;
 float4x4 _WorldToLight;
 
 half4 _AdditionalLightCount;

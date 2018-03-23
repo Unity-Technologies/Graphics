@@ -853,12 +853,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int GetMainLight(List<VisibleLight> visibleLights)
         {
             int totalVisibleLights = visibleLights.Count;
-            bool shadowsEnabled = m_Asset.AreShadowsEnabled();
 
             if (totalVisibleLights == 0 || m_Asset.MaxPixelLights == 0)
                 return -1;
 
-            int brighestDirectionalIndex = -1;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
                 VisibleLight currLight = visibleLights[i];
@@ -869,17 +867,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (currLight.light == null)
                     break;
 
-                // Shadow lights are sorted by type (directional > puctual) and intensity
-                // The first shadow light we find in the list is the main light
-                if (shadowsEnabled && currLight.light.shadows != LightShadows.None && LightweightUtils.IsSupportedShadowType(currLight.lightType))
-                    return i;
-
                 // In case no shadow light is present we will return the brightest directional light
-                if (currLight.lightType == LightType.Directional && brighestDirectionalIndex == -1)
-                    brighestDirectionalIndex = i;
+                if (currLight.lightType == LightType.Directional)
+                    return i;
             }
 
-            return brighestDirectionalIndex;
+            return -1;
         }
 
         private void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
@@ -1010,11 +1003,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 }
             }
 
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, lightPos);
+            cmd.SetGlobalVector(PerCameraBuffer._MainLightPosition, new Vector4(lightPos.x, lightPos.y, lightPos.z, lightDistanceAttenuation.w));
             cmd.SetGlobalVector(PerCameraBuffer._MainLightColor, lightColor);
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightDistanceAttenuation, lightDistanceAttenuation);
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotDir, lightSpotDir);
-            cmd.SetGlobalVector(PerCameraBuffer._MainLightSpotAttenuation, lightSpotAttenuation);
         }
 
         private void SetupAdditionalListConstants(CommandBuffer cmd, List<VisibleLight> lights, ref LightData lightData)
