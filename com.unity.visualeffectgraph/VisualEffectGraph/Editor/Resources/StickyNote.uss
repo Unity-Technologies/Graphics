@@ -9,29 +9,39 @@
     border-top-width:0;
     border-bottom-width:0;
     border-right-width:0;
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
 }
 
 .sticky-note, * TextField
 {
-    background-color:#F6FF9A;
+    background-color: #202020;
 }
 
 .sticky-note .resizer
 {
-    margin-bottom:2;
-    margin-right:2;
+    margin-bottom:6;
+    margin-right:6;
 }
 
 .sticky-note * 
 {
-    text-color:#000000;
+    text-color:#c4c996;
 }
+
 
 * > #node-border
 {
     flex:1;
     flex-direction:column;
     align-items:stretch;   
+    border-left-width:2;
+    border-top-width:2;
+    border-bottom-width:2;
+    border-right-width:2;
+    border-color:#4e5225;
 }
 
 
@@ -45,14 +55,57 @@
     word-wrap:true;
 }
 
+.size-medium #title, .size-medium #title * 
+{
+    font-size:40;
+}
+.size-medium #contents, .size-medium #contents * 
+{
+    font-size:24;
+}
+
+.size-large #title, .size-large #title * 
+{
+    font-size:60;
+}
+.size-large #contents, .size-large #contents * 
+{
+    font-size:36;
+}
+
+.size-huge #title, .size-huge #title * 
+{
+    font-size:80;
+}
+
+.size-huge #contents, .size-huge #contents * 
+{
+    font-size:56;
+}
+
 * #title
 {
     height:5;
 }
 
-* #title.not-empty
+* #title.not-empty,* #title TextField
 {
     height:24;
+}
+
+.size-medium #title.not-empty,.size-medium #title TextField
+{
+    height:44;
+}
+
+.size-large #title.not-empty,.size-large #title TextField
+{
+    height:64;
+}
+
+.size-huge #title.not-empty,.size-huge #title TextField
+{
+    height:84;
 }
 
 * #contents
@@ -111,42 +164,50 @@
     background-image:none;
 }
 
-* #title TextField
+/* Themes*/
+
+.sticky-note.theme-black *
 {
-    height:24;
+    text-color:#999999;
 }
 
-/* Themes*/
+.theme-black > #node-border
+{
+    border-color:#393939;
+}
 
 .sticky-note.theme-orange, .theme-orange TextField
 {
     background-color:#FCD76E;
 }
-.sticky-note.theme-black, .theme-black TextField
+
+.sticky-note.theme-orange * 
 {
-    background-color:#000000;
+    text-color:#000000;
 }
-.sticky-note.theme-black *
+
+.sticky-note.theme-orange #node-border
 {
-    text-color: #999999;
+    border-color:none;
 }
-.sticky-note.theme-red, .theme-red TextField
+
+.sticky-note.theme-red *
 {
-    background-color:#FF8B8B;
+    text-color:#FF8B8B;
 }
-.sticky-note.theme-green, .theme-green TextField
+.sticky-note.theme-green *
 {
-    background-color:#6BE6B0;
+    text-color:#6BE6B0;
 }
-.sticky-note.theme-blue, .theme-blue TextField
+.sticky-note.theme-blue *
 {
-    background-color:#8FC1DF;
+    text-color:#8FC1DF;
 }
-.sticky-note.theme-teal, .theme-teal TextField
+.sticky-note.theme-teal *
 {
-    background-color:#84E4E7;
+    text-color:#84E4E7;
 }
-.sticky-note.theme-purple, .theme-purple TextField
+.sticky-note.theme-purple *
 {
-    background-color:#FBCBF4;
+    text-color:#FBCBF4;
 }

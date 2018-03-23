@@ -27,6 +27,16 @@ namespace UnityEditor.VFX
         [System.Serializable]
         public class UIInfo
         {
+            public UIInfo()
+            {
+
+            }
+
+            public UIInfo(UIInfo other)
+            {
+                title = other.title;
+                position = other.position;
+            }
             public string title;
             public Rect position;
         }
@@ -36,14 +46,35 @@ namespace UnityEditor.VFX
         {
             [FormerlySerializedAs("content")]
             public VFXNodeID[] contents;
+            public GroupInfo()
+            {
+
+            }
+
+            public GroupInfo(GroupInfo other):base(other)
+            {
+                contents = other.contents;
+            }
         }
 
         [System.Serializable]
         public class StickyNoteInfo : UIInfo
         {
             public string contents;
-
             public string theme;
+            public string textSize;
+
+            public StickyNoteInfo()
+            {
+
+            }
+
+            public StickyNoteInfo(StickyNoteInfo other):base(other)
+            {
+                contents = other.contents;
+                theme = other.theme;
+                textSize = other.textSize;
+            }
         }
 
         public GroupInfo[] groupInfos;

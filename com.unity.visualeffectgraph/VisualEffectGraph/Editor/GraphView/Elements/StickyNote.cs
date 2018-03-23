@@ -23,7 +23,8 @@ namespace UnityEditor.VFX.UI
         {
             title,
             contents,
-            theme
+            theme,
+            textSize
         }
 
         public Change change{get; protected set;}
@@ -56,7 +57,29 @@ namespace UnityEditor.VFX.UI
                 {
                     m_Theme = value;
                     UpdateThemeClasses();
-                    NotifyChange(StickyNodeChangeEvent.Change.theme);
+                }
+            }
+        }
+
+        public enum TextSize
+        {
+            small,
+            medium,
+            large,
+            huge
+        }
+
+        TextSize m_TextSize;
+
+        public TextSize textSize
+        {
+            get{return m_TextSize;}
+            set
+            {
+                if( m_TextSize != value)
+                {
+                    m_TextSize = value;
+                    UpdateSizeClasses();
                 }
             }
         }
@@ -72,6 +95,21 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     AddToClassList("theme-"+value.ToString().ToLower());
+                }
+            }
+        }
+
+        void UpdateSizeClasses()
+        {
+            foreach(TextSize value in System.Enum.GetValues(typeof(TextSize)))
+            {
+                if( m_TextSize != value)
+                {
+                    RemoveFromClassList("size-"+value.ToString().ToLower());
+                }
+                else
+                {
+                    AddToClassList("size-"+value.ToString().ToLower());
                 }
             }
         }
@@ -122,6 +160,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("sticky-note");
             AddToClassList("selectable");
             UpdateThemeClasses();
+            UpdateSizeClasses();
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
@@ -133,6 +172,11 @@ namespace UnityEditor.VFX.UI
                 foreach(Theme value in System.Enum.GetValues(typeof(Theme)))
                 {
                     evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal,value);
+                }
+
+                foreach(TextSize value in System.Enum.GetValues(typeof(TextSize)))
+                {
+                    evt.menu.AppendAction("Text Size/" + value.ToString(), OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal,value);
                 }
                 evt.menu.AppendSeparator();
             }
@@ -146,28 +190,37 @@ namespace UnityEditor.VFX.UI
         public string title
         {
             get{return m_Title.text;}
-            set{m_Title.text = value;}
+            set{
+                m_Title.text = value;
+
+                if (!string.IsNullOrEmpty(m_Title.text))
+                {
+                    m_Title.AddToClassList("not-empty");
+                }
+                else
+                {
+                    m_Title.RemoveFromClassList("not-empty");
+                }
+            }
         }
 
         void OnChangeTheme(ContextualMenu.MenuAction action)
         {
             theme = (Theme)action.userData;
+            NotifyChange(StickyNodeChangeEvent.Change.theme);
+        }
+
+        void OnChangeSize(ContextualMenu.MenuAction action)
+        {
+            textSize = (TextSize)action.userData;
+            NotifyChange(StickyNodeChangeEvent.Change.textSize);
         }
 
         void OnTitleBlur(BlurEvent e)
         {
             bool changed = m_Title.text != m_TitleField.value;
-            m_Title.text = m_TitleField.value;
+            title = m_TitleField.value;
             m_TitleField.visible = false;
-
-            if (!string.IsNullOrEmpty(m_Title.text))
-            {
-                m_Title.AddToClassList("not-empty");
-            }
-            else
-            {
-                m_Title.RemoveFromClassList("not-empty");
-            }
 
             //Notify change
             if( changed)
