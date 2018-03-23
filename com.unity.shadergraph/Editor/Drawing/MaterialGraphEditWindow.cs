@@ -235,7 +235,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
-                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
+                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
+                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty));
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
