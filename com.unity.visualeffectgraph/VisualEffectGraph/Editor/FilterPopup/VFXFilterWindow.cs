@@ -243,6 +243,7 @@ namespace UnityEditor.VFX.UI
         private void CreateComponentTree()
         {
             var tree = new List<Element>();
+            if (m_Provider == null) return;
             m_Provider.CreateComponentTree(tree);
 
 
@@ -300,6 +301,12 @@ namespace UnityEditor.VFX.UI
 
             if (s_DirtyList)
                 CreateComponentTree();
+
+            if (m_Tree == null)
+            {
+                Close();
+                return;
+            }
 
             // Keyboard
             HandleKeyboard();

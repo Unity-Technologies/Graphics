@@ -53,8 +53,8 @@ namespace UnityEditor.VFX.UI
         protected override bool HasFocus()
         {
             if (m_Slider != null)
-                return m_Slider.hasFocus;
-            return m_TextField.hasFocus;
+                return m_Slider.HasFocus();
+            return m_TextField.HasFocus();
         }
 
         public override bool IsCompatible(IPropertyRMProvider provider)
@@ -114,6 +114,27 @@ namespace UnityEditor.VFX.UI
             var field = new VFXLabeledField<VFXIntSliderField, long>(m_Label);
             slider = field.control;
             return field;
+        }
+
+        public override object FilterValue(object value)
+        {
+            if ((uint)value < 0)
+            {
+                value = (uint)0;
+            }
+            return base.FilterValue(value);
+        }
+
+        public override uint Convert(object value)
+        {
+            long longValue = (long)value;
+
+            if (longValue < 0)
+            {
+                longValue = 0;
+            }
+
+            return (uint)longValue;
         }
 
         public override uint FilterValue(Vector2 range, uint value)
