@@ -56,6 +56,16 @@ namespace UnityEditor.ShaderGraph
             name = "SubGraphOutputs";
         }
 
+        public override bool hasPreview
+        {
+            get { return true; }
+        }
+
+        public override PreviewMode previewMode
+        {
+            get { return PreviewMode.Preview3D; }
+        }
+
         public virtual int AddSlot()
         {
             var index = this.GetInputSlots<ISlot>().Count() + 1;
