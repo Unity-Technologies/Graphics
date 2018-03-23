@@ -5,6 +5,8 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -17,6 +19,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         //WindowDraggable m_WindowDraggable;
         //ResizeBorderFrame m_ResizeBorderFrame;
         public Blackboard blackboard { get; private set; }
+        Label m_PathLabel;
+        TextField m_PathLabelTextField;
+        bool m_EditPathCancelled = false;
 
         //public Action onDragFinished
         //{
@@ -39,11 +44,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard = new Blackboard()
             {
                 scrollable = true,
-                title = assetName,
+                title = assetName.Split('/').Last(),
+                subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
                 moveItemRequested = MoveItemRequested
             };
+
+            m_PathLabel = blackboard.shadow.ElementAt(0).Q<Label>("subTitleLabel");
+            m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+
+            m_PathLabelTextField = new TextField { visible = false };
+            m_PathLabelTextField.RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished();});
+            m_PathLabelTextField.RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            blackboard.shadow.Add(m_PathLabelTextField);
 
             // m_WindowDraggable = new WindowDraggable(blackboard.shadow.Children().First().Q("header"));
             // blackboard.AddManipulator(m_WindowDraggable);
@@ -55,6 +69,93 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in graph.properties)
                 AddProperty(property);
             blackboard.Add(m_Section);
+        }
+
+        void OnMouseDownEvent(MouseDownEvent evt)
+        {
+            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
+            {
+                StartEditingPath();
+                evt.PreventDefault();
+            }
+        }
+
+        void StartEditingPath()
+        {
+            m_PathLabelTextField.visible = true;
+
+            m_PathLabelTextField.value = m_PathLabel.text;
+            m_PathLabelTextField.style.positionType = PositionType.Absolute;
+            var rect = m_PathLabel.ChangeCoordinatesTo(blackboard, new Rect(Vector2.zero, m_PathLabel.layout.size));
+            m_PathLabelTextField.style.positionLeft = rect.xMin;
+            m_PathLabelTextField.style.positionTop = rect.yMin;
+            m_PathLabelTextField.style.width = rect.width;
+            m_PathLabelTextField.style.fontSize = 11;
+            m_PathLabelTextField.style.marginLeft = 0;
+            m_PathLabelTextField.style.marginRight = 0;
+            m_PathLabelTextField.style.marginTop = 0;
+            m_PathLabelTextField.style.marginBottom = 0;
+
+            m_PathLabel.visible = false;
+
+            m_PathLabelTextField.Focus();
+            m_PathLabelTextField.SelectAll();
+
+        }
+
+        void OnPathTextFieldKeyPressed(KeyDownEvent evt)
+        {
+            switch (evt.keyCode)
+            {
+                case KeyCode.Escape:
+                    m_EditPathCancelled = true;
+                    m_PathLabelTextField.Blur();
+                    break;
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    m_PathLabelTextField.Blur();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        void OnEditPathTextFinished()
+        {
+            m_PathLabel.visible = true;
+            m_PathLabelTextField.visible = false;
+
+            var newPath = m_PathLabelTextField.text;
+            if (!m_EditPathCancelled && (newPath != m_PathLabel.text))
+            {
+                newPath = SanitizePath(newPath);
+            }
+
+            m_Graph.path = newPath;
+            m_PathLabel.text = FormatPath(newPath);
+            m_EditPathCancelled = false;
+        }
+
+        static string FormatPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return "—";
+            return path;
+        }
+
+        static string SanitizePath(string path)
+        {
+            var splitString = path.Split('/');
+            List<string> newStrings = new List<string>();
+            foreach (string s in splitString)
+            {
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    newStrings.Add(s.Trim());
+                }
+            }
+
+            return string.Join("/", newStrings.ToArray());
         }
 
         void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
