@@ -149,6 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
+        public int GetShadowSliceCount(uint atlasIndex) { return m_LightLoop.GetShadowSliceCount(atlasIndex); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
         readonly LightLoop m_LightLoop = new LightLoop();
@@ -630,13 +631,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    // Disable postprocess if we enable debug mode
-                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.None && m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+
+                    // Disable post process if we enable debug mode or if the post process layer is disabled
+                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode != FullScreenDebugMode.None || m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
                     {
                         m_FrameSettings.enablePostprocess = false;
                     }
 
-                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
                     var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
 
                     Resize(hdCamera);
@@ -889,7 +891,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         StartStereoRendering(renderContext, hdCamera.camera);
 
                         // Final blit
-                        if (m_FrameSettings.enablePostprocess && CoreUtils.IsPostProcessingActive(postProcessLayer))
+                        if (m_FrameSettings.enablePostprocess)
                         {
                             RenderPostProcess(hdCamera, cmd, postProcessLayer);
                         }
@@ -1530,6 +1532,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var debugAlbedo = new Vector4(lightingDebugSettings.overrideAlbedo ? 1.0f : 0.0f, lightingDebugSettings.overrideAlbedoValue.r, lightingDebugSettings.overrideAlbedoValue.g, lightingDebugSettings.overrideAlbedoValue.b);
                 var debugSmoothness = new Vector4(lightingDebugSettings.overrideSmoothness ? 1.0f : 0.0f, lightingDebugSettings.overrideSmoothnessValue, 0.0f, 0.0f);
                 var debugNormal = new Vector4(lightingDebugSettings.overrideNormal ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f);
+                var debugSpecularColor = new Vector4(lightingDebugSettings.overrideSpecularColor ? 1.0f : 0.0f, lightingDebugSettings.overrideSpecularColorValue.r, lightingDebugSettings.overrideSpecularColorValue.g, lightingDebugSettings.overrideSpecularColorValue.b);
 
                 cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
@@ -1538,9 +1541,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingNormal, debugNormal);
+                cmd.SetGlobalVector(HDShaderIDs._DebugLightingSpecularColor, debugSpecularColor);
 
                 cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
-
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, m_Asset.renderPipelineResources.debugFontTexture);
             }
             else
@@ -1623,6 +1626,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var skyReflection = m_SkyManager.skyReflection;
                     m_SharedPropertyBlock.SetTexture(HDShaderIDs._InputCubemap, skyReflection);
                     m_SharedPropertyBlock.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
+                    m_SharedPropertyBlock.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                     cmd.DrawProcedural(Matrix4x4.identity, m_DebugDisplayLatlong, 0, MeshTopology.Triangles, 3, 1, m_SharedPropertyBlock);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
