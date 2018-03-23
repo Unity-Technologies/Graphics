@@ -262,7 +262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EnvironmentAndPunctual = 5,
             EnvironmentAndArea = 6,
             EnvironmentAndAreaAndPunctual = 7,
-			Decal = 8,
+            Decal = 8,
             DensityVolumes = 16
         };
 
