@@ -6,6 +6,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEngine.Experimental.VFX.Utility
 {
     [RequireComponent(typeof(VisualEffect))]
+    [DefaultExecutionOrder(1)]
     [ExecuteInEditMode]
     public class VFXParameterBinder : MonoBehaviour
     {
