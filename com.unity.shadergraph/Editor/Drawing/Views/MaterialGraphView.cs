@@ -21,6 +21,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             deleteSelection = DeleteSelectionImplementation;
         }
 
+        protected override bool canCopySelection
+        {
+            get { return selection.OfType<Node>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<BlackboardField>().Any(); }
+        }
+
         public MaterialGraphView(AbstractMaterialGraph graph) : this()
         {
             this.graph = graph;
