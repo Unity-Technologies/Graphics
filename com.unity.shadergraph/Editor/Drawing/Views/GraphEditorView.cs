@@ -8,6 +8,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Rendering;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
 #if UNITY_2018_1
@@ -115,9 +116,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_BlackboardProvider = new BlackboardProvider(assetName, graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
-                m_BlackboardProvider.blackboard.style.positionType = StyleValue<PositionType>.Create(PositionType.Absolute);
-                m_BlackboardProvider.blackboard.style.positionLeft = StyleValue<float>.Create(10f);
-                m_BlackboardProvider.blackboard.style.positionTop = StyleValue<float>.Create(10f);
+                Rect blackboardLayout = m_BlackboardProvider.blackboard.layout;
+                blackboardLayout.x = 10f;
+                blackboardLayout.y = 10f;
+                m_BlackboardProvider.blackboard.layout = blackboardLayout;
 
                 m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
 
@@ -125,8 +127,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
                 m_GraphView.Add(m_MasterPreviewView);
 
-                m_BlackboardProvider.onDragFinished += UpdateSerializedWindowLayout;
-                m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
+                //m_BlackboardProvider.onDragFinished += UpdateSerializedWindowLayout;
+                //m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
                 masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
                 m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
 
@@ -466,6 +468,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void StoreBlackboardLayoutOnGeometryChanged(GeometryChangedEvent evt)
+        {
+            UpdateSerializedWindowLayout();
+        }
+
         void ApplySerializewindowLayouts(GeometryChangedEvent evt)
         {
             UnregisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
@@ -478,8 +485,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_MasterPreviewView.previewTextureView.style.height = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.y);
 
                 // Restore blackboard layout
-                m_FloatingWindowsLayout.blackboardLayout.ApplyPosition(m_BlackboardProvider.blackboard);
-                m_FloatingWindowsLayout.blackboardLayout.ApplySize(m_BlackboardProvider.blackboard);
+                m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
 
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
@@ -487,6 +493,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_FloatingWindowsLayout = new FloatingWindowsLayout();
             }
+
+            // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
+            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(StoreBlackboardLayoutOnGeometryChanged);
         }
 
         void UpdateSerializedWindowLayout()
