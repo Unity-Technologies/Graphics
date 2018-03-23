@@ -293,6 +293,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TextureCacheCubemap m_CubeCookieTexArray;
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
+        // For now we don't use shadow cascade borders.
+        static public readonly bool s_UseCascadeBorders = false;
+
         public class LightList
         {
             public List<DirectionalLightData> directionalLights;
@@ -1439,6 +1442,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (m_ShadowMgr == null) ? 0 : (int)m_ShadowMgr.GetShadowMapCount();
         }
 
+        public int GetShadowSliceCount(uint atlasIndex)
+        {
+            return (m_ShadowMgr == null) ? 0 : (int)m_ShadowMgr.GetShadowMapSliceCount(atlasIndex);
+        }
+
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
         {
             m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
@@ -2574,14 +2582,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         uint faceCount = m_ShadowMgr.GetShadowRequestFaceCount((uint)index);
                         for (uint i = 0; i < faceCount; ++i)
                         {
-                            m_ShadowMgr.DisplayShadow(cmd, m_DebugShadowMapMaterial, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                            m_ShadowMgr.DisplayShadow(cmd, m_DebugShadowMapMaterial, index, i, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, hdCamera.camera.cameraType != CameraType.SceneView);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                         }
                     }
                 }
                 else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                 {
-                    m_ShadowMgr.DisplayShadowMap(cmd, m_DebugShadowMapMaterial, lightingDebug.shadowAtlasIndex, 0, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                    m_ShadowMgr.DisplayShadowMap(cmd, m_DebugShadowMapMaterial, lightingDebug.shadowAtlasIndex, lightingDebug.shadowSliceIndex, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, hdCamera.camera.cameraType != CameraType.SceneView);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }

@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class LitGUI : BaseLitGUI
+    public class LitGUI : BaseLitGUI
     {
         protected static class Styles
         {
@@ -62,9 +62,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Remaps values of the thickness map from [0, 1] to the specified range.");
 
             // Iridescence
-            public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Control intensity of the iridescence");
+            public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask (R)", "Control intensity of the iridescence");
             public static GUIContent iridescenceThicknessText = new GUIContent("Iridescence Layer Thickness");
-            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map");
+            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map (R)");
             public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Layer Thickness remap");
 
             // Clear Coat
@@ -495,9 +495,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
             if (iridescenceThicknessMap.textureValue != null)
             {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
                 // Display the remap of texture values.
                 Vector2 remap = iridescenceThicknessRemap.vectorValue;
                 EditorGUI.BeginChangeCheck();
@@ -510,7 +510,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 // Allow the user to set the constant value of thickness if no thickness map is provided.
-                m_MaterialEditor.ShaderProperty(iridescenceThickness, Styles.iridescenceThicknessText);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);                
             }
         }
 

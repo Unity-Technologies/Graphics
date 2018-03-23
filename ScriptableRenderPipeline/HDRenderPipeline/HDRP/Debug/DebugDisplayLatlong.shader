@@ -23,6 +23,7 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
             TEXTURECUBE(_InputCubemap);
             SAMPLER(sampler_InputCubemap);
             float _Mipmap;
+            float _RequireToFlipInputTexture;
 
             struct Attributes
             {
@@ -40,6 +41,11 @@ Shader "Hidden/HDRenderPipeline/DebugDisplayLatlong"
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);// *_TextureScaleBias.xy + _TextureScaleBias.zw;
+
+                if (_RequireToFlipInputTexture > 0.0f)
+                {
+                    output.texcoord.y = 1.0f - output.texcoord.y;
+                }
 
                 return output;
             }

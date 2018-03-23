@@ -108,7 +108,7 @@ real EvalShadow_ReceiverBiasWeight( ShadowContext shadowContext, uint shadowAlgo
 		real3 tcs = EvalShadow_GetTexcoords( sd, pos, perspProj );
 		weight = SampleCompShadow_T2DA( shadowContext, texIdx, sampIdx, tcs, sd.slice ).x;
 	}
-	
+
 	return lerp( 1.0, weight, EvalShadow_ReceiverBiasWeightFlag( sd.normalBias.w ) );
 }
 
@@ -231,7 +231,7 @@ real EvalShadow_PointDepth( ShadowContext shadowContext, real3 positionWS, real3
 	// get the algorithm
 	uint shadowType, shadowAlgorithm;
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
-	// get the texture 
+	// get the texture
 	uint texIdx, sampIdx;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx );
 	// bias the world position
@@ -331,7 +331,7 @@ real EvalShadow_PunctualDepth( ShadowContext shadowContext, real3 positionWS, re
 		sd.scaleOffset.zw = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].scaleOffset.zw;
 		sd.slice          = shadowContext.shadowDatas[index + CubeMapFaceID( -L ) + 1].slice;
 	}
-	
+
 	uint texIdx, sampIdx;
 	UnpackShadowmapId( sd.id, texIdx, sampIdx );
 	// bias the world position
@@ -400,7 +400,7 @@ void EvalShadow_LoadCascadeData( ShadowContext shadowContext, uint index, inout 
 	sd.viewBias.w     = shadowContext.shadowDatas[index].viewBias.w;
 }
 
-int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 positionWS, out uint payloadOffset, out real alpha )
+int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 positionWS, out uint payloadOffset, out real alpha, out int cascadeCount )
 {
 	payloadOffset = shadowContext.shadowDatas[index].payloadOffset;
 
@@ -416,7 +416,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 		float   distSq  = dot( wposDir, wposDir );
 		relDistance = distSq / sphere.w;
 		if( relDistance > 0.0 && relDistance <= 1.0 )
-		{ 
+		{
 			splitSphere = sphere.xyz;
 			wposDir    /= sqrt( distSq );
 			break;
@@ -426,6 +426,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 
 	payloadOffset    = shadowContext.shadowDatas[index].payloadOffset + kMaxShadowCascades;
 	real3 cascadeDir = asfloat( shadowContext.payloads[payloadOffset].xyz );
+	cascadeCount     = shadowContext.payloads[payloadOffset].w;
 	payloadOffset++;
 	real border      = asfloat( shadowContext.payloads[payloadOffset][shadowSplitIndex] );
 	payloadOffset++;
@@ -439,9 +440,10 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L )
 {
 	// load the right shadow data for the current face
-	uint  payloadOffset;
-	real  alpha;
-	int shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
+	uint payloadOffset;
+	real alpha;
+	int  cascadeCount;
+	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );
 
 	if( shadowSplitIndex < 0 )
 		return 1.0;
@@ -469,7 +471,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 	real  shadow1    = 1.0;
 
 	shadowSplitIndex++;
-	if( shadowSplitIndex < kMaxShadowCascades )
+	if( shadowSplitIndex < cascadeCount )
 	{
 		shadow1 = shadow;
 
@@ -497,7 +499,8 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 	{																																													                            \
 		uint payloadOffset;                                                                                                                                                                                         \
 		real alpha;                                                                                                                                                                                                 \
-		int shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, payloadOffset, alpha );                                                                                                   \
+		int  cascadeCount;                                                                                                                                                                                          \
+		int  shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );                                                                                    \
 																																																					\
 		if( shadowSplitIndex < 0 )                                                                                                                                                                                  \
 			return 1.0;                                                                                                                                                                                             \
@@ -519,7 +522,7 @@ real EvalShadow_CascadedDepth_Blend( ShadowContext shadowContext, real3 position
 		real  shadow1    = 1.0;                                                                                                                                                                                     \
 																																																					\
 		shadowSplitIndex++;                                                                                                                                                                                         \
-		if( shadowSplitIndex < kMaxShadowCascades )                                                                                                                                                                 \
+		if( shadowSplitIndex < cascadeCount )                                                                                                                                                                       \
 		{                                                                                                                                                                                                           \
 			shadow1 = shadow;                                                                                                                                                                                       \
 																																																					\
@@ -562,9 +565,10 @@ real EvalShadow_hash12( real2 pos )
 real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int index, real3 L )
 {
 	// load the right shadow data for the current face
-	uint  payloadOffset;
-	real  alpha;
-	int shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, payloadOffset, alpha);
+	uint payloadOffset;
+	real alpha;
+	int  cascadeCount;
+	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );
 	
 	if( shadowSplitIndex < 0 )
 		return 1.0;
@@ -577,7 +581,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	UnpackShadowmapId( sd.id, texIdx, sampIdx );
 	uint shadowType, shadowAlgorithm;
 	UnpackShadowType( sd.shadowType, shadowType, shadowAlgorithm );
-	
+
 	// normal based bias
 	real3 orig_pos = positionWS;
 	real  recvBiasWeight = EvalShadow_ReceiverBiasWeight( shadowContext, shadowAlgorithm, sd, texIdx, sampIdx, positionWS, normalWS, L, 1.0, false );
@@ -585,7 +589,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	// get shadowmap texcoords
 	real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );
 
-	int nextSplit = min( shadowSplitIndex+1, kMaxShadowCascades-1 );
+	int nextSplit = min( shadowSplitIndex+1, cascadeCount-1 );
 
 	if( shadowSplitIndex < nextSplit && step( EvalShadow_hash12( posTC.xy ), alpha ) )
 	{
@@ -596,7 +600,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 	// sample the texture
 	real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );
 	real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithm, texIdx, sampIdx );
-	return shadowSplitIndex < (kMaxShadowCascades-1) ? shadow : lerp( shadow, 1.0, alpha );
+	return shadowSplitIndex < (cascadeCount-1) ? shadow : lerp( shadow, 1.0, alpha );
 }
 
 #define EvalShadow_CascadedDepth_( _samplerType ) 																																		                            \
@@ -605,7 +609,8 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 		/* load the right shadow data for the current face */																															                            \
 		uint payloadOffset;                                                                                                                                                                                         \
 		real alpha;                                                                                                                                                                                                 \
-		int shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, payloadOffset, alpha );                                                                                                   \
+		int  cascadeCount;                                                                                                                                                                                          \
+		int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );                                                                                   \
 																																																					\
 		if( shadowSplitIndex < 0 )                                                                                                                                                                                  \
 			return 1.0;                                                                                                                                                                                             \
@@ -620,7 +625,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 		/* get shadowmap texcoords */																																					                            \
 		real3 posTC = EvalShadow_GetTexcoords( sd, positionWS, false );																											                                    \
 																																																					\
-		int nextSplit = min( shadowSplitIndex+1, kMaxShadowCascades-1 );                                                                                                                                            \
+		int nextSplit = min( shadowSplitIndex+1, cascadeCount-1 );                                                                                                                                                  \
 																																																					\
 		if( shadowSplitIndex != nextSplit && step( EvalShadow_hash12( posTC.xy ), alpha ) )                                                                                                                         \
 		{                                                                                                                                                                                                           \
@@ -631,7 +636,7 @@ real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, real3 positio
 		/* sample the texture */																																						                            \
 		real2 sampleBias = EvalShadow_SampleBias_Ortho( sd, normalWS );                                                                                                                                             \
 		real  shadow     = SampleShadow_SelectAlgorithm( shadowContext, sd, payloadOffset, posTC, sampleBias, shadowAlgorithms[shadowSplitIndex], tex, samp );                                                      \
-		return shadowSplitIndex < (kMaxShadowCascades-1) ? shadow : lerp( shadow, 1.0, alpha );                                                                                                                     \
+		return shadowSplitIndex < (cascadeCount-1) ? shadow : lerp( shadow, 1.0, alpha );                                                                                                                           \
 	}                                                                                                                                                                                                               \
 																																																					\
 	real EvalShadow_CascadedDepth_Dither( ShadowContext shadowContext, uint shadowAlgorithm, Texture2DArray tex, _samplerType samp, real3 positionWS, real3 normalWS, int index, real3 L )                          \
@@ -797,7 +802,8 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, real3 po
 	// load the right shadow data for the current face
 	uint payloadOffset;
 	real alpha;
-	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
+	int  cascadeCount;
+	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );
 	
 	if( shadowSplitIndex < 0 )
 		return 0.0;
@@ -822,7 +828,8 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, Texture2
 	// load the right shadow data for the current face
 	uint payloadOffset;
 	real alpha;
-	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha );
+	int  cascadeCount;
+	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );
 	
 	if( shadowSplitIndex < 0 )
 		return 0.0;
@@ -840,4 +847,37 @@ real3 EvalShadow_GetClosestSample_Cascade( ShadowContext shadowContext, Texture2
 	// reconstruct depth position
 	real4 closestWS = mul( closestNDC, sd.shadowToWorld );
 	return closestWS.xyz / closestWS.w;
+}
+
+real EvalShadow_SampleClosestDistance_Cascade( ShadowContext shadowContext, Texture2DArray tex, SamplerState sampl,
+											   real3 positionWS, real3 normalWS, int index, real4 L, out real3 nearPlanePositionWS )
+{
+	// load the right shadow data for the current face
+	uint payloadOffset;
+	real alpha;
+	int  cascadeCount;
+	int  shadowSplitIndex = EvalShadow_GetSplitIndex( shadowContext, index, positionWS, payloadOffset, alpha, cascadeCount );
+
+	if( shadowSplitIndex < 0 )
+		return 0.0;
+
+	ShadowData sd = shadowContext.shadowDatas[index + 1 + shadowSplitIndex];
+
+	real4 closestNDC = { 0,0,0,1 };
+	real2 texelIdx = EvalShadow_GetTexcoords( sd, positionWS, closestNDC.xy, false );
+
+	// sample the shadow map
+	uint texIdx, sampIdx;
+	UnpackShadowmapId( sd.id, texIdx, sampIdx );
+	closestNDC.z = SAMPLE_TEXTURE2D_ARRAY_LOD( tex, sampl, texelIdx, sd.slice, 0 ).x;
+
+	// reconstruct depth position
+	real4 closestWS = mul( closestNDC, sd.shadowToWorld );
+	real3 occluderPosWS = closestWS.xyz / closestWS.w;
+
+	// TODO: avoid the matrix multiplication here.
+	real4 nearPlanePos = mul( real4( 0,0,1,1 ), sd.shadowToWorld ); // Note the reversed Z
+	nearPlanePositionWS = nearPlanePos.xyz / nearPlanePos.w;
+
+	return distance( occluderPosWS, nearPlanePositionWS );
 }
