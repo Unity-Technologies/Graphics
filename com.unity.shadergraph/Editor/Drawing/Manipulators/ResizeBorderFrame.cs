@@ -45,14 +45,14 @@ public class ResizeBorderFrame : VisualElement
         m_ResizeSideHandles = new List<ResizeSideHandle>();
 
         // Add resize handles along the border
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopLeft));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Top));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopRight));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Right));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopLeft));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Top));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.TopRight));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Right));
         m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.BottomRight));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Bottom));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.BottomLeft));
-        m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Left));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Bottom));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.BottomLeft));
+        // m_ResizeSideHandles.Add(new ResizeSideHandle(target, container, ResizeHandleAnchor.Left));
 
         foreach (ResizeSideHandle resizeHandle in m_ResizeSideHandles)
         {
