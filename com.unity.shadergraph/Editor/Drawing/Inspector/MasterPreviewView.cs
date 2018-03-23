@@ -23,11 +23,43 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         PreviewRenderData m_PreviewRenderHandle;
         Image m_PreviewTextureView;
 
+        public Image previewTextureView
+        {
+            get { return m_PreviewTextureView; }
+        }
+
         Vector2 m_PreviewScrollPosition;
         ObjectField m_PreviewMeshPicker;
 
         IMasterNode m_MasterNode;
         Mesh m_PreviousMesh;
+
+        bool m_Expanded = true;
+
+        public bool expanded
+        {
+            get { return m_Expanded;}
+        }
+
+        bool m_RecalculateLayout;
+
+        Vector2 m_ExpandedPreviewSize;
+
+        VisualElement m_CollapsePreviewContainer;
+        VisualElement m_CollapsePreviewButton;
+        ResizeBorderFrame m_PreviewResizeBorderFrame;
+
+        public ResizeBorderFrame previewResizeBorderFrame
+        {
+            get { return m_PreviewResizeBorderFrame; }
+        }
+
+        VisualElement m_Preview;
+
+        public VisualElement preview
+        {
+            get { return m_Preview; }
+        }
 
         List<string> m_DoNotShowPrimitives = new List<string>( new string[] {PrimitiveType.Plane.ToString()});
 
@@ -47,19 +79,84 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             var topContainer = new VisualElement() { name = "top" };
             {
                 var title = new Label(assetName.Split('/').Last()) { name = "title" };
+
+                // Add preview collapse button on top of preview
+                m_CollapsePreviewContainer = new VisualElement { name = "collapse-container" };
+                m_CollapsePreviewContainer.AddToClassList("collapse-container");
+                m_CollapsePreviewButton = new VisualElement { name = "icon" };
+                m_CollapsePreviewButton.AddToClassList("icon");
+                m_CollapsePreviewContainer.Add(m_CollapsePreviewButton);
+                m_CollapsePreviewContainer.AddManipulator(new Clickable(() =>
+                {
+                    m_Graph.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                    m_Expanded ^= true;
+                    UpdateExpandedButtonState();
+                    UpdatePreviewVisibility();
+                }));
+
                 topContainer.Add(title);
+                topContainer.Add(m_CollapsePreviewContainer);
             }
             Add(topContainer);
 
-            var middleContainer = new VisualElement {name = "middle"};
+            m_Preview = new VisualElement {name = "middle"};
             {
                 m_PreviewTextureView = CreatePreview(Texture2D.blackTexture);
                 m_PreviewScrollPosition = new Vector2(0f, 0f);
-                middleContainer.Add(m_PreviewTextureView);
-                middleContainer.AddManipulator(new Scrollable(OnScroll));
+                preview.Add(m_PreviewTextureView);
+                preview.AddManipulator(new Scrollable(OnScroll));
             }
             m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
-            Add(middleContainer);
+            Add(preview);
+
+            m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
+            m_PreviewResizeBorderFrame.maintainAspectRatio = true;
+            Add(m_PreviewResizeBorderFrame);
+
+            m_ExpandedPreviewSize = new Vector2(256f, 256f);
+            m_RecalculateLayout = false;
+            previewTextureView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        void UpdateExpandedButtonState()
+        {
+            m_CollapsePreviewButton.RemoveFromClassList(!m_Expanded ? "expanded" : "collapsed");
+            m_CollapsePreviewButton.AddToClassList(!m_Expanded ? "collapsed" : "expanded");
+        }
+
+        void UpdatePreviewVisibility()
+        {
+            if (m_Expanded)
+            {
+                RemoveFromClassList("collapsed");
+                AddToClassList("expanded");
+                m_PreviewResizeBorderFrame.visible = true;
+
+                style.positionLeft = StyleValue<float>.Create(float.NaN);
+                style.positionBottom = StyleValue<float>.Create(float.NaN);
+                style.positionRight = StyleValue<float>.Create(parent.layout.width - layout.xMax);
+                style.positionTop = StyleValue<float>.Create(layout.yMin);
+
+                previewTextureView.style.width = StyleValue<float>.Create(m_ExpandedPreviewSize.x);
+                previewTextureView.style.height = StyleValue<float>.Create(m_ExpandedPreviewSize.y);
+            }
+            else
+            {
+                m_ExpandedPreviewSize = previewTextureView.layout.size;
+                m_PreviewResizeBorderFrame.visible = false;
+
+                style.positionLeft = StyleValue<float>.Create(float.NaN);
+                style.positionBottom = StyleValue<float>.Create(float.NaN);
+                style.positionRight = StyleValue<float>.Create(parent.layout.width - layout.xMax);
+                style.positionTop = StyleValue<float>.Create(layout.yMin);
+
+                previewTextureView.style.width = StyleValue<float>.Create(0f);
+                previewTextureView.style.height = StyleValue<float>.Create(0f);
+                RemoveFromClassList("expanded");
+                AddToClassList("collapsed");
+            }
+
+            m_RecalculateLayout = true;
         }
 
         Image CreatePreview(Texture texture)
@@ -142,29 +239,30 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged });
         }
 
-        public void RefreshRenderTextureSize()
+        void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            if (m_RecalculateLayout)
+            {
+                WindowDockingLayout dockingLayout = new WindowDockingLayout();
+                dockingLayout.CalculateDockingCornerAndOffset(layout, parent.layout);
+                dockingLayout.ClampToParentWindow();
+                dockingLayout.ApplyPosition(this);
+                m_RecalculateLayout = false;
+            }
+
+            if (!expanded)
+                return;
+
             var currentWidth = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.width : -1;
             var currentHeight = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.height : -1;
 
-            var targetWidth = m_PreviewTextureView.contentRect.width;
-            var targetHeight = m_PreviewTextureView.contentRect.height;
+            var targetWidth = Mathf.Max(1f, m_PreviewTextureView.contentRect.width);
+            var targetHeight = Mathf.Max(1f, m_PreviewTextureView.contentRect.height);
 
             if (Mathf.Approximately(currentWidth, targetHeight) && Mathf.Approximately(currentHeight, targetWidth))
                 return;
 
-            m_PreviewManager.ResizeMasterPreview(m_PreviewTextureView.contentRect.size);
-        }
-
-        public void UpdateRenderTextureOnNextLayoutChange()
-        {
-            RegisterCallback<GeometryChangedEvent>(AdaptRenderTextureOnLayoutChange);
-        }
-
-        void AdaptRenderTextureOnLayoutChange(GeometryChangedEvent evt)
-        {
-            UnregisterCallback<GeometryChangedEvent>(AdaptRenderTextureOnLayoutChange);
-            RefreshRenderTextureSize();
+            m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
         }
 
         void OnScroll(float scrollValue)

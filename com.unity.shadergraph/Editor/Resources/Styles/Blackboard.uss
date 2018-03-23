@@ -1,5 +1,4 @@
 .sgblackboard {
-    position-type:absolute;
     border-left-width: 1;
     border-top-width: 1;
     border-right-width: 1;
