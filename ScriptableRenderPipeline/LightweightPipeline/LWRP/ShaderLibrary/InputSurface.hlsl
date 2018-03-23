@@ -12,26 +12,25 @@
 #endif
 
 CBUFFER_START(UnityPerMaterial)
-half4 _MainTex_ST;
+float4 _MainTex_ST;
 half4 _Color;
+half4 _SpecColor;
+half4 _EmissionColor;
 half _Cutoff;
 half _Glossiness;
 half _GlossMapScale;
-half _SmoothnessTextureChannel;
 half _Metallic;
-half4 _SpecColor;
 half _BumpScale;
 half _OcclusionStrength;
-half4 _EmissionColor;
 half _Shininess;
 CBUFFER_END
 
-TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
-TEXTURE2D(_MetallicGlossMap); SAMPLER(sampler_MetallicGlossMap);
-TEXTURE2D(_SpecGlossMap); SAMPLER(sampler_SpecGlossMap);
-TEXTURE2D(_BumpMap); SAMPLER(sampler_BumpMap);
-TEXTURE2D(_OcclusionMap); SAMPLER(sampler_OcclusionMap);
-TEXTURE2D(_EmissionMap); SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
+TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
+TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 
 // Must match Lightweigth ShaderGraph master node
 struct SurfaceData
@@ -49,12 +48,17 @@ struct SurfaceData
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //
 ///////////////////////////////////////////////////////////////////////////////
-inline half Alpha(half albedoAlpha)
+float2 TransformMainTextureCoord(float2 uv)
 {
-#if defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A)
-    half alpha = _Color.a;
-#else
+    return TRANSFORM_TEX(uv, _MainTex);
+}
+
+half Alpha(half albedoAlpha)
+{
+#if !defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A) && !defined(_GLOSSINESS_FROM_BASE_ALPHA)
     half alpha = albedoAlpha * _Color.a;
+#else
+    half alpha = _Color.a;
 #endif
 
 #if defined(_ALPHATEST_ON)
@@ -64,10 +68,19 @@ inline half Alpha(half albedoAlpha)
     return alpha;
 }
 
+half4 MainTexture(float2 uv)
+{
+    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+}
+
 half3 Normal(float2 uv)
 {
 #if _NORMALMAP
-    return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
+    #if BUMP_SCALE_NOT_SUPPORTED
+        return UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv));
+    #else
+        return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
+    #endif
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif
@@ -78,7 +91,6 @@ half4 SpecularGloss(half2 uv, half alpha)
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv);
-    specularGloss.rgb = specularGloss.rgb;
 #elif defined(_SPECULAR_COLOR)
     specularGloss = _SpecColor;
 #endif
@@ -94,25 +106,24 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
     half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
-    specGloss = specGloss = SAMPLE_METALLICSPECULAR(uv);
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a *= _GlossMapScale;
-#endif
-
+    specGloss = SAMPLE_METALLICSPECULAR(uv);
+    #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+        specGloss.a = albedoAlpha * _GlossMapScale;
+    #else
+        specGloss.a *= _GlossMapScale;
+    #endif
 #else // _METALLICSPECGLOSSMAP
-#if _SPECULAR_SETUP
-    specGloss.rgb = _SpecColor.rgb;
-#else
-    specGloss.rgb = _Metallic.rrr;
-#endif
+    #if _SPECULAR_SETUP
+        specGloss.rgb = _SpecColor.rgb;
+    #else
+        specGloss.rgb = _Metallic.rrr;
+    #endif
 
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    specGloss.a = albedoAlpha * _GlossMapScale;
-#else
-    specGloss.a = _Glossiness;
-#endif
+    #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+        specGloss.a = albedoAlpha * _GlossMapScale;
+    #else
+        specGloss.a = _Glossiness;
+    #endif
 #endif
 
     return specGloss;
@@ -145,7 +156,7 @@ half3 Emission(float2 uv)
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
-    half4 albedoAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    half4 albedoAlpha = MainTexture(uv);
 
     half4 specGloss = MetallicSpecGloss(uv, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _Color.rgb;

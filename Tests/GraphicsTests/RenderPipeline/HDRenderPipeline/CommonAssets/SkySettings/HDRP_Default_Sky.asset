@@ -28,7 +28,7 @@ MonoBehaviour:
   active: 1
   rotation:
     m_OverrideState: 1
-    m_Value: 160
+    m_Value: 200
     min: 0
     max: 360
   exposure:
@@ -45,8 +45,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
     min: 0
-  useForBaking: 1
-  skyHDRI:
+  hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!114 &114827887035766406

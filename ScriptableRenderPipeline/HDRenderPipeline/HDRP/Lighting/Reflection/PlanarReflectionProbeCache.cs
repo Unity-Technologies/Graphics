@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ProbeSize = probeSize;
             m_CacheSize = cacheSize;
-            m_TextureCache = new TextureCache2D();
+            m_TextureCache = new TextureCache2D("PlanarReflectionProbe");
             m_TextureCache.AllocTextureArray(cacheSize, probeSize, probeSize, probeFormat, isMipmaped);
             m_IBLFilterGGX = iblFilter;
 
@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.dimension = TextureDimension.Tex2D;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
-                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflection", mips : true);
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips : true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
@@ -81,21 +81,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Release()
         {
-            if (m_TextureCache != null)
-            {
-                m_TextureCache.Release();
-                m_TextureCache = null;
-            }
-            if (m_TempRenderTexture != null)
-            {
-                m_TempRenderTexture.Release();
-                m_TempRenderTexture = null;
-            }
-            if (m_ConvolutionTargetTexture != null)
-            {
-                m_ConvolutionTargetTexture.Release();
-                m_ConvolutionTargetTexture = null;
-            }
+            m_TextureCache.Release();
+            CoreUtils.Destroy(m_TempRenderTexture);
+            CoreUtils.Destroy(m_ConvolutionTargetTexture);
+
             m_ProbeBakingState = null;
 
             CoreUtils.Destroy(m_ConvertTextureMaterial);

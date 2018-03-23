@@ -144,6 +144,7 @@ struct VertexOutputLit
     float4 projectedPosition        : TEXCOORD5;
 #endif
     float4 posWS                    : TEXCOORD6; // xyz: position; w = fogFactor;
+    half4 viewDirShininess          : TEXCOORD7; // xyz: viewDir; w = shininess
     float4 clipPos                  : SV_POSITION;
 };
 
@@ -157,7 +158,29 @@ half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VertexOutputLit IN)
     return color;
 }
 
-void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
+half3 NormalTS(VertexOutputLit IN)
+{
+#if defined(_NORMALMAP)
+    #if BUMP_SCALE_NOT_SUPPORTED
+        return UnpackNormal(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN));
+    #else
+        return UnpackNormalScale(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN), _BumpScale);
+    #endif
+#else
+    return half3(0.0h, 0.0h, 1.0h);
+#endif
+}
+
+half3 Emission(VertexOutputLit IN)
+{
+#if defined(_EMISSION)
+    return readTexture(TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap), IN).rgb * _EmissionColor.rgb;
+#else
+    return half3(0.0h, 0.0h, 0.0h);
+#endif
+}
+
+half4 Albedo(VertexOutputLit IN)
 {
     half4 albedo = readTexture(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), IN) * IN.color;
 
@@ -166,45 +189,68 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
     fragSoftParticles(IN);
     fragCameraFading(IN);
 
+    return albedo;
+}
+
+half4 SpecularGloss(VertexOutputLit IN, half alpha)
+{
+    half4 specularGloss = half4(0.0h, 0.0h, 0.0h, 1.0h);
+#ifdef _SPECGLOSSMAP
+    specularGloss = readTexture(TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap), IN);
+#elif defined(_SPECULAR_COLOR)
+    specularGloss = _SpecColor;
+#endif
+
+#ifdef _GLOSSINESS_FROM_BASE_ALPHA
+    specularGloss.a = alpha;
+#endif
+    return specularGloss;
+}
+
+half AlphaBlendAndTest(half alpha)
+{
+#if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON) || defined(_ALPHAOVERLAY_ON)
+    half result = alpha;
+#else
+    half result = 1.0h;
+#endif
+    AlphaDiscard(result, _Cutoff, 0.0001h);
+
+    return result;
+}
+
+half3 AlphaModulate(half3 albedo, half alpha)
+{
+#if defined(_ALPHAMODULATE_ON)
+    return lerp(half3(1.0h, 1.0h, 1.0h), albedo, alpha);
+#else
+    return albedo;
+#endif
+}
+
+void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
+{
+    half4 albedo = Albedo(IN);
+
 #if defined(_METALLICGLOSSMAP)
-    half2 metallicGloss = readTexture(_MetallicGlossMap, sampler_MetallicGlossMap, IN).ra * half2(1.0, _Glossiness);
+    half2 metallicGloss = readTexture(TEXTURE2D_PARAM(_MetallicGlossMap, sampler_MetallicGlossMap), IN).ra * half2(1.0, _Glossiness);
 #else
     half2 metallicGloss = half2(_Metallic, _Glossiness);
 #endif
 
-#if defined(_NORMALMAP)
-    half3 normalTS = normalize(UnpackNormalScale(readTexture(_BumpMap, sampler_BumpMap, IN), _BumpScale));
-#else
-    half3 normalTS = float3(0, 0, 1);
-#endif
-
-#if defined(_EMISSION)
-    half3 emission = readTexture(_EmissionMap, sampler_EmissionMap, IN).rgb;
-#else
-    half3 emission = 0;
-#endif
+    half3 normalTS = NormalTS(IN);
+    half3 emission = Emission(IN);
 
     surfaceData.albedo = albedo.rbg;
-    surfaceData.specular = half3(0, 0, 0);
+    surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
     surfaceData.normalTS = normalTS;
-    surfaceData.emission = emission * _EmissionColor.rgb;
+    surfaceData.emission = emission;
     surfaceData.metallic = metallicGloss.r;
     surfaceData.smoothness = metallicGloss.g;
     surfaceData.occlusion = 1.0;
 
-#if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON) || defined(_ALPHAOVERLAY_ON)
-    surfaceData.alpha = albedo.a;
-#else
-    surfaceData.alpha = 1;
-#endif
-
-#if defined(_ALPHAMODULATE_ON)
-    surfaceData.albedo = lerp(half3(1.0, 1.0, 1.0), surfaceData.albedo, surfaceData.alpha);
-#endif
-
-#if defined(_ALPHATEST_ON)
-    clip(surfaceData.alpha - _Cutoff + 0.0001);
-#endif
+    surfaceData.alpha = AlphaBlendAndTest(albedo.a);
+    surfaceData.albedo = AlphaModulate(surfaceData.albedo, surfaceData.alpha);
 }
 
 void InitializeInputData(VertexOutputLit IN, half3 normalTS, out InputData input)
@@ -214,12 +260,12 @@ void InitializeInputData(VertexOutputLit IN, half3 normalTS, out InputData input
 #if _NORMALMAP
     input.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
 #else
-    input.normalWS = normalize(IN.normal);
+    input.normalWS = FragmentNormalWS(IN.normal);
 #endif
 
-    input.viewDirectionWS = SafeNormalize(GetCameraPositionWS() - input.positionWS);
+    input.viewDirectionWS = FragmentViewDirWS(IN.viewDirShininess.xyz);
     input.shadowCoord = float4(0, 0, 0, 0);
     input.fogCoord = IN.posWS.w;
-    input.vertexLighting = half3(0, 0, 0);
-    input.bakedGI = half3(0, 0, 0);
+    input.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    input.bakedGI = half3(0.0h, 0.0h, 0.0h);
 }

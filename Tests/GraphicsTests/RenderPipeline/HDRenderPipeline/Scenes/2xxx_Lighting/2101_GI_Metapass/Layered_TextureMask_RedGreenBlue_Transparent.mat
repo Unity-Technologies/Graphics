@@ -519,6 +519,7 @@ Material:
     - _UseMainLayerInfluence: 0
     - _VertexColorMode: 0
     - _ZTestDepthEqualForOpaque: 4
+    - _ZTestGBuffer: 4
     - _ZTestMode: 4
     - _ZWrite: 0
     m_Colors:

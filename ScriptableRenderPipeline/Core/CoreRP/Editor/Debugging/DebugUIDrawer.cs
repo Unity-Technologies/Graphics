@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering
             state.SetValue(value, widget);
             widget.SetValue(value);
             EditorUtility.SetDirty(state);
+            DebugState.m_CurrentDirtyState = state;
             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
         }
 

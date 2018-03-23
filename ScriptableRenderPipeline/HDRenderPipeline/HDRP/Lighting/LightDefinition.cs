@@ -114,264 +114,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
-        
+        // Caution: The struct need to be align on byte16 (not strictly needed for structured buffer but if we do array later better).
+
         // Proxy properties
-        public float capturePositionWSX;
-        public float capturePositionWSY;
-        public float capturePositionWSZ;
+        public Vector3 capturePositionWS;
         public EnvShapeType influenceShapeType;
 
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius
-        public float proxyExtentsX;
-        public float proxyExtentsY;
-        public float proxyExtentsZ;
+        public Vector3 proxyExtents;
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         public float minProjectionDistance;
 
-        public float proxyPositionWSX;
-        public float proxyPositionWSY;
-        public float proxyPositionWSZ;
-        public float proxyForwardX;
-        public float proxyForwardY;
-        public float proxyForwardZ;
-        public float proxyUpX;
-        public float proxyUpY;
-        public float proxyUpZ;
-        public float proxyRightX;
-        public float proxyRightY;
-        public float proxyRightZ;
+        public Vector3 proxyPositionWS;
+        public Vector3 proxyForward;
+        public Vector3 proxyUp;
+        public Vector3 proxyRight;
 
         // Influence properties
-        public float influencePositionWSX;
-        public float influencePositionWSY;
-        public float influencePositionWSZ;
-        public float influenceForwardX;
-        public float influenceForwardY;
-        public float influenceForwardZ;
-        public float influenceUpX;
-        public float influenceUpY;
-        public float influenceUpZ;
-        public float influenceRightX;
-        public float influenceRightY;
-        public float influenceRightZ;
+        public Vector3 influencePositionWS;
+        public Vector3 influenceForward;
+        public Vector3 influenceUp;
+        public Vector3 influenceRight;
 
-        public float influenceExtentsX;
-        public float influenceExtentsY;
-        public float influenceExtentsZ;
+        public Vector3 influenceExtents;
         public float unused00;
 
-        public float blendDistancePositiveX;
-        public float blendDistancePositiveY;
-        public float blendDistancePositiveZ;
-        public float blendDistanceNegativeX;
-        public float blendDistanceNegativeY;
-        public float blendDistanceNegativeZ;
-        public float blendNormalDistancePositiveX;
-        public float blendNormalDistancePositiveY;
-        public float blendNormalDistancePositiveZ;
-        public float blendNormalDistanceNegativeX;
-        public float blendNormalDistanceNegativeY;
-        public float blendNormalDistanceNegativeZ;
+        public Vector3 blendDistancePositive;
+        public Vector3 blendDistanceNegative;
+        public Vector3 blendNormalDistancePositive;
+        public Vector3 blendNormalDistanceNegative;
 
-        public float boxSideFadePositiveX;
-        public float boxSideFadePositiveY;
-        public float boxSideFadePositiveZ;
-        public float boxSideFadeNegativeX;
-        public float boxSideFadeNegativeY;
-        public float boxSideFadeNegativeZ;
-        public float dimmer;
-        public float unused01;
+        public Vector3 boxSideFadePositive;
+        public Vector3 boxSideFadeNegative;
+        public float weight;
+        public float multiplier;
 
-        public float sampleDirectionDiscardWSX;
-        public float sampleDirectionDiscardWSY;
-        public float sampleDirectionDiscardWSZ;
+        public Vector3 sampleDirectionDiscardWS;
         // Sampling properties
         public int envIndex;
-
-        public Vector3 capturePositionWS
-        {
-            get { return new Vector3(capturePositionWSX, capturePositionWSY, capturePositionWSZ); }
-            set
-            {
-                capturePositionWSX = value.x;
-                capturePositionWSY = value.y;
-                capturePositionWSZ = value.z;
-            }
-        }
-        public Vector3 proxyExtents
-        {
-            get { return new Vector3(proxyExtentsX, proxyExtentsY, proxyExtentsZ); }
-            set
-            {
-                proxyExtentsX = value.x;
-                proxyExtentsY = value.y;
-                proxyExtentsZ = value.z;
-            }
-        }
-        public Vector3 proxyPositionWS
-        {
-            get { return new Vector3(proxyPositionWSX, proxyPositionWSY, proxyPositionWSZ); }
-            set
-            {
-                proxyPositionWSX = value.x;
-                proxyPositionWSY = value.y;
-                proxyPositionWSZ = value.z;
-            }
-        }
-        public Vector3 proxyForward
-        {
-            get { return new Vector3(proxyForwardX, proxyForwardY, proxyForwardZ); }
-            set
-            {
-                proxyForwardX = value.x;
-                proxyForwardY = value.y;
-                proxyForwardZ = value.z;
-            }
-        }
-        public Vector3 proxyUp
-        {
-            get { return new Vector3(proxyUpX, proxyUpY, proxyUpZ); }
-            set
-            {
-                proxyUpX = value.x;
-                proxyUpY = value.y;
-                proxyUpZ = value.z;
-            }
-        }
-        public Vector3 proxyRight
-        {
-            get { return new Vector3(proxyRightX, proxyRightY, proxyRightZ); }
-            set
-            {
-                proxyRightX = value.x;
-                proxyRightY = value.y;
-                proxyRightZ = value.z;
-            }
-        }
-
-        public Vector3 influenceExtents
-        {
-            get { return new Vector3(influenceExtentsX, influenceExtentsY, influenceExtentsZ); }
-            set
-            {
-                influenceExtentsX = value.x;
-                influenceExtentsY = value.y;
-                influenceExtentsZ = value.z;
-            }
-        }
-        public Vector3 influencePositionWS
-        {
-            get { return new Vector3(influencePositionWSX, influencePositionWSY, influencePositionWSZ); }
-            set
-            {
-                influencePositionWSX = value.x;
-                influencePositionWSY = value.y;
-                influencePositionWSZ = value.z;
-            }
-        }
-        public Vector3 influenceForward
-        {
-            get { return new Vector3(influenceForwardX, influenceForwardY, influenceForwardZ); }
-            set
-            {
-                influenceForwardX = value.x;
-                influenceForwardY = value.y;
-                influenceForwardZ = value.z;
-            }
-        }
-        public Vector3 influenceUp
-        {
-            get { return new Vector3(influenceUpX, influenceUpY, influenceUpZ); }
-            set
-            {
-                influenceUpX = value.x;
-                influenceUpY = value.y;
-                influenceUpZ = value.z;
-            }
-        }
-        public Vector3 influenceRight
-        {
-            get { return new Vector3(influenceRightX, influenceRightY, influenceRightZ); }
-            set
-            {
-                influenceRightX = value.x;
-                influenceRightY = value.y;
-                influenceRightZ = value.z;
-            }
-        }
-
-        public Vector3 blendDistancePositive
-        {
-            get { return new Vector3(blendDistancePositiveX, blendDistancePositiveY, blendDistancePositiveZ); }
-            set
-            {
-                blendDistancePositiveX = value.x;
-                blendDistancePositiveY = value.y;
-                blendDistancePositiveZ = value.z;
-            }
-        }
-        public Vector3 blendDistanceNegative
-        {
-            get { return new Vector3(blendDistanceNegativeX, blendDistanceNegativeY, blendDistanceNegativeZ); }
-            set
-            {
-                blendDistanceNegativeX = value.x;
-                blendDistanceNegativeY = value.y;
-                blendDistanceNegativeZ = value.z;
-            }
-        }
-        public Vector3 blendNormalDistancePositive
-        {
-            get { return new Vector3(blendNormalDistancePositiveX, blendNormalDistancePositiveY, blendNormalDistancePositiveZ); }
-            set
-            {
-                blendNormalDistancePositiveX = value.x;
-                blendNormalDistancePositiveY = value.y;
-                blendNormalDistancePositiveZ = value.z;
-            }
-        }
-        public Vector3 blendNormalDistanceNegative
-        {
-            get { return new Vector3(blendNormalDistanceNegativeX, blendNormalDistanceNegativeY, blendNormalDistanceNegativeZ); }
-            set
-            {
-                blendNormalDistanceNegativeX = value.x;
-                blendNormalDistanceNegativeY = value.y;
-                blendNormalDistanceNegativeZ = value.z;
-            }
-        }
-        public Vector3 boxSideFadePositive
-        {
-            get { return new Vector3(boxSideFadePositiveX, boxSideFadePositiveY, boxSideFadePositiveZ); }
-            set
-            {
-                boxSideFadePositiveX = value.x;
-                boxSideFadePositiveY = value.y;
-                boxSideFadePositiveZ = value.z;
-            }
-        }
-        public Vector3 boxSideFadeNegative
-        {
-            get { return new Vector3(boxSideFadeNegativeX, boxSideFadeNegativeY, boxSideFadeNegativeZ); }
-            set
-            {
-                boxSideFadeNegativeX = value.x;
-                boxSideFadeNegativeY = value.y;
-                boxSideFadeNegativeZ = value.z;
-            }
-        }
-
-        public Vector3 sampleDirectionDiscardWS
-        {
-            get { return new Vector3(sampleDirectionDiscardWSX, sampleDirectionDiscardWSY, sampleDirectionDiscardWSZ); }
-            set
-            {
-                sampleDirectionDiscardWSX = value.x;
-                sampleDirectionDiscardWSY = value.y;
-                sampleDirectionDiscardWSZ = value.z;
-            }
-        }
     };
 
     [GenerateHLSL]

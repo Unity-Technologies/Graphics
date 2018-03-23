@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    internal class LayeredLitGUI : LitGUI
+    public class LayeredLitGUI : LitGUI
     {
         public enum VertexColorMode
         {

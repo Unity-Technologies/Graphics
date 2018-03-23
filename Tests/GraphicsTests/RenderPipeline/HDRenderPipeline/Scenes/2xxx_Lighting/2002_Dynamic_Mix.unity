@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.36615336, g: 0.38474482, b: 0.42534754, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -375,12 +375,16 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
-  enableContactShadows: 0
-  contactShadowLength: 0
-  contactShadowDistanceScaleFactor: 0.5
-  contactShadowMaxDistance: 50
-  contactShadowFadeDistance: 5
-  contactShadowSampleCount: 8
+  viewBiasMin: 0.5
+  viewBiasMax: 10
+  viewBiasScale: 1
+  normalBiasMin: 0.2
+  normalBiasMax: 4
+  normalBiasScale: 1
+  sampleBiasScale: 1
+  edgeLeakFixup: 1
+  edgeToleranceNormal: 1
+  edgeTolerance: 1
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -412,6 +416,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Version: 1
+  directionalIntensity: 3.1415927
+  punctualIntensity: 600
+  areaIntensity: 200
   m_InnerSpotPercent: 50
   lightDimmer: 1
   fadeDistance: 10000
@@ -1160,12 +1167,16 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
-  enableContactShadows: 0
-  contactShadowLength: 0
-  contactShadowDistanceScaleFactor: 0.5
-  contactShadowMaxDistance: 50
-  contactShadowFadeDistance: 5
-  contactShadowSampleCount: 8
+  viewBiasMin: 2.25
+  viewBiasMax: 10
+  viewBiasScale: 8
+  normalBiasMin: 0.2
+  normalBiasMax: 4
+  normalBiasScale: 1
+  sampleBiasScale: 1
+  edgeLeakFixup: 1
+  edgeToleranceNormal: 1
+  edgeTolerance: 1
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1197,6 +1208,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Version: 1
+  directionalIntensity: 3.1415927
+  punctualIntensity: 600
+  areaIntensity: 200
   m_InnerSpotPercent: 50
   lightDimmer: 1
   fadeDistance: 10000
@@ -1343,12 +1357,16 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
-  enableContactShadows: 0
-  contactShadowLength: 0
-  contactShadowDistanceScaleFactor: 0.5
-  contactShadowMaxDistance: 50
-  contactShadowFadeDistance: 5
-  contactShadowSampleCount: 8
+  viewBiasMin: 0.5
+  viewBiasMax: 10
+  viewBiasScale: 1
+  normalBiasMin: 0.2
+  normalBiasMax: 4
+  normalBiasScale: 1
+  sampleBiasScale: 1
+  edgeLeakFixup: 1
+  edgeToleranceNormal: 1
+  edgeTolerance: 1
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1380,6 +1398,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Version: 1
+  directionalIntensity: 3.1415927
+  punctualIntensity: 600
+  areaIntensity: 200
   m_InnerSpotPercent: 0
   lightDimmer: 1
   fadeDistance: 10000
@@ -1705,12 +1726,16 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
-  enableContactShadows: 0
-  contactShadowLength: 0
-  contactShadowDistanceScaleFactor: 0.5
-  contactShadowMaxDistance: 50
-  contactShadowFadeDistance: 5
-  contactShadowSampleCount: 8
+  viewBiasMin: 0.5
+  viewBiasMax: 10
+  viewBiasScale: 1
+  normalBiasMin: 0.2
+  normalBiasMax: 4
+  normalBiasScale: 1
+  sampleBiasScale: 1
+  edgeLeakFixup: 1
+  edgeToleranceNormal: 1
+  edgeTolerance: 1
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
@@ -1742,6 +1767,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Version: 1
+  directionalIntensity: 3.1415927
+  punctualIntensity: 600
+  areaIntensity: 200
   m_InnerSpotPercent: 50
   lightDimmer: 1
   fadeDistance: 10000

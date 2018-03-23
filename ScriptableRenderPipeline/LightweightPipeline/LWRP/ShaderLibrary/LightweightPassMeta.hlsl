@@ -43,23 +43,16 @@ struct MetaVertexOuput
     float2 uv       : TEXCOORD0;
 };
 
-float4 MetaVertexPosition(float4 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
+float4 MetaVertexPosition(float4 vertex, float2 uv1, float2 uv2, float4 lightmapST)
 {
     if (unity_MetaVertexControl.x)
     {
         vertex.xy = uv1 * lightmapST.xy + lightmapST.zw;
         // OpenGL right now needs to actually use incoming vertex position,
         // so use it in a very dummy way
-        vertex.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
+        vertex.z = vertex.z > 0 ? REAL_MIN : 0.0f;
     }
-    if (unity_MetaVertexControl.y)
-    {
-        vertex.xy = uv2 * dynlightmapST.xy + dynlightmapST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        vertex.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
-    }
-    return TransformObjectToHClip(vertex.xyz);
+    return TransformWorldToHClip(vertex.xyz); // Need to transfer from world to clip compared to legacy
 }
 
 half4 MetaFragment(MetaInput IN)
@@ -73,7 +66,7 @@ half4 MetaFragment(MetaInput IN)
         unity_OneOverOutputBoost = saturate(unity_OneOverOutputBoost);
 
         // Apply Albedo Boost from LightmapSettings.
-        res.rgb = clamp(pow(res.rgb, unity_OneOverOutputBoost), 0, unity_MaxOutputValue);
+        res.rgb = clamp(PositivePow(res.rgb, unity_OneOverOutputBoost), 0, unity_MaxOutputValue);
     }
     if (unity_MetaFragmentControl.y)
     {
@@ -85,8 +78,8 @@ half4 MetaFragment(MetaInput IN)
 MetaVertexOuput LightweightVertexMeta(MetaVertexInput v)
 {
     MetaVertexOuput o;
-    o.pos = MetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
-    o.uv = TRANSFORM_TEX(v.uv0, _MainTex);
+    o.pos = MetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST);
+    o.uv = TransformMainTextureCoord(v.uv0);
     return o;
 }
 

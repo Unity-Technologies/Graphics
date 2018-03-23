@@ -11,6 +11,11 @@ namespace UnityEngine.Experimental.Rendering
     {
         private Texture2DArray m_Cache;
 
+        public TextureCache2D(string cacheName = "")
+            : base(cacheName)
+        {
+        }
+
         public override void TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
             var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
@@ -43,7 +48,8 @@ namespace UnityEngine.Experimental.Rendering
             m_Cache = new Texture2DArray(width, height, numTextures, format, isMipMapped)
             {
                 hideFlags = HideFlags.HideAndDontSave,
-                wrapMode = TextureWrapMode.Clamp
+                wrapMode = TextureWrapMode.Clamp,
+                name = CoreUtils.GetTextureAutoName(width, height, format, TextureDimension.Tex2DArray, depth: numTextures, name: m_CacheName)
             };
 
             return res;
@@ -66,6 +72,11 @@ namespace UnityEngine.Experimental.Rendering
         private Material m_CubeBlitMaterial;
         private int m_CubeMipLevelPropName;
         private int m_cubeSrcTexPropName;
+
+        public TextureCacheCubemap(string cacheName = "")
+            : base(cacheName)
+        {
+        }
 
         public override void TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
@@ -120,7 +131,8 @@ namespace UnityEngine.Experimental.Rendering
                     wrapMode = TextureWrapMode.Repeat,
                     wrapModeV = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Trilinear,
-                    anisoLevel = 0
+                    anisoLevel = 0,
+                    name = CoreUtils.GetTextureAutoName(panoWidthTop, panoHeightTop, format, TextureDimension.Tex2DArray, depth: numCubeMaps, name: m_CacheName)
                 };
 
                 m_NumPanoMipLevels = isMipMapped ? GetNumMips(panoWidthTop, panoHeightTop) : 1;
@@ -145,7 +157,8 @@ namespace UnityEngine.Experimental.Rendering
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Trilinear,
-                    anisoLevel = 0 // It is important to set 0 here, else unity force anisotropy filtering
+                    anisoLevel = 0, // It is important to set 0 here, else unity force anisotropy filtering
+                    name = CoreUtils.GetTextureAutoName(width, width, format, TextureDimension.CubeArray, depth: numCubeMaps, name: m_CacheName)
                 };
             }
 
@@ -186,6 +199,7 @@ namespace UnityEngine.Experimental.Rendering
     public abstract class TextureCache
     {
         protected int m_NumMipLevels;
+        protected string m_CacheName;
 
         public static bool isMobileBuildTarget
         {
@@ -393,8 +407,9 @@ namespace UnityEngine.Experimental.Rendering
             //    assert(m_SliceArray[m_SortedIdxArray[q-1]].CountLRU>=m_SliceArray[m_SortedIdxArray[q]].CountLRU);
         }
 
-        protected TextureCache()
+        protected TextureCache(string cacheName)
         {
+            m_CacheName = cacheName;
             m_NumTextures = 0;
             m_NumMipLevels = 0;
         }

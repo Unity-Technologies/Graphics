@@ -161,7 +161,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
             bool taaEnabled = camera.cameraType == CameraType.Game &&
-                CoreUtils.IsTemporalAntialiasingActive(postProcessLayer);
+                CoreUtils.IsTemporalAntialiasingActive(postProcessLayer) &&
+                frameSettings.enablePostprocess;
 
             var nonJitteredCameraProj = camera.projectionMatrix;
             var cameraProj = taaEnabled

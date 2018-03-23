@@ -92,13 +92,25 @@ namespace UnityEngine.Experimental.Rendering
         // UI stuff
         protected struct ValRange
         {
-            GUIContent  Name;
+#if UNITY_EDITOR
+            GUIContent Name;
             float       ValMin;
-            float       ValDef;
             float       ValMax;
+#endif
+            float       ValDef;
             float       ValScale;
 
-            public ValRange( string name, float valMin, float valDef, float valMax, float valScale ) { Name = new GUIContent( name ); ValMin = valMin; ValDef = valDef; ValMax = valMax; ValScale = valScale; }
+            public ValRange( string name, float valMin, float valDef, float valMax, float valScale )
+            {
+#if UNITY_EDITOR
+                Name = new GUIContent( name );
+                ValMin = valMin;
+                ValMax = valMax;
+#endif
+                ValDef = valDef;
+                ValScale = valScale;
+            }
+
 #if UNITY_EDITOR
             public void Slider( ref int currentVal ) { currentVal = ShadowUtils.Asint( ValScale * UnityEditor.EditorGUILayout.Slider( Name, ShadowUtils.Asfloat( currentVal ) / ValScale, ValMin, ValMax ) ); }
 #else
@@ -317,7 +329,6 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     // read
-                    float texelSizeX = 1.0f, texelSizeY = 1.0f;
                     CachedEntry ce = m_EntryCache[ceIdx];
                     ce.zclip = sr.shadowType != GPUShadowType.Directional;
 
@@ -342,8 +353,6 @@ namespace UnityEngine.Experimental.Rendering
                         if( ce.current.splitData.cullingSphere.w != float.NegativeInfinity )
                         {
                             int face = (int)key.faceIdx;
-                            texelSizeX = 2.0f / ce.current.proj.m00;
-                            texelSizeY = 2.0f / ce.current.proj.m11;
                             m_TmpBorders[face] = cascadeBorders[face];
                             m_TmpSplits[key.faceIdx].w *= ce.current.splitData.cullingSphere.w;
                         }
@@ -475,6 +484,7 @@ namespace UnityEngine.Experimental.Rendering
                     sp.Set( (m_TmpSplits[second] - m_TmpSplits[first]).normalized );
                 else
                     sp.Set( 0.0f, 0.0f, 0.0f, 0.0f );
+                sp.p3 = (int) sr.facecount;
                 payload[payloadOffset] = sp;
                 payloadOffset++;
 
@@ -699,21 +709,24 @@ namespace UnityEngine.Experimental.Rendering
                 // shadow atlas layouting
                 CachedEntry ce = m_EntryCache[i];
                 Rect vp = ce.current.viewport;
+                curh = curh >= vp.height ? curh : vp.height;
 
                 if( curx + vp.width > xmax )
                 {
                     curx = 0;
                     cury += curh;
+                    curh = vp.height;
                 }
                 if( curx + vp.width > xmax || cury + curh > ymax )
                 {
                     curslice++;
                     curx = 0;
                     cury = 0;
+                    curh = vp.height;
                 }
                 if( curx + vp.width > xmax || cury + curh > ymax || curslice == m_Slices )
                 {
-                    Debug.LogError( "ERROR! Shadow atlasing failed." );
+                    Debug.LogWarning( "Shadow atlasing has failed." );
                     return false;
                 }
                 vp.x = curx;
@@ -722,7 +735,6 @@ namespace UnityEngine.Experimental.Rendering
                 ce.current.slice    = curslice;
                 m_EntryCache[i]     = ce;
                 curx += vp.width;
-                curh = curh >= vp.height ? curh : vp.height;
             }
             return true;
         }
@@ -732,7 +744,7 @@ namespace UnityEngine.Experimental.Rendering
             m_EntryPool.Add( ce );
         }
 
-        override public void DisplayShadowMap(CommandBuffer debugCB, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        override public void DisplayShadowMap(CommandBuffer debugCB, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
         {
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
@@ -741,6 +753,7 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             propertyBlock.SetVector("_ValidRange", validRange);
+            propertyBlock.SetFloat("_RequireToFlipInputTexture", flipY ? 1.0f : 0.0f);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("REGULARSHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
@@ -1182,7 +1195,7 @@ namespace UnityEngine.Experimental.Rendering
            cb.EndSample("VSM conversion");
         }
 
-        override public void DisplayShadowMap(CommandBuffer debugCB, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        override public void DisplayShadowMap(CommandBuffer debugCB, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
         {
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
 
@@ -1191,6 +1204,7 @@ namespace UnityEngine.Experimental.Rendering
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetFloat("_TextureSlice", (float)slice);
             propertyBlock.SetVector("_ValidRange", validRange);
+            propertyBlock.SetFloat("_RequireToFlipInputTexture", flipY ? 1.0f : 0.0f);
             debugCB.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             debugCB.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("VARIANCESHADOW"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
@@ -1475,7 +1489,9 @@ namespace UnityEngine.Experimental.Rendering
 
                     int sa, sv, sp;
                     asd.GetShadowAlgorithm( out sa, out sv, out sp );
-                    sreq.shadowAlgorithm = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
+                    GPUShadowAlgorithm packed_algo = ShadowUtils.Pack( (ShadowAlgorithm) sa, (ShadowVariant) sv, (ShadowPrecision) sp );
+                    GetGlobalShadowOverride( shadowType, ref packed_algo );
+                    sreq.shadowAlgorithm = packed_algo;
                     totalRequestCount += (uint) facecount;
                     requestsGranted.AddUnchecked( sreq );
                     totalSlots--;
@@ -1513,7 +1529,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 if( smidx == k_MaxShadowmapPerType )
                 {
-                    Debug.LogError("The requested shadows do not fit into any shadowmap.");
+                    Debug.LogWarning("The requested shadows do not fit into any shadowmap.");
                     return false;
                 }
             }
@@ -1523,7 +1539,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if( !sm.ReserveFinalize( frameId, ref shadowDatas, ref shadowmapPayload ) )
                 {
-                    Debug.LogError("Shadow allocation failed in the ReserveFinalize step." );
+                    Debug.LogWarning("Shadow allocation failed in the ReserveFinalize step." );
                     return false;
                 }
             }
@@ -1542,7 +1558,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public override void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public override void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowRequestIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
         {
             if (m_ShadowIndices.Count() == 0)
                 return;
@@ -1553,16 +1569,16 @@ namespace UnityEngine.Experimental.Rendering
             ShadowData faceData = shadowDatas[(uint)(m_ShadowIndices[index] + offset + faceIndex)];
             uint texID, samplerID;
             faceData.UnpackShadowmapId(out texID, out samplerID);
-            m_Shadowmaps[texID].DisplayShadowMap(cmd, debugMaterial, faceData.scaleOffset, (uint) faceData.slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            m_Shadowmaps[texID].DisplayShadowMap(cmd, debugMaterial, faceData.scaleOffset, (uint) faceData.slice, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
         }
 
-        public override void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public override void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
         {
             if(m_Shadowmaps.Length == 0)
                 return;
 
             uint index = Math.Max(0, Math.Min((uint)(m_Shadowmaps.Length - 1), shadowMapIndex));
-            m_Shadowmaps[index].DisplayShadowMap(cmd, debugMaterial, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+            m_Shadowmaps[index].DisplayShadowMap(cmd, debugMaterial, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), sliceIndex, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
         }
 
         public override void SyncData()
