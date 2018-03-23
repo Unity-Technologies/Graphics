@@ -40,11 +40,11 @@ namespace UnityEditor.VFX.UI
             if (this.style.minWidth != newMinWidth)
             {
                 this.style.minWidth = newMinWidth;
-
-                ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
-
-                ApplyWidths(labelWidth, controlWidth);
             }
+
+            ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
+
+            ApplyWidths(labelWidth, controlWidth);
         }
 
         public override void ApplyWidths(float labelWidth, float controlWidth)

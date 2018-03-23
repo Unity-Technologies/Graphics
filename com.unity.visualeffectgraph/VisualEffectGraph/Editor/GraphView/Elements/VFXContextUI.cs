@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.UI
         VisualElement               m_FlowInputConnectorContainer;
         VisualElement               m_FlowOutputConnectorContainer;
         VisualElement               m_BlockContainer;
+        VisualElement               m_NoBlock;
 
         VisualElement               m_DragDisplay;
 
@@ -33,10 +34,20 @@ namespace UnityEditor.VFX.UI
         {
             get { return base.controller as VFXContextController; }
         }
+        protected override void OnNewController()
+        {
+            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
 
+            m_CanHaveBlocks = blocks.Any(t => controller.model.AcceptChild(t.model));
+        }
 
         public static string ContextEnumToClassName(string name)
         {
+            if (name[0] != 'k')
+            {
+                Debug.LogError("Fix this since k has been removed from enums");
+            }
+
             return name.Substring(1).ToLower();
         }
 
@@ -177,6 +188,7 @@ namespace UnityEditor.VFX.UI
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
 
             m_BlockContainer = this.Q("block-container");
+            m_NoBlock = m_BlockContainer.Q("no-blocks");
 
             m_Footer = this.Q("footer");
 
@@ -191,6 +203,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnChange);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
+
+        bool m_CanHaveBlocks = false;
 
         public void OnMoved()
         {
@@ -428,6 +442,14 @@ namespace UnityEditor.VFX.UI
             {
                 m_BlockContainer.Remove(kv.Value);
             }
+            if( blockControllers.Count() > 0 || ! m_CanHaveBlocks)
+            {
+                m_NoBlock.RemoveFromHierarchy();
+            }
+            else if( m_NoBlock.parent == null)
+            {
+                m_BlockContainer.Add(m_NoBlock);
+            }
             foreach (var blockController in blockControllers)
             {
                 VFXBlockUI blockUI;
@@ -509,11 +531,6 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXBlockProvider m_BlockProvider = null;
-
-        internal override void DoRepaint(IStylePainter painter)
-        {
-            base.DoRepaint(painter);
-        }
 
         // TODO: Remove, unused except for debugging
         // Declare new USS rect-color and use it

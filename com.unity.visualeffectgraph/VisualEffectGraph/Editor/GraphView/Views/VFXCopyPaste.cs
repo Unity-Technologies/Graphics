@@ -167,7 +167,57 @@ namespace UnityEditor.VFX.UI
         {
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
-            foreach (var edge in dataEdges)
+
+
+            //order edge so that they are from left to right ( edge linking node with the no linked input first)
+            Dictionary<VFXNodeController,int> useCount = new Dictionary<VFXNodeController,int>();
+
+            var orderedEdges = new List<VFXDataEdgeController>();
+
+            var edges = new HashSet<VFXDataEdgeController>(dataEdges);
+
+            // Ensure that operators that can change shape always all their input edges created before their output edges and in the same order
+            bool sortFailed = false;
+            try
+            {
+                while(edges.Count > 0)
+                {
+                    var edgeInputs = edges.GroupBy(t=>t.input.sourceNode).ToDictionary(t=>t.Key,t=>t.Select(u=>u));
+
+                    //Select the edges that have an input node which all its input edges have an output node that have no input edge
+                    // Order them by index
+                    
+                    var edgesWithoutParent = edges.Where(t=>! edgeInputs[t.input.sourceNode].Any(u=>edgeInputs.ContainsKey(u.output.sourceNode))).OrderBy(t=>t.input.model.GetMasterSlot().owner.GetSlotIndex(t.input.model.GetMasterSlot())).ToList();
+                    /*foreach(var gen in edgesWithoutParent)
+                    {
+                        int index = gen.input.model.GetMasterSlot().owner.GetSlotIndex(gen.input.model.GetMasterSlot());
+                        Debug.Log("Edge with input:" + gen.input.sourceNode.title + "index"+ index);
+                    }*/
+                    orderedEdges.AddRange(edgesWithoutParent);
+
+                    int count = edges.Count;
+                    foreach(var e in edgesWithoutParent)
+                    {
+                        edges.Remove(e);
+                    }
+                    if( edges.Count >= count)
+                    {
+                        sortFailed = true;
+                        Debug.LogError("Sorting of data edges failed. Please provide a screenshot of the graph with the selected node to @tristan");
+                        break;
+                    }
+                    //Debug.Log("------------------------------");
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.LogError("Sorting of data edges threw. Please provide a screenshot of the graph with the selected node to @tristan" + e.Message);
+                sortFailed = true;
+            }
+
+            IEnumerable<VFXDataEdgeController> usedEdges = sortFailed? dataEdges : orderedEdges;
+
+            foreach (var edge in usedEdges)
             {
                 DataEdge copyPasteEdge = new DataEdge();
 
@@ -213,6 +263,7 @@ namespace UnityEditor.VFX.UI
 
                 copyData.dataEdges[cpt++] = copyPasteEdge;
             }
+            // Sort the edge so the one that links the node that have the least links 
         }
 
         static void CopyFlowEdges(Data copyData, IEnumerable<VFXFlowEdgeController> flowEdges, ScriptableObject[] allSerializedObjects)
@@ -369,7 +420,7 @@ namespace UnityEditor.VFX.UI
             return slot;
         }
 
-        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null)
+        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null, VFXGroupNodeController groupNode = null)
         {
             var copyData = JsonUtility.FromJson<Data>(data);
 
@@ -384,10 +435,10 @@ namespace UnityEditor.VFX.UI
                 copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
             }
 
-            PasteCopy(viewController, center, copyData, allSerializedObjects, view);
+            PasteCopy(viewController, center, copyData, allSerializedObjects, view, groupNode);
         }
 
-        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view)
+        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view, VFXGroupNodeController groupNode)
         {
             Data copyData = (Data)data;
 
@@ -401,7 +452,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteNodes(viewController, center, copyData, allSerializedObjects, view);
+                PasteNodes(viewController, center, copyData, allSerializedObjects, view, groupNode);
             }
         }
 
@@ -546,7 +597,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view)
+        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view, VFXGroupNodeController groupNode)
         {
             var graph = viewController.graph;
             Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
@@ -777,14 +828,22 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
+                if( groupNode != null)
+                {
+                    foreach (var newSlotContainerUI in newSlotContainerUIs)
+                    {
+                        groupNode.AddNode(newSlotContainerUI.controller);
+                    }
+                }
+
                 //Select all groups that are new
                 if (firstCopiedGroup >= 0)
                 {
-                    foreach (var groupNode in elements.OfType<VFXGroupNode>())
+                    foreach (var gn in elements.OfType<VFXGroupNode>())
                     {
-                        if (groupNode.controller.index >= firstCopiedGroup)
+                        if (gn.controller.index >= firstCopiedGroup)
                         {
-                            view.AddToSelection(groupNode);
+                            view.AddToSelection(gn);
                         }
                     }
                 }

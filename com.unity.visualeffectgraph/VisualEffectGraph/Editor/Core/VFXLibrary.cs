@@ -58,7 +58,6 @@ namespace UnityEditor.VFX
         protected VFXModelDescriptor(VFXModel template, IEnumerable<KeyValuePair<string, Object>> variants = null)
         {
             m_Template = template;
-            m_Template.hideFlags = HideFlags.HideAndDontSave;
             m_Variants = variants == null ? Enumerable.Empty<KeyValuePair<string, object>>() : variants;
             ApplyVariant(m_Template);
         }
@@ -149,6 +148,37 @@ namespace UnityEditor.VFX
             return desc;
         }
 
+        public static void ClearLibrary()
+        {
+            lock (m_Lock)
+            {
+                if (m_Loaded)
+                {
+                    Clear(m_ContextDescs);
+                    Clear(m_BlockDescs);
+                    Clear(m_OperatorDescs);
+                    Clear(m_SlotDescs.Values);
+                    Clear(m_ContextDescs);
+                    Clear(m_ParametersDescs.Cast<VFXModelDescriptor<VFXParameter>>());
+                    m_Loaded = false;
+                }
+            }
+        }
+
+        static void Clear<T>(IEnumerable<VFXModelDescriptor<T>> descriptors) where T : VFXModel
+        {
+            HashSet<ScriptableObject> dependencies = new HashSet<ScriptableObject>();
+            foreach (var model in descriptors)
+            {
+                model.model.CollectDependencies(dependencies);
+                dependencies.Add(model.model);
+            }
+            foreach (var obj in dependencies)
+            {
+                UnityEngine.Object.DestroyImmediate(obj);
+            }
+        }
+
         public static void LoadIfNeeded()
         {
             if (m_Loaded)
@@ -163,13 +193,15 @@ namespace UnityEditor.VFX
 
         public static void Load()
         {
+            LoadSlotsIfNeeded();
+
             lock (m_Lock)
             {
-                LoadSlotsIfNeeded();
+                ScriptableObject.CreateInstance<LibrarySentinel>();
                 m_ContextDescs = LoadModels<VFXContext>();
                 m_BlockDescs = LoadModels<VFXBlock>();
                 m_OperatorDescs = LoadModels<VFXOperator>();
-                m_ParametersDescs = m_SlotDescs.Select(s =>
+                m_ParametersDescs = m_SlotDescs.Where(s => s.Key != typeof(FloatN)).Select(s =>
                     {
                         var desc = new VFXModelDescriptorParameters(s.Key);
                         return desc;
@@ -237,6 +269,14 @@ namespace UnityEditor.VFX
             }
 
             return modelDescs.OrderBy(o => o.name).ToList();
+        }
+
+        class LibrarySentinel : ScriptableObject
+        {
+            void OnDisable()
+            {
+                VFXLibrary.ClearLibrary();
+            }
         }
 
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
