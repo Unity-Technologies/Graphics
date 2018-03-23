@@ -759,7 +759,7 @@ namespace UnityEditor.VFX.UI
                         {
                             if( change != VFXViewController.Change.dataEdge)
                             {
-                                Debug.LogError("Can't match nodes for a data edge after nodes should have been updated");
+                                Debug.LogError("Can't match nodes for a data edge after nodes should have been updated.");
                             }
                             continue;
                         }

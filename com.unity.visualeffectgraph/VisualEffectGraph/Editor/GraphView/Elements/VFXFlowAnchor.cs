@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.UI
 
         void SelfChange()
         {
-            m_ConnectorText.text = "";
+            m_ConnectorText.text = controller.title;
 
             if (controller.connected)
                 AddToClassList("connected");

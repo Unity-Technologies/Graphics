@@ -50,12 +50,32 @@ namespace UnityEditor.VFX.UI
         public override void ApplyChanges()
         {
         }
+
+        public virtual string title
+        {
+            get{return "";}
+        }
     }
 
     class VFXFlowInputAnchorController : VFXFlowAnchorController
     {
         public VFXFlowInputAnchorController()
         {
+        }
+
+        public override string title
+        {
+            get{
+                if( owner is VFXBasicSpawner)
+                {
+                    if( slotIndex == 0)
+                    {
+                        return "Start";
+                    }
+                    return "Stop";
+                }
+                return "";
+            }
         }
 
         public override Direction direction

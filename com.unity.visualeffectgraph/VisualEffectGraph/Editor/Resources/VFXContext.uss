@@ -17,8 +17,8 @@ VFXContextUI > #node-border
 	border-bottom-width:1;
 	padding-top : 5;
 	padding-bottom : 5;
-	margin-top : 5;
-	margin-bottom : 5;
+	margin-top : 19;
+	margin-bottom : 19;
 	margin-left:2;
 	margin-right:2;
 }
@@ -90,8 +90,8 @@ VFXContextUI > #selection-border
     position-top:0;
     position-bottom:0;
 	border-radius:10;
-	margin-top:4;
-	margin-bottom:4;
+	margin-top:18;
+	margin-bottom:18;
 }
 
 VFXContextUI:hover  > #selection-border{
@@ -282,12 +282,12 @@ VFXContextUI #block-container {
 {
     flex-direction: row;
     justify-content: center;
-    padding-left: 40;
-    padding-right: 20;
+    padding-left: 0;
+    padding-right: 0;
     position-type: Absolute;
     position-left: 0;
     position-right: 0;
-    height: 14;
+    height: 28;
 }
 
 #flow-outputs
