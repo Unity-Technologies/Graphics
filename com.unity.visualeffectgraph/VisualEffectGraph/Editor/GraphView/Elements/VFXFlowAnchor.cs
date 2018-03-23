@@ -31,6 +31,10 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+        public override bool ContainsPoint(Vector2 localPoint)
+        {   
+            return (new Rect(0.0f, 0.0f, layout.width, layout.height)).Contains(localPoint);
+        }
 
         public static VFXFlowAnchor Create(VFXFlowAnchorController controller)
         {
