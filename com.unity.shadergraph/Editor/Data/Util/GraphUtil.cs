@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph
             var slots = new List<MaterialSlot>();
             foreach (var activeNode in isUber ? activeNodeList.Where(n => ((AbstractMaterialNode)n).hasPreview) : ((INode)node).ToEnumerable())
             {
-                if (activeNode is IMasterNode)
+                if (activeNode is IMasterNode || activeNode is SubGraphOutputNode)
                     slots.AddRange(activeNode.GetInputSlots<MaterialSlot>());
                 else
                     slots.AddRange(activeNode.GetOutputSlots<MaterialSlot>());
@@ -263,6 +263,19 @@ namespace UnityEditor.ShaderGraph
                     var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                     if (outputSlot != null)
                         surfaceDescriptionFunction.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
+                }
+
+                // In case of the subgraph output node, the preview is generated
+                // from the first input to the node.
+                if (activeNode is SubGraphOutputNode)
+                {
+                    var inputSlot = activeNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                    if (inputSlot != null)
+                    {
+                        var foundEdges = graph.GetEdges(inputSlot.slotReference).ToArray();
+                        string slotValue = foundEdges.Any() ? activeNode.GetSlotValue(inputSlot.id, mode) : inputSlot.GetDefaultValue(mode);
+                        surfaceDescriptionFunction.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, slotValue), false);
+                    }
                 }
 
                 activeNode.CollectShaderProperties(shaderProperties, mode);

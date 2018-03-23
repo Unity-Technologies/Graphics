@@ -189,6 +189,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             var amn = masterNode as AbstractMaterialNode;
             if (amn != null)
                 amn.Dirty(scope);
+
+            // If currently editing a subgraph, dirty the output node rather than master node.
+            if (m_Graph is SubGraph)
+            {
+                var subgraph = m_Graph as SubGraph;
+                if (subgraph != null && subgraph.outputNode != null)
+                    subgraph.outputNode.Dirty(scope);
+            }
         }
 
         void OnPreviewChanged()
