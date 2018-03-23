@@ -410,6 +410,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // The contribution of the ambient probe does not depend on the position,
     // only on the direction and the length of the interval.
     // SampleSH9() evaluates the 3-band SH in a given direction.
+    // The probe is already pre-convolved with the phase function.
     float3 probeInScatteredRadiance = SampleSH9(_AmbientProbeCoeffs, ray.centerDirWS);
 
     float3 totalRadiance = 0;
@@ -460,9 +461,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float3 scattering = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).rgb;
         float  extinction = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).a;
         float  asymmetry  = _GlobalAsymmetry;
-        
-        // TODO: define a function ComputeGlobalFogCoefficients(float3 centerWS),
-        // which allows procedural definition of extinction and scattering.
+
+        // Prevent division by 0.
+        extinction = max(extinction, FLT_MIN);
 
     #if ENABLE_REPROJECTION
         // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.
@@ -480,8 +481,6 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                        );
                                                    #endif
     #if ENABLE_REPROJECTION
-        float4 feedback = 0;
-
         // Reproject the history at 'centerWS'.
         float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
         float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
@@ -532,12 +531,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // to the history buffer. This will cause them to alias, but it is the only way
         // to prevent ghosting.
 
-        if (extinction > 0)
-        {
-            feedback = float4(blendedRadiance, dt);
-        }
-
-        _VBufferLightingFeedback[voxelCoord] = feedback;
+        _VBufferLightingFeedback[voxelCoord] = float4(blendedRadiance, dt);
 
     #if SUPPORT_ASYMMETRY
         // Extrapolate the influence of the phase function on the results of the current frame.
@@ -567,25 +561,20 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         float4 integral = float4(totalRadiance, opticalDepth);
 
-        if (extinction > 0)
-        {
-            // Integrate the contribution of the probe over the interval.
-            // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
-            float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
+        // Integrate the contribution of the probe over the interval.
+        // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
+        float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
 
-            totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);
+        totalRadiance += transmittance * scattering * (phase * blendedRadiance + probeRadiance);
 
-            // Compute the optical depth up to the center of the interval.
-            opticalDepth += 0.5 * extinction * dt;
-
-            integral = float4(totalRadiance, opticalDepth);
-
-            // Compute the optical depth up to the end of the interval.
-            opticalDepth += 0.5 * extinction * dt;
-        }
+        // Compute the optical depth up to the center of the interval.
+        opticalDepth += 0.5 * extinction * dt;
 
         // Store the voxel data.
-        _VBufferLightingIntegral[voxelCoord] = integral;
+        _VBufferLightingIntegral[voxelCoord] = float4(totalRadiance, opticalDepth);
+
+        // Compute the optical depth up to the end of the interval.
+        opticalDepth += 0.5 * extinction * dt;
 
         z0 = z1;
         t0 = t1;
