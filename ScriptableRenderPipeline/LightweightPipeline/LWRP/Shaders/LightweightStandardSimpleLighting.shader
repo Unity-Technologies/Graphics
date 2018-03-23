@@ -83,6 +83,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ FOG_LINEAR FOG_EXP2
+            #pragma multi_compile _ _SHADOWS_ENABLED
 
             // -------------------------------------
             // Unity defined keywords
@@ -93,7 +94,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #pragma vertex LitPassVertex
+            #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
             #define BUMP_SCALE_NOT_SUPPORTED 1
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
