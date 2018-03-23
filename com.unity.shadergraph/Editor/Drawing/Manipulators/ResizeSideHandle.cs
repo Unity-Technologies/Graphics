@@ -49,6 +49,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         Rect m_ResizeBeginLayout;
         Vector2 m_ResizeBeginMousePosition;
 
+        private GUIStyle m_StyleWidget;
+        private GUIStyle m_StyleLabel;
+        private Texture image { get; set; }
+
         public ResizeSideHandle(VisualElement resizeTarget, VisualElement container, ResizeHandleAnchor anchor)
         {
             m_WindowDockingLayout = new WindowDockingLayout();
@@ -342,6 +346,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_WindowDockingLayout.CalculateDockingCornerAndOffset(m_Container.layout, m_Container.parent.layout);
             m_WindowDockingLayout.ApplyPosition(m_Container);
+        }
+
+        public override void DoRepaint()
+        {
+            if (m_StyleWidget == null)
+            {
+                m_StyleWidget = new GUIStyle("WindowBottomResize") { fixedHeight = 0 };
+                image = m_StyleWidget.normal.background;
+            }
+
+            if (image == null)
+            {
+                Debug.LogWarning("null texture passed to GUI.DrawTexture");
+                return;
+            }
+
+            GUI.DrawTexture(contentRect, image, ScaleMode.ScaleAndCrop, true, 0, GUI.color, 0, 0);
         }
     }
 }
