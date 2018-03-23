@@ -757,6 +757,7 @@ namespace UnityEditor.VFX.UI
 
             VFXUI copiedUI = allSerializedObjects.OfType<VFXUI>().FirstOrDefault();
             int firstCopiedGroup = -1;
+            int firstCopiedStickyNote = -1;
             if (copiedUI != null)
             {
                 VFXUI ui = viewController.graph.UIInfos;
@@ -791,6 +792,7 @@ namespace UnityEditor.VFX.UI
                 }
                 if( copiedUI.stickyNoteInfos != null && copiedUI.stickyNoteInfos.Length > 0)
                 {
+                    firstCopiedStickyNote = ui.stickyNoteInfos.Length;
                     ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(copiedUI.stickyNoteInfos.Select(t => new VFXUI.StickyNoteInfo(t) { position = new Rect(t.position.position + pasteOffset, t.position.size) })).ToArray();
                 }
             }
@@ -894,6 +896,18 @@ namespace UnityEditor.VFX.UI
                     foreach (var gn in elements.OfType<VFXGroupNode>())
                     {
                         if (gn.controller.index >= firstCopiedGroup)
+                        {
+                            view.AddToSelection(gn);
+                        }
+                    }
+                }
+
+                //Select all groups that are new
+                if (firstCopiedStickyNote >= 0)
+                {
+                    foreach (var gn in elements.OfType<VFXStickyNote>())
+                    {
+                        if (gn.controller.index >= firstCopiedStickyNote)
                         {
                             view.AddToSelection(gn);
                         }

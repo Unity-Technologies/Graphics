@@ -46,7 +46,8 @@ namespace UnityEditor.VFX.UI
                     Concat(m_DataEdges.Cast<Controller>()).
                     Concat(m_FlowEdges.Cast<Controller>()).
                     Concat(m_ParameterControllers.Values.Cast<Controller>()).
-                    Concat(m_GroupNodeControllers.Cast<Controller>())
+                    Concat(m_GroupNodeControllers.Cast<Controller>()).
+                    Concat(m_StickyNoteControllers.Cast<Controller>())
                     ; }
         }
 
