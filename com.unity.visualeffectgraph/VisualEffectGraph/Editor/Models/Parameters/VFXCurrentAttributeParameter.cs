@@ -20,21 +20,7 @@ namespace UnityEditor.VFX
             attrib.SetSettingValue("attribute", attribute);
 
             // Transfer links
-            var links = GetOutputSlot(0).LinkedSlots.ToArray();
-            GetOutputSlot(0).UnlinkAll();
-            foreach (var s in links)
-                attrib.GetOutputSlot(0).Link(s);
-
-            // Transfer sub-slot links
-            var children = GetOutputSlot(0).children.ToArray();
-            var newChildren = attrib.GetOutputSlot(0).children.ToArray();
-            for (int childIndex = 0; childIndex < children.Length; childIndex++)
-            {
-                var childLinks = children[childIndex].LinkedSlots.ToArray();
-                children[childIndex].UnlinkAll();
-                foreach (var s in childLinks)
-                    newChildren[childIndex].Link(s);
-            }
+            VFXSlot.TransferLinks(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
 
             // Replace operator
             var parent = GetParent();
