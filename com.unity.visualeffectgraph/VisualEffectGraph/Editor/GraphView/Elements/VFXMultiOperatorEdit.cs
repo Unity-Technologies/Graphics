@@ -89,7 +89,7 @@ namespace UnityEditor.VFX.UI
                 menu.AddItem(EditorGUIUtility.TrTextContent(type.ToString()), selectedType == type, OnChangeType, type);
             }
             m_CurrentIndex = index;
-            menu.Popup(button.worldBound, selectedIndex);
+            menu.DropDown(button.worldBound);
         }
 
         void OnChangeType(object type)

@@ -1,3 +1,4 @@
+#if false
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements;
@@ -201,3 +202,4 @@ namespace UnityEditor.VFX.UIElements
         */
     }
 }
+#endif

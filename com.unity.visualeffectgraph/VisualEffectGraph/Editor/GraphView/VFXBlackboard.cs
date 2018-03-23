@@ -238,7 +238,10 @@ namespace  UnityEditor.VFX.UI
         }
 
         public VFXBlackboardField() : base()
-        {}
+        {
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+        }
 
         Controller IControlledElement.controller
         {
@@ -261,23 +264,19 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        protected internal override void ExecuteDefaultAction(EventBase evt)
+        void OnMouseHover(EventBase evt)
         {
-            if (evt.GetEventTypeId() == MouseEnterEvent.TypeId() || evt.GetEventTypeId() == MouseLeaveEvent.TypeId())
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view != null)
             {
-                VFXView view = GetFirstAncestorOfType<VFXView>();
-                if (view != null)
+                foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
                 {
-                    foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
-                    {
-                        if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
-                            parameter.pseudoStates |= PseudoStates.Hover;
-                        else
-                            parameter.pseudoStates &= ~PseudoStates.Hover;
-                    }
+                    if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                        parameter.pseudoStates |= PseudoStates.Hover;
+                    else
+                        parameter.pseudoStates &= ~PseudoStates.Hover;
                 }
             }
-            base.ExecuteDefaultAction(evt);
         }
     }
 

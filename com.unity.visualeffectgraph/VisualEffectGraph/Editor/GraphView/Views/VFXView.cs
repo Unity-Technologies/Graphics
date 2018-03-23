@@ -242,34 +242,35 @@ namespace UnityEditor.VFX.UI
         }
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
+            List<VisualElement> picked = new List<VisualElement>();
+            panel.PickAll(mPos, picked);
+
+            VFXGroupNode groupNode = picked.OfType<VFXGroupNode>().FirstOrDefault();
+
             mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
+
 
             if (d.modelDescriptor is string)
             {
                 string path = d.modelDescriptor as string;
 
-                CreateTemplateSystem(path, mPos);
+                CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
                 controller.AddGroupNode(mPos);
             }
             else
-                return controller.AddNode(mPos, d.modelDescriptor);
+                return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             return null;
         }
 
-        protected internal override void ExecuteDefaultAction(EventBase evt)
+        protected void OnKeyDown(KeyDownEvent evt)
         {
-            if (evt.GetEventTypeId() == KeyDownEvent.TypeId())
+            if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
             {
-                if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
-                {
-                    OnCreateThing(evt as KeyDownEvent);
-                }
+                OnCreateThing(evt as KeyDownEvent);
             }
-
-            base.ExecuteDefaultAction(evt);
         }
 
         void OnCreateThing(KeyDownEvent evt)
@@ -412,6 +413,9 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
+            RegisterCallback<KeyDownEvent>(OnKeyDown);
+            RegisterCallback<ValidateCommandEvent>(ValidateCommand);
+            RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
 
             graphViewChanged = VFXGraphViewChanged;
 
@@ -735,6 +739,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
         void SyncStickyNotes()
         {
             var stickyNotes = this.stickyNotes;
@@ -887,7 +892,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void CreateTemplateSystem(string path, Vector2 tPos)
+        public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
         {
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             if (asset != null)
@@ -898,7 +903,7 @@ namespace UnityEditor.VFX.UI
 
                 var data = VFXCopyPaste.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds);
 
-                VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this);
+                VFXCopyPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
 
                 templateController.useCount--;
             }
@@ -1035,6 +1040,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public IEnumerable<VFXNodeUI> GetAllNodes()
+        {
+            foreach (var layer in contentViewContainer.Children())
+            {
+                foreach (var element in layer)
+                {
+                    if (element is VFXNodeUI)
+                    {
+                        yield return element as VFXNodeUI;
+                    }
+                }
+            }
+        }
+
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
             if (controller == null) return null;
@@ -1062,13 +1081,15 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
         void VFXElementResized(VisualElement element)
         {
-            if( element is IVFXResizable)
+            if (element is IVFXResizable)
             {
                 (element as IVFXResizable).OnResized();
             }
         }
+
         GraphViewChange VFXGraphViewChanged(GraphViewChange change)
         {
             if (change.movedElements != null && change.movedElements.Count > 0)
@@ -1105,11 +1126,38 @@ namespace UnityEditor.VFX.UI
             return change;
         }
 
+        VFXNodeUI GetNodeByController(VFXNodeController controller)
+        {
+            if (controller is VFXBlockController)
+            {
+                var blockController = (controller as VFXBlockController);
+                VFXContextUI context = GetNodeByController(blockController.contextController) as VFXContextUI;
+
+                return context.GetAllBlocks().FirstOrDefault(t => t.controller == blockController);
+            }
+            return GetAllNodes().FirstOrDefault(t => t.controller == controller);
+        }
+
         public VFXDataAnchor GetDataAnchorByController(VFXDataAnchorController controller)
         {
             if (controller == null)
                 return null;
-            return GetAllDataAnchors(controller.direction == Direction.Input, controller.direction == Direction.Output).Where(t => t.controller == controller).FirstOrDefault();
+
+            VFXNodeUI node = GetNodeByController(controller.sourceNode);
+            if (node == null)
+            {
+                Debug.LogError("Can't find the node for a given node controller");
+                return null;
+            }
+
+            VFXDataAnchor anchor = node.GetPorts(controller.direction == Direction.Input, controller.direction == Direction.Output).FirstOrDefault(t => t.controller == controller);
+            if (anchor == null)
+            {
+                // Can happen because the order of the DataWatch is not controlled
+                node.ForceUpdate();
+                anchor = node.GetPorts(controller.direction == Direction.Input, controller.direction == Direction.Output).FirstOrDefault(t => t.controller == controller);
+            }
+            return anchor;
         }
 
         public VFXFlowAnchor GetFlowAnchorByController(VFXFlowAnchorController controller)
@@ -1185,30 +1233,6 @@ namespace UnityEditor.VFX.UI
             foreach (var anchor in GetAllFlowAnchors(input, output))
             {
                 yield return anchor;
-            }
-        }
-
-        public IEnumerable<Node> GetAllNodes()
-        {
-            foreach (var node in nodes.ToList())
-            {
-                yield return node;
-            }
-
-            foreach (var layer in contentViewContainer.Children())
-            {
-                foreach (var element in layer)
-                {
-                    if (element is VFXContextUI)
-                    {
-                        var context = element as VFXContextUI;
-
-                        foreach (var block in context.GetAllBlocks())
-                        {
-                            yield return block;
-                        }
-                    }
-                }
             }
         }
 
@@ -1446,6 +1470,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void ValidateCommand(ValidateCommandEvent evt)
+        {
+            if (evt.commandName == "SelectAll")
+            {
+                evt.StopPropagation();
+                if (evt.imguiEvent != null)
+                {
+                    evt.imguiEvent.Use();
+                }
+            }
+        }
+
+        public void ExecuteCommand(ExecuteCommandEvent e)
+        {
+            if (e.commandName == "SelectAll")
+            {
+                ClearSelection();
+
+                foreach (var element in graphElements.ToList())
+                {
+                    AddToSelection(element);
+                }
+                e.StopPropagation();
+            }
+        }
+
         void GroupSelection()
         {
             controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
@@ -1455,6 +1505,13 @@ namespace UnityEditor.VFX.UI
         {
             position = contentViewContainer.WorldToLocal(position);
             controller.AddStickyNote(position);
+        }
+
+        void OnCreateNodeInGroupNode(ContextualMenu.MenuAction e)
+        {
+            Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
+            //The targeted groupnode will be determined by a PickAll later
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, m_NodeProvider);
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
