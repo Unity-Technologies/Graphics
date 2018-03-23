@@ -139,22 +139,13 @@ half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 position
 //                      Light Abstraction                                    //
 ///////////////////////////////////////////////////////////////////////////////
 
-Light GetMainLight(float3 positionWS)
+Light GetMainLight()
 {
-    LightInput lightInput;
-    lightInput.position = _MainLightPosition;
-    lightInput.color = _MainLightColor.rgb;
-    lightInput.distanceAttenuation = _MainLightDistanceAttenuation;
-    lightInput.spotDirection = _MainLightSpotDir;
-    lightInput.spotAttenuation = _MainLightSpotAttenuation;
-
-    half4 directionAndRealtimeAttenuation = GetMainLightDirectionAndAttenuation(lightInput, positionWS);
-
     Light light;
-    light.direction = directionAndRealtimeAttenuation.xyz;
-    light.attenuation = directionAndRealtimeAttenuation.w;
-    light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
-    light.color = lightInput.color;
+    light.direction = _MainLightPosition.xyz;
+    light.attenuation = 1.0;
+    light.subtractiveModeAttenuation = _MainLightPosition.w;
+    light.color = _MainLightColor.rgb;
 
     return light;
 }
@@ -539,9 +530,8 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
-    Light mainLight = GetMainLight(inputData.positionWS);
-
-    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.shadowCoord);
+    Light mainLight = GetMainLight();
+    mainLight.attenuation = RealtimeShadowAttenuation(inputData.shadowCoord, 0.0);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
@@ -563,8 +553,8 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
-    Light mainLight = GetMainLight(inputData.positionWS);
-    mainLight.attenuation *= RealtimeShadowAttenuation(inputData.shadowCoord);
+    Light mainLight = GetMainLight();
+    mainLight.attenuation = RealtimeShadowAttenuation(inputData.shadowCoord, 0.0);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;

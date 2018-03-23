@@ -61,9 +61,10 @@ inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
     return attenuation;
 }
 
-inline real SampleShadowmap(float4 shadowCoord)
+inline real SampleShadowmap(float4 shadowCoord, float isPerspectiveProjection = 1.0)
 {
-    shadowCoord.xyz /= shadowCoord.w;
+    if (isPerspectiveProjection == 0.0)
+        shadowCoord.xyz /= shadowCoord.w;
 
     real attenuation;
 
@@ -159,7 +160,7 @@ float4 ComputeShadowCoord(float4 clipPos)
     return ComputeScreenPos(clipPos);
 }
 
-half RealtimeShadowAttenuation(float4 shadowCoord)
+half RealtimeShadowAttenuation(float4 shadowCoord, float isPerspectiveProjection = 1.0)
 {
 #ifndef _SHADOWS_ENABLED
     return 1.0h;
@@ -171,7 +172,7 @@ half RealtimeShadowAttenuation(float4 shadowCoord)
     return SampleScreenSpaceShadowMap(shadowCoord);
 #else
 
-    return SampleShadowmap(shadowCoord);
+    return SampleShadowmap(shadowCoord, isPerspectiveProjection);
 #endif
 }
 
