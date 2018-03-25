@@ -12,9 +12,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public static int _MainLightPosition;
         public static int _MainLightColor;
-        public static int _MainLightDistanceAttenuation;
-        public static int _MainLightSpotDir;
-        public static int _MainLightSpotAttenuation;
         public static int _MainLightCookie;
         public static int _WorldToLight;
 
@@ -26,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int _AdditionalLightSpotAttenuation;
     }
 
-    public static class ShadowConstantBuffer
+    public static class DirectionalShadowConstantBuffer
     {
         public static int _WorldToShadow;
         public static int _ShadowData;
@@ -37,5 +34,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int _ShadowOffset2;
         public static int _ShadowOffset3;
         public static int _ShadowmapSize;
+    }
+
+    public static class LocalShadowConstantBuffer
+    {
+        public static int _LocalWorldToShadow;
+        public static int _LocalShadowData;
+        public static int _LocalShadowOffset0;
+        public static int _LocalShadowOffset1;
+        public static int _LocalShadowOffset2;
+        public static int _LocalShadowOffset3;
+        public static int _LocalShadowmapSize;
     }
 }

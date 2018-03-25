@@ -15,15 +15,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     [Serializable]
     public class ShadowSettings
     {
-        public bool     enabled;
-        public bool     screenSpace;
-        public int      shadowAtlasWidth;
-        public int      shadowAtlasHeight;
+        public bool enabled;
+        public bool screenSpace;
+        public int shadowAtlasWidth;
+        public int shadowAtlasHeight;
 
-        public float    maxShadowDistance;
-        public int      directionalLightCascadeCount;
-        public Vector3  directionalLightCascades;
-        public float    directionalLightNearPlaneOffset;
+        public float maxShadowDistance;
+        public int directionalLightCascadeCount;
+        public Vector3 directionalLightCascades;
+        public float directionalLightNearPlaneOffset;
 
         public RenderTextureFormat shadowmapTextureFormat;
         public RenderTextureFormat screenspaceShadowmapTextureFormat;
@@ -54,10 +54,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct ShadowSliceData
     {
-        public Matrix4x4    shadowTransform;
-        public int          atlasX;
-        public int          atlasY;
-        public int          shadowResolution;
+        public Matrix4x4 shadowTransform;
+        public int atlasX;
+        public int atlasY;
+        public int shadowResolution;
     }
 
     public struct LightData
@@ -65,7 +65,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int pixelAdditionalLightsCount;
         public int totalAdditionalLightsCount;
         public int mainLightIndex;
-        public LightShadows shadowMapSampleType;
     }
 
     public enum MixedLightingSetup
@@ -102,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Lights are culled per-object. This holds the maximum amount of lights that can be shaded per-object.
         // The engine fills in the lights indices per-object in unity4_LightIndices0 and unity_4LightIndices1
-        private static readonly int kMaxPerObjectLights = 8;
+        private static readonly int kMaxPerObjectLights = 4;
 
         private static readonly int kMaxVertexLights = 4;
 
@@ -124,11 +123,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private const int kMaxCascades = 4;
         private int m_ShadowCasterCascadesCount;
-        private int m_ShadowMapRTID;
+        private int m_DirectionalShadowmapRTID;
+        private int m_AdditionalShadowmapRTID;
         private int m_ScreenSpaceShadowMapRTID;
         private Matrix4x4[] m_ShadowMatrices = new Matrix4x4[kMaxCascades + 1];
+        private Matrix4x4[] m_LocalLightShadowMatrices = new Matrix4x4[4];
         private RenderTargetIdentifier m_CurrCameraColorRT;
-        private RenderTexture m_ShadowMapRT;
+        private RenderTexture m_DirectionalShadowmapRT;
+        private RenderTexture m_AdditionalShadowmapRT;
         private RenderTargetIdentifier m_ScreenSpaceShadowMapRT;
         private RenderTargetIdentifier m_ColorRT;
         private RenderTargetIdentifier m_CopyColorRT;
@@ -148,7 +150,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Vector4 m_DirectionalShadowSplitRadii;
 
         private ShadowSettings m_ShadowSettings = ShadowSettings.Default;
-        private ShadowSliceData[] m_ShadowSlices = new ShadowSliceData[kMaxCascades];
+        private ShadowSliceData[] m_ShadowCascadeSlices = new ShadowSliceData[kMaxCascades];
+        private ShadowSliceData[] m_AddtionalShadowSlices = new ShadowSliceData[kMaxPerObjectLights];
+        private LightShadows m_ShadowSampling;
+        private LightShadows m_LocalLightShadowSampling;
+        private int m_LocalLightShadowResolution = 512;
+        private int m_LocalLightShadowIndex;
 
         // Pipeline pass names
         private static readonly ShaderPassName m_DepthPrepass = new ShaderPassName("DepthOnly");
@@ -202,9 +209,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Lights are culled per-camera. Therefore we need to reset light buffers on each camera render
             PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
-            PerCameraBuffer._MainLightDistanceAttenuation = Shader.PropertyToID("_MainLightDistanceAttenuation");
-            PerCameraBuffer._MainLightSpotDir = Shader.PropertyToID("_MainLightSpotDir");
-            PerCameraBuffer._MainLightSpotAttenuation = Shader.PropertyToID("_MainLightSpotAttenuation");
             PerCameraBuffer._MainLightCookie = Shader.PropertyToID("_MainLightCookie");
             PerCameraBuffer._WorldToLight = Shader.PropertyToID("_WorldToLight");
             PerCameraBuffer._AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
@@ -214,17 +218,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
 
-            ShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_WorldToShadow");
-            ShadowConstantBuffer._ShadowData = Shader.PropertyToID("_ShadowData");
-            ShadowConstantBuffer._DirShadowSplitSpheres = Shader.PropertyToID("_DirShadowSplitSpheres");
-            ShadowConstantBuffer._DirShadowSplitSphereRadii = Shader.PropertyToID("_DirShadowSplitSphereRadii");
-            ShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_ShadowOffset0");
-            ShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_ShadowOffset1");
-            ShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_ShadowOffset2");
-            ShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_ShadowOffset3");
-            ShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
+            DirectionalShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_WorldToShadow");
+            DirectionalShadowConstantBuffer._ShadowData = Shader.PropertyToID("_ShadowData");
+            DirectionalShadowConstantBuffer._DirShadowSplitSpheres = Shader.PropertyToID("_DirShadowSplitSpheres");
+            DirectionalShadowConstantBuffer._DirShadowSplitSphereRadii = Shader.PropertyToID("_DirShadowSplitSphereRadii");
+            DirectionalShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_ShadowOffset0");
+            DirectionalShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_ShadowOffset1");
+            DirectionalShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_ShadowOffset2");
+            DirectionalShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_ShadowOffset3");
+            DirectionalShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
 
-            m_ShadowMapRTID = Shader.PropertyToID("_ShadowMap");
+            LocalShadowConstantBuffer._LocalWorldToShadow = Shader.PropertyToID("_LocalWorldToShadowAtlas");
+            LocalShadowConstantBuffer._LocalShadowData = Shader.PropertyToID("_LocalShadowData");
+            LocalShadowConstantBuffer._LocalShadowOffset0 = Shader.PropertyToID("_LocalShadowOffset0");
+            LocalShadowConstantBuffer._LocalShadowOffset1 = Shader.PropertyToID("_LocalShadowOffset1");
+            LocalShadowConstantBuffer._LocalShadowOffset2 = Shader.PropertyToID("_LocalShadowOffset2");
+            LocalShadowConstantBuffer._LocalShadowOffset3 = Shader.PropertyToID("_LocalShadowOffset3");
+            LocalShadowConstantBuffer._LocalShadowmapSize = Shader.PropertyToID("_LocalShadowmapSize");
+
+            m_DirectionalShadowmapRTID = Shader.PropertyToID("_ShadowMap");
+            m_AdditionalShadowmapRTID = Shader.PropertyToID("_LocalShadowMapAtlas");
             m_ScreenSpaceShadowMapRTID = Shader.PropertyToID("_ScreenSpaceShadowMap");
 
             CameraRenderTargetID.color = Shader.PropertyToID("_CameraColorRT");
@@ -343,10 +356,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
 
-                bool shadows = ShadowPass(visibleLights, ref context, ref lightData);
+                bool screenspaceShadows = ShadowPass(visibleLights, ref context, ref lightData);
 
                 FrameRenderingConfiguration frameRenderingConfiguration;
-                SetupFrameRenderingConfiguration(out frameRenderingConfiguration, shadows, stereoEnabled, sceneViewCamera);
+                SetupFrameRenderingConfiguration(out frameRenderingConfiguration, screenspaceShadows, stereoEnabled, sceneViewCamera);
                 SetupIntermediateResources(frameRenderingConfiguration, ref context);
 
                 // SetupCameraProperties does the following:
@@ -362,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
                     DepthPass(ref context, frameRenderingConfiguration);
 
-                if (shadows && m_ShadowSettings.screenSpace)
+                if (screenspaceShadows)
                     ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
 
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
@@ -373,11 +386,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (sceneViewCamera)
                     CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
 #endif
-                if (m_ShadowMapRT)
-                {
-                    cmd.ReleaseTemporaryRT(m_ShadowMapRTID);
-                    m_ShadowMapRT = null;
-                }
 
                 cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowMapRTID);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depthCopy);
@@ -391,47 +399,49 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CommandBufferPool.Release(cmd);
 
                 context.Submit();
+
+                if (m_DirectionalShadowmapRT)
+                {
+                    RenderTexture.ReleaseTemporary(m_DirectionalShadowmapRT);
+                    m_DirectionalShadowmapRT = null;
+                }
+
+                if (m_AdditionalShadowmapRT)
+                {
+                    RenderTexture.ReleaseTemporary(m_AdditionalShadowmapRT);
+                    m_AdditionalShadowmapRT = null;
+                }
             }
         }
 
         private bool ShadowPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
         {
-            m_ShadowMapRT = null;
-            if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
+            m_DirectionalShadowmapRT = null;
+            m_AdditionalShadowmapRT = null;
+            m_LocalLightShadowIndex = -1;
+            m_ShadowSampling = LightShadows.None;
+            m_LocalLightShadowSampling = LightShadows.None;
+
+            bool directionalShadowmapRendered = false;
+            if (m_Asset.AreShadowsEnabled())
             {
-                VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
-
-                if (mainLight.light.shadows != LightShadows.None)
+                if (lightData.mainLightIndex != -1)
                 {
-                    if (!LightweightUtils.IsSupportedShadowType(mainLight.lightType))
-                    {
-                        Debug.LogWarning("Only directional and spot shadows are supported by LightweightPipeline.");
-                        return false;
-                    }
+                    VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
 
-                    // There's no way to map shadow light indices. We need to pass in the original unsorted index.
-                    // If no additional lights then no light sorting is performed and the indices match.
-                    int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
-                    bool shadowsRendered = RenderShadows(ref m_CullResults, ref mainLight, shadowOriginalIndex, ref context);
-                    if (shadowsRendered)
+                    if (mainLight.lightType == LightType.Directional && mainLight.light.shadows != LightShadows.None)
                     {
-                        lightData.shadowMapSampleType = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS) ? LightShadows.Hard : mainLight.light.shadows;
-
-                        // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
-                        // GLES2 platform is forced to hard single cascade shadows.
-                        if (!m_ShadowSettings.screenSpace)
-                            lightData.shadowMapSampleType = LightShadows.Hard;
+                        // There's no way to map shadow light indices. We need to pass in the original unsorted index.
+                        // If no additional lights then no light sorting is performed and the indices match.
+                        int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
+                        directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref mainLight, shadowOriginalIndex, ref context);
                     }
-                    else
-                    {
-                        lightData.shadowMapSampleType = LightShadows.None;
-                    }
-
-                    return shadowsRendered;
                 }
-            }
 
-            return false;
+                RenderAdditionalShadowmapAtlas(visibleLights, ref context);
+            }
+            
+            return directionalShadowmapRendered && m_ShadowSettings.screenSpace;
         }
 
         private void ShadowCollectPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData, FrameRenderingConfiguration frameRenderingConfiguration)
@@ -648,7 +658,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool shadows, bool stereoEnabled, bool sceneViewCamera)
+        private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool screenspaceShadows, bool stereoEnabled, bool sceneViewCamera)
         {
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
@@ -687,7 +697,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (sceneViewCamera)
                 m_RequireDepthTexture = true;
 
-            if (shadows)
+            if (screenspaceShadows)
             {
                 m_RequireDepthTexture = m_ShadowSettings.screenSpace;
 
@@ -706,7 +716,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
                 // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
                 // Screen space shadows require depth before opaque shading.
-                if (!msaaEnabled && !shadows)
+                if (!msaaEnabled && !screenspaceShadows)
                 {
                     bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
                     m_DepthRenderBuffer = true;
@@ -807,8 +817,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int visibleLightsCount = Math.Min(visibleLights.Count, m_Asset.MaxPixelLights);
             m_SortedLightIndexMap.Clear();
-
-            lightData.shadowMapSampleType = LightShadows.None;
 
             if (visibleLightsCount <= 1)
                 lightData.mainLightIndex = GetMainLight(visibleLights);
@@ -1048,7 +1056,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, Vector4.zero);
 
-                // Clear to default all light cosntant data
+                // Clear to default all light constant data
                 for (int i = 0; i < kMaxVisibleLights; ++i)
                     InitializeLightConstants(lights, -1, out m_LightPositions[additionalLightIndex],
                             out m_LightColors[additionalLightIndex],
@@ -1111,13 +1119,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
-        private void SetupShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, ref ScriptableRenderContext context)
+        private void SetupDirectionalShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, ref ScriptableRenderContext context)
         {
             Light light = shadowLight.light;
 
             int cascadeCount = m_ShadowCasterCascadesCount;
             for (int i = 0; i < kMaxCascades; ++i)
-                m_ShadowMatrices[i] = (cascadeCount >= i) ? m_ShadowSlices[i].shadowTransform : Matrix4x4.identity;
+                m_ShadowMatrices[i] = (cascadeCount >= i) ? m_ShadowCascadeSlices[i].shadowTransform : Matrix4x4.identity;
 
             // We setup and additional a no-op WorldToShadow matrix in the last index
             // because the ComputeCascadeIndex function in Shadows.hlsl can return an index
@@ -1128,18 +1136,42 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
             float invHalfShadowResolution = 0.5f * invShadowResolution;
-            cmd.Clear();
-            cmd.SetGlobalTexture(m_ShadowMapRTID, m_ShadowMapRT);
-            cmd.SetGlobalMatrixArray(ShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
-            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
-            cmd.SetGlobalVectorArray(ShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
-            cmd.SetGlobalVector(ShadowConstantBuffer._DirShadowSplitSphereRadii, m_DirectionalShadowSplitRadii);
-            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset0, new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset1, new Vector4(invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowOffset3, new Vector4(invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
-            cmd.SetGlobalVector(ShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
+            cmd.SetGlobalTexture(m_DirectionalShadowmapRTID, m_DirectionalShadowmapRT);
+            cmd.SetGlobalMatrixArray(DirectionalShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVectorArray(DirectionalShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSphereRadii, m_DirectionalShadowSplitRadii);
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset0, new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset1, new Vector4(invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset3, new Vector4(invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_Asset.ShadowAtlasResolution, m_Asset.ShadowAtlasResolution));
             context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+        }
+
+        private void SetupLocalLightsShadowReceiverConstants(CommandBuffer cmd, List<VisibleLight> visibleLights, ref ScriptableRenderContext context)
+        {
+            VisibleLight shadowLight = visibleLights[m_LocalLightShadowIndex];
+
+            m_LocalLightShadowMatrices[0] = m_AddtionalShadowSlices[0].shadowTransform;
+            m_LocalLightShadowMatrices[1] = Matrix4x4.identity;
+            m_LocalLightShadowMatrices[2] = Matrix4x4.identity;
+            m_LocalLightShadowMatrices[3] = Matrix4x4.identity;
+
+            float invShadowResolution = 1.0f / m_LocalLightShadowResolution;
+            float invHalfShadowResolution = 0.5f * invShadowResolution;
+
+            cmd.SetGlobalTexture(m_AdditionalShadowmapRTID, m_AdditionalShadowmapRT);
+            cmd.SetGlobalMatrixArray(LocalShadowConstantBuffer._LocalWorldToShadow, m_LocalLightShadowMatrices);
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowData, new Vector4(shadowLight.light.shadowStrength, 0.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset0, new Vector4(-invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset1, new Vector4(invHalfShadowResolution, -invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset2, new Vector4(-invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset3, new Vector4(invHalfShadowResolution, invHalfShadowResolution, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowmapSize, new Vector4(invShadowResolution, invShadowResolution, m_LocalLightShadowResolution, m_LocalLightShadowResolution));
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData, List<VisibleLight> visibleLights)
@@ -1147,13 +1179,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
 
             int mainLightIndex = lightData.mainLightIndex;
-            //TIM: Not used in shader for V1 to reduce keywords
-            CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_DIRECTIONAL", mainLightIndex == -1 || visibleLights[mainLightIndex].lightType == LightType.Directional);
-            //TIM: Not used in shader for V1 to reduce keywords
-            CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_SPOT", mainLightIndex != -1 && visibleLights[mainLightIndex].lightType == LightType.Spot);
 
-            //TIM: Not used in shader for V1 to reduce keywords
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", lightData.shadowMapSampleType != LightShadows.None);
+            CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", m_ShadowSampling != LightShadows.None);
+            CoreUtils.SetKeyword(cmd, "_LOCAL_SHADOWS_ENABLED", m_LocalLightShadowSampling != LightShadows.None);
 
             //TIM: Not used in shader for V1 to reduce keywords
             CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
@@ -1166,99 +1194,133 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetShadowCollectPassKeywords(CommandBuffer cmd, VisibleLight shadowLight, ref LightData lightData)
         {
-            bool cascadeShadows = shadowLight.lightType == LightType.Directional && m_Asset.CascadeCount > 1;
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_SOFT", lightData.shadowMapSampleType == LightShadows.Soft);
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_CASCADE", cascadeShadows);
+            CoreUtils.SetKeyword(cmd, "_SHADOWS_SOFT", m_ShadowSampling == LightShadows.Soft);
+            CoreUtils.SetKeyword(cmd, "_SHADOWS_CASCADE", m_Asset.CascadeCount > 1);
         }
 
-        private bool RenderShadows(ref CullResults cullResults, ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
+        private bool RenderDirectionalCascadeShadowmap(ref VisibleLight shadowLight, int shadowLightIndex, ref ScriptableRenderContext context)
         {
+            CommandBuffer cmd = CommandBufferPool.Get("Prepare Directional Shadowmap");
             m_ShadowCasterCascadesCount = m_ShadowSettings.directionalLightCascadeCount;
 
-            if (shadowLight.lightType == LightType.Spot)
-                m_ShadowCasterCascadesCount = 1;
-
             int shadowResolution = GetMaxTileResolutionInAtlas(m_ShadowSettings.shadowAtlasWidth, m_ShadowSettings.shadowAtlasHeight, m_ShadowCasterCascadesCount);
-
-            Bounds bounds;
-            if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
-                return false;
-
             float shadowNearPlane = m_Asset.ShadowNearOffset;
 
-            Matrix4x4 view, proj;
-            var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
-            bool success = false;
+            Bounds bounds;
+            if (!m_CullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
+                return false;
 
-            var cmd = CommandBufferPool.Get("Prepare Shadowmap");
+            Matrix4x4 view, proj;
+            var settings = new DrawShadowsSettings(m_CullResults, shadowLightIndex);
+
             RenderTextureDescriptor shadowmapDescriptor = new RenderTextureDescriptor(m_ShadowSettings.shadowAtlasWidth,
                 m_ShadowSettings.shadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, kShadowBufferBits);
             shadowmapDescriptor.shadowSamplingMode = ShadowSamplingMode.CompareDepths;
-            m_ShadowMapRT = RenderTexture.GetTemporary(shadowmapDescriptor);
-            m_ShadowMapRT.filterMode = FilterMode.Bilinear;
-            m_ShadowMapRT.wrapMode = TextureWrapMode.Clamp;
+            m_DirectionalShadowmapRT = RenderTexture.GetTemporary(shadowmapDescriptor);
+            m_DirectionalShadowmapRT.filterMode = FilterMode.Bilinear;
+            m_DirectionalShadowmapRT.wrapMode = TextureWrapMode.Clamp;
 
             // LightweightPipeline.SetRenderTarget is meant to be used with camera targets, not shadowmaps
-            CoreUtils.SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
+            CoreUtils.SetRenderTarget(cmd, m_DirectionalShadowmapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
 
-            if (shadowLight.lightType == LightType.Spot)
+            bool success = false;
+            for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
             {
-                success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj,
+                success = m_CullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
+                        cascadeIndex, m_ShadowCasterCascadesCount, m_ShadowSettings.directionalLightCascades, shadowResolution, shadowNearPlane, out view, out proj,
                         out settings.splitData);
 
-                if (success)
-                {
-                    SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
-                    SetupShadowSliceTransform(0, shadowResolution, proj, view);
-                    RenderShadowSlice(cmd, ref context, 0, proj, view, settings);
-                }
-            }
-            else if (shadowLight.lightType == LightType.Directional)
-            {
-                for (int cascadeIdx = 0; cascadeIdx < m_ShadowCasterCascadesCount; ++cascadeIdx)
-                {
-                    success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
-                            cascadeIdx, m_ShadowCasterCascadesCount, m_ShadowSettings.directionalLightCascades, shadowResolution, shadowNearPlane, out view, out proj,
-                            out settings.splitData);
+                float cullingSphereRadius = settings.splitData.cullingSphere.w;
+                m_DirectionalShadowSplitDistances[cascadeIndex] = settings.splitData.cullingSphere;
+                m_DirectionalShadowSplitRadii[cascadeIndex] = cullingSphereRadius * cullingSphereRadius;
 
-                    float cullingSphereRadius = settings.splitData.cullingSphere.w;
-                    m_DirectionalShadowSplitDistances[cascadeIdx] = settings.splitData.cullingSphere;
-                    m_DirectionalShadowSplitRadii[cascadeIdx] = cullingSphereRadius * cullingSphereRadius;
+                if (!success)
+                    break;
 
-                    if (!success)
-                        break;
+                int atlasX = (cascadeIndex % 2) * shadowResolution;
+                int atlasY = (cascadeIndex / 2) * shadowResolution;
+                float atlasWidth = (float)m_ShadowSettings.shadowAtlasWidth;
+                float atlasHeight = (float)m_ShadowSettings.shadowAtlasHeight;
+                Rect shadowSliceRect = new Rect((float)atlasX, (float)atlasY, atlasWidth, atlasHeight);
 
-                    SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
-                    SetupShadowSliceTransform(cascadeIdx, shadowResolution, proj, view);
-                    RenderShadowSlice(cmd, ref context, cascadeIdx, proj, view, settings);
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Only spot and directional shadow casters are supported in lightweight pipeline");
+                SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
+                SetupShadowSliceTransform(ref shadowSliceRect, shadowResolution, proj, view, out m_ShadowCascadeSlices[cascadeIndex]);
+                RenderShadowSlice(cmd, ref context, ref m_ShadowCascadeSlices[cascadeIndex], proj, view, settings);
             }
 
             if (success)
-                SetupShadowReceiverConstants(cmd, shadowLight, ref context);
+            {
+                m_ShadowSampling = (m_Asset.ShadowSetting != ShadowType.SOFT_SHADOWS) ? LightShadows.Hard : shadowLight.light.shadows;
 
+                // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
+                // GLES2 platform is forced to hard single cascade shadows.
+                if (!m_ShadowSettings.screenSpace)
+                    m_ShadowSampling = LightShadows.Hard;
+
+                SetupDirectionalShadowReceiverConstants(cmd, shadowLight, ref context);
+            }
+
+            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             return success;
         }
 
-        private void SetupShadowSliceTransform(int cascadeIndex, int shadowResolution, Matrix4x4 proj, Matrix4x4 view)
+        private bool RenderAdditionalShadowmapAtlas(List<VisibleLight> visibleLights, ref ScriptableRenderContext context)
         {
-            if (cascadeIndex >= kMaxCascades)
+            CommandBuffer cmd = CommandBufferPool.Get("Prepare Local Lights Shadowmap");
+            Matrix4x4 view, proj;
+            Bounds bounds;
+            bool success = false;
+            int shadowResolution = m_LocalLightShadowResolution;
+            int shadowSampling = 0;
+            
+            RenderTextureDescriptor shadowmapDescriptor = new RenderTextureDescriptor(shadowResolution, shadowResolution, m_ShadowSettings.shadowmapTextureFormat, kShadowBufferBits);
+            shadowmapDescriptor.shadowSamplingMode = ShadowSamplingMode.CompareDepths;
+            m_AdditionalShadowmapRT = RenderTexture.GetTemporary(shadowmapDescriptor);
+            m_AdditionalShadowmapRT.filterMode = FilterMode.Bilinear;
+            m_AdditionalShadowmapRT.wrapMode = TextureWrapMode.Clamp;
+
+            // LightweightPipeline.SetRenderTarget is meant to be used with camera targets, not shadowmaps
+            CoreUtils.SetRenderTarget(cmd, m_AdditionalShadowmapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
+
+            for (int i = 0; i < visibleLights.Count; ++i)
             {
-                Debug.LogError(String.Format("{0} is an invalid cascade index. Maximum of {1} cascades", cascadeIndex, kMaxCascades));
-                return;
+                VisibleLight shadowLight = visibleLights[i];
+
+                if (shadowLight.lightType != LightType.Spot)
+                    continue;
+
+                int shadowLightIndex = GetLightUnsortedIndex(i);
+                if (!m_CullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
+                    continue;
+
+                var settings = new DrawShadowsSettings(m_CullResults, shadowLightIndex);
+
+                success = m_CullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj, out settings.splitData);
+                if (success)
+                {
+                    Rect shadowSliceRect = new Rect(0.0f, 0.0f, shadowResolution, shadowResolution);
+                    SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
+                    SetupShadowSliceTransform(ref shadowSliceRect, shadowResolution, proj, view, out m_AddtionalShadowSlices[0]);
+                    RenderShadowSlice(cmd, ref context, ref m_AddtionalShadowSlices[0], proj, view, settings);
+                    m_LocalLightShadowIndex = i;
+                    shadowSampling = Math.Max(shadowSampling, (int)shadowLight.light.shadows);
+                    break;
+                }
             }
 
-            int atlasX = (cascadeIndex % 2) * shadowResolution;
-            int atlasY = (cascadeIndex / 2) * shadowResolution;
-            float atlasWidth = (float)m_ShadowSettings.shadowAtlasWidth;
-            float atlasHeight = (float)m_ShadowSettings.shadowAtlasHeight;
+            if (success)
+                SetupLocalLightsShadowReceiverConstants(cmd, visibleLights, ref context);
 
-            // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesn't
+            m_LocalLightShadowSampling = (LightShadows)Math.Min(shadowSampling, (int)m_Asset.ShadowSetting);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            return success;
+        }
+
+        private void SetupShadowSliceTransform(ref Rect shadowSliceRect, int shadowResolution, Matrix4x4 proj, Matrix4x4 view, out ShadowSliceData shadowSliceData)
+        {
+             // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesn't
             // apply z reversal to projection matrix. We need to do it manually here.
             if (SystemInfo.usesReversedZBuffer)
             {
@@ -1282,27 +1344,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             worldToShadow = textureScaleAndBias * worldToShadow;
 
             var cascadeAtlas = Matrix4x4.identity;
-            cascadeAtlas.m00 = (float)shadowResolution / atlasWidth;
-            cascadeAtlas.m11 = (float)shadowResolution / atlasHeight;
-            cascadeAtlas.m03 = (float)atlasX / atlasWidth;
-            cascadeAtlas.m13 = (float)atlasY / atlasHeight;
+            cascadeAtlas.m00 = (float)shadowResolution / shadowSliceRect.width;
+            cascadeAtlas.m11 = (float)shadowResolution / shadowSliceRect.height;
+            cascadeAtlas.m03 = shadowSliceRect.x / shadowSliceRect.width;
+            cascadeAtlas.m13 = shadowSliceRect.y / shadowSliceRect.height;
 
             // Apply cascade scale and offset
             worldToShadow = cascadeAtlas * worldToShadow;
 
-            m_ShadowSlices[cascadeIndex].atlasX = atlasX;
-            m_ShadowSlices[cascadeIndex].atlasY = atlasY;
-            m_ShadowSlices[cascadeIndex].shadowResolution = shadowResolution;
-            m_ShadowSlices[cascadeIndex].shadowTransform = worldToShadow;
+            shadowSliceData.atlasX = (int)shadowSliceRect.x;
+            shadowSliceData.atlasY = (int)shadowSliceRect.y;
+            shadowSliceData.shadowResolution = shadowResolution;
+            shadowSliceData.shadowTransform = worldToShadow;
         }
 
-        private void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context, int cascadeIndex,
+        private void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context, ref ShadowSliceData shadowSliceData,
             Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings)
         {
-            cmd.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
-                    m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
-            cmd.EnableScissorRect(new Rect(m_ShadowSlices[cascadeIndex].atlasX + 4, m_ShadowSlices[cascadeIndex].atlasY + 4,
-                m_ShadowSlices[cascadeIndex].shadowResolution - 8, m_ShadowSlices[cascadeIndex].shadowResolution - 8));
+            cmd.SetViewport(new Rect(shadowSliceData.atlasX, shadowSliceData.atlasY, shadowSliceData.shadowResolution, shadowSliceData.shadowResolution));
+            cmd.EnableScissorRect(new Rect(shadowSliceData.atlasX + 4, shadowSliceData.atlasY + 4, shadowSliceData.shadowResolution - 8, shadowSliceData.shadowResolution - 8));
 
             cmd.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(cmd);
