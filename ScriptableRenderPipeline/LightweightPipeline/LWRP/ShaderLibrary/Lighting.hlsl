@@ -150,12 +150,20 @@ Light GetMainLight()
     return light;
 }
 
-Light GetLight(int i, float3 positionWS)
+Light GetLight(half i, float3 positionWS)
 {
     LightInput lightInput;
-    half4 indices = (i < 4) ? unity_4LightIndices0 : unity_4LightIndices1;
-    int index = (i < 4) ? i : i - 4;
-    int lightIndex = indices[index];
+
+    // The following code is more optimal than indexing unity_4LightIndices0. 
+    // Conditional moves are branch free even on mali-400
+    // The compiler further optimizes the lessThan operation into a single vectorized op.
+    half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
+    int lightIndex = (i < 1.0h) ? lightIndex2.x : lightIndex2.y;
+
+    // The following code will turn into a branching madhouse on platforms that don't support
+    // dynamic indexing. Ideally we need to configure light data at a cluster of
+    // objects granularity level. We will only be able to do that when scriptable culling kicks in.
+    // TODO: Use StructuredBuffer on PC/Console and profile access speed on mobile that support it.
     lightInput.position = _AdditionalLightPosition[lightIndex];
     lightInput.color = _AdditionalLightColor[lightIndex].rgb;
     lightInput.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex];
@@ -541,7 +549,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(i, inputData.positionWS);
+        Light light = GetLight(half(i), inputData.positionWS);
         light.attenuation *= LocalLightRealtimeShadowAttenuation(inputData.shadowCoord, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
@@ -566,7 +574,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(i, inputData.positionWS);
+        Light light = GetLight(half(i), inputData.positionWS);
         light.attenuation *= LocalLightRealtimeShadowAttenuation(inputData.shadowCoord, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
