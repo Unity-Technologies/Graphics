@@ -428,7 +428,7 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
 
     // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
     // We only subtract the main direction light. This is accounted in the contribution term below.
-    half shadowStrength = GetShadowStrength();
+    half shadowStrength = _ShadowData.x;
     half contributionTerm = saturate(dot(mainLight.direction, normalWS)) * (1.0 - _MainLightPosition.w);
     half3 lambert = mainLight.color * contributionTerm;
     half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.attenuation);
@@ -531,7 +531,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     Light mainLight = GetMainLight();
-    mainLight.attenuation = RealtimeShadowAttenuation(inputData.shadowCoord, 0.0);
+    mainLight.attenuation = MainLightRealtimeShadowAttenuation(inputData.shadowCoord);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
@@ -542,6 +542,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     for (int i = 0; i < pixelLightCount; ++i)
     {
         Light light = GetLight(i, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(inputData.shadowCoord, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
@@ -554,7 +555,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight();
-    mainLight.attenuation = RealtimeShadowAttenuation(inputData.shadowCoord, 0.0);
+    mainLight.attenuation = MainLightRealtimeShadowAttenuation(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * mainLight.attenuation;
@@ -566,6 +567,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     for (int i = 0; i < pixelLightCount; ++i)
     {
         Light light = GetLight(i, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(inputData.shadowCoord, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
