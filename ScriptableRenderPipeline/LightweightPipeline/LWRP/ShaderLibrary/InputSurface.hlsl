@@ -11,18 +11,24 @@
 #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, uv)
 #endif
 
-CBUFFER_START(UnityPerMaterial)
+CBUFFER_START(UnityPerMaterial_Common)
 float4 _MainTex_ST;
 half4 _Color;
 half4 _SpecColor;
 half4 _EmissionColor;
 half _Cutoff;
+CBUFFER_END
+
+CBUFFER_START(UnityPerMaterial_Simple)
+half _Shininess;
+CBUFFER_END
+
+CBUFFER_START(UnityPerMaterial_PBS)
 half _Glossiness;
 half _GlossMapScale;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
-half _Shininess;
 CBUFFER_END
 
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
