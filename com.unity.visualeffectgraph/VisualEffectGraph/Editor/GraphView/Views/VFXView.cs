@@ -250,8 +250,6 @@ namespace UnityEditor.VFX.UI
             mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
 
 
-            
-
             if (d.modelDescriptor is string)
             {
                 string path = d.modelDescriptor as string;
@@ -755,15 +753,15 @@ namespace UnityEditor.VFX.UI
                     {
                         // SyncEdges could be called before the VFXNodeUI have been created, it that case ignore them and trust that they will be created later when the
                         // nodes arrive.
-                        if( GetNodeByController(newController.input.sourceNode) == null || GetNodeByController(newController.output.sourceNode) == null )
+                        if (GetNodeByController(newController.input.sourceNode) == null || GetNodeByController(newController.output.sourceNode) == null)
                         {
-                            if( change != VFXViewController.Change.dataEdge)
+                            if (change != VFXViewController.Change.dataEdge)
                             {
                                 Debug.LogError("Can't match nodes for a data edge after nodes should have been updated.");
                             }
                             continue;
                         }
-                            
+
                         var newElement = new VFXDataEdge();
                         AddElement(newElement);
                         newElement.controller = newController;
@@ -1082,7 +1080,7 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeUI GetNodeByController(VFXNodeController controller)
         {
-            if( controller is VFXBlockController)
+            if (controller is VFXBlockController)
             {
                 var blockController = (controller as VFXBlockController);
                 VFXContextUI context = GetNodeByController(blockController.contextController) as VFXContextUI;
@@ -1098,14 +1096,14 @@ namespace UnityEditor.VFX.UI
                 return null;
 
             VFXNodeUI node = GetNodeByController(controller.sourceNode);
-            if( node == null)
+            if (node == null)
             {
                 Debug.LogError("Can't find the node for a given node controller");
                 return null;
             }
 
             VFXDataAnchor anchor = node.GetPorts(controller.direction == Direction.Input, controller.direction == Direction.Output).FirstOrDefault(t => t.controller == controller);
-            if( anchor == null)
+            if (anchor == null)
             {
                 // Can happen because the order of the DataWatch is not controlled
                 node.ForceUpdate();
@@ -1425,8 +1423,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)
-        {   
-            if( evt.commandName == "SelectAll")
+        {
+            if (evt.commandName == "SelectAll")
             {
                 evt.StopPropagation();
                 if (evt.imguiEvent != null)
@@ -1438,12 +1436,11 @@ namespace UnityEditor.VFX.UI
 
         public void ExecuteCommand(ExecuteCommandEvent e)
         {
-            if( e.commandName == "SelectAll" )
+            if (e.commandName == "SelectAll")
             {
-
                 ClearSelection();
 
-                foreach(var element in graphElements.ToList())
+                foreach (var element in graphElements.ToList())
                 {
                     AddToSelection(element);
                 }
@@ -1455,12 +1452,14 @@ namespace UnityEditor.VFX.UI
         {
             controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
         }
+
         void OnCreateNodeInGroupNode(ContextualMenu.MenuAction e)
         {
             Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
             //The targeted groupnode will be determined by a PickAll later
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, m_NodeProvider);
         }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is VFXGroupNode)

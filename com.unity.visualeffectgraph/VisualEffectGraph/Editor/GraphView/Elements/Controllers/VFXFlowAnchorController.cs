@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual string title
         {
-            get{return "";}
+            get {return ""; }
         }
     }
 
@@ -65,10 +65,11 @@ namespace UnityEditor.VFX.UI
 
         public override string title
         {
-            get{
-                if( owner is VFXBasicSpawner)
+            get
+            {
+                if (owner is VFXBasicSpawner)
                 {
-                    if( slotIndex == 0)
+                    if (slotIndex == 0)
                     {
                         return "Start";
                     }

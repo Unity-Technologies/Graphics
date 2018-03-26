@@ -152,11 +152,10 @@ namespace UnityEditor.VFX.UI
                                 return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
                             }
                         }
-                        catch(System.Exception e)
+                        catch (System.Exception e)
                         {
                             Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
-                        
                     }
 
                     return VFXConverter.ConvertTo(model.value, portType);

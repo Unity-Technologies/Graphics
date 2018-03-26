@@ -44,7 +44,6 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void OnNewController()
         {
-
         }
 
         public VisualElement settingsContainer {get; private set; }
