@@ -179,13 +179,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private PostProcessLayer m_CameraPostProcessLayer;
 
         private CameraComparer m_CameraComparer = new CameraComparer();
-        private LightComparer m_LightComparer = new LightComparer();
-
-        // Maps from sorted light indices to original unsorted. We need this for shadow rendering
-        // and per-object light lists.
-        private List<int> m_SortedLightIndexMap = new List<int>();
-
-        private Dictionary<VisibleLight, int> m_VisibleLightsIDMap = new Dictionary<VisibleLight, int>(new LightEqualityComparer());
 
         private Mesh m_BlitQuad;
         private Material m_BlitMaterial;
@@ -430,14 +423,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
 
                     if (mainLight.lightType == LightType.Directional && mainLight.light.shadows != LightShadows.None)
-                    {
-                        // There's no way to map shadow light indices. We need to pass in the original unsorted index.
-                        // If no additional lights then no light sorting is performed and the indices match.
-                        int shadowOriginalIndex = (lightData.totalAdditionalLightsCount > 0) ? GetLightUnsortedIndex(lightData.mainLightIndex) : lightData.mainLightIndex;
-                        directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref mainLight, shadowOriginalIndex, ref context);
-                    }
+                        directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref mainLight, lightData.mainLightIndex, ref context);
                 }
 
+                if (lightData.pixelAdditionalLightsCount > 0)
                 RenderAdditionalShadowmapAtlas(visibleLights, ref context);
             }
             
@@ -816,12 +805,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeLightData(List<VisibleLight> visibleLights, out LightData lightData)
         {
             int visibleLightsCount = Math.Min(visibleLights.Count, m_Asset.MaxPixelLights);
-            m_SortedLightIndexMap.Clear();
-
-            if (visibleLightsCount <= 1)
-                lightData.mainLightIndex = GetMainLight(visibleLights);
-            else
-                lightData.mainLightIndex = SortLights(visibleLights);
+            lightData.mainLightIndex = GetMainLight(visibleLights);
 
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
             int mainLightPresent = (lightData.mainLightIndex >= 0) ? 1 : 0;
@@ -833,26 +817,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightData.totalAdditionalLightsCount = additionalPixelLightsCount + vertexLightCount;
 
             m_MixedLightingSetup = MixedLightingSetup.None;
-        }
-
-        private int SortLights(List<VisibleLight> visibleLights)
-        {
-            int totalVisibleLights = visibleLights.Count;
-
-            m_VisibleLightsIDMap.Clear();
-            for (int i = 0; i < totalVisibleLights; ++i)
-                m_VisibleLightsIDMap.Add(visibleLights[i], i);
-
-            // Sorts light so we have all directionals first, then local lights.
-            // Directionals are sorted further by shadow, cookie and intensity
-            // Locals are sorted further by shadow, cookie and distance to camera
-            m_LightComparer.CurrCamera = m_CurrCamera;
-            visibleLights.Sort(m_LightComparer);
-
-            for (int i = 0; i < totalVisibleLights; ++i)
-                m_SortedLightIndexMap.Add(m_VisibleLightsIDMap[visibleLights[i]]);
-
-            return GetMainLight(visibleLights);
         }
 
         // How main light is decided:
@@ -1017,34 +981,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupAdditionalListConstants(CommandBuffer cmd, List<VisibleLight> lights, ref LightData lightData)
         {
-            int additionalLightIndex = 0;
-
             if (lightData.totalAdditionalLightsCount > 0)
             {
                 // We need to update per-object light list with the proper map to our global additional light buffer
                 // First we initialize all lights in the map to -1 to tell the system to discard main light index and
                 // remaining lights in the scene that don't fit the max additional light buffer (kMaxVisibileAdditionalLights)
                 int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
-                for (int i = 0; i < lights.Count; ++i)
-                    perObjectLightIndexMap[i] = -1;
-
-                for (int i = 0; i < lights.Count && additionalLightIndex < kMaxVisibleLights; ++i)
+                int directionalLightCount = 0;
+                int localLights = 0;
+                for (int i = 0; i < lights.Count && localLights < kMaxVisibleLights; ++i)
                 {
-                    if (i != lightData.mainLightIndex)
+                    VisibleLight light = lights[i];
+                    if (light.lightType == LightType.Directional)
                     {
-                        // The engine performs per-object light culling and initialize 8 light indices into two vec4 constants unity_4LightIndices0 and unity_4LightIndices1.
-                        // In the shader we iterate over each visible light using the indices provided in these constants to index our global light buffer
-                        // ex: first light position would be m_LightPosisitions[unity_4LightIndices[0]];
-
-                        // However since we sorted the lights we need to tell the engine how to map the original/unsorted indices to our global buffer
-                        // We do it by settings the perObjectLightIndexMap to the appropriate additionalLightIndex.
-                        perObjectLightIndexMap[GetLightUnsortedIndex(i)] = additionalLightIndex;
-                        InitializeLightConstants(lights, i, out m_LightPositions[additionalLightIndex],
-                            out m_LightColors[additionalLightIndex],
-                            out m_LightDistanceAttenuations[additionalLightIndex],
-                            out m_LightSpotDirections[additionalLightIndex],
-                            out m_LightSpotAttenuations[additionalLightIndex]);
-                        additionalLightIndex++;
+                        perObjectLightIndexMap[i] = -1;
+                        directionalLightCount++;
+                    }
+                    else
+                    {
+                        perObjectLightIndexMap[i] -= directionalLightCount;
+                        InitializeLightConstants(lights, i, out m_LightPositions[localLights],
+                            out m_LightColors[localLights],
+                            out m_LightDistanceAttenuations[localLights],
+                            out m_LightSpotDirections[localLights],
+                            out m_LightSpotAttenuations[localLights]);
+                        localLights++;
                     }
                 }
                 m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
@@ -1058,11 +1019,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // Clear to default all light constant data
                 for (int i = 0; i < kMaxVisibleLights; ++i)
-                    InitializeLightConstants(lights, -1, out m_LightPositions[additionalLightIndex],
-                            out m_LightColors[additionalLightIndex],
-                            out m_LightDistanceAttenuations[additionalLightIndex],
-                            out m_LightSpotDirections[additionalLightIndex],
-                            out m_LightSpotAttenuations[additionalLightIndex]);
+                    InitializeLightConstants(lights, -1, out m_LightPositions[i],
+                            out m_LightColors[i],
+                            out m_LightDistanceAttenuations[i],
+                            out m_LightSpotDirections[i],
+                            out m_LightSpotAttenuations[i]);
             }
 
             cmd.SetGlobalVectorArray(PerCameraBuffer._AdditionalLightPosition, m_LightPositions);
@@ -1290,13 +1251,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (shadowLight.lightType != LightType.Spot)
                     continue;
 
-                int shadowLightIndex = GetLightUnsortedIndex(i);
-                if (!m_CullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
+                if (!m_CullResults.GetShadowCasterBounds(i, out bounds))
                     continue;
 
-                var settings = new DrawShadowsSettings(m_CullResults, shadowLightIndex);
+                var settings = new DrawShadowsSettings(m_CullResults, i);
 
-                success = m_CullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj, out settings.splitData);
+                success = m_CullResults.ComputeSpotShadowMatricesAndCullingPrimitives(i, out view, out proj, out settings.splitData);
                 if (success)
                 {
                     Rect shadowSliceRect = new Rect(0.0f, 0.0f, shadowResolution, shadowResolution);
@@ -1508,11 +1468,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             else
                 m_CameraPostProcessLayer.Render(m_PostProcessRenderContext);
-        }
-
-        private int GetLightUnsortedIndex(int index)
-        {
-            return (index < m_SortedLightIndexMap.Count) ? m_SortedLightIndexMap[index] : index;
         }
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
