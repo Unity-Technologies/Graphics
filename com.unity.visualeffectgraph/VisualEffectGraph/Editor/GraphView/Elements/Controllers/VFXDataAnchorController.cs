@@ -145,9 +145,16 @@ namespace UnityEditor.VFX.UI
                     {
                         VFXViewController controller = m_SourceNode.viewController;
 
-                        if (controller.CanGetEvaluatedContent(model))
+                        try
                         {
-                            return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
+                            if (controller.CanGetEvaluatedContent(model))
+                            {
+                                return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
                     }
 
