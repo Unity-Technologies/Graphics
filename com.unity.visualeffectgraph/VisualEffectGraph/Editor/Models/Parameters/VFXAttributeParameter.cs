@@ -43,10 +43,14 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXAttributeParameter : VFXOperator
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
+    class VFXAttributeParameter : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
+
+        [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
+        public VFXAttributeLocation location = VFXAttributeLocation.Current;
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
@@ -57,13 +61,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        override public string name { get { return string.Format("{0} {1}", location.ToString(), attribute); } }
+        override public string name { get { return attribute; } }
 
         public override void Sanitize()
         {
             if (attribute == "phase") // Replace old phase attribute with random operator
             {
-                Debug.Log("Sanitizing Graph: Automatically replace CPahse Attribute Parameter with a Fixed Random Operator");
+                Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
 
                 var randOp = ScriptableObject.CreateInstance<VFXOperatorRandom>();
                 randOp.constant = true;
@@ -92,7 +96,5 @@ namespace UnityEditor.VFX
             var expression = new VFXAttributeExpression(attribute, location);
             return new VFXExpression[] { expression };
         }
-
-        abstract public VFXAttributeLocation location { get; }
     }
 }
