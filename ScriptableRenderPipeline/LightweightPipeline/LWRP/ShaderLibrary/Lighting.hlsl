@@ -550,7 +550,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     for (int i = 0; i < pixelLightCount; ++i)
     {
         Light light = GetLight(half(i), inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(inputData.shadowCoord, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(i, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
@@ -575,7 +575,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     for (int i = 0; i < pixelLightCount; ++i)
     {
         Light light = GetLight(half(i), inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(inputData.shadowCoord, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(i, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
