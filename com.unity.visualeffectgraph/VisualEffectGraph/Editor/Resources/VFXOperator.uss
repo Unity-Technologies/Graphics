@@ -41,7 +41,6 @@ OperandInfo .PopupButton
 {
     position-type:Absolute;
 	position-top:0;
-	position-bottom:0;
 	position-right:0;
     position-left:0;
 }

@@ -480,48 +480,73 @@ namespace UnityEditor.VFX
                 System.IO.Directory.CreateDirectory(currentCacheFolder);
 
                 Profiler.BeginSample("VFXEditor.SaveShaderFiles.WriteAsset");
-                var generatedIntermediateData = generatedCodeData.Select((generated, i) =>
-                    {
-                        var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
-                        var newContent = generated.content.ToString();
+                var generatedIntermediateData = Enumerable.Empty<int>().Select(_ => new
+                {
+                    context = (VFXContext)null,
+                    needImport = false,
+                    path = string.Empty
+                }).ToArray();
 
-                        var oldContent = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : string.Empty;
-                        bool hasChanged = oldContent != newContent;
-                        if (hasChanged)
+                try
+                {
+                    generatedIntermediateData = generatedCodeData.Select((generated, i) =>
                         {
-                            System.IO.File.WriteAllText(path, newContent);
-                        }
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                            var newContent = generated.content.ToString();
 
-                        return new
-                        {
-                            context = generated.context,
-                            needImport = hasChanged,
-                            path = path
-                        };
-                    }).ToArray();
-                Profiler.EndSample();
+                            var oldContent = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : string.Empty;
+                            bool hasChanged = oldContent != newContent;
+                            if (hasChanged)
+                            {
+                                System.IO.File.WriteAllText(path, newContent);
+                            }
+
+                            return new
+                            {
+                                context = generated.context,
+                                needImport = hasChanged,
+                                path = path
+                            };
+                        }).ToArray();
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
 
                 if (generatedIntermediateData.Any(o => o.needImport))
                 {
                     Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
-                    AssetDatabase.StartAssetEditing();
-                    foreach (var import in generatedIntermediateData.Where(o => o.needImport))
+                    try
                     {
-                        AssetDatabase.ImportAsset(import.path);
+                        AssetDatabase.StartAssetEditing();
+                        foreach (var import in generatedIntermediateData.Where(o => o.needImport))
+                        {
+                            AssetDatabase.ImportAsset(import.path);
+                        }
+                        AssetDatabase.StopAssetEditing();
                     }
-                    AssetDatabase.StopAssetEditing();
-                    Profiler.EndSample();
+                    finally
+                    {
+                        Profiler.EndSample();
+                    }
                 }
 
                 Profiler.BeginSample("VFXEditor.SaveShaderFiles.LoadAsset");
-                foreach (var generated in generatedIntermediateData)
+                try
                 {
-                    var imported = AssetDatabase.LoadAssetAtPath<Object>(generated.path);
-                    var contextData = contextToCompiledData[generated.context];
-                    contextData.processor = imported;
-                    contextToCompiledData[generated.context] = contextData;
+                    foreach (var generated in generatedIntermediateData)
+                    {
+                        var imported = AssetDatabase.LoadAssetAtPath<Object>(generated.path);
+                        var contextData = contextToCompiledData[generated.context];
+                        contextData.processor = imported;
+                        contextToCompiledData[generated.context] = contextData;
+                    }
                 }
-                Profiler.EndSample();
+                finally
+                {
+                    Profiler.EndSample();
+                }
             }
             finally
             {

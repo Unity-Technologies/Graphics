@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
                 default:
                     break;
             }
-
+#if false
             if (vectorType != VFXValueType.None)
             {
                 for (int i = 0; i < m_Operands.Length; ++i)
@@ -106,6 +106,7 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+#endif
 
             Invalidate(VFXModel.InvalidationCause.kSettingChanged);
         }
@@ -116,14 +117,14 @@ namespace UnityEditor.VFX
 
             if (m_Operands != null)
             {
-                VFXValueType vectorType = VFXValueType.None;
+                //VFXValueType vectorType = VFXValueType.None;
                 for (int i = 0; i < m_Operands.Length; ++i)
                 {
                     if (string.IsNullOrEmpty(m_Operands[i].name))
                     {
                         m_Operands[i].name = GetDefaultName(i);
                     }
-
+#if false
                     switch (m_Operands[i].type)
                     {
                         case VFXValueType.Float:
@@ -149,6 +150,7 @@ namespace UnityEditor.VFX
                             m_Operands[i].type = VFXValueType.Float;
                             break;
                     }
+#endif
                 }
             }
         }

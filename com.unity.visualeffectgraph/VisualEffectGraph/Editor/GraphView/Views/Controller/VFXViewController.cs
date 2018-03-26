@@ -42,7 +42,15 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().Concat(m_DataEdges.Cast<Controller>()).Concat(m_FlowEdges.Cast<Controller>()).Concat(m_ParameterControllers.Values.Cast<Controller>()); }
+            get
+            {
+                return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().
+                    Concat(m_DataEdges.Cast<Controller>()).
+                    Concat(m_FlowEdges.Cast<Controller>()).
+                    Concat(m_ParameterControllers.Values.Cast<Controller>()).
+                    Concat(m_GroupNodeControllers.Cast<Controller>())
+                ;
+            }
         }
 
         public void LightApplyChanges()
@@ -178,18 +186,31 @@ namespace UnityEditor.VFX.UI
                 }
                 if (targetSlotContainer is VFXParameter)
                 {
-                    VFXParameterController controller = m_ParameterControllers[targetSlotContainer as VFXParameter];
-                    operatorControllerFrom = controller.GetParameterForLink(inputSlot);
+                    VFXParameterController controller = null;
+                    if (m_ParameterControllers.TryGetValue(targetSlotContainer as VFXParameter, out controller))
+                    {
+                        operatorControllerFrom = controller.GetParameterForLink(inputSlot);
+                    }
                 }
                 else if (targetSlotContainer is VFXBlock)
                 {
                     VFXBlock block = targetSlotContainer as VFXBlock;
-                    operatorControllerFrom = (m_SyncedModels[block.GetParent()][0] as VFXContextController).blockControllers.First(t => t.model == block);
+                    VFXContext context = block.GetParent();
+                    List<VFXNodeController> contextControllers = null;
+                    if (m_SyncedModels.TryGetValue(context, out contextControllers) && contextControllers.Count > 0)
+                    {
+                        operatorControllerFrom = (contextControllers[0] as VFXContextController).blockControllers.FirstOrDefault(t => t.model == block);
+                    }
                 }
                 else
                 {
-                    operatorControllerFrom = m_SyncedModels[targetSlotContainer as VFXModel][0];
+                    List<VFXNodeController> nodeControllers = null;
+                    if (m_SyncedModels.TryGetValue(targetSlotContainer as VFXModel, out nodeControllers) && nodeControllers.Count > 0)
+                    {
+                        operatorControllerFrom = nodeControllers[0];
+                    }
                 }
+
                 var operatorControllerTo = slotContainer;
 
                 if (operatorControllerFrom != null && operatorControllerTo != null)
@@ -782,6 +803,7 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
+            parameter.SetSettingValue("m_exposedName", string.Format("New {0}", type.UserFriendlyName()));
 
             if (!type.IsPrimitive)
             {
@@ -791,7 +813,7 @@ namespace UnityEditor.VFX.UI
             return model;
         }
 
-        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor)
+        public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor, VFXGroupNodeController groupNode)
         {
             VFXModel newNode = null;
             if (modelDescriptor is VFXModelDescriptor<VFXOperator>)
@@ -812,6 +834,11 @@ namespace UnityEditor.VFX.UI
 
                 List<VFXNodeController> nodeControllers = null;
                 m_SyncedModels.TryGetValue(newNode, out nodeControllers);
+
+                if (groupNode != null)
+                {
+                    groupNode.AddNode(nodeControllers.First());
+                }
 
                 if (newNode is VFXParameter)
                 {

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>, IVFXMovable
+    class VFXGroupNode : Group, IControlledElement<VFXGroupNodeController>, IVFXMovable
     {
         Controller IControlledElement.controller
         {
@@ -37,11 +37,17 @@ namespace UnityEditor.VFX.UI
         public VFXGroupNode()
         {
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
+
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
         }
 
         public void OnMoved()
         {
-            if (containedElements.Count == 0)
+            if (containedElements.Count() == 0)
             {
                 controller.position = GetPosition();
             }

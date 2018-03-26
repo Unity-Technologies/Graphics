@@ -4,8 +4,11 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorFit : VFXOperatorFloatUnifiedWithVariadicOutput
+    class VFXOperatorRemap : VFXOperatorFloatUnifiedWithVariadicOutput
     {
+        [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
+        public bool Clamp = false;
+
         public class InputProperties
         {
             [Tooltip("The value to be remapped into the new range.")]
@@ -20,11 +23,17 @@ namespace UnityEditor.VFX
             public FloatN newRangeMax = new FloatN(10.0f);
         }
 
-        override public string name { get { return "Fit"; } }
+        override public string name { get { return "Remap"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Fit(inputExpression[0], inputExpression[1], inputExpression[2], inputExpression[3], inputExpression[4]) };
+            VFXExpression input;
+            if (Clamp)
+                input = VFXOperatorUtility.Clamp(inputExpression[0], inputExpression[1], inputExpression[2]);
+            else
+                input = inputExpression[0];
+
+            return new[] { VFXOperatorUtility.Fit(input, inputExpression[1], inputExpression[2], inputExpression[3], inputExpression[4]) };
         }
     }
 }

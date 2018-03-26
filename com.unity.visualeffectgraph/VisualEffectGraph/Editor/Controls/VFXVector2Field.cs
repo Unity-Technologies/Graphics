@@ -52,10 +52,10 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI(bool force)
         {
-            if (!m_X.control.hasFocus || force)
+            if (!m_X.control.HasFocus() || force)
                 m_X.value = value.x;
 
-            if (!m_Y.control.hasFocus || force)
+            if (!m_Y.control.HasFocus() || force)
                 m_Y.value = value.y;
         }
     }

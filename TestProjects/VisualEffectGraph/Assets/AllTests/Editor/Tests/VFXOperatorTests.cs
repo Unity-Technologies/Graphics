@@ -128,6 +128,35 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void NoErrorWhenExtractTRSFromMatrix4x4()
+        {
+            var matrixOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            matrixOperator.SetSettingValue("m_Type", (SerializableType)typeof(Matrix4x4));
+
+            var matrix = Matrix4x4.identity;
+            matrix[3, 3] = 0.0f; // voluntary incorrect value in TRS matrix
+            matrixOperator.inputSlots[0].value = matrix;
+
+            var transformOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            transformOperator.SetSettingValue("m_Type", (SerializableType)typeof(Transform));
+            matrixOperator.outputSlots[0].Link(transformOperator.inputSlots[0]);
+
+            var expressionSlot = transformOperator.outputSlots[0][0].GetExpressionSlots(); //position
+            expressionSlot = expressionSlot.Concat(transformOperator.outputSlots[0][1].GetExpressionSlots()); //angle
+            expressionSlot = expressionSlot.Concat(transformOperator.outputSlots[0][2].GetExpressionSlots()); //scale
+            var slotArray = expressionSlot.ToArray();
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var expected = new[] { Vector3.zero, Vector3.zero, Vector3.one };
+            for (int i = 0; i < 3; ++i)
+            {
+                var value = context.Compile(slotArray[i].GetExpression()).Get<Vector3>();
+                Assert.IsTrue(expected[i].Equals(value));
+            }
+            Assert.IsTrue(transformOperator.inputSlots[0].HasLink());
+        }
+
+        [Test]
         public void ComponentMaskAndAppend()
         {
             /*var componentMask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();

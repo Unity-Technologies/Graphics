@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
         {
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
-
+            matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.rotation.eulerAngles);
         }
     }
@@ -169,7 +169,7 @@ namespace UnityEditor.VFX
         {
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
-
+            matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.lossyScale);
         }
     }

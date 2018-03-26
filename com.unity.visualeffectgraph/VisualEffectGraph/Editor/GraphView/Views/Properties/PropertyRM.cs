@@ -193,15 +193,9 @@ namespace UnityEditor.VFX.UI
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
+            this.AddStyleSheetPathWithSkinVariant("VFXControls");
             AddStyleSheetPath("PropertyRM");
-            if (EditorGUIUtility.isProSkin)
-            {
-                AddStyleSheetPath("PropertyRMDark");
-            }
-            else
-            {
-                AddStyleSheetPath("PropertyRMLight");
-            }
+
             m_Provider = provider;
             m_labelWidth = labelWidth;
 
@@ -461,11 +455,16 @@ namespace UnityEditor.VFX.UI
             Add(fieldElement);
         }
 
+        public virtual T Convert(object value)
+        {
+            return (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+        }
+
         public void OnValueChanged(ChangeEvent<U> e)
         {
             try
             {
-                T newValue = (T)System.Convert.ChangeType(m_Field.value, typeof(T));
+                T newValue = Convert(m_Field.value);
                 if (!newValue.Equals(m_Value))
                 {
                     m_Value = newValue;

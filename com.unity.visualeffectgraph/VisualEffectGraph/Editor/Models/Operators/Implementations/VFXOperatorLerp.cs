@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorLinearInterpolate : VFXOperatorFloatUnifiedWithVariadicOutput
+    class VFXOperatorLerp : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             public FloatN s = new FloatN(0.5f);
         }
 
-        override public string name { get { return "Linear Interpolate"; } }
+        override public string name { get { return "Lerp"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
