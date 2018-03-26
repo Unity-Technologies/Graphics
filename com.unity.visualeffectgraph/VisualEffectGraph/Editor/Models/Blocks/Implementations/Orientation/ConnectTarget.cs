@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Block
             public DirectionType LookDirection = DirectionType.defaultValue;
             [Tooltip("The position that the particle look at")]
             public Position LookAtPosition = Position.defaultValue;
-            [Range(0.0f,1.0f), Tooltip("The position (relative to the segment) that act as a pivot.")]
+            [Range(0.0f, 1.0f), Tooltip("The position (relative to the segment) that act as a pivot.")]
             public float PivotPosition = 0.5f;
         }
 
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach(var property in PropertiesFromType(GetInputPropertiesTypeName()))
+                foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                 {
                     if (Orientation != OrientMode.Direction && property.property.name == "LookDirection") continue;
                     if (Orientation != OrientMode.LookAtPosition && property.property.name == "LookAtPosition") continue;
@@ -60,7 +60,6 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.Write);
-
             }
         }
 
@@ -89,8 +88,6 @@ position = lerp(position, TargetPosition, PivotPosition);
 pivot.y = PivotPosition * 2 - 1;
 ", orient);
             }
-
         }
-
     }
 }

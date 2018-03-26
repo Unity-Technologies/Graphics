@@ -442,11 +442,11 @@ namespace UnityEditor.VFX.UI
             {
                 m_BlockContainer.Remove(kv.Value);
             }
-            if( blockControllers.Count() > 0 || ! m_CanHaveBlocks)
+            if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
             {
                 m_NoBlock.RemoveFromHierarchy();
             }
-            else if( m_NoBlock.parent == null)
+            else if (m_NoBlock.parent == null)
             {
                 m_BlockContainer.Add(m_NoBlock);
             }

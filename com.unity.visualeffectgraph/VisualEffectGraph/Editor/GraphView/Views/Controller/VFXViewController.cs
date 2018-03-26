@@ -42,12 +42,15 @@ namespace UnityEditor.VFX.UI
 
         public override IEnumerable<Controller> allChildren
         {
-            get { return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().
+            get
+            {
+                return m_SyncedModels.Values.SelectMany(t => t).Cast<Controller>().
                     Concat(m_DataEdges.Cast<Controller>()).
                     Concat(m_FlowEdges.Cast<Controller>()).
                     Concat(m_ParameterControllers.Values.Cast<Controller>()).
                     Concat(m_GroupNodeControllers.Cast<Controller>())
-                    ; }
+                ;
+            }
         }
 
         public void LightApplyChanges()
@@ -787,7 +790,7 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
-            parameter.SetSettingValue("m_exposedName", string.Format("New {0}",type.UserFriendlyName()));
+            parameter.SetSettingValue("m_exposedName", string.Format("New {0}", type.UserFriendlyName()));
 
             if (!type.IsPrimitive)
             {

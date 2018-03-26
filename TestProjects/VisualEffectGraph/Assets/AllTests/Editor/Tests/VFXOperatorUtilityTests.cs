@@ -553,10 +553,8 @@ namespace UnityEditor.VFX.Test
             var resultValue = resultExpressionA.Get<Vector3>();
 
             Assert.AreEqual(-3.629999f, resultValue.x, 0.001f);
-            Assert.AreEqual( 7.26f, resultValue.y, 0.001f);
-            Assert.AreEqual( -3.63f, resultValue.z, 0.001f);
-
+            Assert.AreEqual(7.26f, resultValue.y, 0.001f);
+            Assert.AreEqual(-3.63f, resultValue.z, 0.001f);
         }
-
     }
 }

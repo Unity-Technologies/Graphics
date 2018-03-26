@@ -34,7 +34,6 @@ namespace UnityEditor.VFX
                 input = inputExpression[0];
 
             return new[] { VFXOperatorUtility.Fit(input, inputExpression[1], inputExpression[2], inputExpression[3], inputExpression[4]) };
-
         }
     }
 }
