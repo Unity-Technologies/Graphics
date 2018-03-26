@@ -163,12 +163,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool hasFocus
+        public override bool HasFocus()
         {
-            get
-            {
-                return (m_Field as IntegerField).hasFocus;
-            }
+            return (m_Field as IntegerField).hasFocus;
         }
 
         protected override float ValueToFloat(int value)
