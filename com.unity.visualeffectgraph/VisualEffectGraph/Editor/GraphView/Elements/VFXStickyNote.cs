@@ -55,14 +55,14 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXStickyNote : StickyNote, IControlledElement<VFXStickyNoteController>, IVFXMovable,IVFXResizable
+    class VFXStickyNote : StickyNote, IControlledElement<VFXStickyNoteController>, IVFXMovable
     {
         public void OnMoved()
         {
             controller.position = new Rect(style.positionLeft,style.positionTop,style.width,style.height);
         }
 
-        public void OnResized()
+        public override void OnResized()
         {
             controller.position = new Rect(style.positionLeft,style.positionTop,style.width,style.height);
         }
@@ -148,13 +148,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            //SetPosition(controller.position);
-
-            style.positionLeft = controller.position.x;
-            style.positionTop = controller.position.y;
-
-            style.width = controller.position.width;
-            style.height = controller.position.height;
+            SetPosition(controller.position);
         }
     }
 }

@@ -16,6 +16,7 @@
     padding-bottom:0;
     border-radius:8;
 }
+
 .sticky-note #selection-border
 {
     border-radius:8;

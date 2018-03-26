@@ -15,6 +15,7 @@ namespace UnityEditor.VFX.UI
     }
     interface IVFXResizable
     {
+        void OnStartResize();
         void OnResized();
     }
 }

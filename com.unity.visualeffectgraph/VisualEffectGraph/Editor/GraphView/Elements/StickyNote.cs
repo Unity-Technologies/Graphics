@@ -11,6 +11,7 @@ namespace UnityEditor.VFX.UI
 {
     class Resizable : Manipulator
     {
+        
         public enum Direction
         {
             Horizontal = 1<<0,
@@ -42,6 +43,8 @@ namespace UnityEditor.VFX.UI
         Vector2 m_StartPosition;
         Vector2 m_StartSize;
 
+        bool dragStarted = false;
+
         void OnMouseDown(MouseDownEvent e)
         {
             if( e.button == 0 && e.clickCount == 1)
@@ -56,11 +59,15 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseMove(MouseMoveEvent e)
         {
-            string targetName = target.name;
-
-            Debug.Log(targetName);
-
             Vector2 mousePos = resizedElement.WorldToLocal(e.mousePosition);
+            if( !dragStarted)
+            {
+                if( resizedElement is IVFXResizable)
+                {
+                    (resizedElement as IVFXResizable).OnStartResize();
+                }
+                dragStarted = true;
+            }
 
             if( (direction & Direction.Horizontal) != 0 )
             {
@@ -79,9 +86,9 @@ namespace UnityEditor.VFX.UI
             {
                 if( resizedElement.style.width != m_StartSize.x || resizedElement.style.height != m_StartSize.y )
                 {
-                    if( resizedElement is IVFXMovable)
+                    if( resizedElement is IVFXResizable)
                     {
-                        (resizedElement as IVFXMovable).OnMoved();
+                        (resizedElement as IVFXResizable).OnResized();
                     }
                 }
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -113,7 +120,7 @@ namespace UnityEditor.VFX.UI
         public Change change{get; protected set;}
     }
 
-    class StickyNote : GraphElement
+    class StickyNote : GraphElement, IVFXResizable
     {
         public enum Theme
         {
@@ -167,6 +174,83 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public virtual void OnStartResize()
+        {
+            textFitMode = TextFitMode.none;
+        }
+        public virtual void OnResized()
+        {
+        }
+
+        Vector2 AllExtraSpace(VisualElement element)
+        {
+            return new Vector2(
+                element.style.marginLeft + element.style.marginRight + element.style.paddingLeft + element.style.paddingRight + element.style.borderRightWidth + element.style.borderLeftWidth,
+                element.style.marginTop + element.style.marginBottom + element.style.paddingTop + element.style.paddingBottom + element.style.borderBottomWidth + element.style.borderTopWidth
+            );
+        }
+
+        void OnFitToText(ContextualMenu.MenuAction a)
+        {
+            FitText();
+        }
+
+        public enum TextFitMode
+        {
+            oneLine,
+            fixedWidth,
+            none
+        }
+
+        public TextFitMode textFitMode
+        {
+            get;private set;
+        }
+
+        public void FitText()
+        {
+            Vector2 preferredTitleSize = Vector2.zero;
+            if( ! string.IsNullOrEmpty(m_Title.text))
+                preferredTitleSize = m_Title.DoMeasure(0,MeasureMode.Undefined,0,MeasureMode.Undefined); // This is the size of the string with the current title font and such
+
+            preferredTitleSize += AllExtraSpace(m_Title);
+            preferredTitleSize.x += m_Title.ChangeCoordinatesTo(this,Vector2.zero).x + style.width - m_Title.ChangeCoordinatesTo(this,new Vector2(m_Title.layout.width,0)).x ;
+
+            Vector2 preferredContentsSizeOneLine = m_Contents.DoMeasure(0,MeasureMode.Undefined,0,MeasureMode.Undefined);
+            preferredContentsSizeOneLine += AllExtraSpace(m_Contents);
+
+            Vector2 extraSpace = new Vector2(style.width,style.height) - m_Contents.ChangeCoordinatesTo(this,new Vector2(m_Contents.layout.width,m_Contents.layout.height));
+            extraSpace += m_Title.ChangeCoordinatesTo(this,Vector2.zero);
+            preferredContentsSizeOneLine += extraSpace;
+
+            float width = 0;
+            float height = 0;
+            // The content in one line is smaller than the current width. 
+            // Set the width to fit both title and content.
+            // Set the height to have only one line in the content
+            if( preferredContentsSizeOneLine.x < Mathf.Max(preferredTitleSize.x,style.width) || textFitMode == TextFitMode.oneLine)
+            {
+                textFitMode = TextFitMode.oneLine;
+                width = Mathf.Max(preferredContentsSizeOneLine.x,preferredTitleSize.x);
+                height = preferredContentsSizeOneLine.y + preferredTitleSize.y;
+            }
+            else // The width is not enough for the content: keep the width or use the title width if bigger.
+            {
+                textFitMode = TextFitMode.fixedWidth;
+
+                width = Mathf.Max(preferredTitleSize.x,style.width);
+                Vector2 preferredContentsSize = m_Contents.DoMeasure(width,MeasureMode.Exactly,0,MeasureMode.Undefined);
+
+                preferredContentsSize += AllExtraSpace(m_Contents);
+
+                height = preferredTitleSize.y + preferredContentsSize.y + extraSpace.y;
+            }
+
+            style.width = width;
+            style.height = height;
+            OnResized();
+        }
+
         void UpdateThemeClasses()
         {
             foreach(Theme value in System.Enum.GetValues(typeof(Theme)))
@@ -197,7 +281,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public static readonly Vector2 defaultSize = new Vector2(100, 100);
+        public static readonly Vector2 defaultSize = new Vector2(200, 160);
 
         public StickyNote(Vector2 position) : this(UXMLHelper.GetUXMLPath("uxml/StickyNote.uxml"), position)
         {
@@ -223,9 +307,10 @@ namespace UnityEditor.VFX.UI
                 if (m_TitleField != null)
                 {
                     m_TitleField.visible = false;
+                    m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTextChange);
+                    m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
                 }
                 m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
-                m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
             }
 
             if (m_Contents != null)
@@ -234,17 +319,14 @@ namespace UnityEditor.VFX.UI
                 if (m_ContentsField != null)
                 {
                     m_ContentsField.visible = false;
+                    m_ContentsField.multiline = true;
+                    m_ContentsField.RegisterCallback<ChangeEvent<string>>(OnTextChange);
+                    m_ContentsField.RegisterCallback<BlurEvent>(OnContentsBlur);
                 }
                 m_Contents.RegisterCallback<MouseDownEvent>(OnContentsMouseDown);
-                m_ContentsField.RegisterCallback<BlurEvent>(OnContentsBlur);
             }
 
-            //SetPosition(new Rect(position, defaultSize));
-
-            style.positionLeft = position.x;
-            style.positionTop = position.y;
-            style.width = defaultSize.x;
-            style.height = defaultSize.y;
+            SetPosition(new Rect(position, defaultSize));
 
             AddToClassList("sticky-note");
             AddToClassList("selectable");
@@ -277,8 +359,22 @@ namespace UnityEditor.VFX.UI
                 {
                     evt.menu.AppendAction("Text Size/" + value.ToString(), OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal,value);
                 }
+
+                evt.menu.AppendAction("Fit To Text",OnFitToText, e => ContextualMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
+        }
+
+
+        const string fitTextClass = "fit-text";
+
+        public override void SetPosition(Rect rect)
+        {
+            style.positionLeft = rect.x;
+            style.positionTop = rect.y;
+            
+            style.width = rect.width;
+            style.height = rect.height;
         }
 
         public string contents
@@ -313,6 +409,27 @@ namespace UnityEditor.VFX.UI
         {
             textSize = (TextSize)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.textSize);
+            if( textFitMode != TextFitMode.none) //The text was fitted with the previous text size, so keep it fitted with the new one
+            {
+                this.schedule.Execute(FitText).StartingIn(0);
+            }
+        }
+
+        void OnTextChange(ChangeEvent<string> e)
+        {
+            if( textFitMode != TextFitMode.none)
+            {
+                if( e.target == m_TitleField)
+                {
+                    m_Title.text = m_TitleField.value;
+                }
+                else
+                {
+                    m_Contents.text = m_ContentsField.value;
+                }
+                
+                FitText();
+            }
         }
 
         void OnTitleBlur(BlurEvent e)
