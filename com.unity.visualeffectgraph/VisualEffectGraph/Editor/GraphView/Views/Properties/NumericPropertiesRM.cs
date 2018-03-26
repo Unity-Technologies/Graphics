@@ -115,19 +115,21 @@ namespace UnityEditor.VFX.UI
             slider = field.control;
             return field;
         }
+
         public override object FilterValue(object value)
         {
-            if((uint)value < 0)
+            if ((uint)value < 0)
             {
                 value = (uint)0;
             }
             return base.FilterValue(value);
         }
+
         public override uint Convert(object value)
         {
             long longValue = (long)value;
 
-            if(longValue < 0)
+            if (longValue < 0)
             {
                 longValue = 0;
             }

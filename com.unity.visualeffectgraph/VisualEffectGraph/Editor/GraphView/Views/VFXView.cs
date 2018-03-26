@@ -802,6 +802,17 @@ namespace UnityEditor.VFX.UI
 
                     foreach (var newController in controller.dataEdges.Except(dataEdges.Keys))
                     {
+                        // SyncEdges could be called before the VFXNodeUI have been created, it that case ignore them and trust that they will be created later when the
+                        // nodes arrive.
+                        if (GetNodeByController(newController.input.sourceNode) == null || GetNodeByController(newController.output.sourceNode) == null)
+                        {
+                            if (change != VFXViewController.Change.dataEdge)
+                            {
+                                Debug.LogError("Can't match nodes for a data edge after nodes should have been updated.");
+                            }
+                            continue;
+                        }
+
                         var newElement = new VFXDataEdge();
                         AddElement(newElement);
                         newElement.controller = newController;
@@ -1517,8 +1528,8 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
             evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
                 (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
             evt.menu.AppendSeparator();

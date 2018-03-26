@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
             foreach (var groupInfo in groupInfos)
             {
                 //Check first, rebuild after because in most case the content will be valid, saving an allocation.
-                if (groupInfo.contents.Any(t => !graph.children.Contains(t.model)))
+                if (groupInfo.contents != null && groupInfo.contents.Any(t => !graph.children.Contains(t.model)))
                 {
                     groupInfo.contents = groupInfo.contents.Where(t => graph.children.Contains(t.model)).ToArray();
                 }
