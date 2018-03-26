@@ -7,5 +7,15 @@
       <ui:TextField name="contents-field" />
     </ui:Label>
   </ui:VisualElement>
+  <ui:VisualElement name="resizable" pickingMode="Ignore">
+    <ui:VisualElement name="right" pickingMode="Ignore" >
+      <ui:VisualElement name="content" pickingMode="Ignore" />
+      <ui:VisualElement name="vertical-resize"/>
+    </ui:VisualElement>  
+    <ui:VisualElement name="left"  pickingMode="Ignore" >
+      <ui:VisualElement name="horizontal-resize"/>
+      <ui:VisualElement name="corner-resize"/>
+    </ui:VisualElement>
+  </ui:VisualElement>
   <ui:VisualElement name="selection-border" pickingMode="Ignore" />
 </UXML>

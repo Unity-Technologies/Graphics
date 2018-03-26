@@ -9,6 +9,89 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
+    class Resizable : Manipulator
+    {
+        public enum Direction
+        {
+            Horizontal = 1<<0,
+            Vertical = 1<<1,
+            Both = Vertical | Horizontal
+        }
+
+        public readonly Direction direction;
+
+        public readonly VisualElement resizedElement;
+
+        public Resizable(VisualElement resizedElement, Direction direction)
+        {
+            this.direction = direction;
+            this.resizedElement = resizedElement;
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        Vector2 m_StartPosition;
+        Vector2 m_StartSize;
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            if( e.button == 0 && e.clickCount == 1)
+            {
+                target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+                e.StopPropagation();
+                target.TakeMouseCapture();
+                m_StartPosition = resizedElement.WorldToLocal(e.mousePosition);
+                m_StartSize = new Vector2(resizedElement.style.width,resizedElement.style.height);
+            }
+        }
+
+        void OnMouseMove(MouseMoveEvent e)
+        {
+            string targetName = target.name;
+
+            Debug.Log(targetName);
+
+            Vector2 mousePos = resizedElement.WorldToLocal(e.mousePosition);
+
+            if( (direction & Direction.Horizontal) != 0 )
+            {
+                resizedElement.style.width = m_StartSize.x + mousePos.x - m_StartPosition.x;
+            }
+            if( (direction & Direction.Vertical) != 0 )
+            {
+                resizedElement.style.height = m_StartSize.y + mousePos.y - m_StartPosition.y;
+            }
+            e.StopPropagation();
+        }
+
+        void OnMouseUp(MouseUpEvent e)
+        {
+            if( e.button == 0 )
+            {
+                if( resizedElement.style.width != m_StartSize.x || resizedElement.style.height != m_StartSize.y )
+                {
+                    if( resizedElement is IVFXMovable)
+                    {
+                        (resizedElement as IVFXMovable).OnMoved();
+                    }
+                }
+                target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
+                target.ReleaseMouseCapture();
+                e.StopPropagation();
+            }
+        }
+    }
+
+
     class StickyNodeChangeEvent :  EventBase<StickyNodeChangeEvent>, IPropagatableEvent
     {
         public static StickyNodeChangeEvent GetPooled(StickyNote target,Change change)
@@ -119,6 +202,7 @@ namespace UnityEditor.VFX.UI
         public StickyNote(Vector2 position) : this(UXMLHelper.GetUXMLPath("uxml/StickyNote.uxml"), position)
         {
             AddStyleSheetPath("Selectable");
+            AddStyleSheetPath("Resizable");
             AddStyleSheetPath("StickyNote");
         }
 
@@ -128,7 +212,7 @@ namespace UnityEditor.VFX.UI
 
             tpl.CloneTree(this, new Dictionary<string, VisualElement>());
 
-            capabilities = Capabilities.Movable | Capabilities.Resizable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable;
+            capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable;
 
             m_Title = this.Q<Label>(name: "title");
             m_Contents = this.Q<Label>(name: "contents");
@@ -155,12 +239,27 @@ namespace UnityEditor.VFX.UI
                 m_ContentsField.RegisterCallback<BlurEvent>(OnContentsBlur);
             }
 
-            SetPosition(new Rect(position, defaultSize));
+            //SetPosition(new Rect(position, defaultSize));
+
+            style.positionLeft = position.x;
+            style.positionTop = position.y;
+            style.width = defaultSize.x;
+            style.height = defaultSize.y;
 
             AddToClassList("sticky-note");
             AddToClassList("selectable");
             UpdateThemeClasses();
             UpdateSizeClasses();
+
+            var horizontalResizer = this.Q("horizontal-resize");
+            if( horizontalResizer != null)
+                horizontalResizer.AddManipulator(new Resizable(this,Resizable.Direction.Horizontal));
+            var verticalResizer = this.Q("vertical-resize");
+            if( verticalResizer != null)
+                verticalResizer.AddManipulator(new Resizable(this,Resizable.Direction.Vertical));
+            var cornerResizer = this.Q("corner-resize");
+            if( cornerResizer != null)
+                cornerResizer.AddManipulator(new Resizable(this,Resizable.Direction.Both));
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }

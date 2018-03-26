@@ -59,12 +59,12 @@ namespace UnityEditor.VFX.UI
     {
         public void OnMoved()
         {
-            controller.position = GetPosition();
+            controller.position = new Rect(style.positionLeft,style.positionTop,style.width,style.height);
         }
 
         public void OnResized()
         {
-            controller.position = GetPosition();
+            controller.position = new Rect(style.positionLeft,style.positionTop,style.width,style.height);
         }
 
         Controller IControlledElement.controller
@@ -148,7 +148,13 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            SetPosition(controller.position);
+            //SetPosition(controller.position);
+
+            style.positionLeft = controller.position.x;
+            style.positionTop = controller.position.y;
+
+            style.width = controller.position.width;
+            style.height = controller.position.height;
         }
     }
 }

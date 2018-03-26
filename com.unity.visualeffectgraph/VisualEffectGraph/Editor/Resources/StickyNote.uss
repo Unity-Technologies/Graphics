@@ -1,5 +1,6 @@
 .sticky-note
 {
+    position-type:absolute;
     flex-direction:column;
     align-items:stretch;
     layer:100;
@@ -13,11 +14,16 @@
     padding-right:0;
     padding-top:0;
     padding-bottom:0;
+    border-radius:8;
+}
+.sticky-note #selection-border
+{
+    border-radius:8;
 }
 
 .sticky-note, * TextField
 {
-    background-color: #202020;
+    background-color: #fcd76e;
 }
 
 .sticky-note .resizer
@@ -28,7 +34,7 @@
 
 .sticky-note * 
 {
-    text-color:#c4c996;
+    text-color:#584308;
 }
 
 
@@ -41,7 +47,6 @@
     border-top-width:2;
     border-bottom-width:2;
     border-right-width:2;
-    border-color:#4e5225;
 }
 
 
@@ -49,63 +54,33 @@
 {
     font-size:20;
 }
+
+* #contents
+{
+    margin-top:0;
+    margin-bottom:0;
+    padding-top:0;
+    padding-bottom:0;
+}
+
 * #contents, * #contents * 
 {
     font-size:11;
     word-wrap:true;
 }
 
-.size-medium #title, .size-medium #title * 
-{
-    font-size:40;
-}
-.size-medium #contents, .size-medium #contents * 
-{
-    font-size:24;
-}
-
-.size-large #title, .size-large #title * 
-{
-    font-size:60;
-}
-.size-large #contents, .size-large #contents * 
-{
-    font-size:36;
-}
-
-.size-huge #title, .size-huge #title * 
-{
-    font-size:80;
-}
-
-.size-huge #contents, .size-huge #contents * 
-{
-    font-size:56;
-}
-
 * #title
 {
-    height:5;
+    height:2;
+    margin-top:0;
+    margin-bottom:0;
+    padding-top:0;
+    padding-bottom:0;
 }
 
 * #title.not-empty,* #title TextField
 {
     height:24;
-}
-
-.size-medium #title.not-empty,.size-medium #title TextField
-{
-    height:44;
-}
-
-.size-large #title.not-empty,.size-large #title TextField
-{
-    height:64;
-}
-
-.size-huge #title.not-empty,.size-huge #title TextField
-{
-    height:84;
 }
 
 * #contents
@@ -142,6 +117,49 @@
     margin-top:1;
     margin-bottom:1;
     -border-color: rgba(0, 0, 0, 0.5);
+}
+
+.size-medium #title, .size-medium #title * 
+{
+    font-size:40;
+}
+.size-medium #contents, .size-medium #contents * 
+{
+    font-size:24;
+}
+
+.size-large #title, .size-large #title * 
+{
+    font-size:60;
+}
+.size-large #contents, .size-large #contents * 
+{
+    font-size:36;
+}
+
+.size-huge #title, .size-huge #title * 
+{
+    font-size:80;
+}
+
+.size-huge #contents, .size-huge #contents * 
+{
+    font-size:56;
+}
+
+.size-medium #title.not-empty,.size-medium #title TextField
+{
+    height:44;
+}
+
+.size-large #title.not-empty,.size-large #title TextField
+{
+    height:64;
+}
+
+.size-huge #title.not-empty,.size-huge #title TextField
+{
+    height:84;
 }
 
 * Label:hover
