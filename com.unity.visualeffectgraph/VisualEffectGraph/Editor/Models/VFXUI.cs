@@ -16,11 +16,20 @@ namespace UnityEditor.VFX
         public VFXNodeID(VFXModel model, int id)
         {
             this.model = model;
+            this.isStickyNote = false;
+            this.id = id;
+        }
+        public VFXNodeID(int id)
+        {
+            this.model = null;
+            this.isStickyNote = true;
             this.id = id;
         }
 
         public VFXModel model;
         public int id;
+
+        public bool isStickyNote;
     }
     class VFXUI : ScriptableObject
     {
@@ -87,9 +96,9 @@ namespace UnityEditor.VFX
             foreach (var groupInfo in groupInfos)
             {
                 //Check first, rebuild after because in most case the content will be valid, saving an allocation.
-                if (groupInfo.contents != null && groupInfo.contents.Any(t => !graph.children.Contains(t.model)))
+                if (groupInfo.contents != null && groupInfo.contents.Any(t => (!t.isStickyNote || t.id >= stickyNoteInfos.Length) && !graph.children.Contains(t.model)))
                 {
-                    groupInfo.contents = groupInfo.contents.Where(t => graph.children.Contains(t.model)).ToArray();
+                    groupInfo.contents = groupInfo.contents.Where(t => (t.isStickyNote && t.id < stickyNoteInfos.Length) || graph.children.Contains(t.model)).ToArray();
                 }
             }
         }

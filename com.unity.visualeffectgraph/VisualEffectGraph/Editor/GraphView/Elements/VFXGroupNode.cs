@@ -72,12 +72,7 @@ namespace UnityEditor.VFX.UI
 
 
                 var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<ISettableControlledElement<VFXNodeController>>();
-
-                if (elementContent == null)
-                {
-                    elementContent = new List<ISettableControlledElement<VFXNodeController>>();
-                }
+                var elementContent = containedElements.OfType<IControlledElement>().Where(t=>t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
 
                 bool elementsChanged = false;
                 var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
@@ -87,7 +82,7 @@ namespace UnityEditor.VFX.UI
                     elementsChanged = true;
                 }
 
-                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<ISettableControlledElement<VFXNodeController>>();
+                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement>();
 
                 var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.controller == t) == null).Select(t => viewElements.FirstOrDefault(u => u.controller == t)).ToArray();
 
@@ -128,6 +123,10 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
+                else if( element is VFXStickyNote)
+                {
+                    controller.AddStickyNote((element as VFXStickyNote).controller);
+                }
             }
         }
 
@@ -141,6 +140,10 @@ namespace UnityEditor.VFX.UI
                     controller.RemoveNode(node.controller);
 
                     OnMoved();
+                }
+                else if( element is VFXStickyNote)
+                {
+                    controller.RemoveStickyNote((element as VFXStickyNote).controller);
                 }
             }
         }
