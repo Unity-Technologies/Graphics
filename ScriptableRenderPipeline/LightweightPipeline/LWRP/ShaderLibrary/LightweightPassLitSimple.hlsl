@@ -17,9 +17,8 @@ struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-#ifdef _ADDITIONAL_LIGHTS
-    float3 posWS                    : TEXCOORD2;
-#endif
+
+    float4 posWSShininess           : TEXCOORD2;    // xyz: posWS, w: Shininess * 128
 
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -43,11 +42,7 @@ struct LightweightVertexOutput
 
 void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputData inputData)
 {
-    inputData = (InputData)0;
-
-#ifdef _ADDITIONAL_LIGHTS
-    inputData.positionWS = IN.posWS;
-#endif
+    inputData.positionWS = IN.posWSShininess.xyz;
 
 #ifdef _NORMALMAP
     half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
@@ -72,8 +67,8 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 //                  Vertex and Fragment functions                            //
 ///////////////////////////////////////////////////////////////////////////////
 
-// Used in Standard (Physically Based) shader
-LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
+// Used in Standard (Simple Lighting) shader
+LightweightVertexOutput LitPassVertexSimple(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
 
@@ -83,10 +78,11 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     o.uv = TransformMainTextureCoord(v.texcoord);
 
-    float3 posWS = TransformObjectToWorld(v.vertex.xyz);
-    o.clipPos = TransformWorldToHClip(posWS);
+    o.posWSShininess.xyz = TransformObjectToWorld(v.vertex.xyz);
+    o.posWSShininess.w = _Shininess * 128.0;
+    o.clipPos = TransformWorldToHClip(o.posWSShininess.xyz);
 
-    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - posWS);
+    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - o.posWSShininess.xyz);
 
 #ifdef _NORMALMAP
     o.normal.w = viewDir.x;
@@ -106,7 +102,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
     OUTPUT_SH(o.normal.xyz, o.vertexSH);
 
-    half3 vertexLight = VertexLighting(posWS, o.normal.xyz);
+    half3 vertexLight = VertexLighting(o.posWSShininess.xyz, o.normal.xyz);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
@@ -114,32 +110,42 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #if SHADOWS_SCREEN
     o.shadowCoord = ComputeShadowCoord(o.clipPos);
 #else
-    o.shadowCoord = TransformWorldToShadowCoord(posWS);
+    o.shadowCoord = TransformWorldToShadowCoord(o.posWSShininess.xyz);
 #endif
-#endif
-
-#if _ADDITIONAL_LIGHTS
-    o.posWS = posWS;
 #endif
 
     return o;
 }
 
-// Used in Standard (Physically Based) shader
-half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
+// Used for StandardSimpleLighting shader
+half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(IN);
 
-    SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(IN.uv, surfaceData);
+    float2 uv = IN.uv;
+    half4 diffuseAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
+
+    half alpha = diffuseAlpha.a * _Color.a;
+    AlphaDiscard(alpha, _Cutoff);
+#ifdef _ALPHAPREMULTIPLY_ON
+    diffuse *= alpha;
+#endif
+
+#ifdef _NORMALMAP
+    half3 normalTS = Normal(uv);
+#else
+    half3 normalTS = half3(0, 0, 1);
+#endif
+
+    half3 emission = Emission(uv);
+    half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
+    half shininess = IN.posWSShininess.w;
 
     InputData inputData;
-    InitializeInputData(IN, surfaceData.normalTS, inputData);
+    InitializeInputData(IN, normalTS, inputData);
 
-    half4 color = LightweightFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-
-    ApplyFog(color.rgb, inputData.fogCoord);
-    return color;
-}
+    return LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+};
 
 #endif
