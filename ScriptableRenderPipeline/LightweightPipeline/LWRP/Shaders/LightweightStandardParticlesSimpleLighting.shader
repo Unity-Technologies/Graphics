@@ -82,7 +82,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
             #define NO_SHADOWS 1
-
+            
             #include "LWRP/ShaderLibrary/Particles.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
@@ -106,7 +106,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
             {
                 half4 albedo = Albedo(IN);
-                half alpha = AlphaBlendAndTest(albedo.a);
+                half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                 half3 diffuse = AlphaModulate(albedo.rgb, alpha);
                 half3 normalTS = NormalTS(IN);
                 half3 emission = Emission(IN);

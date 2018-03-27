@@ -48,7 +48,7 @@ Shader "LightweightPipeline/Standard Unlit"
 
             // Lighting include is needed because of GI
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
-            #include "LWRP/ShaderLibrary/InputSurface.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
 
             struct VertexInput
             {
