@@ -76,23 +76,22 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			int diffuseIndex = decalData.normalToWorld[1][3];
 			int normalIndex = decalData.normalToWorld[2][3];
 			int maskIndex = decalData.normalToWorld[3][3];
-			float lod = ComputeTextureLOD(positionDS.xz);
-			if((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) // clip to decal space
+			float lod = ComputeTextureLOD(positionDS.xz, _DecalAtlasResolution);								
+			decalBlend = ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) ? decalBlend : 0;	// use blend of 0 instead of an 'if' because compiler moves the lod calculation inside the 'if' which causes incorrect values if any of the pixels in the 2x2 quad gets rejected
+
+			if(diffuseIndex != -1)
 			{
-				if(diffuseIndex != -1)
-				{
-					ApplyBlendDiffuse(DBuffer0, mask, positionDS.xz, diffuseIndex, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lod);
-				}
+				ApplyBlendDiffuse(DBuffer0, mask, positionDS.xz, diffuseIndex, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lod);
+			}
 
-				if(normalIndex != -1)
-				{
-					ApplyBlendNormal(DBuffer1, mask, positionDS.xz, normalIndex, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lod);
-				}
+			if(normalIndex != -1)
+			{
+				ApplyBlendNormal(DBuffer1, mask, positionDS.xz, normalIndex, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lod);
+			}
 
-				if(maskIndex != -1)
-				{
-					ApplyBlendMask(DBuffer2, mask, positionDS.xz, maskIndex, DBUFFERHTILEBIT_MASK, decalBlend, lod);
-				}
+			if(maskIndex != -1)
+			{
+				ApplyBlendMask(DBuffer2, mask, positionDS.xz, maskIndex, DBUFFERHTILEBIT_MASK, decalBlend, lod);
 			}
 		}
 #else
