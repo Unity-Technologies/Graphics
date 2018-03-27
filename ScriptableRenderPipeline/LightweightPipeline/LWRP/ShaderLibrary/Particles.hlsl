@@ -4,7 +4,7 @@
 #include "Core.hlsl"
 #include "CoreRP/ShaderLibrary/Color.hlsl"
 
-CBUFFER_START(UnityPerMaterial_Particle)
+CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
 float4 _MainTex_ST;
@@ -16,9 +16,11 @@ half4 _Color;
 
 half _Cutoff;
 half _Shininess;
+half _Metallic;
+half _Glossiness;
 CBUFFER_END
 
-TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+#include "InputSurfaceCommon.hlsl"
 
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
@@ -219,14 +221,14 @@ half4 SpecularGloss(VertexOutputLit IN, half alpha)
     return specularGloss;
 }
 
-half AlphaBlendAndTest(half alpha)
+half AlphaBlendAndTest(half alpha, half cutoff)
 {
 #if defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON) || defined(_ALPHAOVERLAY_ON)
     half result = alpha;
 #else
     half result = 1.0h;
 #endif
-    AlphaDiscard(result, (half)_Cutoff, 0.0001h);
+    AlphaDiscard(result, cutoff, 0.0001h);
 
     return result;
 }

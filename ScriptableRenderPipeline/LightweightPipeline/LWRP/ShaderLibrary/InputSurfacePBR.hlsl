@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_INPUT_SURFACE_PBS_INCLUDED
-#define LIGHTWEIGHT_INPUT_SURFACE_PBS_INCLUDED
+#ifndef LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
+#define LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
 
 #include "Core.hlsl"
 
@@ -94,4 +94,4 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.alpha = Alpha(albedoAlpha.a);
 }
 
-#endif // LIGHTWEIGHT_INPUT_SURFACE_PBS_INCLUDED
+#endif // LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
