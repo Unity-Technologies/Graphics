@@ -2,6 +2,7 @@
 #define LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
 
 #include "Core.hlsl"
+#include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _MainTex_ST;
