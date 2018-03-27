@@ -56,6 +56,7 @@ struct Light
     half3   color;
     half    attenuation;
     half    subtractiveModeAttenuation;
+    half    castShadows;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +117,7 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
 half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
     half4 directionAndAttenuation;
-    float3 posToLightVec = lightInput.position.xyz - positionWS * lightInput.position.w;
+    float3 posToLightVec = lightInput.position.xyz - positionWS;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), FLT_MIN);
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
@@ -146,6 +147,7 @@ Light GetMainLight()
     light.attenuation = 1.0;
     light.subtractiveModeAttenuation = _MainLightPosition.w;
     light.color = _MainLightColor.rgb;
+    light.castShadows = _MainLightPosition.w;
 
     return light;
 }
@@ -177,12 +179,16 @@ Light GetLight(half i, float3 positionWS)
     light.attenuation = directionAndRealtimeAttenuation.w;
     light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
     light.color = lightInput.color;
+    light.castShadows = lightInput.position.w;
 
     return light;
 }
 
 half GetPixelLightCount()
 {
+    // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
+    // in the culling. This way we could do the loop branch with an uniform
+    // This would be helpful to support baking exceeding lights in SH as well
     return min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
 }
 
@@ -549,8 +555,9 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(half(i), inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(i, inputData.positionWS);
+        half index = half(i);
+        Light light = GetLight(index, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, light.castShadows, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
@@ -574,8 +581,9 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        Light light = GetLight(half(i), inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(i, inputData.positionWS);
+        half index = half(i);
+        Light light = GetLight(index, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, light.castShadows, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);

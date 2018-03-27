@@ -215,14 +215,15 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 
 }
 
-half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
+half LocalLightRealtimeShadowAttenuation(int lightIndex, half castShadows, float3 positionWS)
 {
 #if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
     return 1.0h;
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
     ShadowSamplingData shadowSamplingData = GetLocalLightShadowSamplingData();
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, 0.0);
+    half attenuation = SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, 0.0);
+    return (castShadows < 1.0h) ? 1.0h : attenuation;
 #endif
 }
 
