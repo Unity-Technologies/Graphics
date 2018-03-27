@@ -1,10 +1,4 @@
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityEditor.VFX;
-using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Test
 {
@@ -14,7 +8,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ProcessBasicTest()
         {
-            Assert.IsTrue(VisualEffect.DebugCopyBufferComputeTest());
+            Assert.IsTrue(UnityEditor.Experimental.VFX.VisualEffectTest.DebugCopyBufferComputeTest());
         }
     }
 }
