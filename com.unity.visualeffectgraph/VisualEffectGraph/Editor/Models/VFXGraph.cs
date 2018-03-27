@@ -260,7 +260,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2}", model.name, model.GetType(), e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing model: {0} of type {1}: {2} {3}", model.name, model.GetType(), e, e.StackTrace));
                 }
 
             if (m_UIInfos != null)
@@ -270,7 +270,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0}", e.StackTrace));
+                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
             m_GraphSanitized = true;
@@ -378,7 +378,7 @@ namespace UnityEditor.VFX
                     foreach (var obj in persistentObjects)
                         if (obj is ScriptableObject && !currentObjects.Contains(obj as ScriptableObject))
                         {
-                            AssetDatabase.RemoveObject(obj);
+                            AssetDatabase.RemoveObjectFromAsset(obj);
                             modified = true;
                         }
                 }

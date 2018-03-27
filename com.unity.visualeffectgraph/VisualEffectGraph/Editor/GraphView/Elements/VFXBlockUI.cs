@@ -33,6 +33,13 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
             Profiler.EndSample();
+            style.positionType = PositionType.Relative;
+        }
+
+        public override void SetPosition(Rect newPos)
+        {
+            base.SetPosition(newPos);
+            style.positionType = PositionType.Relative;
         }
 
         void OnMouseDown(MouseDownEvent e)

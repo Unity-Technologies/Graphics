@@ -174,7 +174,8 @@ namespace UnityEditor.VFX.Test
                 asset = null;
                 EditorUtility.UnloadUnusedAssetsImmediate();
                 AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
-                AssetDatabase.RemoveObject(asset);
+                if (asset != null)
+                    AssetDatabase.RemoveObjectFromAsset(asset);
             }
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             EditorUtility.UnloadUnusedAssetsImmediate();
@@ -346,16 +347,16 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
-                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.TotalTimeOp.ToString()).CreateInstance();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
                     asset.GetOrCreateGraph().AddChild(builtIn);
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                 };
 
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
                 {
                     var builtIn = asset.GetOrCreateGraph()[0] as VFXBuiltInParameter;
                     Assert.AreNotEqual(null, builtIn);
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                 };
             InnerSaveAndReloadTest("BuiltInParameter", write, read);
         }
@@ -367,12 +368,12 @@ namespace UnityEditor.VFX.Test
                 {
                     var graph = asset.GetOrCreateGraph();
                     var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.TotalTimeOp.ToString()).CreateInstance();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
                     graph.AddChild(builtIn);
                     graph.AddChild(add);
                     add.inputSlots[0].Link(builtIn.outputSlots[0]);
 
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                     Assert.IsTrue(add.inputSlots[0].HasLink());
                 };
 
@@ -384,7 +385,7 @@ namespace UnityEditor.VFX.Test
 
                     Assert.AreNotEqual(null, builtIn);
                     Assert.AreNotEqual(null, add);
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                     Assert.IsTrue(add.inputSlots[0].HasLink());
                 };
             InnerSaveAndReloadTest("BuiltInParameter", write, read);
@@ -396,7 +397,7 @@ namespace UnityEditor.VFX.Test
             var testAttribute = "sizeX";
             Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate(VFXAttributeParameter parameter, VFXAttributeLocation location)
                 {
-                    Assert.AreEqual(VFXExpressionOp.NoneOp, parameter.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.None, parameter.outputSlots[0].GetExpression().operation);
                     Assert.AreEqual(VFXValueType.Float, parameter.outputSlots[0].GetExpression().valueType);
                     Assert.IsInstanceOf(typeof(VFXAttributeExpression), parameter.outputSlots[0].GetExpression());
                     Assert.AreEqual(location, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeLocation);

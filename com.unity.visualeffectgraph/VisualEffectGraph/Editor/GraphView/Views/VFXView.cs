@@ -193,9 +193,9 @@ namespace UnityEditor.VFX.UI
             deleteSelection = null;
             nodeCreationRequest = null;
 
-            elementAddedToGroupNode = null;
-            elementRemovedFromGroupNode = null;
-            groupNodeTitleChanged = null;
+            elementAddedToGroup = null;
+            elementRemovedFromGroup = null;
+            groupTitleChanged = null;
 
             // Remove all in view now that the controller has been disconnected.
             var graphElements = this.graphElements.ToList();
@@ -215,9 +215,9 @@ namespace UnityEditor.VFX.UI
             deleteSelection = Delete;
             nodeCreationRequest = OnCreateNode;
 
-            elementAddedToGroupNode = ElementAddedToGroupNode;
-            elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
-            groupNodeTitleChanged = GroupNodeTitleChanged;
+            elementAddedToGroup = ElementAddedToGroupNode;
+            elementRemovedFromGroup = ElementRemovedFromGroupNode;
+            groupTitleChanged = GroupNodeTitleChanged;
         }
 
         public VFXViewController controller
@@ -284,9 +284,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                NodeCreationContext ctx;
+                NodeCreationContext ctx = new NodeCreationContext();
                 ctx.screenMousePosition = GUIUtility.GUIToScreenPoint(evt.imguiEvent.mousePosition);
-
                 OnCreateNode(ctx);
             }
         }
@@ -531,7 +530,8 @@ namespace UnityEditor.VFX.UI
 
         public override void OnPersistentDataReady()
         {
-            // prevent default that messes with view restoration from the VFXViewWindow
+            // warning : default could messes with view restoration from the VFXViewWindow (TODO : check this)
+            base.OnPersistentDataReady();
         }
 
         void NewControllerSet()
@@ -638,8 +638,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                elementAddedToGroupNode = null;
-                elementRemovedFromGroupNode = null;
+                elementAddedToGroup = null;
+                elementRemovedFromGroup = null;
 
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
                 bool changed = false;
@@ -677,8 +677,8 @@ namespace UnityEditor.VFX.UI
                 }
 
 
-                elementAddedToGroupNode = ElementAddedToGroupNode;
-                elementRemovedFromGroupNode = ElementRemovedFromGroupNode;
+                elementAddedToGroup = ElementAddedToGroupNode;
+                elementRemovedFromGroup = ElementRemovedFromGroupNode;
             }
 
             Profiler.EndSample();
@@ -1275,17 +1275,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void ElementAddedToGroupNode(GroupNode groupNode, GraphElement element)
+        void ElementAddedToGroupNode(Group groupNode, GraphElement element)
         {
             (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
         }
 
-        void ElementRemovedFromGroupNode(GroupNode groupNode, GraphElement element)
+        void ElementRemovedFromGroupNode(Group groupNode, GraphElement element)
         {
             (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
         }
 
-        void GroupNodeTitleChanged(GroupNode groupNode, string title)
+        void GroupNodeTitleChanged(Group groupNode, string title)
         {
             (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
         }
@@ -1326,7 +1326,7 @@ namespace UnityEditor.VFX.UI
 
         protected internal override bool canCopySelection
         {
-            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<VFXContextUI>().Any() || selection.OfType<VFXStickyNote>().Any(); }
+            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<Group>().Any() || selection.OfType<VFXContextUI>().Any() || selection.OfType<VFXStickyNote>().Any(); }
         }
 
         IEnumerable<Controller> ElementsToController(IEnumerable<GraphElement> elements)
@@ -1338,9 +1338,9 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var element in elements)
             {
-                if (element is GroupNode)
+                if (element is Group)
                 {
-                    CollectElements((element as GroupNode).containedElements, elementsToCopySet);
+                    CollectElements((element as Group).containedElements, elementsToCopySet);
                     elementsToCopySet.Add(element);
                 }
                 else if (element is Node || element is VFXContextUI || element is VFXStickyNote)
@@ -1476,7 +1476,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return canCopySelection && !selection.Any(t => t is GroupNode);
+                return canCopySelection && !selection.Any(t => t is Group);
             }
         }
 

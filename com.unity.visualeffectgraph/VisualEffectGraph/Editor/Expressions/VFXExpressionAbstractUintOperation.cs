@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation { get { return m_Operation; } }
+        sealed public override VFXExpressionOperation operation { get { return m_Operation; } }
         sealed protected override int[] additionnalOperands { get { return new int[1] { 1 }; } } // TODO only handle size of 1 atm
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
@@ -24,12 +24,12 @@ namespace UnityEditor.VFX
             return newExpression;
         }
 
-        protected VFXExpressionOp m_Operation;
+        protected VFXExpressionOperation m_Operation;
     }
 
     abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUIntOperation
     {
-        protected VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOp operation) : base(new VFXExpression[1] { parent })
+        protected VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOperation operation) : base(new VFXExpression[1] { parent })
         {
             if (!IsUIntValueType(parent.valueType))
             {
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXExpressionBinaryUIntOperation : VFXExpressionUIntOperation
     {
-        protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation) : base(new VFXExpression[2] { parentLeft, parentRight })
+        protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation) : base(new VFXExpression[2] { parentLeft, parentRight })
         {
             if (!IsUIntValueType(parentLeft.valueType) || !IsUIntValueType(parentRight.valueType))
             {

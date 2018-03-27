@@ -108,8 +108,8 @@ namespace UnityEditor.VFX
                         case VFXValueType.Float2: value = CreateValueDesc<Vector2>(exp, i); break;
                         case VFXValueType.Float3: value = CreateValueDesc<Vector3>(exp, i); break;
                         case VFXValueType.Float4: value = CreateValueDesc<Vector4>(exp, i); break;
-                        case VFXValueType.Int: value = CreateValueDesc<int>(exp, i); break;
-                        case VFXValueType.Uint: value = CreateValueDesc<uint>(exp, i); break;
+                        case VFXValueType.Int32: value = CreateValueDesc<int>(exp, i); break;
+                        case VFXValueType.Uint32: value = CreateValueDesc<uint>(exp, i); break;
                         case VFXValueType.Texture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
                         case VFXValueType.Texture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
                         case VFXValueType.Texture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
                         case VFXValueType.Mesh: value = CreateValueDesc<Mesh>(exp, i); break;
-                        case VFXValueType.Bool: value = CreateValueDesc<bool>(exp, i); break;
+                        case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                     value.expressionIndex = (uint)i;
@@ -241,7 +241,7 @@ namespace UnityEditor.VFX
             {
                 var attribute = VFXAttribute.AllAttribute.FirstOrDefault(o => o.name == element.name);
                 bool useAttribute = attribute.name == element.name;
-                if (element.type == VFXValueType.Bool)
+                if (element.type == VFXValueType.Boolean)
                 {
                     var v = useAttribute ? attribute.value.Get<bool>() : default(bool);
                     data.PushBool(v);
@@ -272,12 +272,12 @@ namespace UnityEditor.VFX
                     data.PushFloat(v.z);
                     data.PushFloat(v.w);
                 }
-                else if (element.type == VFXValueType.Int)
+                else if (element.type == VFXValueType.Int32)
                 {
                     var v = useAttribute ? attribute.value.Get<int>() : default(int);
                     data.PushInt(v);
                 }
-                else if (element.type == VFXValueType.Uint)
+                else if (element.type == VFXValueType.Uint32)
                 {
                     var v = useAttribute ? attribute.value.Get<uint>() : default(uint);
                     data.PushUInt(v);
@@ -328,11 +328,11 @@ namespace UnityEditor.VFX
                             {
                                 throw new InvalidCastException("Unexpected block type in spawnerContext");
                             }
-                            if (spawnerBlock.spawnerType == VFXTaskType.SpawnerCustomCallback && spawnerBlock.customBehavior == null)
+                            if (spawnerBlock.spawnerType == VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior == null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
                             }
-                            if (spawnerBlock.spawnerType != VFXTaskType.SpawnerCustomCallback && spawnerBlock.customBehavior != null)
+                            if (spawnerBlock.spawnerType != VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior != null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
                             }
@@ -478,30 +478,74 @@ namespace UnityEditor.VFX
                 }
 
                 System.IO.Directory.CreateDirectory(currentCacheFolder);
-                for (int i = 0; i < generatedCodeData.Count; ++i)
-                {
-                    var generated = generatedCodeData[i];
-                    var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
 
-                    string oldContent = "";
-                    if (System.IO.File.Exists(path))
+                Profiler.BeginSample("VFXEditor.SaveShaderFiles.WriteAsset");
+                var generatedIntermediateData = Enumerable.Empty<int>().Select(_ => new
+                {
+                    context = (VFXContext)null,
+                    needImport = false,
+                    path = string.Empty
+                }).ToArray();
+
+                try
+                {
+                    generatedIntermediateData = generatedCodeData.Select((generated, i) =>
+                        {
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                            var newContent = generated.content.ToString();
+
+                            var oldContent = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : string.Empty;
+                            bool hasChanged = oldContent != newContent;
+                            if (hasChanged)
+                            {
+                                System.IO.File.WriteAllText(path, newContent);
+                            }
+
+                            return new
+                            {
+                                context = generated.context,
+                                needImport = hasChanged,
+                                path = path
+                            };
+                        }).ToArray();
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
+
+                if (generatedIntermediateData.Any(o => o.needImport))
+                {
+                    Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
+                    try
                     {
-                        oldContent = System.IO.File.ReadAllText(path);
+                        AssetDatabase.StartAssetEditing();
+                        foreach (var import in generatedIntermediateData.Where(o => o.needImport))
+                        {
+                            AssetDatabase.ImportAsset(import.path);
+                        }
+                        AssetDatabase.StopAssetEditing();
                     }
-                    var newContent = generated.content.ToString();
-                    bool hasChanged = oldContent != newContent;
-                    if (hasChanged)
+                    finally
                     {
-                        System.IO.File.WriteAllText(path, newContent);
-                        Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
-                        AssetDatabase.ImportAsset(path);
                         Profiler.EndSample();
                     }
+                }
 
-                    Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
-                    var contextData = contextToCompiledData[generated.context];
-                    contextData.processor = imported;
-                    contextToCompiledData[generated.context] = contextData;
+                Profiler.BeginSample("VFXEditor.SaveShaderFiles.LoadAsset");
+                try
+                {
+                    foreach (var generated in generatedIntermediateData)
+                    {
+                        var imported = AssetDatabase.LoadAssetAtPath<Object>(generated.path);
+                        var contextData = contextToCompiledData[generated.context];
+                        contextData.processor = imported;
+                        contextToCompiledData[generated.context] = contextData;
+                    }
+                }
+                finally
+                {
+                    Profiler.EndSample();
                 }
             }
             finally
@@ -705,8 +749,8 @@ namespace UnityEditor.VFX
                         case VFXValueType.Float2: SetValueDesc<Vector2>(desc, exp); break;
                         case VFXValueType.Float3: SetValueDesc<Vector3>(desc, exp); break;
                         case VFXValueType.Float4: SetValueDesc<Vector4>(desc, exp); break;
-                        case VFXValueType.Int: SetValueDesc<int>(desc, exp); break;
-                        case VFXValueType.Uint: SetValueDesc<uint>(desc, exp); break;
+                        case VFXValueType.Int32: SetValueDesc<int>(desc, exp); break;
+                        case VFXValueType.Uint32: SetValueDesc<uint>(desc, exp); break;
                         case VFXValueType.Texture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
                         case VFXValueType.Texture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
                         case VFXValueType.Texture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
@@ -716,7 +760,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.Mesh: SetValueDesc<Mesh>(desc, exp); break;
-                        case VFXValueType.Bool: SetValueDesc<bool>(desc, exp); break;
+                        case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }

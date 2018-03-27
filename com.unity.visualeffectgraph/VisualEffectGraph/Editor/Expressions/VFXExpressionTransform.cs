@@ -17,11 +17,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.TRSToMatrixOp;
+                return VFXExpressionOperation.TRSToMatrix;
             }
         }
 
@@ -54,11 +54,11 @@ namespace UnityEditor.VFX
             : base(VFXExpression.Flags.InvalidOnGPU, parent)
         {}
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.InverseTRSOp;
+                return VFXExpressionOperation.InverseTRS;
             }
         }
 
@@ -79,11 +79,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.ExtractPositionFromMatrixOp;
+                return VFXExpressionOperation.ExtractPositionFromMatrix;
             }
         }
 
@@ -114,11 +114,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.ExtractAnglesFromMatrixOp;
+                return VFXExpressionOperation.ExtractAnglesFromMatrix;
             }
         }
 
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
         {
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
-
+            matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.rotation.eulerAngles);
         }
     }
@@ -149,11 +149,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.ExtractScaleFromMatrixOp;
+                return VFXExpressionOperation.ExtractScaleFromMatrix;
             }
         }
 
@@ -169,7 +169,7 @@ namespace UnityEditor.VFX
         {
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
-
+            matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.lossyScale);
         }
     }
@@ -184,11 +184,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.TransformPosOp;
+                return VFXExpressionOperation.TransformPos;
             }
         }
 
@@ -227,11 +227,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.TransformPosOp;
+                return VFXExpressionOperation.TransformPos;
             }
         }
 
@@ -270,11 +270,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.TransformDirOp;
+                return VFXExpressionOperation.TransformDir;
             }
         }
 
