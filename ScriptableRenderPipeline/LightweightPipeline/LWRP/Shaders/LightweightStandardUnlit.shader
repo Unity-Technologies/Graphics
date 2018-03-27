@@ -33,7 +33,6 @@ Shader "LightweightPipeline/Standard Unlit"
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 
-            #pragma exclude_renderers d3d11_9x
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_fog
