@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
             public FloatN input = new FloatN(0.0f);
         }
 
-        override public string name { get { return "Saturate ( Clamp [0..1] )"; } }
+        override public string name { get { return "Saturate"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

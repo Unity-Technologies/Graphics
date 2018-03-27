@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Block
             [Tooltip("The position that the particle look at")]
             public Position LookAtPosition = Position.defaultValue;
             [Range(0.0f, 1.0f), Tooltip("The position (relative to the segment) that act as a pivot.")]
-            public float PivotPosition = 0.5f;
+            public float PivotShift = 0.5f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -84,8 +84,8 @@ axisZ = {0};
 axisX = normalize(cross(axisY,axisZ));
 axisZ = cross(axisX,axisY);
 
-position = lerp(position, TargetPosition, PivotPosition);
-pivot.y = PivotPosition * 2 - 1;
+position = lerp(position, TargetPosition, PivotShift);
+pivot.y = PivotShift * 2 - 1;
 ", orient);
             }
         }

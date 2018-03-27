@@ -202,7 +202,8 @@ namespace UnityEditor.VFX.Test
             blockSetAttribute.SetSettingValue("attribute", "lifetime");
             spawnerInit.AddChild(blockSetAttribute);
 
-            var blockAttributeSource = ScriptableObject.CreateInstance<VFXSourceAttributeParameter>();
+            var blockAttributeSource = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            blockAttributeSource.SetSettingValue("location", VFXAttributeLocation.Source);
             blockAttributeSource.SetSettingValue("attribute", "lifetime");
 
             spawnerContext.AddChild(blockCustomSpawner);

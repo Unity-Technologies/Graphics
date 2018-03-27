@@ -145,6 +145,7 @@ namespace UnityEditor.VFX
     {
         Current = 0,
         Source = 1,
+        Initial = 2
     }
 
     sealed class VFXAttributeExpression : VFXExpression
