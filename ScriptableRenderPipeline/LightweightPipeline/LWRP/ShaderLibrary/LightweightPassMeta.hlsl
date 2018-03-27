@@ -78,7 +78,7 @@ MetaVertexOuput LightweightVertexMeta(MetaVertexInput v)
 {
     MetaVertexOuput o;
     o.pos = MetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST);
-    o.uv = TransformMainTextureCoord(v.uv0);
+    o.uv = TRANSFORM_TEX(v.uv0, _MainTex);
     return o;
 }
 
