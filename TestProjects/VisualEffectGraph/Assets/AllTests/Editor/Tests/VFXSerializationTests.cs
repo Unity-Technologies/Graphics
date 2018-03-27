@@ -406,12 +406,13 @@ namespace UnityEditor.VFX.Test
 
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
-                    var sizeCurrent = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXCurrentAttributeParameter)).CreateInstance();
-                    var sizeSource = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXSourceAttributeParameter)).CreateInstance();
+                    var sizeCurrent = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                    var sizeSource = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                    (sizeSource as VFXAttributeParameter).SetSettingValue("location", VFXAttributeLocation.Source);
                     asset.GetOrCreateGraph().AddChild(sizeCurrent);
                     asset.GetOrCreateGraph().AddChild(sizeSource);
-                    test(sizeCurrent as VFXCurrentAttributeParameter, VFXAttributeLocation.Current);
-                    test(sizeSource as VFXSourceAttributeParameter, VFXAttributeLocation.Source);
+                    test(sizeCurrent as VFXAttributeParameter, VFXAttributeLocation.Current);
+                    test(sizeSource as VFXAttributeParameter, VFXAttributeLocation.Source);
                 };
 
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)

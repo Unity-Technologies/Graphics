@@ -509,30 +509,15 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(177.65288f, resultExpressionA.Get<float>(), 0.001f);
         }
 
+        static readonly float[] ProcessOperatorCeil_Values = { 4.0f, 1.5f, -0.5f};
         [Test]
-        public void ProcessOperatorCeil()
+        public void ProcessOperatorCeil([ValueSource("ProcessOperatorCeil_Values")] float inValue)
         {
-            var a = 4.0f;
-            var b = 1.5f;
-            var c = -0.5f;
-
-            var value_a = new VFXValue<float>(a);
-            var value_b = new VFXValue<float>(b);
-            var value_c = new VFXValue<float>(c);
-
-            var expressionA = VFXOperatorUtility.Ceil(value_a);
-            var expressionB = VFXOperatorUtility.Ceil(value_b);
-            var expressionC = VFXOperatorUtility.Ceil(value_c);
-
+            var value = new VFXValue<float>(inValue);
+            var expression = VFXOperatorUtility.Ceil(value);
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
-
-            var resultExpressionA = context.Compile(expressionA);
-            var resultExpressionB = context.Compile(expressionB);
-            var resultExpressionC = context.Compile(expressionC);
-
-            Assert.AreEqual(4.0f, resultExpressionA.Get<float>(), 0.001f);
-            Assert.AreEqual(2.0f, resultExpressionB.Get<float>(), 0.001f);
-            Assert.AreEqual(0.0f, resultExpressionC.Get<float>(), 0.001f);
+            var resultExpressionA = context.Compile(expression);
+            Assert.AreEqual(Mathf.Ceil(inValue), resultExpressionA.Get<float>(), 0.001f);
         }
 
         [Test]
@@ -540,7 +525,6 @@ namespace UnityEditor.VFX.Test
         {
             var a = new Vector3(1.1f, 2.2f, 3.3f);
             var b = new Vector3(4.4f, 5.5f, 6.6f);
-
 
             var value_a = new VFXValue<Vector3>(a);
             var value_b = new VFXValue<Vector3>(b);
@@ -552,9 +536,11 @@ namespace UnityEditor.VFX.Test
             var resultExpressionA = context.Compile(expressionA);
             var resultValue = resultExpressionA.Get<Vector3>();
 
-            Assert.AreEqual(-3.629999f, resultValue.x, 0.001f);
-            Assert.AreEqual(7.26f, resultValue.y, 0.001f);
-            Assert.AreEqual(-3.63f, resultValue.z, 0.001f);
+            var expectedValue = Vector3.Cross(a, b);
+
+            Assert.AreEqual(expectedValue.x, resultValue.x, 0.001f);
+            Assert.AreEqual(expectedValue.y, resultValue.y, 0.001f);
+            Assert.AreEqual(expectedValue.z, resultValue.z, 0.001f);
         }
     }
 }
