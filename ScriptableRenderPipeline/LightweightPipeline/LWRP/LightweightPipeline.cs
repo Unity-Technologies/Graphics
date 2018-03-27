@@ -55,9 +55,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public struct ShadowSliceData
     {
         public Matrix4x4 shadowTransform;
-        public int atlasX;
-        public int atlasY;
-        public int shadowResolution;
+        public int offsetX;
+        public int offsetY;
+        public int resolution;
     }
 
     public struct LightData
@@ -1204,14 +1204,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!success)
                     break;
 
-                int atlasX = (cascadeIndex % 2) * shadowResolution;
-                int atlasY = (cascadeIndex / 2) * shadowResolution;
-                float atlasWidth = (float)m_ShadowSettings.shadowAtlasWidth;
-                float atlasHeight = (float)m_ShadowSettings.shadowAtlasHeight;
-                Rect shadowSliceRect = new Rect((float)atlasX, (float)atlasY, atlasWidth, atlasHeight);
+                m_ShadowCascadeSlices[cascadeIndex].offsetX = (cascadeIndex % 2) * shadowResolution;
+                m_ShadowCascadeSlices[cascadeIndex].offsetY = (cascadeIndex / 2) * shadowResolution;
+                m_ShadowCascadeSlices[cascadeIndex].resolution = shadowResolution;
 
                 SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
-                SetupShadowSliceTransform(ref shadowSliceRect, shadowResolution, proj, view, out m_ShadowCascadeSlices[cascadeIndex]);
+                SetupShadowSliceTransform(ref m_ShadowCascadeSlices[cascadeIndex], m_ShadowSettings.shadowAtlasWidth, m_ShadowSettings.shadowAtlasHeight, proj, view);
                 RenderShadowSlice(cmd, ref context, ref m_ShadowCascadeSlices[cascadeIndex], proj, view, settings);
             }
 
@@ -1254,7 +1252,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // TODO: Add support to point light shadows. We make a simplification here that only works
             // for spot lights and with max spot shadows per pass.
-            int sliceResolution = GetMaxTileResolutionInAtlas(m_LocalLightShadowAtlasResolution, m_LocalLightShadowAtlasResolution, m_LocalShadowLightIndices.Count);
+            int atlasWidth = m_LocalLightShadowAtlasResolution;
+            int atlasHeight = m_LocalLightShadowAtlasResolution;
+            int sliceResolution = GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, m_LocalShadowLightIndices.Count);
             int shadowSampling = 0;
             
             RenderTextureDescriptor shadowmapDescriptor = new RenderTextureDescriptor(m_LocalLightShadowAtlasResolution, m_LocalLightShadowAtlasResolution, m_ShadowSettings.shadowmapTextureFormat, kShadowBufferBits);
@@ -1283,14 +1283,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
                     // Change this when point lights are supported.
                     Debug.Assert(kMaxLocalPixelLightPerPass == 4 && shadowLight.lightType == LightType.Spot);
-                    int atlasX = (i % 2) * sliceResolution;
-                    int atlasY = (i / 2) * sliceResolution;
-                    float atlasWidth = (float)m_LocalLightShadowAtlasResolution;
-                    float atlasHeight = (float)m_LocalLightShadowAtlasResolution;
+                    m_LocalLightShadowSlices[i].offsetX = (i % 2) * sliceResolution;
+                    m_LocalLightShadowSlices[i].offsetY = (i / 2) * sliceResolution;
+                    m_LocalLightShadowSlices[i].resolution = sliceResolution;
 
-                    Rect shadowSliceRect = new Rect(atlasX, atlasY, atlasWidth, atlasHeight);
                     SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
-                    SetupShadowSliceTransform(ref shadowSliceRect, sliceResolution, proj, view, out m_LocalLightShadowSlices[i]);
+                    SetupShadowSliceTransform(ref m_LocalLightShadowSlices[i], atlasWidth, atlasHeight, proj, view);
                     RenderShadowSlice(cmd, ref context, ref m_LocalLightShadowSlices[i], proj, view, settings);
                     m_LocalShadowStrength[i] = light.shadowStrength;
                     shadowSampling = Math.Max(shadowSampling, (int)light.shadows);
@@ -1305,7 +1303,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.Clear();
         }
 
-        private void SetupShadowSliceTransform(ref Rect shadowSliceRect, int shadowResolution, Matrix4x4 proj, Matrix4x4 view, out ShadowSliceData shadowSliceData)
+        private void SetupShadowSliceTransform(ref ShadowSliceData shadowSliceData, int atlasWidth, int atlasHeight, Matrix4x4 proj, Matrix4x4 view)
         {
              // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesn't
             // apply z reversal to projection matrix. We need to do it manually here.
@@ -1331,25 +1329,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             worldToShadow = textureScaleAndBias * worldToShadow;
 
             var cascadeAtlas = Matrix4x4.identity;
-            cascadeAtlas.m00 = (float)shadowResolution / shadowSliceRect.width;
-            cascadeAtlas.m11 = (float)shadowResolution / shadowSliceRect.height;
-            cascadeAtlas.m03 = shadowSliceRect.x / shadowSliceRect.width;
-            cascadeAtlas.m13 = shadowSliceRect.y / shadowSliceRect.height;
+            float oneOverAtlasWidth = 1.0f / atlasWidth;
+            float oneOverAtlasHeight = 1.0f / atlasHeight;
+            cascadeAtlas.m00 = shadowSliceData.resolution * oneOverAtlasWidth;
+            cascadeAtlas.m11 = shadowSliceData.resolution * oneOverAtlasHeight;
+            cascadeAtlas.m03 = shadowSliceData.offsetX * oneOverAtlasWidth;
+            cascadeAtlas.m13 = shadowSliceData.offsetY * oneOverAtlasHeight;
 
-            // Apply cascade scale and offset
+            // Apply shadow slice scale and offset
             worldToShadow = cascadeAtlas * worldToShadow;
 
-            shadowSliceData.atlasX = (int)shadowSliceRect.x;
-            shadowSliceData.atlasY = (int)shadowSliceRect.y;
-            shadowSliceData.shadowResolution = shadowResolution;
             shadowSliceData.shadowTransform = worldToShadow;
         }
 
         private void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context, ref ShadowSliceData shadowSliceData,
             Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings)
         {
-            cmd.SetViewport(new Rect(shadowSliceData.atlasX, shadowSliceData.atlasY, shadowSliceData.shadowResolution, shadowSliceData.shadowResolution));
-            cmd.EnableScissorRect(new Rect(shadowSliceData.atlasX + 4, shadowSliceData.atlasY + 4, shadowSliceData.shadowResolution - 8, shadowSliceData.shadowResolution - 8));
+            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
+            cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
 
             cmd.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(cmd);
