@@ -150,6 +150,13 @@ namespace UnityEditor.VFX.UI
             if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);
 
+            if (m_Provider.value != null)
+            {
+                string regex = VFXPropertyAttribute.ApplyRegex(m_Provider.attributes, m_Provider.value.ToString());
+                if (regex != null)
+                    m_Provider.value = regex;
+            }
+
             UpdateExpandable();
 
             SetValue(m_Provider.value);
