@@ -97,7 +97,9 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
             #define BUMP_SCALE_NOT_SUPPORTED 1
-            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
+
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassLitSimple.hlsl"
             ENDHLSL
         }
 
@@ -126,6 +128,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
@@ -154,6 +157,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
@@ -174,7 +178,20 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+
+            half4 LightweightFragmentMetaSimple(MetaVertexOuput i) : SV_Target
+            {
+                float2 uv = i.uv;
+                MetaInput o;
+                o.Albedo = _Color.rgb * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb;
+                o.SpecularColor = SpecularGloss(uv, 1.0).xyz;
+                o.Emission = Emission(uv);
+
+                return MetaFragment(o);
+            }
+
             ENDHLSL
         }
     }
