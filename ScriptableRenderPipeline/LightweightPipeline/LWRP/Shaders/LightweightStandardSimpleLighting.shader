@@ -66,6 +66,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -114,6 +115,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -143,6 +145,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
