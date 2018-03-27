@@ -1239,9 +1239,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Bounds bounds;
             bool success = false;
 
+            for (int i = 0; i < visibleLights.Count; ++i)
+            {
+                VisibleLight shadowLight = visibleLights[i];
+                if (m_LocalShadowLightIndices.Count >= kMaxLocalPixelLightPerPass)
+                    break;
+
+                if (shadowLight.lightType == LightType.Spot && shadowLight.light.shadows != LightShadows.None)
+                    m_LocalShadowLightIndices.Add(i);
+            }
+
+            if (m_LocalShadowLightIndices.Count == 0)
+                return;
+
             // TODO: Add support to point light shadows. We make a simplification here that only works
             // for spot lights and with max spot shadows per pass.
-            int sliceResolution = GetMaxTileResolutionInAtlas(m_LocalLightShadowAtlasResolution, m_LocalLightShadowAtlasResolution, kMaxLocalPixelLightPerPass);
+            int sliceResolution = GetMaxTileResolutionInAtlas(m_LocalLightShadowAtlasResolution, m_LocalLightShadowAtlasResolution, m_LocalShadowLightIndices.Count);
             int shadowSampling = 0;
             
             RenderTextureDescriptor shadowmapDescriptor = new RenderTextureDescriptor(m_LocalLightShadowAtlasResolution, m_LocalLightShadowAtlasResolution, m_ShadowSettings.shadowmapTextureFormat, kShadowBufferBits);
@@ -1253,42 +1266,34 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // LightweightPipeline.SetRenderTarget is meant to be used with camera targets, not shadowmaps
             CoreUtils.SetRenderTarget(cmd, m_AdditionalShadowmapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
 
-            int shadowSliceIndex = 0;
-            for (int i = 0; i < visibleLights.Count; ++i)
+            for (int i = 0; i < m_LocalShadowLightIndices.Count; ++i)
             {
-                VisibleLight shadowLight = visibleLights[i];
+                int shadowLightIndex = m_LocalShadowLightIndices[i];
+                VisibleLight shadowLight = visibleLights[shadowLightIndex];
                 Light light = shadowLight.light;
 
-                if (m_LocalShadowLightIndices.Count >= kMaxLocalPixelLightPerPass)
-                    break;
-
-                if (shadowLight.lightType != LightType.Spot || light.shadows == LightShadows.None)
+                if (!m_CullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
                     continue;
 
-                if (!m_CullResults.GetShadowCasterBounds(i, out bounds))
-                    continue;
+                var settings = new DrawShadowsSettings(m_CullResults, shadowLightIndex);
 
-                var settings = new DrawShadowsSettings(m_CullResults, i);
-
-                success = m_CullResults.ComputeSpotShadowMatricesAndCullingPrimitives(i, out view, out proj, out settings.splitData);
+                success = m_CullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out view, out proj, out settings.splitData);
                 if (success)
                 {
                     // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
                     // Change this when point lights are supported.
                     Debug.Assert(kMaxLocalPixelLightPerPass == 4 && shadowLight.lightType == LightType.Spot);
-                    int atlasX = (shadowSliceIndex % 2) * sliceResolution;
-                    int atlasY = (shadowSliceIndex / 2) * sliceResolution;
+                    int atlasX = (i % 2) * sliceResolution;
+                    int atlasY = (i / 2) * sliceResolution;
                     float atlasWidth = (float)m_LocalLightShadowAtlasResolution;
                     float atlasHeight = (float)m_LocalLightShadowAtlasResolution;
 
                     Rect shadowSliceRect = new Rect(atlasX, atlasY, atlasWidth, atlasHeight);
                     SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
-                    SetupShadowSliceTransform(ref shadowSliceRect, sliceResolution, proj, view, out m_LocalLightShadowSlices[shadowSliceIndex]);
-                    RenderShadowSlice(cmd, ref context, ref m_LocalLightShadowSlices[shadowSliceIndex], proj, view, settings);
-                    m_LocalShadowStrength[shadowSliceIndex] = light.shadowStrength;
-                    m_LocalShadowLightIndices.Add(i);
+                    SetupShadowSliceTransform(ref shadowSliceRect, sliceResolution, proj, view, out m_LocalLightShadowSlices[i]);
+                    RenderShadowSlice(cmd, ref context, ref m_LocalLightShadowSlices[i], proj, view, settings);
+                    m_LocalShadowStrength[i] = light.shadowStrength;
                     shadowSampling = Math.Max(shadowSampling, (int)light.shadows);
-                    shadowSliceIndex++;
                 }
             }
 
