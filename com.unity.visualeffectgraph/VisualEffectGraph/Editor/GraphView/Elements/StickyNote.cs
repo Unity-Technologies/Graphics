@@ -300,6 +300,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_TitleField.visible = false;
                 m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
+                m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             }
 
 
@@ -355,6 +356,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void OnTitleChange(EventBase e)
+        {
+            title = m_TitleField.value;
+        }
+
 
         const string fitTextClass = "fit-text";
 
@@ -364,6 +370,11 @@ namespace UnityEditor.VFX.UI
             style.positionTop = rect.y;
             style.width = rect.width;
             style.height = rect.height;
+        }
+
+        public override Rect GetPosition()
+        {
+            return new Rect(style.positionLeft,style.positionTop,style.width,style.height);
         }
 
         public string contents
@@ -426,7 +437,7 @@ namespace UnityEditor.VFX.UI
             m_Title.UnregisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
             //Notify change
-            if( changed)
+            //if( changed)
             {
                 NotifyChange(StickyNodeChangeEvent.Change.title);
             }
