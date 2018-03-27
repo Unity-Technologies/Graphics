@@ -3,12 +3,15 @@
 
 #include "Core.hlsl"
 #include "CoreRP/ShaderLibrary/Color.hlsl"
+#include "InputSurfaceCommon.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
 float4 _MainTex_ST;
 half4 _Color;
+half4 _EmissionColor;
+half4 _SpecColor;
 
 #if defined (_COLORADDSUBDIFF_ON)
     half4 _ColorAddSubDiff;
@@ -18,12 +21,11 @@ half _Cutoff;
 half _Shininess;
 half _Metallic;
 half _Glossiness;
+half _BumpScale;
 CBUFFER_END
 
-#include "InputSurfaceCommon.hlsl"
-
-TEXTURE2D(_CameraDepthTexture);
-SAMPLER(sampler_CameraDepthTexture);
+TEXTURE2D(_CameraDepthTexture); SAMPLER(sampler_CameraDepthTexture);
+TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 #define SOFT_PARTICLE_NEAR_FADE _SoftParticleFadeParams.x
 #define SOFT_PARTICLE_INV_FADE_DISTANCE _SoftParticleFadeParams.y
@@ -172,31 +174,32 @@ half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VertexOutputLit IN)
     return color;
 }
 
-half3 NormalTS(VertexOutputLit IN)
+half3 SampleNormalTS(VertexOutputLit IN, float scale, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap))
 {
 #if defined(_NORMALMAP)
+    half4 n = readTexture(TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), IN);
     #if BUMP_SCALE_NOT_SUPPORTED
-        return UnpackNormal(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN));
+        return UnpackNormal(n);
     #else
-        return UnpackNormalScale(readTexture(TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), IN), _BumpScale);
+        return UnpackNormalScale(n, scale);
     #endif
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif
 }
 
-half3 Emission(VertexOutputLit IN)
+half3 SampleEmission(VertexOutputLit IN, half3 emissionColor, TEXTURE2D_ARGS(emissionMap, sampler_emissionMap))
 {
 #if defined(_EMISSION)
-    return readTexture(TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap), IN).rgb * _EmissionColor.rgb;
+    return readTexture(TEXTURE2D_PARAM(emissionMap, sampler_emissionMap), IN).rgb * emissionColor.rgb;
 #else
     return half3(0.0h, 0.0h, 0.0h);
 #endif
 }
 
-half4 Albedo(VertexOutputLit IN)
+half4 SampleAlbedo(VertexOutputLit IN, TEXTURE2D_ARGS(albedoMap, sampler_albedoMap))
 {
-    half4 albedo = readTexture(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), IN) * IN.color;
+    half4 albedo = readTexture(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), IN) * IN.color;
 
     // No distortion Support
     fragColorMode(IN);
@@ -206,13 +209,13 @@ half4 Albedo(VertexOutputLit IN)
     return albedo;
 }
 
-half4 SpecularGloss(VertexOutputLit IN, half alpha)
+half4 SampleSpecularGloss(VertexOutputLit IN, half alpha, half4 specColor, TEXTURE2D_ARGS(specGlossMap, sampler_specGlossMap))
 {
     half4 specularGloss = half4(0.0h, 0.0h, 0.0h, 1.0h);
 #ifdef _SPECGLOSSMAP
-    specularGloss = readTexture(TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap), IN);
+    specularGloss = readTexture(TEXTURE2D_PARAM(specGlossMap, sampler_specGlossMap), IN);
 #elif defined(_SPECULAR_COLOR)
-    specularGloss = _SpecColor;
+    specularGloss = specColor;
 #endif
 
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA

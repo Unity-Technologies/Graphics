@@ -27,7 +27,7 @@ TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
     #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, uv)
 #endif
 
-half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
+half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 {
     half4 specGloss;
 
@@ -55,7 +55,7 @@ half4 MetallicSpecGloss(float2 uv, half albedoAlpha)
     return specGloss;
 }
 
-half Occlusion(float2 uv)
+half SampleOcclusion(float2 uv)
 {
 #ifdef _OCCLUSIONMAP
 #if (SHADER_TARGET < 30)
@@ -75,9 +75,10 @@ half Occlusion(float2 uv)
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
-    half4 albedoAlpha = MainTexture(uv);
+    half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+    outSurfaceData.alpha = Alpha(albedoAlpha.a, _Color, _Cutoff);
 
-    half4 specGloss = MetallicSpecGloss(uv, albedoAlpha.a);
+    half4 specGloss = SampleMetallicSpecGloss(uv, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _Color.rgb;
 
 #if _SPECULAR_SETUP
@@ -89,10 +90,9 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalTS = Normal(uv);
-    outSurfaceData.occlusion = Occlusion(uv);
-    outSurfaceData.emission = Emission(uv);
-    outSurfaceData.alpha = Alpha(albedoAlpha.a);
+    outSurfaceData.normalTS = SampleNormal(uv, _BumpScale, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+    outSurfaceData.occlusion = SampleOcclusion(uv);
+    outSurfaceData.emission = SampleEmission(uv, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
 }
 
 #endif // LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED
