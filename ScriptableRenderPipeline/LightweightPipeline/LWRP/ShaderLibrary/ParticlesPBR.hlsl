@@ -18,7 +18,7 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
     half3 normalTS = NormalTS(IN);
     half3 emission = Emission(IN);
 
-    surfaceData.albedo = albedo.rbg;
+    surfaceData.albedo = albedo.rgb;
     surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
     surfaceData.normalTS = normalTS;
     surfaceData.emission = emission;
