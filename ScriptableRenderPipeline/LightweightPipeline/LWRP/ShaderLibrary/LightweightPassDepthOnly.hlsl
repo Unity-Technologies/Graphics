@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_PASS_DEPTH_ONLY_INCLUDED
 
 #include "LWRP/ShaderLibrary/Core.hlsl"
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 
 struct VertexInput
 {

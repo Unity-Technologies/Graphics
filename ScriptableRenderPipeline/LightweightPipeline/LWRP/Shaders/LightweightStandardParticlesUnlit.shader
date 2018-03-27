@@ -67,7 +67,6 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 #pragma fragment fragParticleUnlit
 
                 #include "LWRP/ShaderLibrary/Particles.hlsl"
-                #include "LWRP/ShaderLibrary/Core.hlsl"
 
                 VertexOutputLit vertParticleUnlit(appdata_particles v)
                 {
@@ -89,7 +88,7 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 half4 fragParticleUnlit(VertexOutputLit IN) : SV_Target
                 {
                     half4 albedo = Albedo(IN);
-                    half alpha = AlphaBlendAndTest(albedo.a);
+                    half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                     half3 emission = Emission(IN);
                     half3 diffuse = AlphaModulate(albedo.rgb, alpha);
 

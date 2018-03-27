@@ -72,7 +72,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
 
             #define NO_SHADOWS 1
 
-            #include "LWRP/ShaderLibrary/Particles.hlsl"
+            #include "LWRP/ShaderLibrary/ParticlesPBR.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
