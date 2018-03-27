@@ -77,7 +77,12 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			int normalIndex = decalData.normalToWorld[2][3];
 			int maskIndex = decalData.normalToWorld[3][3];
 			float lod = ComputeTextureLOD(positionDS.xz, _DecalAtlasResolution);								
-			decalBlend = ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) ? decalBlend : 0;	// use blend of 0 instead of an 'if' because compiler moves the lod calculation inside the 'if' which causes incorrect values if any of the pixels in the 2x2 quad gets rejected
+			decalBlend = ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) ? decalBlend : 0;	// use blend of 0 instead of an 'if' because compiler moves the lod calculation inside the 'if' which causes incorrect values 
+																												// if any of the pixels in the 2x2 quad gets rejected
+
+			// Verified that lod calculation works with a test texture, looking at the shader code in Razor the lod calculation is outside the dynamic branches where the texture fetch happens,
+			// however compiler was placing it inside the branch that was rejecting the pixel, which was causing incorrect lod to be calculated for any 2x2 quad where any of the pixels were rejected, 
+			// so had to use alpha blend of 0 instead of branching to solve that issue."
 
 			if(diffuseIndex != -1)
 			{
