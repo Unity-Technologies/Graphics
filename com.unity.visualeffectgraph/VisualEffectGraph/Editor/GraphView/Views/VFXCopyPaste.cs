@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UI
             if (groupNodes.Length > 0 || stickyNotes.Length > 0)
             {
                 copiedGroupUI = ScriptableObject.CreateInstance<VFXUI>();
-                if( groupNodes.Length > 0)
+                if (groupNodes.Length > 0)
                 {
                     copiedGroupUI.groupInfos = new VFXUI.GroupInfo[groupNodes.Length];
 
@@ -651,9 +651,9 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXUI ui = allSerializedObjects.OfType<VFXUI>().First();
 
-                    if( ui != null)
+                    if (ui != null)
                     {
-                        if( ui.stickyNoteInfos != null && ui.stickyNoteInfos.Length > 0)
+                        if (ui.stickyNoteInfos != null && ui.stickyNoteInfos.Length > 0)
                         {
                             foreach (var stickyNote in viewController.stickyNotes)
                             {
@@ -664,7 +664,7 @@ namespace UnityEditor.VFX.UI
                                 }
                             }
                         }
-                        else if(ui.groupInfos != null && ui.groupInfos.Length > 0 )
+                        else if (ui.groupInfos != null && ui.groupInfos.Length > 0)
                         {
                             foreach (var gn in viewController.groupNodes)
                             {
@@ -762,7 +762,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXUI ui = viewController.graph.UIInfos;
 
-                if( copiedUI.groupInfos != null && copiedUI.groupInfos.Length > 0)
+                if (copiedUI.groupInfos != null && copiedUI.groupInfos.Length > 0)
                 {
                     if (ui.groupInfos == null)
                     {
@@ -790,8 +790,12 @@ namespace UnityEditor.VFX.UI
 
                     ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo(t) { position = new Rect(t.position.position + pasteOffset, t.position.size) })).ToArray();
                 }
-                if( copiedUI.stickyNoteInfos != null && copiedUI.stickyNoteInfos.Length > 0)
+                if (copiedUI.stickyNoteInfos != null && copiedUI.stickyNoteInfos.Length > 0)
                 {
+                    if (ui.stickyNoteInfos == null)
+                    {
+                        ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[0];
+                    }
                     firstCopiedStickyNote = ui.stickyNoteInfos.Length;
                     ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(copiedUI.stickyNoteInfos.Select(t => new VFXUI.StickyNoteInfo(t) { position = new Rect(t.position.position + pasteOffset, t.position.size) })).ToArray();
                 }
