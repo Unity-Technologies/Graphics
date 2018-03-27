@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
             for (int iComponent = 0; iComponent < outputSize; iComponent++)
             {
                 char componentChar = char.ToLower(mask[iComponent]);
-                int currentComponent = (int)(componentChar - 'x');
+                int currentComponent = Math.Min((int)(componentChar - 'x'), inputComponents.Length - 1);
                 componentStack.Push(inputComponents[(int)currentComponent]);
             }
 
