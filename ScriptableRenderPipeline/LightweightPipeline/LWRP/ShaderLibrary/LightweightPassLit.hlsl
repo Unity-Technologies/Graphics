@@ -81,7 +81,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    o.uv = TransformMainTextureCoord(v.texcoord);
+    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 
     float3 posWS = TransformObjectToWorld(v.vertex.xyz);
     o.clipPos = TransformWorldToHClip(posWS);
