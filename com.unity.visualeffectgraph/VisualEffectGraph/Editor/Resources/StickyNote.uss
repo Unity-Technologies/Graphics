@@ -52,8 +52,13 @@
     border-right-width:2;
 }
 
+#title-field
+{
+    positionType:absolute;
+}
 
-* #title, * #title * 
+
+* #title, * #title-field 
 {
     font-size:20;
 }
@@ -78,6 +83,7 @@
     margin-bottom:0;
     padding-top:0;
     padding-bottom:0;
+    -word-wrap: true;
 }
 
 * #title.empty
@@ -127,7 +133,7 @@
     -border-color: rgba(0, 0, 0, 0.5);
 }
 
-.size-medium #title, .size-medium #title * 
+.size-medium #title, .size-medium #title-field
 {
     font-size:40;
 }
@@ -136,7 +142,7 @@
     font-size:24;
 }
 
-.size-large #title, .size-large #title * 
+.size-large #title, .size-large #title-field 
 {
     font-size:60;
 }
@@ -145,7 +151,7 @@
     font-size:36;
 }
 
-.size-huge #title, .size-huge #title * 
+.size-huge #title, .size-huge #title-field 
 {
     font-size:80;
 }

@@ -205,7 +205,9 @@ namespace UnityEditor.VFX.UI
             preferredTitleSize.x += m_Title.ChangeCoordinatesTo(this,Vector2.zero).x + style.width - m_Title.ChangeCoordinatesTo(this,new Vector2(m_Title.layout.width,0)).x ;
 
             Vector2 preferredContentsSizeOneLine = m_Contents.DoMeasure(0,MeasureMode.Undefined,0,MeasureMode.Undefined);
-            preferredContentsSizeOneLine += AllExtraSpace(m_Contents);
+
+            Vector2 contentExtraSpace = AllExtraSpace(m_Contents);
+            preferredContentsSizeOneLine += contentExtraSpace;
 
             Vector2 extraSpace = new Vector2(style.width,style.height) - m_Contents.ChangeCoordinatesTo(this,new Vector2(m_Contents.layout.width,m_Contents.layout.height));
             extraSpace += m_Title.ChangeCoordinatesTo(this,Vector2.zero);
@@ -224,10 +226,11 @@ namespace UnityEditor.VFX.UI
             else // The width is not enough for the content: keep the width or use the title width if bigger.
             {
 
-                width = Mathf.Max(preferredTitleSize.x,style.width);
-                Vector2 preferredContentsSize = m_Contents.DoMeasure(width,MeasureMode.Exactly,0,MeasureMode.Undefined);
+                width = Mathf.Max(preferredTitleSize.x + extraSpace.x,style.width); 
+                float contextWidth = width - extraSpace.x - contentExtraSpace.x;
+                Vector2 preferredContentsSize = m_Contents.DoMeasure(contextWidth,MeasureMode.Exactly,0,MeasureMode.Undefined);
 
-                preferredContentsSize += AllExtraSpace(m_Contents);
+                preferredContentsSize += contentExtraSpace;
 
                 height = preferredTitleSize.y + preferredContentsSize.y + extraSpace.y;
             }
@@ -373,25 +376,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
-        void UpdateTitleHeight()
-        {
-            if (!string.IsNullOrEmpty(m_Title.text) && m_Title.style.font.value != null)
-            {
-                var stylePainter = elementPanel.stylePainter;
-                var textParams = stylePainter.GetDefaultTextParameters(m_Title);
-                textParams.text = m_Title.text;
-                textParams.font = m_Title.style.font;
-                textParams.wordWrapWidth = 0;
-                textParams.richText = false;
-
-                m_Title.style.height = stylePainter.ComputeTextHeight(textParams) + AllExtraSpace(m_Title).y;
-            }
-            else
-            {
-                m_Title.style.height = 2;   
-            }
-        }
         public string title
         {
             get{return m_Title.text;}
@@ -402,11 +386,7 @@ namespace UnityEditor.VFX.UI
 
                     if (!string.IsNullOrEmpty(m_Title.text))
                     {
-                        if(ClassListContains("empty"))
-                        {
-                            m_Title.RemoveFromClassList("empty");
-
-                        }
+                        m_Title.RemoveFromClassList("empty");
                     }
                     else
                     {
@@ -474,22 +454,23 @@ namespace UnityEditor.VFX.UI
         void UpdateTitleFieldRect()
         {
             Rect rect = m_Title.layout;
-            if( m_Title != m_TitleField.parent)
-                m_Title.ChangeCoordinatesTo(m_TitleField.parent,rect);
+            //if( m_Title != m_TitleField.parent)
+                m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent,rect);
 
-            m_TitleField.style.positionLeft = rect.xMin;
-            m_TitleField.style.positionRight = rect.yMin;
-            m_TitleField.style.width = rect.width;
-            m_TitleField.style.height = rect.height;
+            m_TitleField.style.positionLeft = rect.xMin/* + m_Title.style.marginLeft*/;
+            m_TitleField.style.positionRight = rect.yMin + m_Title.style.marginTop;
+            m_TitleField.style.width = rect.width - m_Title.style.marginLeft - m_Title.style.marginRight;
+            m_TitleField.style.height = rect.height - m_Title.style.marginTop - m_Title.style.marginBottom;
         }
 
         void OnTitleMouseDown(MouseDownEvent e)
         {
             if (e.clickCount == 2)
             {
-                m_Title.AddToClassList("not-empty");
+                m_TitleField.RemoveFromClassList("empty");
                 m_TitleField.value = m_Title.text;
                 m_TitleField.visible = true;
+                UpdateTitleFieldRect();
                 m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
                 m_TitleField.Focus();
