@@ -214,5 +214,41 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(ReferenceEquals(reference, b.outputSlots[0].GetExpression()));
             }
         }
+
+        [Test]
+        public void SwizzleOperator()
+        {
+            // check basic swizzle
+            {
+                var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
+                var swizzle = ScriptableObject.CreateInstance<VFXOperatorSwizzle>();
+                swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
+                swizzle.SetSettingValue("mask", "xxy");
+
+                var finalExpr = swizzle.outputSlots.First().GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var result = context.Compile(finalExpr);
+                var vec = result.Get<Vector3>();
+
+                Assert.AreEqual(new Vector3(1.0f, 1.0f, 2.0f), vec);
+            }
+
+            // check out of bounds mask is clamped correctly
+            {
+                var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
+                var swizzle = ScriptableObject.CreateInstance<VFXOperatorSwizzle>();
+                swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
+                swizzle.SetSettingValue("mask", "yzx");
+
+                var finalExpr = swizzle.outputSlots.First().GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var result = context.Compile(finalExpr);
+                var vec = result.Get<Vector3>();
+
+                Assert.AreEqual(new Vector3(2.0f, 2.0f, 1.0f), vec);
+            }
+        }
     }
 }
