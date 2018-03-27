@@ -4,4 +4,5 @@
 VFXManager:
   m_ObjectHideFlags: 0
   m_IndirectShader: {fileID: 7200000, guid: 84a17cfa13e40ae4082ef42714f0a81c, type: 3}
+  m_CopyBufferShader: {fileID: 7200000, guid: 23c51f21a3503f6428b527b01f8a2f4e, type: 3}
   m_RenderPipeSettingsPath: VFXShaders/RenderPipeline/Legacy
