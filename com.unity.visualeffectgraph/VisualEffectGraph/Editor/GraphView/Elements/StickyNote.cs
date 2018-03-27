@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.UI
         Vector2 m_StartPosition;
         Vector2 m_StartSize;
 
-        bool dragStarted = false;
+        bool m_DragStarted = false;
 
         void OnMouseDown(MouseDownEvent e)
         {
@@ -54,19 +54,20 @@ namespace UnityEditor.VFX.UI
                 target.TakeMouseCapture();
                 m_StartPosition = resizedElement.WorldToLocal(e.mousePosition);
                 m_StartSize = new Vector2(resizedElement.style.width,resizedElement.style.height);
+                m_DragStarted = false;
             }
         }
 
         void OnMouseMove(MouseMoveEvent e)
         {
             Vector2 mousePos = resizedElement.WorldToLocal(e.mousePosition);
-            if( !dragStarted)
+            if( !m_DragStarted)
             {
                 if( resizedElement is IVFXResizable)
                 {
                     (resizedElement as IVFXResizable).OnStartResize();
                 }
-                dragStarted = true;
+                m_DragStarted = true;
             }
 
             if( (direction & Direction.Horizontal) != 0 )
@@ -176,7 +177,6 @@ namespace UnityEditor.VFX.UI
 
         public virtual void OnStartResize()
         {
-            textFitMode = TextFitMode.none;
         }
         public virtual void OnResized()
         {
@@ -193,18 +193,6 @@ namespace UnityEditor.VFX.UI
         void OnFitToText(ContextualMenu.MenuAction a)
         {
             FitText();
-        }
-
-        public enum TextFitMode
-        {
-            oneLine,
-            fixedWidth,
-            none
-        }
-
-        public TextFitMode textFitMode
-        {
-            get;private set;
         }
 
         public void FitText()
@@ -228,15 +216,13 @@ namespace UnityEditor.VFX.UI
             // The content in one line is smaller than the current width. 
             // Set the width to fit both title and content.
             // Set the height to have only one line in the content
-            if( preferredContentsSizeOneLine.x < Mathf.Max(preferredTitleSize.x,style.width) || textFitMode == TextFitMode.oneLine)
+            if( preferredContentsSizeOneLine.x < Mathf.Max(preferredTitleSize.x,style.width))
             {
-                textFitMode = TextFitMode.oneLine;
                 width = Mathf.Max(preferredContentsSizeOneLine.x,preferredTitleSize.x);
                 height = preferredContentsSizeOneLine.y + preferredTitleSize.y;
             }
             else // The width is not enough for the content: keep the width or use the title width if bigger.
             {
-                textFitMode = TextFitMode.fixedWidth;
 
                 width = Mathf.Max(preferredTitleSize.x,style.width);
                 Vector2 preferredContentsSize = m_Contents.DoMeasure(width,MeasureMode.Exactly,0,MeasureMode.Undefined);
@@ -288,6 +274,7 @@ namespace UnityEditor.VFX.UI
             AddStyleSheetPath("Selectable");
             AddStyleSheetPath("Resizable");
             AddStyleSheetPath("StickyNote");
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
         public StickyNote(string uiFile, Vector2 position)
@@ -299,20 +286,21 @@ namespace UnityEditor.VFX.UI
             capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable;
 
             m_Title = this.Q<Label>(name: "title");
-            m_Contents = this.Q<Label>(name: "contents");
-
             if (m_Title != null)
             {
-                m_TitleField = m_Title.Q<TextField>(name: "title-field");
-                if (m_TitleField != null)
-                {
-                    m_TitleField.visible = false;
-                    m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTextChange);
-                    m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
-                }
+                
                 m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
             }
+            
+            m_TitleField = this.Q<TextField>(name: "title-field");
+            if (m_TitleField != null)
+            {
+                m_TitleField.visible = false;
+                m_TitleField.RegisterCallback<BlurEvent>(OnTitleBlur);
+            }
 
+
+            m_Contents = this.Q<Label>(name: "contents");
             if (m_Contents != null)
             {
                 m_ContentsField = m_Contents.Q<TextField>(name: "contents-field");
@@ -320,7 +308,6 @@ namespace UnityEditor.VFX.UI
                 {
                     m_ContentsField.visible = false;
                     m_ContentsField.multiline = true;
-                    m_ContentsField.RegisterCallback<ChangeEvent<string>>(OnTextChange);
                     m_ContentsField.RegisterCallback<BlurEvent>(OnContentsBlur);
                 }
                 m_Contents.RegisterCallback<MouseDownEvent>(OnContentsMouseDown);
@@ -372,7 +359,6 @@ namespace UnityEditor.VFX.UI
         {
             style.positionLeft = rect.x;
             style.positionTop = rect.y;
-            
             style.width = rect.width;
             style.height = rect.height;
         }
@@ -380,21 +366,53 @@ namespace UnityEditor.VFX.UI
         public string contents
         {
             get{return m_Contents.text;}
-            set{m_Contents.text = value;}
+            set{
+                if(m_Contents != null)
+                {
+                    m_Contents.text = value;
+                }
+            }
+        }
+
+        void UpdateTitleHeight()
+        {
+            if (!string.IsNullOrEmpty(m_Title.text) && m_Title.style.font.value != null)
+            {
+                var stylePainter = elementPanel.stylePainter;
+                var textParams = stylePainter.GetDefaultTextParameters(m_Title);
+                textParams.text = m_Title.text;
+                textParams.font = m_Title.style.font;
+                textParams.wordWrapWidth = 0;
+                textParams.richText = false;
+
+                m_Title.style.height = stylePainter.ComputeTextHeight(textParams) + AllExtraSpace(m_Title).y;
+            }
+            else
+            {
+                m_Title.style.height = 2;   
+            }
         }
         public string title
         {
             get{return m_Title.text;}
             set{
-                m_Title.text = value;
+                if( m_Title != null)
+                {
+                    m_Title.text = value;
 
-                if (!string.IsNullOrEmpty(m_Title.text))
-                {
-                    m_Title.AddToClassList("not-empty");
-                }
-                else
-                {
-                    m_Title.RemoveFromClassList("not-empty");
+                    if (!string.IsNullOrEmpty(m_Title.text))
+                    {
+                        if(ClassListContains("empty"))
+                        {
+                            m_Title.RemoveFromClassList("empty");
+
+                        }
+                    }
+                    else
+                    {
+                        m_Title.AddToClassList("empty");
+                    }
+                    //UpdateTitleHeight();
                 }
             }
         }
@@ -409,27 +427,14 @@ namespace UnityEditor.VFX.UI
         {
             textSize = (TextSize)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.textSize);
-            if( textFitMode != TextFitMode.none) //The text was fitted with the previous text size, so keep it fitted with the new one
-            {
-                this.schedule.Execute(FitText).StartingIn(0);
-            }
+            elementPanel.ValidateLayout();
+                
+            FitText();
         }
 
-        void OnTextChange(ChangeEvent<string> e)
+        void OnAttachToPanel(AttachToPanelEvent e)
         {
-            if( textFitMode != TextFitMode.none)
-            {
-                if( e.target == m_TitleField)
-                {
-                    m_Title.text = m_TitleField.value;
-                }
-                else
-                {
-                    m_Contents.text = m_ContentsField.value;
-                }
-                
-                FitText();
-            }
+            //UpdateTitleHeight();
         }
 
         void OnTitleBlur(BlurEvent e)
@@ -437,6 +442,8 @@ namespace UnityEditor.VFX.UI
             bool changed = m_Title.text != m_TitleField.value;
             title = m_TitleField.value;
             m_TitleField.visible = false;
+
+            m_Title.UnregisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
             //Notify change
             if( changed)
@@ -458,6 +465,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        void OnTitleRelayout(GeometryChangedEvent e)
+        {
+            UpdateTitleFieldRect();
+        }
+
+        void UpdateTitleFieldRect()
+        {
+            Rect rect = m_Title.layout;
+            if( m_Title != m_TitleField.parent)
+                m_Title.ChangeCoordinatesTo(m_TitleField.parent,rect);
+
+            m_TitleField.style.positionLeft = rect.xMin;
+            m_TitleField.style.positionRight = rect.yMin;
+            m_TitleField.style.width = rect.width;
+            m_TitleField.style.height = rect.height;
+        }
+
         void OnTitleMouseDown(MouseDownEvent e)
         {
             if (e.clickCount == 2)
@@ -465,6 +490,7 @@ namespace UnityEditor.VFX.UI
                 m_Title.AddToClassList("not-empty");
                 m_TitleField.value = m_Title.text;
                 m_TitleField.visible = true;
+                m_Title.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
 
                 m_TitleField.Focus();
                 m_TitleField.SelectAll();
@@ -496,8 +522,8 @@ namespace UnityEditor.VFX.UI
         }
 
         Label m_Title;
-        TextField m_TitleField;
+        protected TextField m_TitleField;
         Label m_Contents;
-        TextField m_ContentsField;
+        protected TextField m_ContentsField;
     }
 }

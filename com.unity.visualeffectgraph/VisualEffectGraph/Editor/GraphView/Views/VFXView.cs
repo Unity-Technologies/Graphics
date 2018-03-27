@@ -763,9 +763,8 @@ namespace UnityEditor.VFX.UI
                 foreach (var newController in controller.stickyNotes.Except(stickyNotes.Keys))
                 {
                     var newElement = new VFXStickyNote();
-                    AddElement(newElement);
-                    newElement.style.borderBottom = 0; // because of resizable hack in GraphView.AddElement where newElement.style.borderBottom is set to 6
                     newElement.controller = newController;
+                    AddElement(newElement);
                 }
             }
         }

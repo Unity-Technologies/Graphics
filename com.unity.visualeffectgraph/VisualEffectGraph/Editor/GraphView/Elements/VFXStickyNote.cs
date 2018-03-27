@@ -119,8 +119,10 @@ namespace UnityEditor.VFX.UI
         }
         void OnControllerChange(ControllerChangedEvent e)
         {
-            title = controller.title;
-            contents = controller.contents;
+            if( m_TitleField != null && ! m_TitleField.HasFocus())
+                title = controller.title;
+            if( m_ContentsField != null && ! m_ContentsField.HasFocus())
+                contents = controller.contents;
 
             if( ! string.IsNullOrEmpty(controller.theme))
             {
