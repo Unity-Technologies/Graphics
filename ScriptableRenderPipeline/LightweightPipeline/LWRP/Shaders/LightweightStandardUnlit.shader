@@ -145,6 +145,7 @@ Shader "LightweightPipeline/Standard Unlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
