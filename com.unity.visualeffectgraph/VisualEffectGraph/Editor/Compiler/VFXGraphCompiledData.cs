@@ -321,6 +321,7 @@ namespace UnityEditor.VFX
                     buffers = buffers,
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
+                    layer = uint.MaxValue,
                     tasks = spawnContext.activeChildrenWithImplicit.Select((b, index) =>
                         {
                             var spawnerBlock = b as VFXAbstractSpawner;
