@@ -1,15 +1,9 @@
-#ifndef LIGHTWEIGHT_PARTICLES_PBS_INCLUDED
-#define LIGHTWEIGHT_PARTICLES_PBS_INCLUDED
+#ifndef LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
+#define LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
 
 #include "Particles.hlsl"
-#include "SurfaceData.hlsl"
 
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
-
-CBUFFER_START(UnityPerMaterial_ParticlePBS)
-half _Metallic;
-half _Glossiness;
-CBUFFER_END
 
 void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
 {
@@ -32,8 +26,8 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
     surfaceData.smoothness = metallicGloss.g;
     surfaceData.occlusion = 1.0;
 
-    surfaceData.alpha = AlphaBlendAndTest(albedo.a);
+    surfaceData.alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
     surfaceData.albedo = AlphaModulate(surfaceData.albedo, surfaceData.alpha);
 }
 
-#endif // LIGHTWEIGHT_PARTICLES_PBS_INCLUDED
+#endif // LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
