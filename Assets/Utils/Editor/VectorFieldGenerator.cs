@@ -14,7 +14,7 @@ public class VectorFieldGenerator : EditorWindow
     TextureWrapMode m_WrapMode = TextureWrapMode.Clamp;
     FilterMode m_FilterMode = FilterMode.Bilinear;
 
-    [MenuItem("VFX Editor/Generate 3D Texture")]
+    [MenuItem("Window/VFX/(Deprecated)/Generate 3D Texture", priority = 3500)]
     public static void OpenConverter()
     {
         EditorWindow.GetWindow<VectorFieldGenerator>();

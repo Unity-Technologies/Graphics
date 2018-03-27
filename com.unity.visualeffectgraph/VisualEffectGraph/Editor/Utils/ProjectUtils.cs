@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     public static class ProjectUtils
     {
-        [MenuItem("Assets/Create/VFX Editor/NodeBlock (C#)", priority = 0)]
+        [MenuItem("Assets/Create/VFX/VFXBlock (C#)", false, 5000)]
         public static void MenuCreateVFXBlock()
         {
             var icon = EditorGUIUtility.FindTexture("MonoBehaviour Icon");
