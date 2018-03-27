@@ -1,21 +1,33 @@
+#ifndef LIGHTWEIGHT_PARTICLES_INCLUDED
+#define LIGHTWEIGHT_PARTICLES_INCLUDED
+
 #include "Core.hlsl"
-#include "InputSurface.hlsl"
 #include "CoreRP/ShaderLibrary/Color.hlsl"
+
+CBUFFER_START(UnityPerMaterial_Particle)
+float4 _SoftParticleFadeParams;
+float4 _CameraFadeParams;
+float4 _MainTex_ST;
+half4 _Color;
+
+#if defined (_COLORADDSUBDIFF_ON)
+    half4 _ColorAddSubDiff;
+#endif
+
+half _Cutoff;
+half _Shininess;
+CBUFFER_END
+
+TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
 
 TEXTURE2D(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
-float4 _SoftParticleFadeParams;
-float4 _CameraFadeParams;
 
 #define SOFT_PARTICLE_NEAR_FADE _SoftParticleFadeParams.x
 #define SOFT_PARTICLE_INV_FADE_DISTANCE _SoftParticleFadeParams.y
 
 #define CAMERA_NEAR_FADE _CameraFadeParams.x
 #define CAMERA_INV_FADE_DISTANCE _CameraFadeParams.y
-
-#if defined (_COLORADDSUBDIFF_ON)
-half4 _ColorAddSubDiff;
-#endif
 
 // Color function
 #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
@@ -214,7 +226,7 @@ half AlphaBlendAndTest(half alpha)
 #else
     half result = 1.0h;
 #endif
-    AlphaDiscard(result, _Cutoff, 0.0001h);
+    AlphaDiscard(result, (half)_Cutoff, 0.0001h);
 
     return result;
 }
@@ -226,31 +238,6 @@ half3 AlphaModulate(half3 albedo, half alpha)
 #else
     return albedo;
 #endif
-}
-
-void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
-{
-    half4 albedo = Albedo(IN);
-
-#if defined(_METALLICGLOSSMAP)
-    half2 metallicGloss = readTexture(TEXTURE2D_PARAM(_MetallicGlossMap, sampler_MetallicGlossMap), IN).ra * half2(1.0, _Glossiness);
-#else
-    half2 metallicGloss = half2(_Metallic, _Glossiness);
-#endif
-
-    half3 normalTS = NormalTS(IN);
-    half3 emission = Emission(IN);
-
-    surfaceData.albedo = albedo.rbg;
-    surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
-    surfaceData.normalTS = normalTS;
-    surfaceData.emission = emission;
-    surfaceData.metallic = metallicGloss.r;
-    surfaceData.smoothness = metallicGloss.g;
-    surfaceData.occlusion = 1.0;
-
-    surfaceData.alpha = AlphaBlendAndTest(albedo.a);
-    surfaceData.albedo = AlphaModulate(surfaceData.albedo, surfaceData.alpha);
 }
 
 void InitializeInputData(VertexOutputLit IN, half3 normalTS, out InputData input)
@@ -265,7 +252,9 @@ void InitializeInputData(VertexOutputLit IN, half3 normalTS, out InputData input
 
     input.viewDirectionWS = FragmentViewDirWS(IN.viewDirShininess.xyz);
     input.shadowCoord = float4(0, 0, 0, 0);
-    input.fogCoord = IN.posWS.w;
+    input.fogCoord = (half)IN.posWS.w;
     input.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     input.bakedGI = half3(0.0h, 0.0h, 0.0h);
 }
+
+#endif // LIGHTWEIGHT_PARTICLES_INCLUDED

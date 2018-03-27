@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_PASS_SHADOW_INCLUDED
 
 #include "LWRP/ShaderLibrary/Core.hlsl"
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 
 // x: global clip space bias, y: normal world space bias
 float4 _ShadowBias;

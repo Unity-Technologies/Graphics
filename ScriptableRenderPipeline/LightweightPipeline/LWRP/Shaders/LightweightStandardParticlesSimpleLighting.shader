@@ -81,7 +81,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
             #define NO_SHADOWS 1
-
+            
             #include "LWRP/ShaderLibrary/Particles.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
