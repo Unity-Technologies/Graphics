@@ -129,8 +129,8 @@ half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 position
 {
     half4 directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
-    // Cookies are only computed for main light
-    directionAndAttenuation.w *= CookieAttenuation(positionWS);
+    // Cookies disabled for now due to amount of shader variants
+    //directionAndAttenuation.w *= CookieAttenuation(positionWS);
 
     return directionAndAttenuation;
 }
@@ -437,7 +437,7 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
     // We only subtract the main direction light. This is accounted in the contribution term below.
     half shadowStrength = _ShadowData.x;
-    half contributionTerm = saturate(dot(mainLight.direction, normalWS)) * (1.0 - _MainLightPosition.w);
+    half contributionTerm = saturate(dot(mainLight.direction, normalWS));
     half3 lambert = mainLight.color * contributionTerm;
     half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.attenuation);
     half3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
