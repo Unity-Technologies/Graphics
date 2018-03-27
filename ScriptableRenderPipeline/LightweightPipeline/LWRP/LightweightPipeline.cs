@@ -106,6 +106,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private static readonly int kMaxVertexLights = 4;
 
+        private static readonly float kRenderScaleThreshold = 0.05f;
+
         private bool m_IsOffscreenCamera;
 
         private Vector4 kDefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
@@ -314,8 +316,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 bool sceneViewCamera = m_CurrCamera.cameraType == CameraType.SceneView;
                 bool stereoEnabled = IsStereoEnabled(m_CurrCamera);
 
+                // Disregard variations around kRenderScaleThreshold.
+                m_RenderScale = (Mathf.Abs(1.0f - m_Asset.RenderScale) < kRenderScaleThreshold) ? 1.0f : m_Asset.RenderScale;
+
                 // XR has it's own scaling mechanism.
-                m_RenderScale = (m_CurrCamera.cameraType == CameraType.Game && !stereoEnabled) ? m_Asset.RenderScale : 1.0f;
+                m_RenderScale = (m_CurrCamera.cameraType == CameraType.Game && !stereoEnabled) ? m_RenderScale : 1.0f;
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
                 SetupPerCameraShaderConstants();
@@ -649,8 +654,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_IntermediateTextureArray = false;
 
             bool hdrEnabled = m_Asset.SupportsHDR && m_CurrCamera.allowHDR;
+
+            bool defaultRenderScale = Mathf.Approximately(GetRenderScale(), 1.0f);
             bool intermediateTexture = m_CurrCamera.targetTexture != null || m_CurrCamera.cameraType == CameraType.SceneView ||
-                GetRenderScale() < 1.0f || hdrEnabled;
+                !defaultRenderScale || hdrEnabled;
 
             m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             m_RequireCopyColor = false;
