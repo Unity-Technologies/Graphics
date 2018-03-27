@@ -26,7 +26,7 @@ Pass
     #include "LWRP/ShaderLibrary/Core.hlsl"
     #include "LWRP/ShaderLibrary/Lighting.hlsl"
     #include "CoreRP/ShaderLibrary/Color.hlsl"
-    #include "LWRP/ShaderLibrary/InputSurface.hlsl"
+    #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
     #include "ShaderGraphLibrary/Functions.hlsl"
 
     ${Defines}
@@ -69,7 +69,7 @@ Pass
         float AlphaClipThreshold = 0;
 		${SurfaceOutputRemap}
 		
- #if _AlphaClip
+#if _AlphaClip
         clip(Alpha - AlphaClipThreshold);
 #endif
     	return half4(Color, Alpha);
