@@ -4,11 +4,23 @@
 #include "Core.hlsl"
 #include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
-#include "SurfaceData.hlsl"
 
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
+
+// Must match Lightweigth ShaderGraph master node
+struct SurfaceData
+{
+    half3 albedo;
+    half3 specular;
+    half  metallic;
+    half  smoothness;
+    half3 normalTS;
+    half3 emission;
+    half  occlusion;
+    half  alpha;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //
