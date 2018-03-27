@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Math")]
     class VFXOperatorStep : VFXOperatorFloatUnifiedWithVariadicOutput
     {
-        override public string name { get { return "Step (Threshold)"; } }
+        override public string name { get { return "Step"; } }
 
         public class InputProperties
         {
