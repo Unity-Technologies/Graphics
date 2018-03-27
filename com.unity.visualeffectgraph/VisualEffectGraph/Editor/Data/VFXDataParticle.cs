@@ -538,7 +538,6 @@ namespace UnityEditor.VFX
             outSystemDescs.Add(new VFXSystemDesc()
             {
                 flags = systemFlag,
-                layer = uint.MaxValue,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
                 buffers = systemBufferMappings.ToArray(),
