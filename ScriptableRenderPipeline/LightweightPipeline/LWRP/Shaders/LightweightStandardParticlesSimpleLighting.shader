@@ -105,12 +105,12 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
             {
-                half4 albedo = Albedo(IN);
+                half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
                 half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                 half3 diffuse = AlphaModulate(albedo.rgb, alpha);
-                half3 normalTS = NormalTS(IN);
-                half3 emission = Emission(IN);
-                half4 specularGloss = SpecularGloss(IN, albedo.a);
+                half3 normalTS = SampleNormalTS(IN, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+                half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                half4 specularGloss = SampleSpecularGloss(IN, albedo.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
                 half shininess = IN.viewDirShininess.w;
 
                 InputData inputData;
