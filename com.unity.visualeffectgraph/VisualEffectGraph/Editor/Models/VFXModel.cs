@@ -306,10 +306,10 @@ namespace UnityEditor.VFX
             {
                 // Update group nodes
                 foreach (var groupInfo in graph.UIInfos.groupInfos)
-                    if (groupInfo.content != null)
-                        for (int i = 0; i < groupInfo.content.Length; ++i)
-                            if (groupInfo.content[i].model == src)
-                                groupInfo.content[i].model = dst;
+                    if (groupInfo.contents != null)
+                        for (int i = 0; i < groupInfo.contents.Length; ++i)
+                            if (groupInfo.contents[i].model == src)
+                                groupInfo.contents[i].model = dst;
             }
 
             // Replace model
