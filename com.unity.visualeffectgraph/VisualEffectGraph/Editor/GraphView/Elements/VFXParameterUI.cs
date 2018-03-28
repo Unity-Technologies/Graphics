@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.UI
         {
             base.SelfChange();
 
-            if( m_ExposedIcon != null)
+            if (m_ExposedIcon != null)
                 m_ExposedIcon.visible = controller.parentController.exposed;
 
             if (controller.parentController.exposed)
