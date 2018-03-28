@@ -25,50 +25,46 @@ struct SurfaceData
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //
 ///////////////////////////////////////////////////////////////////////////////
-float2 TransformMainTextureCoord(float2 uv)
-{
-    return TRANSFORM_TEX(uv, _MainTex);
-}
-
-half Alpha(half albedoAlpha)
+half Alpha(half albedoAlpha, half4 color, half cutoff)
 {
 #if !defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A) && !defined(_GLOSSINESS_FROM_BASE_ALPHA)
-    half alpha = albedoAlpha * _Color.a;
+    half alpha = albedoAlpha * color.a;
 #else
-    half alpha = _Color.a;
+    half alpha = color.a;
 #endif
 
 #if defined(_ALPHATEST_ON)
-    clip(alpha - _Cutoff);
+    clip(alpha - cutoff);
 #endif
 
     return alpha;
 }
 
-half4 MainTexture(float2 uv)
+half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_ARGS(albedoAlphaMap, sampler_albedoAlphaMap))
 {
-    return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
 }
 
-half3 Normal(float2 uv)
+half3 SampleNormal(float2 uv, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half scale = 1.0h)
 {
 #if _NORMALMAP
+    half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
     #if BUMP_SCALE_NOT_SUPPORTED
-        return UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv));
+        return UnpackNormal(n);
     #else
-        return UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, uv), _BumpScale);
+        return UnpackNormalScale(n, scale);
     #endif
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif
 }
 
-half3 Emission(float2 uv)
+half3 SampleEmission(float2 uv, half3 emissionColor, TEXTURE2D_ARGS(emissionMap, sampler_emissionMap))
 {
 #ifndef _EMISSION
     return 0;
 #else
-    return SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv).rgb * _EmissionColor.rgb;
+    return SAMPLE_TEXTURE2D(emissionMap, sampler_emissionMap, uv).rgb * emissionColor;
 #endif
 }
 
