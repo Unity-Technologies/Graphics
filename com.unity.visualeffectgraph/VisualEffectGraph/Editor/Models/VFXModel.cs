@@ -291,6 +291,34 @@ namespace UnityEditor.VFX
             return null;
         }
 
+        public static void ReplaceModel(VFXModel dst, VFXModel src, bool notify = true)
+        {
+            // UI
+            dst.m_UIPosition = src.m_UIPosition;
+            dst.m_UICollapsed = src.m_UICollapsed;
+            dst.m_UISuperCollapsed = src.m_UISuperCollapsed;
+
+            if (notify)
+                dst.Invalidate(InvalidationCause.kUIChanged);
+
+            VFXGraph graph = src.GetGraph();
+            if (graph != null && graph.UIInfos != null && graph.UIInfos.groupInfos != null)
+            {
+                // Update group nodes
+                foreach (var groupInfo in graph.UIInfos.groupInfos)
+                    if (groupInfo.content != null)
+                        for (int i = 0; i < groupInfo.content.Length; ++i)
+                            if (groupInfo.content[i].model == src)
+                                groupInfo.content[i].model = dst;
+            }
+
+            // Replace model
+            var parent = src.GetParent();
+            src.Detach(notify);
+            if (parent)
+                dst.Attach(parent, notify);
+        }
+
         [SerializeField]
         protected VFXModel m_Parent;
 

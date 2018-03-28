@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         private bool advanced = true;
 
         public override string name { get { return "Burst"; } }
-        public override VFXTaskType spawnerType { get { return VFXTaskType.SpawnerBurst; } }
+        public override VFXTaskType spawnerType { get { return VFXTaskType.BurstSpawner; } }
 
         public class AdvancedInputProperties
         {

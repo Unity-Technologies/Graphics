@@ -30,29 +30,17 @@ namespace UnityEditor.VFX
 
         public override void Sanitize()
         {
-            Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
+            Debug.Log("Sanitizing Graph: Automatically replace VFXOperatorFitClamped with VFXOperatorRemap");
 
             var remap = CreateInstance<VFXOperatorRemap>();
             remap.SetSettingValue("Clamp", true);
 
-            // transfer position
-            remap.position = position;
-
             // Transfer links
-            VFXSlot.TransferLinks(remap.GetInputSlot(0), GetInputSlot(0), true);
-            VFXSlot.TransferLinks(remap.GetInputSlot(1), GetInputSlot(1), true);
-            VFXSlot.TransferLinks(remap.GetInputSlot(2), GetInputSlot(2), true);
-            VFXSlot.TransferLinks(remap.GetInputSlot(3), GetInputSlot(3), true);
-            VFXSlot.TransferLinks(remap.GetInputSlot(4), GetInputSlot(4), true);
+            for (int i = 0; i < 5; ++i)
+                VFXSlot.TransferLinksAndValue(remap.GetInputSlot(i), GetInputSlot(i), true);
+            VFXSlot.TransferLinksAndValue(remap.GetOutputSlot(0), GetOutputSlot(0), true);
 
-            VFXSlot.TransferLinks(remap.GetOutputSlot(0), GetOutputSlot(0), true);
-
-            // Replace operator
-            var parent = GetParent();
-            Detach();
-            remap.Attach(parent);
-
-            base.Sanitize();
+            ReplaceModel(remap, this);
         }
     }
 }

@@ -34,6 +34,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114023970616162036
@@ -132,6 +134,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The transform position.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114057575403599850
@@ -315,6 +319,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114107764581906040
@@ -385,6 +391,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The position, rotation and scale of the vectorfield
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114116813385210174
@@ -421,6 +429,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The drag coefficient used to drive particles
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114137246174447712
@@ -518,14 +528,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the sphere is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114210466035554608
@@ -595,10 +611,14 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The euler angles of the transform.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114227109784571654
@@ -724,6 +744,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114269579071243708
@@ -762,6 +784,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The scale of the transform along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114275024932143138
@@ -816,6 +840,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The vector field used as a force for particles
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114346108377335688
@@ -947,6 +973,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The sphere used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114413347618974518
@@ -1131,6 +1159,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114622596396699090
@@ -1378,6 +1408,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Intensity of the motion vectors
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114795781018755102
@@ -1478,6 +1510,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114857672190963188
@@ -1578,6 +1612,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The over-life Gradient
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114892140245696318
@@ -2140,17 +2176,17 @@ VisualEffectAsset:
           key1: {r: 1, g: 0.88965523, b: 0, a: 1}
           key2: {r: 1, g: 0, b: 0, a: 1}
           key3: {r: 1, g: 0, b: 0.3119383, a: 0}
-          key4: {r: 1, g: 0.13235295, b: 0.6170383, a: 0}
-          key5: {r: 1, g: 0.13235295, b: 0.6170383, a: 0}
-          key6: {r: 1, g: 0.13235295, b: 0.6170383, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
           key7: {r: 0, g: 0, b: 0, a: 0}
           ctime0: 4433
           ctime1: 19082
           ctime2: 39707
           ctime3: 65535
-          ctime4: 65535
-          ctime5: 65535
-          ctime6: 65535
+          ctime4: 0
+          ctime5: 0
+          ctime6: 0
           ctime7: 0
           atime0: 0
           atime1: 4433
@@ -2251,6 +2287,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -2266,6 +2303,7 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 65536
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
@@ -2309,7 +2347,7 @@ VisualEffectAsset:
         index: 40
       - nameId: bounds_size
         index: 38
-      processor: {fileID: 7200000, guid: fba257593d5edef47bafd4ccc4981b74, type: 3}
+      processor: {fileID: 7200000, guid: 29c474f078f327b4fbe998efc25ff9f2, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -2330,7 +2368,7 @@ VisualEffectAsset:
       - nameId: VectorField_b
         index: 42
       params: []
-      processor: {fileID: 7200000, guid: a9180ef6209a0bc429ff157615bbe5c3, type: 3}
+      processor: {fileID: 7200000, guid: d4d88d4119635a94789a95640b756c99, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -2347,7 +2385,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 62fe57f00a63950408c99165082c6206, type: 3}
+      processor: {fileID: 4800000, guid: 7cbfcfd028b8c1c47a1995e5cbbce1ee, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -2362,4 +2400,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3

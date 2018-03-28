@@ -32,8 +32,7 @@ namespace UnityEditor.VFX
         kNone =         0,
         kSpawnEvent =   1 << 0,
         kParticle =     1 << 1,
-        kEvent =        1 << 2,
-        kMesh =         1 << 3,
+        kMesh =         1 << 2,
     };
 
     [Serializable]
@@ -179,6 +178,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to) || to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from))
+                return false;
+
+            if (from.contextType == VFXContextType.kSpawner && to.contextType == VFXContextType.kSpawner) //avoid spawner chaining (for now)
                 return false;
 
             return true;

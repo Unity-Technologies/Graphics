@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
     {
         public static readonly float kDefaultSize = 0.1f;
 
-        public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.Uint);
+        public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.Uint32);
         public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.Float3);
         public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.Float3);
         public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3);
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.Float);
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
         public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.Float3);
-        public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint);
+        public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint32);
         public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
         public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
         public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
@@ -55,9 +55,9 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.Bool: return VFXValue.Constant<bool>();
-                case VFXValueType.Uint: return VFXValue.Constant<uint>();
-                case VFXValueType.Int: return VFXValue.Constant<int>();
+                case VFXValueType.Boolean: return VFXValue.Constant<bool>();
+                case VFXValueType.Uint32: return VFXValue.Constant<uint>();
+                case VFXValueType.Int32: return VFXValue.Constant<int>();
                 case VFXValueType.Float: return VFXValue.Constant<float>();
                 case VFXValueType.Float2: return VFXValue.Constant<Vector2>();
                 case VFXValueType.Float3: return VFXValue.Constant<Vector3>();
@@ -80,25 +80,6 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute Find(string attributeName)
         {
-            // TODO temp to avoid errors when loading graphs. Will be removed at some point
-            if (attributeName == "size")
-            {
-                Debug.LogWarning("Found an attribute size which is deprecated. Using sizeX instead. Please fix that!");
-                attributeName = "sizeX";
-            }
-
-            if (attributeName == "angle")
-            {
-                Debug.LogWarning("Found an attribute angle which is deprecated. Using angleZ instead. Please fix that!");
-                attributeName = "angleZ";
-            }
-
-            if (attributeName == "phase")
-            {
-                Debug.LogWarning("Found an attribute phase which is deprecated. Use random operator instead. Please fix that!");
-                return new VFXAttribute("phase", VFXValueType.Float);
-            }
-
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
                 throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
@@ -146,11 +127,11 @@ namespace UnityEditor.VFX
             m_attributeLocation = location;
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.NoneOp;
+                return VFXExpressionOperation.None;
             }
         }
 
