@@ -81,7 +81,6 @@ namespace UnityEditor.VFX.UI
 
     class VFXParameterUI : VFXNodeUI
     {
-        Image m_Icon;
         public VFXParameterUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXParameter.uxml"))
         {
             RemoveFromClassList("VFXNodeUI");
