@@ -31,6 +31,7 @@ float4x4 g_mScrProjectionArr[2];
 uint g_isOrthographic;
 int _EnvLightIndexShift;
 int _DecalIndexShift;
+int _DensityVolumeIndexShift;
 
 float g_fClustScale;
 float g_fClustBase;
@@ -397,10 +398,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int shiftIndex[LIGHTCATEGORY_COUNT];
 	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
     // NOTE: Why is this indexed like this?
-	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
-	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DecalIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 3] = _EnvLightIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _DecalIndexShift;
+	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DensityVolumeIndexShift;
 
-	int categoryListCount[LIGHTCATEGORY_COUNT]; // direct light count and reflection lights
+	int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals and density volumes
 	ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
 
 	uint offs = start;
@@ -421,8 +423,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
                 const int lightVolIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
                 uint lightCategory = _LightVolumeData[lightVolIndex].lightCategory;
 				++categoryListCount[lightCategory];
-				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
-            }
+				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];
+			}
 		}
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)

@@ -129,6 +129,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
                                                  lightData.angleScale, lightData.angleOffset);
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+    // TODO: sample the extinction from the density V-buffer.
     float distVol = (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
     attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
 #endif
