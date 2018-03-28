@@ -11,12 +11,12 @@ namespace UnityEditor.VFX.UI
 {
     class Resizable : Manipulator
     {
-        
         public enum Direction
         {
-            Horizontal = 1<<0,
-            Vertical = 1<<1,
-            Both = Vertical | Horizontal
+            Left = 1 << 0,
+            Right = 1 << 1,
+            Top = 1 << 2,
+            Bottom = 1 << 3
         }
 
         public readonly Direction direction;
@@ -34,6 +34,7 @@ namespace UnityEditor.VFX.UI
             target.RegisterCallback<MouseDownEvent>(OnMouseDown);
             target.RegisterCallback<MouseUpEvent>(OnMouseUp);
         }
+
         protected override void UnregisterCallbacksFromTarget()
         {
             target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
@@ -47,13 +48,13 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseDown(MouseDownEvent e)
         {
-            if( e.button == 0 && e.clickCount == 1)
+            if (e.button == 0 && e.clickCount == 1)
             {
                 target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
                 e.StopPropagation();
                 target.TakeMouseCapture();
                 m_StartPosition = resizedElement.WorldToLocal(e.mousePosition);
-                m_StartSize = new Vector2(resizedElement.style.width,resizedElement.style.height);
+                m_StartSize = new Vector2(resizedElement.style.width, resizedElement.style.height);
                 m_DragStarted = false;
             }
         }
@@ -61,20 +62,20 @@ namespace UnityEditor.VFX.UI
         void OnMouseMove(MouseMoveEvent e)
         {
             Vector2 mousePos = resizedElement.WorldToLocal(e.mousePosition);
-            if( !m_DragStarted)
+            if (!m_DragStarted)
             {
-                if( resizedElement is IVFXResizable)
+                if (resizedElement is IVFXResizable)
                 {
                     (resizedElement as IVFXResizable).OnStartResize();
                 }
                 m_DragStarted = true;
             }
 
-            if( (direction & Direction.Horizontal) != 0 )
+            if ((direction & Direction.Right) != 0)
             {
                 resizedElement.style.width = m_StartSize.x + mousePos.x - m_StartPosition.x;
             }
-            if( (direction & Direction.Vertical) != 0 )
+            if ((direction & Direction.Bottom) != 0)
             {
                 resizedElement.style.height = m_StartSize.y + mousePos.y - m_StartPosition.y;
             }
@@ -83,11 +84,11 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseUpEvent e)
         {
-            if( e.button == 0 )
+            if (e.button == 0)
             {
-                if( resizedElement.style.width != m_StartSize.x || resizedElement.style.height != m_StartSize.y )
+                if (resizedElement.style.width != m_StartSize.x || resizedElement.style.height != m_StartSize.y)
                 {
-                    if( resizedElement is IVFXResizable)
+                    if (resizedElement is IVFXResizable)
                     {
                         (resizedElement as IVFXResizable).OnResized();
                     }
@@ -98,11 +99,29 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-
-
-    class StickyNodeChangeEvent :  EventBase<StickyNodeChangeEvent>, IPropagatableEvent
+    class ResizeElement : VisualElement
     {
-        public static StickyNodeChangeEvent GetPooled(StickyNote target,Change change)
+        ResizeElement()
+        {
+        }
+
+        enum
+        {
+            TopLeft,
+            Top,
+            TopRight,
+            Right,
+            BottomRight,
+            Bottom,
+            BottomLeft,
+            Left,
+        }
+    }
+
+
+    class StickyNodeChangeEvent : EventBase<StickyNodeChangeEvent>, IPropagatableEvent
+    {
+        public static StickyNodeChangeEvent GetPooled(StickyNote target, Change change)
         {
             var evt = GetPooled();
             evt.target = target;
@@ -118,7 +137,7 @@ namespace UnityEditor.VFX.UI
             textSize
         }
 
-        public Change change{get; protected set;}
+        public Change change {get; protected set; }
     }
 
     class StickyNote : GraphElement, IVFXResizable
@@ -144,7 +163,7 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                if( m_Theme != value)
+                if (m_Theme != value)
                 {
                     m_Theme = value;
                     UpdateThemeClasses();
@@ -164,10 +183,10 @@ namespace UnityEditor.VFX.UI
 
         public TextSize textSize
         {
-            get{return m_TextSize;}
+            get {return m_TextSize; }
             set
             {
-                if( m_TextSize != value)
+                if (m_TextSize != value)
                 {
                     m_TextSize = value;
                     UpdateSizeClasses();
@@ -178,6 +197,7 @@ namespace UnityEditor.VFX.UI
         public virtual void OnStartResize()
         {
         }
+
         public virtual void OnResized()
         {
         }
@@ -187,7 +207,7 @@ namespace UnityEditor.VFX.UI
             return new Vector2(
                 element.style.marginLeft + element.style.marginRight + element.style.paddingLeft + element.style.paddingRight + element.style.borderRightWidth + element.style.borderLeftWidth,
                 element.style.marginTop + element.style.marginBottom + element.style.paddingTop + element.style.paddingBottom + element.style.borderBottomWidth + element.style.borderTopWidth
-            );
+                );
         }
 
         void OnFitToText(ContextualMenu.MenuAction a)
@@ -198,37 +218,36 @@ namespace UnityEditor.VFX.UI
         public void FitText()
         {
             Vector2 preferredTitleSize = Vector2.zero;
-            if( ! string.IsNullOrEmpty(m_Title.text))
-                preferredTitleSize = m_Title.DoMeasure(0,MeasureMode.Undefined,0,MeasureMode.Undefined); // This is the size of the string with the current title font and such
+            if (!string.IsNullOrEmpty(m_Title.text))
+                preferredTitleSize = m_Title.DoMeasure(0, MeasureMode.Undefined, 0, MeasureMode.Undefined); // This is the size of the string with the current title font and such
 
             preferredTitleSize += AllExtraSpace(m_Title);
-            preferredTitleSize.x += m_Title.ChangeCoordinatesTo(this,Vector2.zero).x + style.width - m_Title.ChangeCoordinatesTo(this,new Vector2(m_Title.layout.width,0)).x ;
+            preferredTitleSize.x += m_Title.ChangeCoordinatesTo(this, Vector2.zero).x + style.width - m_Title.ChangeCoordinatesTo(this, new Vector2(m_Title.layout.width, 0)).x;
 
-            Vector2 preferredContentsSizeOneLine = m_Contents.DoMeasure(0,MeasureMode.Undefined,0,MeasureMode.Undefined);
+            Vector2 preferredContentsSizeOneLine = m_Contents.DoMeasure(0, MeasureMode.Undefined, 0, MeasureMode.Undefined);
 
             Vector2 contentExtraSpace = AllExtraSpace(m_Contents);
             preferredContentsSizeOneLine += contentExtraSpace;
 
-            Vector2 extraSpace = new Vector2(style.width,style.height) - m_Contents.ChangeCoordinatesTo(this,new Vector2(m_Contents.layout.width,m_Contents.layout.height));
-            extraSpace += m_Title.ChangeCoordinatesTo(this,Vector2.zero);
+            Vector2 extraSpace = new Vector2(style.width, style.height) - m_Contents.ChangeCoordinatesTo(this, new Vector2(m_Contents.layout.width, m_Contents.layout.height));
+            extraSpace += m_Title.ChangeCoordinatesTo(this, Vector2.zero);
             preferredContentsSizeOneLine += extraSpace;
 
             float width = 0;
             float height = 0;
-            // The content in one line is smaller than the current width. 
+            // The content in one line is smaller than the current width.
             // Set the width to fit both title and content.
             // Set the height to have only one line in the content
-            if( preferredContentsSizeOneLine.x < Mathf.Max(preferredTitleSize.x,style.width))
+            if (preferredContentsSizeOneLine.x < Mathf.Max(preferredTitleSize.x, style.width))
             {
-                width = Mathf.Max(preferredContentsSizeOneLine.x,preferredTitleSize.x);
+                width = Mathf.Max(preferredContentsSizeOneLine.x, preferredTitleSize.x);
                 height = preferredContentsSizeOneLine.y + preferredTitleSize.y;
             }
             else // The width is not enough for the content: keep the width or use the title width if bigger.
             {
-
-                width = Mathf.Max(preferredTitleSize.x + extraSpace.x,style.width); 
+                width = Mathf.Max(preferredTitleSize.x + extraSpace.x, style.width);
                 float contextWidth = width - extraSpace.x - contentExtraSpace.x;
-                Vector2 preferredContentsSize = m_Contents.DoMeasure(contextWidth,MeasureMode.Exactly,0,MeasureMode.Undefined);
+                Vector2 preferredContentsSize = m_Contents.DoMeasure(contextWidth, MeasureMode.Exactly, 0, MeasureMode.Undefined);
 
                 preferredContentsSize += contentExtraSpace;
 
@@ -242,30 +261,30 @@ namespace UnityEditor.VFX.UI
 
         void UpdateThemeClasses()
         {
-            foreach(Theme value in System.Enum.GetValues(typeof(Theme)))
+            foreach (Theme value in System.Enum.GetValues(typeof(Theme)))
             {
-                if( m_Theme != value)
+                if (m_Theme != value)
                 {
-                    RemoveFromClassList("theme-"+value.ToString().ToLower());
+                    RemoveFromClassList("theme-" + value.ToString().ToLower());
                 }
                 else
                 {
-                    AddToClassList("theme-"+value.ToString().ToLower());
+                    AddToClassList("theme-" + value.ToString().ToLower());
                 }
             }
         }
 
         void UpdateSizeClasses()
         {
-            foreach(TextSize value in System.Enum.GetValues(typeof(TextSize)))
+            foreach (TextSize value in System.Enum.GetValues(typeof(TextSize)))
             {
-                if( m_TextSize != value)
+                if (m_TextSize != value)
                 {
-                    RemoveFromClassList("size-"+value.ToString().ToLower());
+                    RemoveFromClassList("size-" + value.ToString().ToLower());
                 }
                 else
                 {
-                    AddToClassList("size-"+value.ToString().ToLower());
+                    AddToClassList("size-" + value.ToString().ToLower());
                 }
             }
         }
@@ -291,10 +310,9 @@ namespace UnityEditor.VFX.UI
             m_Title = this.Q<Label>(name: "title");
             if (m_Title != null)
             {
-                
                 m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
             }
-            
+
             m_TitleField = this.Q<TextField>(name: "title-field");
             if (m_TitleField != null)
             {
@@ -325,14 +343,14 @@ namespace UnityEditor.VFX.UI
             UpdateSizeClasses();
 
             var horizontalResizer = this.Q("horizontal-resize");
-            if( horizontalResizer != null)
-                horizontalResizer.AddManipulator(new Resizable(this,Resizable.Direction.Horizontal));
+            if (horizontalResizer != null)
+                horizontalResizer.AddManipulator(new Resizable(this, Resizable.Direction.Right));
             var verticalResizer = this.Q("vertical-resize");
-            if( verticalResizer != null)
-                verticalResizer.AddManipulator(new Resizable(this,Resizable.Direction.Vertical));
+            if (verticalResizer != null)
+                verticalResizer.AddManipulator(new Resizable(this, Resizable.Direction.Bottom));
             var cornerResizer = this.Q("corner-resize");
-            if( cornerResizer != null)
-                cornerResizer.AddManipulator(new Resizable(this,Resizable.Direction.Both));
+            if (cornerResizer != null)
+                cornerResizer.AddManipulator(new Resizable(this, Resizable.Direction.Bottom | Resizable.Direction.Right));
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
@@ -341,17 +359,17 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target is StickyNote)
             {
-                foreach(Theme value in System.Enum.GetValues(typeof(Theme)))
+                foreach (Theme value in System.Enum.GetValues(typeof(Theme)))
                 {
-                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal,value);
+                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
                 }
 
-                foreach(TextSize value in System.Enum.GetValues(typeof(TextSize)))
+                foreach (TextSize value in System.Enum.GetValues(typeof(TextSize)))
                 {
-                    evt.menu.AppendAction("Text Size/" + value.ToString(), OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal,value);
+                    evt.menu.AppendAction("Text Size/" + value.ToString(), OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
                 }
 
-                evt.menu.AppendAction("Fit To Text",OnFitToText, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Fit To Text", OnFitToText, e => ContextualMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
         }
@@ -360,7 +378,6 @@ namespace UnityEditor.VFX.UI
         {
             title = m_TitleField.value;
         }
-
 
         const string fitTextClass = "fit-text";
 
@@ -374,14 +391,15 @@ namespace UnityEditor.VFX.UI
 
         public override Rect GetPosition()
         {
-            return new Rect(style.positionLeft,style.positionTop,style.width,style.height);
+            return new Rect(style.positionLeft, style.positionTop, style.width, style.height);
         }
 
         public string contents
         {
-            get{return m_Contents.text;}
-            set{
-                if(m_Contents != null)
+            get {return m_Contents.text; }
+            set
+            {
+                if (m_Contents != null)
                 {
                     m_Contents.text = value;
                 }
@@ -389,9 +407,10 @@ namespace UnityEditor.VFX.UI
         }
         public string title
         {
-            get{return m_Title.text;}
-            set{
-                if( m_Title != null)
+            get {return m_Title.text; }
+            set
+            {
+                if (m_Title != null)
                 {
                     m_Title.text = value;
 
@@ -419,7 +438,7 @@ namespace UnityEditor.VFX.UI
             textSize = (TextSize)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.textSize);
             elementPanel.ValidateLayout();
-                
+
             FitText();
         }
 
@@ -450,12 +469,11 @@ namespace UnityEditor.VFX.UI
             m_ContentsField.visible = false;
 
             //Notify change
-            if( changed)
+            if (changed)
             {
                 NotifyChange(StickyNodeChangeEvent.Change.contents);
             }
         }
-
 
         void OnTitleRelayout(GeometryChangedEvent e)
         {
@@ -466,9 +484,9 @@ namespace UnityEditor.VFX.UI
         {
             Rect rect = m_Title.layout;
             //if( m_Title != m_TitleField.parent)
-                m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent,rect);
+            m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
 
-            m_TitleField.style.positionLeft = rect.xMin/* + m_Title.style.marginLeft*/;
+            m_TitleField.style.positionLeft = rect.xMin /* + m_Title.style.marginLeft*/;
             m_TitleField.style.positionRight = rect.yMin + m_Title.style.marginTop;
             m_TitleField.style.width = rect.width - m_Title.style.marginLeft - m_Title.style.marginRight;
             m_TitleField.style.height = rect.height - m_Title.style.marginTop - m_Title.style.marginBottom;
@@ -489,15 +507,14 @@ namespace UnityEditor.VFX.UI
 
                 e.StopPropagation();
                 e.PreventDefault();
-
             }
         }
 
         void NotifyChange(StickyNodeChangeEvent.Change change)
         {
-            using (StickyNodeChangeEvent evt = StickyNodeChangeEvent.GetPooled(this,change))
+            using (StickyNodeChangeEvent evt = StickyNodeChangeEvent.GetPooled(this, change))
             {
-                panel.dispatcher.DispatchEvent(evt,panel);
+                panel.dispatcher.DispatchEvent(evt, panel);
             }
         }
 

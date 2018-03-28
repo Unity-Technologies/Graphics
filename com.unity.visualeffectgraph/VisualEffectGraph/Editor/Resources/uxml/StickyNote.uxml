@@ -6,15 +6,22 @@
       <ui:TextField name="contents-field" />
     </ui:Label>
   </ui:VisualElement>
+  <ui:VisualElement name="selection-border" pickingMode="Ignore" />
   <ui:VisualElement name="resizable" pickingMode="Ignore">
-    <ui:VisualElement name="right" pickingMode="Ignore" >
-      <ui:VisualElement name="content" pickingMode="Ignore" />
-      <ui:VisualElement name="vertical-resize"/>
+    <ui:VisualElement name="left" pickingMode="Ignore" >
+      <ui:VisualElement name="top-left-resize"/>
+      <ui:VisualElement name="left-resize"/>
+      <ui:VisualElement name="bottom-left-resize"/>
+    </ui:VisualElement>
+    <ui:VisualElement name="middle" pickingMode="Ignore" >
+      <ui:VisualElement name="top-resize"/>
+      <ui:VisualElement name="middle-center" pickingMode="Ignore" />
+      <ui:VisualElement name="bottom-resize"/>
     </ui:VisualElement>  
-    <ui:VisualElement name="left"  pickingMode="Ignore" >
-      <ui:VisualElement name="horizontal-resize"/>
-      <ui:VisualElement name="corner-resize"/>
+    <ui:VisualElement name="right"  pickingMode="Ignore" >
+      <ui:VisualElement name="top-right-resize"/>
+      <ui:VisualElement name="right-resize"/>
+      <ui:VisualElement name="bottom-right-resize"/>
     </ui:VisualElement>
   </ui:VisualElement>
-  <ui:VisualElement name="selection-border" pickingMode="Ignore" />
 </UXML>

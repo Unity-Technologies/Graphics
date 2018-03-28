@@ -482,6 +482,7 @@ namespace UnityEditor.VFX.UI
             {
                 SyncNodes();
             }
+            SyncStickyNotes();
             SyncEdges(change);
             SyncGroupNodes();
 
@@ -516,7 +517,6 @@ namespace UnityEditor.VFX.UI
                 m_ToggleCastShadows.SetEnabled(false);
                 m_ToggleMotionVectors.SetEnabled(false);
             }
-            SyncStickyNotes();
 
             // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
             SelectionUpdated();
@@ -571,12 +571,12 @@ namespace UnityEditor.VFX.UI
                 t => {
                     if (panel != null)
                     {
-                        (panel as BaseVisualElementPanel).ValidateLayout();
+                        //(panel as BaseVisualElementPanel).ValidateLayout();
                         FrameAll();
                     }
                 }
                 ,
-                10
+                100
                 );
 
             UnregisterCallback<AttachToPanelEvent>(OnFrameNewControllerWithPanel);
@@ -1527,8 +1527,8 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
             evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
                 (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
             evt.menu.AppendSeparator();
