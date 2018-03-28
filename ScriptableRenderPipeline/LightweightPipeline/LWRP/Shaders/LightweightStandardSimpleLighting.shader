@@ -66,6 +66,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -98,6 +99,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
             #define BUMP_SCALE_NOT_SUPPORTED 1
+
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassLitSimple.hlsl"
             ENDHLSL
         }
@@ -113,6 +116,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -127,6 +131,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
@@ -141,6 +146,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -155,6 +161,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
@@ -175,7 +182,9 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMetaSimple.hlsl"
+
             ENDHLSL
         }
     }

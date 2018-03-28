@@ -4,13 +4,23 @@ using System;
 
 namespace UnityEditor.Experimental.Rendering
 {
+    public static class DialogText
+    {
+        public static readonly string title = "Material Upgrader";
+        public static readonly string proceed = "Proceed";
+        public static readonly string ok = "Ok";
+        public static readonly string cancel = "Cancel";
+        public static readonly string noSelectionMessage = "You must select at least one material.";
+        public static readonly string projectBackMessage = "Make sure to have a project backup before proceeding.";
+    }
+
     public class MaterialUpgrader
     {
         public delegate void MaterialFinalizer(Material mat);
 
         string m_OldShader;
         string m_NewShader;
-        private static readonly string projectBackMessage = "Make sure to have a project backup before proceeding.";
+
         MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
@@ -172,7 +182,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public static void UpgradeProjectFolder(List<MaterialUpgrader> upgraders, string progressBarName, UpgradeFlags flags = UpgradeFlags.None)
         {
-            if (!EditorUtility.DisplayDialog("Material Upgrader", "The upgrade will overwrite materials in your project. " + projectBackMessage, "Proceed", "Cancel"))
+            if (!EditorUtility.DisplayDialog(DialogText.title, "The upgrade will overwrite materials in your project. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
             int totalMaterialCount = 0;
@@ -210,6 +220,9 @@ namespace UnityEditor.Experimental.Rendering
 
         public static void Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags)
         {
+            if (material == null)
+                return;
+
             var upgrader = GetUpgrader(upgraders, material);
 
             if (upgrader != null)
@@ -222,22 +235,38 @@ namespace UnityEditor.Experimental.Rendering
         {
             var selection = Selection.objects;
 
-            if (selection == null || selection.Length == 0)
-                if (EditorUtility.DisplayDialog("Material Upgrader", "You must select at least one material.", "Ok"))
-                    return;
+            if (selection == null)
+            {
+                EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                return;
+            }
 
-            if (!EditorUtility.DisplayDialog("Material Upgrader", string.Format("The upgrade will overwrite {0} selected material{1}. ", selection.Length, (selection.Length > 1) ? "s" : "") +
-                    projectBackMessage, "Proceed", "Cancel"))
+            List<Material> selectedMaterials = new List<Material>(selection.Length);
+            for (int i = 0; i < selection.Length; ++i)
+            {
+                Material mat = selection[i] as Material;
+                if (mat != null)
+                    selectedMaterials.Add(mat);
+            }
+
+            int selectedMaterialsCount = selectedMaterials.Count;
+            if (selectedMaterialsCount == 0)
+            {
+                EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                return;
+            }
+
+            if (!EditorUtility.DisplayDialog(DialogText.title, string.Format("The upgrade will overwrite {0} selected material{1}. ", selectedMaterialsCount, selectedMaterialsCount > 1 ? "s" : "") +
+                    DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
             string lastMaterialName = "";
-            Debug.Log(selection.Length);
-            for (int i = 0; i < selection.Length; i++)
+            for (int i = 0; i < selectedMaterialsCount; i++)
             {
-                if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", i, selection.Length, lastMaterialName), (float)i / (float)selection.Length))
+                if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", i, selectedMaterialsCount, lastMaterialName), (float)i / (float)selectedMaterialsCount))
                     break;
 
-                var material = selection[i] as Material;
+                var material = selectedMaterials[i];
                 Upgrade(material, upgraders, flags);
                 if (material != null)
                     lastMaterialName = material.name;
