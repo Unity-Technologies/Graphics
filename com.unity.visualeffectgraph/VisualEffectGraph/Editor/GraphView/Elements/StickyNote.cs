@@ -42,6 +42,9 @@ namespace UnityEditor.VFX.UI
 
         Vector2 m_StartMouse;
         Vector2 m_StartSize;
+
+        Vector2 m_MinSize;
+        Vector2 m_MaxSize;
         
         Vector2 m_StartPosition;
 
@@ -63,6 +66,8 @@ namespace UnityEditor.VFX.UI
                         m_StartMouse = resizedBase.WorldToLocal(e.mousePosition);
                         m_StartSize = new Vector2(resizedTarget.style.width, resizedTarget.style.height);
                         m_StartPosition = new Vector2(resizedTarget.style.positionLeft, resizedTarget.style.positionTop);
+                        m_MinSize = new Vector2(resizedTarget.style.minWidth.GetSpecifiedValueOrDefault(Mathf.NegativeInfinity), resizedTarget.style.minHeight.GetSpecifiedValueOrDefault(Mathf.NegativeInfinity));
+                        m_MaxSize = new Vector2(resizedTarget.style.maxWidth.GetSpecifiedValueOrDefault(Mathf.Infinity), resizedTarget.style.maxHeight.GetSpecifiedValueOrDefault(Mathf.Infinity));
                         m_DragStarted = false;
                     }
                 }
@@ -85,23 +90,40 @@ namespace UnityEditor.VFX.UI
 
             if ((direction & ResizableElement.Resizer.Right) != 0)
             {
-                resizedTarget.style.width = m_StartSize.x + mousePos.x - m_StartMouse.x;
+                resizedTarget.style.width = Mathf.Min(m_MaxSize.x,Mathf.Max(m_MinSize.x,m_StartSize.x + mousePos.x - m_StartMouse.x));
             }
             else if((direction & ResizableElement.Resizer.Left) != 0)
             {
                 float delta = mousePos.x - m_StartMouse.x;
+
+                if( m_StartSize.x - delta < m_MinSize.x)
+                {
+                    delta = - m_MinSize.x + m_StartSize.x;
+                }
+                else if( m_StartSize.x - delta > m_MaxSize.x )
+                {
+                    delta = - m_MaxSize.x + m_StartSize.x;
+                }
 
                 resizedTarget.style.positionLeft = delta + m_StartPosition.x;
                 resizedTarget.style.width = -delta + m_StartSize.x;
             }
             if ((direction & ResizableElement.Resizer.Bottom) != 0)
             {
-                resizedTarget.style.height = m_StartSize.y + mousePos.y - m_StartMouse.y;
+                resizedTarget.style.height = Mathf.Min(m_MaxSize.y,Mathf.Max(m_MinSize.y,m_StartSize.y + mousePos.y - m_StartMouse.y));
             }
             else if((direction & ResizableElement.Resizer.Top) != 0)
             {
                 float delta = mousePos.y - m_StartMouse.y;
 
+                if( m_StartSize.y - delta < m_MinSize.y)
+                {
+                    delta = - m_MinSize.y + m_StartSize.y;
+                }
+                else if( m_StartSize.y - delta > m_MaxSize.y )
+                {
+                    delta = - m_MaxSize.y + m_StartSize.y;
+                }
                 resizedTarget.style.positionTop = delta + m_StartPosition.y;
                 resizedTarget.style.height = -delta + m_StartSize.y;
             }
