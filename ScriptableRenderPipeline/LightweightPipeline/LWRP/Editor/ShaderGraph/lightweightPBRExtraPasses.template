@@ -18,6 +18,7 @@ Pass
 	#pragma vertex ShadowPassVertex
 	#pragma fragment ShadowPassFragment
 
+	#include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
 	#include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
 
 	ENDHLSL
@@ -42,6 +43,7 @@ Pass
 	// GPU Instancing
 	#pragma multi_compile_instancing
 
+	#include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
 	#include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
 	ENDHLSL
 }
@@ -68,6 +70,7 @@ Pass
 
 	#pragma shader_feature _SPECGLOSSMAP
 
-	#include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+	#include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
+	#include "LWRP/ShaderLibrary/LightweightPassMetaPBR.hlsl"
 	ENDHLSL
 }

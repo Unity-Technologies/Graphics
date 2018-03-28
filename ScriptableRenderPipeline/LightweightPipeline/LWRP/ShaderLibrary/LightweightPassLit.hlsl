@@ -1,7 +1,6 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_INCLUDED
 
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
 struct LightweightVertexInput
@@ -18,9 +17,7 @@ struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-#ifdef _ADDITIONAL_LIGHTS
     float3 posWS                    : TEXCOORD2;
-#endif
 
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -46,9 +43,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 {
     inputData = (InputData)0;
 
-#ifdef _ADDITIONAL_LIGHTS
     inputData.positionWS = IN.posWS;
-#endif
 
 #ifdef _NORMALMAP
     half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
@@ -82,7 +77,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    o.uv = TransformMainTextureCoord(v.texcoord);
+    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 
     float3 posWS = TransformObjectToWorld(v.vertex.xyz);
     o.clipPos = TransformWorldToHClip(posWS);
@@ -119,9 +114,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #endif
 #endif
 
-#if _ADDITIONAL_LIGHTS
     o.posWS = posWS;
-#endif
 
     return o;
 }

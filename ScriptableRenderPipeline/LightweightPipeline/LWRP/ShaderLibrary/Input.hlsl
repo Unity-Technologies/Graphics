@@ -34,6 +34,8 @@ half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
+
+float4 _ScaledScreenParams;
 CBUFFER_END
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

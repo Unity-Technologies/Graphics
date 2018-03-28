@@ -57,6 +57,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
@@ -71,7 +72,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
 
             #define NO_SHADOWS 1
 
-            #include "LWRP/ShaderLibrary/Particles.hlsl"
+            #include "LWRP/ShaderLibrary/ParticlesPBR.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
             VertexOutputLit ParticlesLitVertex(appdata_particles v)
@@ -84,6 +85,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
                 o.posWS.w = ComputeFogFactor(o.clipPos.z);
                 o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
+                o.viewDirShininess.w = 0.0;
                 vertTexcoord(v, o);
                 vertFading(o, o.posWS, o.clipPos);
                 return o;
