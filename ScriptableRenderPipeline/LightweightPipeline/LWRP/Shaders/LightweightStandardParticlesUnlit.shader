@@ -88,7 +88,7 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 {
                     half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
                     half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
-                    half3 emission = SampleEmission(IN, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                    half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
                     half3 diffuse = AlphaModulate(albedo.rgb, alpha);
 
                     half3 result = diffuse + emission;
