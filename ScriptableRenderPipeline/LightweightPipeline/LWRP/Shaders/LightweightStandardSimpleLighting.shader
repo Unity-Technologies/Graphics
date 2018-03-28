@@ -183,18 +183,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _SPECGLOSSMAP
 
             #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
-            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
-
-            half4 LightweightFragmentMetaSimple(MetaVertexOuput i) : SV_Target
-            {
-                float2 uv = i.uv;
-                MetaInput o;
-                o.Albedo = _Color.rgb * SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).rgb;
-                o.SpecularColor = SampleSpecularGloss(uv, 1.0).xyz;
-                o.Emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
-
-                return MetaFragment(o);
-            }
+            #include "LWRP/ShaderLibrary/LightweightPassMetaSimple.hlsl"
 
             ENDHLSL
         }
