@@ -69,9 +69,9 @@ namespace UnityEditor.VFX
             {
                 Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
 
-                var randOp = ScriptableObject.CreateInstance<VFXOperatorRandom>();
+                var randOp = ScriptableObject.CreateInstance<Operator.Random>();
                 randOp.constant = true;
-                randOp.seed = VFXOperatorRandom.SeedMode.PerParticle;
+                randOp.seed = Operator.Random.SeedMode.PerParticle;
 
                 // transfer position
                 randOp.position = position;
