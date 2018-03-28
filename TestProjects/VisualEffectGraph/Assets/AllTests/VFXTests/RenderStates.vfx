@@ -34,6 +34,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114001546260552152
@@ -70,6 +72,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Define a bitmask to control which submeshes are rendered.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114009133779255842
@@ -470,6 +474,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114128000536848486
@@ -741,14 +747,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the sphere is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114159071821444658
@@ -818,6 +830,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114190638204989286
@@ -888,6 +902,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114207131252501402
@@ -956,6 +972,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Mesh to be used for particle rendering.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114861157674805324}
@@ -1306,6 +1324,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114324788264161404
@@ -1342,6 +1362,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Mesh to be used for particle rendering.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114861157674805324}
@@ -1464,6 +1486,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Texture to be applied to the mesh.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114382945956600672
@@ -1788,6 +1812,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114447962641529578
@@ -1824,6 +1850,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114454483634662524
@@ -1862,6 +1890,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114461645701678968
@@ -1900,6 +1930,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114464859592907134
@@ -1960,6 +1992,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The box used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114489916768497002
@@ -2174,6 +2208,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114533150424574562
@@ -2243,6 +2279,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114536692204063058
@@ -2340,6 +2378,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114552752525476134
@@ -2864,6 +2904,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Define a bitmask to control which submeshes are rendered.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114680427535830880
@@ -3206,6 +3248,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114726772743002808
@@ -3273,6 +3317,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Texture to be applied to the mesh.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114750582010869080
@@ -3832,6 +3878,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114857018947926418
@@ -3871,6 +3919,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114858126897377602
@@ -3909,6 +3959,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114861157674805324
@@ -4089,6 +4141,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114892129541824794
@@ -4353,6 +4407,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The box used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114934749589198646
@@ -4414,6 +4470,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The sphere used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114953955181835660
@@ -4528,6 +4586,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114965187429588178
@@ -4715,6 +4775,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114998390658440298
@@ -5652,6 +5714,24 @@ VisualEffectAsset:
         structure: 1
         element: 0
   - type: 1
+    size: 1
+    capacity: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  - type: 2
+    size: 2048
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
+  - type: 1
     size: 1408
     capacity: 128
     layout:
@@ -5704,6 +5784,24 @@ VisualEffectAsset:
         structure: 1
         element: 0
   - type: 1
+    size: 1
+    capacity: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+  - type: 2
+    size: 128
+    capacity: 0
+    layout: []
+  - type: 1
+    size: 1
+    capacity: 0
+    layout: []
+  - type: 1
     size: 704
     capacity: 64
     layout:
@@ -5749,42 +5847,6 @@ VisualEffectAsset:
         bucket: 640
         structure: 1
         element: 0
-  - type: 1
-    size: 1
-    capacity: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
-  - type: 2
-    size: 2048
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 1
-    layout:
-    - name: spawnCount
-      type: 1
-      offset:
-        bucket: 0
-        structure: 1
-        element: 0
-  - type: 2
-    size: 128
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
   - type: 1
     size: 1
     capacity: 1
@@ -5852,7 +5914,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
-    layer: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -5868,7 +5930,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
-    layer: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 2
@@ -5884,7 +5946,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
-    layer: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 3
@@ -5905,11 +5967,11 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 3
+      index: 1
     - nameId: deadList
-      index: 4
+      index: 2
     - nameId: deadListCount
-      index: 5
+      index: 3
     - nameId: spawner_input
       index: 3
     values:
@@ -5923,11 +5985,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 4
+        index: 2
       - nameId: deadListCount
-        index: 5
-      - nameId: sourceAttributeBuffer
         index: 3
+      - nameId: sourceAttributeBuffer
+        index: 1
       values:
       - nameId: SizeX_b
         index: 72
@@ -5946,18 +6008,18 @@ VisualEffectAsset:
         index: 83
       - nameId: bounds_size
         index: 80
-      processor: {fileID: 7200000, guid: 55a1b2b75460a754ea7c6411f749e25b, type: 3}
+      processor: {fileID: 7200000, guid: a63584d54970fbf46811cf4903422008, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 4
+        index: 2
       values:
       - nameId: deltaTime_b
         index: 101
       params: []
-      processor: {fileID: 7200000, guid: 86c73648ebb823b4eb2fa84098a6c462, type: 3}
+      processor: {fileID: 7200000, guid: faf6bffd7f6ed264abbf8c046e6b6c91, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5968,7 +6030,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 1
-      processor: {fileID: 4800000, guid: 7e3e30f0be036174bb3d83988150e2c4, type: 3}
+      processor: {fileID: 4800000, guid: 288629ace4d4cd14d8323d25851bbbc9, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5981,20 +6043,20 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: -1
-      processor: {fileID: 4800000, guid: e069fdb1a732e444085f27655c9a7044, type: 3}
+      processor: {fileID: 4800000, guid: 46797006aa52bc04aae4a2074fde7a7f, type: 3}
   - type: 1
     flags: 1
     capacity: 128
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 1
+      index: 4
     - nameId: sourceAttributeBuffer
-      index: 6
+      index: 5
     - nameId: deadList
-      index: 7
+      index: 6
     - nameId: deadListCount
-      index: 8
+      index: 7
     - nameId: spawner_input
       index: 2
     values:
@@ -6006,13 +6068,13 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 1
+        index: 4
       - nameId: deadListIn
-        index: 7
-      - nameId: deadListCount
-        index: 8
-      - nameId: sourceAttributeBuffer
         index: 6
+      - nameId: deadListCount
+        index: 7
+      - nameId: sourceAttributeBuffer
+        index: 5
       values:
       - nameId: SizeX_b
         index: 105
@@ -6041,22 +6103,22 @@ VisualEffectAsset:
         index: 84
       - nameId: bounds_size
         index: 87
-      processor: {fileID: 7200000, guid: 74995c3a4bd26fc4e8402853d956d20d, type: 3}
+      processor: {fileID: 7200000, guid: 0bf1f9b6b52a03a45ab1218891c8af91, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 1
+        index: 4
       - nameId: deadListOut
-        index: 7
+        index: 6
       values:
       - nameId: deltaTime_b
         index: 101
       params: []
-      processor: {fileID: 7200000, guid: 25255558e92a34046bfbb43b436d6fb9, type: 3}
+      processor: {fileID: 7200000, guid: 249b2ed16a4a67942a5d16ad26960d3f, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
-        index: 1
+        index: 4
       values:
       - nameId: Color_b
         index: 57
@@ -6071,11 +6133,11 @@ VisualEffectAsset:
         index: 86
       - nameId: sortPriority
         index: -1
-      processor: {fileID: 4800000, guid: 264b8e55b3913674aa254fa6e4e32853, type: 3}
+      processor: {fileID: 4800000, guid: e876729f29c297d4b9091342c057d0ae, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
-        index: 1
+        index: 4
       values:
       - nameId: SizeX_b
         index: 94
@@ -6090,14 +6152,14 @@ VisualEffectAsset:
         index: 85
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 841839320068c2e48ada379dbbaa4236, type: 3}
+      processor: {fileID: 4800000, guid: bbe54ff832361b84b9a81a68cfbf3d13, type: 3}
   - type: 1
     flags: 1
     capacity: 64
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 2
+      index: 8
     - nameId: sourceAttributeBuffer
       index: 9
     - nameId: deadList
@@ -6115,7 +6177,7 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 2
+        index: 8
       - nameId: deadListIn
         index: 10
       - nameId: deadListCount
@@ -6140,11 +6202,11 @@ VisualEffectAsset:
         index: 74
       - nameId: bounds_size
         index: 71
-      processor: {fileID: 7200000, guid: 944d7371873ecf645a63355c2f2bc513, type: 3}
+      processor: {fileID: 7200000, guid: ed918585988e3874ea9754416805dac6, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 2
+        index: 8
       - nameId: deadListOut
         index: 10
       values:
@@ -6153,11 +6215,11 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 101
       params: []
-      processor: {fileID: 7200000, guid: 68aca7ae2fa6080488d56b87645ba419, type: 3}
+      processor: {fileID: 7200000, guid: b236049cacf378a419d916d04796abb6, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 2
+        index: 8
       values:
       - nameId: Color_b
         index: 63
@@ -6166,11 +6228,11 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 3
-      processor: {fileID: 4800000, guid: d8b663c9da030304692ca7cd1aef5ec0, type: 3}
+      processor: {fileID: 4800000, guid: 8b43bb70483828341b9de896bfba7e07, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 2
+        index: 8
       values:
       - nameId: Color_b
         index: 70
@@ -6179,7 +6241,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 2
-      processor: {fileID: 4800000, guid: 2f0f5dfd673d4024f82478dd02e4184e, type: 3}
+      processor: {fileID: 4800000, guid: f6f72008fbf9e454d8304eee8726da9d, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 000000000100000002000000
@@ -6194,4 +6256,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3

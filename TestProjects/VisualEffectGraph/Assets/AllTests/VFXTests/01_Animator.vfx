@@ -64,6 +64,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114172488940509954
@@ -405,6 +407,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114370700669197398
@@ -1096,6 +1100,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114646169453975412}
@@ -1153,6 +1159,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114872359750339748
@@ -1621,7 +1629,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
-    layer: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -1677,7 +1685,7 @@ VisualEffectAsset:
         index: 17
       - nameId: bounds_size
         index: 18
-      processor: {fileID: 7200000, guid: 42fc87defd7e74545ad9b8344d6a8449, type: 3}
+      processor: {fileID: 7200000, guid: 3d52da01472a02b4383574764f65251d, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1688,7 +1696,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 16
       params: []
-      processor: {fileID: 7200000, guid: 98b7bec5c4b3758418d005745f07acff, type: 3}
+      processor: {fileID: 7200000, guid: b2fe07af2710df94a8010cc4efd43ad9, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1701,7 +1709,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 48e17c50f9fea914cb065a5d1857ce66, type: 3}
+      processor: {fileID: 4800000, guid: d6bdd995acfdf4149bf4cb50f009357e, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1716,4 +1724,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3

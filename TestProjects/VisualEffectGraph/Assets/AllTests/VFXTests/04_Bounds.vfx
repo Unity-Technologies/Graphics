@@ -67,6 +67,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114015547924685798
@@ -545,6 +547,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114723635383607824
@@ -791,6 +795,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
@@ -1042,7 +1048,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
-    layer: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -1096,7 +1102,7 @@ VisualEffectAsset:
         index: 15
       - nameId: bounds_size
         index: 17
-      processor: {fileID: 7200000, guid: db51c61fe23baff4d84b816dbc77b25f, type: 3}
+      processor: {fileID: 7200000, guid: d116a677dcfab114791186d98e896f04, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1107,7 +1113,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 13
       params: []
-      processor: {fileID: 7200000, guid: a4094775c70dc72439f886d3a049e931, type: 3}
+      processor: {fileID: 7200000, guid: 772fd3402346e4042b1cb16eada98beb, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1118,7 +1124,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 48ac1c0903ff24146973128dbb1e4528, type: 3}
+      processor: {fileID: 4800000, guid: 8c690800204fe2c4ab07fe33a7c5b225, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1133,4 +1139,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3

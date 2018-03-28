@@ -468,6 +468,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114986932069951040
@@ -506,6 +508,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
@@ -649,7 +653,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
-    layer: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -680,12 +684,12 @@ VisualEffectAsset:
         index: 7
       - nameId: bounds_size
         index: 8
-      processor: {fileID: 7200000, guid: 731b89f483ce5834b90ad1d539003788, type: 3}
+      processor: {fileID: 7200000, guid: 3a73e4b07aa5f5b479513bdd001d6fb7, type: 3}
     - type: 805306368
       buffers: []
       values: []
       params: []
-      processor: {fileID: 7200000, guid: b9464167f9ae507428aa226bdce04697, type: 3}
+      processor: {fileID: 7200000, guid: 2f263d4aaa2ac674c9a6c478e82e7e90, type: 3}
     - type: 1073741826
       buffers: []
       values:
@@ -694,7 +698,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: ef80ea51ee32c5b43acab4832ea8b776, type: 3}
+      processor: {fileID: 4800000, guid: 91ffb3a919d5bb043a32ab68cf3a0e06, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -709,4 +713,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3

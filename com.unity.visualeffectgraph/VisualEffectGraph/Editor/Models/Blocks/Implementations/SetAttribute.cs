@@ -85,5 +85,13 @@ namespace UnityEditor.VFX.Block
                 return VFXAttribute.Find(attribute);
             }
         }
+
+        public override void Sanitize()
+        {
+            if (attribute == "size")   attribute = "sizeX";
+            else if (attribute == "angle")  attribute = "angleZ";
+
+            base.Sanitize();
+        }
     }
 }
