@@ -46,8 +46,15 @@ namespace UnityEditor.VFX
                 if (integration != VFXIntegrationMode.None && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
                     yield return CreateInstance<EulerIntegration>();
 
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime))
-                    yield return CreateInstance<AgeAndDie>();
+                var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
+                var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
+
+                if (age || lifeTime)
+                {
+                    yield return CreateInstance<Age>();
+                    if (lifeTime)
+                        yield return CreateInstance<Reap>();
+                }
             }
         }
 

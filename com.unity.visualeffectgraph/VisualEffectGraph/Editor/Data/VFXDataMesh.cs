@@ -73,6 +73,7 @@ namespace UnityEditor.VFX
                 tasks = new VFXTaskDesc[1] { task },
                 values = mappings.ToArray(),
                 type = VFXSystemType.Mesh,
+                layer = uint.MaxValue,
             });
         }
     }

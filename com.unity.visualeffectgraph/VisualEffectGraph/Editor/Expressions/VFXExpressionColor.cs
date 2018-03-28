@@ -16,11 +16,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.RGBtoHSVOp;
+                return VFXExpressionOperation.RGBtoHSV;
             }
         }
 
@@ -52,11 +52,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.HSVtoRGBOp;
+                return VFXExpressionOperation.HSVtoRGB;
             }
         }
 

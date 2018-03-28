@@ -67,6 +67,7 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
 
             m_HeaderIcon.image = GetIconForVFXType(controller.context.inputType);
+            m_HeaderIcon.visible = m_HeaderIcon.image.value != null;
 
 
             Profiler.BeginSample("VFXContextUI.SetAllStyleClasses");
@@ -122,6 +123,7 @@ namespace UnityEditor.VFX.UI
                     mainContainer.Add(m_Footer);
                 m_FooterTitle.text = controller.context.outputType.ToString().Substring(1);
                 m_FooterIcon.image = GetIconForVFXType(controller.context.outputType);
+                m_FooterIcon.visible = m_FooterIcon.image.value != null;
             }
 
             Profiler.BeginSample("VFXContextUI.CreateInputFlow");
