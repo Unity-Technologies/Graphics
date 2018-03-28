@@ -149,9 +149,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<string> newStrings = new List<string>();
             foreach (string s in splitString)
             {
-                if (!string.IsNullOrWhiteSpace(s))
+                var str = s.Trim();
+                if (!string.IsNullOrEmpty(str))
                 {
-                    newStrings.Add(s.Trim());
+                    newStrings.Add(str);
                 }
             }
 
