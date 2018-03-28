@@ -132,9 +132,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     diffuse *= alpha;
 #endif
 
-    half3 normalTS = SampleNormal(uv, 1.0, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
-    half3 emission = SampleEmission(uv, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
-    half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
+    half3 normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+    half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+    half4 specularGloss = SampleSpecularGloss(uv, diffuseAlpha.a);
     half shininess = IN.posWSShininess.w;
 
     InputData inputData;

@@ -108,8 +108,8 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
                 half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
                 half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                 half3 diffuse = AlphaModulate(albedo.rgb, alpha);
-                half3 normalTS = SampleNormalTS(IN, 1.0, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
-                half3 emission = SampleEmission(IN, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                half3 normalTS = SampleNormalTS(IN, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+                half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
                 half4 specularGloss = SampleSpecularGloss(IN, albedo.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
                 half shininess = IN.viewDirShininess.w;
 

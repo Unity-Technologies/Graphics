@@ -174,7 +174,7 @@ half4 readTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), VertexOutputLit IN)
     return color;
 }
 
-half3 SampleNormalTS(VertexOutputLit IN, float scale, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap))
+half3 SampleNormalTS(VertexOutputLit IN, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half scale = 1.0h)
 {
 #if defined(_NORMALMAP)
     half4 n = readTexture(TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), IN);

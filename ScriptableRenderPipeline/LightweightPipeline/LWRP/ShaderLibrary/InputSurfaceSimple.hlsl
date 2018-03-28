@@ -2,6 +2,7 @@
 #define LIGHTWEIGHT_INPUT_SURFACE_SIMPLE_INCLUDED
 
 #include "Core.hlsl"
+#include "InputSurfaceCommon.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _MainTex_ST;
@@ -14,7 +15,7 @@ CBUFFER_END
 
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
-half4 SpecularGloss(half2 uv, half alpha)
+half4 SampleSpecularGloss(half2 uv, half alpha)
 {
     half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
@@ -28,7 +29,5 @@ half4 SpecularGloss(half2 uv, half alpha)
 #endif
     return specularGloss;
 }
-
-#include "InputSurfaceCommon.hlsl"
 
 #endif // LIGHTWEIGHT_INPUT_SURFACE_SIMPLE_INCLUDED

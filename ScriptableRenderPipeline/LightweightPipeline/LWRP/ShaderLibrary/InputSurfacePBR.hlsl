@@ -3,6 +3,7 @@
 
 #include "Core.hlsl"
 #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
+#include "InputSurfaceCommon.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _MainTex_ST;
@@ -71,8 +72,6 @@ half SampleOcclusion(float2 uv)
 #endif
 }
 
-#include "InputSurfaceCommon.hlsl"
-
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
@@ -90,9 +89,9 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalTS = SampleNormal(uv, _BumpScale, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+    outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), _BumpScale);
     outSurfaceData.occlusion = SampleOcclusion(uv);
-    outSurfaceData.emission = SampleEmission(uv, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+    outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
 }
 
 #endif // LIGHTWEIGHT_INPUT_SURFACE_PBR_INCLUDED

@@ -190,8 +190,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
                 float2 uv = i.uv;
                 MetaInput o;
                 o.Albedo = _Color.rgb * SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).rgb;
-                o.SpecularColor = SpecularGloss(uv, 1.0).xyz;
-                o.Emission = SampleEmission(uv, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                o.SpecularColor = SampleSpecularGloss(uv, 1.0).xyz;
+                o.Emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
 
                 return MetaFragment(o);
             }
