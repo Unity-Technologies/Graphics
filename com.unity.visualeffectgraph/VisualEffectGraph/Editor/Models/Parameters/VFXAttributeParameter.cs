@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
                 randOp.constant = true;
                 randOp.seed = VFXOperatorRandom.SeedMode.PerParticle;
 
-                VFXSlot.TransferLinks(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
+                VFXSlot.TransferLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
                 ReplaceModel(randOp, this);
             }
             else

@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
             attrib.SetSettingValue("location", VFXAttributeLocation.Current);
             attrib.SetSettingValue("attribute", attribute);
 
-            VFXSlot.TransferLinks(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
+            VFXSlot.TransferLinksAndValue(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
             ReplaceModel(attrib, this);
         }
     }
