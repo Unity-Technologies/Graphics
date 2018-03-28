@@ -556,8 +556,7 @@ namespace UnityEditor.VFX.UI
         {
             if (panel != null)
             {
-                (panel as BaseVisualElementPanel).ValidateLayout();
-                FrameAll();
+                FrameAfterAWhile();
             }
             else
             {
@@ -565,20 +564,23 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnFrameNewControllerWithPanel(AttachToPanelEvent e)
+
+        void FrameAfterAWhile()
         {
-            (panel as BaseVisualElementPanel).scheduler.ScheduleOnce(
+            this.schedule.Execute(
                 t => {
                     if (panel != null)
                     {
-                        //(panel as BaseVisualElementPanel).ValidateLayout();
+                        (panel as BaseVisualElementPanel).ValidateLayout();
                         FrameAll();
                     }
                 }
-                ,
-                100
-                );
+                ).StartingIn(100);
+        }
 
+        void OnFrameNewControllerWithPanel(AttachToPanelEvent e)
+        {
+            FrameAfterAWhile();
             UnregisterCallback<AttachToPanelEvent>(OnFrameNewControllerWithPanel);
         }
 
@@ -1527,8 +1529,8 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
             evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
                 (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
             evt.menu.AppendSeparator();

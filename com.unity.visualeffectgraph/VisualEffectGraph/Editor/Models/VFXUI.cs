@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
             }
 
             public UIInfo(UIInfo other)
-            {
+        {
                 title = other.title;
                 position = other.position;
             }
@@ -93,6 +93,7 @@ namespace UnityEditor.VFX
 
         internal void Sanitize(VFXGraph graph)
         {
+            if (groupInfos != null)
             foreach (var groupInfo in groupInfos)
             {
                 //Check first, rebuild after because in most case the content will be valid, saving an allocation.
