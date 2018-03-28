@@ -62,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
-        [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
         [SerializeField] private float m_ShadowDistance = 50.0f;
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
@@ -242,12 +241,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return (int)m_ShadowAtlasResolution; }
             private set { m_ShadowAtlasResolution = (ShadowResolution)value; }
-        }
-
-        public float ShadowNearOffset
-        {
-            get { return m_ShadowNearPlaneOffset; }
-            private set { m_ShadowNearPlaneOffset = value; }
         }
 
         public float ShadowDistance
