@@ -15,8 +15,8 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
     half2 metallicGloss = half2(_Metallic, _Glossiness);
 #endif
 
-    half3 normalTS = SampleNormalTS(IN, _BumpScale, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
-    half3 emission = SampleEmission(IN, _EmissionColor, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+    half3 normalTS = SampleNormalTS(IN, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), _BumpScale);
+    half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
 
     surfaceData.albedo = albedo.rgb;
     surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
