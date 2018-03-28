@@ -80,25 +80,6 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute Find(string attributeName)
         {
-            // TODO temp to avoid errors when loading graphs. Will be removed at some point
-            if (attributeName == "size")
-            {
-                Debug.LogWarning("Found an attribute size which is deprecated. Using sizeX instead. Please fix that!");
-                attributeName = "sizeX";
-            }
-
-            if (attributeName == "angle")
-            {
-                Debug.LogWarning("Found an attribute angle which is deprecated. Using angleZ instead. Please fix that!");
-                attributeName = "angleZ";
-            }
-
-            if (attributeName == "phase")
-            {
-                Debug.LogWarning("Found an attribute phase which is deprecated. Use random operator instead. Please fix that!");
-                return new VFXAttribute("phase", VFXValueType.Float);
-            }
-
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
                 throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));

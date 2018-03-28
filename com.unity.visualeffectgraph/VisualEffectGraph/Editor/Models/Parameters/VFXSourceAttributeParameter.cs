@@ -19,16 +19,8 @@ namespace UnityEditor.VFX
             attrib.SetSettingValue("location", VFXAttributeLocation.Source);
             attrib.SetSettingValue("attribute", attribute);
 
-            // Transfer position
-            attrib.position = position;
-
-            // Transfer links
             VFXSlot.TransferLinks(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
-
-            // Replace operator
-            var parent = GetParent();
-            Detach();
-            attrib.Attach(parent);
+            ReplaceModel(attrib, this);
         }
     }
 }
