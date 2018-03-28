@@ -9,21 +9,20 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class Resizable : Manipulator
+    public class ResizableElementFactory : UxmlFactory<ResizableElement>
     {
-        public enum Direction
+        protected override ResizableElement DoCreate(IUxmlAttributes bag, CreationContext cc)
         {
-            Left = 1 << 0,
-            Right = 1 << 1,
-            Top = 1 << 2,
-            Bottom = 1 << 3
+            return new ResizableElement();
         }
-
-        public readonly Direction direction;
+    }
+    class ElementResizer : Manipulator
+    {
+        public readonly ResizableElement.Resizer direction;
 
         public readonly VisualElement resizedElement;
 
-        public Resizable(VisualElement resizedElement, Direction direction)
+        public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
         {
             this.direction = direction;
             this.resizedElement = resizedElement;
@@ -41,8 +40,10 @@ namespace UnityEditor.VFX.UI
             target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
         }
 
-        Vector2 m_StartPosition;
+        Vector2 m_StartMouse;
         Vector2 m_StartSize;
+        
+        Vector2 m_StartPosition;
 
         bool m_DragStarted = false;
 
@@ -50,34 +51,59 @@ namespace UnityEditor.VFX.UI
         {
             if (e.button == 0 && e.clickCount == 1)
             {
-                target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
-                e.StopPropagation();
-                target.TakeMouseCapture();
-                m_StartPosition = resizedElement.WorldToLocal(e.mousePosition);
-                m_StartSize = new Vector2(resizedElement.style.width, resizedElement.style.height);
-                m_DragStarted = false;
+                VisualElement resizedTarget = resizedElement.parent;
+                if( resizedTarget != null )
+                {
+                    VisualElement resizedBase = resizedTarget.parent;
+                    if(resizedBase != null)
+                    {
+                        target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+                        e.StopPropagation();
+                        target.TakeMouseCapture();
+                        m_StartMouse = resizedBase.WorldToLocal(e.mousePosition);
+                        m_StartSize = new Vector2(resizedTarget.style.width, resizedTarget.style.height);
+                        m_StartPosition = new Vector2(resizedTarget.style.positionLeft, resizedTarget.style.positionTop);
+                        m_DragStarted = false;
+                    }
+                }
             }
         }
 
         void OnMouseMove(MouseMoveEvent e)
         {
-            Vector2 mousePos = resizedElement.WorldToLocal(e.mousePosition);
+            VisualElement resizedTarget = resizedElement.parent;
+            VisualElement resizedBase = resizedTarget.parent;
+            Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
             if (!m_DragStarted)
             {
-                if (resizedElement is IVFXResizable)
+                if (resizedTarget is IVFXResizable)
                 {
-                    (resizedElement as IVFXResizable).OnStartResize();
+                    (resizedTarget as IVFXResizable).OnStartResize();
                 }
                 m_DragStarted = true;
             }
 
-            if ((direction & Direction.Right) != 0)
+            if ((direction & ResizableElement.Resizer.Right) != 0)
             {
-                resizedElement.style.width = m_StartSize.x + mousePos.x - m_StartPosition.x;
+                resizedTarget.style.width = m_StartSize.x + mousePos.x - m_StartMouse.x;
             }
-            if ((direction & Direction.Bottom) != 0)
+            else if((direction & ResizableElement.Resizer.Left) != 0)
             {
-                resizedElement.style.height = m_StartSize.y + mousePos.y - m_StartPosition.y;
+                float delta = mousePos.x - m_StartMouse.x;
+
+                resizedTarget.style.positionLeft = delta + m_StartPosition.x;
+                resizedTarget.style.width = -delta + m_StartSize.x;
+            }
+            if ((direction & ResizableElement.Resizer.Bottom) != 0)
+            {
+                resizedTarget.style.height = m_StartSize.y + mousePos.y - m_StartMouse.y;
+            }
+            else if((direction & ResizableElement.Resizer.Top) != 0)
+            {
+                float delta = mousePos.y - m_StartMouse.y;
+
+                resizedTarget.style.positionTop = delta + m_StartPosition.y;
+                resizedTarget.style.height = -delta + m_StartSize.y;
             }
             e.StopPropagation();
         }
@@ -86,11 +112,12 @@ namespace UnityEditor.VFX.UI
         {
             if (e.button == 0)
             {
-                if (resizedElement.style.width != m_StartSize.x || resizedElement.style.height != m_StartSize.y)
+                VisualElement resizedTarget = resizedElement.parent;
+                if (resizedTarget.style.width != m_StartSize.x || resizedTarget.style.height != m_StartSize.y)
                 {
-                    if (resizedElement is IVFXResizable)
+                    if (resizedTarget is IVFXResizable)
                     {
-                        (resizedElement as IVFXResizable).OnResized();
+                        (resizedTarget as IVFXResizable).OnResized();
                     }
                 }
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -99,23 +126,45 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class ResizeElement : VisualElement
+    public class ResizableElement : VisualElement
     {
-        ResizeElement()
+        public ResizableElement():this(UXMLHelper.GetUXMLPath("uxml/Resizable.uxml"))
         {
+        }
+        public ResizableElement(string uiFile)
+        {
+            var tpl = EditorGUIUtility.Load(uiFile) as VisualTreeAsset;
+            AddStyleSheetPath("Resizable");
+
+            tpl.CloneTree(this, new Dictionary<string, VisualElement>());
+            
+            foreach( Resizer value in System.Enum.GetValues(typeof(Resizer)))
+            {
+                VisualElement resizer = this.Q(value.ToString().ToLower()+"-resize");
+                if( resizer != null)
+                    resizer.AddManipulator(new ElementResizer(this,value));
+                    m_Resizers[value] = resizer;
+            }
+
+            foreach(Resizer vertical in new[]{Resizer.Top,Resizer.Bottom})
+                foreach(Resizer horizontal in new[]{Resizer.Left,Resizer.Right})
+                {
+                    VisualElement resizer = this.Q(vertical.ToString().ToLower()+"-"+horizontal.ToString().ToLower()+"-resize");
+                    if( resizer != null)
+                        resizer.AddManipulator(new ElementResizer(this,vertical|horizontal));
+                        m_Resizers[vertical|horizontal] = resizer;
+                }
         }
 
-        enum
+        public enum Resizer
         {
-            TopLeft,
-            Top,
-            TopRight,
-            Right,
-            BottomRight,
-            Bottom,
-            BottomLeft,
-            Left,
+            Top =           1<<0,
+            Bottom =        1<<1,
+            Left =          1<<2,
+            Right =         1<<3,
         }
+
+        Dictionary<Resizer,VisualElement> m_Resizers = new Dictionary<Resizer,VisualElement>();
     }
 
 
@@ -294,7 +343,6 @@ namespace UnityEditor.VFX.UI
         public StickyNote(Vector2 position) : this(UXMLHelper.GetUXMLPath("uxml/StickyNote.uxml"), position)
         {
             AddStyleSheetPath("Selectable");
-            AddStyleSheetPath("Resizable");
             AddStyleSheetPath("StickyNote");
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
@@ -341,16 +389,6 @@ namespace UnityEditor.VFX.UI
             AddToClassList("selectable");
             UpdateThemeClasses();
             UpdateSizeClasses();
-
-            var horizontalResizer = this.Q("horizontal-resize");
-            if (horizontalResizer != null)
-                horizontalResizer.AddManipulator(new Resizable(this, Resizable.Direction.Right));
-            var verticalResizer = this.Q("vertical-resize");
-            if (verticalResizer != null)
-                verticalResizer.AddManipulator(new Resizable(this, Resizable.Direction.Bottom));
-            var cornerResizer = this.Q("corner-resize");
-            if (cornerResizer != null)
-                cornerResizer.AddManipulator(new Resizable(this, Resizable.Direction.Bottom | Resizable.Direction.Right));
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
