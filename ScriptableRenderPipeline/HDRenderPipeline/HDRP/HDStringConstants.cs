@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
+        public static readonly int _DensityVolumeIndexShift = Shader.PropertyToID("_DensityVolumeIndexShift");
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
 
@@ -323,5 +324,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferLightingHistory     = Shader.PropertyToID("_VBufferLightingHistory");
         public static readonly int _VBufferLightingFeedback    = Shader.PropertyToID("_VBufferLightingFeedback");
         public static readonly int _VBufferSampleOffset        = Shader.PropertyToID("_VBufferSampleOffset");
+        public static readonly int _VolumeBounds               = Shader.PropertyToID("_VolumeBounds");
+        public static readonly int _VolumeProperties           = Shader.PropertyToID("_VolumeProperties");
+        public static readonly int _NumVisibleDensityVolumes   = Shader.PropertyToID("_NumVisibleDensityVolumes");
     }
 }
