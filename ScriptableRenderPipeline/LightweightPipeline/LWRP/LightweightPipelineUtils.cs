@@ -49,6 +49,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class LightweightUtils
     {
+        public static void StartStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StartMultiEye(camera);
+        }
+
+        public static void StopStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StopMultiEye(camera);
+        }
+
         public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
         {
             cookieMatrix = Matrix4x4.Inverse(light.localToWorld);
