@@ -11,27 +11,38 @@ using UnityEditor.SceneManagement;
 [TestFixture]
 public class ScriptableCullingTests
 {
-    SceneSetup[] m_CurrentLoadedScenes;
+    SceneSetup[]    m_CurrentLoadedScenes;
+    Camera          m_TestCamera;
 
-    [OneTimeSetUp()]
-    public void Setup()
+    void Setup(string testName, string cameraName)
     {
+        string scenePath = string.Format("Assets/ScriptableRenderLoop/Tests/GraphicsTests/Core/Scenes/{0}.unity", testName);
+        string fullCameraName = string.Format("Camera_{0}", cameraName);
+
+        var cameras = UnityEngine.Object.FindObjectsOfType(typeof(Camera)) as Camera[];
+        m_TestCamera = Array.Find(cameras, (value) => value.name == fullCameraName);
+
+        if (m_TestCamera == null)
+        {
+            // Throw?
+            Assert.IsTrue(false, string.Format("Cannot find camera: {0}", cameraName) );
+        }
+
         BackupSceneManagerSetup();
-        EditorSceneManager.OpenScene("Assets/ScriptableRenderLoop/Tests/GraphicsTests/Core/Scenes/ScriptableCulling.unity");
+        EditorSceneManager.OpenScene(scenePath);
     }
 
-    [TearDown()]
-    public void TearDown()
+    void TearDown()
     {
         RestoreSceneManagerSetup();
     }
 
-    public void BackupSceneManagerSetup()
+    void BackupSceneManagerSetup()
     {
         m_CurrentLoadedScenes = EditorSceneManager.GetSceneManagerSetup();
     }
 
-    public void RestoreSceneManagerSetup()
+    void RestoreSceneManagerSetup()
     {
         if ((m_CurrentLoadedScenes == null) || (m_CurrentLoadedScenes.Length == 0))
         {
@@ -41,13 +52,47 @@ public class ScriptableCullingTests
         {
             EditorSceneManager.RestoreSceneManagerSetup(m_CurrentLoadedScenes);
         }
+
+        m_TestCamera = null;
     }
 
-    [UnityTest()]
-    public IEnumerator Toto()
+    [Test(Description = "Object simple frustum culling test")]
+    public void ObjectFrustumCulling()
     {
-        yield return null;
+        Setup("FrustumCullingTest", "FrustumCullingTest");
 
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
+        CullingRequests requests = new CullingRequests();
+        requests.AddRequest(cullingParams);
+
+        var results = Culling.ProcessRequests(requests);
+        CullingResult cullResult1 = results.GetResult(0);
+
+        Assert.AreEqual(3, cullResult1.GetVisibleObjectCount());
+
+        TearDown();
+    }
+
+    [Test(Description = "Light simple frustum culling test")]
+    public void LightFrustumCulling()
+    {
+        Setup("FrustumCullingTest", "FrustumCullingTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        CullingRequests requests = new CullingRequests();
+        requests.AddRequest(cullingParams);
+
+        var lightCullResults = Culling.CullLights(requests);
+        var lightCullResult = lightCullResults.results[0];
+        Assert.AreEqual(3, lightCullResult.visibleLights.Length);
+        Assert.AreEqual(2, lightCullResult.visibleShadowCastingLights.Length);
+        Assert.AreEqual(2, lightCullResult.visibleOffscreenVertexLights.Length);
+        Assert.AreEqual(1, lightCullResult.visibleOffscreenShadowCastingVertexLights.Length);
+
+        TearDown();
     }
 }
