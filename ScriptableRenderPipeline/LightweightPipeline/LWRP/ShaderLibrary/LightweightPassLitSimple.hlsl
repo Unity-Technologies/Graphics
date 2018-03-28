@@ -76,7 +76,7 @@ LightweightVertexOutput LitPassVertexSimple(LightweightVertexInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    o.uv = TransformMainTextureCoord(v.texcoord);
+    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 
     o.posWSShininess.xyz = TransformObjectToWorld(v.vertex.xyz);
     o.posWSShininess.w = _Shininess * 128.0;
@@ -123,7 +123,7 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     UNITY_SETUP_INSTANCE_ID(IN);
 
     float2 uv = IN.uv;
-    half4 diffuseAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+    half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
     half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
 
     half alpha = diffuseAlpha.a * _Color.a;
@@ -132,14 +132,9 @@ half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
     diffuse *= alpha;
 #endif
 
-#ifdef _NORMALMAP
-    half3 normalTS = Normal(uv);
-#else
-    half3 normalTS = half3(0, 0, 1);
-#endif
-
-    half3 emission = Emission(uv);
-    half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
+    half3 normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+    half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+    half4 specularGloss = SampleSpecularGloss(uv, diffuseAlpha.a);
     half shininess = IN.posWSShininess.w;
 
     InputData inputData;
