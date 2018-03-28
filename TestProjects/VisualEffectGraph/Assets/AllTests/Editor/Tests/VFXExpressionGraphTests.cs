@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.Test
                 (g) =>
                 {
                     var context = (VFXContext)g[0];
-                    var attrib = ScriptableObject.CreateInstance<VFXCurrentAttributeParameter>();
+                    var attrib = ScriptableObject.CreateInstance<VFXAttributeParameter>();
                     attrib.SetSettingValue("attribute", "age");
 
                     g.AddChild(attrib);
