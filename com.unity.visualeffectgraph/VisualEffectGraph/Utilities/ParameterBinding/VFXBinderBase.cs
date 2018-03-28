@@ -10,23 +10,9 @@ namespace UnityEngine.Experimental.VFX.Utility
     {
         protected VFXParameterBinder binder;
 
-        protected Dictionary<string, int> m_PropertyCache = new Dictionary<string, int>();
-
         public abstract bool IsValid(VisualEffect component);
 
-        public int GetParameter(string name)
-        {
-            if (m_PropertyCache.ContainsKey(name))
-                return m_PropertyCache[name];
-            else
-            {
-                int id = Shader.PropertyToID(name);
-                m_PropertyCache.Add(name, id);
-                return id;
-            }
-        }
-
-        private void Awake()
+        protected virtual void Awake()
         {
             binder = GetComponent<VFXParameterBinder>();
         }

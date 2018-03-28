@@ -67,21 +67,36 @@ public class VFXParameterBinderEditor : Editor
 
             var binding = m_ElementEditor.serializedObject.targetObject;
             var type = binding.GetType();
-            var fields = type.GetFields();
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
 
             foreach (var field in fields)
             {
                 var property = m_ElementEditor.serializedObject.FindProperty(field.Name);
 
+                if (property == null) continue;
+
                 using (new GUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.PropertyField(property);
-
                     var attrib = field.GetCustomAttributes(true).OfType<VFXParameterBindingAttribute>().FirstOrDefault<VFXParameterBindingAttribute>();
                     if (attrib != null)
                     {
-                        if (GUILayout.Button("v", EditorStyles.miniButton, GUILayout.Width(14)))
+                        var parameter = property.FindPropertyRelative("m_Name");
+                        string parm = parameter.stringValue;
+                        parm = EditorGUILayout.TextField(property.name, parm);
+
+                        if (parm != parameter.stringValue)
+                        {
+                            parameter.stringValue = parm;
+                            property.FindPropertyRelative("m_Id").intValue = ExposedParameter.GetID(parm);
+                            serializedObject.ApplyModifiedProperties();
+                        }
+
+                        if (GUILayout.Button("v", EditorStyles.toolbarButton, GUILayout.Width(14)))
                             CheckTypeMenu(property, attrib, (m_Component.objectReferenceValue as VisualEffect).visualEffectAsset);
+                    }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(property);
                     }
                 }
             }
@@ -128,7 +143,9 @@ public class VFXParameterBinderEditor : Editor
     public void SetFieldName(object o)
     {
         var set = o as MenuPropertySetName;
-        set.property.stringValue = set.value;
+        set.property.FindPropertyRelative("m_Name").stringValue = set.value;
+        set.property.FindPropertyRelative("m_Id").intValue = ExposedParameter.GetID(set.value);
+
         m_ElementEditor.serializedObject.ApplyModifiedProperties();
     }
 

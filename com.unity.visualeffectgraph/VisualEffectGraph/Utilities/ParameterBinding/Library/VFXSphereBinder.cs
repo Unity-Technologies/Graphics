@@ -9,17 +9,30 @@ namespace UnityEngine.Experimental.VFX.Utility
     [VFXBinder("Collider/Sphere")]
     public class VFXSphereBinder : VFXBinderBase
     {
-        [VFXParameterBinding("UnityEditor.VFX.Sphere")]
-        public string Parameter = "Sphere";
+        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; UpdateSubParameters(); } }
+
+        [VFXParameterBinding("UnityEditor.VFX.Sphere"), SerializeField]
+        protected ExposedParameter m_Parameter = "Sphere";
         public SphereCollider Target;
 
-        private int Center;
-        private int Radius;
+        private ExposedParameter Center;
+        private ExposedParameter Radius;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            UpdateSubParameters();
+        }
 
         void OnValidate()
         {
-            Center = GetParameter(Parameter + "_center");
-            Radius = GetParameter(Parameter + "_radius");
+            UpdateSubParameters();
+        }
+
+        void UpdateSubParameters()
+        {
+            Center = m_Parameter + "_center";
+            Radius = m_Parameter + "_radius";
         }
 
         public override bool IsValid(VisualEffect component)
@@ -40,7 +53,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override string ToString()
         {
-            return string.Format("Sphere : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+            return string.Format("Sphere : '{0}' -> {1}", m_Parameter, Target == null ? "(null)" : Target.name);
         }
     }
 }

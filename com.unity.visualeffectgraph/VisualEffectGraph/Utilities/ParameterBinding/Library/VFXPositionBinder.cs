@@ -9,23 +9,25 @@ namespace UnityEngine.Experimental.VFX.Utility
     [VFXBinder("Transform/Position")]
     public class VFXPositionBinder : VFXBinderBase
     {
-        [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3")]
-        public string Parameter = "Position";
+        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; } }
+
+        [VFXParameterBinding("UnityEditor.VFX.Position", "UnityEngine.Vector3"), SerializeField]
+        protected ExposedParameter m_Parameter = "Position";
         public Transform Target;
 
         public override bool IsValid(VisualEffect component)
         {
-            return Target != null && component.HasVector3(GetParameter(Parameter));
+            return Target != null && component.HasVector3(m_Parameter);
         }
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3(GetParameter(Parameter), Target.transform.position);
+            component.SetVector3(m_Parameter, Target.transform.position);
         }
 
         public override string ToString()
         {
-            return string.Format("Position : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+            return string.Format("Position : '{0}' -> {1}", m_Parameter, Target == null ? "(null)" : Target.name);
         }
     }
 }

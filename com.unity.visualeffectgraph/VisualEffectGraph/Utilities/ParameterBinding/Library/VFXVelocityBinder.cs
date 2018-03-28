@@ -9,16 +9,18 @@ namespace UnityEngine.Experimental.VFX.Utility
     [VFXBinder("Utility/Velocity")]
     public class VFXVelocityBinder : VFXBinderBase
     {
-        [VFXParameterBinding("UnityEngine.Vector3")]
-        public string Parameter = "Velocity";
+        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value;} }
+
+        [VFXParameterBinding("UnityEngine.Vector3"), SerializeField]
+        public ExposedParameter m_Parameter = "Velocity";
         public Transform Target;
 
-        float m_PreviousTime = -1.0f;
-        Vector3 m_PreviousPosition = Vector3.zero;
+        private float m_PreviousTime = -1.0f;
+        private Vector3 m_PreviousPosition = Vector3.zero;
 
         public override bool IsValid(VisualEffect component)
         {
-            return Target != null && component.HasVector3(GetParameter(Parameter));
+            return Target != null && component.HasVector3((int)m_Parameter);
         }
 
         public override void UpdateBinding(VisualEffect component)
@@ -40,14 +42,14 @@ namespace UnityEngine.Experimental.VFX.Utility
                     velocity = delta / (time - m_PreviousTime);
             }
 
-            component.SetVector3(GetParameter(Parameter), velocity);
+            component.SetVector3((int)m_Parameter, velocity);
             m_PreviousPosition = Target.transform.position;
             m_PreviousTime = time;
         }
 
         public override string ToString()
         {
-            return string.Format("Velocity : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+            return string.Format("Velocity : '{0}' -> {1}", m_Parameter, Target == null ? "(null)" : Target.name);
         }
     }
 }

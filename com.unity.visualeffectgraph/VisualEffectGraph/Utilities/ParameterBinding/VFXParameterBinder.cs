@@ -29,18 +29,42 @@ namespace UnityEngine.Experimental.VFX.Utility
 #endif
         }
 
-        // Use this for initialization
-        void Start()
-        {
-        }
-
-        // Update is called once per frame
         void Update()
         {
             if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
 
             foreach (var binding in m_Bindings)
                 if (binding.IsValid(m_VisualEffect)) binding.UpdateBinding(m_VisualEffect);
+        }
+
+        public T AddParameterBinder<T>() where T : VFXBinderBase
+        {
+            return gameObject.AddComponent<T>();
+        }
+
+        public void ClearParameterBinders()
+        {
+            var allBinders = GetComponents<VFXBinderBase>();
+            foreach (var binder in allBinders) Destroy(binder);
+        }
+
+        public void RemoveParameterBinder(VFXBinderBase binder)
+        {
+            if(binder.gameObject == this.gameObject) Destroy(binder);
+        }
+        public void RemoveParameterBinders<T>() where T : VFXBinderBase
+        {
+            var allBinders = GetComponents<VFXBinderBase>();
+            foreach (var binder in allBinders)
+                if(binder is T) Destroy(binder);
+        }
+
+        public IEnumerable<T> GetParameterBinders<T>() where T: VFXBinderBase
+        {
+            foreach(var binding in m_Bindings)
+            {
+                if (binding is T) yield return binding as T;
+            }
         }
     }
 }

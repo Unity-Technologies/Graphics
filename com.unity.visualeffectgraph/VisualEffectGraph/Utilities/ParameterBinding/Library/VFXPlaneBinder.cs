@@ -9,33 +9,46 @@ namespace UnityEngine.Experimental.VFX.Utility
     [VFXBinder("Utility/Plane")]
     public class VFXPlaneBinder : VFXBinderBase
     {
-        [VFXParameterBinding("UnityEditor.VFX.Plane")]
-        public string Parameter = "Plane";
+        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; UpdateSubParameters(); } }
+
+        [VFXParameterBinding("UnityEditor.VFX.Plane"), SerializeField]
+        protected ExposedParameter m_Parameter = "Plane";
         public Transform Target;
 
-        int Position;
-        int Normal;
+        private ExposedParameter Position;
+        private ExposedParameter Normal;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            UpdateSubParameters();
+        }
 
         void OnValidate()
         {
-            Position = GetParameter(Parameter + "_position");
-            Normal = GetParameter(Parameter + "_normal");
+            UpdateSubParameters();
+        }
+
+        void UpdateSubParameters()
+        {
+            Position = m_Parameter + "_position";
+            Normal = m_Parameter + "_normal";
         }
 
         public override bool IsValid(VisualEffect component)
         {
-            return Target != null && component.HasVector3(Position) && component.HasVector3(Normal);
+            return Target != null && component.HasVector3((int)Position) && component.HasVector3((int)Normal);
         }
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetVector3(Position, Target.transform.position);
-            component.SetVector3(Normal, Target.transform.up);
+            component.SetVector3((int)Position, Target.transform.position);
+            component.SetVector3((int)Normal, Target.transform.up);
         }
 
         public override string ToString()
         {
-            return string.Format("Plane : '{0}' -> {1}", Parameter, Target == null ? "(null)" : Target.name);
+            return string.Format("Plane : '{0}' -> {1}", m_Parameter, Target == null ? "(null)" : Target.name);
         }
     }
 }
