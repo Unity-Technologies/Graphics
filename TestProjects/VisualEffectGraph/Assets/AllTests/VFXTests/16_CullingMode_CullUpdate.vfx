@@ -582,6 +582,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114342804572643104
@@ -1078,6 +1080,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114587010093769532}
@@ -1232,6 +1236,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The operand.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114427896611424840}
@@ -1565,6 +1571,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114898416894772490
@@ -1724,6 +1732,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The over-life Gradient
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
@@ -2049,6 +2059,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -2064,6 +2075,7 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 65536
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
@@ -2101,7 +2113,7 @@ VisualEffectAsset:
         index: 23
       - nameId: bounds_size
         index: 21
-      processor: {fileID: 7200000, guid: 9dfffb9974531f54da0b63c80ab2ab6a, type: 3}
+      processor: {fileID: 7200000, guid: c25acf2e18e47e24db52d92c9e603c58, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -2112,7 +2124,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 24
       params: []
-      processor: {fileID: 7200000, guid: 09b341bd97bb343409b7d80bda62bfe4, type: 3}
+      processor: {fileID: 7200000, guid: 66b25310088574449b60026f1e53d5b1, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -2129,7 +2141,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: d3bd3ddf6abed284b8923b6f65ba49bc, type: 3}
+      processor: {fileID: 4800000, guid: aa0058bb1b5969a4c8339f2ae4b2d66e, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -2144,4 +2156,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3
