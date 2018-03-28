@@ -17,9 +17,7 @@ struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-#ifdef _ADDITIONAL_LIGHTS
     float3 posWS                    : TEXCOORD2;
-#endif
 
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -45,9 +43,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 {
     inputData = (InputData)0;
 
-#ifdef _ADDITIONAL_LIGHTS
     inputData.positionWS = IN.posWS;
-#endif
 
 #ifdef _NORMALMAP
     half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
@@ -118,9 +114,7 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 #endif
 #endif
 
-#if _ADDITIONAL_LIGHTS
     o.posWS = posWS;
-#endif
 
     return o;
 }
