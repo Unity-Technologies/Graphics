@@ -8,15 +8,15 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(category = "Math")]
-    class VFXOperatorMultiplyNew : VFXOperatorNumericCascadedUnifiedNew
+    class VFXOperatorAddNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        override public string name { get { return "MultiplyNew"; } }
+        override public string name { get { return "AddNew"; } }
 
-        protected override double defaultValueDouble { get { return 1.0; } }
+        protected override double defaultValueDouble { get { return 0.0; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { inputExpression[0] * inputExpression[1] };
+            return new[] { inputExpression[0] + inputExpression[1] };
         }
     }
 }

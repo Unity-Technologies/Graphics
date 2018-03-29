@@ -164,20 +164,6 @@ namespace UnityEditor.VFX
             }
         }
     }
-    abstract class VFXOperatorFloatUnifiedWithVariadicOutputNew : VFXOperatorFloatUnified
-    {
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties
-        {
-            get
-            {
-                const string outputName = "o";
-
-                Type slotType = VFXTypeUtility.GetFloatTypeFromComponentCount(VFXTypeUtility.GetMaxComponentCountDirect(inputSlots));
-                if (slotType != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
-            }
-        }
-    }
 
     abstract class VFXOperatorUnaryFloatOperation : VFXOperatorFloatUnifiedWithVariadicOutput
     {
