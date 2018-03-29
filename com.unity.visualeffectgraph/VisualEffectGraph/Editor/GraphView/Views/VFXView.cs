@@ -197,6 +197,8 @@ namespace UnityEditor.VFX.UI
             elementRemovedFromGroup = null;
             groupTitleChanged = null;
 
+            m_GeometrySet = false;
+
             // Remove all in view now that the controller has been disconnected.
             var graphElements = this.graphElements.ToList();
             foreach (var element in graphElements)
@@ -586,8 +588,11 @@ namespace UnityEditor.VFX.UI
             contentViewContainer.Dirty(ChangeType.Repaint);
         }
 
+        bool m_GeometrySet = false;
+
         void OnFrameNewControllerWithPanel(GeometryChangedEvent e)
         {
+            m_GeometrySet = true;
             FrameAfterAWhile();
             UnregisterCallback<GeometryChangedEvent>(OnFrameNewControllerWithPanel);
         }
@@ -634,6 +639,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void OnOneNodeGeometryChanged(GeometryChangedEvent e)
+        {
+            m_GeometrySet = true;
+            (e.target as GraphElement).UnregisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
+        }
 
         void SyncNodes()
         {
@@ -661,6 +671,8 @@ namespace UnityEditor.VFX.UI
                     changed = true;
                 }
 
+                bool needOneListenToGeometry = !m_GeometrySet;
+
                 foreach (var newController in controller.nodes.Except(rootNodes.Keys).ToArray())
                 {
                     GraphElement newElement = null;
@@ -684,6 +696,11 @@ namespace UnityEditor.VFX.UI
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
+                    if( needOneListenToGeometry )
+                    {
+                        needOneListenToGeometry = false;
+                        newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
+                    }
                 }
 
 
@@ -697,6 +714,7 @@ namespace UnityEditor.VFX.UI
         bool m_UpdateUIBounds = false;
         void UpdateUIBounds()
         {
+            if( ! m_GeometrySet ) return;
             if (m_InControllerChanged)
             {
                 m_UpdateUIBounds = true;
@@ -707,7 +725,7 @@ namespace UnityEditor.VFX.UI
             if (panel != null)
             {
                 (panel as BaseVisualElementPanel).ValidateLayout();
-                controller.graph.UIInfos.uiBounds = GetElementsBounds(rootNodes.Values);
+                controller.graph.UIInfos.uiBounds = GetElementsBounds(rootNodes.Values.Concat(groupNodes.Values.Cast<GraphElement>()).Concat(stickyNotes.Values.Cast<GraphElement>()));
             }
         }
 
