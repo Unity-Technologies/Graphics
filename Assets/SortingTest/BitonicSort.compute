@@ -1,0 +1,47 @@
+﻿#pragma kernel BitonicSort
+
+#define THREADS_COUNT 256
+#define STEPS_COUNT 9
+
+Buffer<float> inputSequence;
+RWBuffer<float> sortedSequence;
+
+groupshared float scratch[THREADS_COUNT * 2];
+
+[numthreads(THREADS_COUNT,1,1)]
+void BitonicSort(uint index : SV_GroupIndex, uint3 id : SV_DispatchThreadID)
+{
+	uint index0 = index * 2;
+	uint index1 = index0 + 1;
+
+	// Load data from memory to LDS
+	scratch[index0] = inputSequence[id.x * 2];
+	scratch[index1] = inputSequence[id.x * 2 + 1];
+
+	GroupMemoryBarrierWithGroupSync(); // Wait for LDS writes
+
+	for (uint step = 0; step < STEPS_COUNT; ++step)
+	{
+		bool reverse = index & (1 << step);
+		for (uint subStep = (1 << step); subStep > 0; subStep >>= 1)
+		{
+			index0 = (index * 2) - (index & (subStep - 1));
+			index1 = index0 + subStep;
+
+			float key0 = scratch[index0];
+			float key1 = scratch[index1];
+
+			if ((key0 > key1) != reverse) // swap
+			{
+				scratch[index0] = key1;
+				scratch[index1] = key0;
+			}
+
+			GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
+		}
+	}
+
+	// Store sorted data from LDS to memory
+	sortedSequence[id.x * 2] = scratch[index0];
+	sortedSequence[id.x * 2 + 1] = scratch[index1];
+}
