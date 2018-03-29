@@ -372,6 +372,22 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 #endif
 }
 
+// This function is similar to ApplyDebugToSurfaceData but for BSDFData
+void ApplyDebugToBSDFData(inout BSDFData bsdfData)
+{
+#ifdef DEBUG_DISPLAY
+    // Override value if requested by user
+    // this can be use also in case of debug lighting mode like specular only
+    bool overrideSpecularColor = _DebugLightingSpecularColor.x != 0.0;
+
+    if (overrideSpecularColor)
+    {
+        float3 overrideSpecularColor = _DebugLightingSpecularColor.yzw;
+        bsdfData.fresnel0 = overrideSpecularColor;
+    }
+#endif
+}
+
 SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 {
     SSSData sssData;
@@ -451,6 +467,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     FillMaterialTransparencyData( surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
                                     surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
 #endif
+
+    ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
 }
@@ -794,6 +812,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // perceptualRoughness is not clamped, and is meant to be used for IBL.
     // perceptualRoughness can be modify by FillMaterialClearCoatData, so ConvertAnisotropyToClampRoughness must be call after
     ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughness, bsdfData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+
+    ApplyDebugToBSDFData(bsdfData);
 
     return pixelFeatureFlags;
 }

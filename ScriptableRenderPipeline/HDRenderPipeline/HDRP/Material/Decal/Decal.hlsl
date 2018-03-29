@@ -88,6 +88,7 @@
 
 CBUFFER_START(UnityDecalParameters)
 	uint _EnableDBuffer;
+	float2 _DecalAtlasResolution;
 CBUFFER_END
 
 UNITY_INSTANCING_BUFFER_START(Decal)      
