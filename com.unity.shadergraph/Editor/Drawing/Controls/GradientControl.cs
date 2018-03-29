@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public void OnNodeModified(ModificationScope scope)
         {
-            if (scope == ModificationScope.Graph)
+            if (scope == ModificationScope.Node)
                 m_Container.Dirty(ChangeType.Repaint);
         }
 
