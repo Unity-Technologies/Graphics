@@ -76,6 +76,16 @@ namespace UnityEditor.ShaderGraph
         {
             return string.Format("g.alphas[{0}] = float2({1}, {2});", index, alpha, time);
         }
+
+        public static Vector4 ColorKeyToVector(GradientColorKey key)
+        {
+            return new Vector4( key.color.r, key.color.g, key.color.b, key.time); 
+        }
+
+        public static Vector2 AlphaKeyToVector(GradientAlphaKey key)
+        {
+            return new Vector2( key.alpha, key.time); 
+        }
     }
 
     [Serializable]

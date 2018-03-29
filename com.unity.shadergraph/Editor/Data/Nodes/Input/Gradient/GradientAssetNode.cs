@@ -54,8 +54,8 @@ namespace UnityEditor.ShaderGraph
                     var newColorKeys = value.colorKeys;
                     var newAlphaKeys = value.alphaKeys;
 
-                    gradient.SetKeys(newColorKeys, newAlphaKeys);
-                    Dirty(ModificationScope.Graph);
+                    m_Gradient.SetKeys(newColorKeys, newAlphaKeys);
+                    Dirty(ModificationScope.Node);
                 }
             }
         }
@@ -88,22 +88,133 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-			registry.ProvideFunction(GetFunctionName(), s =>
+            if(generationMode == GenerationMode.Preview)
             {
-                s.AppendLine("Gradient {0} ()",
-                    GetFunctionName(),
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-                using (s.BlockScope())
+                registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    GradientUtils.GetGradientDeclaration(m_Gradient, ref s);
-                    s.AppendLine("return g;", true);
-                }
-            });
+                    s.AppendLine("Gradient {0} ()",
+                        GetFunctionName());
+                    using (s.BlockScope())
+                    {
+                        s.AppendLine("Gradient g;");
+                        s.AppendLine("g.type = _{0}_Type;", GetVariableNameForNode());
+                        s.AppendLine("g.colorsLength = _{0}_ColorsLength;", GetVariableNameForNode());
+                        s.AppendLine("g.alphasLength = _{0}_AlphasLength;", GetVariableNameForNode());
+                        for(int i = 0; i < 8; i++)
+                        {
+                            s.AppendLine("g.colors[{0}] = _{1}_ColorKey{0};", i, GetVariableNameForNode());
+                        }
+                        for(int i = 0; i < 8; i++)
+                        {
+                            s.AppendLine("g.alphas[{0}] = _{1}_AlphaKey{0};", i, GetVariableNameForNode());
+                        }
+                        s.AppendLine("return g;", true);
+                    }
+                });
+            }
+            else
+            {
+                registry.ProvideFunction(GetFunctionName(), s =>
+                {
+                    s.AppendLine("Gradient {0} ()",
+                        GetFunctionName());
+                    using (s.BlockScope())
+                    {
+                        GradientUtils.GetGradientDeclaration(m_Gradient, ref s);
+                        s.AppendLine("return g;", true);
+                    }
+                });
+            }
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
             return string.Format("{0}()", GetFunctionName());
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            base.CollectPreviewMaterialProperties(properties);
+
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            {
+                name = string.Format("_{0}_Type", GetVariableNameForNode()),
+                floatValue = 0
+            });
+
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            {
+                name = string.Format("_{0}_ColorsLength", GetVariableNameForNode()),
+                floatValue = m_Gradient.colorKeys.Length
+            });
+
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            {
+                name = string.Format("_{0}_AlphasLength", GetVariableNameForNode()),
+                floatValue = m_Gradient.alphaKeys.Length
+            });
+
+            for(int i = 0; i < 8; i++)
+            {
+                properties.Add(new PreviewProperty(PropertyType.Vector4)
+                {
+                    name = string.Format("_{0}_ColorKey{1}", GetVariableNameForNode(), i),
+                    vector4Value = i < m_Gradient.colorKeys.Length ? GradientUtils.ColorKeyToVector(m_Gradient.colorKeys[i]) : Vector4.zero
+                });
+            }
+            
+            for(int i = 0; i < 8; i++)
+            {
+                properties.Add(new PreviewProperty(PropertyType.Vector2)
+                {
+                    name = string.Format("_{0}_AlphaKey{1}", GetVariableNameForNode(), i),
+                    vector4Value = i < m_Gradient.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(m_Gradient.alphaKeys[i]) : Vector2.zero
+                });
+            }
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            if (!generationMode.IsPreview())
+                return;
+
+            base.CollectShaderProperties(properties, generationMode);
+
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_Type", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
+
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_ColorsLength", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
+
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = string.Format("_{0}_AlphasLength", GetVariableNameForNode()),
+                generatePropertyBlock = false
+            });
+
+            for(int i = 0; i < 8; i++)
+            {
+                properties.AddShaderProperty(new Vector4ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("_{0}_ColorKey{1}", GetVariableNameForNode(), i),
+                    generatePropertyBlock = false
+                });
+            }
+            
+            for(int i = 0; i < 8; i++)
+            {
+                properties.AddShaderProperty(new Vector4ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("_{0}_AlphaKey{1}", GetVariableNameForNode(), i),
+                    generatePropertyBlock = false
+                });
+            }
         }
     }
 }
