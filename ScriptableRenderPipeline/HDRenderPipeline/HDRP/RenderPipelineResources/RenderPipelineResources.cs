@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildMaterialFlagsShader;
         public ComputeShader deferredComputeShader;
         public ComputeShader deferredDirectionalShadowComputeShader;
+        public ComputeShader volumeVoxelizationCS;
         public ComputeShader volumetricLightingCS;
 
         public ComputeShader subsurfaceScatteringCS; // Disney SSS

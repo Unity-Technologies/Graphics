@@ -738,15 +738,6 @@ namespace UnityEngine.Experimental.Rendering
             m_HeightRcp         = 1.0f / initializer.height;
             m_MaxPayloadCount   = initializer.maxPayloadCount;
             m_ShadowSupport     = initializer.shadowSupport;
-
-            if( IsNativeDepth() && m_Slices > 1 )
-            {
-                // TODO: Right now when using any of the SetRendertarget functions we ultimately end up in RenderTextureD3D11.cpp
-                //       SetRenderTargetD3D11Internal. This function sets the correct slice only for RTVs, whereas depth textures only
-                //       support one DSV. So there's currently no way to have individual DSVs per slice to render into (ignoring going through a geometry shader and selecting the slice there).
-                Debug.LogError( "Unity does not allow direct rendering into specific depth slices, yet. Defaulting back to one array slice." );
-                m_Slices = 1;
-            }
         }
 
         protected bool IsNativeDepth()
@@ -775,7 +766,7 @@ namespace UnityEngine.Experimental.Rendering
         abstract public void Fill( ShadowContextStorage cs );
         abstract public void CreateShadowmap();
         abstract protected void Register( GPUShadowType type, ShadowRegistry registry );
-        abstract public void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        abstract public void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, Vector4 scaleBias, uint slice, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY);
     }
 
     public interface IShadowManager
@@ -793,8 +784,8 @@ namespace UnityEngine.Experimental.Rendering
         // Renders all shadows for lights the were deemed shadow casters after the last call to ProcessShadowRequests
         void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
         // Debug function to display a shadow at the screen coordinate
-        void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
-        void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY);
+        void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY);
         // Synchronize data with GPU buffers
         void SyncData();
         // Binds resources to shader stages just before rendering the lighting pass
@@ -816,8 +807,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         public  abstract void ProcessShadowRequests( FrameId frameId, CullResults cullResults, Camera camera, bool cameraRelativeRendering, List<VisibleLight> lights, ref uint shadowRequestsCount, int[] shadowRequests, out int[] shadowDataIndices );
         public  abstract void RenderShadows( FrameId frameId, ScriptableRenderContext renderContext, CommandBuffer cmd, CullResults cullResults, List<VisibleLight> lights);
-        public  abstract void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
-        public  abstract void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue);
+        public  abstract void DisplayShadow(CommandBuffer cmd, Material debugMaterial, int shadowIndex, uint faceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY);
+        public  abstract void DisplayShadowMap(CommandBuffer cmd, Material debugMaterial, uint shadowMapIndex, uint sliceIndex, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY);
         public  abstract void SyncData();
         public  abstract void BindResources( CommandBuffer cmd, ComputeShader computeShader, int computeKernel);
         public  abstract void UpdateCullingParameters( ref ScriptableCullingParameters cullingParams );

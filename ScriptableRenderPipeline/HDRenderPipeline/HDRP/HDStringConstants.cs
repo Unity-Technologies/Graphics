@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
+        public static readonly int _DensityVolumeIndexShift = Shader.PropertyToID("_DensityVolumeIndexShift");
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
 
@@ -129,6 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingAlbedo = Shader.PropertyToID("_DebugLightingAlbedo");
         public static readonly int _DebugLightingSmoothness = Shader.PropertyToID("_DebugLightingSmoothness");
         public static readonly int _DebugLightingNormal = Shader.PropertyToID("_DebugLightingNormal");
+        public static readonly int _DebugLightingSpecularColor = Shader.PropertyToID("_DebugLightingSpecularColor");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _DebugMipMapMode = Shader.PropertyToID("_DebugMipMapMode");
 
@@ -225,6 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
         public static readonly int _EnableDBuffer = Shader.PropertyToID("_EnableDBuffer");
+        public static readonly int _DecalAtlasResolution = Shader.PropertyToID("_DecalAtlasResolution");
 
         public static readonly int[] _GBufferTexture =
         {
@@ -321,5 +324,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferLightingHistory     = Shader.PropertyToID("_VBufferLightingHistory");
         public static readonly int _VBufferLightingFeedback    = Shader.PropertyToID("_VBufferLightingFeedback");
         public static readonly int _VBufferSampleOffset        = Shader.PropertyToID("_VBufferSampleOffset");
+        public static readonly int _VolumeBounds               = Shader.PropertyToID("_VolumeBounds");
+        public static readonly int _VolumeProperties           = Shader.PropertyToID("_VolumeProperties");
+        public static readonly int _NumVisibleDensityVolumes   = Shader.PropertyToID("_NumVisibleDensityVolumes");
     }
 }
