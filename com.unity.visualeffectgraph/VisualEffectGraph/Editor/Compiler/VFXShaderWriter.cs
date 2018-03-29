@@ -212,15 +212,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteEventBuffer(string baseName, int count)
-        {
-            for (int i = 0; i < count; ++i)
-            {
-                var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
-                WriteLineFormat("AppendStructuredBuffer<uint> {0}_{1};", baseName, prefix);
-            }
-        }
-
         public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
         {
             var uniformValues = mapper.uniforms
