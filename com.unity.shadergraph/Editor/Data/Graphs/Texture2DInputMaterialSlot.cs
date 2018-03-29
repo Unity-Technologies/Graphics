@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -58,14 +59,16 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(prop);
         }
 
-        public override PreviewProperty GetPreviewProperty(string name)
+        public override List<PreviewProperty> GetPreviewProperties(string name)
         {
+            List<PreviewProperty> props = new List<PreviewProperty>();
             var pp = new PreviewProperty(PropertyType.Texture)
             {
                 name = name,
-                textureValue = texture
+                textureValue = texture,
             };
-            return pp;
+            props.Add(pp);
+            return props;
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)

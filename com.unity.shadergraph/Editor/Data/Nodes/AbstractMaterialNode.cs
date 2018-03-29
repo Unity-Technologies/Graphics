@@ -469,11 +469,14 @@ namespace UnityEditor.ShaderGraph
                 if (s_TempEdges.Any())
                     continue;
 
-                var item = s.GetPreviewProperty(GetVariableNameForSlot(s.id));
-                if (item.name == null)
+                var items = s.GetPreviewProperties(GetVariableNameForSlot(s.id));
+                for(int i = 0; i < items.Count; i++)
+                {
+                    if (items[i].name == null)
                     continue;
 
-                properties.Add(item);
+                    properties.Add(items[i]);
+                }
             }
         }
 
