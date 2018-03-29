@@ -560,28 +560,36 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                RegisterCallback<AttachToPanelEvent>(OnFrameNewControllerWithPanel);
+                RegisterCallback<GeometryChangedEvent>(OnFrameNewControllerWithPanel);
             }
         }
 
-
         void FrameAfterAWhile()
         {
-            this.schedule.Execute(
-                t => {
-                    if (panel != null)
-                    {
-                        (panel as BaseVisualElementPanel).ValidateLayout();
-                        FrameAll();
-                    }
-                }
-                ).StartingIn(100);
+            var rectToFit = contentViewContainer.layout;
+            var frameTranslation = Vector3.zero;
+            var frameScaling = Vector3.one;
+
+            rectToFit = controller.graph.UIInfos.uiBounds;
+
+            if (rectToFit.width <= 50 || rectToFit.height <= 50)
+            {
+                return;
+            }
+
+            CalculateFrameTransform(rectToFit, layout, 30, out frameTranslation, out frameScaling);
+
+            Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
+
+            UpdateViewTransform(frameTranslation, frameScaling);
+
+            contentViewContainer.Dirty(ChangeType.Repaint);
         }
 
-        void OnFrameNewControllerWithPanel(AttachToPanelEvent e)
+        void OnFrameNewControllerWithPanel(GeometryChangedEvent e)
         {
             FrameAfterAWhile();
-            UnregisterCallback<AttachToPanelEvent>(OnFrameNewControllerWithPanel);
+            UnregisterCallback<GeometryChangedEvent>(OnFrameNewControllerWithPanel);
         }
 
         Dictionary<VFXNodeController, GraphElement> rootNodes = new Dictionary<VFXNodeController, GraphElement>();
@@ -1529,8 +1537,8 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
             evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
                 (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
             evt.menu.AppendSeparator();
