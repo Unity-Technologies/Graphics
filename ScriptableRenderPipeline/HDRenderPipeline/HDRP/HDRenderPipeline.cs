@@ -1360,7 +1360,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
