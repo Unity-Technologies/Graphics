@@ -37,8 +37,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         PropertyInfo m_PropertyInfo;
 
-        string m_PrevWindow = "";
-
         [SerializeField]
         GradientObject m_GradientObject;
 
@@ -76,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_SerializedObject.Update();
             var gradient = (Gradient)m_PropertyInfo.GetValue(m_Node, null);
             m_GradientObject.gradient.SetKeys(gradient.colorKeys, gradient.alphaKeys);
-
+            m_GradientObject.gradient.mode = gradient.mode;
 
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
@@ -86,14 +84,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
+                    Dirty(ChangeType.Repaint);
                 }
-            }
-
-            var e = Event.current;
-
-            if (EditorWindow.focusedWindow != null && m_PrevWindow != EditorWindow.focusedWindow.ToString() && EditorWindow.focusedWindow.ToString() != "(UnityEditor.GradientPicker)")
-            {
-                m_PrevWindow = EditorWindow.focusedWindow.ToString();
             }
         }
     }

@@ -62,11 +62,23 @@ namespace UnityEditor.ShaderGraph
         else
             break;
     }
-    float colorPos = min(1, max(0, (Time - Gradient.colors[colorKey1].w) / (Gradient.colors[colorKey2].w - Gradient.colors[colorKey1].w)));
-    float3 color = lerp(Gradient.colors[colorKey1].rgb, Gradient.colors[colorKey2].rgb, colorPos);
-    float alphaPos = min(1, max(0, (Time - Gradient.alphas[alphaKey1].y) / (Gradient.alphas[alphaKey2].y - Gradient.alphas[alphaKey1].y)));
-    float alpha = lerp(Gradient.alphas[alphaKey1].r, Gradient.alphas[alphaKey2].r, alphaPos);
-    Out = float4(color, alpha);
+
+    if(Gradient.type == 1)
+    {
+        float colorPos = min(1, max(0, (Time - Gradient.colors[colorKey1].w) / (Gradient.colors[colorKey2].w - Gradient.colors[colorKey1].w)));
+        float3 color = lerp(Gradient.colors[colorKey1].rgb, Gradient.colors[colorKey2].rgb, step(0.01, colorPos));
+        float alphaPos = min(1, max(0, (Time - Gradient.alphas[alphaKey1].y) / (Gradient.alphas[alphaKey2].y - Gradient.alphas[alphaKey1].y)));
+        float alpha = lerp(Gradient.alphas[alphaKey1].r, Gradient.alphas[alphaKey2].r, step(0.01, alphaPos));
+        Out = float4(color, alpha);
+    }
+    else
+    {
+        float colorPos = min(1, max(0, (Time - Gradient.colors[colorKey1].w) / (Gradient.colors[colorKey2].w - Gradient.colors[colorKey1].w)));
+        float3 color = lerp(Gradient.colors[colorKey1].rgb, Gradient.colors[colorKey2].rgb, colorPos);
+        float alphaPos = min(1, max(0, (Time - Gradient.alphas[alphaKey1].y) / (Gradient.alphas[alphaKey2].y - Gradient.alphas[alphaKey1].y)));
+        float alpha = lerp(Gradient.alphas[alphaKey1].r, Gradient.alphas[alphaKey2].r, alphaPos);
+        Out = float4(color, alpha);
+    }
 }
 ";
         }

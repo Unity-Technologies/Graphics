@@ -35,6 +35,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         Vector2[] m_SerializableAlphaKeys = { new Vector2(1f, 0f), new Vector2(1f, 1f) };
 
+        [SerializeField]
+        int m_SerializableMode = 0;
+
         [GradientControl("")]
         public Gradient gradient
         {
@@ -70,6 +73,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializableAlphaKeys = null;
             m_SerializableColorKeys = null;
             m_Gradient.SetKeys(colorKeys, alphaKeys);
+            m_Gradient.mode = (GradientMode)m_SerializableMode;
         }
 
         public override void OnBeforeSerialize()
@@ -77,6 +81,7 @@ namespace UnityEditor.ShaderGraph
             base.OnBeforeSerialize();
             m_SerializableColorKeys = gradient.colorKeys.Select(k => new Vector4(k.color.r, k.color.g, k.color.b, k.time)).ToArray();
             m_SerializableAlphaKeys = gradient.alphaKeys.Select(k => new Vector2(k.alpha, k.time)).ToArray();
+            m_SerializableMode = (int)gradient.mode;
         }
 
         public override bool hasPreview { get { return false; } }

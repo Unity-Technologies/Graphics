@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph
             props.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("{0}_Type", name),
-                floatValue = 0
+                floatValue = (int)value.mode
             });
 
             props.Add(new PreviewProperty(PropertyType.Vector1)

@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
     public class GradientSlotControlView : VisualElement, INodeModificationListener
     {
         GradientInputMaterialSlot m_Slot;
-        string m_PrevWindow = "";
 
         [SerializeField]
         GradientObject m_GradientObject;
@@ -47,6 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         {
             m_SerializedObject.Update();
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
+            m_GradientObject.gradient.mode = m_Slot.value.mode;
 
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
@@ -59,13 +59,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                     m_Slot.owner.Dirty(ModificationScope.Node);
                     m_Container.Dirty(ChangeType.Repaint);
                 }
-            }
-
-            var e = Event.current;
-
-            if (EditorWindow.focusedWindow != null && m_PrevWindow != EditorWindow.focusedWindow.ToString() && EditorWindow.focusedWindow.ToString() != "(UnityEditor.GradientPicker)")
-            {
-                m_PrevWindow = EditorWindow.focusedWindow.ToString();
             }
         }
     }
