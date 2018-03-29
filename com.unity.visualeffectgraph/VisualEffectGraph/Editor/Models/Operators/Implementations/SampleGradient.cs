@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(category = "Sampling")]
     class SampleGradient : VFXOperator
     {
         override public string name { get { return "Sample Gradient"; } }

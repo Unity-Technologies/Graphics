@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(category = "Sampling")]
     class SampleTextureCube : VFXOperator
     {
         override public string name { get { return "Sample TextureCube"; } }

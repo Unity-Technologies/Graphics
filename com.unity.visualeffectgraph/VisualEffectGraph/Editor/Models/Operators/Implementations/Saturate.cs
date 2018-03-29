@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Clamp")]
     class Saturate : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties

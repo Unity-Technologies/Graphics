@@ -6,7 +6,7 @@ using System.Text;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Attribute")]
-    class RelativeLifetime : VFXOperator
+    class AgeOverLifetime : VFXOperator
     {
         public class OutputProperties
         {
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return "Current Relative Age (Age/Lifetime)";
+                return "Age Over Lifetime";
             }
         }
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

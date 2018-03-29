@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Misc")]
+    //[VFXInfo(category = "Utility")] DEPRECATED
     class ComponentMask : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "ComponentMask"; } }
+        override public string name { get { return "DEPRECATED - ComponentMask"; } }
 
         public enum Component
         {
@@ -92,6 +92,39 @@ namespace UnityEditor.VFX.Operator
                 finalExpression = new VFXExpressionCombine(componentStack.Reverse().ToArray());
             }
             return new[] { finalExpression };
+        }
+
+        public override void Sanitize()
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace ComponentMask with Swizzle");
+
+            var swizzle = CreateInstance<Swizzle>();
+            var mask = new Component[4] { x, y, z, w };
+
+            string result = "";
+            foreach (var m in mask)
+            {
+                if (m != Component.None)
+                {
+                    switch (x)
+                    {
+                        case Component.X: result += 'x'; break;
+                        case Component.Y: result += 'y'; break;
+                        case Component.Z: result += 'z'; break;
+                        case Component.W: result += 'w'; break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            swizzle.SetSettingValue("mask", result);
+
+            // Transfer links
+            VFXSlot.TransferLinksAndValue(swizzle.GetInputSlot(0), GetInputSlot(0), true);
+            VFXSlot.TransferLinksAndValue(swizzle.GetOutputSlot(0), GetOutputSlot(0), true);
+
+            ReplaceModel(swizzle, this);
         }
     }
 }

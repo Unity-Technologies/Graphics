@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Clamp")]
     class Minimum : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Minimum"; } }
