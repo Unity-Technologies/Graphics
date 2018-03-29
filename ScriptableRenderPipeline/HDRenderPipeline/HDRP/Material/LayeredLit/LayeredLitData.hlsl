@@ -90,13 +90,13 @@
 #endif
 
 #if defined(_SUBSURFACE_MASK_MAP0)
-#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap0
+#define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap0
 #elif defined(_SUBSURFACE_MASK_MAP1)
-#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap1
+#define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap1
 #elif defined(_SUBSURFACE_MASK_MAP2)
-#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap2
+#define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap2
 #elif defined(_SUBSURFACE_MASK_MAP3)
-#define _SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap3
+#define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap3
 #endif
 
 #if defined(_THICKNESSMAP0)
