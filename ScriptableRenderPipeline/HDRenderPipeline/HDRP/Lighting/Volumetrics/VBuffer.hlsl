@@ -28,7 +28,7 @@ float ComputeLerpPositionForLogEncoding(float linearDepth, float logEncodedDepth
 
 // Performs trilinear reconstruction of the V-Buffer.
 // If (clampToEdge == false), out-of-bounds loads return 0.
-float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool clampToEdge,
+float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, trilinearSampler), bool clampToEdge,
                      float2 positionNDC, float linearDepth,
                      float2 VBufferSliceCount,
                      float4 VBufferDepthEncodingParams,
@@ -58,7 +58,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBufferLighting, trilinearSampler), bool cla
         float w = ComputeLerpPositionForLogEncoding(z, d, VBufferSliceCount, VBufferDepthDecodingParams);
     #endif
 
-        return SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3(uv, w), 0);
+        return SAMPLE_TEXTURE3D_LOD(VBuffer, trilinearSampler, float3(uv, w), 0);
     }
     else
     {
@@ -80,7 +80,7 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
                              VBufferSliceCount,
                              VBufferDepthEncodingParams,
                              VBufferDepthDecodingParams);
-#else // Perform biquadratic reconstruction in XY, linear in Z, using 4x trilinear taps.
+#else // Perform biquadratic reconstruction in XY, linear in Z, using 4x trilinear taps (3x3x2 texels in total).
     float2 uv = positionNDC;
     float2 xy = uv * VBufferResolution.xy;
     float2 ic = floor(xy);
@@ -104,8 +104,8 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
 
     float2 rcpRes = VBufferResolution.zw;
 
-    // TODO: reconstruction should be performed in the perceptual space (e.i., after tone mapping).
-    // But our VBuffer is linear. How to achieve that?
+    // Note: for correct filtering, the data has to be stored in the perceptual space.
+    // This means storing the tone mapped radiance and transmittance instead of optical depth.
     // See "A Fresh Look at Generalized Sampling", p. 51.
     float4 L = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[0].x, offsets[0].y)) * rcpRes, w), 0)  // Top left
              + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBufferLighting, trilinearSampler, float3((ic + float2(offsets[1].x, offsets[0].y)) * rcpRes, w), 0)  // Top right
@@ -114,7 +114,7 @@ float4 SampleInScatteredRadianceAndTransmittance(TEXTURE3D_ARGS(VBufferLighting,
 #endif
 
     // TODO: add some animated noise to the reconstructed radiance.
-    return float4(L.rgb, Transmittance(L.a));
+    return float4(FastTonemapInvert(L.rgb), L.a);
 }
 
 #endif // UNITY_VBUFFER_INCLUDED
