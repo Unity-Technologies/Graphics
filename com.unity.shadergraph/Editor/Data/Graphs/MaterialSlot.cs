@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void GetPreviewProperties(List<PreviewProperty> properties, string name)
+        public virtual void GetPreviewProperties(ref List<PreviewProperty> properties, string name)
         {
             properties.Add(default(PreviewProperty));
         }
