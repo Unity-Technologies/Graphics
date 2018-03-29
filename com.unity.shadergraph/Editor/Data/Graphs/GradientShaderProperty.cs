@@ -25,7 +25,8 @@ namespace UnityEditor.ShaderGraph
                 alphas[i] = GetAlphaKey(i, gradient.alphaKeys[i].alpha, gradient.alphaKeys[i].time);
 
             s.AppendLine("Gradient g;");
-            s.AppendLine("g.type = 0;");
+            s.AppendLine("g.type = {0};",
+                (int)gradient.mode);
             s.AppendLine("g.colorsLength = {0};",
                 gradient.colorKeys.Length);
             s.AppendLine("g.alphasLength = {0};",
@@ -40,13 +41,15 @@ namespace UnityEditor.ShaderGraph
 
         public static bool CheckEquivalency(Gradient A, Gradient B)
         {
+            var currentMode = A.mode;
             var currentColorKeys = A.colorKeys;
             var currentAlphaKeys = A.alphaKeys;
 
+            var newMode = B.mode;
             var newColorKeys = B.colorKeys;
             var newAlphaKeys = B.alphaKeys;
 
-            if (currentColorKeys.Length != newColorKeys.Length || currentAlphaKeys.Length != newAlphaKeys.Length)
+            if (currentMode != newMode || currentColorKeys.Length != newColorKeys.Length || currentAlphaKeys.Length != newAlphaKeys.Length)
             {
                 return false;
             }
@@ -97,6 +100,10 @@ namespace UnityEditor.ShaderGraph
             value = new Gradient();
         }
 
+        private bool m_OverrideMembers = false;
+
+        private string m_OverrideSlotName;
+
         public override PropertyType propertyType
         {
             get { return PropertyType.Gradient; }
@@ -111,17 +118,49 @@ namespace UnityEditor.ShaderGraph
         {
             return string.Empty;
         }
+
+        public void OverrideMembers(string slotName)
+        {
+            m_OverrideMembers = true;
+            m_OverrideSlotName = slotName;
+        }
         
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            ShaderStringBuilder s = new ShaderStringBuilder();
-            s.AppendLine("Gradient Unity{0} ()", referenceName);
-            using (s.BlockScope())
+            if(m_OverrideMembers)
             {
-                GradientUtils.GetGradientDeclaration(value, ref s);
-                s.AppendLine("return g;", true);
+                ShaderStringBuilder s = new ShaderStringBuilder();
+                s.AppendLine("Gradient Unity{0} ()",
+                referenceName);
+                using (s.BlockScope())
+                {
+                    s.AppendLine("Gradient g;");
+                    s.AppendLine("g.type = {0}_Type;", m_OverrideSlotName);
+                    s.AppendLine("g.colorsLength = {0}_ColorsLength;", m_OverrideSlotName);
+                    s.AppendLine("g.alphasLength = {0}_AlphasLength;", m_OverrideSlotName);
+                    for(int i = 0; i < 8; i++)
+                    {
+                        s.AppendLine("g.colors[{0}] = {1}_ColorKey{0};", i, m_OverrideSlotName);
+                    }
+                    for(int i = 0; i < 8; i++)
+                    {
+                        s.AppendLine("g.alphas[{0}] = {1}_AlphaKey{0};", i, m_OverrideSlotName);
+                    }
+                    s.AppendLine("return g;", true);
+                }
+                return s.ToString();
             }
-            return s.ToString();
+            else
+            {
+                ShaderStringBuilder s = new ShaderStringBuilder();
+                s.AppendLine("Gradient Unity{0} ()", referenceName);
+                using (s.BlockScope())
+                {
+                    GradientUtils.GetGradientDeclaration(value, ref s);
+                    s.AppendLine("return g;", true);
+                }
+                return s.ToString();
+            }
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
