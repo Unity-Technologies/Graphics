@@ -64,17 +64,15 @@ namespace UnityEditor.ShaderGraph
             m_ConcreteValueType = valueType;
         }
 
-        public override List<PreviewProperty> GetPreviewProperties(string name)
+        public virtual void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            List<PreviewProperty> props = new List<PreviewProperty>();
             var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
             var pp = new PreviewProperty(propType) { name = name };
             if (propType == PropertyType.Vector1)
                 pp.floatValue = value.x;
             else
                 pp.vector4Value = new Vector4(value.x, value.y, value.z, value.w);
-            props.Add(pp);
-            return props;
+            properties.Add(pp);
         }
 
         protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)

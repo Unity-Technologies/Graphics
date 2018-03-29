@@ -72,16 +72,14 @@ namespace UnityEditor.ShaderGraph
         public override SlotValueType valueType { get { return SlotValueType.Boolean; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Boolean; } }
 
-        public override List<PreviewProperty> GetPreviewProperties(string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            List<PreviewProperty> props = new List<PreviewProperty>();
             var pp = new PreviewProperty(PropertyType.Boolean)
             {
                 name = name,
                 booleanValue = value
             };
-            props.Add(pp);
-            return props;
+            properties.Add(pp);
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)

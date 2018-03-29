@@ -55,16 +55,14 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(property);
         }
 
-        public override List<PreviewProperty> GetPreviewProperties(string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            List<PreviewProperty> props = new List<PreviewProperty>();
             var pp = new PreviewProperty(PropertyType.Color)
             {
                 name = name,
                 colorValue = new Color(value.x, value.y, value.z, 1),
             };
-            props.Add(pp);
-            return props;
+            properties.Add(pp);
         }
     }
 }

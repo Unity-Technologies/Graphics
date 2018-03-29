@@ -67,16 +67,14 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(property);
         }
         
-        public override List<PreviewProperty> GetPreviewProperties(string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            List<PreviewProperty> props = new List<PreviewProperty>();
             var pp = new PreviewProperty(PropertyType.Matrix3)
             {
                 name = name,
                 vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, value.GetRow(0).z, 0)
             };
-            props.Add(pp);
-            return props;
+            properties.Add(pp);
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Matrix3; } }
