@@ -39,14 +39,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         public void OnNodeModified(ModificationScope scope)
         {
-            if (scope == ModificationScope.Graph)
+            if (scope == ModificationScope.Node)
                 m_Container.Dirty(ChangeType.Repaint);
         }
 
         void OnGUIHandler()
         {
             m_SerializedObject.Update();
-            m_GradientObject.gradient.SetKeys(m_Slot.gradient.colorKeys, m_Slot.gradient.alphaKeys);
+            m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
 
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
@@ -55,8 +55,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                 if (changeCheckScope.changed)
                 {
                     m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
-                    m_Slot.gradient = m_GradientObject.gradient;
-                    m_Slot.owner.Dirty(ModificationScope.Graph);
+                    m_Slot.value = m_GradientObject.gradient;
+                    m_Slot.owner.Dirty(ModificationScope.Node);
                     m_Container.Dirty(ChangeType.Repaint);
                 }
             }

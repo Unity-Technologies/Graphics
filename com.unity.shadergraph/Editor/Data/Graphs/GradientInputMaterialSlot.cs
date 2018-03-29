@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -7,16 +8,13 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class GradientInputMaterialSlot : GradientMaterialSlot
+    public class GradientInputMaterialSlot : GradientMaterialSlot, IMaterialSlotHasValue<Gradient>
     {
         [SerializeField]
-        private Gradient m_Gradient = new Gradient();
+        Gradient m_Value = new Gradient();
 
-        public Gradient gradient
-        {
-            get { return m_Gradient; }
-            set { m_Gradient = value; }
-        }
+        [SerializeField]
+        Gradient m_DefaultValue;
 
         public GradientInputMaterialSlot()
         {
@@ -31,6 +29,14 @@ namespace UnityEditor.ShaderGraph
             : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStage, hidden)
         {
         }
+
+        public Gradient value
+        {
+            get { return m_Value; }
+            set { m_Value = value; }
+        }
+
+        public Gradient defaultValue { get { return m_DefaultValue; } }
 
         public override VisualElement InstantiateControl()
         {
@@ -52,28 +58,107 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
+            if(generationMode == GenerationMode.Preview)
+            {
+                properties.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("{0}_Type", matOwner.GetVariableNameForSlot(id)),
+                    value = (int)value.mode,
+                    generatePropertyBlock = false
+                });
+
+                properties.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("{0}_ColorsLength", matOwner.GetVariableNameForSlot(id)),
+                    value = value.colorKeys.Length,
+                    generatePropertyBlock = false
+                });
+
+                properties.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("{0}_AlphasLength", matOwner.GetVariableNameForSlot(id)),
+                    value = value.alphaKeys.Length,
+                    generatePropertyBlock = false
+                });
+
+                for(int i = 0; i < 8; i++)
+                {
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("{0}_ColorKey{1}", matOwner.GetVariableNameForSlot(id), i),
+                        value = i < value.colorKeys.Length ? GradientUtils.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero,
+                        generatePropertyBlock = false
+                    });
+                }
+                
+                for(int i = 0; i < 8; i++)
+                {
+                    properties.AddShaderProperty(new Vector4ShaderProperty()
+                    {
+                        overrideReferenceName = string.Format("{0}_AlphaKey{1}", matOwner.GetVariableNameForSlot(id), i),
+                        value = i < value.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero,
+                        generatePropertyBlock = false
+                    });
+                } 
+            }
+
             var prop = new GradientShaderProperty();
             prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             prop.generatePropertyBlock = false;
-            prop.value = gradient;
+            prop.value = value;
+
+            if(generationMode == GenerationMode.Preview)
+                prop.OverrideMembers(matOwner.GetVariableNameForSlot(id));
+
             properties.AddShaderProperty(prop);
         }
 
-        public override PreviewProperty GetPreviewProperty(string name)
+        public override List<PreviewProperty> GetPreviewProperties(string name)
         {
-            var pp = new PreviewProperty(PropertyType.Gradient)
+            List<PreviewProperty> props = new List<PreviewProperty>();
+            props.Add(new PreviewProperty(PropertyType.Vector1)
             {
-                name = name,
-                gradientValue = gradient
-            };
-            return pp;
+                name = string.Format("{0}_Type", name),
+                floatValue = 0
+            });
+
+            props.Add(new PreviewProperty(PropertyType.Vector1)
+            {
+                name = string.Format("{0}_ColorsLength", name),
+                floatValue = value.colorKeys.Length
+            });
+
+            props.Add(new PreviewProperty(PropertyType.Vector1)
+            {
+                name = string.Format("{0}_AlphasLength", name),
+                floatValue = value.alphaKeys.Length
+            });
+
+            for(int i = 0; i < 8; i++)
+            {
+                props.Add(new PreviewProperty(PropertyType.Vector4)
+                {
+                    name = string.Format("{0}_ColorKey{1}", name, i),
+                    vector4Value = i < value.colorKeys.Length ? GradientUtils.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero
+                });
+            }
+            
+            for(int i = 0; i < 8; i++)
+            {
+                props.Add(new PreviewProperty(PropertyType.Vector2)
+                {
+                    name = string.Format("{0}_AlphaKey{1}", name, i),
+                    vector4Value = i < value.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero
+                });
+            }
+            return props;
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
             var slot = foundSlot as GradientInputMaterialSlot;
             if (slot != null)
-                m_Gradient = slot.gradient;
+                value = slot.value;
         }
     }
 }

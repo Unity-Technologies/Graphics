@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -347,9 +348,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual PreviewProperty GetPreviewProperty(string name)
+        public virtual List<PreviewProperty> GetPreviewProperties(string name)
         {
-            return default(PreviewProperty);
+            List<PreviewProperty> props = new List<PreviewProperty>();
+            props.Add(default(PreviewProperty));
+            return props;
         }
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
