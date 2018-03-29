@@ -10,7 +10,8 @@
         TEXTURE2D(_BlitTexture);
         SamplerState sampler_PointClamp;
         SamplerState sampler_LinearClamp;
-        uniform float4 _BlitScaleBias;
+        uniform float4 _BlitScaleBiasSrc;
+		uniform float4 _BlitScaleBiasDst;
         uniform float _BlitMipLevel;
 
         struct Attributes
@@ -27,8 +28,8 @@
         Varyings Vert(Attributes input)
         {
             Varyings output;
-            output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID) * float4(_BlitScaleBiasDst.xy, 1, 1) + float4(_BlitScaleBiasDst.zw, 0, 0);
+            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * float4(_BlitScaleBiasSrc.xy, 1, 1) + float4(_BlitScaleBiasSrc.zw, 0, 0);
             return output;
         }
 
@@ -68,7 +69,7 @@
                 #pragma vertex Vert
                 #pragma fragment FragBilinear
             ENDHLSL
-        }
+        }		
     }
 
     Fallback Off
