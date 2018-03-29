@@ -561,7 +561,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         void FrameAfterAWhile()
         {
             this.schedule.Execute(
