@@ -254,7 +254,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);
 
 #ifdef _SUBSURFACE_MASK_MAP_IDX
-    surfaceData.subsurfaceMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceMaskMap), SAMPLER_SUBSURFACE_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.subsurfaceMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceMaskMap), SAMPLER_SUBSURFACE_MASK_MAP_IDX, ADD_IDX(layerTexCoord.base)).r;
 #endif
 
 #ifdef _THICKNESSMAP_IDX
