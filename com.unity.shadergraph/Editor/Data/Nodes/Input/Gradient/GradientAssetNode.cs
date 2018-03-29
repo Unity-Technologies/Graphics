@@ -55,6 +55,7 @@ namespace UnityEditor.ShaderGraph
                     var newAlphaKeys = value.alphaKeys;
 
                     m_Gradient.SetKeys(newColorKeys, newAlphaKeys);
+                    m_Gradient.mode = value.mode;
                     Dirty(ModificationScope.Node);
                 }
             }
@@ -139,7 +140,7 @@ namespace UnityEditor.ShaderGraph
             properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("_{0}_Type", GetVariableNameForNode()),
-                floatValue = 0
+                floatValue = (int)m_Gradient.mode
             });
 
             properties.Add(new PreviewProperty(PropertyType.Vector1)
