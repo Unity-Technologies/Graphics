@@ -418,6 +418,10 @@ public class VolumetricLightingSystem
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
+        // Modify the near plane.
+        // Warning: it can screw up the reprojection. However, we have to do it in order for clustered lighting to work correctly.
+        m_VBufferNearPlane = camera.camera.nearClipPlane;
+
         HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
 
         // TODO: may want to cache these results somewhere.
