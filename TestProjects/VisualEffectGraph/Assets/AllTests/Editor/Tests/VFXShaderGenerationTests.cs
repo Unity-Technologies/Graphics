@@ -23,8 +23,8 @@ namespace UnityEditor.VFX.Test
             var attributeParameter = ScriptableObject.CreateInstance<VFXAttributeParameter>();
             attributeParameter.SetSettingValue("attribute", "color");
 
-            var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-            var length = ScriptableObject.CreateInstance<VFXOperatorLength>();
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            var length = ScriptableObject.CreateInstance<Operator.Length>();
             var float4 = VFXLibrary.GetParameters().First(o => o.name == "Vector4").CreateInstance();
 
             graph.AddChild(updateContext);
