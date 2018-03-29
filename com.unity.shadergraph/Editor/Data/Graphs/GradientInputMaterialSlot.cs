@@ -113,22 +113,21 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(prop);
         }
 
-        public override List<PreviewProperty> GetPreviewProperties(string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            List<PreviewProperty> props = new List<PreviewProperty>();
-            props.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("{0}_Type", name),
                 floatValue = (int)value.mode
             });
 
-            props.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("{0}_ColorsLength", name),
                 floatValue = value.colorKeys.Length
             });
 
-            props.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
                 name = string.Format("{0}_AlphasLength", name),
                 floatValue = value.alphaKeys.Length
@@ -136,7 +135,7 @@ namespace UnityEditor.ShaderGraph
 
             for(int i = 0; i < 8; i++)
             {
-                props.Add(new PreviewProperty(PropertyType.Vector4)
+                properties.Add(new PreviewProperty(PropertyType.Vector4)
                 {
                     name = string.Format("{0}_ColorKey{1}", name, i),
                     vector4Value = i < value.colorKeys.Length ? GradientUtils.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero
@@ -145,13 +144,12 @@ namespace UnityEditor.ShaderGraph
             
             for(int i = 0; i < 8; i++)
             {
-                props.Add(new PreviewProperty(PropertyType.Vector2)
+                properties.Add(new PreviewProperty(PropertyType.Vector2)
                 {
                     name = string.Format("{0}_AlphaKey{1}", name, i),
                     vector4Value = i < value.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero
                 });
             }
-            return props;
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)

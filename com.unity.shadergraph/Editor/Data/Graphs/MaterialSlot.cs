@@ -348,11 +348,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual List<PreviewProperty> GetPreviewProperties(string name)
+        public virtual void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            List<PreviewProperty> props = new List<PreviewProperty>();
-            props.Add(default(PreviewProperty));
-            return props;
+            properties.Add(default(PreviewProperty));
         }
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
