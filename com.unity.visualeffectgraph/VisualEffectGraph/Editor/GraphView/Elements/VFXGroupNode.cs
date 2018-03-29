@@ -47,10 +47,7 @@ namespace UnityEditor.VFX.UI
 
         public void OnMoved()
         {
-            if (containedElements.Count() == 0)
-            {
-                controller.position = GetPosition();
-            }
+            controller.position = GetPosition();
 
             foreach (var node in containedElements.OfType<IVFXMovable>())
             {
