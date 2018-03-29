@@ -272,7 +272,7 @@ namespace UnityEditor.VFX.UI
                     VFXSlot slot = model;
                     while (slot != null)
                     {
-                        if (slot.LinkedSlots.Count() > 0)
+                        if (slot.HasLink())
                         {
                             editable = false;
                             break;
@@ -283,7 +283,7 @@ namespace UnityEditor.VFX.UI
 
                     foreach (VFXSlot child in model.children)
                     {
-                        if (child.LinkedSlots.Count() > 0)
+                        if (child.HasLink())
                         {
                             editable = false;
                         }

@@ -61,6 +61,7 @@ namespace UnityEditor.VFX
             }
         }
 
+        override public string libraryName { get { return attribute; } }
         override public string name { get { return location + " " + attribute; } }
 
         public override void Sanitize()
