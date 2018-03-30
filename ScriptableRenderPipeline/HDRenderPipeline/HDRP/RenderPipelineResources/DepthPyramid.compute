@@ -4,20 +4,13 @@
 // Algorithm
 // ------------------------------------------------
 // Downsample a depth texture by taking min value of sampled pixels
-// It also handles computing in a viewport of a texture.
-// When we use partial kernels there are only 4 patterns (first is full): 
-//  0.  |x|x|       1.  |x|o|       2.  |o|o|       3.  |o|o|
-//      |x|x|           |x|o|           |x|x|           |x|o|
 
 // ------------------------------------------------
 // Variants
 // ------------------------------------------------
 
-#pragma kernel KDepthDownSample8                    KERNEL_SIZE=8       PATTERN=0       KERNEL_NAME=KDepthDownSample8    
-#pragma kernel KDepthDownSample2_0                  KERNEL_SIZE=1       PATTERN=0       KERNEL_NAME=KDepthDownSample2_0
-#pragma kernel KDepthDownSample2_1                  KERNEL_SIZE=1       PATTERN=1       KERNEL_NAME=KDepthDownSample2_1
-#pragma kernel KDepthDownSample2_2                  KERNEL_SIZE=1       PATTERN=2       KERNEL_NAME=KDepthDownSample2_2
-#pragma kernel KDepthDownSample2_3                  KERNEL_SIZE=1       PATTERN=3       KERNEL_NAME=KDepthDownSample2_3
+#pragma kernel KDepthDownSample8                  KERNEL_SIZE=8       KERNEL_NAME=KDepthDownSample8    
+#pragma kernel KDepthDownSample1                  KERNEL_SIZE=1       KERNEL_NAME=KDepthDownSample1
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
@@ -69,19 +62,8 @@ void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThrea
 #endif
 
     // Select the nearest sample
-#if PATTERN == 0
     float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
     float maxDepth = MAX_DEPTH(MAX_DEPTH(depths.x, depths.y), MAX_DEPTH(depths.z, depths.w));
-#elif PATTERN == 1
-    float minDepth = MIN_DEPTH(depths.x, depths.z);
-    float maxDepth = MAX_DEPTH(depths.x, depths.z);
-#elif PATTERN == 2
-    float minDepth = MIN_DEPTH(depths.x, depths.y);
-    float maxDepth = MAX_DEPTH(depths.x, depths.y);
-#elif PATTERN == 3
-    float minDepth = depths.x;
-    float maxDepth = depths.x;
-#endif
 
     // Write to the final target
     uint2 dstPixel = (_RectOffset >> 1) + dispatchThreadId;
