@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         List<RTHandle> m_DepthPyramidMips = new List<RTHandle>();
         int[] m_DepthKernels = null;
         int depthKernel8 { get { return m_DepthKernels[0]; } }
+        int depthKernel1 { get { return m_DepthKernels[1]; } }
 
         public RTHandle colorPyramid { get { return m_ColorPyramidBuffer; } }
         public RTHandle depthPyramid { get { return m_DepthPyramidBuffer; } }
@@ -43,18 +44,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DepthKernels = new int[]
             {
                 m_DepthPyramidCS.FindKernel("KDepthDownSample8"),
-                m_DepthPyramidCS.FindKernel("KDepthDownSample2_0"),
-                m_DepthPyramidCS.FindKernel("KDepthDownSample2_1"),
-                m_DepthPyramidCS.FindKernel("KDepthDownSample2_2"),
-                m_DepthPyramidCS.FindKernel("KDepthDownSample2_3"),
+                m_DepthPyramidCS.FindKernel("KDepthDownSample1")
             };
 
             m_TexturePadding = texturePadding;
-        }
-
-        int GetDepthKernel2(int pattern)
-        {
-            return m_DepthKernels[pattern + 1];
         }
 
         float GetXRscale()
@@ -69,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void CreateBuffers()
         {
             m_ColorPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, useMipMap: true, autoGenerateMips: false, name: "ColorPymarid");
-            m_DepthPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.RFloat, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "DepthPyramid"); // Need randomReadWrite because we downsample the first mip with a compute shader.
+            m_DepthPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.RGFloat, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "DepthPyramid"); // Need randomReadWrite because we downsample the first mip with a compute shader.
         }
 
         public void DestroyBuffers()
@@ -150,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var srcMip = new RectInt(0, 0, hdCamera.actualWidth >> i, hdCamera.actualHeight >> i);
                 var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
 
-                var kernel = GetDepthKernel2(0);
+                var kernel = depthKernel1;
                 var kernelSize = 1;
                 var srcWorkMip = srcMip;
                 var dstWorkMip = dstMip;
