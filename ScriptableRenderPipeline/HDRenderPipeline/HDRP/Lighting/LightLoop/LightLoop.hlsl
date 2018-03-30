@@ -47,6 +47,10 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
 
         }
     }
+
+    // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
+    diffuseLighting *= exp2(_DebugExposure);
+    specularLighting *= exp2(_DebugExposure);
 #endif
 }
 
