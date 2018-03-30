@@ -179,7 +179,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BufferPyramid = new BufferPyramid(
                 asset.renderPipelineResources.colorPyramidCS,
                 asset.renderPipelineResources.depthPyramidCS,
-                m_GPUCopy);
+                m_GPUCopy,
+                new TexturePadding(asset.renderPipelineResources.texturePaddingCS)
+            ); 
 
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 

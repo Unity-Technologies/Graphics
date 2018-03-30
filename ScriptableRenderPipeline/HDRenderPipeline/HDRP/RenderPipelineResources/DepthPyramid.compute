@@ -1,32 +1,66 @@
 ﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
 
-#pragma kernel KMain_8                KERNEL_SIZE=8     KERNEL_NAME=KMain_8
-#pragma kernel KMain_1                KERNEL_SIZE=1     KERNEL_NAME=KMain_1
+// ------------------------------------------------
+// Algorithm
+// ------------------------------------------------
+// Downsample a depth texture by taking min value of sampled pixels
+// It also handles computing in a viewport of a texture.
+// When we use partial kernels there are only 4 patterns (first is full): 
+//  0.  |x|x|       1.  |x|o|       2.  |o|o|       3.  |o|o|
+//      |x|x|           |x|o|           |x|x|           |x|o|
+
+// ------------------------------------------------
+// Variants
+// ------------------------------------------------
+
+#pragma kernel KDepthDownSample8                    KERNEL_SIZE=8       PATTERN=0       KERNEL_NAME=KDepthDownSample8    
+#pragma kernel KDepthDownSample2_0                  KERNEL_SIZE=1       PATTERN=0       KERNEL_NAME=KDepthDownSample2_0
+#pragma kernel KDepthDownSample2_1                  KERNEL_SIZE=1       PATTERN=1       KERNEL_NAME=KDepthDownSample2_1
+#pragma kernel KDepthDownSample2_2                  KERNEL_SIZE=1       PATTERN=2       KERNEL_NAME=KDepthDownSample2_2
+#pragma kernel KDepthDownSample2_3                  KERNEL_SIZE=1       PATTERN=3       KERNEL_NAME=KDepthDownSample2_3
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-Texture2D<float> _Source;
-RWTexture2D<float> _Result;
+// ------------------------------------------------
+// Texture buffers
+// ------------------------------------------------
+
+Texture2D<float2> _Source;
+RW_TEXTURE2D(float2, _Result);
 
 SamplerState sampler_PointClamp;    //TODO: could we use min-sampler instead of using ALU?
 
+// ------------------------------------------------
+// Constant buffers
+// ------------------------------------------------
 CBUFFER_START(cb)
 float4 _SrcSize;
+int2 _RectOffset;          // Offset in source texture
 CBUFFER_END
 
+// ------------------------------------------------
+// Kernel
+// ------------------------------------------------
+
+#if UNITY_REVERSED_Z
+# define MIN_DEPTH(l, r) max(l, r)
+# define MAX_DEPTH(l, r) min(l, r)
+#else
+# define MIN_DEPTH(l, r) min(l, r)
+# define MAX_DEPTH(l, r) max(l, r)
+#endif
 
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     // Upper-left pixel coordinate of quad that this thread will read
-    int2 threadUL = dispatchThreadId;
+    uint2 srcPixelUL = _RectOffset + (dispatchThreadId << 1);
+    // Offset by 0.5 so sampling get the proper pixels
+    float2 offset = float2(srcPixelUL) + 0.5;
 
-    // Downsample the block
-    float2 offset = float2(threadUL) * 2.0f + 1.0f;
 #if defined(PLATFORM_SUPPORT_GATHER)
-    float4 depths = GATHER_RED_TEXTURE2D(_Source, sampler_PointClamp, offset * _SrcSize.zw, 0.0);
+    float4 depths = GATHER_RED_TEXTURE2D(_Source, sampler_PointClamp, offset * _SrcSize.zw, 0.0).wzxy;
 #else
-    // Downsample the block
     float p00 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset) * _SrcSize.zw, 0.0).x;
     float p10 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(1.0, 0.0)) * _SrcSize.zw, 0.0).x;
     float p01 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(0.0, 1.0)) * _SrcSize.zw, 0.0).x;
@@ -35,12 +69,24 @@ void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThrea
 #endif
 
     // Select the nearest sample
-#if UNITY_REVERSED_Z
-    float minDepth = max(max(depths.x, depths.y), max(depths.z, depths.w));
-#else
-    float minDepth = min(min(depths.x, depths.y), min(depths.z, depths.w));
+#if PATTERN == 0
+    float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
+    float maxDepth = MAX_DEPTH(MAX_DEPTH(depths.x, depths.y), MAX_DEPTH(depths.z, depths.w));
+#elif PATTERN == 1
+    float minDepth = MIN_DEPTH(depths.x, depths.z);
+    float maxDepth = MAX_DEPTH(depths.x, depths.z);
+#elif PATTERN == 2
+    float minDepth = MIN_DEPTH(depths.x, depths.y);
+    float maxDepth = MAX_DEPTH(depths.x, depths.y);
+#elif PATTERN == 3
+    float minDepth = depths.x;
+    float maxDepth = depths.x;
 #endif
 
     // Write to the final target
-    _Result[dispatchThreadId] = minDepth;
+    uint2 dstPixel = (_RectOffset >> 1) + dispatchThreadId;
+    _Result[dstPixel] = float2(minDepth, maxDepth);
 }
+
+#undef MIN_DEPTH
+#undef MAX_DEPTH
