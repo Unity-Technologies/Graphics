@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Test
             var block2 = ScriptableObject.CreateInstance<OutputBlockTest>();
 
             // Add some operator
-            VFXOperator add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+            VFXOperator add = ScriptableObject.CreateInstance<Operator.Add>();
 
             init0.AddChild(block0);
             update0.AddChild(block1);
@@ -122,10 +122,10 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[3])).contextType);
             Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[4])).contextType);
 
-            Assert.IsNotNull(graph[5] as VFXOperatorAdd);
+            Assert.IsNotNull(graph[5] as Operator.Add);
         }
 
-        private void CheckIsolatedOperatorAdd(VFXOperatorAdd add)
+        private void CheckIsolatedOperatorAdd(Operator.Add add)
         {
             Assert.AreEqual(1, add.outputSlots.Count);
             Assert.AreEqual(2, add.inputSlots.Count);
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAdd);
         }
 
-        private void CheckIsolatedOperatorAbs(VFXOperatorAbsolute add)
+        private void CheckIsolatedOperatorAbs(Operator.Absolute add)
         {
             Assert.AreEqual(1, add.outputSlots.Count);
             Assert.AreEqual(1, add.inputSlots.Count);
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAbs);
         }
 
-        private void CheckConnectedAbs(VFXOperatorAbsolute abs)
+        private void CheckConnectedAbs(Operator.Absolute abs)
         {
             Assert.IsTrue(abs.inputSlots[0].HasLink());
             Assert.AreEqual(1, abs.inputSlots[0].LinkedSlots.Count());
@@ -174,7 +174,8 @@ namespace UnityEditor.VFX.Test
                 asset = null;
                 EditorUtility.UnloadUnusedAssetsImmediate();
                 AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
-                AssetDatabase.RemoveObject(asset);
+                if (asset != null)
+                    AssetDatabase.RemoveObjectFromAsset(asset);
             }
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
             EditorUtility.UnloadUnusedAssetsImmediate();
@@ -190,7 +191,7 @@ namespace UnityEditor.VFX.Test
 
         private void WriteBasicOperators(VisualEffectAsset asset, bool spawnAbs, bool linkAbs)
         {
-            var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
             var graph = asset.GetOrCreateGraph();
             graph.AddChild(add);
 
@@ -198,7 +199,7 @@ namespace UnityEditor.VFX.Test
 
             if (spawnAbs)
             {
-                var abs = ScriptableObject.CreateInstance<VFXOperatorAbsolute>();
+                var abs = ScriptableObject.CreateInstance<Operator.Absolute>();
                 abs.position = new Vector2(64.0f, 64.0f);
                 graph.AddChild(abs);
                 CheckIsolatedOperatorAbs(abs);
@@ -214,14 +215,14 @@ namespace UnityEditor.VFX.Test
         {
             var graph = asset.GetOrCreateGraph();
             Assert.AreEqual(spawnAbs ? 2 : 1, graph.GetNbChildren());
-            Assert.IsNotNull((VFXOperatorAdd)graph[0]);
-            var add = (VFXOperatorAdd)graph[0];
+            Assert.IsNotNull((Operator.Add)graph[0]);
+            var add = (Operator.Add)graph[0];
             CheckIsolatedOperatorAdd(add);
 
             if (spawnAbs)
             {
-                Assert.IsNotNull((VFXOperatorAbsolute)graph[1]);
-                var abs = (VFXOperatorAbsolute)graph[1];
+                Assert.IsNotNull((Operator.Absolute)graph[1]);
+                var abs = (Operator.Absolute)graph[1];
                 CheckIsolatedOperatorAbs(abs);
                 Assert.AreEqual(abs.position.x, 64.0f);
                 Assert.AreEqual(abs.position.y, 64.0f);
@@ -260,10 +261,10 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeOperatorMaskWithState()
         {
-            var expectedValue = new[] { VFXOperatorComponentMask.Component.X, VFXOperatorComponentMask.Component.Y, VFXOperatorComponentMask.Component.X };
+            var expectedValue = new[] { Operator.ComponentMask.Component.X, Operator.ComponentMask.Component.Y, Operator.ComponentMask.Component.X };
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
-                    var mask = ScriptableObject.CreateInstance<VFXOperatorComponentMask>();
+                    var mask = ScriptableObject.CreateInstance<Operator.ComponentMask>();
                     mask.SetSettingValue("x", expectedValue[0]);
                     mask.SetSettingValue("y", expectedValue[1]);
                     mask.SetSettingValue("z", expectedValue[2]);
@@ -278,8 +279,8 @@ namespace UnityEditor.VFX.Test
                 {
                     var graph = asset.GetOrCreateGraph();
                     Assert.AreEqual(1, graph.GetNbChildren());
-                    Assert.IsInstanceOf(typeof(VFXOperatorComponentMask), graph[0]);
-                    var mask = graph[0] as VFXOperatorComponentMask;
+                    Assert.IsInstanceOf(typeof(Operator.ComponentMask), graph[0]);
+                    var mask = graph[0] as Operator.ComponentMask;
 
                     Assert.AreEqual(expectedValue[0], mask.x);
                     Assert.AreEqual(expectedValue[1], mask.y);
@@ -320,7 +321,7 @@ namespace UnityEditor.VFX.Test
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
                     var graph = asset.GetOrCreateGraph();
-                    var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
+                    var add = ScriptableObject.CreateInstance<Operator.Add>();
                     var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
                     graph.AddChild(add);
                     graph.AddChild(parameter);
@@ -332,7 +333,7 @@ namespace UnityEditor.VFX.Test
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
                 {
                     var graph = asset.GetOrCreateGraph();
-                    var add = graph[0] as VFXOperatorAdd;
+                    var add = graph[0] as Operator.Add;
                     var parameter = graph[1] as VFXParameter;
                     Assert.AreNotEqual(null, parameter);
                     Assert.AreEqual(VFXValueType.Float2, add.outputSlots[0].GetExpression().valueType);
@@ -346,16 +347,16 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
-                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.TotalTimeOp.ToString()).CreateInstance();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
                     asset.GetOrCreateGraph().AddChild(builtIn);
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                 };
 
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
                 {
                     var builtIn = asset.GetOrCreateGraph()[0] as VFXBuiltInParameter;
                     Assert.AreNotEqual(null, builtIn);
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                 };
             InnerSaveAndReloadTest("BuiltInParameter", write, read);
         }
@@ -366,13 +367,13 @@ namespace UnityEditor.VFX.Test
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
                     var graph = asset.GetOrCreateGraph();
-                    var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOp.TotalTimeOp.ToString()).CreateInstance();
+                    var add = ScriptableObject.CreateInstance<Operator.Add>();
+                    var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
                     graph.AddChild(builtIn);
                     graph.AddChild(add);
                     add.inputSlots[0].Link(builtIn.outputSlots[0]);
 
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                     Assert.IsTrue(add.inputSlots[0].HasLink());
                 };
 
@@ -380,11 +381,11 @@ namespace UnityEditor.VFX.Test
                 {
                     var graph = asset.GetOrCreateGraph();
                     var builtIn = graph[0] as VFXBuiltInParameter;
-                    var add = graph[1] as VFXOperatorAdd;
+                    var add = graph[1] as Operator.Add;
 
                     Assert.AreNotEqual(null, builtIn);
                     Assert.AreNotEqual(null, add);
-                    Assert.AreEqual(VFXExpressionOp.TotalTimeOp, builtIn.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
                     Assert.IsTrue(add.inputSlots[0].HasLink());
                 };
             InnerSaveAndReloadTest("BuiltInParameter", write, read);
@@ -396,7 +397,7 @@ namespace UnityEditor.VFX.Test
             var testAttribute = "sizeX";
             Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate(VFXAttributeParameter parameter, VFXAttributeLocation location)
                 {
-                    Assert.AreEqual(VFXExpressionOp.NoneOp, parameter.outputSlots[0].GetExpression().operation);
+                    Assert.AreEqual(VFXExpressionOperation.None, parameter.outputSlots[0].GetExpression().operation);
                     Assert.AreEqual(VFXValueType.Float, parameter.outputSlots[0].GetExpression().valueType);
                     Assert.IsInstanceOf(typeof(VFXAttributeExpression), parameter.outputSlots[0].GetExpression());
                     Assert.AreEqual(location, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeLocation);

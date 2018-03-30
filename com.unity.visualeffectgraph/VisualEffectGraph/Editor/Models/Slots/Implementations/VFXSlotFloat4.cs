@@ -24,13 +24,13 @@ namespace UnityEditor.VFX
             if (expression.valueType == VFXValueType.Float)
                 return new VFXExpressionCombine(expression, expression, expression, expression);
 
-            if (expression.valueType == VFXValueType.Uint)
+            if (expression.valueType == VFXValueType.Uint32)
             {
                 var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression, floatExpression);
             }
 
-            if (expression.valueType == VFXValueType.Int)
+            if (expression.valueType == VFXValueType.Int32)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression, floatExpression);

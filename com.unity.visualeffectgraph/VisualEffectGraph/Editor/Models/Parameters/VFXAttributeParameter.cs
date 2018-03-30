@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        override public string name { get { return attribute; } }
+        override public string name { get { return location + " " + attribute; } }
 
         public override void Sanitize()
         {
@@ -69,25 +69,20 @@ namespace UnityEditor.VFX
             {
                 Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
 
-                var randOp = ScriptableObject.CreateInstance<VFXOperatorRandom>();
+                var randOp = ScriptableObject.CreateInstance<Operator.Random>();
                 randOp.constant = true;
-                randOp.seed = VFXOperatorRandom.SeedMode.PerParticle;
+                randOp.seed = Operator.Random.SeedMode.PerParticle;
 
-                // transfer position
-                randOp.position = position;
-
-                // Transfer links
-                var links = GetOutputSlot(0).LinkedSlots.ToArray();
-                GetOutputSlot(0).UnlinkAll();
-                foreach (var s in links)
-                    randOp.GetOutputSlot(0).Link(s);
-
-                // Replace operator
-                var parent = GetParent();
-                Detach();
-                randOp.Attach(parent);
+                VFXSlot.TransferLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
+                ReplaceModel(randOp, this);
             }
-            base.Sanitize();
+            else
+            {
+                if (attribute == "size")   attribute = "sizeX";
+                else if (attribute == "angle")  attribute = "angleZ";
+
+                base.Sanitize();
+            }
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

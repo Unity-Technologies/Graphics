@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        sealed public override VFXExpressionOp operation { get { return m_Operation; } }
+        sealed public override VFXExpressionOperation operation { get { return m_Operation; } }
         sealed protected override int[] additionnalOperands { get { return m_additionnalOperands; } }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
@@ -54,12 +54,12 @@ namespace UnityEditor.VFX
         }
 
         protected int[] m_additionnalOperands;
-        protected VFXExpressionOp m_Operation;
+        protected VFXExpressionOperation m_Operation;
     }
 
     abstract class VFXExpressionUnaryFloatOperation : VFXExpressionFloatOperation
     {
-        protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOp operation) : base(new VFXExpression[1] { parent })
+        protected VFXExpressionUnaryFloatOperation(VFXExpression parent, VFXExpressionOperation operation) : base(new VFXExpression[1] { parent })
         {
             if (!IsFloatValueType(parent.valueType))
             {
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXExpressionBinaryFloatOperation : VFXExpressionFloatOperation
     {
-        protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOp operation)
+        protected VFXExpressionBinaryFloatOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
             : base(new VFXExpression[2] { parentLeft, parentRight })
         {
             if (!IsFloatValueType(parentLeft.valueType) || !IsFloatValueType(parentRight.valueType))
@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXExpressionTernaryFloatOperation : VFXExpressionFloatOperation
     {
-        protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOp operation)
+        protected VFXExpressionTernaryFloatOperation(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpressionOperation operation)
             : base(new VFXExpression[3] { a, b, c })
         {
             if (!IsFloatValueType(a.valueType)

@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UIElements
 {
     public class VFXFloatField : TextValueField<float>
     {
-        internal static string allowedCharacters
+        protected override string allowedCharacters
         {
             get { return EditorGUI.s_AllowedCharactersForFloat; }
         }

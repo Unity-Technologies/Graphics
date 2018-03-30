@@ -4,7 +4,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    public class VFXCustomSpawnerSample : VFXSpawnerFunction
+    public class VFXCustomSpawnerSample : VFXSpawnerCallbacks
     {
         public class InputProperties
         {
