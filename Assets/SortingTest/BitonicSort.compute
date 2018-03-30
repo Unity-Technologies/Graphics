@@ -1,47 +1,116 @@
 ﻿#pragma kernel BitonicSort
 
-#define THREADS_COUNT 256
-#define STEPS_COUNT 9
+#define ELEMENTS_COUNT 1024
+
+// More loads per threads. Can reduce stall time due to barriers
+// Needs a good occupancy in the first place (many groups dispatched)
+#define ITERATIONS_COUNT 2
+
+// This allows to reduce bank conflicts by adding an additional dword every LDS_PADDING_PERIOD
+// 0 to deactivate padding
+#define LDS_PADDING_PERIOD 32
+
+// 1 to use the alternative representation of the bitonic network: 
+// No comparison flipping but dedicated first sub pass.
+// see https://en.wikipedia.org/wiki/Bitonic_sorter 
+#define USE_ALTERNATE_BITONIC_NETWORK 0
+
+#define THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
+
+#if LDS_PADDING_PERIOD
+#define SCRATCH_SIZE ELEMENTS_COUNT + ELEMENTS_COUNT / LDS_PADDING_PERIOD
+#define LDS_INDEX(index) ((index) + (index) / LDS_PADDING_PERIOD)
+#else
+#define SCRATCH_SIZE ELEMENTS_COUNT
+#define LDS_INDEX(index) (index)
+#endif
+
+// TODO Test contiguous access for iterations instead of scattered
+#define ITERATION_INDEX(id,it) ((it) * THREADS_COUNT + (id))
+#define DST_INDEX(groupId,threadId) (groupId * THREADS_COUNT * ITERATIONS_COUNT + threadId)
 
 Buffer<float> inputSequence;
 RWBuffer<float> sortedSequence;
 
-groupshared float scratch[THREADS_COUNT * 2];
+groupshared float scratch[SCRATCH_SIZE];
+
+uint elementCount;
+
+void LoadFromMemory(uint ldsIndex,uint memIndex,uint size)
+{
+	[unroll]
+	for (uint i = 0; i < size; ++i)
+		if (memIndex + i < elementCount)
+			scratch[LDS_INDEX(ldsIndex + i)] = inputSequence[memIndex + i];
+		else
+			scratch[LDS_INDEX(ldsIndex + i)] = asfloat(0x7f7fffff); // MAX_FLOAT
+}
+
+void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
+{
+	[unroll]
+	for (uint i = 0; i < size; ++i)
+		if (memIndex + i < elementCount)
+			sortedSequence[memIndex + i] = scratch[LDS_INDEX(ldsIndex + i)];
+}
 
 [numthreads(THREADS_COUNT,1,1)]
-void BitonicSort(uint index : SV_GroupIndex, uint3 id : SV_DispatchThreadID)
+void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 {
-	uint index0 = index * 2;
-	uint index1 = index0 + 1;
+	// Skip useless groups
+	if (groupId.x > elementCount / ELEMENTS_COUNT)
+		return;
 
 	// Load data from memory to LDS
-	scratch[index0] = inputSequence[id.x * 2];
-	scratch[index1] = inputSequence[id.x * 2 + 1];
-
-	GroupMemoryBarrierWithGroupSync(); // Wait for LDS writes
-
-	for (uint step = 0; step < STEPS_COUNT; ++step)
+	[unroll]
+	for (uint i = 0; i < ITERATIONS_COUNT; ++i)
 	{
-		bool reverse = index & (1 << step);
-		for (uint subStep = (1 << step); subStep > 0; subStep >>= 1)
+		uint ldsIndex = ITERATION_INDEX(id,i);
+		uint memIndex = DST_INDEX(groupId.x, ldsIndex);
+		LoadFromMemory(ldsIndex * 2, memIndex * 2,2);
+	}
+
+	GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
+
+	for (uint step = 1; step < ELEMENTS_COUNT; step <<= 1)
+		for (uint subStep = step; subStep != 0; subStep >>= 1)
 		{
-			index0 = (index * 2) - (index & (subStep - 1));
-			index1 = index0 + subStep;
-
-			float key0 = scratch[index0];
-			float key1 = scratch[index1];
-
-			if ((key0 > key1) != reverse) // swap
+			[unroll]
+			for (uint i = 0; i < ITERATIONS_COUNT; ++i)
 			{
-				scratch[index0] = key1;
-				scratch[index1] = key0;
+				uint index = ITERATION_INDEX(id,i);
+				uint lsb = index & (subStep - 1);
+				uint index0 = (2 * index) - lsb;
+				uint index1 = index0 + subStep;
+#if USE_ALTERNATE_BITONIC_NETWORK
+				if (subStep == step)
+					index1 += step - (2 * lsb) - 1;
+#endif
+
+				float key0 = scratch[LDS_INDEX(index0)];
+				float key1 = scratch[LDS_INDEX(index1)];
+
+#if USE_ALTERNATE_BITONIC_NETWORK
+				bool reverse = false;
+#else
+				bool reverse = index & step;
+#endif
+				if ((key0 > key1) != reverse) // swap
+				{
+					scratch[LDS_INDEX(index0)] = key1;
+					scratch[LDS_INDEX(index1)] = key0;
+				}
 			}
 
 			GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
 		}
-	}
 
 	// Store sorted data from LDS to memory
-	sortedSequence[id.x * 2] = scratch[index0];
-	sortedSequence[id.x * 2 + 1] = scratch[index1];
+	[unroll]
+	for (uint i = 0; i < ITERATIONS_COUNT; ++i)
+	{
+		uint ldsIndex = ITERATION_INDEX(id,i);
+		uint memIndex = DST_INDEX(groupId.x, ldsIndex);
+		StoreToMemory(memIndex * 2, ldsIndex * 2, 2);
+	}
 }

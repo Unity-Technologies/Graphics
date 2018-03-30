@@ -460,8 +460,8 @@ MonoBehaviour:
   sortShader: {fileID: 7200000, guid: ea257ca3cfb12a642a5025e612af6b2a, type: 3}
   inputMat: {fileID: 2100000, guid: 239691eaab552b14889ab3677d859674, type: 2}
   sortedMat: {fileID: 2100000, guid: 86478a934c384f54a8b7cb28520e0acd, type: 2}
-  kElementCount: 512
-  kGroupCount: 512
+  kElementCount: 1024
+  kGroupCount: 256
 --- !u!4 &1829918322
 Transform:
   m_ObjectHideFlags: 0

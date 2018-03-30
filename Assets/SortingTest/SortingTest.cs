@@ -41,6 +41,7 @@ public class SortingTest : MonoBehaviour
 
     private void InitBuffer()
     {
+        Random.InitState(123456);
         var data = new float[kCount];
         for (int i = 0; i < kCount; ++i)
             data[i] = Random.value;
@@ -57,6 +58,7 @@ public class SortingTest : MonoBehaviour
         // sort
         sortShader.SetBuffer(sortKernel, "inputSequence", inputBuffer);
         sortShader.SetBuffer(sortKernel, "sortedSequence", sortedBuffer);
+        sortShader.SetInt("elementCount", kCount);
         sortShader.Dispatch(sortKernel, kGroupCount, 1, 1);
     }
 }
