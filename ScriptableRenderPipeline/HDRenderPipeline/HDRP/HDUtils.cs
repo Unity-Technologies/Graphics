@@ -210,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void BlitTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBiasSrc, Vector4 scaleBiasDst, float srcMipLevel, int dstMipLevel, bool bilinear)
+        public static void BlitTexture(CommandBuffer cmd, Texture source, RTHandle destination, Vector4 scaleBiasSrc, Vector4 scaleBiasDst, float srcMipLevel, int dstMipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasSrc, scaleBiasSrc);

@@ -29,7 +29,7 @@
         {
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID) * float4(_BlitScaleBiasDst.xy, 1, 1) + float4(_BlitScaleBiasDst.zw, 0, 0);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * float4(_BlitScaleBiasSrc.xy, 1, 1) + float4(_BlitScaleBiasSrc.zw, 0, 0);
+            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBiasSrc.xy + _BlitScaleBiasSrc.zw;
             return output;
         }
 

@@ -113,6 +113,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static public int m_DecalsVisibleThisFrame = 0;
 
+        private Texture2DAtlas m_Atlas = null;
+
+        public Texture2DAtlas Atlas
+        {
+            get
+            {
+                if (m_Atlas == null)
+                {
+                    m_Atlas = new Texture2DAtlas(4096, 4096, RenderTextureFormat.ARGB32);
+                }
+                return m_Atlas;
+            }
+        }
+
         private class DecalSet
         {
             private void InitializeMaterialValues()
@@ -361,7 +375,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_DiffuseTexIndex = (m_DiffuseTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_DiffuseTexture) : -1;
                 m_NormalTexIndex = (m_NormalTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_NormalTexture) : -1;
-                m_MaskTexIndex = (m_MaskTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_MaskTexture) : -1;             
+                m_MaskTexIndex = (m_MaskTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_MaskTexture) : -1;
+
+                if (m_DiffuseTexture != null)
+                {
+                    instance.Atlas.AddTexture(cmd, m_DiffuseTexture);
+                }
             }
 
             public void RemoveFromTextureCache()
@@ -560,10 +579,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_DecalAtlas != null)
                 m_DecalAtlas.Release();
+            if (m_Atlas != null)
+                m_Atlas.Release();
             CoreUtils.Destroy(m_DecalMesh);
             // set to null so that they get recreated
             m_DecalAtlas = null;
             m_DecalMesh = null;
+            m_Atlas = null;
         }
     }
 }
