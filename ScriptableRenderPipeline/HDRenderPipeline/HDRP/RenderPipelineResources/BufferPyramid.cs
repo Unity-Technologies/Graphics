@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const int k_DepthBlockSize = 4;
 
         GPUCopy m_GPUCopy;
+        TexturePadding m_TexturePadding;
         ComputeShader m_ColorPyramidCS;
 
         RTHandle m_ColorPyramidBuffer;
@@ -21,23 +22,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ComputeShader m_DepthPyramidCS;
         RTHandle m_DepthPyramidBuffer;
         List<RTHandle> m_DepthPyramidMips = new List<RTHandle>();
-        int m_DepthPyramidKernel_8;
-        int m_DepthPyramidKernel_1;
+        int[] m_DepthKernels = null;
+        int depthKernel8 { get { return m_DepthKernels[0]; } }
 
         public RTHandle colorPyramid { get { return m_ColorPyramidBuffer; } }
         public RTHandle depthPyramid { get { return m_DepthPyramidBuffer; } }
 
         public BufferPyramid(
             ComputeShader colorPyramidCS,
-            ComputeShader depthPyramidCS, GPUCopy gpuCopy)
+            ComputeShader depthPyramidCS, 
+            GPUCopy gpuCopy,
+            TexturePadding texturePadding
+        )
         {
             m_ColorPyramidCS = colorPyramidCS;
             m_ColorPyramidKernel = m_ColorPyramidCS.FindKernel("KMain");
 
             m_DepthPyramidCS = depthPyramidCS;
             m_GPUCopy = gpuCopy;
-            m_DepthPyramidKernel_8 = m_DepthPyramidCS.FindKernel("KMain_8");
-            m_DepthPyramidKernel_1 = m_DepthPyramidCS.FindKernel("KMain_1");
+            m_DepthKernels = new int[]
+            {
+                m_DepthPyramidCS.FindKernel("KDepthDownSample8"),
+                m_DepthPyramidCS.FindKernel("KDepthDownSample2_0"),
+                m_DepthPyramidCS.FindKernel("KDepthDownSample2_1"),
+                m_DepthPyramidCS.FindKernel("KDepthDownSample2_2"),
+                m_DepthPyramidCS.FindKernel("KDepthDownSample2_3"),
+            };
+
+            m_TexturePadding = texturePadding;
+        }
+
+        int GetDepthKernel2(int pattern)
+        {
+            return m_DepthKernels[pattern + 1];
         }
 
         float GetXRscale()
@@ -121,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, lodCount, 0.0f));
 
-            m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidBuffer, new Vector2(hdCamera.actualWidth, hdCamera.actualHeight));
+            m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidBuffer, new RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight));
 
             Vector2 scale = GetPyramidToScreenScale(hdCamera);
 
@@ -130,33 +147,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RTHandle dest = m_DepthPyramidMips[i];
 
-                var srcMipWidth = hdCamera.actualWidth >> i;
-                var srcMipHeight = hdCamera.actualHeight >> i;
-                var dstMipWidth = srcMipWidth >> 1;
-                var dstMipHeight = srcMipHeight >> 1;
+                var srcMip = new RectInt(0, 0, hdCamera.actualWidth >> i, hdCamera.actualHeight >> i);
+                var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
 
-                var kernel = m_DepthPyramidKernel_8;
-                var kernelBlockSize = 8f;
-                if (dstMipWidth < 4 * k_DepthBlockSize
-                    || dstMipHeight < 4 * k_DepthBlockSize)
+                var kernel = GetDepthKernel2(0);
+                var kernelSize = 1;
+                var srcWorkMip = srcMip;
+                var dstWorkMip = dstMip;
+
+                if (dstWorkMip.width >= 8 && dstWorkMip.height >= 8)
                 {
-                    kernel = m_DepthPyramidKernel_1;
-                    kernelBlockSize = 1;
+                    srcWorkMip.width = Mathf.CeilToInt(srcWorkMip.width / 16.0f) * 16;
+                    srcWorkMip.height = Mathf.CeilToInt(srcWorkMip.height / 16.0f) * 16;
+                    dstWorkMip.width = srcWorkMip.width >> 1;
+                    dstWorkMip.height = srcWorkMip.height >> 1;
+
+                    m_TexturePadding.Pad(cmd, src, srcMip, srcWorkMip);
+                    kernel = depthKernel8;
+                    kernelSize = 8;
+                }
+                else
+                {
+                    m_TexturePadding.Pad(cmd, src, srcMip, new RectInt(0, 0, src.rt.width, src.rt.height));
                 }
 
                 cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Source, src);
                 cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Result, dest);
-                cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(srcMipWidth, srcMipHeight, (1.0f / srcMipWidth) * scale.x, (1.0f / srcMipHeight) * scale.y));
+                cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(
+                    srcWorkMip.width, srcWorkMip.height, 
+                    (1.0f / srcWorkMip.width) * scale.x, (1.0f / srcWorkMip.height) * scale.y)
+                );
 
                 cmd.DispatchCompute(
                     m_DepthPyramidCS,
                     kernel,
-                    Mathf.CeilToInt(dstMipWidth / kernelBlockSize),
-                    Mathf.CeilToInt(dstMipHeight / kernelBlockSize),
-                    1);
+                    Mathf.CeilToInt(dstWorkMip.width / (float)kernelSize),
+                    Mathf.CeilToInt(dstWorkMip.height / (float)kernelSize),
+                    1
+                );
+
+                var dstMipWidthToCopy = Mathf.Min(dest.rt.width, dstWorkMip.width);
+                var dstMipHeightToCopy = Mathf.Min(dest.rt.height, dstWorkMip.height);
 
                 // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
-                cmd.CopyTexture(m_DepthPyramidMips[i], 0, 0, 0, 0, dstMipWidth, dstMipHeight, m_DepthPyramidBuffer, 0, i + 1, 0, 0);
+                cmd.CopyTexture(m_DepthPyramidMips[i], 0, 0, 0, 0, dstMipWidthToCopy, dstMipHeightToCopy, m_DepthPyramidBuffer, 0, i + 1, 0, 0);
                 src = dest;
             }
 
