@@ -14,7 +14,13 @@ Shader "Unlit/BufferDisplay"
 
             #include "UnityCG.cginc"
 
-            Buffer<float> buffer;
+            struct KVP
+            {
+                float key;
+                uint value;
+            };
+
+            StructuredBuffer<KVP> buffer;
             int elementCount;
             int groupCount;
 
@@ -43,7 +49,7 @@ Shader "Unlit/BufferDisplay"
                 // sample the buffer
                 uint x = (uint)(i.uv.x * elementCount);
                 uint y = (uint)(i.uv.y * groupCount);
-                float lum = buffer[y * elementCount + x];
+                float lum = buffer[y * elementCount + x].key;
                 //lum = pow(lum, 2.2f); // gamma correction
                 return float4(lum.xxx, 1.0);
             }

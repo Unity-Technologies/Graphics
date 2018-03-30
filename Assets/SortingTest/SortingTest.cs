@@ -25,8 +25,8 @@ public class SortingTest : MonoBehaviour
         if (sortShader != null)
             sortKernel = sortShader.FindKernel("BitonicSort");
 
-        inputBuffer = new ComputeBuffer(kCount, 4);
-        sortedBuffer = new ComputeBuffer(kCount, 4);
+        inputBuffer = new ComputeBuffer(kCount, 8);
+        sortedBuffer = new ComputeBuffer(kCount, 8);
 
         InitBuffer();
 
@@ -39,12 +39,23 @@ public class SortingTest : MonoBehaviour
         sortedMat.SetInt("groupCount", kGroupCount);
     }
 
+    private struct KVP
+    {
+        public float key;
+        public uint value;
+    }
+
     private void InitBuffer()
     {
         Random.InitState(123456);
-        var data = new float[kCount];
-        for (int i = 0; i < kCount; ++i)
-            data[i] = Random.value;
+        var data = new KVP[kCount];
+        for (uint i = 0; i < kCount; ++i)
+        {
+            KVP kvp;
+            kvp.key = Random.value;
+            kvp.value = i;
+            data[i] = kvp;
+        }
 
         inputBuffer.SetData(data);
     }

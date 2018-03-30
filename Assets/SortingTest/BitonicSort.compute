@@ -15,23 +15,42 @@
 // see https://en.wikipedia.org/wiki/Bitonic_sorter 
 #define USE_ALTERNATE_BITONIC_NETWORK 0
 
+// For final step we dont need to output key/value pairs but only sorted values
+#define FINAL_STEP 0
+
 #define THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
 
 #if LDS_PADDING_PERIOD
-#define SCRATCH_SIZE ELEMENTS_COUNT + ELEMENTS_COUNT / LDS_PADDING_PERIOD
+#define HALF_SCRATCH_SIZE (ELEMENTS_COUNT + ELEMENTS_COUNT / LDS_PADDING_PERIOD)
 #define LDS_INDEX(index) ((index) + (index) / LDS_PADDING_PERIOD)
 #else
-#define SCRATCH_SIZE ELEMENTS_COUNT
+#define HALF_SCRATCH_SIZE ELEMENTS_COUNT
 #define LDS_INDEX(index) (index)
 #endif
 
-// TODO Test contiguous access for iterations instead of scattered
+#define LDS_VALUES_OFFSET HALF_SCRATCH_SIZE //((HALF_SCRATCH_SIZE + 31) & ~32)
+#define SCRATCH_SIZE (HALF_SCRATCH_SIZE << 1)
+
+// TODO Test other accesses pattern for iterations
 #define ITERATION_INDEX(id,it) ((it) * THREADS_COUNT + (id))
 #define DST_INDEX(groupId,threadId) (groupId * THREADS_COUNT * ITERATIONS_COUNT + threadId)
 
-Buffer<float> inputSequence;
-RWBuffer<float> sortedSequence;
+struct KVP
+{
+	float key;
+	uint value;
+};
 
+StructuredBuffer<KVP> inputSequence;
+#if FINAL_STEP
+RWStructuredBuffer<uint> sortedSequence;
+#else
+RWStructuredBuffer<KVP> sortedSequence;
+#endif
+
+// Layout of the scratch memory is as follows:
+// First all keys (potentially padded by a DWORD every LDS_PADDING_PERIOD
+// Then all values with the same padding pattern
 groupshared float scratch[SCRATCH_SIZE];
 
 uint elementCount;
@@ -40,10 +59,15 @@ void LoadFromMemory(uint ldsIndex,uint memIndex,uint size)
 {
 	[unroll]
 	for (uint i = 0; i < size; ++i)
+	{
+		KVP kvp = { asfloat(0x7f7fffff), 0 }; // MAX_FLOAT
 		if (memIndex + i < elementCount)
-			scratch[LDS_INDEX(ldsIndex + i)] = inputSequence[memIndex + i];
-		else
-			scratch[LDS_INDEX(ldsIndex + i)] = asfloat(0x7f7fffff); // MAX_FLOAT
+			kvp = inputSequence[memIndex + i];
+
+		uint paddedLdsIndex = LDS_INDEX(ldsIndex + i);
+		scratch[paddedLdsIndex] = kvp.key;
+		scratch[paddedLdsIndex + LDS_VALUES_OFFSET] = asfloat(kvp.value);
+	}
 }
 
 void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
@@ -51,7 +75,17 @@ void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
 	[unroll]
 	for (uint i = 0; i < size; ++i)
 		if (memIndex + i < elementCount)
-			sortedSequence[memIndex + i] = scratch[LDS_INDEX(ldsIndex + i)];
+		{
+			uint paddedLdsIndex = LDS_INDEX(ldsIndex + i);
+			uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
+#if FINAL_STEP
+			sortedSequence[memIndex + i] = value;
+#else
+			float key = scratch[paddedLdsIndex];
+			KVP kvp = { key, value };
+			sortedSequence[memIndex + i] = kvp;
+#endif
+		}
 }
 
 [numthreads(THREADS_COUNT,1,1)]
@@ -87,18 +121,27 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 					index1 += step - (2 * lsb) - 1;
 #endif
 
-				float key0 = scratch[LDS_INDEX(index0)];
-				float key1 = scratch[LDS_INDEX(index1)];
+				uint ldsIndex0 = LDS_INDEX(index0);
+				uint ldsIndex1 = LDS_INDEX(index1);
+
+				float key0 = scratch[ldsIndex0];
+				float key1 = scratch[ldsIndex1];
 
 #if USE_ALTERNATE_BITONIC_NETWORK
 				bool reverse = false;
 #else
 				bool reverse = index & step;
 #endif
-				if ((key0 > key1) != reverse) // swap
+				if ((key0 > key1) != reverse)
 				{
-					scratch[LDS_INDEX(index0)] = key1;
-					scratch[LDS_INDEX(index1)] = key0;
+					// swap keys
+					scratch[ldsIndex0] = key1;
+					scratch[ldsIndex1] = key0;
+
+					// swap values
+					float value0 = scratch[ldsIndex0 + LDS_VALUES_OFFSET];
+					scratch[ldsIndex0 + LDS_VALUES_OFFSET] = scratch[ldsIndex1 + LDS_VALUES_OFFSET];
+					scratch[ldsIndex1 + LDS_VALUES_OFFSET] = value0;
 				}
 			}
 
