@@ -2440,8 +2440,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else // Pixel shader evaluation
                 {
                     int index = GetDeferredLightingMaterialIndex(   options.outputSplitLighting ? 1 : 0,
-                                                                            m_FrameSettings.lightLoopSettings.enableTileAndCluster ? 1 : 0,
-                                                                            m_enableBakeShadowMask ? 1 : 0,
+                                                                    m_FrameSettings.lightLoopSettings.enableTileAndCluster ? 1 : 0,
+                                                                    m_enableBakeShadowMask ? 1 : 0,
                                                                     debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0);
 
                     Material currentLightingMaterial = m_deferredLightingMaterial[index];
