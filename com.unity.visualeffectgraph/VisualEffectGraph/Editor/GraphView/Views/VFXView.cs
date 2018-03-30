@@ -652,7 +652,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var element in rootNodes.Values.ToArray())
                 {
-                    RemoveElement(element);
+                    SafeRemoveElement(element);
                 }
                 rootNodes.Clear();
             }
@@ -666,7 +666,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var deletedController in deletedControllers)
                 {
-                    RemoveElement(rootNodes[deletedController]);
+                    SafeRemoveElement(rootNodes[deletedController]);
                     rootNodes.Remove(deletedController);
                     changed = true;
                 }
@@ -776,7 +776,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var kv in stickyNotes)
                 {
-                    RemoveElement(kv.Value);
+                    SafeRemoveElement(kv.Value);
                 }
             }
             else
@@ -785,7 +785,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var deletedController in deletedControllers)
                 {
-                    RemoveElement(stickyNotes[deletedController]);
+                    SafeRemoveElement(stickyNotes[deletedController]);
                 }
 
                 foreach (var newController in controller.stickyNotes.Except(stickyNotes.Keys))
@@ -795,6 +795,16 @@ namespace UnityEditor.VFX.UI
                     AddElement(newElement);
                 }
             }
+        }
+
+
+        public void SafeRemoveElement(GraphElement element)
+        {
+            VFXGroupNode.inRemoveElement = true;
+
+            RemoveElement(element);
+
+            VFXGroupNode.inRemoveElement = false;
         }
 
         void SyncEdges(int change)

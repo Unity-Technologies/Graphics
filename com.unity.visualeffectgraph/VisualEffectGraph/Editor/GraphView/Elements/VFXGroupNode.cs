@@ -64,7 +64,7 @@ namespace UnityEditor.VFX.UI
                 if (view == null) return;
 
 
-                m_ModificationFromPresenter = true;
+                m_ModificationFromController = true;
                 title = controller.title;
 
 
@@ -102,15 +102,17 @@ namespace UnityEditor.VFX.UI
                     UpdateGeometryFromContent();
                 }
 
-                m_ModificationFromPresenter = false;
+                m_ModificationFromController = false;
             }
         }
 
-        bool m_ModificationFromPresenter;
+        bool m_ModificationFromController;
+
+        public static bool inRemoveElement{get;set;}
 
         public void ElementAddedToGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController)
             {
                 ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
 
@@ -129,7 +131,7 @@ namespace UnityEditor.VFX.UI
 
         public void ElementRemovedFromGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController && ! inRemoveElement)
             {
                 ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
                 if (node != null)
@@ -147,7 +149,7 @@ namespace UnityEditor.VFX.UI
 
         public void GroupNodeTitleChanged(string title)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController)
             {
                 controller.title = title;
             }
