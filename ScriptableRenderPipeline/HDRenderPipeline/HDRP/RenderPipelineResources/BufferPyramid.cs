@@ -212,25 +212,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RTHandle dest = m_ColorPyramidMips[i];
 
-                var srcMipWidth = hdCamera.actualWidth >> i;
-                var srcMipHeight = hdCamera.actualHeight >> i;
-                var dstMipWidth = srcMipWidth >> 1;
-                var dstMipHeight = srcMipHeight >> 1;
+                var srcMip = new RectInt(0, 0, hdCamera.actualWidth >> i, hdCamera.actualHeight >> i);
+                var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
+                var srcWorkMip = new RectInt(
+                    0, 
+                    0, 
+                    Mathf.CeilToInt(srcMip.width / 16.0f) * 16,
+                    Mathf.CeilToInt(srcMip.height / 16.0f) * 16
+                );
+                var dstWorkMip = new RectInt(0, 0, srcWorkMip.width >> 1, srcWorkMip.height >> 1);
+
+                m_TexturePadding.Pad(cmd, src, srcMip, srcWorkMip);
 
                 // TODO: Add proper stereo support to the compute job
 
                 cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Source, src);
                 cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Result, dest);
                 // _Size is used as a scale inside the whole render target so here we need to keep the full size (and not the scaled size depending on the current camera)
-                cmd.SetComputeVectorParam(m_ColorPyramidCS, _Size, new Vector4(dest.rt.width, dest.rt.height, 1f / dest.rt.width, 1f / dest.rt.height));
+                cmd.SetComputeVectorParam(
+                    m_ColorPyramidCS, 
+                    _Size, 
+                    new Vector4(dest.rt.width, dest.rt.height, 1f / dest.rt.width, 1f / dest.rt.height)
+                );
                 cmd.DispatchCompute(
                     m_ColorPyramidCS,
                     m_ColorPyramidKernel,
-                    Mathf.CeilToInt(dstMipWidth / 8f),
-                    Mathf.CeilToInt(dstMipHeight / 8f),
-                    1);
+                    dstWorkMip.width / 8,
+                    dstWorkMip.height / 8,
+                    1
+                );
+
+                var dstMipWidthToCopy = Mathf.Min(dest.rt.width, dstWorkMip.width);
+                var dstMipHeightToCopy = Mathf.Min(dest.rt.height, dstWorkMip.height);
+
                 // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
-                cmd.CopyTexture(m_ColorPyramidMips[i], 0, 0, 0, 0, dstMipWidth, dstMipHeight, m_ColorPyramidBuffer, 0, i + 1, 0, 0);
+                cmd.CopyTexture(
+                    m_ColorPyramidMips[i], 
+                    0, 0, 0, 0, 
+                    dstMipWidthToCopy, dstMipHeightToCopy, m_ColorPyramidBuffer, 0, i + 1, 0, 0
+                );
 
                 src = dest;
             }
