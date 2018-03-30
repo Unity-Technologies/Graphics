@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.VFX.Utility
     [VFXBinder("Utility/Velocity")]
     public class VFXVelocityBinder : VFXBinderBase
     {
-        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value;} }
+        public string Parameter { get { return (string)m_Parameter; } set { m_Parameter = value; } }
 
         [VFXParameterBinding("UnityEngine.Vector3"), SerializeField]
         public ExposedParameter m_Parameter = "Velocity";

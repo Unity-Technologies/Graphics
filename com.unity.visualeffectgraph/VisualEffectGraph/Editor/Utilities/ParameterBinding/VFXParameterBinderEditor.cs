@@ -82,7 +82,7 @@ public class VFXParameterBinderEditor : Editor
                     {
                         var parameter = property.FindPropertyRelative("m_Name");
                         string parm = parameter.stringValue;
-                        parm = EditorGUILayout.TextField( ObjectNames.NicifyVariableName(property.name), parm);
+                        parm = EditorGUILayout.TextField(ObjectNames.NicifyVariableName(property.name), parm);
 
                         if (parm != parameter.stringValue)
                         {

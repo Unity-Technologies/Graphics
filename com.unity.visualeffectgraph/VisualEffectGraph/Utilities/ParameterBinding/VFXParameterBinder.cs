@@ -50,18 +50,19 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public void RemoveParameterBinder(VFXBinderBase binder)
         {
-            if(binder.gameObject == this.gameObject) Destroy(binder);
+            if (binder.gameObject == this.gameObject) Destroy(binder);
         }
+
         public void RemoveParameterBinders<T>() where T : VFXBinderBase
         {
             var allBinders = GetComponents<VFXBinderBase>();
             foreach (var binder in allBinders)
-                if(binder is T) Destroy(binder);
+                if (binder is T) Destroy(binder);
         }
 
-        public IEnumerable<T> GetParameterBinders<T>() where T: VFXBinderBase
+        public IEnumerable<T> GetParameterBinders<T>() where T : VFXBinderBase
         {
-            foreach(var binding in m_Bindings)
+            foreach (var binding in m_Bindings)
             {
                 if (binding is T) yield return binding as T;
             }

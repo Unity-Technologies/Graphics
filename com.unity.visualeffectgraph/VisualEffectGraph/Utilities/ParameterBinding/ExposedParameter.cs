@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.VFX.Utility
         [SerializeField]
         private int m_Id;
 
-        public static implicit operator ExposedParameter (string name)
+        public static implicit operator ExposedParameter(string name)
         {
             return new ExposedParameter(name);
         }
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.VFX.Utility
             return parameter.m_Id;
         }
 
-        public static ExposedParameter operator + (ExposedParameter self, ExposedParameter other)
+        public static ExposedParameter operator+(ExposedParameter self, ExposedParameter other)
         {
             return new ExposedParameter(self.m_Name + other.m_Name);
         }
@@ -49,8 +49,5 @@ namespace UnityEngine.Experimental.VFX.Utility
         {
             return m_Name;
         }
-
     }
 }
-
-
