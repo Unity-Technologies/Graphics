@@ -401,7 +401,7 @@ namespace UnityEditor.VFX
 
                 var parameters = block.attributes.Select(o =>
                     {
-                        return new
+                        return new VFXShaderWriter.Parameter
                         {
                             name = o.attrib.name,
                             expression = new VFXAttributeExpression(o.attrib) as VFXExpression,
@@ -414,7 +414,7 @@ namespace UnityEditor.VFX
                     var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
                     if (VFXExpression.IsTypeValidOnGPU(expReduced.valueType))
                     {
-                        parameters.Add(new
+                        parameters.Add(new VFXShaderWriter.Parameter
                         {
                             name = parameter.name,
                             expression = expReduced,
@@ -431,9 +431,7 @@ namespace UnityEditor.VFX
                     blockFunction.WriteBlockFunction(contextData.gpuMapper,
                         methodName,
                         block.source,
-                        parameters.Select(o => o.expression).ToArray(),
-                        parameters.Select(o => o.name).ToArray(),
-                        parameters.Select(o => o.mode).ToArray(),
+                        parameters,
                         commentMethod);
                 }
 
@@ -463,9 +461,7 @@ namespace UnityEditor.VFX
                 }
 
                 blockCallFunction.WriteCallFunction(methodName,
-                    parameters.Select(o => o.expression).ToArray(),
-                    parameters.Select(o => o.name).ToArray(),
-                    parameters.Select(o => o.mode).ToArray(),
+                    parameters,
                     contextData.gpuMapper,
                     expressionToNameLocal);
 
