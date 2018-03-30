@@ -759,7 +759,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #ifndef _DISABLE_DBUFFER
-    AddDecalContribution(posInput, surfaceData);
+    AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
 #if defined(DEBUG_DISPLAY)
