@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    class BufferPyramidProcessor
+    public class BufferPyramidProcessor
     {
         static readonly int _Size = Shader.PropertyToID("_Size");
         static readonly int _Source = Shader.PropertyToID("_Source");
@@ -20,6 +21,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int[] m_DepthKernels = null;
         int depthKernel8 { get { return m_DepthKernels[0]; } }
         int depthKernel1 { get { return m_DepthKernels[1]; } }
+
+        List<RenderTexture> m_RenderColorPyramid_CastTmp = new List<RenderTexture>();
 
         public BufferPyramidProcessor(
             ComputeShader colorPyramidCS,
@@ -122,34 +125,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Other BlitCameraTexture version will setup the viewport based on the destination RT scale (square here) so we need override it here.
             HDUtils.BlitCameraTexture(cmd, hdCamera, sourceTexture, targetTexture, new Rect(0.0f, 0.0f, hdCamera.actualWidth, hdCamera.actualHeight));
 
+            m_RenderColorPyramid_CastTmp.Clear();
+            for (var i = 0 ; i < mips.Count; ++i)
+                m_RenderColorPyramid_CastTmp.Add(mips[i]);
             RenderColorPyramidMips(
-                hdCamera.actualWidth, hdCamera.actualHeight,
+                new RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight),
                 cmd,
-                sourceTexture,
                 targetTexture,
-                mips,
+                m_RenderColorPyramid_CastTmp,
                 lodCount,
                 scale
             );
         }
 
         public void RenderColorPyramid(
-            int width, int height,
+            RectInt srcRect,
             CommandBuffer cmd, 
-            RTHandle sourceTexture,
-            RTHandle targetTexture,
-            List<RTHandle> mips,
-            int lodCount,
-            Vector2 scale
+            Texture sourceTexture,
+            RenderTexture targetTexture,
+            List<RenderTexture> mips,
+            int lodCount
         )
         {
-            // Copy mip 0
-            HDUtils.BlitTexture(cmd, sourceTexture, targetTexture, scale, 0, false);
+            Assert.AreEqual(0, srcRect.x, "Offset are not supported");
+            Assert.AreEqual(0, srcRect.y, "Offset are not supported");
+            Assert.IsTrue(srcRect.width > 0);
+            Assert.IsTrue(srcRect.height > 0);
+
+            var scale = new Vector2(
+                sourceTexture.width / (float)srcRect.width,
+                sourceTexture.height / (float)srcRect.height
+            );
+
+            cmd.Blit(sourceTexture, targetTexture, scale, Vector2.zero);
 
             RenderColorPyramidMips(
-                width, height,
+                srcRect,
                 cmd,
-                sourceTexture,
                 targetTexture,
                 mips,
                 lodCount,
@@ -158,21 +170,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void RenderColorPyramidMips(
-            int width, int height,
+            RectInt srcRect,
             CommandBuffer cmd, 
-            RTHandle sourceTexture,
-            RTHandle targetTexture,
-            List<RTHandle> mips,
+            RenderTexture targetTexture,
+            List<RenderTexture> mips,
             int lodCount,
             Vector2 scale
         )
         {
-            RTHandle src = targetTexture;
+            Assert.AreEqual(0, srcRect.x, "Offset are not supported");
+            Assert.AreEqual(0, srcRect.y, "Offset are not supported");
+            Assert.IsTrue(srcRect.width > 0);
+            Assert.IsTrue(srcRect.height > 0);
+
+            var src = targetTexture;
             for (var i = 0; i < lodCount; i++)
             {
-                RTHandle dest = mips[i];
+                var dest = mips[i];
 
-                var srcMip = new RectInt(0, 0, width >> i, height >> i);
+                var srcMip = new RectInt(0, 0, srcRect.width >> i, srcRect.height >> i);
                 var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
                 var srcWorkMip = new RectInt(
                     0, 
@@ -192,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(
                     m_ColorPyramidCS, 
                     _Size, 
-                    new Vector4(dest.rt.width, dest.rt.height, 1f / dest.rt.width, 1f / dest.rt.height)
+                    new Vector4(dest.width, dest.height, 1f / dest.width, 1f / dest.height)
                 );
                 cmd.DispatchCompute(
                     m_ColorPyramidCS,
@@ -202,8 +218,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     1
                 );
 
-                var dstMipWidthToCopy = Mathf.Min(dest.rt.width, dstWorkMip.width);
-                var dstMipHeightToCopy = Mathf.Min(dest.rt.height, dstWorkMip.height);
+                var dstMipWidthToCopy = Mathf.Min(dest.width, dstWorkMip.width);
+                var dstMipHeightToCopy = Mathf.Min(dest.height, dstWorkMip.height);
 
                 // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
                 cmd.CopyTexture(

@@ -16,19 +16,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         BufferPyramidProcessor m_Processor;
 
-        public BufferPyramid(
-            ComputeShader colorPyramidCS,
-            ComputeShader depthPyramidCS, 
-            GPUCopy gpuCopy,
-            TexturePadding texturePadding
-        )
+        public BufferPyramid(BufferPyramidProcessor processor)
         {
-            m_Processor = new BufferPyramidProcessor(
-                colorPyramidCS,
-                depthPyramidCS,
-                gpuCopy,
-                texturePadding
-            );
+            m_Processor = processor;
         }
 
         float GetXRscale()
