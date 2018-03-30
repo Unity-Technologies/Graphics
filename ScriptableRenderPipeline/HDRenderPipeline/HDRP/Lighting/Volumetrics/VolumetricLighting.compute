@@ -35,6 +35,7 @@
 //--------------------------------------------------------------------------------------------------
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Color.hlsl"
 #include "CoreRP/ShaderLibrary/Filtering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
@@ -260,8 +261,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float3 L             = -lightToSample * distRcp;
 
                     float3 color; float attenuation;
-                    EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
-                                           distances, color, attenuation);
+                    EvaluateLight_Punctual(context, posInput, light, unused, 1,
+                                           0, L, lightToSample, distances, color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the stratified versions
@@ -348,8 +349,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float4 distances     = float4(1, 1, 1, distProj);
 
                     float3 color; float attenuation;
-                    EvaluateLight_Punctual(context, posInput, light, unused, 0, L, lightToSample,
-                                           distances, color, attenuation);
+                    EvaluateLight_Punctual(context, posInput, light, unused, extinction,
+                                           0, L, lightToSample, distances, color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the stratified versions
@@ -482,13 +483,14 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                                    #endif
     #if ENABLE_REPROJECTION
         // Reproject the history at 'centerWS'.
-        float2 reprojPosNDC = ComputeNormalizedDeviceCoordinates(centerWS, _PrevViewProjMatrix);
-        float  reprojZ      = mul(_PrevViewProjMatrix, float4(centerWS, 1)).w;
-        float4 reprojValue  = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_trilinear_clamp_sampler), false,
-                                            reprojPosNDC, reprojZ,
-                                            _VBufferSliceCount.xy,
-                                            _VBufferDepthEncodingParams,
-                                            _VBufferDepthDecodingParams);
+        float4 reprojValue = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_linear_clamp_sampler),
+                                           centerWS,
+                                           _PrevViewProjMatrix,
+                                           _VBufferResolution,
+                                           _VBufferSliceCount.xy,
+                                           _VBufferDepthEncodingParams,
+                                           _VBufferDepthDecodingParams,
+                                           false, false, true);
 
         // Compute the exponential moving average over 'n' frames:
         // X = (1 - a) * ValueAtFrame[n] + a * AverageOverPreviousFrames.
