@@ -11,29 +11,32 @@ namespace UnityEditor.VFX.UI
 {
     class VFXStickyNoteController : VFXUIController<VFXUI.StickyNoteInfo>
     {
-        public VFXStickyNoteController(VFXViewController viewController, VFXUI ui, int index) : base(viewController,ui,index)
+        public VFXStickyNoteController(VFXViewController viewController, VFXUI ui, int index) : base(viewController, ui, index)
         {
         }
+
         public string contents
         {
-            get{
-                if( m_Index < 0) return "";
+            get
+            {
+                if (m_Index < 0) return "";
 
                 return m_UI.stickyNoteInfos[m_Index].contents;
             }
             set
             {
-                if( m_Index < 0) return;
+                if (m_Index < 0) return;
 
                 m_UI.stickyNoteInfos[m_Index].contents = value;
 
                 m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
             }
         }
-        override protected VFXUI.StickyNoteInfo[] infos{get{return m_UI.stickyNoteInfos;}}
+        override protected VFXUI.StickyNoteInfo[] infos {get {return m_UI.stickyNoteInfos; }}
         public string theme
         {
-            get{
+            get
+            {
                 return m_UI.stickyNoteInfos[m_Index].theme;
             }
             set
@@ -44,7 +47,8 @@ namespace UnityEditor.VFX.UI
         }
         public string textSize
         {
-            get{
+            get
+            {
                 return m_UI.stickyNoteInfos[m_Index].textSize;
             }
             set
@@ -59,12 +63,12 @@ namespace UnityEditor.VFX.UI
     {
         public void OnMoved()
         {
-            controller.position = new Rect(style.positionLeft,style.positionTop,style.width,style.height);
+            controller.position = new Rect(style.positionLeft, style.positionTop, style.width, style.height);
         }
 
         public override void OnResized()
         {
-            controller.position = new Rect(style.positionLeft,style.positionTop,style.width,style.height);
+            controller.position = new Rect(style.positionLeft, style.positionTop, style.width, style.height);
         }
 
         Controller IControlledElement.controller
@@ -97,55 +101,56 @@ namespace UnityEditor.VFX.UI
 
         void OnUIChange(StickyNodeChangeEvent e)
         {
-            if( m_Controller == null) return;
+            if (m_Controller == null) return;
 
-            switch(e.change)
+            switch (e.change)
             {
                 case StickyNodeChangeEvent.Change.title:
                     m_Controller.title = title;
-                break;
+                    break;
                 case StickyNodeChangeEvent.Change.contents:
                     m_Controller.contents = contents;
-                break;
+                    break;
                 case StickyNodeChangeEvent.Change.theme:
                     m_Controller.theme = theme.ToString();
-                break;
+                    break;
                 case StickyNodeChangeEvent.Change.textSize:
                     m_Controller.textSize = textSize.ToString();
-                break;
+                    break;
             }
 
             e.StopPropagation();
         }
+
         void OnControllerChange(ControllerChangedEvent e)
         {
-            if( m_TitleField != null && ! m_TitleField.HasFocus())
+            if (m_TitleField != null && !m_TitleField.HasFocus())
                 title = controller.title;
-            if( m_ContentsField != null && ! m_ContentsField.HasFocus())
+            if (m_ContentsField != null && !m_ContentsField.HasFocus())
                 contents = controller.contents;
 
-            if( ! string.IsNullOrEmpty(controller.theme))
+            if (!string.IsNullOrEmpty(controller.theme))
             {
                 try
                 {
-                    theme = (Theme)System.Enum.Parse(typeof(Theme),controller.theme,true);
+                    theme = (Theme)System.Enum.Parse(typeof(Theme), controller.theme, true);
                 }
-                catch(System.ArgumentException)
+                catch (System.ArgumentException)
                 {
                     controller.theme = Theme.Classic.ToString();
                     Debug.LogError("Unknown theme name");
                 }
             }
 
-            if( ! string.IsNullOrEmpty(controller.textSize))
+            if (!string.IsNullOrEmpty(controller.textSize))
             {
                 try
                 {
-                    textSize = (TextSize)System.Enum.Parse(typeof(TextSize),controller.textSize,true);
+                    textSize = (TextSize)System.Enum.Parse(typeof(TextSize), controller.textSize, true);
                 }
-                catch(System.ArgumentException)
+                catch (System.ArgumentException)
                 {
-                    controller.theme = TextSize.small.ToString();
+                    controller.theme = TextSize.Medium.ToString();
                     Debug.LogError("Unknown text size name");
                 }
             }

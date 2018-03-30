@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
         Vector2 m_MinSize;
         Vector2 m_MaxSize;
-        
+
         Vector2 m_StartPosition;
 
         bool m_DragStarted = false;
@@ -55,10 +55,10 @@ namespace UnityEditor.VFX.UI
             if (e.button == 0 && e.clickCount == 1)
             {
                 VisualElement resizedTarget = resizedElement.parent;
-                if( resizedTarget != null )
+                if (resizedTarget != null)
                 {
                     VisualElement resizedBase = resizedTarget.parent;
-                    if(resizedBase != null)
+                    if (resizedBase != null)
                     {
                         target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
                         e.StopPropagation();
@@ -90,19 +90,19 @@ namespace UnityEditor.VFX.UI
 
             if ((direction & ResizableElement.Resizer.Right) != 0)
             {
-                resizedTarget.style.width = Mathf.Min(m_MaxSize.x,Mathf.Max(m_MinSize.x,m_StartSize.x + mousePos.x - m_StartMouse.x));
+                resizedTarget.style.width = Mathf.Min(m_MaxSize.x, Mathf.Max(m_MinSize.x, m_StartSize.x + mousePos.x - m_StartMouse.x));
             }
-            else if((direction & ResizableElement.Resizer.Left) != 0)
+            else if ((direction & ResizableElement.Resizer.Left) != 0)
             {
                 float delta = mousePos.x - m_StartMouse.x;
 
-                if( m_StartSize.x - delta < m_MinSize.x)
+                if (m_StartSize.x - delta < m_MinSize.x)
                 {
-                    delta = - m_MinSize.x + m_StartSize.x;
+                    delta = -m_MinSize.x + m_StartSize.x;
                 }
-                else if( m_StartSize.x - delta > m_MaxSize.x )
+                else if (m_StartSize.x - delta > m_MaxSize.x)
                 {
-                    delta = - m_MaxSize.x + m_StartSize.x;
+                    delta = -m_MaxSize.x + m_StartSize.x;
                 }
 
                 resizedTarget.style.positionLeft = delta + m_StartPosition.x;
@@ -110,19 +110,19 @@ namespace UnityEditor.VFX.UI
             }
             if ((direction & ResizableElement.Resizer.Bottom) != 0)
             {
-                resizedTarget.style.height = Mathf.Min(m_MaxSize.y,Mathf.Max(m_MinSize.y,m_StartSize.y + mousePos.y - m_StartMouse.y));
+                resizedTarget.style.height = Mathf.Min(m_MaxSize.y, Mathf.Max(m_MinSize.y, m_StartSize.y + mousePos.y - m_StartMouse.y));
             }
-            else if((direction & ResizableElement.Resizer.Top) != 0)
+            else if ((direction & ResizableElement.Resizer.Top) != 0)
             {
                 float delta = mousePos.y - m_StartMouse.y;
 
-                if( m_StartSize.y - delta < m_MinSize.y)
+                if (m_StartSize.y - delta < m_MinSize.y)
                 {
-                    delta = - m_MinSize.y + m_StartSize.y;
+                    delta = -m_MinSize.y + m_StartSize.y;
                 }
-                else if( m_StartSize.y - delta > m_MaxSize.y )
+                else if (m_StartSize.y - delta > m_MaxSize.y)
                 {
-                    delta = - m_MaxSize.y + m_StartSize.y;
+                    delta = -m_MaxSize.y + m_StartSize.y;
                 }
                 resizedTarget.style.positionTop = delta + m_StartPosition.y;
                 resizedTarget.style.height = -delta + m_StartSize.y;
@@ -150,43 +150,44 @@ namespace UnityEditor.VFX.UI
     }
     public class ResizableElement : VisualElement
     {
-        public ResizableElement():this(UXMLHelper.GetUXMLPath("uxml/Resizable.uxml"))
+        public ResizableElement() : this(UXMLHelper.GetUXMLPath("uxml/Resizable.uxml"))
         {
         }
+
         public ResizableElement(string uiFile)
         {
             var tpl = EditorGUIUtility.Load(uiFile) as VisualTreeAsset;
             AddStyleSheetPath("Resizable");
 
             tpl.CloneTree(this, new Dictionary<string, VisualElement>());
-            
-            foreach( Resizer value in System.Enum.GetValues(typeof(Resizer)))
+
+            foreach (Resizer value in System.Enum.GetValues(typeof(Resizer)))
             {
-                VisualElement resizer = this.Q(value.ToString().ToLower()+"-resize");
-                if( resizer != null)
-                    resizer.AddManipulator(new ElementResizer(this,value));
-                    m_Resizers[value] = resizer;
+                VisualElement resizer = this.Q(value.ToString().ToLower() + "-resize");
+                if (resizer != null)
+                    resizer.AddManipulator(new ElementResizer(this, value));
+                m_Resizers[value] = resizer;
             }
 
-            foreach(Resizer vertical in new[]{Resizer.Top,Resizer.Bottom})
-                foreach(Resizer horizontal in new[]{Resizer.Left,Resizer.Right})
+            foreach (Resizer vertical in new[] {Resizer.Top, Resizer.Bottom})
+                foreach (Resizer horizontal in new[] {Resizer.Left, Resizer.Right})
                 {
-                    VisualElement resizer = this.Q(vertical.ToString().ToLower()+"-"+horizontal.ToString().ToLower()+"-resize");
-                    if( resizer != null)
-                        resizer.AddManipulator(new ElementResizer(this,vertical|horizontal));
-                        m_Resizers[vertical|horizontal] = resizer;
+                    VisualElement resizer = this.Q(vertical.ToString().ToLower() + "-" + horizontal.ToString().ToLower() + "-resize");
+                    if (resizer != null)
+                        resizer.AddManipulator(new ElementResizer(this, vertical | horizontal));
+                    m_Resizers[vertical | horizontal] = resizer;
                 }
         }
 
         public enum Resizer
         {
-            Top =           1<<0,
-            Bottom =        1<<1,
-            Left =          1<<2,
-            Right =         1<<3,
+            Top =           1 << 0,
+            Bottom =        1 << 1,
+            Left =          1 << 2,
+            Right =         1 << 3,
         }
 
-        Dictionary<Resizer,VisualElement> m_Resizers = new Dictionary<Resizer,VisualElement>();
+        Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
     }
 
 
@@ -244,13 +245,13 @@ namespace UnityEditor.VFX.UI
 
         public enum TextSize
         {
-            small,
-            medium,
-            large,
-            huge
+            Small,
+            Medium,
+            Large,
+            Huge
         }
 
-        TextSize m_TextSize;
+        TextSize m_TextSize = TextSize.Medium;
 
         public TextSize textSize
         {
@@ -283,10 +284,10 @@ namespace UnityEditor.VFX.UI
 
         void OnFitToText(ContextualMenu.MenuAction a)
         {
-            FitText();
+            FitText(false);
         }
 
-        public void FitText()
+        public void FitText(bool onlyIfSmaller)
         {
             Vector2 preferredTitleSize = Vector2.zero;
             if (!string.IsNullOrEmpty(m_Title.text))
@@ -324,9 +325,10 @@ namespace UnityEditor.VFX.UI
 
                 height = preferredTitleSize.y + preferredContentsSize.y + extraSpace.y;
             }
-
-            style.width = width;
-            style.height = height;
+            if (!onlyIfSmaller || style.width < width)
+                style.width = width;
+            if (!onlyIfSmaller || style.height < height)
+                style.height = height;
             OnResized();
         }
 
@@ -419,15 +421,16 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target is StickyNote)
             {
-                foreach (Theme value in System.Enum.GetValues(typeof(Theme)))
+                /*foreach (Theme value in System.Enum.GetValues(typeof(Theme)))
                 {
                     evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
-                }
+                }*/
 
                 foreach (TextSize value in System.Enum.GetValues(typeof(TextSize)))
                 {
-                    evt.menu.AppendAction("Text Size/" + value.ToString(), OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
+                    evt.menu.AppendAction(value.ToString() + " Text Size", OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
                 }
+                evt.menu.AppendSeparator();
 
                 evt.menu.AppendAction("Fit To Text", OnFitToText, e => ContextualMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
@@ -499,7 +502,7 @@ namespace UnityEditor.VFX.UI
             NotifyChange(StickyNodeChangeEvent.Change.textSize);
             elementPanel.ValidateLayout();
 
-            FitText();
+            FitText(true);
         }
 
         void OnAttachToPanel(AttachToPanelEvent e)

@@ -89,7 +89,7 @@
 
 * #title.empty
 {
-    height:2;
+    height:12;
 }
 
 * #contents
