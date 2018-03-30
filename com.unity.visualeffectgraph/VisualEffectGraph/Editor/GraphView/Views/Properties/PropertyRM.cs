@@ -103,6 +103,18 @@ namespace UnityEditor.VFX.UI
                 UpdateEnabled();
             }
         }
+        public bool m_Indeterminate;
+
+        public bool indeterminate
+        {
+            get { return m_Indeterminate; }
+
+            set
+            {
+                m_Indeterminate = value;
+                UpdateIndeterminate();
+            }
+        }
 
 
         public virtual bool IsCompatible(IPropertyRMProvider provider)
@@ -136,6 +148,8 @@ namespace UnityEditor.VFX.UI
         }
 
         protected abstract void UpdateEnabled();
+
+        protected abstract void UpdateIndeterminate();
 
 
         public void ForceUpdate()
@@ -444,6 +458,10 @@ namespace UnityEditor.VFX.UI
         {
             m_Field.SetEnabled(propertyEnabled);
         }
+        protected override void UpdateIndeterminate()
+        {
+            m_Field.visible = !indeterminate;
+        }
 
         protected ValueControl<T> m_Field;
         public override void UpdateGUI(bool force)
@@ -506,6 +524,10 @@ namespace UnityEditor.VFX.UI
         {
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
         }
+        protected override void UpdateIndeterminate()
+        {
+            (m_Field as VisualElement).visible = !indeterminate;
+        }
 
         INotifyValueChanged<U> m_Field;
 
@@ -560,6 +582,10 @@ namespace UnityEditor.VFX.UI
         {
             get { return (base.field as VFXLabeledField<T, U>).control; }
         }
+        protected override void UpdateIndeterminate()
+        {
+            fieldControl.indeterminate = indeterminate;
+        }
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);
@@ -586,6 +612,9 @@ namespace UnityEditor.VFX.UI
         }
 
         protected override void UpdateEnabled()
+        {
+        }
+        protected override void UpdateIndeterminate()
         {
         }
 

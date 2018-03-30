@@ -135,6 +135,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public bool indeterminate
+        {
+            get{
+                return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
+            }
+        }
+
         public object value
         {
             get
@@ -143,13 +151,13 @@ namespace UnityEditor.VFX.UI
                 {
                     if (!editable)
                     {
-                        VFXViewController controller = m_SourceNode.viewController;
+                        VFXViewController nodeController = m_SourceNode.viewController;
 
                         try
                         {
-                            if (controller.CanGetEvaluatedContent(model))
+                            if (nodeController.CanGetEvaluatedContent(model))
                             {
-                                return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
+                                return VFXConverter.ConvertTo(nodeController.GetEvaluatedContent(model), portType);
                             }
                         }
                         catch (System.Exception e)
