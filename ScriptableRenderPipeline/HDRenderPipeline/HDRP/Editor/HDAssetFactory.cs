@@ -66,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.colorPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ColorPyramid.compute");
                 newAsset.depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/DepthPyramid.compute");
                 newAsset.copyChannelCS = Load<ComputeShader>(CorePath + "CoreResources/GPUCopy.compute");
+                newAsset.texturePaddingCS = Load<ComputeShader>(CorePath + "CoreResources/TexturePadding.compute");
                 newAsset.applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ApplyDistorsion.compute");
 
                 newAsset.clearDispatchIndirectShader = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/LightLoop/cleardispatchindirect.compute");
