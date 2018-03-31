@@ -144,6 +144,17 @@ namespace UnityEditor.VFX.UIElements
             if (!m_IgnoreNotification)
                 SetValueAndNotify(newValue);
         }
+
+        public bool indeterminate
+        {
+            get {return (m_Field as FloatField).indeterminate; }
+
+            set
+            {
+                (m_Field as FloatField).indeterminate = value;
+                m_Slider.SetEnabled(value);
+            }
+        }
     }
     class VFXIntSliderField : VFXBaseSliderField<int>
     {

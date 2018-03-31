@@ -47,7 +47,8 @@ namespace UnityEditor.VFX.UI
                     Concat(m_DataEdges.Cast<Controller>()).
                     Concat(m_FlowEdges.Cast<Controller>()).
                     Concat(m_ParameterControllers.Values.Cast<Controller>()).
-                    Concat(m_GroupNodeControllers.Cast<Controller>())
+                    Concat(m_GroupNodeControllers.Cast<Controller>()).
+                    Concat(m_StickyNoteControllers.Cast<Controller>())
                 ;
             }
         }
@@ -415,6 +416,8 @@ namespace UnityEditor.VFX.UI
                 context.UnlinkAll();
                 // Detach from graph
                 context.Detach();
+
+                RemoveFromGroupNodes(element as VFXNodeController);
             }
             else if (element is VFXBlockController)
             {
@@ -426,6 +429,7 @@ namespace UnityEditor.VFX.UI
                 var parameter = element as VFXParameterNodeController;
 
                 parameter.parentController.model.RemoveNode(parameter.infos);
+                RemoveFromGroupNodes(element as VFXNodeController);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXNodeController || element is VFXParameterController)
@@ -435,10 +439,16 @@ namespace UnityEditor.VFX.UI
                 if (element is VFXNodeController)
                 {
                     container = (element as VFXNodeController).model as IVFXSlotContainer;
+                    RemoveFromGroupNodes(element as VFXNodeController);
                 }
                 else
                 {
                     container = (element as VFXParameterController).model;
+
+                    foreach (var parameterNode in m_SyncedModels[container as VFXModel])
+                    {
+                        RemoveFromGroupNodes(parameterNode);
+                    }
                 }
 
                 VFXSlot slotToClean = null;
@@ -490,6 +500,10 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXGroupNodeController)
             {
                 RemoveGroupNode(element as VFXGroupNodeController);
+            }
+            else if (element is VFXStickyNoteController)
+            {
+                RemoveStickyNote(element as VFXStickyNoteController);
             }
             else
             {
@@ -553,6 +567,20 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
+        public void AddStickyNote(Vector2 position)
+        {
+            var ui = graph.UIInfos;
+
+            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "", position = new Rect(position, Vector2.one * 100), contents = "type something here", theme = StickyNote.Theme.Classic.ToString()};
+
+            if (ui.stickyNoteInfos != null)
+                ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(Enumerable.Repeat(stickyNoteInfo, 1)).ToArray();
+            else
+                ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[] { stickyNoteInfo };
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
         void RemoveGroupNode(VFXGroupNodeController groupNode)
         {
             var ui = graph.UIInfos;
@@ -571,13 +599,52 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-        void RemoveFromGroupNodes(VFXNodeController presenter)
+        void RemoveStickyNote(VFXStickyNoteController stickyNote)
+        {
+            var ui = graph.UIInfos;
+
+            int index = stickyNote.index;
+
+            ui.stickyNoteInfos = ui.stickyNoteInfos.Where((t, i) => i != index).ToArray();
+
+            stickyNote.Remove();
+            m_StickyNoteControllers.RemoveAt(index);
+
+            for (int i = index; i < m_StickyNoteControllers.Count; ++i)
+            {
+                m_StickyNoteControllers[i].index = index;
+            }
+
+            //Patch group nodes, removing this sticky note and fixing ids that are bigger than index
+            for (int i = 0; i < ui.groupInfos.Length; ++i)
+            {
+                for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                {
+                    if (ui.groupInfos[i].contents[j].isStickyNote)
+                    {
+                        if (ui.groupInfos[i].contents[j].id == index)
+                        {
+                            ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
+                            j--;
+                        }
+                        else if (ui.groupInfos[i].contents[j].id > index)
+                        {
+                            --(ui.groupInfos[i].contents[j].id);
+                        }
+                    }
+                }
+            }
+
+            m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
+        void RemoveFromGroupNodes(VFXNodeController node)
         {
             foreach (var groupNode in m_GroupNodeControllers)
             {
-                if (groupNode.ContainsNode(presenter))
+                if (groupNode.ContainsNode(node))
                 {
-                    groupNode.nodes = groupNode.nodes.Where(t => t != presenter).ToArray();
+                    groupNode.RemoveNode(node);
                 }
             }
         }
@@ -901,14 +968,6 @@ namespace UnityEditor.VFX.UI
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
-
-            // First trigger
-            //RecompileExpressionGraphIfNeeded();
-
-
-            // Doesn't work for some reason
-            //View.FrameAll();
-
 #if ENABLE_VIEW_3D_PRESENTER
             if (controller != null)
                 RemoveElement(controller);
@@ -931,26 +990,51 @@ namespace UnityEditor.VFX.UI
         {
             get {return m_GroupNodeControllers.AsReadOnly(); }
         }
+        public ReadOnlyCollection<VFXStickyNoteController> stickyNotes
+        {
+            get {return m_StickyNoteControllers.AsReadOnly(); }
+        }
 
         List<VFXGroupNodeController> m_GroupNodeControllers = new List<VFXGroupNodeController>();
+        List<VFXStickyNoteController> m_StickyNoteControllers = new List<VFXStickyNoteController>();
 
         public bool RecreateUI()
         {
             bool changed = false;
             var ui = graph.UIInfos;
-            if (ui != null && ui.groupInfos != null)
+            if (ui != null)
             {
-                for (int i = m_GroupNodeControllers.Count; i < ui.groupInfos.Length; ++i)
+                if (ui.groupInfos != null)
                 {
-                    VFXGroupNodeController groupNodePresenter = new VFXGroupNodeController(this, ui, i);
-                    m_GroupNodeControllers.Add(groupNodePresenter);
-                    changed = true;
-                }
+                    for (int i = m_GroupNodeControllers.Count; i < ui.groupInfos.Length; ++i)
+                    {
+                        VFXGroupNodeController groupNodeController = new VFXGroupNodeController(this, ui, i);
+                        m_GroupNodeControllers.Add(groupNodeController);
+                        changed = true;
+                    }
 
-                while (ui.groupInfos.Length < m_GroupNodeControllers.Count)
+                    while (ui.groupInfos.Length < m_GroupNodeControllers.Count)
+                    {
+                        m_GroupNodeControllers.Last().OnDisable();
+                        m_GroupNodeControllers.RemoveAt(m_GroupNodeControllers.Count - 1);
+                        changed = true;
+                    }
+                }
+                if (ui.stickyNoteInfos != null)
                 {
-                    m_GroupNodeControllers.RemoveAt(m_GroupNodeControllers.Count - 1);
-                    changed = true;
+                    for (int i = m_StickyNoteControllers.Count; i < ui.stickyNoteInfos.Length; ++i)
+                    {
+                        VFXStickyNoteController stickyNoteController = new VFXStickyNoteController(this, ui, i);
+                        m_StickyNoteControllers.Add(stickyNoteController);
+                        changed = true;
+                    }
+
+                    while (ui.stickyNoteInfos.Length < m_StickyNoteControllers.Count)
+                    {
+                        m_StickyNoteControllers.Last().OnDisable();
+                        m_StickyNoteControllers.RemoveAt(m_StickyNoteControllers.Count - 1);
+                        changed = true;
+                    }
                 }
             }
 
@@ -1127,6 +1211,11 @@ namespace UnityEditor.VFX.UI
             return controller.FirstOrDefault(t => t.id == id);
         }
 
+        public VFXStickyNoteController GetStickyNoteController(int index)
+        {
+            return m_StickyNoteControllers[index];
+        }
+
         public VFXParameterController GetParameterController(VFXParameter parameter)
         {
             VFXParameterController controller = null;
@@ -1152,7 +1241,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXUI.GroupInfo info = PrivateAddGroupNode(Vector2.zero);
 
-            info.content = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();
+            info.contents = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
