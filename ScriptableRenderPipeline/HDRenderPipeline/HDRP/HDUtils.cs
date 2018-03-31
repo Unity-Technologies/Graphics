@@ -210,21 +210,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void BlitTexture(CommandBuffer cmd, Texture source, RTHandle destination, Vector4 scaleBiasSrc, Vector4 scaleBiasDst, float srcMipLevel, int dstMipLevel, bool bilinear)
+        public static void BlitQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasSrc, scaleBiasSrc);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasDst, scaleBiasDst);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, srcMipLevel);
-            cmd.SetRenderTarget(destination, dstMipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 2 : 3, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBiasSrc, Vector4 scaleBiasDst, float mipLevel, bool bilinear)
+        public static void BlitTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasSrc, scaleBiasSrc);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasDst, scaleBiasDst);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
@@ -237,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, camera, destination);
-            BlitTexture(cmd, source, destination, camera.scaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), mipLevel, bilinear);
+            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
         }
 
         // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
@@ -245,14 +243,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, camera, destination);
-            BlitTexture(cmd, source, destination, scaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f),mipLevel, bilinear);
+            BlitTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
         }
 
         public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
         {
             SetRenderTarget(cmd, camera, destination);
             cmd.SetViewport(destViewport);
-            BlitTexture(cmd, source, destination, camera.scaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f), mipLevel, bilinear);
+            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
         }
 
         // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
@@ -268,8 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetRenderTarget(cmd, camera, destination);
 
             cmd.SetGlobalTexture(HDShaderIDs._BlitTexture, source);
-            cmd.SetGlobalVector(HDShaderIDs._BlitScaleBiasSrc, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-            cmd.SetGlobalVector(HDShaderIDs._BlitScaleBiasDst, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+            cmd.SetGlobalVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
             cmd.SetGlobalFloat(HDShaderIDs._BlitMipLevel, 0.0f);
             // Wanted to make things clean and not use SetGlobalXXX APIs but can't use MaterialPropertyBlock with RenderTargetIdentifier so YEY
             //s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);

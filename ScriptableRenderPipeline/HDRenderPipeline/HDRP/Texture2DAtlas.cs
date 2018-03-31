@@ -44,7 +44,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             float scaleW = (float)texture.width / m_Width;
             float scaleH = (float) texture.height / m_Height;
-            HDUtils.BlitTexture(cmd, texture, m_AtlasTexture, new Vector4(1,1,0,0), new Vector4(scaleW, scaleH, 0, 0), 0, 0, false);
+            for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
+            {
+                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), new Vector4(scaleW, scaleH, 0, 0), mipLevel, false);
+            }
         }
     }
 }
