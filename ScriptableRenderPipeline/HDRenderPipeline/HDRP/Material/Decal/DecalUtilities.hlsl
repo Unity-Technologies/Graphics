@@ -88,7 +88,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			if(diffuseIndex != -1)
 			{
 				ApplyBlendDiffuse(DBuffer0, mask, positionDS.xz, diffuseIndex, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lod);
-				alpha = alpha < decalBlend ? decalBlend : alpha;	// use decal alpha if it higher than transparent alpha
+				alpha = alpha < decalBlend ? decalBlend : alpha;	// use decal alpha if it is higher than transparent alpha
 			}
 
 			if(normalIndex != -1)

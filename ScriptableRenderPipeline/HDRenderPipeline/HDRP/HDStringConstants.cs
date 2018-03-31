@@ -275,9 +275,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
-        public static readonly int _BlitScaleBiasSrc = Shader.PropertyToID("_BlitScaleBiasSrc");
-        public static readonly int _BlitScaleBiasDst = Shader.PropertyToID("_BlitScaleBiasDst");
+        public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
+        public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");
