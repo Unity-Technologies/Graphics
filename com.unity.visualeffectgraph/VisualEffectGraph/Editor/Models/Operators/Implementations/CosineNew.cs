@@ -1,4 +1,3 @@
-
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math")]
@@ -19,4 +18,3 @@ namespace UnityEditor.VFX.Operator
         }
     }
 }
-

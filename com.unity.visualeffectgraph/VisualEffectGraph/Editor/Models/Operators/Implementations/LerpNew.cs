@@ -25,4 +25,3 @@ namespace UnityEditor.VFX.Operator
         }
     }
 }
-

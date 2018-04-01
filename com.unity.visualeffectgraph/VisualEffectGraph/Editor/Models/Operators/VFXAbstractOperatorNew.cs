@@ -55,13 +55,13 @@ namespace UnityEditor.VFX
         protected static IEnumerable<VFXExpression> Temp_CastToFloat(IEnumerable<VFXExpression> expressions)
         {
             return expressions.Select(o =>
-            {
-                if (o.valueType == VFXValueType.Int32)
-                    return new VFXExpressionCastIntToFloat(o) as VFXExpression;
-                if (o.valueType == VFXValueType.Uint32)
-                    return new VFXExpressionCastUintToFloat(o) as VFXExpression;
-                return o;
-            });
+                {
+                    if (o.valueType == VFXValueType.Int32)
+                        return new VFXExpressionCastIntToFloat(o) as VFXExpression;
+                    if (o.valueType == VFXValueType.Uint32)
+                        return new VFXExpressionCastUintToFloat(o) as VFXExpression;
+                    return o;
+                });
         }
 
         protected static IEnumerable<VFXExpression> Temp_CastToTarget(IEnumerable<VFXExpression> expression, IEnumerable<VFXPropertyWithValue> targetSlot)
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
 
                     m_Type = typeEnumeration.First();
                 }
-                
+
                 foreach (var property in baseInputProperties)
                 {
                     if (VFXExpression.GetVFXValueTypeFromType(property.property.type) == m_Type)
@@ -200,7 +200,6 @@ namespace UnityEditor.VFX
             var outputExpressionFixed = Temp_CastToTarget(outputExpression, outputProperties);
             SetOutputExpressions(outputExpressionFixed.ToArray());
         }
-
     }
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew
@@ -244,7 +243,7 @@ namespace UnityEditor.VFX
 
                 var itSlot = baseType.GetEnumerator();
                 var itType = m_Type.Cast<VFXValueType>().GetEnumerator();
-                while(itSlot.MoveNext() && itType.MoveNext())
+                while (itSlot.MoveNext() && itType.MoveNext())
                 {
                     if (VFXExpression.GetVFXValueTypeFromType(itSlot.Current.property.type) == itType.Current)
                         yield return itSlot.Current;
