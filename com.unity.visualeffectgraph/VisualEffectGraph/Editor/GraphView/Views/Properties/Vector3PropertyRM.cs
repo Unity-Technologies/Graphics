@@ -81,7 +81,6 @@ namespace UnityEditor.VFX.UI
             if (m_ColorField != null)
                 m_ColorField.SetEnabled(propertyEnabled);
         }
-
         protected override void UpdateIndeterminate()
         {
             m_VectorField.indeterminate = indeterminate;

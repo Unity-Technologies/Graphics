@@ -219,11 +219,12 @@ namespace UnityEditor.VFX.UI
             return field;
         }
 
+
         protected override void UpdateIndeterminate()
         {
-            if (m_TextField != null)
+            if( m_TextField != null)
                 (m_TextField as VFXFloatField).indeterminate = indeterminate;
-            if (m_Slider != null)
+            if( m_Slider != null)
                 (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }
 

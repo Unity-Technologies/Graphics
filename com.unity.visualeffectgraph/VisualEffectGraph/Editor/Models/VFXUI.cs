@@ -19,7 +19,6 @@ namespace UnityEditor.VFX
             this.isStickyNote = false;
             this.id = id;
         }
-
         public VFXNodeID(int id)
         {
             this.model = null;
@@ -39,14 +38,14 @@ namespace UnityEditor.VFX
         {
             public UIInfo()
             {
+
             }
 
             public UIInfo(UIInfo other)
-            {
+        {
                 title = other.title;
                 position = other.position;
             }
-
             public string title;
             public Rect position;
         }
@@ -58,9 +57,10 @@ namespace UnityEditor.VFX
             public VFXNodeID[] contents;
             public GroupInfo()
             {
+
             }
 
-            public GroupInfo(GroupInfo other) : base(other)
+            public GroupInfo(GroupInfo other):base(other)
             {
                 contents = other.contents;
             }
@@ -75,9 +75,10 @@ namespace UnityEditor.VFX
 
             public StickyNoteInfo()
             {
+
             }
 
-            public StickyNoteInfo(StickyNoteInfo other) : base(other)
+            public StickyNoteInfo(StickyNoteInfo other):base(other)
             {
                 contents = other.contents;
                 theme = other.theme;
@@ -93,14 +94,14 @@ namespace UnityEditor.VFX
         internal void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)
-                foreach (var groupInfo in groupInfos)
+            foreach (var groupInfo in groupInfos)
+            {
+                //Check first, rebuild after because in most case the content will be valid, saving an allocation.
+                if (groupInfo.contents != null && groupInfo.contents.Any(t => (!t.isStickyNote || t.id >= stickyNoteInfos.Length) && !graph.children.Contains(t.model)))
                 {
-                    //Check first, rebuild after because in most case the content will be valid, saving an allocation.
-                    if (groupInfo.contents != null && groupInfo.contents.Any(t => (!t.isStickyNote || t.id >= stickyNoteInfos.Length) && !graph.children.Contains(t.model)))
-                    {
-                        groupInfo.contents = groupInfo.contents.Where(t => (t.isStickyNote && t.id < stickyNoteInfos.Length) || graph.children.Contains(t.model)).ToArray();
-                    }
+                    groupInfo.contents = groupInfo.contents.Where(t => (t.isStickyNote && t.id < stickyNoteInfos.Length) || graph.children.Contains(t.model)).ToArray();
                 }
+            }
         }
     }
 }

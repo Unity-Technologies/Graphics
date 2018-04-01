@@ -68,7 +68,6 @@ namespace UnityEditor.VFX.UI
         {
             m_MainContainer.SetEnabled(propertyEnabled);
         }
-
         protected override void UpdateIndeterminate()
         {
             m_MainContainer.visible = !indeterminate;

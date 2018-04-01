@@ -36,8 +36,7 @@ namespace UnityEditor.VFX.UIElements
         {
             ValueToGUI(true);
         }
-
-        public abstract bool indeterminate {get; set; }
+        public abstract bool indeterminate{get;set;}
 
         protected abstract void ValueToGUI(bool force);
 

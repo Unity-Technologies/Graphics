@@ -135,10 +135,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
         public bool indeterminate
         {
-            get
-            {
+            get{
                 return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
             }
         }

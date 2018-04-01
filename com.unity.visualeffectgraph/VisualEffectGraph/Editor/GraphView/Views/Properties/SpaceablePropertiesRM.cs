@@ -51,7 +51,6 @@ namespace UnityEditor.VFX.UI
         {
             m_Button.SetEnabled(propertyEnabled);
         }
-
         protected override void UpdateIndeterminate()
         {
             m_Button.visible = !indeterminate;
@@ -98,7 +97,6 @@ namespace UnityEditor.VFX.UI
             base.UpdateEnabled();
             m_VectorField.SetEnabled(propertyEnabled);
         }
-
         protected override void UpdateIndeterminate()
         {
             base.UpdateEnabled();
