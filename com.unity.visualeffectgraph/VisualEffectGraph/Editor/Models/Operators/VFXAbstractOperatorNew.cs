@@ -138,7 +138,7 @@ namespace UnityEditor.VFX
         protected virtual uint defaultValueUint { get { return (uint)defaultValueDouble; } }
     }
 
-    abstract class VXOperatorNumericUniformNew : VFXOperatorNumericNew
+    abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         VFXValueType m_Type = VFXValueType.None;

@@ -10,11 +10,11 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math")]
     class MultiplyNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        override public string name { get { return "MultiplyNew"; } }
+        public override sealed string name { get { return "MultiplyNew"; } }
 
-        protected override double defaultValueDouble { get { return 1.0; } }
+        protected override sealed double defaultValueDouble { get { return 1.0; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { inputExpression[0] * inputExpression[1] };
         }
@@ -25,10 +25,9 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math")]
     class AddNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        override public string name { get { return "AddNew"; } }
-        protected override double defaultValueDouble { get { return 0.0; } }
-
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public override sealed string name { get { return "AddNew"; } }
+        protected override sealed double defaultValueDouble { get { return 0.0; } }
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { inputExpression[0] + inputExpression[1] };
         }
@@ -37,10 +36,10 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math")]
     class SubtractNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        override public string name { get { return "SubtractNew"; } }
-        protected override double defaultValueDouble { get { return 0.0; } }
+        public override sealed string name { get { return "SubtractNew"; } }
+        protected override sealed double defaultValueDouble { get { return 0.0; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { inputExpression[0] - inputExpression[1] };
         }
@@ -56,7 +55,7 @@ namespace UnityEditor.VFX.Operator
         protected override sealed int defaultValueInt { get { return int.MaxValue; } }
         protected override sealed uint defaultValueUint { get { return uint.MaxValue; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionMin(inputExpression[0], inputExpression[1]) };
         }
@@ -73,7 +72,7 @@ namespace UnityEditor.VFX.Operator
         protected override sealed int defaultValueInt { get { return int.MinValue; } }
         protected override sealed uint defaultValueUint { get { return uint.MinValue; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionMin(inputExpression[0], inputExpression[1]) };
         }
@@ -92,9 +91,9 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-    //=========== Unified
+    //=========== Uniform
     [VFXInfo(category = "Math")]
-    class LengthNew : VXOperatorNumericUniformNew
+    class LengthNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {
@@ -108,17 +107,16 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        protected override bool allowInteger { get { return false; } }
+        protected override sealed bool allowInteger { get { return false; } }
 
-        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Length(inputExpression[0]) };
         }
     }
 
-    //=========== Uniform
     [VFXInfo(category = "Math")]
-    class ClampNew : VXOperatorNumericUniformNew
+    class ClampNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {
@@ -132,14 +130,14 @@ namespace UnityEditor.VFX.Operator
 
         public override sealed string name { get { return "ClampNew"; } }
 
-        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Clamp(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
     }
 
     [VFXInfo(category = "Math")]
-    class LerpNew : VXOperatorNumericUniformNew
+    class LerpNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {
@@ -153,11 +151,56 @@ namespace UnityEditor.VFX.Operator
 
         public override sealed string name { get { return "LerpNew"; } }
 
-        protected override bool allowInteger { get { return false; } }
+        protected override sealed bool allowInteger { get { return false; } }
 
-        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
     }
+
+    [VFXInfo(category = "Math")]
+    class CosineNew : VFXOperatorNumericUniformNew
+    {
+        public class InputProperties
+        {
+            public float x = 0.0f;
+        }
+
+        public override sealed string name { get { return "CosineNew"; } }
+
+        protected override sealed bool allowInteger { get { return false; } }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        {
+            return new[] { new VFXExpressionCos(inputExpression[0]) };
+        }
+    }
+
+    //=========== Unified
+    [VFXInfo(category = "Math")]
+    class DotProductNew : VFXOperatorNumericUnifiedNew
+    {
+        public class InputProperties
+        {
+            [Tooltip("The first operand.")]
+            public Vector3 a = Vector3.zero;
+            [Tooltip("The second operand.")]
+            public Vector3 b = Vector3.zero;
+        }
+
+        public class OutputProperties
+        {
+            [Tooltip("The dot product between a and b.")]
+            public float d;
+        }
+
+        public override sealed string name { get { return "DotProductNew"; } }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        {
+            return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[1]) };
+        }
+    }
+
 }

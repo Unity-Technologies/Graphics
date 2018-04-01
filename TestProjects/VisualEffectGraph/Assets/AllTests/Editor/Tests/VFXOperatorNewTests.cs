@@ -142,5 +142,81 @@ namespace UnityEditor.VFX.Test
             var final = result.Get<float>();
             Assert.AreEqual(vec2.magnitude, final);
         }
+
+        [Test]
+        public void DotProductNewBehavior()
+        {
+            var dot = ScriptableObject.CreateInstance<Operator.DotProductNew>();
+            dot.SetOperandType(0, VFXValueType.Float2);
+            dot.SetOperandType(1, VFXValueType.Float3);
+
+            Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
+
+            var a = new Vector2(6, 7);
+            var b = new Vector3(2, 3, 4);
+
+            dot.inputSlots[0].value = a;
+            dot.inputSlots[1].value = b;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var result = context.Compile(dot.outputSlots[0].GetExpression());
+            var final = result.Get<float>();
+
+            Assert.AreEqual(Vector3.Dot(b, new Vector3(a.x, a.y, 0)), final);
+        }
+
+        [Test]
+        public void CosineNewBehavior()
+        {
+            var cos = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            cos.SetOperandType(VFXValueType.Float2);
+
+            Assert.AreEqual(VFXValueType.Float2, cos.outputSlots[0].GetExpression().valueType);
+            var a = new Vector2(12, 89);
+
+            cos.inputSlots[0].value = a;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var result = context.Compile(cos.outputSlots[0].GetExpression());
+            var final = result.Get<Vector2>();
+
+            Assert.AreEqual(Mathf.Cos(a.x), final.x);
+            Assert.AreEqual(Mathf.Cos(a.y), final.y);
+        }
+
+        [Test]
+        public void KeepConnectionNewBehavior()
+        {
+            var cos_A = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            cos_A.SetOperandType(VFXValueType.Float3);
+            var cos_B = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            cos_B.SetOperandType(VFXValueType.Float);
+
+            Assert.AreEqual(VFXValueType.Float3, cos_A.outputSlots[0].GetExpression().valueType);
+            Assert.AreEqual(VFXValueType.Float, cos_B.outputSlots[0].GetExpression().valueType);
+
+            cos_A.inputSlots[0].Link(cos_B.outputSlots[0]);
+
+            float r = 5;
+            cos_B.inputSlots[0].value = r;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var result = context.Compile(cos_A.outputSlots[0].GetExpression());
+            var finalv3 = result.Get<Vector3>();
+
+            var expected = Mathf.Cos(Mathf.Cos(r));
+            Assert.AreEqual(expected, finalv3.x);
+            Assert.AreEqual(expected, finalv3.y);
+            Assert.AreEqual(expected, finalv3.z);
+
+            cos_A.SetOperandType(VFXValueType.Float2);
+            Assert.AreEqual(VFXValueType.Float2, cos_A.outputSlots[0].GetExpression().valueType);
+
+            result = context.Compile(cos_A.outputSlots[0].GetExpression());
+            var finalv2 = result.Get<Vector2>();
+            Assert.AreEqual(expected, finalv2.x);
+            Assert.AreEqual(expected, finalv2.y);
+
+        }
     }
 }
