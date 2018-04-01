@@ -180,9 +180,6 @@ namespace UnityEditor.VFX
             if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to) || to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from))
                 return false;
 
-            if (from.contextType == VFXContextType.kSpawner && to.contextType == VFXContextType.kSpawner) //avoid spawner chaining (for now)
-                return false;
-
             return true;
         }
 

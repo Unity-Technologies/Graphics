@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX
 {
-    public class VFXBurstWithHistory : VFXSpawnerFunction
+    public class VFXBurstWithHistory : VFXSpawnerCallbacks
     {
         public class InputProperties
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
         static private readonly int delayID = Shader.PropertyToID("delay");
         static private readonly int countID = Shader.PropertyToID("count");
 
-        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             var pending = new Pending()
             {
@@ -36,7 +36,7 @@ namespace UnityEditor.VFX
             m_pending.Add(pending);
         }
 
-        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             for (int i = 0; i < m_pending.Count; i++)
             {
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             /* has no effect */
         }

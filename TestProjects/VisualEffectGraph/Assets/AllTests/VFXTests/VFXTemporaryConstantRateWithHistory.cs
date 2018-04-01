@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX
 {
-    public class VFXTemporaryConstantRateWithHistory : VFXSpawnerFunction
+    public class VFXTemporaryConstantRateWithHistory : VFXSpawnerCallbacks
     {
         public class InputProperties
         {
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
         static private readonly int lifeTimeID = Shader.PropertyToID("lifeTime");
         static private readonly int rateID = Shader.PropertyToID("rate");
 
-        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             var pending = new Current()
             {
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
             m_current.Add(pending);
         }
 
-        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             int i = 0;
 
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             /* has no effect */
         }
