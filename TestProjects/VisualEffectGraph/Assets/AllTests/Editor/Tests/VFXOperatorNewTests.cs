@@ -129,16 +129,16 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void LengthNewBehavior()
         {
-            var clamp = ScriptableObject.CreateInstance<Operator.LengthNew>();
-            clamp.SetOperandType(VFXValueType.Float2);
-            Assert.AreEqual(VFXValueType.Float, clamp.outputSlots[0].GetExpression().valueType);
+            var length = ScriptableObject.CreateInstance<Operator.LengthNew>();
+            length.SetOperandType(VFXValueType.Float2);
+            Assert.AreEqual(VFXValueType.Float, length.outputSlots[0].GetExpression().valueType);
 
             var vec2 = Vector2.one * 3;
 
-            clamp.inputSlots[0].value = vec2;
+            length.inputSlots[0].value = vec2;
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
-            var result = context.Compile(clamp.outputSlots[0].GetExpression());
+            var result = context.Compile(length.outputSlots[0].GetExpression());
             var final = result.Get<float>();
             Assert.AreEqual(vec2.magnitude, final);
         }
