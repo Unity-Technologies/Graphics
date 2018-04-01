@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(FloatN))]
     class VFXSlotFloatN : VFXSlot
     {
-        protected override bool CanConvertFrom(Type type)
+        sealed protected override bool CanConvertFrom(Type type)
         {
             return type == typeof(float)
                 || type == typeof(Vector2)
@@ -18,15 +18,15 @@ namespace UnityEditor.VFX
                 || type == typeof(int);
         }
 
-        protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
-            if (expression.valueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.Uint32)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return floatExpression;
             }
 
-            if (expression.valueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.Int32)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return floatExpression;
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
             return expression;
         }
 
-        public override VFXValue DefaultExpression(VFXValue.Mode mode)
+        sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
             if (value == null)
                 return null;

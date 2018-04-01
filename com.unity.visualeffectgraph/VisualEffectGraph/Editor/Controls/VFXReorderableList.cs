@@ -296,6 +296,7 @@ namespace UnityEditor.VFX.UI
             m_Remove.SetEnabled(false);
 
             Add(toolbar);
+            this.AddStyleSheetPathWithSkinVariant("VFXReorderableList");
             AddToClassList("ReorderableList");
         }
 

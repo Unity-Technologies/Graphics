@@ -272,11 +272,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXAsset GetAsset()
+        public VisualEffectAsset GetAsset()
         {
             var graph = GetGraph();
             if (graph != null)
-                return graph.vfxAsset;
+                return graph.visualEffectAsset;
             return null;
         }
 
@@ -289,6 +289,34 @@ namespace UnityEditor.VFX
             if (parent != null)
                 return parent.GetGraph();
             return null;
+        }
+
+        public static void ReplaceModel(VFXModel dst, VFXModel src, bool notify = true)
+        {
+            // UI
+            dst.m_UIPosition = src.m_UIPosition;
+            dst.m_UICollapsed = src.m_UICollapsed;
+            dst.m_UISuperCollapsed = src.m_UISuperCollapsed;
+
+            if (notify)
+                dst.Invalidate(InvalidationCause.kUIChanged);
+
+            VFXGraph graph = src.GetGraph();
+            if (graph != null && graph.UIInfos != null && graph.UIInfos.groupInfos != null)
+            {
+                // Update group nodes
+                foreach (var groupInfo in graph.UIInfos.groupInfos)
+                    if (groupInfo.contents != null)
+                        for (int i = 0; i < groupInfo.contents.Length; ++i)
+                            if (groupInfo.contents[i].model == src)
+                                groupInfo.contents[i].model = dst;
+            }
+
+            // Replace model
+            var parent = src.GetParent();
+            src.Detach(notify);
+            if (parent)
+                dst.Attach(parent, notify);
         }
 
         [SerializeField]

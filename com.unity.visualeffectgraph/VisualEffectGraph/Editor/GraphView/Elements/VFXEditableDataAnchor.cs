@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -93,25 +94,42 @@ namespace UnityEditor.VFX.UI
 
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
-        IMGUIContainer  m_Container;
-
-
         PropertyRM      m_PropertyRM;
+
+        VFXView m_View;
 
 
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
         public static new VFXEditableDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
+            Profiler.BeginSample("VFXEditableDataAnchor.Create");
 
+            var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
+            Profiler.EndSample();
             return anchor;
         }
 
         protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
+            Profiler.BeginSample("VFXEditableDataAnchor.VFXEditableDataAnchor");
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+            Profiler.EndSample();
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            m_View = GetFirstAncestorOfType<VFXView>();
+            m_View.allDataAnchors.Add(this);
+        }
+
+        void OnDetachFromPanel(DetachFromPanelEvent e)
+        {
+            if (m_View != null)
+                m_View.allDataAnchors.Remove(this);
         }
 
         public float GetPreferredLabelWidth()
@@ -131,8 +149,14 @@ namespace UnityEditor.VFX.UI
             m_PropertyRM.SetLabelWidth(label);
         }
 
+        public void ForceUpdate()
+        {
+            m_PropertyRM.ForceUpdate();
+        }
+
         void BuildProperty()
         {
+            Profiler.BeginSample("VFXNodeUI.BuildProperty");
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
@@ -142,16 +166,15 @@ namespace UnityEditor.VFX.UI
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
-                if (m_Container != null)
-                    Remove(m_Container);
-                m_Container = null;
             }
+            Profiler.EndSample();
         }
 
         Type m_EditedType;
 
         public override void SelfChange(int change)
         {
+            Profiler.BeginSample("VFXEditableDataAnchor.SelfChange");
             base.SelfChange(change);
 
             if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(controller))
@@ -161,6 +184,7 @@ namespace UnityEditor.VFX.UI
             }
 
             OnRecompile();
+            Profiler.EndSample();
         }
 
         public void OnRecompile()
@@ -168,7 +192,9 @@ namespace UnityEditor.VFX.UI
             if (m_PropertyRM != null && controller != null)
             {
                 controller.UpdateInfos();
-                m_PropertyRM.propertyEnabled = controller.editable && controller.expandedInHierachy;
+                bool editable = controller.editable;
+                m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
+                m_PropertyRM.indeterminate = ! editable && controller.indeterminate;
                 m_PropertyRM.Update();
             }
         }

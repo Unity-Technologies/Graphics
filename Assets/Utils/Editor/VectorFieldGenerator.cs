@@ -10,6 +10,7 @@ public class VectorFieldGenerator : EditorWindow
     [SerializeField]
     Texture2D m_Texture = null;
     TextureFormat m_TextureFormat = TextureFormat.RGBAHalf;
+    public bool m_UnsignedNormalized = false;
     TextureWrapMode m_WrapMode = TextureWrapMode.Clamp;
     FilterMode m_FilterMode = FilterMode.Bilinear;
 
@@ -30,6 +31,8 @@ public class VectorFieldGenerator : EditorWindow
             {
                 m_TextureFormat = m_Texture.format;
             }
+
+            m_UnsignedNormalized = EditorGUILayout.Toggle("Unsigned Normalized", m_UnsignedNormalized);
 
             if (m_Texture != null)
             {
@@ -84,7 +87,7 @@ public class VectorFieldGenerator : EditorWindow
                 if (GUILayout.Button("Load VF File & Export To 3DTexture Asset", GUILayout.Height(32)))
                 {
                     string fname = EditorUtility.OpenFilePanel("Open VF File", "", "vf");
-                    Texture3D VectorField = LoadVFFile(fname, m_TextureFormat);
+                    Texture3D VectorField = LoadVFFile(fname, m_TextureFormat, m_UnsignedNormalized);
                     VectorField.wrapMode = m_WrapMode;
                     VectorField.filterMode = m_FilterMode;
                     VectorField.Apply();
@@ -96,7 +99,7 @@ public class VectorFieldGenerator : EditorWindow
         }
     }
 
-    public static Texture3D LoadVFFile(string filename, TextureFormat textureformat)
+    public static Texture3D LoadVFFile(string filename, TextureFormat textureformat, bool unsignedNormalized)
     {
         BinaryReader br = new BinaryReader(File.OpenRead(filename));
         string fourcc = new string(br.ReadChars(4));
@@ -123,6 +126,10 @@ public class VectorFieldGenerator : EditorWindow
                 if (mode == 0)
                 {
                     float val = br.ReadSingle();
+                    if (unsignedNormalized)
+                    {
+                        val = val * 0.5f + 0.5f;
+                    }
                     colors[i] = new Color(val, val, val);
                 }
                 else
@@ -130,6 +137,12 @@ public class VectorFieldGenerator : EditorWindow
                     float r = br.ReadSingle();
                     float g = br.ReadSingle();
                     float b = br.ReadSingle();
+                    if (unsignedNormalized)
+                    {
+                        r = r * 0.5f + 0.5f;
+                        g = g * 0.5f + 0.5f;
+                        b = b * 0.5f + 0.5f;
+                    }
                     colors[i] = new Color(r, g, b);
                 }
             }

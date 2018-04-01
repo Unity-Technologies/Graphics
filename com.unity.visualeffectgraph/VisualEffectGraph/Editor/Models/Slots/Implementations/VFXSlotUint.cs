@@ -18,26 +18,26 @@ namespace UnityEditor.VFX
                 || type == typeof(Color);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
-            if (expression.valueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.Uint32)
             {
                 return expression;
             }
 
-            if (expression.valueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.Int32)
             {
                 return new VFXExpressionCastIntToUint(expression);
             }
 
-            if (expression.valueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.Float)
             {
                 return new VFXExpressionCastFloatToUint(expression);
             }
 
-            if (expression.valueType == VFXValueType.kFloat2
-                ||  expression.valueType == VFXValueType.kFloat3
-                ||  expression.valueType == VFXValueType.kFloat4)
+            if (expression.valueType == VFXValueType.Float2
+                ||  expression.valueType == VFXValueType.Float3
+                ||  expression.valueType == VFXValueType.Float4)
             {
                 return new VFXExpressionCastFloatToUint(expression.x);
             }

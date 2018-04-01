@@ -9,73 +9,39 @@ namespace UnityEditor.VFX
 {
     static class VFXOperatorUtility
     {
-        public static readonly Dictionary<int, VFXExpression> OneExpression = new Dictionary<int, VFXExpression>
+        public static Dictionary<int, VFXExpression> GenerateExpressionConstant(float baseValue)
         {
-            { 1, VFXValue.Constant(1.0f) },
-            { 2, VFXValue.Constant(Vector2.one) },
-            { 3, VFXValue.Constant(Vector3.one) },
-            { 4, VFXValue.Constant(Vector4.one) },
-        };
+            return new Dictionary<int, VFXExpression>()
+            {
+                { 1, VFXValue.Constant(baseValue) },
+                { 2, VFXValue.Constant(Vector2.one * baseValue) },
+                { 3, VFXValue.Constant(Vector3.one * baseValue) },
+                { 4, VFXValue.Constant(Vector4.one * baseValue) },
+            };
+        }
 
-        public static readonly Dictionary<int, VFXExpression> MinusOneExpression = new Dictionary<int, VFXExpression>
-        {
-            { 1, VFXValue.Constant(-1.0f) },
-            { 2, VFXValue.Constant(-Vector2.one) },
-            { 3, VFXValue.Constant(-Vector3.one) },
-            { 4, VFXValue.Constant(-Vector4.one) },
-        };
-
-        public static readonly Dictionary<int, VFXExpression> HalfExpression = new Dictionary<int, VFXExpression>
-        {
-            { 1, VFXValue.Constant(0.5f) },
-            { 3, VFXValue.Constant(Vector3.one * 0.5f) },
-            { 2, VFXValue.Constant(Vector2.one * 0.5f) },
-            { 4, VFXValue.Constant(Vector4.one * 0.5f) },
-        };
-
-        public static readonly Dictionary<int, VFXExpression> ZeroExpression = new Dictionary<int, VFXExpression>
-        {
-            { 1, VFXValue.Constant(0.0f) },
-            { 2, VFXValue.Constant(Vector2.zero) },
-            { 3, VFXValue.Constant(Vector3.zero) },
-            { 4, VFXValue.Constant(Vector4.zero) },
-        };
-
-        public static readonly Dictionary<int, VFXExpression> TwoExpression = new Dictionary<int, VFXExpression>
-        {
-            { 1, VFXValue.Constant(2.0f) },
-            { 2, VFXValue.Constant(Vector2.one * 2.0f) },
-            { 3, VFXValue.Constant(Vector3.one * 2.0f) },
-            { 4, VFXValue.Constant(Vector4.one * 2.0f) },
-        };
-
-        public static readonly Dictionary<int, VFXExpression> PiExpression = new Dictionary<int, VFXExpression>
-        {
-            { 1, VFXValue.Constant(Mathf.PI) },
-            { 2, VFXValue.Constant(Vector2.one * Mathf.PI) },
-            { 3, VFXValue.Constant(Vector3.one * Mathf.PI) },
-            { 4, VFXValue.Constant(Vector4.one * Mathf.PI) },
-        };
-
-        public static readonly Dictionary<int, VFXExpression> TauExpression = new Dictionary<int, VFXExpression>
-        {
-            { 1, VFXValue.Constant( 2.0f * Mathf.PI) },
-            { 2, VFXValue.Constant(Vector2.one * 2.0f * Mathf.PI) },
-            { 3, VFXValue.Constant(Vector3.one * 2.0f * Mathf.PI) },
-            { 4, VFXValue.Constant(Vector4.one * 2.0f * Mathf.PI) },
-        };
+        public static readonly Dictionary<int, VFXExpression> OneExpression = GenerateExpressionConstant(1.0f);
+        public static readonly Dictionary<int, VFXExpression> MinusOneExpression = GenerateExpressionConstant(-1.0f);
+        public static readonly Dictionary<int, VFXExpression> HalfExpression = GenerateExpressionConstant(0.5f);
+        public static readonly Dictionary<int, VFXExpression> ZeroExpression = GenerateExpressionConstant(0.0f);
+        public static readonly Dictionary<int, VFXExpression> TwoExpression = GenerateExpressionConstant(2.0f);
+        public static readonly Dictionary<int, VFXExpression> ThreeExpression = GenerateExpressionConstant(3.0f);
+        public static readonly Dictionary<int, VFXExpression> PiExpression = GenerateExpressionConstant(Mathf.PI);
+        public static readonly Dictionary<int, VFXExpression> TauExpression = GenerateExpressionConstant(2.0f * Mathf.PI);
+        public static readonly Dictionary<int, VFXExpression> EpsilonExpression = GenerateExpressionConstant(1e-5f);
+        public static readonly Dictionary<int, VFXExpression> E_NapierConstantExpression = GenerateExpressionConstant(Mathf.Exp(1));
 
         // unified binary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1)
         {
-            var unifiedExp = VFXOperatorUtility.UnifyFloatLevel(new VFXExpression[2] {e0, e1}).ToArray();
+            var unifiedExp = VFXOperatorUtility.UpcastAllFloatN(new VFXExpression[2] {e0, e1}).ToArray();
             return f(unifiedExp[0], unifiedExp[1]);
         }
 
         // unified ternary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1, VFXExpression e2)
         {
-            var unifiedExp = VFXOperatorUtility.UnifyFloatLevel(new VFXExpression[3] {e0, e1, e2}).ToArray();
+            var unifiedExp = VFXOperatorUtility.UpcastAllFloatN(new VFXExpression[3] {e0, e1, e2}).ToArray();
             return f(unifiedExp[0], unifiedExp[1], unifiedExp[2]);
         }
 
@@ -83,6 +49,11 @@ namespace UnityEditor.VFX
         {
             var minusOne = VFXOperatorUtility.MinusOneExpression[VFXExpression.TypeToSize(input.valueType)];
             return (minusOne * input);
+        }
+
+        static public VFXExpression Mad(VFXExpression input, VFXExpression scale, VFXExpression bias)
+        {
+            return input * scale + bias;
         }
 
         static public VFXExpression Clamp(VFXExpression input, VFXExpression min, VFXExpression max)
@@ -95,7 +66,8 @@ namespace UnityEditor.VFX
         static public VFXExpression Saturate(VFXExpression input)
         {
             //Max(Min(x, 1.0f), 0.0f))
-            return Clamp(input, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+            int size = VFXExpression.TypeToSize(input.valueType);
+            return Clamp(input, ZeroExpression[size], OneExpression[size]);
         }
 
         static public VFXExpression Frac(VFXExpression input)
@@ -104,11 +76,80 @@ namespace UnityEditor.VFX
             return input - new VFXExpressionFloor(input);
         }
 
+        static public VFXExpression Ceil(VFXExpression input)
+        {
+            // ceil(x) = -floor(-x)
+            return Negate(new VFXExpressionFloor(Negate(input)));
+        }
+
         static public VFXExpression Round(VFXExpression input)
         {
             //x = floor(x + 0.5)
             var half = HalfExpression[VFXExpression.TypeToSize(input.valueType)];
             return new VFXExpressionFloor(input + half);
+        }
+
+        static public VFXExpression Log(VFXExpression input, VFXExpression _base)
+        {
+            //log2(x)/log2(b)
+            return new VFXExpressionLog2(input) / new VFXExpressionLog2(_base);
+        }
+
+        static public VFXExpression Atanh(VFXExpression input)
+        {
+            //0.5*Log((1+x)/(1-x), e)
+            var size = VFXExpression.TypeToSize(input.valueType);
+            var half = HalfExpression[size];
+            var one = OneExpression[size];
+            var e = E_NapierConstantExpression[size];
+
+            return half * Log((one + input) / (one - input), e);
+        }
+
+        static public VFXExpression SinH(VFXExpression input)
+        {
+            //0.5*(e^x - e^-x)
+            var size = VFXExpression.TypeToSize(input.valueType);
+            var half = HalfExpression[size];
+            var minusOne = MinusOneExpression[size];
+            var e = E_NapierConstantExpression[size];
+
+            return half * (new VFXExpressionPow(e, input) - new VFXExpressionPow(e, minusOne * input));
+        }
+
+        static public VFXExpression CosH(VFXExpression input)
+        {
+            //0.5*(e^x + e^-x)
+            var size = VFXExpression.TypeToSize(input.valueType);
+            var half = HalfExpression[size];
+            var minusOne = MinusOneExpression[size];
+            var e = E_NapierConstantExpression[size];
+
+            return half * (new VFXExpressionPow(e, input) + new VFXExpressionPow(e, minusOne * input));
+        }
+
+        static public VFXExpression TanH(VFXExpression input)
+        {
+            //(1-e^2x)/(1+e^2x)
+            var size = VFXExpression.TypeToSize(input.valueType);
+            var two = TwoExpression[size];
+            var one = OneExpression[size];
+            var minusOne = MinusOneExpression[size];
+            var e = E_NapierConstantExpression[size];
+            var E_minusTwoX = new VFXExpressionPow(e, minusOne * two * input);
+
+            return (one - E_minusTwoX) / (one + E_minusTwoX);
+        }
+
+        static public VFXExpression VanDerCorputSequence(VFXExpression bits) //expect an uint return a float
+        {
+            bits = bits << 16 | bits >> 16;
+            bits = ((bits & 0x55555555u) << 1) | ((bits & 0xAAAAAAAA) >> 1);
+            bits = ((bits & 0x33333333u) << 2) | ((bits & 0xCCCCCCCC) >> 2);
+            bits = ((bits & 0x0F0F0F0Fu) << 4) | ((bits & 0xF0F0F0F0) >> 4);
+            bits = ((bits & 0x00FF00FFu) << 8) | ((bits & 0xFF00FF00) >> 8);
+
+            return new VFXExpressionCastUintToFloat(bits) * new VFXValue<float>(2.3283064365386963e-10f); // / 0x100000000;
         }
 
         static public VFXExpression Sqrt(VFXExpression input)
@@ -147,6 +188,21 @@ namespace UnityEditor.VFX
                 sum.Push(top + bottom);
             }
             return sum.Pop();
+        }
+
+        static public VFXExpression Cross(VFXExpression lhs, VFXExpression rhs)
+        {
+            Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression, VFXExpression> ab_Minus_cd = delegate(VFXExpression a, VFXExpression b, VFXExpression c, VFXExpression d)
+                {
+                    return (a * b - c * d);
+                };
+
+            return new VFXExpressionCombine(new[]
+            {
+                ab_Minus_cd(lhs.y, rhs.z, lhs.z, rhs.y),
+                ab_Minus_cd(lhs.z, rhs.x, lhs.x, rhs.z),
+                ab_Minus_cd(lhs.x, rhs.y, lhs.y, rhs.x),
+            });
         }
 
         static public VFXExpression Distance(VFXExpression x, VFXExpression y)
@@ -198,10 +254,12 @@ namespace UnityEditor.VFX
 
         static public VFXExpression Smoothstep(VFXExpression x, VFXExpression y, VFXExpression s)
         {
-            VFXExpression t = (s - x) / (y - x);
-            t = Clamp(t, VFXValue.Constant(0.0f), VFXValue.Constant(1.0f));
+            var size = VFXExpression.TypeToSize(x.valueType);
 
-            VFXExpression result = (VFXValue.Constant(3.0f) - VFXValue.Constant(2.0f) * t);
+            var t = (s - x) / (y - x);
+            t = Clamp(t, ZeroExpression[size], OneExpression[size]);
+
+            var result = (ThreeExpression[size] - TwoExpression[size] * t);
 
             result = (result * t);
             result = (result * t);
@@ -236,7 +294,7 @@ namespace UnityEditor.VFX
             //x = cos(angle) * distance
             //y = sin(angle) * distance
             var result = new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionCos(theta), new VFXExpressionSin(theta) });
-            return (result * CastFloat(distance, VFXValueType.kFloat2));
+            return (result * CastFloat(distance, VFXValueType.Float2));
         }
 
         static public VFXExpression[] RectangularToPolar(VFXExpression coord)
@@ -264,7 +322,7 @@ namespace UnityEditor.VFX
             var z = (sinTheta * cosPhi);
 
             var result = new VFXExpressionCombine(new VFXExpression[] { x, y, z });
-            return (result * CastFloat(distance, VFXValueType.kFloat3));
+            return (result * CastFloat(distance, VFXValueType.Float3));
         }
 
         static public VFXExpression[] RectangularToSpherical(VFXExpression coord)
@@ -366,7 +424,7 @@ namespace UnityEditor.VFX
 
         static public IEnumerable<VFXExpression> ExtractComponents(VFXExpression expression)
         {
-            if (expression.valueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.Float)
             {
                 return new[] { expression };
             }
@@ -379,15 +437,20 @@ namespace UnityEditor.VFX
             return components;
         }
 
-        static public IEnumerable<VFXExpression> UnifyFloatLevel(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
+        static public VFXValueType FindMaxFloatNValueType(IEnumerable<VFXExpression> inputExpression)
+        {
+            return inputExpression.Select(o => o.valueType).OrderBy(t => VFXExpression.IsFloatValueType(t) ? VFXExpression.TypeToSize(t) : 0).Last();
+        }
+
+        static public IEnumerable<VFXExpression> UpcastAllFloatN(IEnumerable<VFXExpression> inputExpression, float defaultValue = 0.0f)
         {
             if (inputExpression.Count() <= 1)
             {
                 return inputExpression;
             }
 
-            var maxValueType = inputExpression.Select(o => o.valueType).OrderBy(t => VFXExpression.TypeToSize(t)).Last();
-            var newVFXExpression = inputExpression.Select(o => CastFloat(o, maxValueType, defaultValue));
+            var maxValueType = FindMaxFloatNValueType(inputExpression);
+            var newVFXExpression = inputExpression.Select(o => VFXExpression.IsFloatValueType(o.valueType) ? CastFloat(o, maxValueType, defaultValue) : o);
             return newVFXExpression.ToArray();
         }
 
@@ -446,6 +509,17 @@ namespace UnityEditor.VFX
 
             var combine = new VFXExpressionCombine(outputComponent);
             return combine;
+        }
+
+        static public VFXExpression FixedRandom(uint hash, bool perElement)
+        {
+            return FixedRandom(VFXValue.Constant<uint>(hash), perElement);
+        }
+
+        static public VFXExpression FixedRandom(VFXExpression hash, bool perElement)
+        {
+            VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
+            return new VFXExpressionFixedRandom(seed, perElement);
         }
     }
 }

@@ -7,30 +7,30 @@ namespace UnityEditor.VFX
 {
     sealed class VFXBuiltInExpression : VFXExpression
     {
-        public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXTotalTimeOp);
-        public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOp.kVFXDeltaTimeOp);
-        public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOp.kVFXSystemSeedOp);
-        public static readonly VFXExpression LocalToWorld = new VFXBuiltInExpression(VFXExpressionOp.kVFXLocalToWorldOp);
-        public static readonly VFXExpression WorldToLocal = new VFXBuiltInExpression(VFXExpressionOp.kVFXWorldToLocalOp);
+        public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOperation.TotalTime);
+        public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.DeltaTime);
+        public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOperation.SystemSeed);
+        public static readonly VFXExpression LocalToWorld = new VFXBuiltInExpression(VFXExpressionOperation.LocalToWorld);
+        public static readonly VFXExpression WorldToLocal = new VFXBuiltInExpression(VFXExpressionOperation.WorldToLocal);
 
         private static readonly VFXExpression[] AllExpressions = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
-        public static readonly VFXExpressionOp[] All = AllExpressions.Select(e => e.operation).ToArray();
+        public static readonly VFXExpressionOperation[] All = AllExpressions.Select(e => e.operation).ToArray();
 
-        public static VFXExpression Find(VFXExpressionOp op)
+        public static VFXExpression Find(VFXExpressionOperation op)
         {
             var expression = AllExpressions.FirstOrDefault(e => e.operation == op);
             return expression;
         }
 
-        private VFXExpressionOp m_Operation;
+        private VFXExpressionOperation m_Operation;
 
-        private VFXBuiltInExpression(VFXExpressionOp op)
+        private VFXBuiltInExpression(VFXExpressionOperation op)
             : base(Flags.None)
         {
             m_Operation = op;
         }
 
-        public sealed override VFXExpressionOp operation
+        public sealed override VFXExpressionOperation operation
         {
             get
             {

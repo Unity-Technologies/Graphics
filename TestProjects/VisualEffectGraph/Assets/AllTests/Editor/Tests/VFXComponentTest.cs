@@ -11,7 +11,7 @@ using UnityEditor.VFX.Block.Test;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXComponentTest
+    public class VisualEffectTest
     {
         GameObject m_cubeEmpty;
         GameObject m_sphereEmpty;
@@ -140,11 +140,11 @@ namespace UnityEditor.VFX.Test
             }
 
             var parameter = VFXLibrary.GetParameters().First(o => o.model.type == typeof(Texture2D)).CreateInstance();
-            var type = VFXValueType.kTexture2D;
+            var type = VFXValueType.Texture2D;
 
             var targetTextureName = "exposed_test_tex2D";
 
-            if (type != VFXValueType.kNone)
+            if (type != VFXValueType.None)
             {
                 parameter.SetSettingValue("m_exposedName", targetTextureName);
                 parameter.SetSettingValue("m_exposed", true);
@@ -162,15 +162,15 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
-            while (m_mainObject.GetComponent<VFXComponent>() != null)
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VFXComponent>());
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
-            var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             yield return null;
 
@@ -211,22 +211,22 @@ namespace UnityEditor.VFX.Test
                 {
                     switch (type)
                     {
-                        case VFXValueType.kFloat: return 2.0f;
-                        case VFXValueType.kFloat2: return new Vector2(3.0f, 4.0f);
-                        case VFXValueType.kFloat3: return new Vector3(8.0f, 9.0f, 10.0f);
-                        case VFXValueType.kFloat4: return new Vector4(11.0f, 12.0f, 13.0f, 14.0f);
-                        case VFXValueType.kInt: return 15;
-                        case VFXValueType.kUint: return 16u;
-                        case VFXValueType.kCurve: return new AnimationCurve(new Keyframe(0, 13), new Keyframe(1, 14));
-                        case VFXValueType.kColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
-                        case VFXValueType.kMesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
-                        case VFXValueType.kTexture2D: return m_texture2D_A;
-                        case VFXValueType.kTexture2DArray: return m_texture2DArray_A;
-                        case VFXValueType.kTexture3D: return m_texture3D_A;
-                        case VFXValueType.kTextureCube: return m_textureCube_A;
-                        case VFXValueType.kTextureCubeArray: return m_textureCubeArray_A;
-                        case VFXValueType.kBool: return true;
-                        case VFXValueType.kMatrix4x4: return Matrix4x4.identity;
+                        case VFXValueType.Float: return 2.0f;
+                        case VFXValueType.Float2: return new Vector2(3.0f, 4.0f);
+                        case VFXValueType.Float3: return new Vector3(8.0f, 9.0f, 10.0f);
+                        case VFXValueType.Float4: return new Vector4(11.0f, 12.0f, 13.0f, 14.0f);
+                        case VFXValueType.Int32: return 15;
+                        case VFXValueType.Uint32: return 16u;
+                        case VFXValueType.Curve: return new AnimationCurve(new Keyframe(0, 13), new Keyframe(1, 14));
+                        case VFXValueType.ColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f) } };
+                        case VFXValueType.Mesh: return m_cubeEmpty.GetComponent<MeshFilter>().sharedMesh;
+                        case VFXValueType.Texture2D: return m_texture2D_A;
+                        case VFXValueType.Texture2DArray: return m_texture2DArray_A;
+                        case VFXValueType.Texture3D: return m_texture3D_A;
+                        case VFXValueType.TextureCube: return m_textureCube_A;
+                        case VFXValueType.TextureCubeArray: return m_textureCubeArray_A;
+                        case VFXValueType.Boolean: return true;
+                        case VFXValueType.Matrix4x4: return Matrix4x4.identity;
                     }
                     Assert.Fail();
                     return null;
@@ -236,106 +236,106 @@ namespace UnityEditor.VFX.Test
                 {
                     switch (type)
                     {
-                        case VFXValueType.kFloat: return 50.0f;
-                        case VFXValueType.kFloat2: return new Vector2(53.0f, 54.0f);
-                        case VFXValueType.kFloat3: return new Vector3(58.0f, 59.0f, 510.0f);
-                        case VFXValueType.kFloat4: return new Vector4(511.0f, 512.0f, 513.0f, 514.0f);
-                        case VFXValueType.kInt: return 515;
-                        case VFXValueType.kUint: return 516u;
-                        case VFXValueType.kCurve: return new AnimationCurve(new Keyframe(0, 47), new Keyframe(0.5f, 23), new Keyframe(1.0f, 17));
-                        case VFXValueType.kColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
-                        case VFXValueType.kMesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
-                        case VFXValueType.kTexture2D: return m_texture2D_B;
-                        case VFXValueType.kTexture2DArray: return m_texture2DArray_B;
-                        case VFXValueType.kTexture3D: return m_texture3D_B;
-                        case VFXValueType.kTextureCube: return m_textureCube_B;
-                        case VFXValueType.kTextureCubeArray: return m_textureCubeArray_B;
-                        case VFXValueType.kBool: return false;
-                        case VFXValueType.kMatrix4x4: return Matrix4x4.LookAt(new Vector3(1, 2, 3), new Vector3(4, 5, 6), Vector3.up);
+                        case VFXValueType.Float: return 50.0f;
+                        case VFXValueType.Float2: return new Vector2(53.0f, 54.0f);
+                        case VFXValueType.Float3: return new Vector3(58.0f, 59.0f, 510.0f);
+                        case VFXValueType.Float4: return new Vector4(511.0f, 512.0f, 513.0f, 514.0f);
+                        case VFXValueType.Int32: return 515;
+                        case VFXValueType.Uint32: return 516u;
+                        case VFXValueType.Curve: return new AnimationCurve(new Keyframe(0, 47), new Keyframe(0.5f, 23), new Keyframe(1.0f, 17));
+                        case VFXValueType.ColorGradient: return new Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.2f), new GradientColorKey(Color.black, 0.6f) } };
+                        case VFXValueType.Mesh: return m_sphereEmpty.GetComponent<MeshFilter>().sharedMesh;
+                        case VFXValueType.Texture2D: return m_texture2D_B;
+                        case VFXValueType.Texture2DArray: return m_texture2DArray_B;
+                        case VFXValueType.Texture3D: return m_texture3D_B;
+                        case VFXValueType.TextureCube: return m_textureCube_B;
+                        case VFXValueType.TextureCubeArray: return m_textureCubeArray_B;
+                        case VFXValueType.Boolean: return false;
+                        case VFXValueType.Matrix4x4: return Matrix4x4.LookAt(new Vector3(1, 2, 3), new Vector3(4, 5, 6), Vector3.up);
                     }
                     Assert.Fail();
                     return null;
                 };
 
-            Func<VFXValueType, VFXComponent, string, bool> fnHas_UsingBindings = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, bool> fnHas_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     switch (type)
                     {
-                        case VFXValueType.kFloat: return vfx.HasFloat(name);
-                        case VFXValueType.kFloat2: return vfx.HasVector2(name);
-                        case VFXValueType.kFloat3: return vfx.HasVector3(name);
-                        case VFXValueType.kFloat4: return vfx.HasVector4(name);
-                        case VFXValueType.kInt: return vfx.HasInt(name);
-                        case VFXValueType.kUint: return vfx.HasUInt(name);
-                        case VFXValueType.kCurve: return vfx.HasAnimationCurve(name);
-                        case VFXValueType.kColorGradient: return vfx.HasGradient(name);
-                        case VFXValueType.kMesh: return vfx.HasMesh(name);
-                        case VFXValueType.kTexture2D: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex2D;
-                        case VFXValueType.kTexture2DArray: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex2DArray;
-                        case VFXValueType.kTexture3D: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex3D;
-                        case VFXValueType.kTextureCube: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Cube;
-                        case VFXValueType.kTextureCubeArray: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.CubeArray;
-                        case VFXValueType.kBool: return vfx.HasBool(name);
-                        case VFXValueType.kMatrix4x4: return vfx.HasMatrix4x4(name);
+                        case VFXValueType.Float: return vfx.HasFloat(name);
+                        case VFXValueType.Float2: return vfx.HasVector2(name);
+                        case VFXValueType.Float3: return vfx.HasVector3(name);
+                        case VFXValueType.Float4: return vfx.HasVector4(name);
+                        case VFXValueType.Int32: return vfx.HasInt(name);
+                        case VFXValueType.Uint32: return vfx.HasUInt(name);
+                        case VFXValueType.Curve: return vfx.HasAnimationCurve(name);
+                        case VFXValueType.ColorGradient: return vfx.HasGradient(name);
+                        case VFXValueType.Mesh: return vfx.HasMesh(name);
+                        case VFXValueType.Texture2D: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex2D;
+                        case VFXValueType.Texture2DArray: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex2DArray;
+                        case VFXValueType.Texture3D: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Tex3D;
+                        case VFXValueType.TextureCube: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.Cube;
+                        case VFXValueType.TextureCubeArray: return vfx.HasTexture(name) && vfx.GetTextureDimension(name) == TextureDimension.CubeArray;
+                        case VFXValueType.Boolean: return vfx.HasBool(name);
+                        case VFXValueType.Matrix4x4: return vfx.HasMatrix4x4(name);
                     }
                     Assert.Fail();
                     return false;
                 };
 
-            Func<VFXValueType, VFXComponent, string, object> fnGet_UsingBindings = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, object> fnGet_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     switch (type)
                     {
-                        case VFXValueType.kFloat: return vfx.GetFloat(name);
-                        case VFXValueType.kFloat2: return vfx.GetVector2(name);
-                        case VFXValueType.kFloat3: return vfx.GetVector3(name);
-                        case VFXValueType.kFloat4: return vfx.GetVector4(name);
-                        case VFXValueType.kInt: return vfx.GetInt(name);
-                        case VFXValueType.kUint: return vfx.GetUInt(name);
-                        case VFXValueType.kCurve: return vfx.GetAnimationCurve(name);
-                        case VFXValueType.kColorGradient: return vfx.GetGradient(name);
-                        case VFXValueType.kMesh: return vfx.GetMesh(name);
-                        case VFXValueType.kTexture2D:
-                        case VFXValueType.kTexture2DArray:
-                        case VFXValueType.kTexture3D:
-                        case VFXValueType.kTextureCube:
-                        case VFXValueType.kTextureCubeArray: return vfx.GetTexture(name);
-                        case VFXValueType.kBool: return vfx.GetBool(name);
-                        case VFXValueType.kMatrix4x4: return vfx.GetMatrix4x4(name);
+                        case VFXValueType.Float: return vfx.GetFloat(name);
+                        case VFXValueType.Float2: return vfx.GetVector2(name);
+                        case VFXValueType.Float3: return vfx.GetVector3(name);
+                        case VFXValueType.Float4: return vfx.GetVector4(name);
+                        case VFXValueType.Int32: return vfx.GetInt(name);
+                        case VFXValueType.Uint32: return vfx.GetUInt(name);
+                        case VFXValueType.Curve: return vfx.GetAnimationCurve(name);
+                        case VFXValueType.ColorGradient: return vfx.GetGradient(name);
+                        case VFXValueType.Mesh: return vfx.GetMesh(name);
+                        case VFXValueType.Texture2D:
+                        case VFXValueType.Texture2DArray:
+                        case VFXValueType.Texture3D:
+                        case VFXValueType.TextureCube:
+                        case VFXValueType.TextureCubeArray: return vfx.GetTexture(name);
+                        case VFXValueType.Boolean: return vfx.GetBool(name);
+                        case VFXValueType.Matrix4x4: return vfx.GetMatrix4x4(name);
                     }
                     Assert.Fail();
                     return null;
                 };
 
-            Action<VFXValueType, VFXComponent, string, object> fnSet_UsingBindings = delegate(VFXValueType type, VFXComponent vfx, string name, object value)
+            Action<VFXValueType, VisualEffect, string, object> fnSet_UsingBindings = delegate(VFXValueType type, VisualEffect vfx, string name, object value)
                 {
                     switch (type)
                     {
-                        case VFXValueType.kFloat: vfx.SetFloat(name, (float)value); break;
-                        case VFXValueType.kFloat2: vfx.SetVector2(name, (Vector2)value); break;
-                        case VFXValueType.kFloat3: vfx.SetVector3(name, (Vector3)value); break;
-                        case VFXValueType.kFloat4: vfx.SetVector4(name, (Vector4)value); break;
-                        case VFXValueType.kInt: vfx.SetInt(name, (int)value); break;
-                        case VFXValueType.kUint: vfx.SetUInt(name, (uint)value); break;
-                        case VFXValueType.kCurve: vfx.SetAnimationCurve(name, (AnimationCurve)value); break;
-                        case VFXValueType.kColorGradient: vfx.SetGradient(name, (Gradient)value); break;
-                        case VFXValueType.kMesh: vfx.SetMesh(name, (Mesh)value); break;
-                        case VFXValueType.kTexture2D:
-                        case VFXValueType.kTexture2DArray:
-                        case VFXValueType.kTexture3D:
-                        case VFXValueType.kTextureCube:
-                        case VFXValueType.kTextureCubeArray: vfx.SetTexture(name, (Texture)value); break;
-                        case VFXValueType.kBool: vfx.SetBool(name, (bool)value); break;
-                        case VFXValueType.kMatrix4x4: vfx.SetMatrix4x4(name, (Matrix4x4)value); break;
+                        case VFXValueType.Float: vfx.SetFloat(name, (float)value); break;
+                        case VFXValueType.Float2: vfx.SetVector2(name, (Vector2)value); break;
+                        case VFXValueType.Float3: vfx.SetVector3(name, (Vector3)value); break;
+                        case VFXValueType.Float4: vfx.SetVector4(name, (Vector4)value); break;
+                        case VFXValueType.Int32: vfx.SetInt(name, (int)value); break;
+                        case VFXValueType.Uint32: vfx.SetUInt(name, (uint)value); break;
+                        case VFXValueType.Curve: vfx.SetAnimationCurve(name, (AnimationCurve)value); break;
+                        case VFXValueType.ColorGradient: vfx.SetGradient(name, (Gradient)value); break;
+                        case VFXValueType.Mesh: vfx.SetMesh(name, (Mesh)value); break;
+                        case VFXValueType.Texture2D:
+                        case VFXValueType.Texture2DArray:
+                        case VFXValueType.Texture3D:
+                        case VFXValueType.TextureCube:
+                        case VFXValueType.TextureCubeArray: vfx.SetTexture(name, (Texture)value); break;
+                        case VFXValueType.Boolean: vfx.SetBool(name, (bool)value); break;
+                        case VFXValueType.Matrix4x4: vfx.SetMatrix4x4(name, (Matrix4x4)value); break;
                     }
                 };
 
 
-            Func<VFXValueType, VFXComponent, string, bool> fnHas_UsingSerializedProperty = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, bool> fnHas_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     var editor = Editor.CreateEditor(vfx);
                     var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    var fieldName = VFXComponentUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                     var vfxField = propertySheet.FindPropertyRelative(fieldName);
                     if (vfxField != null)
                     {
@@ -402,13 +402,13 @@ namespace UnityEditor.VFX.Test
                     property.FindPropertyRelative("e33").floatValue = mat.m33;
                 };
 
-            Func<VFXValueType, VFXComponent, string, object> fnGet_UsingSerializedProperty = delegate(VFXValueType type, VFXComponent vfx, string name)
+            Func<VFXValueType, VisualEffect, string, object> fnGet_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     var editor = Editor.CreateEditor(vfx);
                     var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
                     editor.serializedObject.Update();
 
-                    var fieldName = VFXComponentUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                     var vfxField = propertySheet.FindPropertyRelative(fieldName);
                     if (vfxField != null)
                     {
@@ -422,22 +422,22 @@ namespace UnityEditor.VFX.Test
 
                                 switch (type)
                                 {
-                                    case VFXValueType.kFloat: return property.floatValue;
-                                    case VFXValueType.kFloat2: return property.vector2Value;
-                                    case VFXValueType.kFloat3: return property.vector3Value;
-                                    case VFXValueType.kFloat4: return property.vector4Value;
-                                    case VFXValueType.kInt: return property.intValue;
-                                    case VFXValueType.kUint: return property.intValue; // there isn't uintValue
-                                    case VFXValueType.kCurve: return property.animationCurveValue;
-                                    case VFXValueType.kColorGradient: return property.gradientValue;
-                                    case VFXValueType.kMesh: return property.objectReferenceValue;
-                                    case VFXValueType.kTexture2D:
-                                    case VFXValueType.kTexture2DArray:
-                                    case VFXValueType.kTexture3D:
-                                    case VFXValueType.kTextureCube:
-                                    case VFXValueType.kTextureCubeArray: return property.objectReferenceValue;
-                                    case VFXValueType.kBool: return property.boolValue;
-                                    case VFXValueType.kMatrix4x4: return fnMatrixFromSerializedProperty(property);
+                                    case VFXValueType.Float: return property.floatValue;
+                                    case VFXValueType.Float2: return property.vector2Value;
+                                    case VFXValueType.Float3: return property.vector3Value;
+                                    case VFXValueType.Float4: return property.vector4Value;
+                                    case VFXValueType.Int32: return property.intValue;
+                                    case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
+                                    case VFXValueType.Curve: return property.animationCurveValue;
+                                    case VFXValueType.ColorGradient: return property.gradientValue;
+                                    case VFXValueType.Mesh: return property.objectReferenceValue;
+                                    case VFXValueType.Texture2D:
+                                    case VFXValueType.Texture2DArray:
+                                    case VFXValueType.Texture3D:
+                                    case VFXValueType.TextureCube:
+                                    case VFXValueType.TextureCubeArray: return property.objectReferenceValue;
+                                    case VFXValueType.Boolean: return property.boolValue;
+                                    case VFXValueType.Matrix4x4: return fnMatrixFromSerializedProperty(property);
                                 }
                                 Assert.Fail();
                             }
@@ -446,13 +446,13 @@ namespace UnityEditor.VFX.Test
                     return null;
                 };
 
-            Action<VFXValueType, VFXComponent, string, object> fnSet_UsingSerializedProperty = delegate(VFXValueType type, VFXComponent vfx, string name, object value)
+            Action<VFXValueType, VisualEffect, string, object> fnSet_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name, object value)
                 {
                     var editor = Editor.CreateEditor(vfx);
                     editor.serializedObject.Update();
 
                     var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    var fieldName = VFXComponentUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                     var vfxField = propertySheet.FindPropertyRelative(fieldName);
                     if (vfxField != null)
                     {
@@ -467,22 +467,22 @@ namespace UnityEditor.VFX.Test
 
                                 switch (type)
                                 {
-                                    case VFXValueType.kFloat: propertyValue.floatValue = (float)value; break;
-                                    case VFXValueType.kFloat2: propertyValue.vector2Value = (Vector2)value; break;
-                                    case VFXValueType.kFloat3: propertyValue.vector3Value = (Vector3)value; break;
-                                    case VFXValueType.kFloat4: propertyValue.vector4Value = (Vector4)value; break;
-                                    case VFXValueType.kInt: propertyValue.intValue = (int)value; break;
-                                    case VFXValueType.kUint: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
-                                    case VFXValueType.kCurve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
-                                    case VFXValueType.kColorGradient: propertyValue.gradientValue = (Gradient)value; break;
-                                    case VFXValueType.kMesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
-                                    case VFXValueType.kTexture2D:
-                                    case VFXValueType.kTexture2DArray:
-                                    case VFXValueType.kTexture3D:
-                                    case VFXValueType.kTextureCube:
-                                    case VFXValueType.kTextureCubeArray: propertyValue.objectReferenceValue = (UnityEngine.Object)value;   break;
-                                    case VFXValueType.kBool: propertyValue.boolValue = (bool)value; break;
-                                    case VFXValueType.kMatrix4x4: fnMatrixToSerializedProperty(propertyValue, (Matrix4x4)value); break;
+                                    case VFXValueType.Float: propertyValue.floatValue = (float)value; break;
+                                    case VFXValueType.Float2: propertyValue.vector2Value = (Vector2)value; break;
+                                    case VFXValueType.Float3: propertyValue.vector3Value = (Vector3)value; break;
+                                    case VFXValueType.Float4: propertyValue.vector4Value = (Vector4)value; break;
+                                    case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
+                                    case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
+                                    case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
+                                    case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
+                                    case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
+                                    case VFXValueType.Texture2D:
+                                    case VFXValueType.Texture2DArray:
+                                    case VFXValueType.Texture3D:
+                                    case VFXValueType.TextureCube:
+                                    case VFXValueType.TextureCubeArray: propertyValue.objectReferenceValue = (UnityEngine.Object)value;   break;
+                                    case VFXValueType.Boolean: propertyValue.boolValue = (bool)value; break;
+                                    case VFXValueType.Matrix4x4: fnMatrixToSerializedProperty(propertyValue, (Matrix4x4)value); break;
                                 }
                                 propertyOverriden.boolValue = true;
                             }
@@ -491,9 +491,9 @@ namespace UnityEditor.VFX.Test
                     editor.serializedObject.ApplyModifiedProperties();
                 };
 
-            Func<VFXValueType, VFXComponent, string, bool> fnHas = bindingModes ? fnHas_UsingBindings : fnHas_UsingSerializedProperty;
-            Func<VFXValueType, VFXComponent, string, object> fnGet = bindingModes ? fnGet_UsingBindings : fnGet_UsingSerializedProperty;
-            Action<VFXValueType, VFXComponent, string, object> fnSet = bindingModes ? fnSet_UsingBindings : fnSet_UsingSerializedProperty;
+            Func<VFXValueType, VisualEffect, string, bool> fnHas = bindingModes ? fnHas_UsingBindings : fnHas_UsingSerializedProperty;
+            Func<VFXValueType, VisualEffect, string, object> fnGet = bindingModes ? fnGet_UsingBindings : fnGet_UsingSerializedProperty;
+            Action<VFXValueType, VisualEffect, string, object> fnSet = bindingModes ? fnSet_UsingBindings : fnSet_UsingSerializedProperty;
 
             EditorApplication.ExecuteMenuItem("Window/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
@@ -516,14 +516,14 @@ namespace UnityEditor.VFX.Test
             }
 
             var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
-                .Where(e => e != VFXValueType.kSpline
-                    &&  e != VFXValueType.kNone).ToArray();
+                .Where(e => e != VFXValueType.Spline
+                    &&  e != VFXValueType.None).ToArray();
             foreach (var parameter in VFXLibrary.GetParameters())
             {
                 var newInstance = parameter.CreateInstance();
 
                 VFXValueType type = types.FirstOrDefault(e => newInstance.type == VFXExpression.TypeToType(e));
-                if (type != VFXValueType.kNone)
+                if (type != VFXValueType.None)
                 {
                     newInstance.SetSettingValue("m_exposedName", commonBaseName + type.ToString());
                     newInstance.SetSettingValue("m_exposed", true);
@@ -568,15 +568,15 @@ namespace UnityEditor.VFX.Test
                 }
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
-            while (m_mainObject.GetComponent<VFXComponent>() != null)
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
             {
-                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VFXComponent>());
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
             }
-            var vfxComponent = m_mainObject.AddComponent<VFXComponent>();
-            vfxComponent.vfxAsset = graph.vfxAsset;
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
 
             yield return null;
 
@@ -599,11 +599,11 @@ namespace UnityEditor.VFX.Test
 
                 Assert.IsTrue(fnHas(type, vfxComponent, currentName));
                 var currentValue = fnGet(type, vfxComponent, currentName);
-                if (type == VFXValueType.kColorGradient)
+                if (type == VFXValueType.ColorGradient)
                 {
                     Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
                 }
-                else if (type == VFXValueType.kCurve)
+                else if (type == VFXValueType.Curve)
                 {
                     Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                 }
@@ -624,11 +624,11 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(fnHas(type, vfxComponent, currentName));
 
                 var currentValue = fnGet(type, vfxComponent, currentName);
-                if (type == VFXValueType.kColorGradient)
+                if (type == VFXValueType.ColorGradient)
                 {
                     Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
                 }
-                else if (type == VFXValueType.kCurve)
+                else if (type == VFXValueType.Curve)
                 {
                     Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
                 }

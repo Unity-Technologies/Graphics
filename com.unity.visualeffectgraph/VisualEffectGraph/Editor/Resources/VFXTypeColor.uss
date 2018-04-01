@@ -1,163 +1,58 @@
-
-
-
-
-/* Data edges */
-
-/*Default*/
-VFXDataEdge.edge
+.port.typePosition
 {
-	border-color : #787878;
-	edge-width:2;
+    port-color: #F6FF9A;
+}
+.port.typeVector
+{
+    port-color: #F6FF9A;
+}
+.port.typeDirection
+{
+    port-color: #F6FF9A;
 }
 
-VFXDataEdge.edge.selected
+.port.typeGradient
 {
-	border-color : #FFF;
-	edge-color: #FFF;
+    port-color: #84e4e7;
 }
 
-VFXDataEdge.typesingle
+.port.typeobject
 {
-	border-color : #6be6b0;
+    port-color : #787878;
 }
-VFXDataEdge.typevector2
+.port.typetexture3d
 {
-	border-color : #9aef92;
+    port-color: #FF8B8B;
 }
-VFXDataEdge.typevector3
+.port.typeTexture2DArray
 {
-	border-color : #c9f774;
+    port-color: #FF8B8B;
 }
-VFXDataEdge.typevector
+.port.typeCubemap
 {
-	border-color : #c9f774;
+    port-color: #FF8B8B;
 }
-VFXDataEdge.typeposition
+.port.typeCubemapArray
 {
-	border-color : #c9f774;
+    port-color: #FF8B8B;
 }
-VFXDataEdge.typevector4
+.port.typeboolean
 {
-	border-color : #effe5c;
+    port-color: #9481E6;
 }
-VFXDataEdge.typecolor
+.port.typeuint32
 {
-	border-color : #effe5c;
+    port-color: #9481E6;
 }
-VFXDataEdge.typegradient
+.port.typeflipbook
 {
-	border-color : #effe5c;
+    port-color: #9481E6;
 }
-VFXDataEdge.typeobject
+.port.typemesh
 {
-	border-color : #787878;
+    port-color : #7aa3ea;
 }
-VFXDataEdge.typetexture2d
+.port.typeanimationcurve
 {
-	border-color : #e681ba;
-}
-VFXDataEdge.typetexture3d
-{
-	border-color : #f7add7;
-}
-VFXDataEdge.typeboolean
-{
-	border-color : #a081e6;
-}
-VFXDataEdge.typeint32
-{
-	border-color : #a081e6;
-}
-VFXDataEdge.typeuint32
-{
-	border-color : #a081e6;
-}
-VFXDataEdge.typeflipbook
-{
-	border-color : #c2a8ff;
-}
-VFXDataEdge.typemesh
-{
-	border-color : #7aa3ea;
-}
-VFXDataEdge.typeanimationcurve
-{
-	border-color : #84e4e7;
-}
-
-
-.VFXDataAnchor
-{
-	anchor-color : #787878;
-}
-
-.VFXDataAnchor.typesingle
-{
-	anchor-color : #6be6b0;
-}
-.VFXDataAnchor.typevector2
-{
-	anchor-color : #9aef92;
-}
-.VFXDataAnchor.typevector3
-{
-	anchor-color : #c9f774;
-}
-.VFXDataAnchor.typevector
-{
-	anchor-color : #c9f774;
-}
-.VFXDataAnchor.typeposition
-{
-	anchor-color : #c9f774;
-}
-.VFXDataAnchor.typevector4
-{
-	anchor-color : #effe5c;
-}
-.VFXDataAnchor.typecolor
-{
-	anchor-color : #effe5c;
-}
-.VFXDataAnchor.typegradient
-{
-	anchor-color : #effe5c;
-}
-
-.VFXDataAnchor.typeobject
-{
-	anchor-color : #787878;
-}
-.VFXDataAnchor.typetexture2d
-{
-	anchor-color : #e681ba;
-}
-.VFXDataAnchor.typetexture3d
-{
-	anchor-color : #f7add7;
-}
-.VFXDataAnchor.typeboolean
-{
-	anchor-color : #a081e6;
-}
-.VFXDataAnchor.typeint32
-{
-	anchor-color : #a081e6;
-}
-.VFXDataAnchor.typeuint32
-{
-	anchor-color : #a081e6;
-}
-.VFXDataAnchor.typeflipbook
-{
-	anchor-color : #c2a8ff;
-}
-.VFXDataAnchor.typemesh
-{
-	anchor-color : #7aa3ea;
-}
-.VFXDataAnchor.typeanimationcurve
-{
-	anchor-color : #84e4e7;
+    port-color : #84e4e7;
 }

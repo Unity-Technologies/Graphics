@@ -12,7 +12,7 @@ Pass
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
-		#if USE_ALPHA_TEST
+		#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
 		// x: alpha
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
@@ -23,6 +23,8 @@ Pass
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+
+#undef VFX_USE_RIM_LIGHT
 
 	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
 		

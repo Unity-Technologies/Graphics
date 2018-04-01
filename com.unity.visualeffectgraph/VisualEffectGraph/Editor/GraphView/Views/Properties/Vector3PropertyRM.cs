@@ -51,12 +51,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             if (m_ColorField != null)
                 m_ColorField.value = new Color(m_Value.x, m_Value.y, m_Value.z);
 
             m_VectorField.value = m_Value;
+            if (force)
+                m_VectorField.ForceUpdate();
         }
 
         void OnColorValueChanged()
@@ -78,6 +80,12 @@ namespace UnityEditor.VFX.UI
             m_VectorField.SetEnabled(propertyEnabled);
             if (m_ColorField != null)
                 m_ColorField.SetEnabled(propertyEnabled);
+        }
+        protected override void UpdateIndeterminate()
+        {
+            m_VectorField.indeterminate = indeterminate;
+            if (m_ColorField != null)
+                m_ColorField.visible = !indeterminate;
         }
 
         public override float GetPreferredControlWidth()

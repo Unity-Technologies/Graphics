@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
@@ -50,6 +50,10 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             m_Button.SetEnabled(propertyEnabled);
+        }
+        protected override void UpdateIndeterminate()
+        {
+            m_Button.visible = !indeterminate;
         }
 
         private float spaceButtonWidth
@@ -93,6 +97,11 @@ namespace UnityEditor.VFX.UI
             base.UpdateEnabled();
             m_VectorField.SetEnabled(propertyEnabled);
         }
+        protected override void UpdateIndeterminate()
+        {
+            base.UpdateEnabled();
+            m_VectorField.visible = !indeterminate;
+        }
 
         public override bool showsEverything { get { return true; } }
     }
@@ -113,9 +122,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
-            base.UpdateGUI();
+            base.UpdateGUI(force);
             m_VectorField.value = m_Value.vector;
         }
     }
@@ -136,9 +145,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
-            base.UpdateGUI();
+            base.UpdateGUI(force);
             m_VectorField.value = m_Value.position;
         }
     }
@@ -159,9 +168,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
-            base.UpdateGUI();
+            base.UpdateGUI(force);
             m_VectorField.value = m_Value.direction;
         }
     }

@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Block
 
                 VFXExpression sign = (mode == Mode.Solid) ? VFXValue.Constant(1.0f) : VFXValue.Constant(-1.0f);
                 VFXExpression position = inputSlots[0][0].GetExpression();
-                VFXExpression normal = inputSlots[0][1].GetExpression() * VFXOperatorUtility.CastFloat(sign, VFXValueType.kFloat3);
+                VFXExpression normal = inputSlots[0][1].GetExpression() * VFXOperatorUtility.CastFloat(sign, VFXValueType.Float3);
 
                 List<VFXExpression> plane = VFXOperatorUtility.ExtractComponents(normal).ToList();
                 plane.Add(VFXOperatorUtility.Dot(position, normal));

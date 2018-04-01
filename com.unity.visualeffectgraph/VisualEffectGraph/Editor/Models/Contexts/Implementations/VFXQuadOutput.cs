@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleQuad"); } }
-        public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.kParticlePointOutput : VFXTaskType.kParticleQuadOutput; } }
+        public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.ParticlePointOutput : VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
@@ -64,12 +64,6 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             public Texture2D mainTexture;
-        }
-
-        public class InputPropertiesFlipbook
-        {
-            public Texture2D mainTexture;
-            public Vector2 flipBookSize = new Vector2(5, 5);
         }
     }
 }

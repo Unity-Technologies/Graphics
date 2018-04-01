@@ -175,7 +175,7 @@ namespace UnityEditor.VFX.UIElements
                 OnValueChanged();
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             Color displayedColor = (new Color(m_Value.r, m_Value.g, m_Value.b, 1)).gamma;
             m_ColorDisplay.style.backgroundColor = displayedColor;

@@ -30,6 +30,6 @@ namespace UnityEditor.VFX
         }
 
         public override string name { get { return "Set Attribute " + attribute; } }
-        public override VFXTaskType spawnerType { get { return VFXTaskType.kSpawnerSetAttribute; } }
+        public override VFXTaskType spawnerType { get { return VFXTaskType.SetAttributeSpawner; } }
     }
 }

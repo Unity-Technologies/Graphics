@@ -6,6 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Collections.Generic;
 using Type = System.Type;
 using System.Linq;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -44,7 +45,10 @@ namespace UnityEditor.VFX.UI
 
         protected VFXDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
+            Profiler.BeginSample("VFXDataAnchor.VFXDataAnchor");
+            AddStyleSheetPath("VFXDataAnchor");
             AddToClassList("VFXDataAnchor");
+            AddStyleSheetPath("VFXTypeColor");
 
             m_ConnectorHighlight = new VisualElement();
 
@@ -62,11 +66,7 @@ namespace UnityEditor.VFX.UI
             m_Node = node;
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
-        }
-
-        protected override VisualElement CreateConnector()
-        {
-            return new VisualElement();
+            Profiler.EndSample();
         }
 
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
@@ -225,7 +225,7 @@ namespace UnityEditor.VFX.UI
 
 
             VFXNodeUI endNode = null;
-            foreach (var node in view.GetAllNodes().OfType<VFXNodeUI>())
+            foreach (var node in view.GetAllNodes())
             {
                 if (node.worldBound.Contains(position))
                 {
@@ -243,7 +243,7 @@ namespace UnityEditor.VFX.UI
 
             if (endNode != null)
             {
-                VFXSlotContainerController nodeController = endNode.controller.slotContainerController;
+                VFXNodeController nodeController = endNode.controller;
 
                 var compatibleAnchors = nodeController.viewController.GetCompatiblePorts(controller, null);
 
@@ -336,34 +336,49 @@ namespace UnityEditor.VFX.UI
 
             VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
 
-            IVFXSlotContainer  result = view.AddNode(d, mPos) as IVFXSlotContainer;
+            VFXViewController viewController = controller.sourceNode.viewController;
+            VFXNodeController newNode = viewController.AddNode(tPos, desc, null);
+            //TODO manage if the newNode should be in a groupNode
 
-            if (result == null)
+            if (newNode == null)
                 return;
 
+            var ports = direction == Direction.Input ? newNode.outputPorts : newNode.inputPorts;
 
-            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)result.GetOutputSlot : (System.Func<int, VFXSlot>)result.GetInputSlot;
-
-            int count = direction == Direction.Input ? result.GetNbOutputSlots() : result.GetNbInputSlots();
+            int count = ports.Count();
 
             for (int i = 0; i < count; ++i)
             {
-                VFXSlot slot = getSlots(i);
+                var port = ports[i];
 
-                if (slot.CanLink(mySlot))
+                if (port.model.CanLink(mySlot))
                 {
-                    slot.Link(mySlot);
-                    break;
+                    if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
+                    {
+                        break;
+                    }
                 }
             }
 
             // If linking to a new parameter, copy the slot value
-
-            if (direction == Direction.Input && result is VFXParameter)
+            if (direction == Direction.Input)
             {
-                VFXParameter parameter = result as VFXParameter;
-
-                CopyValueToParameter(parameter);
+                if (newNode is VFXParameterNodeController)
+                {
+                    VFXParameter parameter = (newNode as VFXParameterNodeController).parentController.model;
+                    CopyValueToParameter(parameter);
+                }
+                else if (newNode is VFXOperatorController)
+                {
+                    var inlineOperator = (newNode as VFXOperatorController).model as VFXInlineOperator;
+                    if (inlineOperator)
+                    {
+                        if (VFXConverter.CanConvert(inlineOperator.type))
+                            inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                        else
+                            inlineOperator.inputSlots[0].value = controller.model.value;
+                    }
+                }
             }
         }
 

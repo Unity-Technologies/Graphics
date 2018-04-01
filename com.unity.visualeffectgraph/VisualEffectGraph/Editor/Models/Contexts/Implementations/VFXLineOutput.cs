@@ -11,10 +11,27 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Line Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLines"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleLineOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }
 
         [VFXSetting, SerializeField]
         protected bool targetFromAttributes = true;
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "cullMode";
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            cullMode = CullMode.Off;
+        }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

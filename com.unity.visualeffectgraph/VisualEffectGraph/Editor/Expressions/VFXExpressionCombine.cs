@@ -23,13 +23,13 @@ namespace UnityEditor.VFX
             switch (parents.Length)
             {
                 case 2:
-                    m_Operation = VFXExpressionOp.kVFXCombine2fOp;
+                    m_Operation = VFXExpressionOperation.Combine2f;
                     break;
                 case 3:
-                    m_Operation = VFXExpressionOp.kVFXCombine3fOp;
+                    m_Operation = VFXExpressionOperation.Combine3f;
                     break;
                 case 4:
-                    m_Operation = VFXExpressionOp.kVFXCombine4fOp;
+                    m_Operation = VFXExpressionOperation.Combine4f;
                     break;
             }
         }

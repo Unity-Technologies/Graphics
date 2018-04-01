@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         private int m_lastGraphUndoCursor;
     }
 
-    partial class VFXViewController : Controller<VFXAsset>
+    partial class VFXViewController : Controller<VisualEffectAsset>
     {
         [NonSerialized]
         private bool m_reentrant;
@@ -206,7 +206,12 @@ namespace UnityEditor.VFX.UI
                     m_reentrant = true;
                     ExpressionGraphDirty = true;
                     model.GetOrCreateGraph().UpdateSubAssets();
-                    ForceReload();
+
+                    bool throttling = DataWatchService.sharedInstance.disableThrottling;
+
+                    DataWatchService.sharedInstance.disableThrottling = true;
+                    DataWatchService.sharedInstance.PollNativeData();
+                    DataWatchService.sharedInstance.disableThrottling = throttling;
                     m_reentrant = false;
                     m_graphUndoStack.CleanDirtyState();
                 }
@@ -215,6 +220,17 @@ namespace UnityEditor.VFX.UI
                     Debug.LogError(e);
                     Undo.ClearAll();
                     m_graphUndoStack = new VFXGraphUndoStack(graph);
+                }
+            }
+
+            if (graph != null) // SOme graph value might have been modified by serialization
+            {
+                foreach (var element in AllSlotContainerControllers)
+                {
+                    foreach (var slot in (element.model as IVFXSlotContainer).inputSlots)
+                    {
+                        slot.value = slot.value;
+                    }
                 }
             }
         }

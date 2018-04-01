@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Update"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kUpdate; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.Update; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -46,8 +46,15 @@ namespace UnityEditor.VFX
                 if (integration != VFXIntegrationMode.None && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
                     yield return CreateInstance<EulerIntegration>();
 
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime))
-                    yield return CreateInstance<AgeAndDie>();
+                var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
+                var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
+
+                if (age || lifeTime)
+                {
+                    yield return CreateInstance<Age>();
+                    if (lifeTime)
+                        yield return CreateInstance<Reap>();
+                }
             }
         }
 

@@ -25,7 +25,7 @@ VFXView
 	flex-direction:row;
 }
 
-.toolbarItem
+.toolbarItem, .toolbarItem *
 {
 	text-color:#ababab;
 	font-size:11;

@@ -85,15 +85,15 @@ namespace UnityEditor.VFX
 
         public static bool IsFloatValueType(VFXValueType valueType)
         {
-            return valueType == VFXValueType.kFloat
-                || valueType == VFXValueType.kFloat2
-                || valueType == VFXValueType.kFloat3
-                || valueType == VFXValueType.kFloat4;
+            return valueType == VFXValueType.Float
+                || valueType == VFXValueType.Float2
+                || valueType == VFXValueType.Float3
+                || valueType == VFXValueType.Float4;
         }
 
         public static bool IsUIntValueType(VFXValueType valueType)
         {
-            return valueType == VFXValueType.kUint;
+            return valueType == VFXValueType.Uint32;
         }
 
         public static int TypeToSize(VFXValueType type)
@@ -105,19 +105,19 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat: return "float";
-                case VFXValueType.kFloat2: return "float2";
-                case VFXValueType.kFloat3: return "float3";
-                case VFXValueType.kFloat4: return "float4";
-                case VFXValueType.kInt: return "int";
-                case VFXValueType.kUint: return "uint";
-                case VFXValueType.kTexture2D: return "Texture2D";
-                case VFXValueType.kTexture2DArray: return "Texture2DArray";
-                case VFXValueType.kTexture3D: return "Texture3D";
-                case VFXValueType.kTextureCube: return "TextureCube";
-                case VFXValueType.kTextureCubeArray: return "TextureCubeArray";
-                case VFXValueType.kMatrix4x4: return "float4x4";
-                case VFXValueType.kBool: return "bool";
+                case VFXValueType.Float: return "float";
+                case VFXValueType.Float2: return "float2";
+                case VFXValueType.Float3: return "float3";
+                case VFXValueType.Float4: return "float4";
+                case VFXValueType.Int32: return "int";
+                case VFXValueType.Uint32: return "uint";
+                case VFXValueType.Texture2D: return "Texture2D";
+                case VFXValueType.Texture2DArray: return "Texture2DArray";
+                case VFXValueType.Texture3D: return "Texture3D";
+                case VFXValueType.TextureCube: return "TextureCube";
+                case VFXValueType.TextureCubeArray: return "TextureCubeArray";
+                case VFXValueType.Matrix4x4: return "float4x4";
+                case VFXValueType.Boolean: return "bool";
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -127,14 +127,14 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat: return "float";
-                case VFXValueType.kFloat2: return "float2";
-                case VFXValueType.kFloat3: return "float3";
-                case VFXValueType.kFloat4: return "float4";
-                case VFXValueType.kInt: return "float";
-                case VFXValueType.kUint: return "float";
-                case VFXValueType.kMatrix4x4: return "float4x4";
-                case VFXValueType.kBool: return "float";
+                case VFXValueType.Float: return "float";
+                case VFXValueType.Float2: return "float2";
+                case VFXValueType.Float3: return "float3";
+                case VFXValueType.Float4: return "float4";
+                case VFXValueType.Int32: return "float";
+                case VFXValueType.Uint32: return "float";
+                case VFXValueType.Matrix4x4: return "float4x4";
+                case VFXValueType.Boolean: return "float";
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -143,22 +143,22 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat: return typeof(float);
-                case VFXValueType.kFloat2: return typeof(Vector2);
-                case VFXValueType.kFloat3: return typeof(Vector3);
-                case VFXValueType.kFloat4: return typeof(Vector4);
-                case VFXValueType.kInt: return typeof(int);
-                case VFXValueType.kUint: return typeof(uint);
-                case VFXValueType.kTexture2D: return typeof(Texture2D);
-                case VFXValueType.kTexture2DArray: return typeof(Texture2DArray);
-                case VFXValueType.kTexture3D: return typeof(Texture3D);
-                case VFXValueType.kTextureCube: return typeof(Cubemap);
-                case VFXValueType.kTextureCubeArray: return typeof(CubemapArray);
-                case VFXValueType.kMatrix4x4: return typeof(Matrix4x4);
-                case VFXValueType.kMesh: return typeof(Mesh);
-                case VFXValueType.kCurve: return typeof(AnimationCurve);
-                case VFXValueType.kColorGradient: return typeof(Gradient);
-                case VFXValueType.kBool: return typeof(bool);
+                case VFXValueType.Float: return typeof(float);
+                case VFXValueType.Float2: return typeof(Vector2);
+                case VFXValueType.Float3: return typeof(Vector3);
+                case VFXValueType.Float4: return typeof(Vector4);
+                case VFXValueType.Int32: return typeof(int);
+                case VFXValueType.Uint32: return typeof(uint);
+                case VFXValueType.Texture2D: return typeof(Texture2D);
+                case VFXValueType.Texture2DArray: return typeof(Texture2DArray);
+                case VFXValueType.Texture3D: return typeof(Texture3D);
+                case VFXValueType.TextureCube: return typeof(Cubemap);
+                case VFXValueType.TextureCubeArray: return typeof(CubemapArray);
+                case VFXValueType.Matrix4x4: return typeof(Matrix4x4);
+                case VFXValueType.Mesh: return typeof(Mesh);
+                case VFXValueType.Curve: return typeof(AnimationCurve);
+                case VFXValueType.ColorGradient: return typeof(Gradient);
+                case VFXValueType.Boolean: return typeof(bool);
             }
             throw new NotImplementedException(type.ToString());
         }
@@ -167,19 +167,19 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
-                case VFXValueType.kInt:
-                case VFXValueType.kUint:
-                case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture2DArray:
-                case VFXValueType.kTexture3D:
-                case VFXValueType.kTextureCube:
-                case VFXValueType.kTextureCubeArray:
-                case VFXValueType.kMatrix4x4:
-                case VFXValueType.kBool:
+                case VFXValueType.Float:
+                case VFXValueType.Float2:
+                case VFXValueType.Float3:
+                case VFXValueType.Float4:
+                case VFXValueType.Int32:
+                case VFXValueType.Uint32:
+                case VFXValueType.Texture2D:
+                case VFXValueType.Texture2DArray:
+                case VFXValueType.Texture3D:
+                case VFXValueType.TextureCube:
+                case VFXValueType.TextureCubeArray:
+                case VFXValueType.Matrix4x4:
+                case VFXValueType.Boolean:
                     return true;
             }
 
@@ -190,11 +190,11 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture2DArray:
-                case VFXValueType.kTexture3D:
-                case VFXValueType.kTextureCube:
-                case VFXValueType.kTextureCubeArray:
+                case VFXValueType.Texture2D:
+                case VFXValueType.Texture2DArray:
+                case VFXValueType.Texture3D:
+                case VFXValueType.TextureCube:
+                case VFXValueType.TextureCubeArray:
                     return true;
             }
 
@@ -205,14 +205,14 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
-                case VFXValueType.kInt:
-                case VFXValueType.kUint:
-                case VFXValueType.kMatrix4x4:
-                case VFXValueType.kBool:
+                case VFXValueType.Float:
+                case VFXValueType.Float2:
+                case VFXValueType.Float3:
+                case VFXValueType.Float4:
+                case VFXValueType.Int32:
+                case VFXValueType.Uint32:
+                case VFXValueType.Matrix4x4:
+                case VFXValueType.Boolean:
                     return true;
             }
             return false;
@@ -220,24 +220,25 @@ namespace UnityEditor.VFX
 
         public static VFXValueType GetVFXValueTypeFromType(Type type)
         {
-            if (type == typeof(float)) return VFXValueType.kFloat;
-            if (type == typeof(Vector2)) return VFXValueType.kFloat2;
-            if (type == typeof(Vector3)) return VFXValueType.kFloat3;
-            if (type == typeof(Vector4)) return VFXValueType.kFloat4;
-            if (type == typeof(int)) return VFXValueType.kInt;
-            if (type == typeof(uint)) return VFXValueType.kUint;
-            if (type == typeof(Texture2D)) return VFXValueType.kTexture2D;
-            if (type == typeof(Texture2DArray)) return VFXValueType.kTexture2DArray;
-            if (type == typeof(Texture3D)) return VFXValueType.kTexture3D;
-            if (type == typeof(Cubemap)) return VFXValueType.kTextureCube;
-            if (type == typeof(CubemapArray)) return VFXValueType.kTextureCubeArray;
-            if (type == typeof(Matrix4x4)) return VFXValueType.kMatrix4x4;
-            if (type == typeof(AnimationCurve)) return VFXValueType.kCurve;
-            if (type == typeof(Gradient)) return VFXValueType.kColorGradient;
-            if (type == typeof(Mesh)) return VFXValueType.kMesh;
-            if (type == typeof(List<Vector3>)) return VFXValueType.kSpline;
-            if (type == typeof(bool)) return VFXValueType.kBool;
-            return VFXValueType.kNone;
+            if (type == typeof(float)) return VFXValueType.Float;
+            if (type == typeof(Vector2)) return VFXValueType.Float2;
+            if (type == typeof(Vector3)) return VFXValueType.Float3;
+            if (type == typeof(Vector4)) return VFXValueType.Float4;
+            if (type == typeof(Color)) return VFXValueType.Float4;
+            if (type == typeof(int)) return VFXValueType.Int32;
+            if (type == typeof(uint)) return VFXValueType.Uint32;
+            if (type == typeof(Texture2D)) return VFXValueType.Texture2D;
+            if (type == typeof(Texture2DArray)) return VFXValueType.Texture2DArray;
+            if (type == typeof(Texture3D)) return VFXValueType.Texture3D;
+            if (type == typeof(Cubemap)) return VFXValueType.TextureCube;
+            if (type == typeof(CubemapArray)) return VFXValueType.TextureCubeArray;
+            if (type == typeof(Matrix4x4)) return VFXValueType.Matrix4x4;
+            if (type == typeof(AnimationCurve)) return VFXValueType.Curve;
+            if (type == typeof(Gradient)) return VFXValueType.ColorGradient;
+            if (type == typeof(Mesh)) return VFXValueType.Mesh;
+            if (type == typeof(List<Vector3>)) return VFXValueType.Spline;
+            if (type == typeof(bool)) return VFXValueType.Boolean;
+            return VFXValueType.None;
         }
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
@@ -327,7 +328,7 @@ namespace UnityEditor.VFX
                 return VFXExpressionHelper.GetTypeOfOperation(operation, data[0], data[1], data[2], data[3]);
             }
         }
-        public abstract VFXExpressionOp operation { get; }
+        public abstract VFXExpressionOperation operation { get; }
 
         public VFXExpression[] parents { get { return m_Parents; } }
 
@@ -460,6 +461,13 @@ namespace UnityEditor.VFX
         public static VFXExpression operator/(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
         public static VFXExpression operator+(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }
         public static VFXExpression operator-(VFXExpression a, VFXExpression b) { return new VFXExpressionSubtract(a, b); }
+
+        public static VFXExpression operator|(VFXExpression a, VFXExpression b) { return new VFXExpressionBitwiseOr(a, b); }
+        public static VFXExpression operator&(VFXExpression a, VFXExpression b) { return new VFXExpressionBitwiseAnd(a, b); }
+        public static VFXExpression operator|(VFXExpression a, uint b) { return new VFXExpressionBitwiseOr(a, VFXValue.Constant(b)); }
+        public static VFXExpression operator&(VFXExpression a, uint b) { return new VFXExpressionBitwiseAnd(a, VFXValue.Constant(b)); }
+        public static VFXExpression operator<<(VFXExpression a, int shift) { return new VFXExpressionBitwiseLeftShift(a, VFXValue.Constant((uint)shift)); }
+        public static VFXExpression operator>>(VFXExpression a, int shift) { return new VFXExpressionBitwiseRightShift(a, VFXValue.Constant((uint)shift)); }
 
         public VFXExpression this[int index] { get { return new VFXExpressionExtractComponent(this, index); } }
         public VFXExpression x { get { return new VFXExpressionExtractComponent(this, 0); }  }

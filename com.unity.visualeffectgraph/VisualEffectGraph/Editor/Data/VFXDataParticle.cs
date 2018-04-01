@@ -151,12 +151,18 @@ namespace UnityEditor.VFX
         public uint capacity
         {
             get { return m_Capacity; }
-            set
+            set { m_Capacity = value; }
+        }
+
+        private uint alignedCapacity
+        {
+            get
             {
+                uint capacity = m_Capacity;
                 const uint kThreadPerGroup = 64;
-                if (value > kThreadPerGroup)
-                    value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
-                m_Capacity = (value + 3u) & ~3u;
+                if (capacity > kThreadPerGroup)
+                    capacity = (uint)((capacity + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+                return (capacity + 3u) & ~3u; // Align on 4 boundary
             }
         }
 
@@ -173,7 +179,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_layoutAttributeCurrent.GetBufferSize(m_Capacity);
+                return m_layoutAttributeCurrent.GetBufferSize(alignedCapacity);
             }
         }
 
@@ -185,7 +191,7 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
-            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
+            return m_Capacity > 0 && m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
         }
 
         public override VFXDeviceTarget GetCompilationTarget(VFXContext context)
@@ -195,7 +201,7 @@ namespace UnityEditor.VFX
 
         public override void GenerateAttributeLayout()
         {
-            m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);
+            m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
             var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
             m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
         }
@@ -248,7 +254,7 @@ namespace UnityEditor.VFX
             if (!m_StoredCurrentAttributes.ContainsKey(attrib))
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.kBool ? "uint" : "asuint");
+            return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.Boolean ? "uint" : "asuint");
         }
 
         public bool NeedsIndirectBuffer()
@@ -279,8 +285,8 @@ namespace UnityEditor.VFX
             if (attributeBufferSize > 0)
             {
                 attributeBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(m_Capacity));
-                systemBufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity));
+                systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
             if (m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
@@ -288,26 +294,26 @@ namespace UnityEditor.VFX
                 attributeSourceBufferIndex = outBufferDescs.Count;
                 var bufferDesc = m_layoutAttributeSource.GetBufferDesc(sourceCount);
                 outBufferDescs.Add(bufferDesc);
-                systemBufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                systemBufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
             }
 
-            var systemFlag = VFXSystemFlag.kVFXSystemDefault;
+            var systemFlag = VFXSystemFlag.SystemDefault;
             if (hasKill)
             {
-                systemFlag |= VFXSystemFlag.kVFXSystemHasKill;
+                systemFlag |= VFXSystemFlag.SystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
-                systemBufferMappings.Add(new VFXMapping(deadListBufferIndex, "deadList"));
+                systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
 
                 deadListCountIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
-                systemBufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
+                systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
             }
 
             var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping(contextSpawnToBufferIndex[o], "spawner_input")));
+                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
             if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[owners.First()].cpuMapper;
@@ -320,8 +326,8 @@ namespace UnityEditor.VFX
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
-                    systemValueMappings.Add(new VFXMapping(boundsCenterIndex, "bounds_center"));
-                    systemValueMappings.Add(new VFXMapping(boundsSizeIndex, "bounds_size"));
+                    systemValueMappings.Add(new VFXMapping("bounds_center", boundsCenterIndex));
+                    systemValueMappings.Add(new VFXMapping("bounds_size", boundsSizeIndex));
                 }
             }
 
@@ -329,10 +335,10 @@ namespace UnityEditor.VFX
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             if (needsIndirectBuffer)
             {
-                systemFlag |= VFXSystemFlag.kVFXSystemHasIndirectBuffer;
+                systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
                 indirectBufferIndex = outBufferDescs.Count;
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
-                systemBufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
+                systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
             }
 
             var taskDescs = new List<VFXTaskDesc>();
@@ -352,30 +358,30 @@ namespace UnityEditor.VFX
                 bufferMappings.Clear();
 
                 if (attributeBufferIndex != -1)
-                    bufferMappings.Add(new VFXMapping(attributeBufferIndex, "attributeBuffer"));
+                    bufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
 
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
-                    bufferMappings.Add(new VFXMapping(deadListBufferIndex, context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn"));
+                    bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn", deadListBufferIndex));
 
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXMapping(deadListCountIndex, "deadListCount"));
+                    bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.kInit)
-                    bufferMappings.Add(new VFXMapping(attributeSourceBufferIndex, "sourceAttributeBuffer"));
+                    bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
 
                 if (indirectBufferIndex != -1 &&
                     (context.contextType == VFXContextType.kUpdate ||
                      (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
                 {
-                    bufferMappings.Add(new VFXMapping(indirectBufferIndex, "indirectBuffer"));
+                    bufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
                 }
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                    uniformMappings.Add(new VFXMapping(expressionGraph.GetFlattenedIndex(uniform), contextData.uniformMapper.GetName(uniform)));
+                    uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
                 // Retrieve all cpu mappings at context level (-1)
-                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(expressionGraph.GetFlattenedIndex(exp.exp), exp.name));
+                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp)));
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
@@ -388,11 +394,12 @@ namespace UnityEditor.VFX
             outSystemDescs.Add(new VFXSystemDesc()
             {
                 flags = systemFlag,
+                layer = uint.MaxValue,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
-                type = VFXSystemType.kVFXParticle,
+                type = VFXSystemType.Particle,
             });
         }
 

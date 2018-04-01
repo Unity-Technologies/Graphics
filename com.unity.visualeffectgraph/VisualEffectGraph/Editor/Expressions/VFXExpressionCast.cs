@@ -16,11 +16,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCastUintToFloat;
+                return VFXExpressionOperation.CastUintToFloat;
             }
         }
 
@@ -45,11 +45,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCastIntToFloat;
+                return VFXExpressionOperation.CastIntToFloat;
             }
         }
 
@@ -74,11 +74,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCastFloatToUint;
+                return VFXExpressionOperation.CastFloatToUint;
             }
         }
         sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
@@ -102,11 +102,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCastIntToUint;
+                return VFXExpressionOperation.CastIntToUint;
             }
         }
 
@@ -131,11 +131,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCastFloatToInt;
+                return VFXExpressionOperation.CastFloatToInt;
             }
         }
 
@@ -160,11 +160,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        sealed public override VFXExpressionOp operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCastUintToInt;
+                return VFXExpressionOperation.CastUintToInt;
             }
         }
 

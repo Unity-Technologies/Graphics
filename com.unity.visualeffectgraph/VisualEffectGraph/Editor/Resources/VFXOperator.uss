@@ -1,0 +1,53 @@
+VFXOperatorUI.node #middle
+{
+	flex:1;
+	background-color:#363636;
+	
+}
+
+VFXOperatorUI #title #edit
+{
+   width:28;
+   flex-direction:column;
+   justify-content:center;
+}
+
+VFXOperatorUI #title #edit #icon
+{
+    background-image: resource("VFX/EditStolen");
+    width:15;
+    height:14;
+    align-self:center;
+}
+
+OperandInfo *
+{
+    height:16;
+}
+OperandInfo VFXStringField
+{
+    flex:1;
+}
+OperandInfo VFXStringField .textfield
+{
+    flex:1;
+}
+OperandInfo .PopupButton
+{
+    width:50;
+}
+
+#edit-container
+{
+    position-type:Absolute;
+	position-top:0;
+	position-right:0;
+    position-left:0;
+}
+
+
+VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
+{
+	width:0;
+	height:0;
+}

@@ -7,30 +7,23 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXNodeUI : Node, IControlledElement<VFXSlotContainerController>, IControlledElement<VFXNodeController>
+    class VFXNodeUI : Node, IControlledElement, ISettableControlledElement<VFXNodeController>, IVFXMovable
     {
-        VFXSlotContainerController m_Controller;
+        VFXNodeController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        VFXNodeController IControlledElement<VFXNodeController>.controller
-        {
-            get { return m_Controller; }
-            set
-            {
-                controller = value as VFXSlotContainerController;
-            }
-        }
-        public override void UpdatePresenterPosition()
+        public void OnMoved()
         {
             controller.position = GetPosition().position;
         }
 
-        public VFXSlotContainerController controller
+        public VFXNodeController controller
         {
             get { return m_Controller; }
             set
@@ -40,6 +33,7 @@ namespace UnityEditor.VFX.UI
                     m_Controller.UnregisterHandler(this);
                 }
                 m_Controller = value;
+                OnNewController();
                 if (m_Controller != null)
                 {
                     m_Controller.RegisterHandler(this);
@@ -47,10 +41,30 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        protected virtual void OnNewController()
+        {
+        }
+
         public VisualElement settingsContainer {get; private set; }
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
-        public VFXNodeUI()
+
+
+        public VFXNodeUI(string template) : base(template)
         {
+            AddStyleSheetPath("VFXNodeUI");
+            Initialize();
+        }
+
+        public VFXNodeUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXNode.uxml"))
+        {
+            AddStyleSheetPath("StyleSheets/GraphView/Node.uss");
+            Initialize();
+        }
+
+        void Initialize()
+        {
+            AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
             RegisterCallback<ControllerChangedEvent>(OnChange);
             clippingOptions = ClippingOptions.ClipContents;
@@ -60,7 +74,9 @@ namespace UnityEditor.VFX.UI
         {
             if (e.controller == controller)
             {
+                Profiler.BeginSample(GetType().Name + "::SelfChange()");
                 SelfChange();
+                Profiler.EndSample();
             }
             else if (e.controller is VFXDataAnchorController)
             {
@@ -73,23 +89,25 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        VisualElement m_SettingsDivider;
-        VisualElement m_Content;
+        protected VisualElement m_SettingsDivider;
+        VisualElement           m_Content;
 
-        protected void SyncSettings()
+
+        public virtual bool hasSettingDivider
         {
+            get { return true; }
+        }
+
+        protected virtual void SyncSettings()
+        {
+            Profiler.BeginSample("VFXNodeUI.SyncSettings");
             if (settingsContainer == null && controller.settings != null)
             {
                 object settings = controller.settings;
 
-                settingsContainer = new VisualElement { name = "settings" };
-                m_SettingsDivider = new VisualElement() {name = "divider"};
-                m_SettingsDivider.AddToClassList("horizontal");
+                settingsContainer = this.Q("settings");
 
-                m_Content = mainContainer.Q("contents");
-                m_Content.Insert(0, m_SettingsDivider);
-
-                m_Content.Insert(1, settingsContainer);
+                m_SettingsDivider = this.Q("settings-divider");
 
                 foreach (var setting in controller.settings)
                 {
@@ -114,21 +132,25 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if (hasSettings)
+                if (m_SettingsDivider != null)
                 {
-                    if (m_SettingsDivider.parent == null)
+                    if (hasSettings)
                     {
-                        m_Content.Insert(0, m_SettingsDivider);
+                        if (m_SettingsDivider.parent == null)
+                        {
+                            m_Content.Insert(0, m_SettingsDivider);
+                        }
                     }
-                }
-                else
-                {
-                    if (m_SettingsDivider.parent != null)
+                    else
                     {
-                        m_SettingsDivider.RemoveFromHierarchy();
+                        if (m_SettingsDivider.parent != null)
+                        {
+                            m_SettingsDivider.RemoveFromHierarchy();
+                        }
                     }
                 }
             }
+            Profiler.EndSample();
         }
 
         protected virtual bool syncInput
@@ -138,15 +160,19 @@ namespace UnityEditor.VFX.UI
 
         void SyncAnchors()
         {
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors");
             if (syncInput)
                 SyncAnchors(controller.inputPorts, inputContainer);
             SyncAnchors(controller.outputPorts, outputContainer);
+            Profiler.EndSample();
         }
 
         void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container)
         {
             var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
 
+
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors Delete");
             var deletedControllers = existingAnchors.Keys.Except(ports).ToArray();
 
             foreach (var deletedController in deletedControllers)
@@ -154,20 +180,27 @@ namespace UnityEditor.VFX.UI
                 container.Remove(existingAnchors[deletedController]);
                 existingAnchors.Remove(deletedController);
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors New");
             var order = ports.Select((t, i) => new KeyValuePair<VFXDataAnchorController, int>(t, i)).ToDictionary(t => t.Key, t => t.Value);
 
             var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
 
             foreach (var newController in newAnchors)
             {
+                Profiler.BeginSample("VFXNodeUI.InstantiateDataAnchor");
                 var newElement = InstantiateDataAnchor(newController, this);
-                (newElement as IControlledElement<VFXDataAnchorController>).controller = newController;
+                Profiler.EndSample();
+
+                (newElement as VFXDataAnchor).controller = newController;
 
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("VFXNodeUI.SyncAnchors Reorder");
             //Reorder anchors.
             if (ports.Count > 0)
             {
@@ -183,10 +216,17 @@ namespace UnityEditor.VFX.UI
                     correctOrder[i].PlaceInFront(correctOrder[i - 1]);
                 }
             }
+            Profiler.EndSample();
+        }
+
+        public void ForceUpdate()
+        {
+            SelfChange();
         }
 
         protected virtual void SelfChange()
         {
+            Profiler.BeginSample("VFXNodeUI.SelfChange");
             if (controller == null)
                 return;
 
@@ -212,8 +252,11 @@ namespace UnityEditor.VFX.UI
 
             SyncSettings();
             SyncAnchors();
+            Profiler.BeginSample("VFXNodeUI.SelfChange The Rest");
             RefreshExpandedState();
             RefreshLayout();
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         public override bool expanded
@@ -235,7 +278,6 @@ namespace UnityEditor.VFX.UI
             if (controller.direction == Direction.Input)
             {
                 VFXEditableDataAnchor anchor = VFXEditableDataAnchor.Create(controller, node);
-                controller.sourceNode.viewController.onRecompileEvent += anchor.OnRecompile;
 
                 return anchor;
             }
@@ -245,30 +287,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void OnPortRemoved(Port anchor)
-        {
-            if (anchor is VFXEditableDataAnchor)
-            {
-                controller.viewController.onRecompileEvent -= (anchor as VFXEditableDataAnchor).OnRecompile;
-            }
-        }
-
-        public IEnumerable<Port> GetPorts(bool input, bool output)
+        public IEnumerable<VFXDataAnchor> GetPorts(bool input, bool output)
         {
             if (input)
             {
                 foreach (var child in inputContainer)
                 {
-                    if (child is Port)
-                        yield return child as Port;
+                    if (child is VFXDataAnchor)
+                        yield return child as VFXDataAnchor;
                 }
             }
             if (output)
             {
                 foreach (var child in outputContainer)
                 {
-                    if (child is Port)
-                        yield return child as Port;
+                    if (child is VFXDataAnchor)
+                        yield return child as VFXDataAnchor;
                 }
             }
         }

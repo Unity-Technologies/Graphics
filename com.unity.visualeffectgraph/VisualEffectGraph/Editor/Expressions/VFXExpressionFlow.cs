@@ -14,11 +14,11 @@ namespace UnityEditor.VFX
             condition = cond;
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXCondition;
+                return VFXExpressionOperation.Condition;
             }
         }
 
@@ -81,11 +81,11 @@ namespace UnityEditor.VFX
                 throw new ArgumentException("both branch expressions must be of the same types");
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXBranch;
+                return VFXExpressionOperation.Branch;
             }
         }
 

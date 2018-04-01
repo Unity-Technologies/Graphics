@@ -10,11 +10,14 @@ namespace UnityEditor.VFX
         sealed protected override bool CanConvertFrom(Type type)
         {
             return base.CanConvertFrom(type)
-                ||  type == typeof(float)
-                ||  type == typeof(uint)
-                ||  type == typeof(int)
-                ||  type == typeof(Vector4)
-                ||  type == typeof(Color);
+                || type == typeof(float)
+                || type == typeof(uint)
+                || type == typeof(int)
+                || type == typeof(Vector4)
+                || type == typeof(Color)
+                || type == typeof(Vector)
+                || type == typeof(Position)
+                || type == typeof(DirectionType);
         }
 
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
@@ -22,27 +25,27 @@ namespace UnityEditor.VFX
             return new VFXValue<Vector3>(Vector3.zero, mode);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expression)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
-            if (expression.valueType == VFXValueType.kFloat3)
+            if (expression.valueType == VFXValueType.Float3)
                 return expression;
 
-            if (expression.valueType == VFXValueType.kFloat)
+            if (expression.valueType == VFXValueType.Float)
                 return new VFXExpressionCombine(expression, expression, expression);
 
-            if (expression.valueType == VFXValueType.kUint)
+            if (expression.valueType == VFXValueType.Uint32)
             {
                 var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression);
             }
 
-            if (expression.valueType == VFXValueType.kInt)
+            if (expression.valueType == VFXValueType.Int32)
             {
                 var floatExpression = new VFXExpressionCastIntToFloat(expression);
                 return new VFXExpressionCombine(floatExpression, floatExpression, floatExpression);
             }
 
-            if (expression.valueType == VFXValueType.kFloat4)
+            if (expression.valueType == VFXValueType.Float4)
             {
                 return new VFXExpressionCombine(expression.x, expression.y, expression.z);
             }

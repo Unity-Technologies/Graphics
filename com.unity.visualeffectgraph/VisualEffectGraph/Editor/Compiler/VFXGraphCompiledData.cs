@@ -104,22 +104,22 @@ namespace UnityEditor.VFX
                     VFXExpressionValueContainerDescAbstract value;
                     switch (exp.valueType)
                     {
-                        case VFXValueType.kFloat: value = CreateValueDesc<float>(exp, i); break;
-                        case VFXValueType.kFloat2: value = CreateValueDesc<Vector2>(exp, i); break;
-                        case VFXValueType.kFloat3: value = CreateValueDesc<Vector3>(exp, i); break;
-                        case VFXValueType.kFloat4: value = CreateValueDesc<Vector4>(exp, i); break;
-                        case VFXValueType.kInt: value = CreateValueDesc<int>(exp, i); break;
-                        case VFXValueType.kUint: value = CreateValueDesc<uint>(exp, i); break;
-                        case VFXValueType.kTexture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
-                        case VFXValueType.kTexture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
-                        case VFXValueType.kTexture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
-                        case VFXValueType.kTextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
-                        case VFXValueType.kTextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
-                        case VFXValueType.kMatrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
-                        case VFXValueType.kCurve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
-                        case VFXValueType.kColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
-                        case VFXValueType.kMesh: value = CreateValueDesc<Mesh>(exp, i); break;
-                        case VFXValueType.kBool: value = CreateValueDesc<bool>(exp, i); break;
+                        case VFXValueType.Float: value = CreateValueDesc<float>(exp, i); break;
+                        case VFXValueType.Float2: value = CreateValueDesc<Vector2>(exp, i); break;
+                        case VFXValueType.Float3: value = CreateValueDesc<Vector3>(exp, i); break;
+                        case VFXValueType.Float4: value = CreateValueDesc<Vector4>(exp, i); break;
+                        case VFXValueType.Int32: value = CreateValueDesc<int>(exp, i); break;
+                        case VFXValueType.Uint32: value = CreateValueDesc<uint>(exp, i); break;
+                        case VFXValueType.Texture2D: value = CreateValueDesc<Texture2D, Texture>(exp, i); break;
+                        case VFXValueType.Texture2DArray: value = CreateValueDesc<Texture2DArray, Texture>(exp, i); break;
+                        case VFXValueType.Texture3D: value = CreateValueDesc<Texture3D, Texture>(exp, i); break;
+                        case VFXValueType.TextureCube: value = CreateValueDesc<Cubemap, Texture>(exp, i); break;
+                        case VFXValueType.TextureCubeArray: value = CreateValueDesc<CubemapArray, Texture>(exp, i); break;
+                        case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
+                        case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
+                        case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
+                        case VFXValueType.Mesh: value = CreateValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                     value.expressionIndex = (uint)i;
@@ -134,19 +134,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void CollectExposedDesc(List<VFXExposedDesc> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
+        private static void CollectExposedDesc(List<VFXMapping> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
-            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
+            var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.None ? slot.GetInExpression() : null;
             if (expression != null)
             {
                 var exprIndex = graph.GetFlattenedIndex(expression);
                 if (exprIndex == -1)
                     throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
 
-                outExposedParameters.Add(new VFXExposedDesc()
+                outExposedParameters.Add(new VFXMapping()
                 {
                     name = name,
-                    expressionIndex = (uint)exprIndex
+                    index = exprIndex
                 });
             }
             else
@@ -158,7 +158,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillExposedDescs(List<VFXExposedDesc> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
+        private static void FillExposedDescs(List<VFXMapping> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
             foreach (var parameter in parameters)
             {
@@ -245,30 +245,30 @@ namespace UnityEditor.VFX
             {
                 var attribute = VFXAttribute.AllAttribute.FirstOrDefault(o => o.name == element.name);
                 bool useAttribute = attribute.name == element.name;
-                if (element.type == VFXValueType.kBool)
+                if (element.type == VFXValueType.Boolean)
                 {
                     var v = useAttribute ? attribute.value.Get<bool>() : default(bool);
                     data.PushBool(v);
                 }
-                else if (element.type == VFXValueType.kFloat)
+                else if (element.type == VFXValueType.Float)
                 {
                     var v = useAttribute ? attribute.value.Get<float>() : default(float);
                     data.PushFloat(v);
                 }
-                else if (element.type == VFXValueType.kFloat2)
+                else if (element.type == VFXValueType.Float2)
                 {
                     var v = useAttribute ? attribute.value.Get<Vector2>() : default(Vector2);
                     data.PushFloat(v.x);
                     data.PushFloat(v.y);
                 }
-                else if (element.type == VFXValueType.kFloat3)
+                else if (element.type == VFXValueType.Float3)
                 {
                     var v = useAttribute ? attribute.value.Get<Vector3>() : default(Vector3);
                     data.PushFloat(v.x);
                     data.PushFloat(v.y);
                     data.PushFloat(v.z);
                 }
-                else if (element.type == VFXValueType.kFloat4)
+                else if (element.type == VFXValueType.Float4)
                 {
                     var v = useAttribute ? attribute.value.Get<Vector4>() : default(Vector4);
                     data.PushFloat(v.x);
@@ -276,12 +276,12 @@ namespace UnityEditor.VFX
                     data.PushFloat(v.z);
                     data.PushFloat(v.w);
                 }
-                else if (element.type == VFXValueType.kInt)
+                else if (element.type == VFXValueType.Int32)
                 {
                     var v = useAttribute ? attribute.value.Get<int>() : default(int);
                     data.PushInt(v);
                 }
-                else if (element.type == VFXValueType.kUint)
+                else if (element.type == VFXValueType.Uint32)
                 {
                     var v = useAttribute ? attribute.value.Get<uint>() : default(uint);
                     data.PushUInt(v);
@@ -338,7 +338,8 @@ namespace UnityEditor.VFX
                 {
                     buffers = buffers.ToArray(),
                     capacity = 0u,
-                    flags = VFXSystemFlag.kVFXSystemDefault,
+                    flags = VFXSystemFlag.SystemDefault,
+                    layer = uint.MaxValue,
                     tasks = spawnContext.activeChildrenWithImplicit.Select((b, index) =>
                         {
                             var spawnerBlock = b as VFXAbstractSpawner;
@@ -346,11 +347,11 @@ namespace UnityEditor.VFX
                             {
                                 throw new InvalidCastException("Unexpected block type in spawnerContext");
                             }
-                            if (spawnerBlock.spawnerType == VFXTaskType.kSpawnerCustomCallback && spawnerBlock.customBehavior == null)
+                            if (spawnerBlock.spawnerType == VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior == null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner excepts a custom behavior for custom callback type");
                             }
-                            if (spawnerBlock.spawnerType != VFXTaskType.kSpawnerCustomCallback && spawnerBlock.customBehavior != null)
+                            if (spawnerBlock.spawnerType != VFXTaskType.CustomCallbackSpawner && spawnerBlock.customBehavior != null)
                             {
                                 throw new InvalidOperationException("VFXAbstractSpawner only expects a custom behavior for custom callback type");
                             }
@@ -481,7 +482,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VFXAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void SaveShaderFiles(VisualEffectAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -496,30 +497,74 @@ namespace UnityEditor.VFX
                 }
 
                 System.IO.Directory.CreateDirectory(currentCacheFolder);
-                for (int i = 0; i < generatedCodeData.Count; ++i)
-                {
-                    var generated = generatedCodeData[i];
-                    var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
 
-                    string oldContent = "";
-                    if (System.IO.File.Exists(path))
+                Profiler.BeginSample("VFXEditor.SaveShaderFiles.WriteAsset");
+                var generatedIntermediateData = Enumerable.Empty<int>().Select(_ => new
+                {
+                    context = (VFXContext)null,
+                    needImport = false,
+                    path = string.Empty
+                }).ToArray();
+
+                try
+                {
+                    generatedIntermediateData = generatedCodeData.Select((generated, i) =>
+                        {
+                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+                            var newContent = generated.content.ToString();
+
+                            var oldContent = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : string.Empty;
+                            bool hasChanged = oldContent != newContent;
+                            if (hasChanged)
+                            {
+                                System.IO.File.WriteAllText(path, newContent);
+                            }
+
+                            return new
+                            {
+                                context = generated.context,
+                                needImport = hasChanged,
+                                path = path
+                            };
+                        }).ToArray();
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
+
+                if (generatedIntermediateData.Any(o => o.needImport))
+                {
+                    Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
+                    try
                     {
-                        oldContent = System.IO.File.ReadAllText(path);
+                        AssetDatabase.StartAssetEditing();
+                        foreach (var import in generatedIntermediateData.Where(o => o.needImport))
+                        {
+                            AssetDatabase.ImportAsset(import.path);
+                        }
+                        AssetDatabase.StopAssetEditing();
                     }
-                    var newContent = generated.content.ToString();
-                    bool hasChanged = oldContent != newContent;
-                    if (hasChanged)
+                    finally
                     {
-                        System.IO.File.WriteAllText(path, newContent);
-                        Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
-                        AssetDatabase.ImportAsset(path);
                         Profiler.EndSample();
                     }
+                }
 
-                    Object imported = AssetDatabase.LoadAssetAtPath<Object>(path);
-                    var contextData = contextToCompiledData[generated.context];
-                    contextData.processor = imported;
-                    contextToCompiledData[generated.context] = contextData;
+                Profiler.BeginSample("VFXEditor.SaveShaderFiles.LoadAsset");
+                try
+                {
+                    foreach (var generated in generatedIntermediateData)
+                    {
+                        var imported = AssetDatabase.LoadAssetAtPath<Object>(generated.path);
+                        var contextData = contextToCompiledData[generated.context];
+                        contextData.processor = imported;
+                        contextToCompiledData[generated.context] = contextData;
+                    }
+                }
+                finally
+                {
+                    Profiler.EndSample();
                 }
             }
             finally
@@ -536,7 +581,7 @@ namespace UnityEditor.VFX
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
-                var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.kNone ? slot.GetInExpression() : null;
+                var expression = VFXExpression.GetVFXValueTypeFromType(slot.property.type) != VFXValueType.None ? slot.GetInExpression() : null;
                 if (expression != null)
                     expressions.Add(expression);
                 else
@@ -566,6 +611,21 @@ namespace UnityEditor.VFX
 
         public void Compile()
         {
+            // Prevent doing anything ( and especially showing progesses ) in an empty graph.
+            if (m_Graph.children.Count() < 1)
+            {
+                // Cleaning
+                if (m_Graph.visualEffectAsset != null)
+                {
+                    m_Graph.visualEffectAsset.ClearPropertyData();
+                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
+                }
+
+                m_ExpressionGraph = new VFXExpressionGraph();
+                m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+                return;
+            }
+
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {
@@ -615,9 +675,9 @@ namespace UnityEditor.VFX
                     contextToCompiledData[context] = contextData;
                 }
 
-                var exposedParameterDescs = new List<VFXExposedDesc>();
+                var exposedParameterDescs = new List<VFXMapping>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, models.OfType<VFXParameter>());
-                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.kFloat } };
+                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
@@ -629,15 +689,15 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.ToArray();
                 expressionSheet.exposed = exposedParameterDescs.ToArray();
 
-                m_Graph.vfxAsset.ClearPropertyData();
-                m_Graph.vfxAsset.SetExpressionSheet(expressionSheet);
+                m_Graph.visualEffectAsset.ClearPropertyData();
+                m_Graph.visualEffectAsset.SetExpressionSheet(expressionSheet);
 
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
-                SaveShaderFiles(m_Graph.vfxAsset, generatedCodeData, contextToCompiledData);
+                SaveShaderFiles(m_Graph.visualEffectAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
@@ -662,18 +722,19 @@ namespace UnityEditor.VFX
                     data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
-                m_Graph.vfxAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
+                m_Graph.visualEffectAsset.MarkRuntimeVersion();
             }
             catch (Exception e)
             {
                 Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
 
                 // Cleaning
-                if (m_Graph.vfxAsset != null)
+                if (m_Graph.visualEffectAsset != null)
                 {
-                    m_Graph.vfxAsset.ClearPropertyData();
-                    m_Graph.vfxAsset.SetSystems(null, null, null, null);
+                    m_Graph.visualEffectAsset.ClearPropertyData();
+                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -703,37 +764,37 @@ namespace UnityEditor.VFX
 
                     switch (exp.valueType)
                     {
-                        case VFXValueType.kFloat: SetValueDesc<float>(desc, exp); break;
-                        case VFXValueType.kFloat2: SetValueDesc<Vector2>(desc, exp); break;
-                        case VFXValueType.kFloat3: SetValueDesc<Vector3>(desc, exp); break;
-                        case VFXValueType.kFloat4: SetValueDesc<Vector4>(desc, exp); break;
-                        case VFXValueType.kInt: SetValueDesc<int>(desc, exp); break;
-                        case VFXValueType.kUint: SetValueDesc<uint>(desc, exp); break;
-                        case VFXValueType.kTexture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
-                        case VFXValueType.kTexture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
-                        case VFXValueType.kTexture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
-                        case VFXValueType.kTextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
-                        case VFXValueType.kTextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
-                        case VFXValueType.kMatrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
-                        case VFXValueType.kCurve: SetValueDesc<AnimationCurve>(desc, exp); break;
-                        case VFXValueType.kColorGradient: SetValueDesc<Gradient>(desc, exp); break;
-                        case VFXValueType.kMesh: SetValueDesc<Mesh>(desc, exp); break;
-                        case VFXValueType.kBool: SetValueDesc<bool>(desc, exp); break;
+                        case VFXValueType.Float: SetValueDesc<float>(desc, exp); break;
+                        case VFXValueType.Float2: SetValueDesc<Vector2>(desc, exp); break;
+                        case VFXValueType.Float3: SetValueDesc<Vector3>(desc, exp); break;
+                        case VFXValueType.Float4: SetValueDesc<Vector4>(desc, exp); break;
+                        case VFXValueType.Int32: SetValueDesc<int>(desc, exp); break;
+                        case VFXValueType.Uint32: SetValueDesc<uint>(desc, exp); break;
+                        case VFXValueType.Texture2D: SetValueDesc<Texture2D, Texture>(desc, exp); break;
+                        case VFXValueType.Texture2DArray: SetValueDesc<Texture2DArray, Texture>(desc, exp); break;
+                        case VFXValueType.Texture3D: SetValueDesc<Texture3D, Texture>(desc, exp); break;
+                        case VFXValueType.TextureCube: SetValueDesc<Cubemap, Texture>(desc, exp); break;
+                        case VFXValueType.TextureCubeArray: SetValueDesc<CubemapArray, Texture>(desc, exp); break;
+                        case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
+                        case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
+                        case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
+                        case VFXValueType.Mesh: SetValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }
             }
 
-            m_Graph.vfxAsset.SetValueSheet(m_ExpressionValues.ToArray());
+            m_Graph.visualEffectAsset.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
-        public VFXAsset vfxAsset
+        public VisualEffectAsset visualEffectAsset
         {
             get
             {
                 if (m_Graph != null)
                 {
-                    return m_Graph.vfxAsset;
+                    return m_Graph.visualEffectAsset;
                 }
                 return null;
             }

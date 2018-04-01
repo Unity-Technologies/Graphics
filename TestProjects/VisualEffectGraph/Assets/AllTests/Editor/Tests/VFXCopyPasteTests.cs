@@ -17,14 +17,14 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.asset";
+        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
 
         private int m_StartUndoGroupId;
 
         [SetUp]
         public void CreateTestAsset()
         {
-            VFXAsset asset = new VFXAsset();
+            VisualEffectAsset asset = new VisualEffectAsset();
 
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CopyPasteEdges()
         {
-            VFXAsset asset = AssetDatabase.LoadAssetAtPath<VFXAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.asset");
+            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>("Assets/VFXEditor/Editor/Tests/CopyPasteTest.vfx");
 
             VFXViewController controller = VFXViewController.GetController(asset, true);
 
@@ -251,7 +251,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsNotNull(dataEdges.Where(t =>
                     t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[0] &&
-                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0].ownData
+                    t.input.GetFirstAncestorOfType<VFXNodeUI>() == contexts[0]
                     ).FirstOrDefault());
 
             Assert.IsNotNull(dataEdges.Where(t =>
@@ -313,6 +313,8 @@ namespace UnityEditor.VFX.Test
 
             view.PasteCallback();
 
+            view.controller.ApplyChanges();
+
             var elements = view.Query().OfType<VFXBlockUI>().ToList();
 
             var copyBlock = elements.Select(t => t.controller).First(t => t.block != newBlock).block;
@@ -330,7 +332,7 @@ namespace UnityEditor.VFX.Test
             VFXView view = window.graphView;
             view.controller = m_ViewController;
 
-            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/DefaultParticleSystem.asset", Vector2.zero);
+            view.CreateTemplateSystem("Assets/VFXEditor/Editor/Templates/Simple Particle System.vfx", Vector2.zero, null);
         }
     }
 }

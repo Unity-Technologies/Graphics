@@ -38,12 +38,6 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 #if VFX_USE_SEED_CURRENT
 		seed = WangHash(particleIndex ^ systemSeed);
 #endif
-#if VFX_USE_PHASE_CURRENT
-#if !VFX_USE_SEED_CURRENT // TODO Quite bad
-		uint seed = WangHash(particleIndex ^ systemSeed);
-#endif
-		phase = randLcg(seed);
-#endif
 		
         ${VFXProcessBlocks}
 

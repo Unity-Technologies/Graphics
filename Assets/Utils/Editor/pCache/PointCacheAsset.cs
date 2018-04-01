@@ -5,5 +5,5 @@ using UnityEngine;
 public class PointCacheAsset : ScriptableObject
 {
     public int PointCount;
-    public Texture[] surfaces;
+    public Texture2D[] surfaces;
 }

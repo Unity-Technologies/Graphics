@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
     {
         public override string name { get { return "Cube test Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleCube"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kParticleHexahedronOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 
         [VFXSetting, SerializeField]
         bool useRimLight = false;

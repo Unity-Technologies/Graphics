@@ -40,12 +40,12 @@ float4 VFXGetTextureColorWithProceduralUV(VFXSampler2D s,VFX_VARYING_PS_INPUTS i
 {
 #if USE_FLIPBOOK
 #ifdef VFX_VARYING_FLIPBOOKSIZE
-    float flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
-    float invFlipBookSize = i.VFX_VARYING_INVFLIPBOOKSIZE;
+    float2 flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
+    float2 invFlipBookSize = i.VFX_VARYING_INVFLIPBOOKSIZE;
     float texIndex = i.VFX_VARYING_TEXINDEX;
 #else
-    float flipBookSize = 1;
-    float invFlipBookSize = 1;
+    float2 flipBookSize = float2(1, 1);
+    float2 invFlipBookSize = float2(1, 1);
     float texIndex = 0;
 #endif
 
@@ -85,7 +85,7 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
     #if defined(VFX_VARYING_ALPHATHRESHOLD)
     clip(alpha - i.VFX_VARYING_ALPHATHRESHOLD);
     #else
-    clip(alpha - 1e-5f);
+    clip(alpha - VFX_EPSILON);
     #endif
     #endif
 }

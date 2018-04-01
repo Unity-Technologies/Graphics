@@ -46,8 +46,12 @@ namespace UnityEditor.VFX.UI
         {
             m_ObjectField.SetEnabled(propertyEnabled);
         }
+        protected override void UpdateIndeterminate()
+        {
+            m_ObjectField.visible = !indeterminate;
+        }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             m_ObjectField.value = m_Value;
         }
@@ -85,6 +89,10 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             m_ObjectField.SetEnabled(propertyEnabled);
+        }
+        protected override void UpdateIndeterminate()
+        {
+            m_ObjectField.visible = !indeterminate;
         }
 
         public override void UpdateGUI()

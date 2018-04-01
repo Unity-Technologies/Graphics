@@ -59,9 +59,26 @@ namespace UnityEditor.VFX.UIElements
             Add(m_DropDownButton);
         }
 
-        protected override void ValueToGUI()
+        bool m_Indeterminate;
+
+        public bool indeterminate
         {
-            m_DropDownButton.text = m_Value;
+            get
+            {
+                return m_Indeterminate;
+            }
+            set
+            {
+                m_Indeterminate = value;
+                ValueToGUI(true);
+            }
+        }
+
+
+        protected override void ValueToGUI(bool force)
+        {
+            m_DropDownButton.SetEnabled(indeterminate);
+            m_DropDownButton.text = indeterminate?"_":m_Value;
         }
     }
 }

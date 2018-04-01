@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXGroupNode : GroupNode, IControlledElement<VFXGroupNodeController>
+    class VFXGroupNode : Group, IControlledElement<VFXGroupNodeController>, IVFXMovable
     {
         Controller IControlledElement.controller
         {
@@ -37,20 +37,21 @@ namespace UnityEditor.VFX.UI
         public VFXGroupNode()
         {
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
-        public override void UpdatePresenterPosition()
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            base.UpdatePresenterPosition();
+        }
 
-            if (containedElements.Count == 0)
-            {
-                controller.position = GetPosition();
-            }
+        public void OnMoved()
+        {
+            controller.position = GetPosition();
 
-            foreach (var node in containedElements)
+            foreach (var node in containedElements.OfType<IVFXMovable>())
             {
-                node.UpdatePresenterPosition();
+                node.OnMoved();
             }
         }
 
@@ -63,17 +64,12 @@ namespace UnityEditor.VFX.UI
                 if (view == null) return;
 
 
-                m_ModificationFromPresenter = true;
+                m_ModificationFromController = true;
                 title = controller.title;
 
 
                 var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<IControlledElement<VFXNodeController>>();
-
-                if (elementContent == null)
-                {
-                    elementContent = new List<IControlledElement<VFXNodeController>>();
-                }
+                var elementContent = containedElements.OfType<IControlledElement>().Where(t=>t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
 
                 bool elementsChanged = false;
                 var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
@@ -83,7 +79,7 @@ namespace UnityEditor.VFX.UI
                     elementsChanged = true;
                 }
 
-                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement<VFXNodeController>>();
+                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement>();
 
                 var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.controller == t) == null).Select(t => viewElements.FirstOrDefault(u => u.controller == t)).ToArray();
 
@@ -106,44 +102,54 @@ namespace UnityEditor.VFX.UI
                     UpdateGeometryFromContent();
                 }
 
-                m_ModificationFromPresenter = false;
+                m_ModificationFromController = false;
             }
         }
 
-        bool m_ModificationFromPresenter;
+        bool m_ModificationFromController;
+
+        public static bool inRemoveElement{get;set;}
 
         public void ElementAddedToGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController)
             {
-                IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
+                ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
 
                 if (node != null)
                 {
                     controller.AddNode(node.controller);
 
-                    UpdatePresenterPosition();
+                    OnMoved();
+                }
+                else if( element is VFXStickyNote)
+                {
+                    controller.AddStickyNote((element as VFXStickyNote).controller);
                 }
             }
         }
 
         public void ElementRemovedFromGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController && ! inRemoveElement)
             {
-                IControlledElement<VFXNodeController> node = element as IControlledElement<VFXNodeController>;
+                ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
                 if (node != null)
                 {
                     controller.RemoveNode(node.controller);
 
-                    UpdatePresenterPosition();
+                    OnMoved();
+                }
+                else if( element is VFXStickyNote)
+                {
+                    controller.RemoveStickyNote((element as VFXStickyNote).controller);
                 }
             }
         }
 
         public void GroupNodeTitleChanged(string title)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController)
             {
                 controller.title = title;
             }

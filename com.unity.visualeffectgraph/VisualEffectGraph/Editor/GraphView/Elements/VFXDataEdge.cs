@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
                     base.output.Connect(this);
                 }
 
-                edgeControl.UpdateLayout();
+                UpdateEdgeControl();
             }
         }
 

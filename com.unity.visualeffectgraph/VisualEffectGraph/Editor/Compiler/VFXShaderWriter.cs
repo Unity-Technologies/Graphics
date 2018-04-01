@@ -31,16 +31,16 @@ namespace UnityEditor.VFX
             var format = "";
             switch (type)
             {
-                case VFXValueType.kBool:
-                case VFXValueType.kInt:
-                case VFXValueType.kUint:
-                case VFXValueType.kFloat:
+                case VFXValueType.Boolean:
+                case VFXValueType.Int32:
+                case VFXValueType.Uint32:
+                case VFXValueType.Float:
                     format = "({0}){1}";
                     break;
-                case VFXValueType.kFloat2:
-                case VFXValueType.kFloat3:
-                case VFXValueType.kFloat4:
-                case VFXValueType.kMatrix4x4:
+                case VFXValueType.Float2:
+                case VFXValueType.Float3:
+                case VFXValueType.Float4:
+                case VFXValueType.Matrix4x4:
                     format = "{0}{1}";
                     break;
                 default: throw new Exception("GetValueString missing type: " + type);
@@ -48,19 +48,19 @@ namespace UnityEditor.VFX
             // special cases of ToString
             switch (type)
             {
-                case VFXValueType.kBool:
+                case VFXValueType.Boolean:
                     value = value.ToString().ToLower();
                     break;
-                case VFXValueType.kFloat2:
+                case VFXValueType.Float2:
                     value = string.Format(CultureInfo.InvariantCulture, "({0},{1})", ((Vector2)value).x, ((Vector2)value).y);
                     break;
-                case VFXValueType.kFloat3:
+                case VFXValueType.Float3:
                     value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2})", ((Vector3)value).x, ((Vector3)value).y, ((Vector3)value).z);
                     break;
-                case VFXValueType.kFloat4:
+                case VFXValueType.Float4:
                     value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2},{3})", ((Vector4)value).x, ((Vector4)value).y, ((Vector4)value).z, ((Vector4)value).w);
                     break;
-                case VFXValueType.kMatrix4x4:
+                case VFXValueType.Matrix4x4:
                 {
                     var matrix = (Matrix4x4)value;
                     value = "(";
@@ -263,11 +263,11 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.kTexture2D: return "VFXSampler2D";
-                case VFXValueType.kTexture2DArray: return "VFXSampler2DArray";
-                case VFXValueType.kTexture3D: return "VFXSampler3D";
-                case VFXValueType.kTextureCube: return "VFXSamplerCube";
-                case VFXValueType.kTextureCubeArray: return "VFXSamplerCubeArray";
+                case VFXValueType.Texture2D: return "VFXSampler2D";
+                case VFXValueType.Texture2DArray: return "VFXSampler2DArray";
+                case VFXValueType.Texture3D: return "VFXSampler3D";
+                case VFXValueType.TextureCube: return "VFXSamplerCube";
+                case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
 
                 default:
                     return VFXExpression.TypeToCode(type);
@@ -279,11 +279,11 @@ namespace UnityEditor.VFX
             var expressionName = names[expression];
             switch (expression.valueType)
             {
-                case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture2DArray:
-                case VFXValueType.kTexture3D:
-                case VFXValueType.kTextureCube:
-                case VFXValueType.kTextureCubeArray: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
+                case VFXValueType.Texture2D:
+                case VFXValueType.Texture2DArray:
+                case VFXValueType.Texture3D:
+                case VFXValueType.TextureCube:
+                case VFXValueType.TextureCubeArray: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
 
                 default:
                     return expressionName;

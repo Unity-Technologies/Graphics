@@ -20,17 +20,17 @@ namespace  UnityEditor.VFX.UI
             m_ShortcutHandler = new ShortcutHandler(
                     new Dictionary<Event, ShortcutDelegate>
             {
-                { Event.KeyboardEvent("a"), view.FrameAll },
-                { Event.KeyboardEvent("f"), view.FrameSelection },
-                { Event.KeyboardEvent("o"), view.FrameOrigin },
-                { Event.KeyboardEvent("^#>"), view.FramePrev },
-                { Event.KeyboardEvent("^>"), view.FrameNext },
+                {Event.KeyboardEvent("a"), view.FrameAll },
+                {Event.KeyboardEvent("f"), view.FrameSelection },
+                {Event.KeyboardEvent("o"), view.FrameOrigin },
+                {Event.KeyboardEvent("^#>"), view.FramePrev },
+                {Event.KeyboardEvent("^>"), view.FrameNext },
                 {Event.KeyboardEvent("#^r"), view.Resync},
                 {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                {Event.KeyboardEvent("#r"), view.ReinitComponents},
+                {Event.KeyboardEvent("^r"), view.ReinitComponents},
                 {Event.KeyboardEvent("F5"), view.ReinitComponents},
             });
         }
@@ -47,7 +47,7 @@ namespace  UnityEditor.VFX.UI
         {
             get; private set;
         }
-        public void LoadAsset(VFXAsset asset)
+        public void LoadAsset(VisualEffectAsset asset)
         {
             if (graphView.controller == null || graphView.controller.model != asset)
             {
@@ -64,14 +64,14 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        protected VFXAsset GetCurrentAsset()
+        protected VisualEffectAsset GetCurrentAsset()
         {
             var objs = Selection.objects;
 
-            VFXAsset selectedAsset = null;
-            if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
+            VisualEffectAsset selectedAsset = null;
+            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
             {
-                selectedAsset = objs[0] as VFXAsset;
+                selectedAsset = objs[0] as VisualEffectAsset;
             }
             else if (m_DisplayedAsset != null)
             {
@@ -89,7 +89,7 @@ namespace  UnityEditor.VFX.UI
             this.GetRootVisualContainer().Add(graphView);
 
 
-            VFXAsset currentAsset = GetCurrentAsset();
+            VisualEffectAsset currentAsset = GetCurrentAsset();
             if (currentAsset != null)
             {
                 LoadAsset(currentAsset);
@@ -106,7 +106,6 @@ namespace  UnityEditor.VFX.UI
             if (rootVisualElement.panel != null)
             {
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
-                Debug.Log("View window was already attached to a panel on OnEnable");
             }
 
             currentWindow = this;
@@ -134,13 +133,13 @@ namespace  UnityEditor.VFX.UI
         void OnSelectionChange()
         {
             var objs = Selection.objects;
-            if (objs != null && objs.Length == 1 && objs[0] is VFXAsset)
+            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
             {
                 VFXViewController controller = graphView.controller;
 
-                if (controller == null || controller.model != objs[0] as VFXAsset)
+                if (controller == null || controller.model != objs[0] as VisualEffectAsset)
                 {
-                    LoadAsset(objs[0] as VFXAsset);
+                    LoadAsset(objs[0] as VisualEffectAsset);
                 }
             }
         }
@@ -177,7 +176,7 @@ namespace  UnityEditor.VFX.UI
         }
 
         [SerializeField]
-        private VFXAsset m_DisplayedAsset;
+        private VisualEffectAsset m_DisplayedAsset;
 
         [SerializeField]
         Vector3 m_ViewPosition;

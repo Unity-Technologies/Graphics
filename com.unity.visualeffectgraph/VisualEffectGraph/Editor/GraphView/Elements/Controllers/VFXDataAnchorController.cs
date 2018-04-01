@@ -18,9 +18,9 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IValueController
     {
-        private VFXSlotContainerController m_SourceNode;
+        private VFXNodeController m_SourceNode;
 
-        public VFXSlotContainerController sourceNode
+        public VFXNodeController sourceNode
         {
             get
             {
@@ -40,11 +40,11 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
-        public VFXDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model)
+        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model)
         {
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
-            m_Collapsed = model.collapsed;
+            m_Expanded = expandedSelf;
 
             portType = model.property.type;
 
@@ -57,16 +57,18 @@ namespace UnityEditor.VFX.UI
 
         void MasterSlotChanged(UnityEngine.Object obj)
         {
+            if (m_MasterSlotHandle == null)
+                return;
             ModelChanged(obj);
         }
 
-        bool m_Collapsed;
+        bool m_Expanded;
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            if (model.collapsed != m_Collapsed)
+            if (expandedSelf != m_Expanded)
             {
-                m_Collapsed = model.collapsed;
+                m_Expanded = expandedSelf;
                 UpdateHiddenRecursive(m_Hidden, true);
             }
             UpdateInfos();
@@ -80,8 +82,14 @@ namespace UnityEditor.VFX.UI
             if (m_MasterSlotHandle != null)
             {
                 DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
+                m_MasterSlotHandle = null;
             }
             base.OnDisable();
+        }
+
+        public bool HasLink()
+        {
+            return model.HasLink();
         }
 
         public class Change
@@ -127,6 +135,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        public bool indeterminate
+        {
+            get{
+                return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
+            }
+        }
+
         public object value
         {
             get
@@ -135,11 +151,18 @@ namespace UnityEditor.VFX.UI
                 {
                     if (!editable)
                     {
-                        VFXViewController controller = m_SourceNode.viewController;
+                        VFXViewController nodeController = m_SourceNode.viewController;
 
-                        if (controller.CanGetEvaluatedContent(model))
+                        try
                         {
-                            return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
+                            if (nodeController.CanGetEvaluatedContent(model))
+                            {
+                                return VFXConverter.ConvertTo(nodeController.GetEvaluatedContent(model), portType);
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
                     }
 
@@ -213,7 +236,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool expandable
         {
-            get { return VFXContextSlotContainerController.IsTypeExpandable(portType); }
+            get { return VFXContextController.IsTypeExpandable(portType); }
         }
 
         public virtual string iconName
@@ -231,7 +254,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool expandedSelf
+        public virtual bool expandedSelf
         {
             get
             {
@@ -281,7 +304,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
-            Undo.RecordObject(model, "VFXSlotValue");
+            Undo.RecordObject(model.GetMasterSlot(), "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
             model.value = value;
         }
 
@@ -290,7 +313,7 @@ namespace UnityEditor.VFX.UI
             return typeof(ISpaceable).IsAssignableFrom(slot.property.type) && slot.children.Count() == 1;
         }
 
-        public void ExpandPath()
+        public virtual void ExpandPath()
         {
             model.collapsed = false;
             if (SlotShouldSkipFirstLevel(model))
@@ -299,16 +322,16 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RetractPath()
+        public virtual void RetractPath()
         {
             model.collapsed = true;
-            if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+            if (SlotShouldSkipFirstLevel(model))
             {
                 model.children.First().collapsed = model.collapsed;
             }
         }
 
-        public void DrawGizmo(VFXComponent component)
+        public void DrawGizmo(VisualEffect component)
         {
             VFXValueGizmo.Draw(this, component);
         }

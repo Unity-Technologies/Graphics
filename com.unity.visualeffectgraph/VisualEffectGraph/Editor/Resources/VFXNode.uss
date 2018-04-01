@@ -1,27 +1,3 @@
-
-
-VFXOperatorUI.VFXNodeUI.node #middle
-{
-	flex:1;
-	background-color:#363636;
-	
-}
-
-VFXOperatorUI #title #edit
-{
-   width:28;
-   flex-direction:column;
-   justify-content:center;
-}
-
-VFXOperatorUI #title #edit #icon
-{
-    background-image: resource("VFX/EditStolen");
-    width:15;
-    height:14;
-    align-self:center;
-}
-
 .VFXNodeUI.node #node-border > #title
 {
     justify-content:flex-start;
@@ -30,40 +6,6 @@ VFXOperatorUI #title #edit #icon
 .VFXNodeUI.node #node-border > #title > #title-label
 {
     flex:1;
-}
-
-
-OperandInfo *
-{
-    height:16;
-}
-OperandInfo VFXStringField
-{
-    flex:1;
-}
-OperandInfo VFXStringField .textfield
-{
-    flex:1;
-}
-OperandInfo .PopupButton
-{
-    width:50;
-}
-
-
-VFXParameterUI #exposedContainer
-{
-	flex-direction:row;
-}
-
-VFXParameterUI IMGUIContainer
-{
-    text-color: rgb(153,153,153);
-}
-
-VFXParameterUI #exposedNameContainer
-{
-	flex-direction:row;
 }
 
 .VFXNodeUI.superCollapsed
@@ -75,12 +17,12 @@ width:-1;
 
 .VFXNodeUI #settings
 {
-    max-height:0;
     background-color: rgba(63,63,63,0.8);
 }
-.VFXNodeUI.expanded #settings
+.VFXNodeUI.collapsed #settings
 {
-    max-height:10000;
+    max-height:0;
+    height:0;
 }
 
 
@@ -210,26 +152,23 @@ width:-1;
     background-color:rgba(0,0,0,0);
 }
 
-VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
+
+#settings-divider 
 {
-	width:0;
-	height:0;
+    background-color: rgba(35,35,35,0.8);
+    border-color: rgba(35,35,35,0.8);
+    height:0.01;
+    border-bottom-width: 1;
 }
 
-VFXParameterUI .value
+#settings-divider.hidden 
 {
-	flex:1;
+    height:0;
+    border-bottom-width: 0;
 }
 
-VFXParameterUI .propertyrm
+.VFXNodeUI.collapsed #settings-divider 
 {
-	margin-right:6;
-}
-
-VFXParameterUI #IconContainer
-{
-	margin-left : 4;
-	margin-top: 4;
-	width:16;
-	height:16;
+    height:0;
+    border-bottom-width: 0;
 }

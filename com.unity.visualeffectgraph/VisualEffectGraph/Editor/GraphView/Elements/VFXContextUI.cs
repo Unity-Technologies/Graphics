@@ -7,322 +7,212 @@ using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class BlockContainer : VisualElement
-    {
-        // ISelection implementation
-        public List<ISelectable> selection { get; private set; }
-
-
-        public BlockContainer()
-        {
-            selection = new List<ISelectable>();
-        }
-    }
-
-    class VFXContextUI : GraphElement, IControlledElement<VFXContextController>, IControlledElement<VFXNodeController>, IDropTarget
+    class VFXContextUI : VFXNodeUI, IDropTarget
     {
         // TODO: Unused except for debugging
         const string RectColorProperty = "rect-color";
 
-        VisualElement               m_Header;
-        VisualElement               m_HeaderContainer;
-        VisualElement               m_HeaderIcon;
-        Label                       m_HeaderTitle;
-
-        VisualElement               m_HeaderSpace;
+        Image                       m_HeaderIcon;
+        Image                       m_HeaderSpace;
 
         VisualElement               m_Footer;
-        VisualElement               m_FooterIcon;
+        Image                       m_FooterIcon;
         Label                       m_FooterTitle;
 
         VisualElement               m_FlowInputConnectorContainer;
         VisualElement               m_FlowOutputConnectorContainer;
-        VisualElement               m_NodeContainer;
-        BlockContainer              m_BlockContainer;
-        VisualElement               m_InsideContainer;
+        VisualElement               m_BlockContainer;
+        VisualElement               m_NoBlock;
 
         VisualElement               m_DragDisplay;
 
-        VFXContextSlotContainerUI   m_OwnData;
-
-        protected GraphViewTypeFactory typeFactory { get; set; }
-
-        public VFXContextSlotContainerUI ownData { get { return m_OwnData; }}
-
-
-        VFXContextController m_Controller;
-
-
-        Controller IControlledElement.controller
+        public new VFXContextController controller
         {
-            get { return m_Controller; }
+            get { return base.controller as VFXContextController; }
         }
-
-        VFXNodeController IControlledElement<VFXNodeController>.controller
+        protected override void OnNewController()
         {
-            get { return m_Controller; }
-            set
-            {
-                controller = value as VFXContextController;
-            }
+            var blocks = new List<VFXModelDescriptor<VFXBlock>>(VFXLibrary.GetBlocks());
+
+            m_CanHaveBlocks = blocks.Any(t => controller.model.AcceptChild(t.model));
         }
-
-        public VFXContextController controller
-        {
-            get { return m_Controller; }
-            set
-            {
-                if (m_Controller != null)
-                {
-                    m_Controller.UnregisterHandler(this);
-                }
-                m_Controller = value;
-                if (m_Controller != null)
-                {
-                    m_Controller.RegisterHandler(this);
-
-                    m_OwnData.controller = m_Controller.slotContainerController;
-
-                    bool slotsVisible = m_Controller.slotContainerController.inputPorts.Count() > 0 || (m_Controller.slotContainerController.settings != null && m_Controller.slotContainerController.settings.Count() > 0);
-                    if (slotsVisible && m_OwnData.parent == null)
-                    {
-                        m_Header.Add(m_OwnData);
-                    }
-                    else if (!slotsVisible && m_OwnData.parent != null)
-                    {
-                        m_Header.Remove(m_OwnData);
-                    }
-                }
-            }
-        }
-
 
         public static string ContextEnumToClassName(string name)
         {
+            if (name[0] != 'k')
+            {
+                Debug.LogError("Fix this since k has been removed from enums");
+            }
+
             return name.Substring(1).ToLower();
         }
 
-        void OnChange(ControllerChangedEvent e)
+        protected override void SelfChange()
         {
-            if (e.controller == controller)
+            base.SelfChange();
+
+
+            Profiler.BeginSample("VFXContextUI.CreateBlockProvider");
+            if (m_BlockProvider == null)
             {
-                style.positionType = PositionType.Absolute;
-                style.positionLeft = controller.position.x;
-                style.positionTop = controller.position.y;
+                m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
+                    {
+                        AddBlock(mPos, d);
+                    });
+            }
+            Profiler.EndSample();
 
-                if (m_BlockProvider == null)
+            m_HeaderIcon.image = GetIconForVFXType(controller.context.inputType);
+            m_HeaderIcon.visible = m_HeaderIcon.image.value != null;
+
+
+            Profiler.BeginSample("VFXContextUI.SetAllStyleClasses");
+
+            VFXContextType contextType = controller.context.contextType;
+            foreach (var value in System.Enum.GetNames(typeof(VFXContextType)))
+            {
+                RemoveFromClassList(ContextEnumToClassName(value));
+            }
+            AddToClassList(ContextEnumToClassName(contextType.ToString()));
+
+            var inputType = controller.context.inputType;
+            if (inputType == VFXDataType.kNone)
+            {
+                inputType = controller.context.ownedType;
+            }
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("inputType" + ContextEnumToClassName(value));
+            }
+            AddToClassList("inputType" + ContextEnumToClassName(inputType.ToString()));
+
+            var outputType = controller.context.outputType;
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("outputType" + ContextEnumToClassName(value));
+            }
+            AddToClassList("outputType" + ContextEnumToClassName(outputType.ToString()));
+
+            var type = controller.context.ownedType;
+            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            {
+                RemoveFromClassList("type" + ContextEnumToClassName(value));
+            }
+            AddToClassList("type" + ContextEnumToClassName(type.ToString()));
+
+
+            foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
+            {
+                m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
+            }
+            m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
+            Profiler.EndSample();
+
+            if (controller.context.outputType == VFXDataType.kNone)
+            {
+                if (m_Footer.parent != null)
+                    m_Footer.RemoveFromHierarchy();
+            }
+            else
+            {
+                if (m_Footer.parent == null)
+                    mainContainer.Add(m_Footer);
+                m_FooterTitle.text = controller.context.outputType.ToString().Substring(1);
+                m_FooterIcon.image = GetIconForVFXType(controller.context.outputType);
+                m_FooterIcon.visible = m_FooterIcon.image.value != null;
+            }
+
+            Profiler.BeginSample("VFXContextUI.CreateInputFlow");
+            HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
+            foreach (var inanchorcontroller in controller.flowInputAnchors)
+            {
+                var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
+                if (existing == null)
                 {
-                    m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
-                        {
-                            AddBlock(mPos, d);
-                        });
-                }
-
-
-                // Recreate label with good name // Dirty
-                m_HeaderTitle.text = controller.context.name;
-                m_HeaderIcon.style.backgroundImage = GetIconForVFXType(controller.context.inputType);
-
-                VFXContextType contextType = controller.context.contextType;
-                foreach (var value in System.Enum.GetNames(typeof(VFXContextType)))
-                {
-                    RemoveFromClassList(ContextEnumToClassName(value));
-                }
-
-                AddToClassList(ContextEnumToClassName(contextType.ToString()));
-
-                var inputType = controller.context.ownedType;
-                foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
-                {
-                    RemoveFromClassList("type" + ContextEnumToClassName(value));
-                }
-                AddToClassList("type" + ContextEnumToClassName(inputType.ToString()));
-
-
-                foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
-                {
-                    m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
-                }
-                m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
-
-
-                if (controller.context.outputType == VFXDataType.kNone)
-                {
-                    if (m_Footer.parent != null)
-                        m_InsideContainer.Remove(m_Footer);
+                    var anchor = VFXFlowAnchor.Create(inanchorcontroller);
+                    m_FlowInputConnectorContainer.Add(anchor);
+                    newInAnchors.Add(anchor);
                 }
                 else
                 {
-                    if (m_Footer.parent == null)
-                        m_InsideContainer.Add(m_Footer);
-                    m_FooterTitle.text = controller.context.outputType.ToString().Substring(1);
-                    m_FooterIcon.style.backgroundImage = GetIconForVFXType(controller.context.outputType);
+                    newInAnchors.Add(existing);
                 }
-
-                HashSet<VisualElement> newInAnchors = new HashSet<VisualElement>();
-
-                foreach (var inanchorcontroller in controller.flowInputAnchors)
-                {
-                    var existing = m_FlowInputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == inanchorcontroller);
-                    if (existing == null)
-                    {
-                        var anchor = VFXFlowAnchor.Create(inanchorcontroller);
-                        m_FlowInputConnectorContainer.Add(anchor);
-                        newInAnchors.Add(anchor);
-                    }
-                    else
-                    {
-                        newInAnchors.Add(existing);
-                    }
-                }
-
-                foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
-                {
-                    m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
-                }
-
-
-                HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
-
-                foreach (var outanchorcontroller in controller.flowOutputAnchors)
-                {
-                    var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorcontroller);
-                    if (existing == null)
-                    {
-                        var anchor = VFXFlowAnchor.Create(outanchorcontroller);
-                        m_FlowOutputConnectorContainer.Add(anchor);
-                        newOutAnchors.Add(anchor);
-                    }
-                    else
-                    {
-                        newOutAnchors.Add(existing);
-                    }
-                }
-
-                foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
-                {
-                    m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
-                }
-
-                RefreshContext();
             }
+
+            foreach (var nonLongerExistingAnchor in m_FlowInputConnectorContainer.Where(t => !newInAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+            {
+                m_FlowInputConnectorContainer.Remove(nonLongerExistingAnchor);
+            }
+            Profiler.EndSample();
+
+            Profiler.BeginSample("VFXContextUI.CreateInputFlow");
+            HashSet<VisualElement> newOutAnchors = new HashSet<VisualElement>();
+
+            foreach (var outanchorcontroller in controller.flowOutputAnchors)
+            {
+                var existing = m_FlowOutputConnectorContainer.Select(t => t as VFXFlowAnchor).FirstOrDefault(t => t.controller == outanchorcontroller);
+                if (existing == null)
+                {
+                    var anchor = VFXFlowAnchor.Create(outanchorcontroller);
+                    m_FlowOutputConnectorContainer.Add(anchor);
+                    newOutAnchors.Add(anchor);
+                }
+                else
+                {
+                    newOutAnchors.Add(existing);
+                }
+            }
+
+            foreach (var nonLongerExistingAnchor in m_FlowOutputConnectorContainer.Where(t => !newOutAnchors.Contains(t)).ToList()) // ToList to make a copy because the enumerable will change when we delete
+            {
+                m_FlowOutputConnectorContainer.Remove(nonLongerExistingAnchor);
+            }
+            Profiler.EndSample();
+
+            RefreshContext();
         }
 
-        public VFXContextUI()
+        public VFXContextUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXContext.uxml"))
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
-            forceNotififcationOnAdd = true;
 
-            m_FlowInputConnectorContainer = new VisualElement()
-            {
-                name = "FlowInputs",
-                pickingMode = PickingMode.Ignore,
-            };
-            m_FlowInputConnectorContainer.ClearClassList();
-            m_FlowInputConnectorContainer.AddToClassList("FlowContainer");
-            m_FlowInputConnectorContainer.AddToClassList("Input");
+            AddStyleSheetPath("VFXContext");
+            AddStyleSheetPath("Selectable");
 
-            m_FlowOutputConnectorContainer = new VisualElement()
-            {
-                name = "FlowOutputs",
-                pickingMode = PickingMode.Ignore
-            };
-            m_FlowOutputConnectorContainer.ClearClassList();
-            m_FlowOutputConnectorContainer.AddToClassList("FlowContainer");
-            m_FlowOutputConnectorContainer.AddToClassList("Output");
+            AddToClassList("VFXContext");
+            AddToClassList("selectable");
 
-            m_NodeContainer = new VisualElement()
-            {
-                name = "NodeContents"
-            };
+            m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
-            m_InsideContainer = new VisualElement()
-            {
-                name = "Inside"
-            };
-            m_InsideContainer.clippingOptions = ClippingOptions.ClipAndCacheContents;
+            m_FlowOutputConnectorContainer = this.Q("flow-outputs");
 
-            shadow.Add(m_NodeContainer);
-
-            m_Header = new VisualElement() {
-                name = "Header"
-            };
-            m_HeaderContainer = new VisualElement()
-            {
-                name = "HeaderContainer"
-            };
-            m_HeaderContainer.AddToClassList("Extremity");
-            m_HeaderTitle = new Label() { name = "HeaderTitle" , text = "Title" };
-            m_HeaderTitle.AddToClassList("title");
-            m_HeaderIcon = new VisualElement() { name = "HeaderIcon"};
-            m_HeaderIcon.AddToClassList("icon");
-            m_HeaderContainer.Add(m_HeaderIcon);
-            m_HeaderContainer.Add(m_HeaderTitle);
-
-            Add(m_FlowInputConnectorContainer);
-
-            m_HeaderSpace = new VisualElement();
-            m_HeaderSpace.name = "HeaderSpace";
+            m_HeaderIcon = titleContainer.Q<Image>("icon");
+            m_HeaderSpace = titleContainer.Q<Image>("header-space");
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
 
-            m_HeaderContainer.Add(m_HeaderSpace);
+            m_BlockContainer = this.Q("block-container");
+            m_NoBlock = m_BlockContainer.Q("no-blocks");
 
-            m_InsideContainer.Add(m_Header);
+            m_Footer = this.Q("footer");
 
+            m_FooterTitle = m_Footer.Q<Label>("title-label");
+            m_FooterIcon = m_Footer.Q<Image>("icon");
 
-            m_OwnData = new VFXOwnContextSlotContainerUI();
-            m_OwnData.RemoveFromClassList("node");
-            m_Header.Add(m_HeaderContainer);
-            m_Header.Add(m_OwnData);
-
-            m_BlockContainer = new BlockContainer()
-            {
-                pickingMode = PickingMode.Ignore
-            };
-
-            m_InsideContainer.Add(m_BlockContainer);
-
-
-            m_Footer = new VisualElement() {
-                name = "Footer"
-            };
-            m_FooterTitle = new Label() { name = "FooterTitle", text = "footer" };
-            m_FooterTitle.AddToClassList("title");
-            m_FooterIcon = new VisualElement() { name = "FooterIcon"};
-            m_FooterIcon.AddToClassList("icon");
-            m_Footer.Add(m_FooterIcon);
-            m_Footer.Add(m_FooterTitle);
-            m_Footer.AddToClassList("Extremity");
-
-
-            m_InsideContainer.Add(m_Footer);
-
-            m_NodeContainer.Add(m_InsideContainer);
-
-
-            ClearClassList();
-            AddToClassList("VFXContext");
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
-
-
-            var selectionBorder = new VisualElement() {name = "selection-border"};
-            Add(selectionBorder);
-            selectionBorder.pickingMode = PickingMode.Ignore;
-
-            Add(m_FlowInputConnectorContainer);
-
-            Add(m_FlowOutputConnectorContainer);
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
-        public override void UpdatePresenterPosition()
+        bool m_CanHaveBlocks = false;
+
+        public void OnMoved()
         {
             controller.position = GetPosition().position;
         }
@@ -505,17 +395,6 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        public EventPropagation DeleteSelection()
-        {
-            var elementsToRemove = m_BlockContainer.selection.OfType<VFXBlockUI>().ToList();
-            foreach (var block in elementsToRemove)
-            {
-                RemoveBlock(block as VFXBlockUI);
-            }
-
-            return (elementsToRemove.Count > 0) ? EventPropagation.Stop : EventPropagation.Continue;
-        }
-
         public override void SetPosition(Rect newPos)
         {
             //if (classList.Contains("vertical"))
@@ -540,14 +419,19 @@ namespace UnityEditor.VFX.UI
 
         private void InstantiateBlock(VFXBlockController blockController)
         {
+            Profiler.BeginSample("VFXContextUI.InstantiateBlock");
+            Profiler.BeginSample("VFXContextUI.new VFXBlockUI");
             var blockUI = new VFXBlockUI();
+            Profiler.EndSample();
             blockUI.controller = blockController;
 
             m_BlockContainer.Add(blockUI);
+            Profiler.EndSample();
         }
 
         public void RefreshContext()
         {
+            Profiler.BeginSample("VFXContextUI.RefreshContext");
             var blockControllers = controller.blockControllers;
 
             // recreate the children list based on the controller list to keep the order.
@@ -564,6 +448,14 @@ namespace UnityEditor.VFX.UI
             {
                 m_BlockContainer.Remove(kv.Value);
             }
+            if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
+            {
+                m_NoBlock.RemoveFromHierarchy();
+            }
+            else if (m_NoBlock.parent == null)
+            {
+                m_BlockContainer.Add(m_NoBlock);
+            }
             foreach (var blockController in blockControllers)
             {
                 VFXBlockUI blockUI;
@@ -576,6 +468,7 @@ namespace UnityEditor.VFX.UI
                     InstantiateBlock(blockController);
                 }
             }
+            Profiler.EndSample();
         }
 
         Texture2D GetIconForVFXType(VFXDataType type)
@@ -631,27 +524,19 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnCreateBlock(EventBase evt)
+        public void OnCreateBlock(ContextualMenu.MenuAction evt)
         {
-            Vector2 referencePosition;
-            if (evt is IMouseEvent)
-            {
-                referencePosition = (evt as IMouseEvent).mousePosition;
-            }
-            else
-            {
-                referencePosition = evt.imguiEvent.mousePosition;
-            }
+            Vector2 referencePosition = evt.eventInfo.mousePosition;
 
+            OnCreateBlock(referencePosition);
+        }
+
+        public void OnCreateBlock(Vector2 referencePosition)
+        {
             VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
-
-        internal override void DoRepaint(IStylePainter painter)
-        {
-            base.DoRepaint(painter);
-        }
 
         // TODO: Remove, unused except for debugging
         // Declare new USS rect-color and use it

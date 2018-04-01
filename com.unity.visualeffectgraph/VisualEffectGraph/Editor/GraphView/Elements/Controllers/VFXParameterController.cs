@@ -12,27 +12,6 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterOutputDataAnchorController : VFXDataAnchorController
-    {
-        public VFXParameterOutputDataAnchorController(VFXSlot model, VFXSlotContainerController sourceNode, bool hidden) : base(model, sourceNode, hidden)
-        {
-        }
-
-        public override Direction direction
-        { get { return Direction.Output; } }
-        public override string name
-        {
-            get
-            {
-                if (model.IsMasterSlot())
-                {
-                    return model.property.type.UserFriendlyName();
-                }
-                return base.name;
-            }
-        }
-    }
-
     class VFXSubParameterController : IPropertyRMProvider, IValueController
     {
         VFXParameterController m_Parameter;
@@ -41,6 +20,9 @@ namespace UnityEditor.VFX.UI
         FieldInfo[] m_FieldInfos;
 
         VFXSubParameterController[] m_Children;
+
+        object[] m_CustomAttributes;
+        VFXPropertyAttribute[] m_Attributes;
 
 
         public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
@@ -59,6 +41,8 @@ namespace UnityEditor.VFX.UI
                 m_FieldInfos[i] = info;
                 type = info.FieldType;
             }
+            m_CustomAttributes = m_FieldInfos[m_FieldInfos.Length - 1].GetCustomAttributes(true);
+            m_Attributes = VFXPropertyAttribute.Create(m_CustomAttributes);
         }
 
         public VFXSubParameterController[] children
@@ -93,9 +77,9 @@ namespace UnityEditor.VFX.UI
             get { return m_FieldInfos[m_FieldInfos.Length - 1].Name; }
         }
 
-        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
+        object[] IPropertyRMProvider.customAttributes { get { return m_CustomAttributes; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; } }
+        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return m_Attributes; } }
 
         int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
@@ -154,35 +138,126 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXParameterController : VFXSlotContainerController, IPropertyRMProvider, IValueController
+
+    class VFXMinMaxParameterController : IPropertyRMProvider
+    {
+        public VFXMinMaxParameterController(VFXParameterController owner, bool min)
+        {
+            m_Owner = owner;
+            m_Min = min;
+        }
+
+        VFXParameterController m_Owner;
+        bool m_Min;
+        public bool expanded
+        {
+            get { return m_Owner.expanded; }
+            set { throw new NotImplementedException(); }
+        }
+
+        public bool expandable
+        {
+            get { return m_Owner.expandable; }
+        }
+        public object value
+        {
+            get { return m_Min ? m_Owner.minValue : m_Owner.maxValue; }
+            set
+            {
+                if (m_Min)
+                    m_Owner.minValue = value;
+                else
+                    m_Owner.maxValue = value;
+            }
+        }
+
+        public string name
+        {
+            get { return m_Min ? "Min" : "Max"; }
+        }
+
+        public VFXPropertyAttribute[] attributes
+        {
+            get { return new VFXPropertyAttribute[] {}; }
+        }
+
+        public object[] customAttributes
+        {
+            get { return null; }
+        }
+
+        public Type portType
+        {
+            get { return m_Owner.portType; }
+        }
+
+        public int depth
+        {
+            get { return m_Owner.depth; }
+        }
+
+        public bool editable
+        {
+            get { return true; }
+        }
+
+        public void ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+    }
+    class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider
     {
         VFXSubParameterController[] m_SubControllers;
 
+        VFXViewController m_ViewController;
+
         IDataWatchHandle m_SlotHandle;
 
-        public VFXParameterController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        VFXMinMaxParameterController m_MinController;
+        public VFXMinMaxParameterController minController
         {
-            m_CachedMinValue = parameter.m_Min != null ? parameter.m_Min.Get() : null;
-            m_CachedMaxValue = parameter.m_Max != null ? parameter.m_Max.Get() : null;
-
-            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(parameter.outputSlots[0], OnSlotChanged);
+            get
+            {
+                if (m_MinController == null)
+                {
+                    m_MinController = new VFXMinMaxParameterController(this, true);
+                }
+                return m_MinController;
+            }
+        }
+        VFXMinMaxParameterController m_MaxController;
+        public VFXMinMaxParameterController maxController
+        {
+            get
+            {
+                if (m_MaxController == null)
+                {
+                    m_MaxController = new VFXMinMaxParameterController(this, false);
+                }
+                return m_MaxController;
+            }
         }
 
-        void OnSlotChanged(UnityEngine.Object obj)
+        public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(model)
         {
-            NotifyChange(AnyThing);
+            m_ViewController = viewController;
+
+            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(model.outputSlots[0], OnSlotChanged);
         }
 
-        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
-        {
-            var anchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
-            anchor.portType = slot.property.type;
-            return anchor;
-        }
+        public const int ValueChanged = 1;
 
-        public override string title
+        void OnSlotChanged(UnityEngine.Object model)
         {
-            get { return parameter.outputSlots[0].property.type.UserFriendlyName(); }
+            if (m_SlotHandle == null)
+                return;
+            NotifyChange(ValueChanged);
         }
 
         public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
@@ -232,47 +307,158 @@ namespace UnityEditor.VFX.UI
             return m_SubControllers[i];
         }
 
+        public VFXParameterNodeController GetParameterForLink(VFXSlot slot)
+        {
+            return m_Controllers.FirstOrDefault(t => t.Value.infos.linkedSlots != null && t.Value.infos.linkedSlots.Any(u => u.inputSlot == slot)).Value;
+        }
+
+        public string MakeNameUnique(string name)
+        {
+            HashSet<string> allNames = new HashSet<string>(m_ViewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
+
+            return MakeNameUnique(name, allNames);
+        }
+
+        public static string MakeNameUnique(string name, HashSet<string> allNames)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "parameter";
+            }
+            string candidateName = name.Trim();
+            if (candidateName.Length < 1)
+            {
+                return null;
+            }
+            string candidateMainPart = null;
+            int cpt = 0;
+            while (allNames.Contains(candidateName))
+            {
+                if (candidateMainPart == null)
+                {
+                    int spaceIndex = candidateName.LastIndexOf(' ');
+                    if (spaceIndex == -1)
+                    {
+                        candidateMainPart = candidateName;
+                    }
+                    else
+                    {
+                        if (int.TryParse(candidateName.Substring(spaceIndex + 1), out cpt)) // spaceIndex can't be last char because of Trim()
+                        {
+                            candidateMainPart = candidateName.Substring(0, spaceIndex);
+                        }
+                        else
+                        {
+                            candidateMainPart = candidateName;
+                        }
+                    }
+                }
+                ++cpt;
+
+                candidateName = string.Format("{0} {1}", candidateMainPart, cpt);
+            }
+
+            return candidateName;
+        }
+
+        public void CheckNameUnique(HashSet<string> allNames)
+        {
+            string candidateName = MakeNameUnique(model.exposedName, allNames);
+            if (candidateName != model.exposedName)
+            {
+                parameter.SetSettingValue("m_exposedName", candidateName);
+            }
+        }
+
         public string exposedName
         {
             get { return parameter.exposedName; }
+
+            set
+            {
+                string candidateName = MakeNameUnique(value);
+                if (candidateName != null && candidateName != parameter.exposedName)
+                {
+                    parameter.SetSettingValue("m_exposedName", candidateName);
+                }
+            }
         }
         public bool exposed
         {
-            get { return parameter.exposed; }
+            get {return parameter.exposed; }
+            set
+            {
+                parameter.SetSettingValue("m_exposed", value);
+            }
         }
 
         public int order
         {
             get { return parameter.order; }
+
+            set
+            {
+                parameter.order = value;
+            }
         }
 
-        private VFXParameter parameter { get { return model as VFXParameter; } }
+        public VFXParameter parameter { get { return model as VFXParameter; } }
 
-        bool IPropertyRMProvider.expanded
+
+        public bool canHaveRange
         {
             get
             {
-                return false;
+                return parameter.canHaveRange;
             }
         }
-        bool IPropertyRMProvider.editable
+
+        public bool hasRange
         {
-            get { return true; }
+            get { return parameter.hasRange; }
+
+            set
+            {
+                parameter.hasRange = value;
+            }
         }
 
+        static float RangeToFloat(object value)
+        {
+            if (value != null)
+            {
+                if (value.GetType() == typeof(float))
+                {
+                    return (float)value;
+                }
+                else if (value.GetType() == typeof(int))
+                {
+                    return (float)(int)value;
+                }
+                else if (value.GetType() == typeof(uint))
+                {
+                    return (float)(uint)value;
+                }
+            }
+            return 0.0f;
+        }
 
         public object minValue
         {
-            get { return m_CachedMinValue; }
+            get { return parameter.m_Min.Get(); }
             set
             {
-                m_CachedMinValue = value;
                 if (value != null)
                 {
-                    if (parameter.m_Min == null)
+                    if (parameter.m_Min == null || parameter.m_Min.type != portType)
                         parameter.m_Min = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Min.Set(value);
+                    if (RangeToFloat(this.value) < RangeToFloat(value))
+                    {
+                        this.value = value;
+                    }
+                    parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
                 else
                     parameter.m_Min = null;
@@ -280,16 +466,21 @@ namespace UnityEditor.VFX.UI
         }
         public object maxValue
         {
-            get { return m_CachedMaxValue; }
+            get { return parameter.m_Max.Get(); }
             set
             {
-                m_CachedMaxValue = value;
                 if (value != null)
                 {
-                    if (parameter.m_Max == null)
+                    if (parameter.m_Max == null || parameter.m_Max.type != portType)
                         parameter.m_Max = new VFXSerializableObject(portType, value);
                     else
                         parameter.m_Max.Set(value);
+                    if (RangeToFloat(this.value) > RangeToFloat(value))
+                    {
+                        this.value = value;
+                    }
+
+                    parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
                 else
                     parameter.m_Max = null;
@@ -299,8 +490,6 @@ namespace UnityEditor.VFX.UI
         // For the edition of Curve and Gradient to work the value must not be recreated each time. We now assume that changes happen only through the controller (or, in the case of serialization, before the controller is created)
         object m_CachedMinValue;
         object m_CachedMaxValue;
-
-        bool IPropertyRMProvider.expandable {get  { return false; } }
 
 
         public object value
@@ -315,15 +504,21 @@ namespace UnityEditor.VFX.UI
 
                 VFXSlot slot = parameter.GetOutputSlot(0);
 
+                if (hasRange)
+                {
+                    if (RangeToFloat(value) < RangeToFloat(minValue))
+                    {
+                        value = minValue;
+                    }
+                    if (RangeToFloat(value) > RangeToFloat(maxValue))
+                    {
+                        value = maxValue;
+                    }
+                }
+
                 slot.value = value;
             }
         }
-
-        string IPropertyRMProvider.name { get { return "Value"; } }
-
-        object[] IPropertyRMProvider.customAttributes { get { return new object[] {}; } }
-
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return new VFXPropertyAttribute[] {}; }}
 
         public Type portType
         {
@@ -334,23 +529,8 @@ namespace UnityEditor.VFX.UI
                 return model.GetOutputSlot(0).property.type;
             }
         }
-
-        int IPropertyRMProvider.depth { get { return 0; }}
-
-        void IPropertyRMProvider.ExpandPath()
+        public void DrawGizmos(VisualEffect component)
         {
-            throw new NotImplementedException();
-        }
-
-        void IPropertyRMProvider.RetractPath()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void DrawGizmos(VFXComponent component)
-        {
-            VFXValueGizmo.Draw(this, component);
-
             if (m_SubControllers != null)
             {
                 foreach (var controller in m_SubControllers)
@@ -358,6 +538,98 @@ namespace UnityEditor.VFX.UI
                     VFXValueGizmo.Draw(controller, component);
                 }
             }
+        }
+
+        Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
+
+        protected override void ModelChanged(UnityEngine.Object obj)
+        {
+            model.ValidateNodes();
+            bool controllerListChanged = UpdateControllers();
+            if (controllerListChanged)
+                m_ViewController.NotifyParameterControllerChange();
+            NotifyChange(AnyThing);
+        }
+
+        public bool UpdateControllers()
+        {
+            bool changed = false;
+            var nodes = model.nodes.ToDictionary(t => t.id, t => t);
+
+            foreach (var removedController in m_Controllers.Where(t => !nodes.ContainsKey(t.Key)).ToArray())
+            {
+                removedController.Value.OnDisable();
+                m_Controllers.Remove(removedController.Key);
+                m_ViewController.RemoveControllerFromModel(parameter, removedController.Value);
+                changed = true;
+            }
+
+            foreach (var addedController in nodes.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
+            {
+                VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, m_ViewController);
+
+                m_Controllers[addedController.Key] = controller;
+                m_ViewController.AddControllerToModel(parameter, controller);
+
+                controller.ForceUpdate();
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        public bool expanded
+        {
+            get
+            {
+                return !model.collapsed;
+            }
+            set
+            {
+                model.collapsed = !value;
+            }
+        }
+        public bool editable
+        {
+            get { return true; }
+        }
+
+        public bool expandable { get { return false; } }
+
+        public string name { get { return "Value"; } }
+
+        public object[] customAttributes { get { return new object[] {}; } }
+
+        public VFXPropertyAttribute[] attributes
+        {
+            get
+            {
+                if (canHaveRange)
+                {
+                    return VFXPropertyAttribute.Create(new object[] { new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)) });
+                }
+                return new VFXPropertyAttribute[] {};
+            }
+        }
+
+        public int depth { get { return 0; } }
+
+        public void ExpandPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RetractPath()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void OnDisable()
+        {
+            DataWatchService.sharedInstance.RemoveWatch(m_SlotHandle);
+            m_SlotHandle = null;
+
+            base.OnDisable();
         }
     }
 }

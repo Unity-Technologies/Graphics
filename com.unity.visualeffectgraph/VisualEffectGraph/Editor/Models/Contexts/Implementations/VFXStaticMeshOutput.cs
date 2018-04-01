@@ -34,6 +34,7 @@ namespace UnityEditor.VFX
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"));
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask"), uint.MaxValue);
 
                 if (shader != null)
                     for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
@@ -79,7 +80,7 @@ namespace UnityEditor.VFX
 
         public override string name { get { return "Static Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return null; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.kOutput; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.Output; } }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
@@ -113,6 +114,7 @@ namespace UnityEditor.VFX
                     var mapper = new VFXExpressionMapper();
                     mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
                     mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
+                    mapper.AddExpression(GetInputSlot(2).GetExpression(), "subMeshMask", -1);
                     return mapper;
                 }
 

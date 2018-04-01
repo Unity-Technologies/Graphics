@@ -68,6 +68,10 @@ namespace UnityEditor.VFX.UI
         {
             m_MainContainer.SetEnabled(propertyEnabled);
         }
+        protected override void UpdateIndeterminate()
+        {
+            m_MainContainer.visible = !indeterminate;
+        }
 
         public void OnValueChanged(ChangeEvent<Color> e)
         {
@@ -109,7 +113,7 @@ namespace UnityEditor.VFX.UI
         LabeledField<UnityEditor.Experimental.UIElements.ColorField, Color> m_ColorField;
 #endif
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             m_ColorField.value = m_Value;
             m_RFloatField.value = m_Value.r;

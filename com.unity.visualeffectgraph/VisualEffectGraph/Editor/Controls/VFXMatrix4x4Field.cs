@@ -28,6 +28,24 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
+        public override bool indeterminate
+        {
+            get
+            {
+                return m_FloatFields[0, 0].control.indeterminate;
+            }
+            set
+            {
+                for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
+                {
+                    for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
+                    {
+                        m_FloatFields[i,j].control.indeterminate = value;
+                    }
+                }
+            }
+        }
+
         void OnFloatValueChanged(ChangeEvent<float> e)
         {
             Matrix4x4 newValue = value;
@@ -77,14 +95,15 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
             Matrix4x4 value = this.value;
             for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
             {
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
-                    m_FloatFields[i, j].value = value[i, j];
+                    if (!m_FloatFields[i, j].control.HasFocus() || force)
+                        m_FloatFields[i, j].value = value[i, j];
                 }
             }
         }

@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UIElements
             set
             {
                 m_Value = value;
-                ValueToGUI();
+                ValueToGUI(false);
             }
         }
         public void SetValueAndNotify(T newValue)
@@ -32,7 +32,13 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-        protected abstract void ValueToGUI();
+        public void ForceUpdate()
+        {
+            ValueToGUI(true);
+        }
+        public abstract bool indeterminate{get;set;}
+
+        protected abstract void ValueToGUI(bool force);
 
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
         {

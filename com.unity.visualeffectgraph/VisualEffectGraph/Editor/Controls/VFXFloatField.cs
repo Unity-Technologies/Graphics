@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UIElements
 {
     public class VFXFloatField : TextValueField<float>
     {
-        internal static string allowedCharacters
+        protected override string allowedCharacters
         {
             get { return EditorGUI.s_AllowedCharactersForFloat; }
         }
@@ -28,6 +28,20 @@ namespace UnityEditor.VFX.UIElements
             return c != 0 && allowedCharacters.IndexOf(c) != -1;
         }
 
+        bool m_Indeterminate;
+        public bool indeterminate
+        {
+            get
+            {
+                return m_Indeterminate;
+            }
+            set
+            {
+                m_Indeterminate = value;
+                this.value = this.value;
+            }
+        }
+
         public override void ApplyInputDeviceDelta(Vector3 delta, DeltaSpeed speed, float startValue)
         {
             double sensitivity = NumericFieldDraggerUtility.CalculateFloatDragSensitivity(startValue);
@@ -40,6 +54,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override string ValueToString(float v)
         {
+            if( indeterminate) return "_";
             return v.ToString(formatString);
         }
 

@@ -1,0 +1,25 @@
+VFXFloatField 
+{
+	text-color: #111;
+	background-image: resource("Builtin Skins/LightSkin/Images/TextField.png");
+	cursor-color:#000;
+}
+
+VFXFloatField:focus
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/TextField focused.png");
+}
+
+.PopupButton
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
+}
+.PopupButton:hover:active
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
+}
+
+.PopupButton:focus
+{
+	background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
+}

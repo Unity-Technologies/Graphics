@@ -6,6 +6,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -21,14 +22,24 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlockUI()
         {
+            Profiler.BeginSample("VFXBlockUI.VFXBlockUI");
+            AddStyleSheetPath("VFXBlock");
             pickingMode = PickingMode.Position;
             m_EnableToggle = new Toggle(OnToggleEnable);
-            titleContainer.shadow.Insert(1, m_EnableToggle);
+            titleContainer.Insert(1, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable;
 
             RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+            Profiler.EndSample();
+            style.positionType = PositionType.Relative;
+        }
+
+        public override void SetPosition(Rect newPos)
+        {
+            base.SetPosition(newPos);
+            style.positionType = PositionType.Relative;
         }
 
         void OnMouseDown(MouseDownEvent e)

@@ -237,7 +237,7 @@ namespace UnityEditor.VFX
             r.WriteLine("uint currentSumSpawnCount = 0u;");
             r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
             r.EnterScope();
-            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", VFXValueType.kFloat), VFXAttributeLocation.Source));
+            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", VFXValueType.Float), VFXAttributeLocation.Source));
             r.WriteLine("if (id.x < currentSumSpawnCount)");
             r.EnterScope();
             r.WriteLine("break;");

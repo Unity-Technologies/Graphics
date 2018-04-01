@@ -101,6 +101,11 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public Type type
+        {
+            get { return m_Type; }
+        }
+
         [SerializeField]
         private SerializableType m_Type;
 

@@ -6,57 +6,95 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterUI : VFXStandaloneSlotContainerUI
+    class VFXParameterDataAnchor : VFXOutputDataAnchor
     {
-        PropertyRM m_Property;
-        List<PropertyRM> m_SubProperties;
+        public static new VFXParameterDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
+        {
+            var anchor = new VFXParameterDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
-        public VFXParameterUI()
+            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.controller = controller;
+            anchor.AddManipulator(anchor.m_EdgeConnector);
+            return anchor;
+        }
+
+        protected VFXParameterDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
         }
 
-        public new VFXParameterController controller
+        public override bool ContainsPoint(Vector2 localPoint)
         {
-            get { return base.controller as VFXParameterController; }
+            return base.ContainsPoint(localPoint) && !m_ConnectorText.ContainsPoint(this.ChangeCoordinatesTo(m_ConnectorText, localPoint));
         }
+    }
 
-        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
+
+    static class UXMLHelper
+    {
+        const string folderName = "Editor Default Resources";
+
+        public static string GetUXMLPath(string name)
         {
-            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
-
-            if (labelWidth < 70)
-                labelWidth = 70;
-
-            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
-
-            foreach (var port in properties)
+            string path = null;
+            if (s_Cache.TryGetValue(name, out path))
             {
-                float portLabelWidth = port.GetPreferredLabelWidth();
-                float portControlWidth = port.GetPreferredControlWidth();
+                return path;
+            }
+            return GetUXMLPathRecursive("Assets", name);
+        }
 
-                if (labelWidth < portLabelWidth)
+        static Dictionary<string, string> s_Cache = new Dictionary<string, string>();
+
+        static string GetUXMLPathRecursive(string path, string name)
+        {
+            Profiler.BeginSample("UXMLHelper.GetUXMLPathRecursive");
+            string localFileName = path + "/" + folderName + "/" + name;
+            if (System.IO.File.Exists(localFileName))
+            {
+                Profiler.EndSample();
+                s_Cache[name] = localFileName;
+                return localFileName;
+            }
+
+            foreach (var dir in System.IO.Directory.GetDirectories(path))
+            {
+                if (dir.Length <= folderName.Length || !dir.EndsWith(folderName) || !"/\\".Contains(dir[dir.Length - folderName.Length - 1]))
                 {
-                    labelWidth = portLabelWidth;
-                }
-                if (controlWidth < portControlWidth)
-                {
-                    controlWidth = portControlWidth;
+                    string result = GetUXMLPathRecursive(dir, name);
+                    if (result != null)
+                    {
+                        Profiler.EndSample();
+                        return result;
+                    }
                 }
             }
+
+            Profiler.EndSample();
+            return null;
+        }
+    }
+
+
+    class VFXParameterUI : VFXNodeUI
+    {
+        public VFXParameterUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXParameter.uxml"))
+        {
+            RemoveFromClassList("VFXNodeUI");
+            AddStyleSheetPath("VFXParameter");
+
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            m_ExposedIcon = this.Q<Image>("exposed-icon");
         }
 
-        public override void ApplyWidths(float labelWidth, float controlWidth)
+        public new VFXParameterNodeController controller
         {
-            base.ApplyWidths(labelWidth, controlWidth);
-
-            var properties = inputContainer.Query().OfType<PropertyRM>().ToList();
-            foreach (var port in properties)
-            {
-                port.SetLabelWidth(labelWidth);
-            }
+            get { return base.controller as VFXParameterNodeController; }
         }
 
         protected override bool syncInput
@@ -64,60 +102,43 @@ namespace UnityEditor.VFX.UI
             get { return false; }
         }
 
-        void CreateSubProperties(List<int> fieldPath)
+        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var subControllers = controller.GetSubControllers(fieldPath);
-
-            var subFieldPath = new List<int>();
-            int cpt = 0;
-            foreach (var subController in subControllers)
-            {
-                PropertyRM prop = PropertyRM.Create(subController, 55);
-                if (prop != null)
-                {
-                    m_SubProperties.Add(prop);
-                    inputContainer.Add(prop);
-                }
-                if (prop == null || !prop.showsEverything)
-                {
-                    subFieldPath.Clear();
-                    subFieldPath.AddRange(fieldPath);
-                    subFieldPath.Add(cpt);
-                    CreateSubProperties(subFieldPath);
-                }
-                ++cpt;
-            }
+            return VFXParameterDataAnchor.Create(controller, node);
         }
+
+        Image m_ExposedIcon;
 
         protected override void SelfChange()
         {
             base.SelfChange();
-            if (controller == null)
-                return;
 
-            if (m_Property == null)
+            if (m_ExposedIcon != null)
+                m_ExposedIcon.visible = controller.parentController.exposed;
+
+            if (controller.parentController.exposed)
             {
-                m_Property = PropertyRM.Create(controller, 55);
-                if (m_Property != null)
-                {
-                    inputContainer.Add(m_Property);
-                    m_SubProperties = new List<PropertyRM>();
-                    List<int> fieldpath = new List<int>();
-                    if (!m_Property.showsEverything)
-                    {
-                        CreateSubProperties(fieldpath);
-                    }
-                }
-                RefreshPorts();
+                AddToClassList("exposed");
             }
-            if (m_Property != null)
-                m_Property.Update();
-            if (m_SubProperties != null)
+            else
             {
-                foreach (var subProp in m_SubProperties)
-                {
-                    subProp.Update();
-                }
+                RemoveFromClassList("exposed");
+            }
+        }
+
+        void OnMouseHover(EventBase evt)
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view != null)
+            {
+                VFXBlackboard blackboard = view.blackboard;
+
+                VFXBlackboardRow row = blackboard.GetRowFromController(controller.parentController);
+
+                if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                    row.AddToClassList("hovered");
+                else
+                    row.RemoveFromClassList("hovered");
             }
         }
     }

@@ -4,7 +4,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    public class VFXCustomSpawnerSample : VFXSpawnerFunction
+    public class VFXCustomSpawnerSample : VFXSpawnerCallbacks
     {
         public class InputProperties
         {
@@ -13,11 +13,11 @@ namespace UnityEditor.VFX
             public Gradient dummyZ = new Gradient();
         }
 
-        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
         }
 
-        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
             var a = vfxValues.GetGradient("dummyZ");
             if (a != null)
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VFXComponent vfxComponent)
+        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
         }
     }

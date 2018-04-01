@@ -17,11 +17,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXTRSToMatrixOp;
+                return VFXExpressionOperation.TRSToMatrix;
             }
         }
 
@@ -54,11 +54,11 @@ namespace UnityEditor.VFX
             : base(VFXExpression.Flags.InvalidOnGPU, parent)
         {}
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXInverseTRSOp;
+                return VFXExpressionOperation.InverseTRS;
             }
         }
 
@@ -79,11 +79,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXExtractPositionFromMatrixOp;
+                return VFXExpressionOperation.ExtractPositionFromMatrix;
             }
         }
 
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -114,11 +114,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXExtractAnglesFromMatrixOp;
+                return VFXExpressionOperation.ExtractAnglesFromMatrix;
             }
         }
 
@@ -126,7 +126,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
         {
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
-
+            matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.rotation.eulerAngles);
         }
     }
@@ -149,11 +149,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXExtractScaleFromMatrixOp;
+                return VFXExpressionOperation.ExtractScaleFromMatrix;
             }
         }
 
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -169,7 +169,7 @@ namespace UnityEditor.VFX
         {
             var matrixReduce = constParents[0];
             var matrix = matrixReduce.Get<Matrix4x4>();
-
+            matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             return VFXValue.Constant(matrix.lossyScale);
         }
     }
@@ -184,11 +184,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXTransformPosOp;
+                return VFXExpressionOperation.TransformPos;
             }
         }
 
@@ -196,7 +196,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -227,11 +227,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXTransformPosOp;
+                return VFXExpressionOperation.TransformPos;
             }
         }
 
@@ -239,7 +239,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 
@@ -270,11 +270,11 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOp operation
+        public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOp.kVFXTransformDirOp;
+                return VFXExpressionOperation.TransformDir;
             }
         }
 
@@ -282,7 +282,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.kFloat3;
+                return VFXValueType.Float3;
             }
         }
 

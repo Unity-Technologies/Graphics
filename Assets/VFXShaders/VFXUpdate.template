@@ -15,6 +15,7 @@ AppendStructuredBuffer<uint> indirectBuffer;
 
 CBUFFER_START(updateParams)
     uint nbMax;
+	uint systemSeed;
 CBUFFER_END
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -56,6 +57,9 @@ void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 		
 		${VFXProcessBlocks}
 		${VFXStoreAttributes}
+#if VFX_HAS_INDIRECT_DRAW
+		indirectBuffer.Append(index);
+#endif
 #endif
 	}
 }

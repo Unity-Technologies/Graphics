@@ -10,10 +10,10 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXDataTests
     {
-        private static VFXAttribute attrib1 = new VFXAttribute("attrib1", VFXValueType.kFloat);
-        private static VFXAttribute attrib2 = new VFXAttribute("attrib2", VFXValueType.kFloat2);
-        private static VFXAttribute attrib3 = new VFXAttribute("attrib3", VFXValueType.kFloat3);
-        private static VFXAttribute attrib4 = new VFXAttribute("attrib4", VFXValueType.kFloat4);
+        private static VFXAttribute attrib1 = new VFXAttribute("attrib1", VFXValueType.Float);
+        private static VFXAttribute attrib2 = new VFXAttribute("attrib2", VFXValueType.Float2);
+        private static VFXAttribute attrib3 = new VFXAttribute("attrib3", VFXValueType.Float3);
+        private static VFXAttribute attrib4 = new VFXAttribute("attrib4", VFXValueType.Float4);
 
         private class ContextTestSpawn : VFXContext
         {

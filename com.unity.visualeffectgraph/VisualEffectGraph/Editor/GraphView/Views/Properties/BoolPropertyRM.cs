@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
             return 20;
         }
 
-        public override void UpdateGUI()
+        public override void UpdateGUI(bool force)
         {
             m_Toggle.on = m_Value;
         }
@@ -40,6 +40,11 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             m_Toggle.SetEnabled(propertyEnabled);
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+            m_Toggle.visible = !indeterminate;
         }
 
         public override bool showsEverything { get { return true; } }

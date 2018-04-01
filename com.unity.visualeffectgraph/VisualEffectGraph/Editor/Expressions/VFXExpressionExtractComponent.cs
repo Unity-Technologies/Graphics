@@ -10,12 +10,12 @@ namespace UnityEditor.VFX
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
             : base(new VFXExpression[1] { parent })
         {
-            if (parent.valueType == VFXValueType.kFloat || !IsFloatValueType(parent.valueType))
+            if (parent.valueType == VFXValueType.Float || !IsFloatValueType(parent.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionExtractComponent");
             }
 
-            m_Operation = VFXExpressionOp.kVFXExtractComponentOp;
+            m_Operation = VFXExpressionOperation.ExtractComponent;
             m_additionnalOperands = new int[] { iChannel, TypeToSize(parent.valueType) };
         }
 
@@ -63,10 +63,10 @@ namespace UnityEditor.VFX
             var parent = reducedParents[0];
             switch (reducedParents[0].valueType)
             {
-                case VFXValueType.kFloat: readValue = parent.Get<float>(); break;
-                case VFXValueType.kFloat2: readValue = GetChannel(parent.Get<Vector2>(), channel); break;
-                case VFXValueType.kFloat3: readValue = GetChannel(parent.Get<Vector3>(), channel); break;
-                case VFXValueType.kFloat4: readValue = GetChannel(parent.Get<Vector4>(), channel); break;
+                case VFXValueType.Float: readValue = parent.Get<float>(); break;
+                case VFXValueType.Float2: readValue = GetChannel(parent.Get<Vector2>(), channel); break;
+                case VFXValueType.Float3: readValue = GetChannel(parent.Get<Vector3>(), channel); break;
+                case VFXValueType.Float4: readValue = GetChannel(parent.Get<Vector4>(), channel); break;
             }
             return VFXValue.Constant(readValue);
         }
@@ -76,7 +76,7 @@ namespace UnityEditor.VFX
             var parent = reducedParents[0];
             if (parent is VFXExpressionCombine)
                 return parent.parents[channel];
-            else if (parent.valueType == VFXValueType.kFloat && channel == 0)
+            else if (parent.valueType == VFXValueType.Float && channel == 0)
                 return parent;
             else
                 return base.Reduce(reducedParents);

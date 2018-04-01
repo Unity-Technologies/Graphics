@@ -20,11 +20,11 @@ namespace UnityEditor.VFX.Test
             var blockSetVelocity = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetVelocity.SetSettingValue("attribute", "velocity");
 
-            var attributeParameter = ScriptableObject.CreateInstance<VFXCurrentAttributeParameter>();
+            var attributeParameter = ScriptableObject.CreateInstance<VFXAttributeParameter>();
             attributeParameter.SetSettingValue("attribute", "color");
 
-            var add = ScriptableObject.CreateInstance<VFXOperatorAdd>();
-            var length = ScriptableObject.CreateInstance<VFXOperatorLength>();
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            var length = ScriptableObject.CreateInstance<Operator.Length>();
             var float4 = VFXLibrary.GetParameters().First(o => o.name == "Vector4").CreateInstance();
 
             graph.AddChild(updateContext);
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(float4);
             graph.AddChild(length);
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             attributeParameter.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.Test
                 initContext.AddChild(initBlock);
             }
 
-            graph.vfxAsset = new VFXAsset();
+            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
         }
 

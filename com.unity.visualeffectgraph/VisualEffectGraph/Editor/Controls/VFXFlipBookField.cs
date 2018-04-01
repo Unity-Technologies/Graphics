@@ -9,35 +9,42 @@ namespace UnityEditor.VFX.UIElements
 {
     class VFXFlipBookField : VFXControl<FlipBook>
     {
-        VFXLabeledField<IntegerField, long> m_X;
-        VFXLabeledField<IntegerField, long> m_Y;
+        VFXLabeledField<IntegerField, int> m_X;
+        VFXLabeledField<IntegerField, int> m_Y;
 
         void CreateTextField()
         {
-            m_X = new VFXLabeledField<IntegerField, long>("X");
-            m_Y = new VFXLabeledField<IntegerField, long>("Y");
+            m_X = new VFXLabeledField<IntegerField, int>("X");
+            m_Y = new VFXLabeledField<IntegerField, int>("Y");
 
             m_X.control.AddToClassList("fieldContainer");
             m_Y.control.AddToClassList("fieldContainer");
             m_X.AddToClassList("fieldContainer");
             m_Y.AddToClassList("fieldContainer");
 
-            m_X.RegisterCallback<ChangeEvent<long>>(OnXValueChanged);
-            m_Y.RegisterCallback<ChangeEvent<long>>(OnYValueChanged);
+            m_X.RegisterCallback<ChangeEvent<int>>(OnXValueChanged);
+            m_Y.RegisterCallback<ChangeEvent<int>>(OnYValueChanged);
         }
 
-        void OnXValueChanged(ChangeEvent<long> e)
+        void OnXValueChanged(ChangeEvent<int> e)
         {
             FlipBook newValue = value;
             newValue.x = (int)m_X.value;
             SetValueAndNotify(newValue);
         }
 
-        void OnYValueChanged(ChangeEvent<long> e)
+        void OnYValueChanged(ChangeEvent<int> e)
         {
             FlipBook newValue = value;
             newValue.y = (int)m_Y.value;
             SetValueAndNotify(newValue);
+        }
+
+        
+        public  override bool indeterminate
+        {
+            get {return visible;}
+            set{visible = indeterminate;}
         }
 
         public VFXFlipBookField()
@@ -49,10 +56,13 @@ namespace UnityEditor.VFX.UIElements
             Add(m_Y);
         }
 
-        protected override void ValueToGUI()
+        protected override void ValueToGUI(bool force)
         {
-            m_X.value = value.x;
-            m_Y.value = value.y;
+            if (!m_X.control.HasFocus() || force)
+                m_X.value = value.x;
+
+            if (!m_Y.control.HasFocus() || force)
+                m_Y.value = value.y;
         }
     }
 }

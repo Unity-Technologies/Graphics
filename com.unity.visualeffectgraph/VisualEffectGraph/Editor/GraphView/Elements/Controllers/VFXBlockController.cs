@@ -9,10 +9,33 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlockController : VFXContextSlotContainerController
+    class VFXBlockController : VFXNodeController
     {
-        public VFXBlockController(VFXBlock model, VFXContextController contextController) : base(model, contextController)
+        VFXContextController m_ContextController;
+        public VFXBlockController(VFXBlock model, VFXContextController contextController) : base(model, contextController.viewController)
         {
+            m_ContextController = contextController;
+        }
+
+        protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
+        {
+            if (input)
+            {
+                VFXContextDataInputAnchorController anchorController = new VFXContextDataInputAnchorController(slot, this, hidden);
+
+                return anchorController;
+            }
+            else
+            {
+                VFXContextDataOutputAnchorController anchorController = new VFXContextDataOutputAnchorController(slot, this, hidden);
+
+                return anchorController;
+            }
+        }
+
+        public VFXContextController contextController
+        {
+            get { return m_ContextController; }
         }
 
         public VFXBlock block
@@ -22,7 +45,7 @@ namespace UnityEditor.VFX.UI
 
         public int index
         {
-            get { return contextController.FindBlockIndexOf(this); }
+            get { return m_ContextController.FindBlockIndexOf(this); }
         }
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)

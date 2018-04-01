@@ -57,6 +57,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void SendEvent(EventBase e)
+        {
+            var eventHandlers = m_EventHandlers.ToArray(); // Some notification may trigger Register/Unregister so duplicate the collection.
+
+            foreach (var eventHandler in eventHandlers)
+            {
+                e.target = eventHandler;
+                UIElementsUtility.eventDispatcher.DispatchEvent(e, (eventHandler as VisualElement).panel);
+            }
+        }
+
         public abstract void ApplyChanges();
 
         public virtual  IEnumerable<Controller> allChildren
@@ -78,13 +89,30 @@ namespace UnityEditor.VFX.UI
         {
             m_Model = model;
 
-            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, ModelChanged);
+            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
         }
 
         public override void OnDisable()
         {
-            DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+            if( m_Handle != null)
+            {
+                try
+                {
+                    DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+                    m_Handle = null;
+                }
+                catch (ArgumentException e)
+                {
+                    Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
+                }
+            }
             base.OnDisable();
+        }
+
+        void OnModelChanged(UnityEngine.Object obj)
+        {
+            if (m_Handle != null)
+                ModelChanged(obj);
         }
 
         protected abstract void ModelChanged(UnityEngine.Object obj);

@@ -508,5 +508,39 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(177.65288f, resultExpressionA.Get<float>(), 0.001f);
         }
+
+        static readonly float[] ProcessOperatorCeil_Values = { 4.0f, 1.5f, -0.5f};
+        [Test]
+        public void ProcessOperatorCeil([ValueSource("ProcessOperatorCeil_Values")] float inValue)
+        {
+            var value = new VFXValue<float>(inValue);
+            var expression = VFXOperatorUtility.Ceil(value);
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpressionA = context.Compile(expression);
+            Assert.AreEqual(Mathf.Ceil(inValue), resultExpressionA.Get<float>(), 0.001f);
+        }
+
+        [Test]
+        public void ProcessOperatorCross()
+        {
+            var a = new Vector3(1.1f, 2.2f, 3.3f);
+            var b = new Vector3(4.4f, 5.5f, 6.6f);
+
+            var value_a = new VFXValue<Vector3>(a);
+            var value_b = new VFXValue<Vector3>(b);
+
+            var expressionA = VFXOperatorUtility.Cross(value_a, value_b);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+
+            var resultExpressionA = context.Compile(expressionA);
+            var resultValue = resultExpressionA.Get<Vector3>();
+
+            var expectedValue = Vector3.Cross(a, b);
+
+            Assert.AreEqual(expectedValue.x, resultValue.x, 0.001f);
+            Assert.AreEqual(expectedValue.y, resultValue.y, 0.001f);
+            Assert.AreEqual(expectedValue.z, resultValue.z, 0.001f);
+        }
     }
 }

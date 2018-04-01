@@ -2,14 +2,14 @@
 #define USE_DYNAMIC_AABB 1
 
 // Special semantics for VFX blocks
-#define RAND randLcg(seed)
+#define RAND Rand(seed)
 #define RAND2 float2(RAND,RAND)
 #define RAND3 float3(RAND,RAND,RAND)
 #define RAND4 float4(RAND,RAND,RAND,RAND)
-#define FIXED_RAND(s) FixedRand4(particleId ^ s).x
-#define FIXED_RAND2(s) FixedRand4(particleId ^ s).xy
-#define FIXED_RAND3(s) FixedRand4(particleId ^ s).xyz
-#define FIXED_RAND4(s) FixedRand4(particleId ^ s).xyzw
+#define FIXED_RAND(h) FixedRand(particleId ^ asuint(systemSeed) ^ h)
+#define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
+#define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
+#define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -144,46 +144,81 @@ uint3 ConvertFloatToSortableUint(float3 f)
 // Random number generator //
 /////////////////////////////
 
+#define RAND_24BITS 0
+
+uint VFXMul24(uint a,uint b)
+{
+#ifndef SHADER_API_PSSL
+    return (a & 0xffffff) * (b & 0xffffff); // Tmp to ensure correct inputs
+#else
+    return mul24(a, b);
+#endif
+}
+
 uint WangHash(uint seed)
 {
     seed = (seed ^ 61) ^ (seed >> 16);
-    seed *= 9;
+    seed += (seed << 3);
     seed = seed ^ (seed >> 4);
     seed *= 0x27d4eb2d;
     seed = seed ^ (seed >> 15);
     return seed;
 }
 
-float randLcg(inout uint seed)
+uint WangHash2(uint seed) // without mul on integers
 {
-    uint multiplier = 0x0019660d;
-    uint increment = 0x3c6ef35f;
-#if 1
-    seed = multiplier * seed + increment;
-    return asfloat((seed >> 9) | 0x3f800000) - 1.0f;
-#else //Using mad24 keeping consitency between platform
-    #if defined(SHADER_API_PSSL)
-        seed = mad24(multiplier, seed, increment);
-    #else
-        seed = multiplier * seed + increment;
-    #endif
-    //Using >> 9 instead of &0x007fffff seems to lead to a better random, but with this way, the result is the same between PS4 & PC
-    //We need to find a LCG considering the mul24 operation instead of mul32
-    //possible variant : return float(seed & 0x007fffff) / float(0x007fffff)
-    return asfloat((seed & 0x007fffff) | 0x3f800000) - 1.0f;
+    seed += ~(seed<<15);
+    seed ^=  (seed>>10);
+    seed +=  (seed<<3);
+    seed ^=  (seed>>6);
+    seed += ~(seed<<11);
+    seed ^=  (seed>>16);
+    return seed;
+}
+
+// See https://stackoverflow.com/a/12996028
+uint AnotherHash(uint seed)
+{
+#if RAND_24BITS
+    seed = VFXMul24((seed >> 16) ^ seed,0x5d9f3b);
+    seed = VFXMul24((seed >> 16) ^ seed,0x5d9f3b);
+#else
+    seed = ((seed >> 16) ^ seed) * 0x45d9f3b;
+    seed = ((seed >> 16) ^ seed) * 0x45d9f3b;
+#endif
+    seed = (seed >> 16) ^ seed;
+    return seed;
+}
+
+uint Lcg(uint seed)
+{
+    const uint multiplier = 0x0019660d;
+    const uint increment = 0x3c6ef35f;
+#if RAND_24BITS && defined(SHADER_API_PSSL)
+    return mad24(multiplier, seed, increment);
+#else
+    return multiplier * seed + increment;
 #endif
 }
 
-float4 FixedRand4(uint baseSeed)
+float ToFloat01(uint u)
 {
-    uint currentSeed = WangHash(baseSeed);
-    float4 r;
-    [unroll(4)]
-    for (uint i=0; i<4; ++i)
-    {
-        r[i] = randLcg(currentSeed);
-    }
-    return r;
+#if !RAND_24BITS
+    return asfloat((u >> 9) | 0x3f800000) - 1.0f;
+#else //Using mad24 keeping consitency between platform
+    return asfloat((u & 0x007fffff) | 0x3f800000) - 1.0f;
+#endif
+}
+
+float Rand(inout uint seed)
+{
+    seed = Lcg(seed);
+    return ToFloat01(seed);
+}
+
+float FixedRand(uint seed)
+{
+    return ToFloat01(AnotherHash(seed));
 }
 
 ///////////////////////////
@@ -329,9 +364,9 @@ float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
 
 #if USE_FLIPBOOK
 #if USE_FLIPBOOK_INTERPOLATION
-void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float4 uv, out float blend)
+void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float4 uv, out float blend)
 #else
-void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex, inout float2 uv)
+void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float2 uv)
 #endif
 {
     float frameBlend = frac(texIndex);
@@ -344,3 +379,64 @@ void ProcessFlipBookUV(float flipBookSize, float invFlipBookSize, float texIndex
     uv.xy = GetSubUV(frameIndex, uv.xy, flipBookSize, invFlipBookSize);
 }
 #endif
+
+///////////////
+// 3D Noise  //
+///////////////
+
+float Mod289(float x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+float4 Mod289(float4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+float4 Perm(float4 x) { return Mod289(((x * 34.0) + 1.0) * x); }
+
+float Noise(float3 p) {
+    float3 a = floor(p);
+    float3 d = p - a;
+    d = d * d * (3.0 - 2.0 * d);
+
+    float4 b = a.xxyy + float4(0.0, 1.0, 0.0, 1.0);
+    float4 k1 = Perm(b.xyxy);
+    float4 k2 = Perm(k1.xyxy + b.zzww);
+
+    float4 c = k2 + a.zzzz;
+    float4 k3 = Perm(c);
+    float4 k4 = Perm(c + 1.0);
+
+    float4 o1 = frac(k3 * (1.0 / 41.0));
+    float4 o2 = frac(k4 * (1.0 / 41.0));
+
+    float4 o3 = o2 * d.z + o1 * (1.0 - d.z);
+    float2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
+
+    return o4.y * d.y + o4.x * (1.0 - d.y);
+}
+
+float3 Noise3D(float3 p) {
+
+    float o = Noise(p);
+    float a = Noise(p + float3(0.0001f, 0.0f, 0.0f));
+    float b = Noise(p + float3(0.0f, 0.0001f, 0.0f));
+    float c = Noise(p + float3(0.0f, 0.0f, 0.0001f));
+
+    float3 grad = float3(o - a, o - b, o - c);
+    float3 other = abs(grad.zxy);
+    return normalize(cross(grad,other));
+
+}
+
+float3 Noise3D(float3 position, int octaves, float roughness) {
+
+    float weight = 0.0f;
+    float3 noise = float3(0.0, 0.0, 0.0);
+    float scale = 1.0f;
+
+    for (int i = 0; i < octaves; i++)
+    {
+        float curWeight = pow((1.0-((float)i / octaves)), lerp(2.0, 0.2, roughness));
+
+        noise += Noise3D(position * scale) * curWeight;
+        weight += curWeight;
+
+        scale *= 1.72531;
+    }
+    return noise / weight;
+}

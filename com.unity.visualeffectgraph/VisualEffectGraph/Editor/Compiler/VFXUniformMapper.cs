@@ -87,13 +87,13 @@ namespace UnityEditor.VFX
                         string code = null;
                         switch (s.Key.valueType)
                         {
-                            case VFXValueType.kInt:
+                            case VFXValueType.Int32:
                                 code = "asint(" + s.Value + ")";
                                 break;
-                            case VFXValueType.kUint:
+                            case VFXValueType.Uint32:
                                 code = "asuint(" + s.Value + ")";
                                 break;
-                            case VFXValueType.kBool:
+                            case VFXValueType.Boolean:
                                 code = "(bool)asuint(" + s.Value + ")";
                                 break;
                             default:
