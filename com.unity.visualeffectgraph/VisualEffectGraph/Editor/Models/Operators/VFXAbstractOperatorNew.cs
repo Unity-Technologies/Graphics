@@ -390,7 +390,7 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
-        public sealed override void UpdateOutputExpressions()
+        public override void UpdateOutputExpressions()
         {
             var inputExpression = GetInputExpressions();
 

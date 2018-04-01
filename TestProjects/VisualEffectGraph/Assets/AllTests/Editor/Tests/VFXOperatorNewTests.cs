@@ -216,7 +216,26 @@ namespace UnityEditor.VFX.Test
             var finalv2 = result.Get<Vector2>();
             Assert.AreEqual(expected, finalv2.x);
             Assert.AreEqual(expected, finalv2.y);
+        }
 
+        [Test]
+        public void AppendNewBehavior()
+        {
+            var append = ScriptableObject.CreateInstance<Operator.AppendVectorNew>();
+            Assert.AreEqual(VFXValueType.Float2, append.outputSlots[0].GetExpression().valueType);
+            append.AddOperand();
+            Assert.AreEqual(VFXValueType.Float3, append.outputSlots[0].GetExpression().valueType);
+            append.AddOperand();
+            Assert.AreEqual(VFXValueType.Float4, append.outputSlots[0].GetExpression().valueType);
+
+            append.RemoveOperand(0);
+            append.RemoveOperand(0);
+
+            Assert.AreEqual(VFXValueType.Float2, append.outputSlots[0].GetExpression().valueType);
+            append.SetOperandType(0, VFXValueType.Float2);
+            Assert.AreEqual(VFXValueType.Float3, append.outputSlots[0].GetExpression().valueType);
+            append.SetOperandType(1, VFXValueType.Float2);
+            Assert.AreEqual(VFXValueType.Float4, append.outputSlots[0].GetExpression().valueType);
         }
     }
 }
