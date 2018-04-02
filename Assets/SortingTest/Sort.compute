@@ -43,6 +43,8 @@
 #define ITERATION_INDEX(id,it) ((it) * BITONIC_THREADS_COUNT + (id))
 #define DST_INDEX(groupId,threadId) (groupId * BITONIC_THREADS_COUNT * ITERATIONS_COUNT + threadId)
 
+#define MAX_FLOAT asfloat(0x7f7fffff)
+
 struct KVP
 {
 	float key;
@@ -61,7 +63,9 @@ RWStructuredBuffer<KVP> sortedSequence;
 // Then all values with the same padding pattern
 groupshared float scratch[SCRATCH_SIZE];
 
+CBUFFER_START(SortConstants)
 uint elementCount;
+CBUFFER_END
 
 uint GetLDSIndex(uint index)
 {
@@ -77,7 +81,7 @@ void LoadFromMemory(uint ldsIndex,uint memIndex,uint size)
 	[unroll]
 	for (uint i = 0; i < size; ++i)
 	{
-		KVP kvp = { asfloat(0x7f7fffff), 0 }; // MAX_FLOAT
+		KVP kvp = { MAX_FLOAT, 0 }; // MAX_FLOAT
 		if (memIndex + i < elementCount)
 			kvp = inputSequence[memIndex + i];
 
@@ -259,19 +263,41 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 //}
 
 CBUFFER_START(MergePassConstants)
-int subArraySize;
+uint subArraySize;
 CBUFFER_END
 
-[numthreads(256, 1, 1)]
-void MergePass(uint id : SV_DispatchThreadId)
+float GetKeyWithCheck(uint index)
 {
+	if (index >= elementCount) // TODO Handle elementCount more efficiently
+		return MAX_FLOAT;
+
+	return inputSequence[index].key;
+}
+
+[numthreads(256, 1, 1)]
+void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
+{
+	if (id.x >= elementCount)
+		return;
+
 	const int arraySize = subArraySize << 1;
 	const int lastIndex = subArraySize - 1;
 	const int arrayStart = arraySize * (id.x / arraySize);
 	const int arrayIndex = id.x - arrayStart;
 
+	// If the current array considered is then than one half filled (due to element count), we can copy it directly as it is already sorted
+	if (elementCount - (uint)arrayStart < subArraySize)
+	{
+#if FINAL_PASS
+		sortedSequence[id.x] = inputSequence[id.x].value;
+#else
+		sortedSequence[id.x] = inputSequence[id.x];
+#endif
+		return;
+	}
+
 	// determine initial frame of the window
-	int2 window = uint2(max(0, arrayIndex - subArraySize), min(arrayIndex, lastIndex));
+	int2 window = uint2(max(0, arrayIndex - (int)subArraySize), min(arrayIndex, lastIndex));
 
 	int index0, index1;
 	float key0, key1;
@@ -290,13 +316,13 @@ void MergePass(uint id : SV_DispatchThreadId)
 		index1 = i1 + arrayStart + subArraySize;
 
 		key0 = inputSequence[index0].key;
-		key1 = inputSequence[index1].key;
+		key1 = GetKeyWithCheck(index1);
 
 		if (i0 + i1 == arrayIndex)
 		{
 			if (i0 > 0 && inputSequence[max(0, index0 - 1)].key > key1)
 				window.y = windowIndex - 1; // move window left
-			else if (i1 > 0 && inputSequence[max(0, index1 - 1)].key > key0)
+			else if (i1 > 0 && GetKeyWithCheck(max(0, index1 - 1)) > key0)
 				window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
 			else
 				break; // We're done;
@@ -309,12 +335,11 @@ void MergePass(uint id : SV_DispatchThreadId)
 	} while (true);
 
 	// Select left or right: Must handle special case for equality
-	bool select0 = /*(key0 == key1 && (id & 1)) || */((key0 < key1) != reverse);
+	bool select0 = (key0 == key1 && (id & 1)) || ((key0 < key1) != reverse);
 	uint value = inputSequence[(select0 ? index0 : index1)].value;
 
 #if FINAL_PASS
 	sortedSequence[id.x] = value;
-
 #else
 	float key = select0 ? key0 : key1;
 	KVP kvp = { key, value };

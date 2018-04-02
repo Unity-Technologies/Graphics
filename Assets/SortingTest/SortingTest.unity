@@ -550,7 +550,7 @@ MonoBehaviour:
   sortedMat1: {fileID: 2100000, guid: f86a8f55af1c7d8498a0b51d9c2b1885, type: 2}
   diffMat: {fileID: 2100000, guid: 892055e2a67d97f4684792e8dadef107, type: 2}
   kElementCount: 1024
-  kGroupCount: 4
+  kGroupCount: 64
 --- !u!4 &1829918322
 Transform:
   m_ObjectHideFlags: 0
