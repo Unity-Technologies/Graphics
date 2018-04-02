@@ -71,7 +71,7 @@ public class SortingTest : MonoBehaviour
 
     private void InitBuffer()
     {
-        Random.InitState(123456);
+        // Random.InitState(123456);
         var data = new KVP[kCount];
         for (uint i = 0; i < kCount; ++i)
         {
