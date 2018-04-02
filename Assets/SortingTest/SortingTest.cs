@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class SortingTest : MonoBehaviour
 {
@@ -13,9 +14,11 @@ public class SortingTest : MonoBehaviour
 
     private int sortKernelBitonic;
     private int sortKernelMerge;
+    private int mergeKernel;
+
     private ComputeBuffer inputBuffer;
-    private ComputeBuffer sortedBuffer0;
-    private ComputeBuffer sortedBuffer1;
+    private ComputeBuffer sortedBuffer;
+    private ComputeBuffer[] scratchBuffer = new ComputeBuffer[2];
 
     public int kElementCount = 1024;
     public int kGroupCount = 1;
@@ -30,12 +33,19 @@ public class SortingTest : MonoBehaviour
             sortKernelBitonic = sortShader.FindKernel("BitonicSort");
 
         sortKernelMerge = -1;
+        //if (sortShader != null)
+        //    sortKernelMerge = sortShader.FindKernel("MergeSort");
+
+        mergeKernel = -1;
         if (sortShader != null)
-            sortKernelMerge = sortShader.FindKernel("MergeSort");
+            mergeKernel = sortShader.FindKernel("MergePass");
 
         inputBuffer = new ComputeBuffer(kCount, 8);
-        sortedBuffer0 = new ComputeBuffer(kCount, 8);
-        sortedBuffer1 = new ComputeBuffer(kCount, 8);
+        //sortedBuffer0 = new ComputeBuffer(kCount, 8);
+        //sortedBuffer1 = new ComputeBuffer(kCount, 8);
+
+        for (int i = 0; i < 2; ++i)
+            scratchBuffer[i] = new ComputeBuffer(kCount, 8);
 
         InitBuffer();
 
@@ -43,18 +53,18 @@ public class SortingTest : MonoBehaviour
         inputMat.SetInt("elementCount", kElementCount);
         inputMat.SetInt("groupCount", kGroupCount);
 
-        sortedMat0.SetBuffer("buffer", sortedBuffer0);
+        /*sortedMat0.SetBuffer("buffer", sortedBuffer0);
         sortedMat0.SetInt("elementCount", kElementCount);
-        sortedMat0.SetInt("groupCount", kGroupCount);
+        sortedMat0.SetInt("groupCount", kGroupCount);*/
 
-        sortedMat1.SetBuffer("buffer", sortedBuffer1);
+        /*sortedMat1.SetBuffer("buffer", sortedBuffer1);
         sortedMat1.SetInt("elementCount", kElementCount);
-        sortedMat1.SetInt("groupCount", kGroupCount);
+        sortedMat1.SetInt("groupCount", kGroupCount);*/
 
-        diffMat.SetBuffer("buffer0", sortedBuffer0);
-        diffMat.SetBuffer("buffer1", sortedBuffer1);
-        diffMat.SetInt("elementCount", kElementCount);
-        diffMat.SetInt("groupCount", kGroupCount);
+        /* diffMat.SetBuffer("buffer0", sortedBuffer0);
+         diffMat.SetBuffer("buffer1", sortedBuffer1);
+         diffMat.SetInt("elementCount", kElementCount);
+         diffMat.SetInt("groupCount", kGroupCount);*/
     }
 
     private struct KVP
@@ -85,14 +95,39 @@ public class SortingTest : MonoBehaviour
             InitBuffer();
 
         // sort
+        Profiler.BeginSample("Sort");
+
         sortShader.SetInt("elementCount", kCount);
 
         sortShader.SetBuffer(sortKernelBitonic, "inputSequence", inputBuffer);
-        sortShader.SetBuffer(sortKernelBitonic, "sortedSequence", sortedBuffer0);
+        sortShader.SetBuffer(sortKernelBitonic, "sortedSequence", scratchBuffer[0]);
         sortShader.Dispatch(sortKernelBitonic, kGroupCount, 1, 1);
 
-        sortShader.SetBuffer(sortKernelMerge, "inputSequence", inputBuffer);
+        sortedBuffer = scratchBuffer[0];
+
+        for (int i = kElementCount; i < kElementCount * kGroupCount; i <<= 1)
+        {
+            sortShader.SetInt("subArraySize", i);
+            sortShader.SetBuffer(mergeKernel, "inputSequence", scratchBuffer[0]);
+            sortShader.SetBuffer(mergeKernel, "sortedSequence", scratchBuffer[1]);
+
+            sortShader.Dispatch(mergeKernel, (kElementCount * kGroupCount) / 256, 1, 1);
+
+            sortedBuffer = scratchBuffer[1];
+
+            // swap
+            ComputeBuffer tmp = scratchBuffer[0];
+            scratchBuffer[0] = scratchBuffer[1];
+            scratchBuffer[1] = tmp;
+        }
+
+        Profiler.EndSample();
+
+        sortedMat1.SetBuffer("buffer", sortedBuffer);
+        sortedMat1.SetInt("elementCount", kElementCount);
+        sortedMat1.SetInt("groupCount", kGroupCount);
+        /*sortShader.SetBuffer(sortKernelMerge, "inputSequence", inputBuffer);
         sortShader.SetBuffer(sortKernelMerge, "sortedSequence", sortedBuffer1);
-        sortShader.Dispatch(sortKernelMerge, kGroupCount, 1, 1);
+        sortShader.Dispatch(sortKernelMerge, kGroupCount, 1, 1);*/
     }
 }

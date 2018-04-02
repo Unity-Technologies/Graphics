@@ -1,5 +1,8 @@
 ﻿#pragma kernel BitonicSort BITONIC_SORT
-#pragma kernel MergeSort MERGE_SORT
+//#pragma kernel MergeSort MERGE_SORT
+#pragma kernel MergePass
+
+#include "HLSLSupport.cginc"
 
 #define ELEMENTS_COUNT 1024
 
@@ -178,79 +181,144 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 #undef DST_INDEX
 
 // Merge sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
-[numthreads(MERGE_THREADS_COUNT, 1, 1)]
-void MergeSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
+//[numthreads(MERGE_THREADS_COUNT, 1, 1)]
+//void MergeSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
+//{
+//	// remove out of bounds threads
+//	if (groupId.x > elementCount / ELEMENTS_COUNT)
+//		return;
+//
+//	// Load data from memory to LDS
+//	LoadFromMemory(id, groupId.x * MERGE_THREADS_COUNT + id, 1);
+//	GroupMemoryBarrierWithGroupSync();
+//
+//	// O(log(ELEMENTS_COUNT))
+//	for (int subArraySize = 1; subArraySize < ELEMENTS_COUNT; subArraySize <<= 1)
+//	{
+//		const int arraySize = subArraySize << 1;
+//		const int lastIndex = subArraySize - 1;
+//		const int arrayStart = arraySize * (id / arraySize);
+//		const int arrayIndex = id - arrayStart;
+//
+//		// determine initial frame of the window
+//		int2 window = uint2(max(0, arrayIndex - subArraySize), min(arrayIndex, lastIndex));
+//
+//		int index0, index1;
+//		float key0, key1;
+//
+//		//uint nbIter = 0;
+//		bool reverse = false;
+//
+//		// Binary search - O(log(subArraySize))
+//		do
+//		{
+//			int windowIndex = (window.x + window.y + 1) >> 1;
+//			int i0 = min(lastIndex,windowIndex);
+//			int i1 = min(lastIndex, arrayIndex - windowIndex);
+//
+//			index0 = i0 + arrayStart;
+//			index1 = i1 + arrayStart + subArraySize;
+//
+//			key0 = scratch[GetLDSIndex(index0)];
+//			key1 = scratch[GetLDSIndex(index1)];
+//
+//			if (i0 + i1 == arrayIndex)
+//			{
+//				if (i0 > 0  && scratch[GetLDSIndex(max(0, index0 - 1))] > key1)
+//					window.y = windowIndex - 1; // move window left
+//				else if (i1 > 0 && scratch[GetLDSIndex(max(0, index1 - 1))] > key0)
+//					window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
+//				else
+//					break; // We're done;
+//			}
+//			else // special case handling
+//			{
+//				reverse = true;
+//				break;
+//			}
+//		} 
+//		while (true);
+//
+//		// Select left or right: Must handle special case for equality
+//		bool select0 = /*(key0 == key1 && (id & 1)) || */((key0 < key1) != reverse);
+//		
+//		// Store selected key/value in register
+//		float key = select0 ? key0 : key1;
+//		float value = scratch[GetLDSIndex(select0 ? index0 : index1) + LDS_VALUES_OFFSET];
+//
+//		GroupMemoryBarrierWithGroupSync(); // Wait for all LDS reads to finish
+//
+//		// Update LDS
+//		scratch[GetLDSIndex(id)] = key;
+//		scratch[GetLDSIndex(id) + LDS_VALUES_OFFSET] = value;
+//
+//		GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
+//	}
+//
+//	StoreToMemory(groupId.x * MERGE_THREADS_COUNT + id, id, 1);
+//}
+
+CBUFFER_START(MergePassConstants)
+int subArraySize;
+CBUFFER_END
+
+[numthreads(256, 1, 1)]
+void MergePass(uint id : SV_DispatchThreadId)
 {
-	// remove out of bounds threads
-	if (groupId.x > elementCount / ELEMENTS_COUNT)
-		return;
+	const int arraySize = subArraySize << 1;
+	const int lastIndex = subArraySize - 1;
+	const int arrayStart = arraySize * (id.x / arraySize);
+	const int arrayIndex = id.x - arrayStart;
 
-	// Load data from memory to LDS
-	LoadFromMemory(id, groupId.x * MERGE_THREADS_COUNT + id, 1);
-	GroupMemoryBarrierWithGroupSync();
+	// determine initial frame of the window
+	int2 window = uint2(max(0, arrayIndex - subArraySize), min(arrayIndex, lastIndex));
 
-	// O(log(ELEMENTS_COUNT))
-	for (int subArraySize = 1; subArraySize < ELEMENTS_COUNT; subArraySize <<= 1)
+	int index0, index1;
+	float key0, key1;
+
+	//uint nbIter = 0;
+	bool reverse = false;
+
+	// Binary search - O(log(subArraySize))
+	do
 	{
-		const int arraySize = subArraySize << 1;
-		const int lastIndex = subArraySize - 1;
-		const int arrayStart = arraySize * (id / arraySize);
-		const int arrayIndex = id - arrayStart;
+		int windowIndex = (window.x + window.y + 1) >> 1;
+		int i0 = min(lastIndex, windowIndex);
+		int i1 = min(lastIndex, arrayIndex - windowIndex);
 
-		// determine initial frame of the window
-		int2 window = uint2(max(0, arrayIndex - subArraySize), min(arrayIndex, lastIndex));
+		index0 = i0 + arrayStart;
+		index1 = i1 + arrayStart + subArraySize;
 
-		int index0, index1;
-		float key0, key1;
+		key0 = inputSequence[index0].key;
+		key1 = inputSequence[index1].key;
 
-		//uint nbIter = 0;
-		bool reverse = false;
-
-		// Binary search - O(log(subArraySize))
-		do
+		if (i0 + i1 == arrayIndex)
 		{
-			int windowIndex = (window.x + window.y + 1) >> 1;
-			int i0 = min(lastIndex,windowIndex);
-			int i1 = min(lastIndex, arrayIndex - windowIndex);
+			if (i0 > 0 && inputSequence[max(0, index0 - 1)].key > key1)
+				window.y = windowIndex - 1; // move window left
+			else if (i1 > 0 && inputSequence[max(0, index1 - 1)].key > key0)
+				window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
+			else
+				break; // We're done;
+		}
+		else // special case handling
+		{
+			reverse = true;
+			break;
+		}
+	} while (true);
 
-			index0 = i0 + arrayStart;
-			index1 = i1 + arrayStart + subArraySize;
+	// Select left or right: Must handle special case for equality
+	bool select0 = /*(key0 == key1 && (id & 1)) || */((key0 < key1) != reverse);
+	uint value = inputSequence[(select0 ? index0 : index1)].value;
 
-			key0 = scratch[GetLDSIndex(index0)];
-			key1 = scratch[GetLDSIndex(index1)];
+#if FINAL_PASS
+	sortedSequence[id.x] = value;
 
-			if (i0 + i1 == arrayIndex)
-			{
-				if (i0 > 0  && scratch[GetLDSIndex(max(0, index0 - 1))] > key1)
-					window.y = windowIndex - 1; // move window left
-				else if (i1 > 0 && scratch[GetLDSIndex(max(0, index1 - 1))] > key0)
-					window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
-				else
-					break; // We're done;
-			}
-			else // special case handling
-			{
-				reverse = true;
-				break;
-			}
-		} 
-		while (true);
+#else
+	float key = select0 ? key0 : key1;
+	KVP kvp = { key, value };
+	sortedSequence[id.x] = kvp;
+#endif
 
-		// Select left or right: Must handle special case for equality
-		bool select0 = /*(key0 == key1 && (id & 1)) || */((key0 < key1) != reverse);
-		
-		// Store selected key/value in register
-		float key = select0 ? key0 : key1;
-		float value = scratch[GetLDSIndex(select0 ? index0 : index1) + LDS_VALUES_OFFSET];
-
-		GroupMemoryBarrierWithGroupSync(); // Wait for all LDS reads to finish
-
-		// Update LDS
-		scratch[GetLDSIndex(id)] = key;
-		scratch[GetLDSIndex(id) + LDS_VALUES_OFFSET] = value;
-
-		GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
-	}
-
-	StoreToMemory(groupId.x * MERGE_THREADS_COUNT + id, id, 1);
 }
