@@ -7,11 +7,15 @@ public class SortingTest : MonoBehaviour
     public ComputeShader sortShader;
 
     public Material inputMat;
-    public Material sortedMat;
+    public Material sortedMat0;
+    public Material sortedMat1;
+    public Material diffMat;
 
-    private int sortKernel;
+    private int sortKernelBitonic;
+    private int sortKernelMerge;
     private ComputeBuffer inputBuffer;
-    private ComputeBuffer sortedBuffer;
+    private ComputeBuffer sortedBuffer0;
+    private ComputeBuffer sortedBuffer1;
 
     public int kElementCount = 1024;
     public int kGroupCount = 1;
@@ -21,12 +25,17 @@ public class SortingTest : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        sortKernel = -1;
+        sortKernelBitonic = -1;
         if (sortShader != null)
-            sortKernel = sortShader.FindKernel("BitonicSort");
+            sortKernelBitonic = sortShader.FindKernel("BitonicSort");
+
+        sortKernelMerge = -1;
+        if (sortShader != null)
+            sortKernelMerge = sortShader.FindKernel("MergeSort");
 
         inputBuffer = new ComputeBuffer(kCount, 8);
-        sortedBuffer = new ComputeBuffer(kCount, 8);
+        sortedBuffer0 = new ComputeBuffer(kCount, 8);
+        sortedBuffer1 = new ComputeBuffer(kCount, 8);
 
         InitBuffer();
 
@@ -34,9 +43,18 @@ public class SortingTest : MonoBehaviour
         inputMat.SetInt("elementCount", kElementCount);
         inputMat.SetInt("groupCount", kGroupCount);
 
-        sortedMat.SetBuffer("buffer", sortedBuffer);
-        sortedMat.SetInt("elementCount", kElementCount);
-        sortedMat.SetInt("groupCount", kGroupCount);
+        sortedMat0.SetBuffer("buffer", sortedBuffer0);
+        sortedMat0.SetInt("elementCount", kElementCount);
+        sortedMat0.SetInt("groupCount", kGroupCount);
+
+        sortedMat1.SetBuffer("buffer", sortedBuffer1);
+        sortedMat1.SetInt("elementCount", kElementCount);
+        sortedMat1.SetInt("groupCount", kGroupCount);
+
+        diffMat.SetBuffer("buffer0", sortedBuffer0);
+        diffMat.SetBuffer("buffer1", sortedBuffer1);
+        diffMat.SetInt("elementCount", kElementCount);
+        diffMat.SetInt("groupCount", kGroupCount);
     }
 
     private struct KVP
@@ -67,9 +85,14 @@ public class SortingTest : MonoBehaviour
             InitBuffer();
 
         // sort
-        sortShader.SetBuffer(sortKernel, "inputSequence", inputBuffer);
-        sortShader.SetBuffer(sortKernel, "sortedSequence", sortedBuffer);
         sortShader.SetInt("elementCount", kCount);
-        sortShader.Dispatch(sortKernel, kGroupCount, 1, 1);
+
+        sortShader.SetBuffer(sortKernelBitonic, "inputSequence", inputBuffer);
+        sortShader.SetBuffer(sortKernelBitonic, "sortedSequence", sortedBuffer0);
+        sortShader.Dispatch(sortKernelBitonic, kGroupCount, 1, 1);
+
+        sortShader.SetBuffer(sortKernelMerge, "inputSequence", inputBuffer);
+        sortShader.SetBuffer(sortKernelMerge, "sortedSequence", sortedBuffer1);
+        sortShader.Dispatch(sortKernelMerge, kGroupCount, 1, 1);
     }
 }
