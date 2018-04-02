@@ -49,10 +49,6 @@ public class SortingTest : MonoBehaviour
 
         InitBuffer();
 
-        inputMat.SetBuffer("buffer", inputBuffer);
-        inputMat.SetInt("elementCount", kElementCount);
-        inputMat.SetInt("groupCount", kGroupCount);
-
         /*sortedMat0.SetBuffer("buffer", sortedBuffer0);
         sortedMat0.SetInt("elementCount", kElementCount);
         sortedMat0.SetInt("groupCount", kGroupCount);*/
@@ -126,6 +122,11 @@ public class SortingTest : MonoBehaviour
         sortedMat1.SetBuffer("buffer", sortedBuffer);
         sortedMat1.SetInt("elementCount", kElementCount);
         sortedMat1.SetInt("groupCount", kGroupCount);
+
+        inputMat.SetBuffer("buffer", inputBuffer);
+        inputMat.SetInt("elementCount", kElementCount);
+        inputMat.SetInt("groupCount", kGroupCount);
+
         /*sortShader.SetBuffer(sortKernelMerge, "inputSequence", inputBuffer);
         sortShader.SetBuffer(sortKernelMerge, "sortedSequence", sortedBuffer1);
         sortShader.Dispatch(sortKernelMerge, kGroupCount, 1, 1);*/

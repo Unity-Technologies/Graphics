@@ -9,6 +9,8 @@ Shader "Unlit/BufferDisplay"
         {
             CGPROGRAM
 
+            #define DISPLAY_HUE 1
+
             #pragma vertex vert
             #pragma fragment frag
 
@@ -44,14 +46,31 @@ Shader "Unlit/BufferDisplay"
                 return o;
             }
 
+            float3 HUEtoRGB(float H)
+            {
+                float R = abs(H * 6 - 3) - 1;
+                float G = 2 - abs(H * 6 - 2);
+                float B = 2 - abs(H * 6 - 4);
+                return saturate(float3(R, G, B));
+            }
+
+            float3 GammaCorrection(float3 col)
+            {
+                return pow(col, 2.2f);
+            }
+
             fixed4 frag(v2f i) : SV_Target
             {
                 // sample the buffer
                 uint x = (uint)(i.uv.x * elementCount);
                 uint y = (uint)(i.uv.y * groupCount);
-                float lum = buffer[y * elementCount + x].key;
-                //lum = pow(lum, 2.2f); // gamma correction
-                return float4(lum.xxx, 1.0);
+                float value = buffer[y * elementCount + x].key;
+#if DISPLAY_HUE
+                return float4(GammaCorrection(HUEtoRGB(value)), 1.0);
+#else
+                //value = pow(value, 2.2f); // gamma correction
+                return float4(value.xxx, 1.0);
+#endif
             }
             ENDCG
         }

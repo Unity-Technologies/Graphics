@@ -4,6 +4,8 @@
 
 #include "HLSLSupport.cginc"
 
+#define DECREASING_ORDER 0
+
 #define ELEMENTS_COUNT 1024
 
 // More loads per threads. Can reduce stall time due to barriers
@@ -43,7 +45,11 @@
 #define ITERATION_INDEX(id,it) ((it) * BITONIC_THREADS_COUNT + (id))
 #define DST_INDEX(groupId,threadId) (groupId * BITONIC_THREADS_COUNT * ITERATIONS_COUNT + threadId)
 
-#define MAX_FLOAT asfloat(0x7f7fffff)
+#if DECREASING_ORDER
+#define REJECTED_VALUE asfloat(0xff7fffff) // -MAX_FLOAT
+#else
+#define REJECTED_VALUE asfloat(0x7f7fffff) // MAX_FLOAT
+#endif
 
 struct KVP
 {
@@ -67,6 +73,15 @@ CBUFFER_START(SortConstants)
 uint elementCount;
 CBUFFER_END
 
+bool CompareKeys(float key0, float key1)
+{
+#if DECREASING_ORDER
+	return key0 > key1;
+#else
+	return key0 < key1;
+#endif
+}
+
 uint GetLDSIndex(uint index)
 {
 #if LDS_PADDING_PERIOD
@@ -81,7 +96,7 @@ void LoadFromMemory(uint ldsIndex,uint memIndex,uint size)
 	[unroll]
 	for (uint i = 0; i < size; ++i)
 	{
-		KVP kvp = { MAX_FLOAT, 0 }; // MAX_FLOAT
+		KVP kvp = { REJECTED_VALUE, 0 };
 		if (memIndex + i < elementCount)
 			kvp = inputSequence[memIndex + i];
 
@@ -154,7 +169,7 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 #else
 				bool reverse = index & step;
 #endif
-				if ((key0 > key1) != reverse)
+				if (CompareKeys(key1,key0) != reverse)
 				{
 					// swap keys
 					scratch[ldsIndex0] = key1;
@@ -269,7 +284,7 @@ CBUFFER_END
 float GetKeyWithCheck(uint index)
 {
 	if (index >= elementCount) // TODO Handle elementCount more efficiently
-		return MAX_FLOAT;
+		return REJECTED_VALUE;
 
 	return inputSequence[index].key;
 }
@@ -320,9 +335,9 @@ void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
 
 		if (i0 + i1 == arrayIndex)
 		{
-			if (i0 > 0 && inputSequence[max(0, index0 - 1)].key > key1)
+			if (i0 > 0 && CompareKeys(key1,inputSequence[max(0, index0 - 1)].key))
 				window.y = windowIndex - 1; // move window left
-			else if (i1 > 0 && GetKeyWithCheck(max(0, index1 - 1)) > key0)
+			else if (i1 > 0 && CompareKeys(key0,GetKeyWithCheck(max(0, index1 - 1))))
 				window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
 			else
 				break; // We're done;
@@ -335,7 +350,7 @@ void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
 	} while (true);
 
 	// Select left or right: Must handle special case for equality
-	bool select0 = (key0 == key1 && (id & 1)) || ((key0 < key1) != reverse);
+	bool select0 = (key0 == key1 && (id & 1)) || (CompareKeys(key0,key1) != reverse);
 	uint value = inputSequence[(select0 ? index0 : index1)].value;
 
 #if FINAL_PASS
