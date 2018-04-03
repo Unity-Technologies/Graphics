@@ -365,7 +365,7 @@ namespace UnityEditor.VFX
 
                 var parameters = block.attributes.Select(o =>
                     {
-                        return new VFXShaderWriter.Parameter
+                        return new VFXShaderWriter.FunctionParameter
                         {
                             name = o.attrib.name,
                             expression = new VFXAttributeExpression(o.attrib) as VFXExpression,
@@ -378,7 +378,7 @@ namespace UnityEditor.VFX
                     var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
                     if (VFXExpression.IsTypeValidOnGPU(expReduced.valueType))
                     {
-                        parameters.Add(new VFXShaderWriter.Parameter
+                        parameters.Add(new VFXShaderWriter.FunctionParameter
                         {
                             name = parameter.name,
                             expression = expReduced,
