@@ -55,7 +55,6 @@ CBUFFER_END
 
 struct ShadowSamplingData
 {
-    half shadowStrength;
     half4 shadowOffset0;
     half4 shadowOffset1;
     half4 shadowOffset2;
@@ -66,7 +65,6 @@ struct ShadowSamplingData
 ShadowSamplingData GetMainLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
-    shadowSamplingData.shadowStrength = _ShadowData.x;
     shadowSamplingData.shadowOffset0 = _ShadowOffset0;
     shadowSamplingData.shadowOffset1 = _ShadowOffset1;
     shadowSamplingData.shadowOffset2 = _ShadowOffset2;
@@ -78,7 +76,6 @@ ShadowSamplingData GetMainLightShadowSamplingData()
 ShadowSamplingData GetLocalLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
-    shadowSamplingData.shadowStrength = _LocalShadowData.x;
     shadowSamplingData.shadowOffset0 = _LocalShadowOffset0;
     shadowSamplingData.shadowOffset1 = _LocalShadowOffset1;
     shadowSamplingData.shadowOffset2 = _LocalShadowOffset2;
@@ -87,7 +84,17 @@ ShadowSamplingData GetLocalLightShadowSamplingData()
     return shadowSamplingData;
 }
 
-inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
+half GetMainLightShadowStrength()
+{
+    return _ShadowData.x;
+}
+
+half GetLocalLightShadowStrenth(int lightIndex)
+{
+    return _LocalShadowData[lightIndex];
+}
+
+half SampleScreenSpaceShadowMap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
 
@@ -103,10 +110,9 @@ inline half SampleScreenSpaceShadowMap(float4 shadowCoord)
     return attenuation;
 }
 
-inline real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, float isMainLight = 0.0)
+real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength)
 {
-    if (isMainLight == 0.0)
-        shadowCoord.xyz /= shadowCoord.w;
+    shadowCoord.xyz /= shadowCoord.w;
 
     real attenuation;
 
@@ -162,14 +168,13 @@ inline real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap,
     attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
 
-    // Apply shadow strength
-    attenuation = LerpWhiteTo(attenuation, samplingData.shadowStrength);
+    attenuation = LerpWhiteTo(attenuation, shadowStrength);
 
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
 }
 
-inline half ComputeCascadeIndex(float3 positionWS)
+half ComputeCascadeIndex(float3 positionWS)
 {
     // TODO: profile if there's a performance improvement if we avoid indexing here
     float3 fromCenter0 = positionWS.xyz - _DirShadowSplitSpheres[0].xyz;
@@ -208,7 +213,8 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
     return SampleScreenSpaceShadowMap(shadowCoord);
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_ShadowMap, sampler_ShadowMap), shadowSamplingData, 1.0);
+    half shadowStrength = GetMainLightShadowStrength();
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_ShadowMap, sampler_ShadowMap), shadowSamplingData, shadowStrength);
 #endif
 
 }
@@ -224,7 +230,8 @@ half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
     ShadowSamplingData shadowSamplingData = GetLocalLightShadowSamplingData();
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, 0.0);
+    half shadowStrength = GetLocalLightShadowStrenth(lightIndex);
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, shadowStrength);
 #endif
 }
 
