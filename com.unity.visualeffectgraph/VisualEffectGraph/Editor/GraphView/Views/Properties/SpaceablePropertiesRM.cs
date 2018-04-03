@@ -51,6 +51,10 @@ namespace UnityEditor.VFX.UI
         {
             m_Button.SetEnabled(propertyEnabled);
         }
+        protected override void UpdateIndeterminate()
+        {
+            m_Button.visible = !indeterminate;
+        }
 
         private float spaceButtonWidth
         {
@@ -92,6 +96,11 @@ namespace UnityEditor.VFX.UI
         {
             base.UpdateEnabled();
             m_VectorField.SetEnabled(propertyEnabled);
+        }
+        protected override void UpdateIndeterminate()
+        {
+            base.UpdateEnabled();
+            m_VectorField.visible = !indeterminate;
         }
 
         public override bool showsEverything { get { return true; } }
