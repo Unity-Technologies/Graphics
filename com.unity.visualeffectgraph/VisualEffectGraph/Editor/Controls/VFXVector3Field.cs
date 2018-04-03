@@ -10,34 +10,35 @@ namespace UnityEditor.VFX.UIElements
     {
         FloatField[] m_Fields;
 
-        protected abstract int componentCount{get;}
+        protected abstract int componentCount {get; }
         public virtual string GetComponentName(int i)
         {
-            switch(i)
+            switch (i)
             {
-                case 1:
+                case 0:
                     return "x";
-                case 2:
+                case 1:
                     return "y";
-                case 3:
+                case 2:
                     return "z";
-                case 4:
+                case 3:
                     return "w";
                 default:
                     return "a";
             }
         }
+
         void CreateTextField()
         {
             m_Fields = new FloatField[componentCount];
 
 
-            for(int i = 0 ; i < m_Fields.Length ; ++i)
+            for (int i = 0; i < m_Fields.Length; ++i)
             {
                 m_Fields[i] = new FloatField(GetComponentName(i));
                 m_Fields[i].control.AddToClassList("fieldContainer");
                 m_Fields[i].AddToClassList("fieldContainer");
-                m_Fields[i].RegisterCallback<ChangeEvent<float>,int>(OnValueChanged,0);
+                m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, 0);
             }
 
             m_Fields[0].label.AddToClassList("first");
@@ -51,29 +52,30 @@ namespace UnityEditor.VFX.UIElements
             }
             set
             {
-                foreach(var field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.control.indeterminate = value;
                 }
             }
         }
 
-        protected abstract void SetValueComponent(ref T value,int i, float componentValue);
-        protected abstract float GetValueComponent(ref T value,int i);
+        protected abstract void SetValueComponent(ref T value, int i, float componentValue);
+        protected abstract float GetValueComponent(ref T value, int i);
 
-        void OnValueChanged(ChangeEvent<float> e,int component)
+        void OnValueChanged(ChangeEvent<float> e, int component)
         {
             T newValue = value;
-            SetValueComponent(ref newValue,component,m_Fields[component].value);
+            SetValueComponent(ref newValue, component, m_Fields[component].value);
             SetValueAndNotify(newValue);
         }
+
         public VFXVectorNField()
         {
             CreateTextField();
 
             style.flexDirection = FlexDirection.Row;
 
-            foreach(var field in m_Fields)
+            foreach (var field in m_Fields)
             {
                 Add(field);
             }
@@ -82,46 +84,47 @@ namespace UnityEditor.VFX.UIElements
         protected override void ValueToGUI(bool force)
         {
             T value = this.value;
-            for(int i = 0 ; i < m_Fields.Length ; ++i)
+            for (int i = 0; i < m_Fields.Length; ++i)
             {
-                if( ! m_Fields[i].control.HasFocus() || force)
+                if (!m_Fields[i].control.HasFocus() || force)
                 {
-                    m_Fields[i].value = GetValueComponent(ref value,i);
+                    m_Fields[i].value = GetValueComponent(ref value, i);
                 }
             }
         }
     }
     class VFXVector3Field : VFXVectorNField<Vector3>
     {
-        protected override  int componentCount{get{return 3;}}
-        protected override void SetValueComponent(ref Vector3 value,int i, float componentValue)
+        protected override  int componentCount {get {return 3; }}
+        protected override void SetValueComponent(ref Vector3 value, int i, float componentValue)
         {
-            switch(i)
+            switch (i)
             {
                 case 0:
                     value.x = componentValue;
-                break;
+                    break;
                 case 1:
                     value.y = componentValue;
-                break;
+                    break;
                 default:
                     value.z = componentValue;
-                break;
+                    break;
             }
         }
-        protected override float GetValueComponent(ref Vector3 value,int i)
+
+        protected override float GetValueComponent(ref Vector3 value, int i)
         {
-            switch(i)
+            switch (i)
             {
                 case 0:
                     return value.x;
-                break;
+                    break;
                 case 1:
                     return value.y;
-                break;
+                    break;
                 default:
                     return value.z;
-                break;
+                    break;
             }
         }
     }

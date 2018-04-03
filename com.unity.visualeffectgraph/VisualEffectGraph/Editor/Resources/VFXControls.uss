@@ -24,6 +24,11 @@ VFXColorField
 	margin-right:0;
 }
 
+VFXColorField #indeterminate
+{
+	text-color:#383838;
+}
+
 VFXFloatField TextField
 {
 	flex:1;
