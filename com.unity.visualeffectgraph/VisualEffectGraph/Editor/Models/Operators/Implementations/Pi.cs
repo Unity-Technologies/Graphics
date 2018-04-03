@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
@@ -6,7 +7,28 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Constants")]
     class Pi : VFXOperator
     {
-        override public string name { get { return "Pi (π)"; } }
+        override public string libraryName { get { return "Pi (π)"; } }
+        override public string name
+        {
+            get
+            {
+                int nbLinkedSlots = outputSlots.Count(o => o.HasLink());
+
+                if (nbLinkedSlots == 1)
+                {
+                    if (GetOutputSlot(0).HasLink())
+                        return "Pi (π)";
+                    else if (GetOutputSlot(1).HasLink())
+                        return "Pi (2π)";
+                    else if (GetOutputSlot(2).HasLink())
+                        return "Pi (π/2)";
+                    else
+                        return "Pi (π/3)";
+                }
+                
+                return "Pi (π)";
+            }
+        }
 
         public class OutputProperties
         {
