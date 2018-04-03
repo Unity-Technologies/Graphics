@@ -64,5 +64,21 @@ namespace UnityEditor.VFX
         {
             return inputExpression;
         }
+
+        public override void Sanitize()
+        {
+            if( type == null)
+            {
+                // First try to force deserialization
+                if( m_Type != null)
+                {
+                    m_Type.OnAfterDeserialize();
+                }
+                // if it doesn't work set it to int.
+                if( type == null)
+                    m_Type = new SerializableType(typeof(int));
+            }
+            base.Sanitize();
+        }
     }
 }
