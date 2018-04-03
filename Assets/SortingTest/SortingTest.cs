@@ -35,7 +35,7 @@ public class SortingTest : MonoBehaviour
 
         sortKernelBitonic = -1;
         if (sortShader != null)
-            sortKernelBitonic = sortShader.FindKernel("BitonicSort");
+            sortKernelBitonic = sortShader.FindKernel("BitonicPrePass");
 
         sortKernelMerge = -1;
         //if (sortShader != null)

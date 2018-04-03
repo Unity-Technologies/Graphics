@@ -1,24 +1,29 @@
-﻿#pragma kernel BitonicSort BITONIC_SORT
-//#pragma kernel MergeSort MERGE_SORT
-#pragma kernel MergePass
+﻿#pragma kernel BitonicSort128 BITONIC_SORT=BitonicSort128 ELEMENTS_COUNT=128 LDS_PADDING_PERIOD=32 ITERATIONS_COUNT=1 FINAL_PASS=1
+#pragma kernel BitonicSort1024 BITONIC_SORT=BitonicSort1024 ELEMENTS_COUNT=1024 LDS_PADDING_PERIOD=32 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicSort4096 BITONIC_SORT=BitonicSort4096 ELEMENTS_COUNT=4096 LDS_PADDING_PERIOD=0 ITERATIONS_COUNT=2 FINAL_PASS=1
+#pragma kernel BitonicPrePass BITONIC_SORT=BitonicPrePass ELEMENTS_COUNT=4096 LDS_PADDING_PERIOD=0 ITERATIONS_COUNT=2 FINAL_PASS=0
+#pragma kernel MergePass MERGE_PASS=MergePass FINAL_PASS=0
+#pragma kernel MergeFinalPass MERGE_PASS=MergeFinalPass FINAL_PASS=1
 
 #include "HLSLSupport.cginc"
 
 #define DECREASING_ORDER 0
 #define DEBUG_NO_INFINITE_LOOP 0
 
+#ifndef ELEMENTS_COUNT
 #define ELEMENTS_COUNT 1024
+#endif
 
 // More loads per threads. Can reduce stall time due to barriers
 // Needs a good occupancy in the first place (many groups dispatched)
-#define ITERATIONS_COUNT 2
+#ifndef ITERATIONS_COUNT
+#define ITERATIONS_COUNT 1
+#endif
 
 // This allows to reduce bank conflicts by adding an additional dword every LDS_PADDING_PERIOD
 // (Watch out for occupancy though)
 // 0 to deactivate padding
-#if BITONIC_SORT
-#define LDS_PADDING_PERIOD 32
-#else
+#ifndef LDS_PADDING_PERIOD
 #define LDS_PADDING_PERIOD 0
 #endif
 
@@ -28,7 +33,7 @@
 #define USE_ALTERNATE_BITONIC_NETWORK 0
 
 // For final pass we dont need to output key/value pairs but only sorted values
-#define FINAL_PASS 0
+#define FINAL_PASS 0 // TODO Remove that
 
 #define BITONIC_THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
 #define MERGE_THREADS_COUNT ELEMENTS_COUNT
@@ -54,7 +59,7 @@
 
 struct KVP
 {
-	float key;
+	float key; 
 	uint value;
 };
 
@@ -127,7 +132,7 @@ void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
 
 // Bitonic sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
 [numthreads(BITONIC_THREADS_COUNT,1,1)]
-void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
+void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 {
 	// Skip useless groups
 	if (groupId.x > elementCount / ELEMENTS_COUNT)
@@ -202,7 +207,7 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 
 // Merge sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
 //[numthreads(MERGE_THREADS_COUNT, 1, 1)]
-//void MergeSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
+//void MergeSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 //{
 //	// remove out of bounds threads
 //	if (groupId.x > elementCount / ELEMENTS_COUNT)
@@ -228,6 +233,7 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 //
 //		//uint nbIter = 0;
 //		bool reverse = false;
+//		bool done = false;
 //
 //		// Binary search - O(log(subArraySize))
 //		do
@@ -249,15 +255,15 @@ void BitonicSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupId)
 //				else if (i1 > 0 && scratch[GetLDSIndex(max(0, index1 - 1))] > key0)
 //					window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
 //				else
-//					break; // We're done;
+//					done = true; // We're done;
 //			}
 //			else // special case handling
 //			{
 //				reverse = true;
-//				break;
+//				done = true;;
 //			}
 //		} 
-//		while (true);
+//		while (!done);
 //
 //		// Select left or right: Must handle special case for equality
 //		bool select0 = /*(key0 == key1 && (id & 1)) || */((key0 < key1) != reverse);
@@ -291,7 +297,7 @@ float GetKeyWithCheck(uint index)
 }
 
 [numthreads(256, 1, 1)]
-void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
+void MERGE_PASS(uint id : SV_DispatchThreadID,uint3 groupId : SV_GroupID)
 {
 	if (id.x >= elementCount)
 		return;
