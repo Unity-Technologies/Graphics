@@ -406,7 +406,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], proj, view, settings);
                     m_LocalShadowStrength[i] = light.shadowStrength;
                     shadowSampling = Math.Max(shadowSampling, (int)light.shadows);
-                    lightData.localShadowMask |= (1 << shadowLightIndex);
                 }
             }
 

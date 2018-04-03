@@ -162,10 +162,8 @@ inline real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap,
     attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
 #endif
 
-#if SHADER_HINT_NICE_QUALITY
     // Apply shadow strength
     attenuation = LerpWhiteTo(attenuation, samplingData.shadowStrength);
-#endif
 
     // Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
@@ -215,15 +213,14 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 
 }
 
-half LocalLightRealtimeShadowAttenuation(int lightIndex, half castShadows, float3 positionWS)
+half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
 {
 #if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
     return 1.0h;
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
     ShadowSamplingData shadowSamplingData = GetLocalLightShadowSamplingData();
-    half attenuation = SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, 0.0);
-    return (castShadows < 1.0h) ? 1.0h : attenuation;
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, 0.0);
 #endif
 }
 

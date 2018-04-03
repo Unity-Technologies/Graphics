@@ -17,7 +17,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int pixelAdditionalLightsCount;
         public int totalAdditionalLightsCount;
         public int mainLightIndex;
-        public int localShadowMask;
         public List<VisibleLight> visibleLights;
         public List<int> localLightIndices;
     }
@@ -608,7 +607,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Clear to default all light constant data
             for (int i = 0; i < kMaxVisibleLights; ++i)
-                InitializeLightConstants(visibleLights, -1, false, out m_LightPositions[i],
+                InitializeLightConstants(visibleLights, -1, out m_LightPositions[i],
                     out m_LightColors[i],
                     out m_LightDistanceAttenuations[i],
                     out m_LightSpotDirections[i],
@@ -625,7 +624,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             lightData.pixelAdditionalLightsCount = additionalPixelLightsCount;
             lightData.totalAdditionalLightsCount = additionalPixelLightsCount + vertexLightCount;
-            lightData.localShadowMask = 0x0;
             lightData.visibleLights = visibleLights;
             lightData.localLightIndices = m_LocalLightIndices;
 
@@ -660,7 +658,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return -1;
         }
 
-        private void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, bool castShadows, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
+        private void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
             out Vector4 lightSpotAttenuation)
         {
             lightPos = kDefaultLightPosition;
@@ -675,16 +673,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             VisibleLight lightData = lights[lightIndex];
-            float castShadowsProp = castShadows ? 1.0f : 0.0f;
             if (lightData.lightType == LightType.Directional)
             {
                 Vector4 dir = -lightData.localToWorld.GetColumn(2);
-                lightPos = new Vector4(dir.x, dir.y, dir.z, castShadowsProp);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
                 Vector4 pos = lightData.localToWorld.GetColumn(3);
-                lightPos = new Vector4(pos.x, pos.y, pos.z, castShadowsProp);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
             }
 
             // VisibleLight.finalColor already returns color in active color space
@@ -781,7 +778,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Vector4 lightPos, lightColor, lightDistanceAttenuation, lightSpotDir, lightSpotAttenuation;
             List<VisibleLight> lights = lightData.visibleLights;
-            InitializeLightConstants(lightData.visibleLights, lightData.mainLightIndex, m_ShadowPass.HasDirectionalShadowmap, out lightPos, out lightColor, out lightDistanceAttenuation, out lightSpotDir, out lightSpotAttenuation);
+            InitializeLightConstants(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightDistanceAttenuation, out lightSpotDir, out lightSpotAttenuation);
 
             if (lightData.mainLightIndex >= 0)
             {
@@ -823,9 +820,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     else
                     {
                         perObjectLightIndexMap[i] -= directionalLightCount;
-                        bool castShadows = (lightData.localShadowMask & (1 << i)) != 0 &&
-                                           lightData.localLightIndices.Contains(i);
-                        InitializeLightConstants(lights, i, castShadows, out m_LightPositions[localLightsCount],
+                        InitializeLightConstants(lights, i, out m_LightPositions[localLightsCount],
                             out m_LightColors[localLightsCount],
                             out m_LightDistanceAttenuations[localLightsCount],
                             out m_LightSpotDirections[localLightsCount],
