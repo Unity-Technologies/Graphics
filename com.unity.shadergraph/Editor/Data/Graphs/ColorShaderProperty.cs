@@ -79,5 +79,13 @@ namespace UnityEditor.ShaderGraph
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
         }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new ColorShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
+        }
     }
 }

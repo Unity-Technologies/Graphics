@@ -331,53 +331,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (copyGraph == null)
                 return;
 
+            // Make new properties from the copied graph
             foreach (IShaderProperty property in copyGraph.properties)
             {
                 string propertyName = graphView.graph.SanitizePropertyName(property.displayName);
-
-                IShaderProperty copiedProperty = null;
-
-                if (property is Vector1ShaderProperty)
-                {
-                    copiedProperty = new Vector1ShaderProperty();
-                    (copiedProperty as Vector1ShaderProperty).value = (property as Vector1ShaderProperty).value;
-                }
-                else if (property is Vector2ShaderProperty)
-                {
-                    copiedProperty = new Vector2ShaderProperty();
-                    (copiedProperty as Vector2ShaderProperty).value = (property as Vector2ShaderProperty).value;
-                }
-                else if (property is Vector3ShaderProperty)
-                {
-                    copiedProperty = new Vector3ShaderProperty();
-                    (copiedProperty as Vector3ShaderProperty).value = (property as Vector3ShaderProperty).value;
-                }
-                else if (property is Vector4ShaderProperty)
-                {
-                    copiedProperty = new Vector4ShaderProperty();
-                    (copiedProperty as Vector4ShaderProperty).value = (property as Vector4ShaderProperty).value;
-                }
-                else if (property is ColorShaderProperty)
-                {
-                    copiedProperty = new ColorShaderProperty();
-                    (copiedProperty as ColorShaderProperty).value = (property as ColorShaderProperty).value;
-                }
-                else if (property is TextureShaderProperty)
-                {
-                    copiedProperty = new TextureShaderProperty();
-                    (copiedProperty as TextureShaderProperty).value = (property as TextureShaderProperty).value;
-                }
-                else if (property is CubemapShaderProperty)
-                {
-                    copiedProperty = new CubemapShaderProperty();
-                    (copiedProperty as CubemapShaderProperty).value = (property as CubemapShaderProperty).value;
-                }
-                else if (property is BooleanShaderProperty)
-                {
-                    copiedProperty = new BooleanShaderProperty();
-                    (copiedProperty as BooleanShaderProperty).value = (property as BooleanShaderProperty).value;
-                }
-
+                IShaderProperty copiedProperty = property.Copy();
                 copiedProperty.displayName = propertyName;
                 graphView.graph.AddShaderProperty(copiedProperty);
             }

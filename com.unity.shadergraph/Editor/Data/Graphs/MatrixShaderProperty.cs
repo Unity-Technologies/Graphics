@@ -24,6 +24,6 @@ namespace UnityEditor.ShaderGraph
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return default(PreviewProperty);
-        }        
+        }
     }
 }
