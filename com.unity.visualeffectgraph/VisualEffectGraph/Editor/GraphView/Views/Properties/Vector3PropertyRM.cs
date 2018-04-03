@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
         {
             m_VectorField.indeterminate = indeterminate;
             if (m_ColorField != null)
-                m_ColorField.visible = !indeterminate;
+                m_ColorField.indeterminate = indeterminate;
         }
 
         public override float GetPreferredControlWidth()
