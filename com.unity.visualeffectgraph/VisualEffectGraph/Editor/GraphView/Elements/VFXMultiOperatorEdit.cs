@@ -80,13 +80,13 @@ namespace UnityEditor.VFX.UI
             VFXEditableOperator op = model;
             GenericMenu menu = new GenericMenu();
             int selectedIndex = -1;
-            VFXValueType selectedType = op.GetOperandType(index);
+            var selectedType = op.GetOperandType(index);
             int cpt = 0;
             foreach (var type in op.validTypes)
             {
                 if (selectedType == type)
                     selectedIndex = cpt++;
-                menu.AddItem(EditorGUIUtility.TrTextContent(type.ToString()), selectedType == type, OnChangeType, type);
+                menu.AddItem(EditorGUIUtility.TrTextContent(type.UserFriendlyName()), selectedType == type, OnChangeType, type);
             }
             m_CurrentIndex = index;
             menu.DropDown(button.worldBound);
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXEditableOperator op = model;
 
-            op.SetOperandType(m_CurrentIndex, (VFXValueType)type);
+            op.SetOperandType(m_CurrentIndex, (Type)type);
         }
 
         void OnChangeLabel(string value, int index)
@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.UI
             public void Set(VFXEditableOperator op)
             {
                 field.value = op.GetOperandName(index);
-                type.text = op.GetOperandType(index).ToString();
+                type.text = op.GetOperandType(index).UserFriendlyName();
             }
         }
     }

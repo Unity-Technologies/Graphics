@@ -13,11 +13,11 @@ namespace UnityEditor.VFX
             base.OnEnable();
         }
 
-        public abstract IEnumerable<VFXValueType> validTypes { get; } //TODOPAUL : for @tristan, actually, it should be a IEnumerable<Type> to cover all available slot 
+        public abstract IEnumerable<Type> validTypes { get; }
 
-        protected abstract VFXValueType defaultValueType { get; }
+        protected abstract Type defaultValueType { get; }
 
-        protected abstract object GetDefaultValueForType(VFXValueType type);
+        protected abstract object GetDefaultValueForType(Type type);
     }
 
     abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
@@ -33,23 +33,21 @@ namespace UnityEditor.VFX
             typeof(int),
         };
 
-        private static readonly VFXValueType[] kValidType = kExpectedTypeOrdering.Select(o => VFXExpression.GetVFXValueTypeFromType(o)).ToArray();
-        private static readonly VFXValueType[] kValidTypeWithoutInteger = kValidType.Except(new[] { VFXValueType.Uint32, VFXValueType.Int32 }).ToArray();
+        private static readonly Type[] kValidTypeWithoutInteger = kExpectedTypeOrdering.Except(new[] { typeof(uint), typeof(int) }).ToArray();
 
-
-        protected sealed override VFXValueType defaultValueType
+        protected sealed override Type defaultValueType
         {
             get
             {
-                return VFXValueType.Float;
+                return typeof(float);
             }
         }
 
         protected virtual bool allowInteger { get { return true; } }
 
-        public sealed override IEnumerable<VFXValueType> validTypes
+        public sealed override IEnumerable<Type> validTypes
         {
-            get { return allowInteger ? kValidType : kValidTypeWithoutInteger; }
+            get { return allowInteger ? kExpectedTypeOrdering : kValidTypeWithoutInteger; }
         }
 
         protected static IEnumerable<VFXExpression> Temp_CastToFloat(IEnumerable<VFXExpression> expressions)
@@ -85,7 +83,7 @@ namespace UnityEditor.VFX
         protected virtual Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
             if (!inputTypes.Any())
-                return VFXExpression.TypeToType(defaultValueType);
+                return defaultValueType;
 
             var minIndex = inputTypes.Select(o => Array.IndexOf(kExpectedTypeOrdering, o)).Min();
             return kExpectedTypeOrdering[minIndex];
@@ -112,8 +110,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected sealed override object GetDefaultValueForType(VFXValueType type)
+        protected sealed override object GetDefaultValueForType(Type vtype)
         {
+            var type = VFXExpression.GetVFXValueTypeFromType(vtype);
             switch (type)
             {
                 case VFXValueType.Float:
@@ -141,7 +140,7 @@ namespace UnityEditor.VFX
     abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        VFXValueType m_Type = VFXValueType.None;
+        SerializableType m_Type;
 
         protected override double defaultValueDouble //Most common case for this kind of operator (still overridable)
         {
@@ -151,7 +150,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void SetOperandType(VFXValueType type)
+        public void SetOperandType(Type type)
         {
             if (!validTypes.Contains(type))
                 throw new InvalidOperationException();
@@ -165,9 +164,9 @@ namespace UnityEditor.VFX
             get
             {
                 var baseInputProperties = base.inputProperties;
-                if (m_Type == VFXValueType.None) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
+                if (m_Type == null) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
                 {
-                    var typeEnumeration = baseInputProperties.Select(o => VFXExpression.GetVFXValueTypeFromType(o.property.type));
+                    var typeEnumeration = baseInputProperties.Select(o => o.property.type);
                     if (typeEnumeration.Any(o => !validTypes.Contains(o)))
                         throw new InvalidOperationException("Forbidden type");
 
@@ -179,10 +178,10 @@ namespace UnityEditor.VFX
 
                 foreach (var property in baseInputProperties)
                 {
-                    if (VFXExpression.GetVFXValueTypeFromType(property.property.type) == m_Type)
+                    if (property.property.type == (Type)m_Type)
                         yield return property;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(m_Type), property.property.name), GetDefaultValueForType(m_Type));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name), GetDefaultValueForType(m_Type));
                 }
             }
         }
@@ -205,7 +204,7 @@ namespace UnityEditor.VFX
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        VFXValueType[] m_Type;
+        SerializableType[] m_Type;
 
         protected override double defaultValueDouble //Most common case for this kind of operator (still overridable)
         {
@@ -215,7 +214,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void SetOperandType(int index, VFXValueType type)
+        public void SetOperandType(int index, Type type)
         {
             if (!validTypes.Contains(type))
                 throw new InvalidOperationException();
@@ -231,24 +230,24 @@ namespace UnityEditor.VFX
                 var baseType = base.inputProperties;
                 if (m_Type == null) // Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
                 {
-                    var typeArray = baseType.Select(o => VFXExpression.GetVFXValueTypeFromType(o.property.type)).ToArray();
+                    var typeArray = baseType.Select(o => o.property.type).ToArray();
                     if (typeArray.Any(o => !validTypes.Contains(o)))
                         throw new InvalidOperationException("Forbidden type");
 
-                    m_Type = typeArray;
+                    m_Type = typeArray.Select(o => new SerializableType(o)).ToArray();
                 }
 
                 if (baseType.Count() != m_Type.Length)
                     throw new InvalidOperationException();
 
                 var itSlot = baseType.GetEnumerator();
-                var itType = m_Type.Cast<VFXValueType>().GetEnumerator();
+                var itType = m_Type.Cast<SerializableType>().GetEnumerator();
                 while (itSlot.MoveNext() && itType.MoveNext())
                 {
-                    if (VFXExpression.GetVFXValueTypeFromType(itSlot.Current.property.type) == itType.Current)
+                    if (itSlot.Current.property.type == (Type)itType.Current)
                         yield return itSlot.Current;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(itType.Current), itSlot.Current.property.name), GetDefaultValueForType(itType.Current));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name), GetDefaultValueForType(itType.Current));
                 }
             }
         }
@@ -276,7 +275,7 @@ namespace UnityEditor.VFX
         public struct Operand
         {
             public string name;
-            public VFXValueType type;
+            public SerializableType type;
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -302,7 +301,7 @@ namespace UnityEditor.VFX
                 }
 
                 foreach (var operand in m_Operands)
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(operand.type), operand.name), GetDefaultValueForType(operand.type));
+                    yield return new VFXPropertyWithValue(new VFXProperty(operand.type, operand.name), GetDefaultValueForType(operand.type));
             }
         }
 
@@ -346,12 +345,12 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
-        public VFXValueType GetOperandType(int index)
+        public Type GetOperandType(int index)
         {
             return m_Operands[index].type;
         }
 
-        public void SetOperandType(int index, VFXValueType type)
+        public void SetOperandType(int index, Type type)
         {
             if (!validTypes.Contains(type))
                 throw new InvalidOperationException();
@@ -395,7 +394,7 @@ namespace UnityEditor.VFX
 
             /* Temporary : int/uint casting (another branch to handle these operation is in review */
             inputExpression = Temp_CastToFloat(inputExpression);
-            //Unify behavior (actuallry, also temporary, since it should handle int to float conversion in some cases)
+            //Unify behavior (actually, also temporary, since it should handle int to float conversion in some cases)
             inputExpression = VFXOperatorUtility.UpcastAllFloatN(inputExpression, defaultValueFloat);
 
             //Process aggregate two by two element until result

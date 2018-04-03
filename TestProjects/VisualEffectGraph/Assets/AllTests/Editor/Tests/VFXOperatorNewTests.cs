@@ -55,9 +55,9 @@ namespace UnityEditor.VFX.Test
             vec3_Two.inputSlots[0].value = Vector3.one * 2.0f;
 
             var mul = ScriptableObject.CreateInstance<Operator.MultiplyNew>();
-            mul.SetOperandType(0, VFXValueType.Float2);
+            mul.SetOperandType(0, typeof(Vector2));
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
-            mul.SetOperandType(1, VFXValueType.Float3);
+            mul.SetOperandType(1, typeof(Vector3));
             mul.inputSlots[1].Link(vec3_Two.outputSlots[0]);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
@@ -71,30 +71,30 @@ namespace UnityEditor.VFX.Test
         public void CascadedSubstractIntegerBehavior()
         {
             var subtract = ScriptableObject.CreateInstance<Operator.SubtractNew>();
-            subtract.SetOperandType(0, VFXValueType.Float);
-            subtract.SetOperandType(1, VFXValueType.Float);
+            subtract.SetOperandType(0, typeof(float));
+            subtract.SetOperandType(1, typeof(float));
 
             Assert.AreEqual(VFXValueType.Float, subtract.outputSlots[0].GetExpression().valueType);
 
-            subtract.SetOperandType(0, VFXValueType.Float);
-            subtract.SetOperandType(1, VFXValueType.Int32);
+            subtract.SetOperandType(0, typeof(float));
+            subtract.SetOperandType(1, typeof(int));
             Assert.AreEqual(VFXValueType.Float, subtract.outputSlots[0].GetExpression().valueType);
 
-            subtract.SetOperandType(0, VFXValueType.Int32);
-            subtract.SetOperandType(1, VFXValueType.Int32);
+            subtract.SetOperandType(0, typeof(int));
+            subtract.SetOperandType(1, typeof(int));
             Assert.AreEqual(VFXValueType.Int32, subtract.outputSlots[0].GetExpression().valueType);
 
-            subtract.SetOperandType(0, VFXValueType.Int32);
-            subtract.SetOperandType(1, VFXValueType.Uint32);
+            subtract.SetOperandType(0, typeof(int));
+            subtract.SetOperandType(1, typeof(uint));
             Assert.AreEqual(VFXValueType.Uint32, subtract.outputSlots[0].GetExpression().valueType);
 
-            subtract.SetOperandType(0, VFXValueType.Uint32);
-            subtract.SetOperandType(1, VFXValueType.Uint32);
+            subtract.SetOperandType(0, typeof(uint));
+            subtract.SetOperandType(1, typeof(uint));
             Assert.AreEqual(VFXValueType.Uint32, subtract.outputSlots[0].GetExpression().valueType);
 
             //Finally, do some simple math integer (TODOPAUL : are incorrect mathematically but another PR is coming for this support)
-            subtract.SetOperandType(0, VFXValueType.Int32);
-            subtract.SetOperandType(1, VFXValueType.Uint32);
+            subtract.SetOperandType(0, typeof(int));
+            subtract.SetOperandType(1, typeof(uint));
 
             var a = 9;
             var b = 5;
@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.Test
         public void ClampNewBehavior()
         {
             var clamp = ScriptableObject.CreateInstance<Operator.ClampNew>();
-            clamp.SetOperandType(VFXValueType.Int32);
+            clamp.SetOperandType(typeof(int));
             Assert.AreEqual(VFXValueType.Int32, clamp.outputSlots[0].GetExpression().valueType);
 
             clamp.inputSlots[0].value = -6;
@@ -130,7 +130,7 @@ namespace UnityEditor.VFX.Test
         public void LengthNewBehavior()
         {
             var length = ScriptableObject.CreateInstance<Operator.LengthNew>();
-            length.SetOperandType(VFXValueType.Float2);
+            length.SetOperandType(typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float, length.outputSlots[0].GetExpression().valueType);
 
             var vec2 = Vector2.one * 3;
@@ -147,8 +147,8 @@ namespace UnityEditor.VFX.Test
         public void DotProductNewBehavior()
         {
             var dot = ScriptableObject.CreateInstance<Operator.DotProductNew>();
-            dot.SetOperandType(0, VFXValueType.Float2);
-            dot.SetOperandType(1, VFXValueType.Float3);
+            dot.SetOperandType(0, typeof(Vector2));
+            dot.SetOperandType(1, typeof(Vector3));
 
             Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
 
@@ -169,7 +169,7 @@ namespace UnityEditor.VFX.Test
         public void CosineNewBehavior()
         {
             var cos = ScriptableObject.CreateInstance<Operator.CosineNew>();
-            cos.SetOperandType(VFXValueType.Float2);
+            cos.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float2, cos.outputSlots[0].GetExpression().valueType);
             var a = new Vector2(12, 89);
@@ -188,9 +188,9 @@ namespace UnityEditor.VFX.Test
         public void KeepConnectionNewBehavior()
         {
             var cos_A = ScriptableObject.CreateInstance<Operator.CosineNew>();
-            cos_A.SetOperandType(VFXValueType.Float3);
+            cos_A.SetOperandType(typeof(Vector3));
             var cos_B = ScriptableObject.CreateInstance<Operator.CosineNew>();
-            cos_B.SetOperandType(VFXValueType.Float);
+            cos_B.SetOperandType(typeof(float));
 
             Assert.AreEqual(VFXValueType.Float3, cos_A.outputSlots[0].GetExpression().valueType);
             Assert.AreEqual(VFXValueType.Float, cos_B.outputSlots[0].GetExpression().valueType);
@@ -209,7 +209,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(expected, finalv3.y);
             Assert.AreEqual(expected, finalv3.z);
 
-            cos_A.SetOperandType(VFXValueType.Float2);
+            cos_A.SetOperandType(typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float2, cos_A.outputSlots[0].GetExpression().valueType);
 
             result = context.Compile(cos_A.outputSlots[0].GetExpression());
@@ -232,9 +232,9 @@ namespace UnityEditor.VFX.Test
             append.RemoveOperand(0);
 
             Assert.AreEqual(VFXValueType.Float2, append.outputSlots[0].GetExpression().valueType);
-            append.SetOperandType(0, VFXValueType.Float2);
+            append.SetOperandType(0, typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float3, append.outputSlots[0].GetExpression().valueType);
-            append.SetOperandType(1, VFXValueType.Float2);
+            append.SetOperandType(1, typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float4, append.outputSlots[0].GetExpression().valueType);
         }
     }
