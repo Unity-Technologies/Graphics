@@ -44,7 +44,10 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate()
         {
-            m_Toggle.visible = !indeterminate;
+            if( indeterminate)
+                m_Toggle.AddToClassList("indeterminate");
+            else
+                m_Toggle.RemoveFromClassList("indeterminate");
         }
 
         public override bool showsEverything { get { return true; } }

@@ -616,20 +616,23 @@ namespace UnityEditor.VFX.UI
             }
 
             //Patch group nodes, removing this sticky note and fixing ids that are bigger than index
-            for (int i = 0; i < ui.groupInfos.Length; ++i)
-            {
-                for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+            if (ui.groupInfos != null)
+            {    
+                for (int i = 0; i < ui.groupInfos.Length; ++i)
                 {
-                    if (ui.groupInfos[i].contents[j].isStickyNote)
+                    for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                     {
-                        if (ui.groupInfos[i].contents[j].id == index)
+                        if (ui.groupInfos[i].contents[j].isStickyNote)
                         {
-                            ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
-                            j--;
-                        }
-                        else if (ui.groupInfos[i].contents[j].id > index)
-                        {
-                            --(ui.groupInfos[i].contents[j].id);
+                            if (ui.groupInfos[i].contents[j].id == index)
+                            {
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
+                                j--;
+                            }
+                            else if (ui.groupInfos[i].contents[j].id > index)
+                            {
+                                --(ui.groupInfos[i].contents[j].id);
+                            }
                         }
                     }
                 }

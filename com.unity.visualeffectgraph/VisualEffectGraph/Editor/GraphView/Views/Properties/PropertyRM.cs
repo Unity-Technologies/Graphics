@@ -222,7 +222,7 @@ namespace UnityEditor.VFX.UI
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
             this.AddStyleSheetPathWithSkinVariant("VFXControls");
-            AddStyleSheetPath("PropertyRM");
+            this.AddStyleSheetPathWithSkinVariant("PropertyRM");
 
             m_Provider = provider;
             m_labelWidth = labelWidth;
