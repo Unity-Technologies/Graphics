@@ -207,7 +207,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
                 light.type = LightType.Point; // Same as in HDLightEditor
+#if UNITY_EDITOR
                 light.lightmapBakeType = LightmapBakeType.Realtime;
+#endif
             }
 
             // At first init we need to initialize correctly the default value
