@@ -261,10 +261,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
-        public static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
-        public static readonly int _PyramidDepthTexture = Shader.PropertyToID("_PyramidDepthTexture");
-        public static readonly int _GaussianPyramidColorMipSize = Shader.PropertyToID("_GaussianPyramidColorMipSize");
-        public static readonly int _DepthPyramidMipSize = Shader.PropertyToID("_PyramidDepthMipSize");
+        public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
+        public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_DepthPyramidTexture");
+        public static readonly int _ColorPyramidSize = Shader.PropertyToID("_ColorPyramidSize");
+        public static readonly int _ColorPyramidScale = Shader.PropertyToID("_ColorPyramidScale");
+        public static readonly int _DepthPyramidSize = Shader.PropertyToID("_DepthPyramidSize");
+        public static readonly int _DepthPyramidScale = Shader.PropertyToID("_DepthPyramidScale");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
         public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
