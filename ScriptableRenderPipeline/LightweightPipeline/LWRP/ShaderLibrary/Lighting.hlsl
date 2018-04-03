@@ -56,7 +56,6 @@ struct Light
     half3   color;
     half    attenuation;
     half    subtractiveModeAttenuation;
-    half    castShadows;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,7 +116,7 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
 half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
     half4 directionAndAttenuation;
-    float3 posToLightVec = lightInput.position.xyz - positionWS;
+    float3 posToLightVec = lightInput.position.xyz - positionWS.xyz * lightInput.position.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), FLT_MIN);
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
@@ -147,7 +146,6 @@ Light GetMainLight()
     light.attenuation = 1.0;
     light.subtractiveModeAttenuation = _MainLightPosition.w;
     light.color = _MainLightColor.rgb;
-    light.castShadows = _MainLightPosition.w;
 
     return light;
 }
@@ -179,7 +177,6 @@ Light GetLight(half i, float3 positionWS)
     light.attenuation = directionAndRealtimeAttenuation.w;
     light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
     light.color = lightInput.color;
-    light.castShadows = lightInput.position.w;
 
     return light;
 }
@@ -557,7 +554,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     {
         half index = half(i);
         Light light = GetLight(index, inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, light.castShadows, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
@@ -583,7 +580,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     {
         half index = half(i);
         Light light = GetLight(index, inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, light.castShadows, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
