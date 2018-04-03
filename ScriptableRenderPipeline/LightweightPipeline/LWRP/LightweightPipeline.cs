@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEngine.Assertions;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
@@ -96,7 +95,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_DepthRenderBuffer;
         private MixedLightingSetup m_MixedLightingSetup;
 
-        List<int> m_LocalLightIndices = new List<int>(kMaxLocalPixelLightPerPass);
+        private ComputeBuffer m_LightIndicesBuffer;
+        private List<int> m_LocalLightIndices = new List<int>(kMaxLocalPixelLightPerPass);
+        private bool m_UseComputeBuffer;
 
         // Pipeline pass names
         private static readonly ShaderPassName m_DepthPrepass = new ShaderPassName("DepthOnly");
@@ -165,6 +166,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_CopyTextureSupport = SystemInfo.copyTextureSupport;
 
+            // TODO: Profile performance of using ComputeBuffer on mobiles that support it vs
+            // fixed buffer size
+            if (Application.isMobilePlatform || Application.platform == RuntimePlatform.WebGLPlayer)
+                m_UseComputeBuffer = false;
+            else
+                m_UseComputeBuffer = true;
+
+            m_LightIndicesBuffer = null;
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
                 QualitySettings.antiAliasing = m_Asset.MSAASampleCount;
@@ -191,6 +201,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
+
+            if (m_LightIndicesBuffer != null)
+            {
+                m_LightIndicesBuffer.Release();
+                m_LightIndicesBuffer = null;
+            }
         }
 
         private void SetRenderingFeatures()
@@ -832,6 +848,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
                         lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
+
+                // if not using a compute buffer, engine will set indices in 2 vec4 constants
+                // unity_4LightIndices0 and unity_4LightIndices1
+                // TODO: We can benefit from better thread usage if we set LightIndex map and call
+                // FillLightIndices way earlier.
+                if (m_UseComputeBuffer)
+                {
+                    int lightIndicesCount = m_CullResults.GetLightIndicesCount();
+                    if (m_LightIndicesBuffer == null)
+                    {
+                        m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                    }
+                    else if (m_LightIndicesBuffer.count < lightIndicesCount)
+                    {
+                        m_LightIndicesBuffer.Release();
+                        m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                    }
+
+                    m_CullResults.FillLightIndices(m_LightIndicesBuffer);
+                    cmd.SetGlobalBuffer("_LightIndexBuffer", m_LightIndicesBuffer);
+                }
             }
             else
             {
@@ -961,7 +998,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             RendererConfiguration settings = RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             if (lightData.totalAdditionalLightsCount > 0)
-                settings |= RendererConfiguration.PerObjectLightIndices8;
+            {
+                if (m_UseComputeBuffer)
+                    settings |= RendererConfiguration.ProvideLightIndices;
+                else
+                    settings |= RendererConfiguration.PerObjectLightIndices8;
+            }
             return settings;
         }
 
