@@ -7,10 +7,6 @@
 #include "Core.hlsl"
 #include "Shadows.hlsl"
 
-#ifdef NO_ADDITIONAL_LIGHTS
-#undef _ADDITIONAL_LIGHTS
-#endif
-
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
