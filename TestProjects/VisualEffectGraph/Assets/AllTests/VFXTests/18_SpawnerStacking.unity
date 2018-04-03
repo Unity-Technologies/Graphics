@@ -130,7 +130,7 @@ GameObject:
   m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!2083052967 &785520756
-VFXComponent:
+VisualEffect:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -145,7 +145,7 @@ VFXComponent:
     m_Vector2f:
       m_Array:
       - m_Value: {x: 0.25, y: 0}
-        m_Name: 
+        m_Name: parameter
         m_Overridden: 0
     m_Vector3f:
       m_Array: []
@@ -220,6 +220,10 @@ Camera:
   serializedVersion: 2
   m_ClearFlags: 2
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_projectionMatrixMode: 1
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -305,6 +309,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
@@ -341,7 +346,7 @@ GameObject:
   m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!2083052967 &1902854186
-VFXComponent:
+VisualEffect:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
@@ -355,9 +360,9 @@ VFXComponent:
       m_Array: []
     m_Vector2f:
       m_Array:
-      - m_Value: {x: 0.25, y: 0}
-        m_Name: 
-        m_Overridden: 0
+      - m_Value: {x: 0.5, y: 0}
+        m_Name: parameter
+        m_Overridden: 1
     m_Vector3f:
       m_Array: []
     m_Vector4f:
