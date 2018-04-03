@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
         }
 
-        public abstract IEnumerable<VFXValueType> validTypes { get; }
+        public abstract IEnumerable<VFXValueType> validTypes { get; } //TODOPAUL : for @tristan, actually, it should be a IEnumerable<Type> to cover all available slot 
 
         protected abstract VFXValueType defaultValueType { get; }
 
@@ -259,7 +259,7 @@ namespace UnityEditor.VFX
 
             /* Temporary : int/uint casting (another branch to handle these operation is in review */
             inputExpression = Temp_CastToFloat(inputExpression);
-            //Unify behavior (actuallry, also temporary, since it should handle int to float conversion in some cases)
+            //Unify behavior (actually, also temporary, since it should handle int to float conversion in some cases)
             inputExpression = VFXOperatorUtility.UpcastAllFloatN(inputExpression, defaultValueFloat);
 
             var outputExpression = BuildExpression(inputExpression.ToArray());
