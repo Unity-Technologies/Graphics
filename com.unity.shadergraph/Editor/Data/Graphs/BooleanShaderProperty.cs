@@ -54,5 +54,13 @@ namespace UnityEditor.ShaderGraph
         {
             return new BooleanNode { value = new Toggle(value) };
         }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new BooleanShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
+        }
     }
 }
