@@ -52,12 +52,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
         // It must match the MAX_VISIBLE_LIGHTS in LightweightInput.cginc
-        private static readonly int kMaxVisibleLights = 16;
+        private static readonly int kMaxVisibleLocalLights = 16;
 
-        // Lights are culled per-object. This holds the maximum amount of lights that can be shaded per-object.
-        // The engine fills in the lights indices per-object in unity4_LightIndices0 and unity_4LightIndices1
-        private static readonly int kMaxPerObjectLights = 8;
-        private static readonly int kMaxLocalPixelLightPerPass = 4;
+        // Lights are culled per-object. In platforms that don't use StructuredBuffer
+        // the engine will set 4 light indices in the following constant unity_4LightIndices0
+        // Additionally the engine set unity_4LightIndices1 but LWRP doesn't use that.
+        private static readonly int kMaxNonIndexedLocalLights = 4;
         private static readonly int kMaxVertexLights = 4;
 
         private const int kDepthStencilBufferBits = 32;
@@ -72,11 +72,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Vector4 kDefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         private Vector4 kDefaultLightSpotAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
-        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightColors = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightDistanceAttenuations = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleLights];
-        private Vector4[] m_LightSpotAttenuations = new Vector4[kMaxVisibleLights];
+        private Vector4[] m_LightPositions = new Vector4[kMaxVisibleLocalLights];
+        private Vector4[] m_LightColors = new Vector4[kMaxVisibleLocalLights];
+        private Vector4[] m_LightDistanceAttenuations = new Vector4[kMaxVisibleLocalLights];
+        private Vector4[] m_LightSpotDirections = new Vector4[kMaxVisibleLocalLights];
+        private Vector4[] m_LightSpotAttenuations = new Vector4[kMaxVisibleLocalLights];
 
         private Camera m_CurrCamera;
 
@@ -96,7 +96,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private MixedLightingSetup m_MixedLightingSetup;
 
         private ComputeBuffer m_LightIndicesBuffer;
-        private List<int> m_LocalLightIndices = new List<int>(kMaxLocalPixelLightPerPass);
+        private List<int> m_LocalLightIndices;
+        private int m_MaxLocalLightsShadedPerPass;
         private bool m_UseComputeBuffer;
 
         // Pipeline pass names
@@ -135,8 +136,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Asset = asset;
 
             SetRenderingFeatures();
-            m_ShadowPass = new LightweightShadowPass(m_Asset);
-
+            
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
@@ -175,6 +175,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_UseComputeBuffer = true;
 
             m_LightIndicesBuffer = null;
+            m_MaxLocalLightsShadedPerPass = m_UseComputeBuffer ? kMaxVisibleLocalLights : kMaxNonIndexedLocalLights;
+            m_LocalLightIndices = new List<int>(m_MaxLocalLightsShadedPerPass);
+
+            m_ShadowPass = new LightweightShadowPass(m_Asset, m_MaxLocalLightsShadedPerPass);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
@@ -618,12 +622,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeLightData(List<VisibleLight> visibleLights, out LightData lightData)
         {
             m_LocalLightIndices.Clear();
-            for (int i = 0; i < visibleLights.Count && i < kMaxLocalPixelLightPerPass; ++i)
+            for (int i = 0; i < visibleLights.Count && i < m_MaxLocalLightsShadedPerPass; ++i)
                 if (visibleLights[i].lightType != LightType.Directional)
                     m_LocalLightIndices.Add(i);
 
             // Clear to default all light constant data
-            for (int i = 0; i < kMaxVisibleLights; ++i)
+            for (int i = 0; i < kMaxVisibleLocalLights; ++i)
                 InitializeLightConstants(visibleLights, -1, out m_LightPositions[i],
                     out m_LightColors[i],
                     out m_LightDistanceAttenuations[i],
@@ -636,7 +640,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
             int mainLightPresent = (lightData.mainLightIndex >= 0) ? 1 : 0;
             int additionalPixelLightsCount = visibleLightsCount - mainLightPresent;
-            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, kMaxPerObjectLights) - additionalPixelLightsCount - mainLightPresent : 0;
+            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, m_MaxLocalLightsShadedPerPass) - additionalPixelLightsCount - mainLightPresent : 0;
             vertexLightCount = Math.Min(vertexLightCount, kMaxVertexLights);
 
             lightData.pixelAdditionalLightsCount = additionalPixelLightsCount;
@@ -647,9 +651,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MixedLightingSetup = MixedLightingSetup.None;
         }
 
-        // How main light is decided:
-        // If shadows enabled, main light is always a shadow casting light. Directional has priority over local lights.
-        // Otherwise directional lights have priority based on cookie support and intensity
+        // Main Light is always a directional light
         private int GetMainLight(List<VisibleLight> visibleLights)
         {
             int totalVisibleLights = visibleLights.Count;
@@ -826,7 +828,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
                 int directionalLightCount = 0;
                 int localLightsCount = 0;
-                for (int i = 0; i < lights.Count && localLightsCount < kMaxVisibleLights; ++i)
+                for (int i = 0; i < lights.Count && localLightsCount < kMaxVisibleLocalLights; ++i)
                 {
                     VisibleLight light = lights[i];
                     if (light.lightType == LightType.Directional)
