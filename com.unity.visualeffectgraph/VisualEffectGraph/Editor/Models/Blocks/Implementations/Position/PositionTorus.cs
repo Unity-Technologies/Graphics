@@ -34,6 +34,14 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override bool needDirectionWrite
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public override string source
         {
             get
