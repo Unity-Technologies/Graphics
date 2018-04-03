@@ -354,15 +354,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             List<int> localLightIndices = lightData.localLightIndices;
             List<VisibleLight> visibleLights = lightData.visibleLights;
 
-            // TODO: for now we just support 1 local shadow casting light
-            const int kMaxLocalShadowCastingLightsCount = 1;
 
             int shadowCastingLightsCount = 0;
-            for (int i = 0; i < localLightIndices.Count; ++i)
+            int localLightsCount = Math.Min(localLightIndices.Count, kMaxLocalPixelLightPerPass);
+            for (int i = 0; i < localLightsCount; ++i)
             {
                 VisibleLight shadowLight = visibleLights[localLightIndices[i]];
 
-                if (shadowLight.lightType == LightType.Spot && shadowLight.light.shadows != LightShadows.None && shadowCastingLightsCount < kMaxLocalShadowCastingLightsCount)
+                if (shadowLight.lightType == LightType.Spot && shadowLight.light.shadows != LightShadows.None)
                     shadowCastingLightsCount++;
             }
 
@@ -386,7 +385,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             CoreUtils.SetRenderTarget(cmd, m_LocalShadowmapTexture, ClearFlag.Depth);
 
-            for (int i = 0; i < localLightIndices.Count; ++i)
+            for (int i = 0; i < localLightsCount; ++i)
             {
                 int shadowLightIndex = localLightIndices[i];
                 VisibleLight shadowLight = visibleLights[shadowLightIndex];
@@ -414,13 +413,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     m_LocalLightSlices[i].resolution = sliceResolution;
                     m_LocalLightSlices[i].shadowTransform = GetShadowTransform(proj, view);
 
+                    if (shadowCastingLightsCount > 1)
+                        ApplySliceTransform(ref m_LocalLightSlices[i], atlasWidth, atlasHeight);
+
                     SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
                     RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], proj, view, settings);
                     m_LocalShadowStrength[i] = light.shadowStrength;
                     shadowSampling = Math.Max(shadowSampling, (int)light.shadows);
-
-                    // TODO: only one local shadow casting light is supported for now.
-                    break;
                 }
             }
 
