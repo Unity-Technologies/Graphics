@@ -267,29 +267,9 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        protected void OnKeyDown(KeyDownEvent evt)
-        {
-            if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
-            {
-                OnCreateThing(evt as KeyDownEvent);
-            }
-        }
-
         void OnCreateThing(KeyDownEvent evt)
         {
-            VisualElement picked = panel.Pick(evt.originalMousePosition);
-            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
-
-            if (context != null)
-            {
-                context.OnCreateBlock(evt.originalMousePosition);
-            }
-            else
-            {
-                NodeCreationContext ctx = new NodeCreationContext();
-                ctx.screenMousePosition = GUIUtility.GUIToScreenPoint(evt.imguiEvent.mousePosition);
-                OnCreateNode(ctx);
-            }
+            
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -414,7 +394,6 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
-            RegisterCallback<KeyDownEvent>(OnKeyDown);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
 
@@ -901,7 +880,18 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
+            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            VisualElement picked = panel.Pick(point);
+            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
+
+            if (context != null)
+            {
+                context.OnCreateBlock(point);
+            }
+            else
+            {
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow,point, m_NodeProvider);
+            }
         }
 
         VFXRendererSettings GetRendererSettings()
