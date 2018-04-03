@@ -151,12 +151,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void FilterPlanarTexture(CommandBuffer cmd, Texture source, RenderTexture target)
         {
-            var lodCount = Mathf.Max(Mathf.FloorToInt(Mathf.Log(Mathf.Min(source.width, source.height), 2f)) - 3, 0);
+            var lodCount = Mathf.Max(Mathf.FloorToInt(Mathf.Log(Mathf.Min(source.width, source.height), 2f)), 0);
 
-            for (var i = 0 ; i < lodCount; ++i)
+            for (var i = 0 ; i < lodCount - 0; ++i)
             {
-                var width = target.width >> i;
-                var height = target.height >> i;
+                var width = target.width >> (i + 1);
+                var height = target.height >> (i + 1);
                 var rtHash = HashRenderTextureProperties(
                     width,
                     height,
@@ -186,6 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         target.format,
                         target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
                     );
+                    rt.enableRandomWrite = true;
                     rt.name = "Planar Convolution Tmp RT";
                     rt.hideFlags = HideFlags.HideAndDontSave;
                     rt.Create();
