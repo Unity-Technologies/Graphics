@@ -192,7 +192,9 @@ namespace UnityEditor.VFX.UI
             if (m_PropertyRM != null && controller != null)
             {
                 controller.UpdateInfos();
-                m_PropertyRM.propertyEnabled = controller.editable && controller.expandedInHierachy;
+                bool editable = controller.editable;
+                m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
+                m_PropertyRM.indeterminate = !editable && controller.indeterminate;
                 m_PropertyRM.Update();
             }
         }

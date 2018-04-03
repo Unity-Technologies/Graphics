@@ -64,12 +64,12 @@ namespace UnityEditor.VFX.UI
                 if (view == null) return;
 
 
-                m_ModificationFromPresenter = true;
+                m_ModificationFromController = true;
                 title = controller.title;
 
 
                 var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<IControlledElement>().Where(t=>t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
+                var elementContent = containedElements.OfType<IControlledElement>().Where(t => t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
 
                 bool elementsChanged = false;
                 var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
@@ -102,15 +102,17 @@ namespace UnityEditor.VFX.UI
                     UpdateGeometryFromContent();
                 }
 
-                m_ModificationFromPresenter = false;
+                m_ModificationFromController = false;
             }
         }
 
-        bool m_ModificationFromPresenter;
+        bool m_ModificationFromController;
+
+        public static bool inRemoveElement {get; set; }
 
         public void ElementAddedToGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController)
             {
                 ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
 
@@ -120,7 +122,7 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
-                else if( element is VFXStickyNote)
+                else if (element is VFXStickyNote)
                 {
                     controller.AddStickyNote((element as VFXStickyNote).controller);
                 }
@@ -129,7 +131,7 @@ namespace UnityEditor.VFX.UI
 
         public void ElementRemovedFromGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController && !inRemoveElement)
             {
                 ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
                 if (node != null)
@@ -138,7 +140,7 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
-                else if( element is VFXStickyNote)
+                else if (element is VFXStickyNote)
                 {
                     controller.RemoveStickyNote((element as VFXStickyNote).controller);
                 }
@@ -147,7 +149,7 @@ namespace UnityEditor.VFX.UI
 
         public void GroupNodeTitleChanged(string title)
         {
-            if (!m_ModificationFromPresenter)
+            if (!m_ModificationFromController)
             {
                 controller.title = title;
             }

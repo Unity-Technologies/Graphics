@@ -21,8 +21,8 @@ namespace UnityEditor.VFX.UI
             return range != Vector2.zero && range.y != Mathf.Infinity;
         }
 
-        VFXBaseSliderField<U> m_Slider;
-        TextValueField<U> m_TextField;
+        protected VFXBaseSliderField<U> m_Slider;
+        protected TextValueField<U> m_TextField;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -217,6 +217,14 @@ namespace UnityEditor.VFX.UI
             var field = new VFXLabeledField<VFXFloatSliderField, float>(m_Label);
             slider = field.control;
             return field;
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+            if (m_TextField != null)
+                (m_TextField as VFXFloatField).indeterminate = indeterminate;
+            if (m_Slider != null)
+                (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }
 
         public override float FilterValue(Vector2 range, float value)

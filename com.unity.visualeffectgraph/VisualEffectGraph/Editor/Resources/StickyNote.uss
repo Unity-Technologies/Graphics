@@ -16,12 +16,12 @@
     padding-right:0;
     padding-top:0;
     padding-bottom:0;
-    border-radius:8;
+    border-radius:2;
 }
 
 .sticky-note #selection-border
 {
-    border-radius:8;
+    border-radius:2;
 }
 
 .sticky-note, * TextField
@@ -38,6 +38,24 @@
 .sticky-note * 
 {
     text-color:#584308;
+}
+
+
+/* Themes*/
+
+.theme-black *
+{
+    text-color:#AB924B;
+}
+
+.theme-black > #node-border
+{
+    border-color:#AB924B;
+    border-radius:8;
+}
+.sticky-note.theme-black, .theme-black TextField
+{
+    background-color: #362905;
 }
 
 
@@ -182,17 +200,8 @@
     background-image:none;
 }
 
-/* Themes*/
 
-.sticky-note.theme-black *
-{
-    text-color:#999999;
-}
-
-.theme-black > #node-border
-{
-    border-color:#393939;
-}
+/*
 
 .sticky-note.theme-orange, .theme-orange TextField
 {
@@ -229,3 +238,4 @@
 {
     text-color:#FBCBF4;
 }
+*/

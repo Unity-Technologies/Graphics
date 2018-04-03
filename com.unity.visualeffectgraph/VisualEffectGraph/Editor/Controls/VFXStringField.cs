@@ -44,6 +44,21 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
+        bool m_Indeterminate;
+
+        public bool indeterminate
+        {
+            get
+            {
+                return m_Indeterminate;
+            }
+            set
+            {
+                m_Indeterminate = value;
+                ValueToGUI(true);
+            }
+        }
+
         void OnIgnoreEvent(EventBase e)
         {
             e.StopPropagation();
@@ -51,6 +66,11 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI(bool force)
         {
+            if (indeterminate)
+            {
+                m_TextField.value = "_";
+                m_TextField.SetEnabled(false);
+            }
             m_TextField.value = m_Value != null ? m_Value : "";
         }
     }

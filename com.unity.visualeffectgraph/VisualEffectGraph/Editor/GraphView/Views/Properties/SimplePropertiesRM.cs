@@ -45,17 +45,10 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class Matrix4x4PropertyRM : SimpleUIPropertyRM<Matrix4x4, Matrix4x4>
+    class Matrix4x4PropertyRM : SimpleVFXUIPropertyRM<VFXMatrix4x4Field, Matrix4x4>
     {
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-        }
-
-        public override INotifyValueChanged<Matrix4x4> CreateField()
-        {
-            var field = new VFXLabeledField<VFXMatrix4x4Field, Matrix4x4>(m_Label);
-
-            return field;
         }
 
         public override float GetPreferredControlWidth()
