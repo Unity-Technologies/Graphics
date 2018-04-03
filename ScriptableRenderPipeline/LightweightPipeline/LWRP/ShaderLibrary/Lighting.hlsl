@@ -557,7 +557,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     {
         half index = half(i);
         Light light = GetLight(index, inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
