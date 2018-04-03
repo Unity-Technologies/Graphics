@@ -71,9 +71,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public float RenderingDistance { get { return m_ShadowSettings.maxShadowDistance; } }
 
-        // TODO: move to a global settings file
-        private static readonly int kMaxPerObjectLights = 8;
-        private static readonly int kMaxLocalPixelLightPerPass = 4;
         private const int kMaxCascades = 4;
         
         private int m_ShadowCasterCascadesCount;
@@ -95,19 +92,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private LightShadows m_DirectionalShadowmapQuality;
         private LightShadows m_LocalShadowmapQuality;
 
-        private Matrix4x4[] m_DirectionalShadowMatrices = new Matrix4x4[kMaxCascades + 1];
-        private Matrix4x4[] m_LocalShadowMatrices = new Matrix4x4[kMaxLocalPixelLightPerPass];
-
-        private Vector4[] m_CascadeSplitDistances = new Vector4[kMaxCascades];
+        private Matrix4x4[] m_DirectionalShadowMatrices;
+        private ShadowSliceData[] m_CascadeSlices;
+        private Vector4[] m_CascadeSplitDistances;
         private Vector4 m_CascadeSplitRadii;
-                
-        private ShadowSliceData[] m_CascadeSlices = new ShadowSliceData[kMaxCascades];
-        private ShadowSliceData[] m_LocalLightSlices = new ShadowSliceData[kMaxPerObjectLights];
-        private float[] m_LocalShadowStrength = new float[kMaxLocalPixelLightPerPass];
 
-        public LightweightShadowPass(LightweightPipelineAsset pipelineAsset)
+        private Matrix4x4[] m_LocalShadowMatrices;
+        private ShadowSliceData[] m_LocalLightSlices;
+        private float[] m_LocalShadowStrength;
+
+        public LightweightShadowPass(LightweightPipelineAsset pipelineAsset, int maxLocalLightsCount)
         {
             BuildShadowSettings(pipelineAsset);
+
+            m_DirectionalShadowMatrices = new Matrix4x4[kMaxCascades + 1];
+            m_CascadeSlices = new ShadowSliceData[kMaxCascades];
+            m_CascadeSplitDistances = new Vector4[kMaxCascades];
+
+            m_LocalShadowMatrices = new Matrix4x4[maxLocalLightsCount];
+            m_LocalLightSlices = new ShadowSliceData[maxLocalLightsCount];
+            m_LocalShadowStrength = new float[maxLocalLightsCount];
 
             DirectionalShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_WorldToShadow");
             DirectionalShadowConstantBuffer._ShadowData = Shader.PropertyToID("_ShadowData");
@@ -353,10 +357,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             List<int> localLightIndices = lightData.localLightIndices;
             List<VisibleLight> visibleLights = lightData.visibleLights;
-
-
+            
             int shadowCastingLightsCount = 0;
-            int localLightsCount = Math.Min(localLightIndices.Count, kMaxLocalPixelLightPerPass);
+            int localLightsCount = localLightIndices.Count;
             for (int i = 0; i < localLightsCount; ++i)
             {
                 VisibleLight shadowLight = visibleLights[localLightIndices[i]];
@@ -404,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
                     // Change this when point lights are supported.
-                    Debug.Assert(kMaxLocalPixelLightPerPass == 4 && shadowLight.lightType == LightType.Spot);
+                    Debug.Assert(localLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
 
                     // TODO: We need to pass bias and scale list to shader to be able to support multiple
                     // shadow casting local lights.
@@ -589,7 +592,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupLocalLightsShadowReceiverConstants(CommandBuffer cmd, ref ScriptableRenderContext context)
         {
-            for (int i = 0; i < kMaxLocalPixelLightPerPass; ++i)
+            for (int i = 0; i < m_LocalLightSlices.Length; ++i)
                 m_LocalShadowMatrices[i] = m_LocalLightSlices[i].shadowTransform;
 
             float invShadowAtlasWidth = 1.0f / m_ShadowSettings.localShadowAtlasWidth;
