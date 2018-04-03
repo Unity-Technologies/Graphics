@@ -22,6 +22,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int _AdditionalLightSpotDir;
         public static int _AdditionalLightSpotAttenuation;
 
+        public static int _LightIndexBuffer;
+
         public static int _ScaledScreenParams;
     }
 
