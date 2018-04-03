@@ -215,7 +215,11 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 
 half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
 {
-#if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
+// TODO: We can't add more keywords to standard shaders. For now we use
+// same _SHADOWS_ENABLED keywords for local lights. In the future we can use
+// _LOCAL_SHADOWS_ENABLED keyword
+//#if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
+#if defined(NO_SHADOWS) || !defined(_SHADOWS_ENABLED)
     return 1.0h;
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
