@@ -25,6 +25,7 @@ namespace UnityEditor.VFX
         }
 
         public new virtual string name  { get { return string.Empty; } }
+        public virtual string libraryName  { get { return name; } }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
