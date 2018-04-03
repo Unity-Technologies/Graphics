@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantWritable))]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritable))]
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Block
             RandomUniformPerParticle,
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(WritableAttributeProvider)), Tooltip("Target Attribute")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
         public string attribute = VFXAttribute.AllWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]

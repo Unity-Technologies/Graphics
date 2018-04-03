@@ -40,10 +40,17 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(newValue);
         }
 
-        public  override bool indeterminate
+        public override bool indeterminate
         {
-            get {return visible; }
-            set {visible = indeterminate; }
+            get
+            {
+                return m_X.indeterminate;
+            }
+            set
+            {
+                m_X.indeterminate = value;
+                m_Y.indeterminate = value;
+            }
         }
 
         public VFXFlipBookField()

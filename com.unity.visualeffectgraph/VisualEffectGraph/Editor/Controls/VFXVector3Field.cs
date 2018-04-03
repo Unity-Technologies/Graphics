@@ -15,13 +15,13 @@ namespace UnityEditor.VFX.UIElements
         {
             switch (i)
             {
-                case 1:
+                case 0:
                     return "x";
-                case 2:
+                case 1:
                     return "y";
-                case 3:
+                case 2:
                     return "z";
-                case 4:
+                case 3:
                     return "w";
                 default:
                     return "a";

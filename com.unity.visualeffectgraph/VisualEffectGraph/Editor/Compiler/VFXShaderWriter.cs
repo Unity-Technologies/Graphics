@@ -290,18 +290,40 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, string commentMethod)
+        private static string GetInputModifier(VFXAttributeMode mode)
         {
-            var parameters = new List<string>();
-            for (int i = 0; i < parameterNames.Count; ++i)
+            bool write = (mode & VFXAttributeMode.Write) != 0;
+            bool read = (mode & VFXAttributeMode.Read) != 0;
+            if (read && write)
             {
-                var parameter = parameterNames[i];
-                var mode = modes[i];
-                var expression = expressions[i];
-                parameters.Add(string.Format("{0}{1} {2}", (mode & VFXAttributeMode.Write) != 0 ? "inout " : "", GetFunctionParameterType(expression.valueType), parameter));
+                return "inout ";
             }
 
-            WriteFormat("void {0}({1})", functionName, AggregateParameters(parameters));
+            if (write)
+            {
+                return "out ";
+            }
+            return string.Empty;
+        }
+
+        public struct FunctionParameter
+        {
+            public string name;
+            public VFXExpression expression;
+            public VFXAttributeMode mode;
+        }
+
+        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, IEnumerable<FunctionParameter> parameters, string commentMethod)
+        {
+            var parametersCode = new List<string>();
+            foreach (var parameter in parameters)
+            {
+                var inputModifier = GetInputModifier(parameter.mode);
+                var parameterType = GetFunctionParameterType(parameter.expression.valueType);
+                parametersCode.Add(string.Format("{0}{1} {2}", inputModifier, parameterType, parameter.name));
+            }
+
+            WriteFormat("void {0}({1})", functionName, AggregateParameters(parametersCode));
             if (!string.IsNullOrEmpty(commentMethod))
             {
                 WriteFormat(" /*{0}*/", commentMethod);
@@ -313,18 +335,17 @@ namespace UnityEditor.VFX
             ExitScope();
         }
 
-        public void WriteCallFunction(string functionName, List<VFXExpression> expressions, List<string> parameterNames, List<VFXAttributeMode> modes, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
+        public void WriteCallFunction(string functionName, IEnumerable<FunctionParameter> parameters, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
         {
-            var parameters = new List<string>();
-            for (int i = 0; i < parameterNames.Count; ++i)
+            var parametersCode = new List<string>();
+            foreach (var parameter in parameters)
             {
-                var parameter = parameterNames[i];
-                var mode = modes[i];
-                var expression = expressions[i];
-                parameters.Add(string.Format("{1}{0}", GetFunctionParameterName(expression, variableNames), (mode & VFXAttributeMode.Write) != 0 ? "/*inout*/" : ""));
+                var inputModifier = GetInputModifier(parameter.mode);
+                var parameterType = GetFunctionParameterType(parameter.expression.valueType);
+                parametersCode.Add(string.Format("{1}{0}", GetFunctionParameterName(parameter.expression, variableNames), string.IsNullOrEmpty(inputModifier) ? string.Empty : string.Format(" /*{0}*/", inputModifier)));
             }
 
-            WriteLineFormat("{0}({1});", functionName, AggregateParameters(parameters));
+            WriteLineFormat("{0}({1});", functionName, AggregateParameters(parametersCode));
         }
 
         public void WriteAssignement(VFXValueType type, string variableName, string value)

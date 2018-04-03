@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override string ValueToString(float v)
         {
-            if (indeterminate) return "_";
+            if (indeterminate) return VFXControlConstants.indeterminateText;
             return v.ToString(formatString);
         }
 

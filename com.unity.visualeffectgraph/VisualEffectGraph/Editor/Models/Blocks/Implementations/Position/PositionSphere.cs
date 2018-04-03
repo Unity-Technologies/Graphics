@@ -21,6 +21,14 @@ namespace UnityEditor.VFX.Block
             public float ArcSequencer = 0.0f;
         }
 
+        protected override bool needDirectionWrite
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public override string source
         {
             get

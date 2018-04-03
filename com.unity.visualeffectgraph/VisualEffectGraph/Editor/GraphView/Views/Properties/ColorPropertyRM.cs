@@ -71,7 +71,10 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate()
         {
-            m_MainContainer.visible = !indeterminate;
+            m_ColorField.indeterminate = indeterminate;
+            m_RFloatField.control.indeterminate = indeterminate;
+            m_GFloatField.control.indeterminate = indeterminate;
+            m_BFloatField.control.indeterminate = indeterminate;
         }
 
         public void OnValueChanged(ChangeEvent<Color> e)
