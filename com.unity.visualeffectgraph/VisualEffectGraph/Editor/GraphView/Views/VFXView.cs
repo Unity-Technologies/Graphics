@@ -402,6 +402,8 @@ namespace UnityEditor.VFX.UI
             elementResized = VFXElementResized;
 
             Undo.undoRedoPerformed = OnUndoPerformed;
+
+            persistenceKey = "VFXView";
         }
 
         void OnUndoPerformed()

@@ -44,6 +44,8 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void OnNewController()
         {
+            if( controller != null)
+                persistenceKey = string.Format("NodeID-{0}",controller.model.GetInstanceID());
         }
 
         public VisualElement settingsContainer {get; private set; }
