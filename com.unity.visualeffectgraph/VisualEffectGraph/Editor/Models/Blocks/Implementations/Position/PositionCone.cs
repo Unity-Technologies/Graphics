@@ -53,13 +53,11 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override IEnumerable<VFXAttributeInfo> attributes
+        protected override bool needDirectionWrite
         {
             get
             {
-                foreach (var attribute in base.attributes)
-                    yield return attribute;
-                yield return new VFXAttributeInfo(new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f))), VFXAttributeMode.Write);
+                return true;
             }
         }
 

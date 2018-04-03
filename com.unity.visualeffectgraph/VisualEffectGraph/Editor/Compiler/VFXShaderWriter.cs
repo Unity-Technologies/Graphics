@@ -315,14 +315,14 @@ namespace UnityEditor.VFX
             return string.Empty;
         }
 
-        public struct Parameter
+        public struct FunctionParameter
         {
             public string name;
             public VFXExpression expression;
             public VFXAttributeMode mode;
         }
 
-        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, IEnumerable<Parameter> parameters, string commentMethod)
+        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, IEnumerable<FunctionParameter> parameters, string commentMethod)
         {
             var parametersCode = new List<string>();
             foreach (var parameter in parameters)
@@ -344,7 +344,7 @@ namespace UnityEditor.VFX
             ExitScope();
         }
 
-        public void WriteCallFunction(string functionName, IEnumerable<Parameter> parameters, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
+        public void WriteCallFunction(string functionName, IEnumerable<FunctionParameter> parameters, VFXExpressionMapper mapper, Dictionary<VFXExpression, string> variableNames)
         {
             var parametersCode = new List<string>();
             foreach (var parameter in parameters)

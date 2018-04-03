@@ -108,21 +108,38 @@ namespace UnityEditor.VFX.UI
             return new StringPushButtonInfo();
         }
 
+        VFXStringField m_StringField;
+        VFXStringFieldPushButton m_StringFieldPushButton;
+
+        VFXStringFieldProvider m_StringFieldProvider;
+
+
+        protected override void UpdateIndeterminate()
+        {
+            if( m_StringField != null)
+            {
+                m_StringField.indeterminate = indeterminate;
+            }
+        }
+
         public override ValueControl<string> CreateField()
         {
             var stringProvider = FindStringProvider(m_Provider.customAttributes);
             var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
             if (stringProvider != null)
             {
-                return new VFXStringFieldProvider(m_Label, stringProvider);
+                m_StringFieldProvider = new VFXStringFieldProvider(m_Label, stringProvider);
+                return m_StringFieldProvider;
             }
             else if (pushButtonProvider.action != null)
             {
-                return new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
+                m_StringFieldPushButton = new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
+                return m_StringFieldPushButton;
             }
             else
             {
-                return new VFXStringField(m_Label);
+                m_StringField = new VFXStringField(m_Label);
+                return m_StringField;
             }
         }
 
