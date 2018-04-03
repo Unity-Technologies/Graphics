@@ -151,6 +151,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightDistanceAttenuation = Shader.PropertyToID("_AdditionalLightDistanceAttenuation");
             PerCameraBuffer._AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
+            PerCameraBuffer._LightIndexBuffer = Shader.PropertyToID("_LightIndexBuffer");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
 
             CameraRenderTargetID.color = Shader.PropertyToID("_CameraColorRT");
@@ -856,18 +857,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (m_UseComputeBuffer)
                 {
                     int lightIndicesCount = m_CullResults.GetLightIndicesCount();
-                    if (m_LightIndicesBuffer == null)
-                    {
-                        m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                    }
-                    else if (m_LightIndicesBuffer.count < lightIndicesCount)
-                    {
-                        m_LightIndicesBuffer.Release();
-                        m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                    }
 
-                    m_CullResults.FillLightIndices(m_LightIndicesBuffer);
-                    cmd.SetGlobalBuffer("_LightIndexBuffer", m_LightIndicesBuffer);
+                    if (lightIndicesCount > 0)
+                    {
+                        if (m_LightIndicesBuffer == null)
+                        {
+                            m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                        }
+                        else if (m_LightIndicesBuffer.count < lightIndicesCount)
+                        {
+                            m_LightIndicesBuffer.Release();
+                            m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                        }
+
+                        m_CullResults.FillLightIndices(m_LightIndicesBuffer);
+                        cmd.SetGlobalBuffer(PerCameraBuffer._LightIndexBuffer, m_LightIndicesBuffer);
+                    }
                 }
             }
             else
