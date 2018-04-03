@@ -23,6 +23,7 @@ Shader "Unlit/BufferDisplay"
             };
 
             StructuredBuffer<KVP> buffer;
+            uint totalCount;
             int elementCount;
             int groupCount;
 
@@ -64,7 +65,15 @@ Shader "Unlit/BufferDisplay"
                 // sample the buffer
                 uint x = (uint)(i.uv.x * elementCount);
                 uint y = (uint)(i.uv.y * groupCount);
-                float value = buffer[y * elementCount + x].key;
+                uint index = y * elementCount + x;
+                if (index >= totalCount)
+#if DISPLAY_HUE
+                    return float4(0, 0, 0, 1);
+#else
+                    return float4(1, 0, 1, 1);
+#endif
+
+                float value = buffer[index].key;
 #if DISPLAY_HUE
                 return float4(GammaCorrection(HUEtoRGB(value)), 1.0);
 #else

@@ -24,10 +24,15 @@ public class SortingTest : MonoBehaviour
     public int kGroupCount = 1;
 
     private int kCount { get { return kElementCount * kGroupCount; } }
+    private int m_ElementCount;
+    private int m_MaxPassCount;
 
     // Use this for initialization
     void Start()
     {
+        m_ElementCount = kCount;
+        m_MaxPassCount = Log2(kGroupCount);
+
         sortKernelBitonic = -1;
         if (sortShader != null)
             sortKernelBitonic = sortShader.FindKernel("BitonicSort");
@@ -84,16 +89,37 @@ public class SortingTest : MonoBehaviour
         inputBuffer.SetData(data);
     }
 
+    private int Log2(int f)
+    {
+        return (int)((Mathf.Log(f) / Mathf.Log(2)) + 0.5f);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
             InitBuffer();
+
+        if (Input.GetKey(KeyCode.RightArrow))
+            m_ElementCount += 10;
+
+        if (Input.GetKey(KeyCode.LeftArrow))
+            m_ElementCount -= 10;
+
+        m_ElementCount = Mathf.Clamp(m_ElementCount, 0, kCount);
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+            ++m_MaxPassCount;
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+            --m_MaxPassCount;
+
+        m_MaxPassCount = Mathf.Clamp(m_MaxPassCount, 0, Log2(kGroupCount));
 
         // sort
         Profiler.BeginSample("Sort");
 
-        sortShader.SetInt("elementCount", kCount);
+        sortShader.SetInt("elementCount", m_ElementCount);
 
         sortShader.SetBuffer(sortKernelBitonic, "inputSequence", inputBuffer);
         sortShader.SetBuffer(sortKernelBitonic, "sortedSequence", scratchBuffer[0]);
@@ -101,9 +127,10 @@ public class SortingTest : MonoBehaviour
 
         sortedBuffer = scratchBuffer[0];
 
-        for (int i = kElementCount; i < kElementCount * kGroupCount; i <<= 1)
+        int arraySize = kElementCount;
+        for (int i = 0; i < m_MaxPassCount; ++i)
         {
-            sortShader.SetInt("subArraySize", i);
+            sortShader.SetInt("subArraySize", arraySize);
             sortShader.SetBuffer(mergeKernel, "inputSequence", scratchBuffer[0]);
             sortShader.SetBuffer(mergeKernel, "sortedSequence", scratchBuffer[1]);
 
@@ -115,15 +142,19 @@ public class SortingTest : MonoBehaviour
             ComputeBuffer tmp = scratchBuffer[0];
             scratchBuffer[0] = scratchBuffer[1];
             scratchBuffer[1] = tmp;
+
+            arraySize <<= 1;
         }
 
         Profiler.EndSample();
 
         sortedMat1.SetBuffer("buffer", sortedBuffer);
+        sortedMat1.SetInt("totalCount", m_ElementCount);
         sortedMat1.SetInt("elementCount", kElementCount);
         sortedMat1.SetInt("groupCount", kGroupCount);
 
         inputMat.SetBuffer("buffer", inputBuffer);
+        inputMat.SetInt("totalCount", m_ElementCount);
         inputMat.SetInt("elementCount", kElementCount);
         inputMat.SetInt("groupCount", kGroupCount);
 

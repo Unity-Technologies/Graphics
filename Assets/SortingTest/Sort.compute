@@ -5,6 +5,7 @@
 #include "HLSLSupport.cginc"
 
 #define DECREASING_ORDER 0
+#define DEBUG_NO_INFINITE_LOOP 0
 
 #define ELEMENTS_COUNT 1024
 
@@ -299,7 +300,7 @@ void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
 	const int arrayStart = arraySize * (id.x / arraySize);
 
 	// If the current array considered is then than one half filled (due to element count), we can copy it directly as it is already sorted
-	if (elementCount - (uint)arrayStart < subArraySize)
+	if (elementCount - (uint)arrayStart <= subArraySize)
 	{
 #if FINAL_PASS
 		sortedSequence[id.x] = inputSequence[id.x].value;
@@ -311,7 +312,6 @@ void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
 
 	const int arrayIndex = id.x - arrayStart;
 	const int lastIndex = subArraySize - 1;
-	const int lastIndexChecked = min(lastIndex, (int)elementCount - arrayStart - subArraySize - 1);
 
 	// determine initial frame of the window
 	int2 window = uint2(max(0, arrayIndex - (int)subArraySize), min(arrayIndex, lastIndex));
@@ -321,44 +321,45 @@ void MergePass(uint id : SV_DispatchThreadId,uint3 groupId : SV_GroupId)
 
 	bool reverse = false;
 	bool done = false;
+#if DEBUG_NO_INFINITE_LOOP
+	uint nbIter = 0;
+#endif
 
 	// Binary search - O(log(subArraySize))
 	do
 	{
 		int windowIndex = (window.x + window.y + 1) >> 1;
 		int i0 = min(lastIndex, windowIndex);
-		int i1 = min(lastIndexChecked, arrayIndex - windowIndex);
-
-		int minElementCountBefore = i0 + i1;
-		if (minElementCountBefore < arrayIndex - 1)
-		{
-			// We are trying to fetch an invalid value (due to elementCount)
-			// Simply advance the window to the right
-			window.x = windowIndex + 1;
-			continue;
-		}
-
+		int i1 = min(lastIndex, arrayIndex - windowIndex);
+		
 		index0 = i0 + arrayStart;
 		index1 = i1 + arrayStart + subArraySize;
 
 		key0 = inputSequence[index0].key;
-		key1 = inputSequence[index1].key;
+		key1 = GetKeyWithCheck(index1);
 
-		if (minElementCountBefore == arrayIndex)
+		if (i0 + i1 == arrayIndex)
 		{
 			if (i0 > 0 && CompareKeys(key1, inputSequence[max(0, index0 - 1)].key))
 				window.y = windowIndex - 1; // move window left
-			else if (i1 > 0 && CompareKeys(key0, inputSequence[max(0, index1 - 1)].key))
+			else if (i1 > 0 && CompareKeys(key0, GetKeyWithCheck(max(0, index1 - 1))))
 				window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
 			else
 				done = true;
-				//break; // We're done;
 		}
 		else // special case handling
 		{
 			reverse = true;
-			done = true;;
+			done = true;
 		}
+
+#if DEBUG_NO_INFINITE_LOOP
+		if (++nbIter > 2048)
+		{
+			key0 = key1 = 0.5f;
+			break;
+		}
+#endif
 
 	} while (!done);
 
