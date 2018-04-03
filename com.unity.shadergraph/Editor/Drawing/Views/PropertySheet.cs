@@ -27,12 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-//        public Label header
-//        {
-//            get { return m_Header; }
-//            set { m_Header = value; }
-//        }
-
         public PropertySheet(Label header = null)
         {
             AddStyleSheetPath("Styles/PropertySheet");
@@ -40,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_HeaderContainer = new VisualElement { name = "header" };
             if( header != null)
                 m_HeaderContainer.Add(header);
-//            header.AddToClassList("header");
+
             m_ContentContainer.Add(m_HeaderContainer);
             shadow.Add(m_ContentContainer);
         }

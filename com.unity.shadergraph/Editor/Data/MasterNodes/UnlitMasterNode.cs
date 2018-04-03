@@ -100,5 +100,10 @@ namespace UnityEditor.ShaderGraph
                 AlphaThresholdSlotId
             });
         }
+
+        protected override VisualElement CreateCommonSettingsElement()
+        {
+            return new UnlitSettingsView(this);
+        }
     }
 }

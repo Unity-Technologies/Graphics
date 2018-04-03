@@ -143,6 +143,9 @@ namespace UnityEditor.ShaderGraph
         {
             // do staff
             var container = new VisualElement();
+            var commonSettingsElement = CreateCommonSettingsElement();
+            if (commonSettingsElement != null)
+                container.Add(commonSettingsElement);
             foreach (var subShader in subShaders)
             {
                 var settingsElement = subShader.CreateSettingsElement();
@@ -152,6 +155,11 @@ namespace UnityEditor.ShaderGraph
 
             //return new MasterSettingsView(this);
             return container;
+        }
+
+        protected virtual VisualElement CreateCommonSettingsElement()
+        {
+            return null;
         }
     }
 }
