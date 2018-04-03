@@ -61,40 +61,36 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         SurfaceType m_SurfaceType;
 
-        [SerializeField]
-        bool m_SurfaceTypeHasValue;
-
-        public SurfaceType? surfaceType
+        [EnumControl("Surface")]
+        public SurfaceType surfaceType
         {
-            get { return m_SurfaceTypeHasValue ? (SurfaceType?)m_SurfaceType : null; }
+            get { return m_SurfaceType; }
             set
             {
                 if (m_SurfaceType == value)
                     return;
 
-                if (value.HasValue)
-                    m_SurfaceType = value.Value;
-                m_SurfaceTypeHasValue = value.HasValue;
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+
             }
         }
 
         [SerializeField]
         AlphaMode m_AlphaMode;
 
-        [SerializeField]
-        bool m_AlphaModeHasValue;
-
-        public AlphaMode? alphaMode
+        [EnumControl("Blend")]
+        public AlphaMode alphaMode
         {
-            get { return m_AlphaModeHasValue ? (AlphaMode?)m_AlphaMode : null; }
+            get { return m_AlphaMode; }
             set
             {
                 if (m_AlphaMode == value)
                     return;
 
-                if (value.HasValue)
-                    m_AlphaMode = value.Value;
-                m_AlphaModeHasValue = value.HasValue;
+                m_AlphaMode = value;
+                Dirty(ModificationScope.Graph);
+
             }
         }
 
@@ -161,6 +157,12 @@ namespace UnityEditor.ShaderGraph
             List<ISlot> slots = new List<ISlot>();
             GetSlots(slots);
             return slots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
+        }
+
+        protected override VisualElement CreateCommonSettingsElement()
+        {
+            return new PBRSettingsView(this);
+            //return null;
         }
     }
 }
