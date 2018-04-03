@@ -48,6 +48,7 @@ struct LightInput
 // Abstraction over Light shading data.
 struct Light
 {
+    int     index;
     half3   direction;
     half3   color;
     half    attenuation;
@@ -137,7 +138,7 @@ half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 position
 
 Light GetMainLight()
 {
-    Light light;
+    Light light = (Light)0;
     light.direction = _MainLightPosition.xyz;
     light.attenuation = 1.0;
     light.subtractiveModeAttenuation = _MainLightPosition.w;
@@ -173,6 +174,7 @@ Light GetLight(half i, float3 positionWS)
     half4 directionAndRealtimeAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
     Light light;
+    light.index = lightIndex;
     light.direction = directionAndRealtimeAttenuation.xyz;
     light.attenuation = directionAndRealtimeAttenuation.w;
     light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
@@ -581,7 +583,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     {
         half index = half(i);
         Light light = GetLight(index, inputData.positionWS);
-        light.attenuation *= LocalLightRealtimeShadowAttenuation(index, inputData.positionWS);
+        light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
