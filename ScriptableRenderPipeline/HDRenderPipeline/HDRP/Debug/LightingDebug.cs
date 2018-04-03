@@ -16,6 +16,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IndirectSpecularGtaoFromSsao,
         EnvironmentProxyVolume,
         EnvironmentSampleCoordinates,
+        ScreenSpaceTracingRefraction
+    }
+
+    [GenerateHLSL]
+    public enum DebugScreenSpaceTracing
+    {
+        PositionNDC,
+        RayDirWS,
+        RayDirNDC,
+        HitDepth,
+        HitSuccess,
+        IterationCount,
+        MaxUsedMipLevel,
+        IntersectionKind
     }
 
     public enum ShadowMapDebugMode

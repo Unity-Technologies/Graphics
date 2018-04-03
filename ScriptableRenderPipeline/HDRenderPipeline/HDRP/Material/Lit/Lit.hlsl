@@ -51,7 +51,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define GBufferType2 float4
 #define GBufferType3 float4
 
-#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE)) && (defined(_REFRACTION_SSRAY_PROXY) || defined(_REFRACTION_SSRAY_HIZ))
 
 #define DEFAULT_SPECULAR_VALUE 0.04
 
@@ -1813,13 +1813,19 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
         case GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION:
         {
+ 
 #if HAS_REFRACTION
+
             // Refraction process:
             //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
             //  2. We calculate the screen space position of the refracted point
             //  3. If this point is available (ie: in color buffer and point is not in front of the object)
             //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
             //    b. Multiply by the transmittance for absorption (depends on the optical depth)
+            
+            #ifdef _REFRACTION_SSRAY_PROXY
+            #elif _REFRACTION_SSRAY_HIZ
+            #endif
 
             float3 refractedBackPointWS = EstimateRaycast(V, posInput, preLightData.transparentPositionWS, preLightData.transparentRefractV);
 
