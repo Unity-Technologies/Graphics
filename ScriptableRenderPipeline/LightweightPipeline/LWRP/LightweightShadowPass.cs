@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DirectionalShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
 
             LocalShadowConstantBuffer._LocalWorldToShadowAtlas = Shader.PropertyToID("_LocalWorldToShadowAtlas");
-            LocalShadowConstantBuffer._LocalShadowData = Shader.PropertyToID("_LocalShadowData");
+            LocalShadowConstantBuffer._LocalShadowStrength = Shader.PropertyToID("_LocalShadowStrength");
             LocalShadowConstantBuffer._LocalShadowOffset0 = Shader.PropertyToID("_LocalShadowOffset0");
             LocalShadowConstantBuffer._LocalShadowOffset1 = Shader.PropertyToID("_LocalShadowOffset1");
             LocalShadowConstantBuffer._LocalShadowOffset2 = Shader.PropertyToID("_LocalShadowOffset2");
@@ -600,7 +600,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             cmd.SetGlobalTexture(m_LocalShadowmapID, m_LocalShadowmapTexture);
             cmd.SetGlobalMatrixArray(LocalShadowConstantBuffer._LocalWorldToShadowAtlas, m_LocalShadowMatrices);
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowData, new Vector4(m_LocalShadowStrength[0], m_LocalShadowStrength[1], m_LocalShadowStrength[2], m_LocalShadowStrength[3]));
+            cmd.SetGlobalFloatArray(LocalShadowConstantBuffer._LocalShadowStrength, m_LocalShadowStrength);
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset1, new Vector4( invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset2, new Vector4(-invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));

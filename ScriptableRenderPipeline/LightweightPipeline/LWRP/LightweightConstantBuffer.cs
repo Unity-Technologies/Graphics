@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public static class LocalShadowConstantBuffer
     {
         public static int _LocalWorldToShadowAtlas;
-        public static int _LocalShadowData;
+        public static int _LocalShadowStrength;
         public static int _LocalShadowOffset0;
         public static int _LocalShadowOffset1;
         public static int _LocalShadowOffset2;

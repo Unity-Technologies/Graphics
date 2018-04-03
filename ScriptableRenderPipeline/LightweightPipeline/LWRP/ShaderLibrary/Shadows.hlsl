@@ -39,11 +39,11 @@ CBUFFER_END
 
 CBUFFER_START(_LocalShadowBuffer)
 float4x4    _LocalWorldToShadowAtlas[4];
+half        _LocalShadowStrength[4];
 half4       _LocalShadowOffset0;
 half4       _LocalShadowOffset1;
 half4       _LocalShadowOffset2;
 half4       _LocalShadowOffset3;
-half4       _LocalShadowData;    // (x: shadowStrength)
 float4      _LocalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
@@ -91,7 +91,7 @@ half GetMainLightShadowStrength()
 
 half GetLocalLightShadowStrenth(int lightIndex)
 {
-    return _LocalShadowData[lightIndex];
+    return _LocalShadowStrength[lightIndex];
 }
 
 half SampleScreenSpaceShadowMap(float4 shadowCoord)
