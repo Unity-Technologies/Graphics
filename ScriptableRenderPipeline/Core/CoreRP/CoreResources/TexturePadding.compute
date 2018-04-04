@@ -40,5 +40,5 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
     const int2 loadId = targetId - int2(1 + dispatchThreadId.x, 0);
 #endif
 
-   _Source[targetId] = LOAD_TEXTURE2D_LOD(_Source, loadId, 0);
+   _Source[targetId] = _Source[loadId];
 }
