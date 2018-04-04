@@ -141,7 +141,6 @@ namespace UnityEditor.ShaderGraph
 
         public VisualElement CreateSettingsElement()
         {
-            // do staff
             var container = new VisualElement();
             var commonSettingsElement = CreateCommonSettingsElement();
             if (commonSettingsElement != null)
