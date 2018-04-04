@@ -326,6 +326,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
         void UpdateLightIntensity()
         {
+            // Clamp negative values.
+            m_AdditionalLightData.directionalIntensity.floatValue = Mathf.Max(0, m_AdditionalLightData.directionalIntensity.floatValue);
+            m_AdditionalLightData.punctualIntensity.floatValue    = Mathf.Max(0, m_AdditionalLightData.punctualIntensity.floatValue);
+            m_AdditionalLightData.areaIntensity.floatValue        = Mathf.Max(0, m_AdditionalLightData.areaIntensity.floatValue);
+            
             switch (m_LightShape)
             {
                 case LightShape.Directional:
