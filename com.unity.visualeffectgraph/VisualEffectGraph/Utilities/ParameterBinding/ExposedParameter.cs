@@ -41,7 +41,6 @@ namespace UnityEngine.Experimental.VFX.Utility
             m_Id = -1;
         }
 
-
         public static int GetID(string name)
         {
             return Shader.PropertyToID(name);
