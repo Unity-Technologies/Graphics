@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             m_ConcreteValueType = valueType;
         }
 
-        public override void GetPreviewProperties(ref List<PreviewProperty> properties, string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
             var pp = new PreviewProperty(propType) { name = name };
