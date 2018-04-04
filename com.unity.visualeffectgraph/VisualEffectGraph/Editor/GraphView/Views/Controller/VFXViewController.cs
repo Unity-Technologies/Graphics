@@ -418,11 +418,16 @@ namespace UnityEditor.VFX.UI
                 context.Detach();
 
                 RemoveFromGroupNodes(element as VFXNodeController);
+
+
+                Object.DestroyImmediate(context,true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
+
+                Object.DestroyImmediate(block.block,true);
             }
             else if (element is VFXParameterNodeController)
             {
@@ -464,6 +469,8 @@ namespace UnityEditor.VFX.UI
                 while (slotToClean != null);
 
                 graph.RemoveChild(container as VFXModel);
+
+                Object.DestroyImmediate(container as VFXModel,true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
