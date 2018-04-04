@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         BufferPyramidProcessor m_Processor;
 
         public BufferPyramid(BufferPyramidProcessor processor)
-        {
+            {
             m_Processor = processor;
         }
 
@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CreateBuffers()
         {
-            m_ColorPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, useMipMap: true, autoGenerateMips: false, name: "ColorPymarid");
+            m_ColorPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "ColorPyramid");
             m_DepthPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.RGFloat, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "DepthPyramid"); // Need randomReadWrite because we downsample the first mip with a compute shader.
         }
 
@@ -100,8 +100,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int lodCount = GetPyramidLodCount(hdCamera);
             UpdatePyramidMips(hdCamera, m_DepthPyramidBuffer.rt.format, m_DepthPyramidMips, lodCount);
 
-            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, lodCount, 0.0f));
             Vector2 scale = GetPyramidToScreenScale(hdCamera);
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(scale.x, scale.y, lodCount, 0.0f));
 
             m_Processor.RenderDepthPyramid(
                 hdCamera.actualWidth, hdCamera.actualHeight,
@@ -111,9 +112,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DepthPyramidMips,
                 lodCount,
                 scale
-            );
+                );
 
-            cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
         }
 
         public void RenderColorPyramid(
@@ -126,7 +127,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdatePyramidMips(hdCamera, m_ColorPyramidBuffer.rt.format, m_ColorPyramidMips, lodCount);
 
             Vector2 scale = GetPyramidToScreenScale(hdCamera);
-            cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(scale.x, scale.y, lodCount, 0.0f));
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(scale.x, scale.y, lodCount, 0.0f));
 
             m_Processor.RenderColorPyramid(
                 hdCamera,
@@ -136,9 +138,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ColorPyramidMips,
                 lodCount,
                 scale
-            );
+                );
 
-            cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_ColorPyramidBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_ColorPyramidBuffer);
         }
     }
 }
