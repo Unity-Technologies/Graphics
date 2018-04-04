@@ -151,6 +151,15 @@ namespace UnityEditor.VFX.UI
             foreach (var edge in unusedEdges)
             {
                 edge.OnDisable();
+                // This will remove and operand when and edge is removed
+                if( edge.input != null && edge.input.sourceNode.model is VFXEditableOperator)
+                {
+                    VFXEditableOperator op = edge.input.sourceNode.model as VFXEditableOperator;
+                    if( op.GetNbInputSlots() > 2)
+                        op.RemoveOperand(op.GetSlotIndex(edge.input.model));
+                    /*else should we reset to the defaultValueType here ? */
+                }
+
                 m_DataEdges.Remove(edge);
                 changed = true;
             }
