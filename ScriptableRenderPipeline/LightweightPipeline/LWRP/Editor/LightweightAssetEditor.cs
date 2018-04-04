@@ -25,9 +25,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.");
 
-            public static GUIContent requireDistortionTexture = new GUIContent("Distortion Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraDistortionTexture.");
+            public static GUIContent requireOpaqueTexture = new GUIContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
 
-            public static GUIContent distortionTextureScale = new GUIContent("Distortion Scale", "The scale of the original screen size that is used for the distortion texture");
+            public static GUIContent opaqueTextureScale = new GUIContent("Opaque Scale", "The scale of the original screen size that is used for the opaque texture");
 
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         AnimBool m_ShowSoftParticles = new AnimBool();
-        AnimBool m_ShowDistortionTextureScale = new AnimBool();
+        AnimBool m_ShowOpaqueTextureScale = new AnimBool();
 
 
         private int kMaxSupportedPixelLights = 8;
@@ -65,8 +65,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_SupportsVertexLightProp;
         private SerializedProperty m_RequireDepthTextureProp;
         private SerializedProperty m_RequireSoftParticlesProp;
-        private SerializedProperty m_RequireDistortionTextureProp;
-        private SerializedProperty m_DistortionTextureScaleProp;
+        private SerializedProperty m_RequireOpaqueTextureProp;
+        private SerializedProperty m_OpaqueTextureScaleProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
@@ -84,8 +84,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
-            m_RequireDistortionTextureProp = serializedObject.FindProperty("m_RequiresDistortionTexture");
-            m_DistortionTextureScaleProp = serializedObject.FindProperty("m_DistortionTextureScale");
+            m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
+            m_OpaqueTextureScaleProp = serializedObject.FindProperty("m_OpaqueTextureScale");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -98,20 +98,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
-            m_ShowDistortionTextureScale.valueChanged.AddListener(Repaint);
-            m_ShowDistortionTextureScale.value = m_DistortionTextureScaleProp.boolValue;
+            m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
+            m_ShowOpaqueTextureScale.value = m_OpaqueTextureScaleProp.boolValue;
         }
 
         void OnDisable()
         {
             m_ShowSoftParticles.valueChanged.RemoveListener(Repaint);
-            m_ShowDistortionTextureScale.valueChanged.RemoveListener(Repaint);
+            m_ShowOpaqueTextureScale.valueChanged.RemoveListener(Repaint);
         }
 
         void UpdateAnimationValues()
         {
             m_ShowSoftParticles.target = m_RequireDepthTextureProp.boolValue;
-            m_ShowDistortionTextureScale.target = m_RequireDistortionTextureProp.boolValue;
+            m_ShowOpaqueTextureScale.target = m_RequireOpaqueTextureProp.boolValue;
         }
 
         void DrawAnimatedProperty(SerializedProperty prop, GUIContent content, AnimBool animation)
@@ -140,8 +140,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
             DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
-            EditorGUILayout.PropertyField(m_RequireDistortionTextureProp, Styles.requireDistortionTexture);
-            DrawAnimatedProperty(m_DistortionTextureScaleProp, Styles.distortionTextureScale, m_ShowDistortionTextureScale);
+            EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
+            DrawAnimatedProperty(m_OpaqueTextureScaleProp, Styles.opaqueTextureScale, m_ShowOpaqueTextureScale);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
 

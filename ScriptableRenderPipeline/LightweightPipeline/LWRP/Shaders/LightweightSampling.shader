@@ -6,7 +6,7 @@ Shader "Hidden/LightweightPipeline/Sampling"
     }
 
     HLSLINCLUDE
-    #include "../ShaderLibrary/Core.hlsl"
+    #include "LWRP/ShaderLibrary/Core.hlsl"
 
     struct VertexInput
     {

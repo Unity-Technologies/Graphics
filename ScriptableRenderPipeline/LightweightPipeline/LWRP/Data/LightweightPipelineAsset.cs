@@ -64,8 +64,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
-        [SerializeField] private bool m_RequiresDistortionTexture = false;
-        [SerializeField] private TextureScale m_DistortionTextureScale = TextureScale.Half;
+        [SerializeField] private bool m_RequireOpaqueTexture = false;
+        [SerializeField] private TextureScale m_OpaqueTextureScale = TextureScale.Half;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
@@ -222,15 +222,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_RequireSoftParticles; }
         }
 
-        public bool RequireDistortionTexture
+        public bool RequireOpaqueTexture
         {
-            get { return m_RequiresDistortionTexture; }
+            get { return m_RequireOpaqueTexture; }
         }
 
-        public TextureScale DistortionTextureScale
+        public TextureScale OpaqueTextureScale
         {
-            get { return m_DistortionTextureScale; }
-            set { m_DistortionTextureScale = value; }
+            get { return m_OpaqueTextureScale; }
+            set { m_OpaqueTextureScale = value; }
         }
 
         public bool SupportsHDR
