@@ -15,13 +15,15 @@ TEXTURE2D(_GBufferTexture3);
 
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_GaussianPyramidColorTexture);
+TEXTURE2D(_ColorPyramidTexture);
 // Depth pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_PyramidDepthTexture);
+TEXTURE2D(_DepthPyramidTexture);
 
 CBUFFER_START(UnityGaussianPyramidParameters)
-float4 _GaussianPyramidColorMipSize; // (x,y) = PyramidToScreenScale, z = lodCount
-float4 _PyramidDepthMipSize;
+float4 _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4 _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
+float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
 CBUFFER_END
 
 // Ambient occlusion texture
@@ -1063,7 +1065,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
+    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_ColorPyramidScale.z);
 #endif
 
     return preLightData;
@@ -1878,7 +1880,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
                 preLightData.transparentSSMipLevel
             ).rgb;
 
-            // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
+                                                                     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
             float3 F = preLightData.specularFGD;
             lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
 #else
@@ -2148,24 +2150,24 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     switch(_DebugLightingMode)
     {
         case DEBUGLIGHTINGMODE_LUX_METER:
-            diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+        diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
             break;
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO:
-            diffuseLighting = indirectAmbientOcclusion;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        diffuseLighting = indirectAmbientOcclusion;
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO:
-            diffuseLighting = specularOcclusion;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        diffuseLighting = specularOcclusion;
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
     #if GTAO_MULTIBOUNCE_APPROX
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO:
-            diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO:
-            diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
     #endif
         case DEBUGMIPMAPMODE_NONE:
@@ -2174,10 +2176,10 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
             break;
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-            {
+    {
                 diffuseLighting = lighting.indirect.specularTransmitted;
-                specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            }
+        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
             break;
     }
 #endif
