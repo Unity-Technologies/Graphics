@@ -91,8 +91,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // If soft particles are enabled and no depth prepass is performed we need to copy depth.
         public static int depthCopy;
 
-        // Camera distortion target. Used for accessing screen contents during transparent pass.
-        public static int distortion;
+        // Camera opaque target. Used for accessing screen contents during transparent pass.
+        public static int opaque;
     }
 
     public class LightweightPipeline : RenderPipeline
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_DepthRT;
         private RenderTargetIdentifier m_CopyDepth;
         private RenderTargetIdentifier m_Color;
-        private RenderTargetIdentifier m_DistortionRT;
+        private RenderTargetIdentifier m_OpaqueRT;
 
         private bool m_IntermediateTextureArray;
         private bool m_RequireDepthTexture;
@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CameraRenderTargetID.copyColor = Shader.PropertyToID("_CameraCopyColorRT");
             CameraRenderTargetID.depth = Shader.PropertyToID("_CameraDepthTexture");
             CameraRenderTargetID.depthCopy = Shader.PropertyToID("_CameraCopyDepthTexture");
-            CameraRenderTargetID.distortion = Shader.PropertyToID("_CameraDistortionTexture");
+            CameraRenderTargetID.opaque = Shader.PropertyToID("_CameraOpaqueTexture");
 
             m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapRTID);
             m_ScreenSpaceShadowMapRT = new RenderTargetIdentifier(m_ScreenSpaceShadowMapRTID);
@@ -245,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CopyColorRT = new RenderTargetIdentifier(CameraRenderTargetID.copyColor);
             m_DepthRT = new RenderTargetIdentifier(CameraRenderTargetID.depth);
             m_CopyDepth = new RenderTargetIdentifier(CameraRenderTargetID.depthCopy);
-            m_DistortionRT = new RenderTargetIdentifier(CameraRenderTargetID.distortion);
+            m_OpaqueRT = new RenderTargetIdentifier(CameraRenderTargetID.opaque);
             m_PostProcessRenderContext = new PostProcessRenderContext();
 
             m_CopyTextureSupport = SystemInfo.copyTextureSupport;
@@ -507,22 +507,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             StopStereoRendering(ref context, frameRenderingConfiguration);
         }
 
-        private void DistortionPass(ref ScriptableRenderContext context)
+        private void OpaqueTexturePass(ref ScriptableRenderContext context)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Distortion");
-            switch(m_Asset.DistortionTextureScale)
+            CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
+            switch(m_Asset.OpaqueTextureScale)
             {
                 case TextureScale.Half:
-                    cmd.GetTemporaryRT(CameraRenderTargetID.distortion, m_CurrCamera.pixelWidth / 2, m_CurrCamera.pixelHeight / 2, 0, FilterMode.Bilinear, m_ColorFormat);
-                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.distortion, m_SamplingMaterial, 0);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, m_CurrCamera.pixelWidth / 2, m_CurrCamera.pixelHeight / 2, 0, FilterMode.Bilinear, m_ColorFormat);
+                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 0);
                     break;
                 case TextureScale.Quarter:
-                    cmd.GetTemporaryRT(CameraRenderTargetID.distortion, m_CurrCamera.pixelWidth / 4, m_CurrCamera.pixelHeight / 4, 0, FilterMode.Bilinear, m_ColorFormat);
-                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.distortion, m_SamplingMaterial, 1);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, m_CurrCamera.pixelWidth / 4, m_CurrCamera.pixelHeight / 4, 0, FilterMode.Bilinear, m_ColorFormat);
+                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 1);
                     break;
                 default:
-                    cmd.GetTemporaryRT(CameraRenderTargetID.distortion, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, m_ColorFormat);
-                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.distortion);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, m_ColorFormat);
+                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
             }
             SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
@@ -607,9 +607,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
             
-            if(m_Asset.RequireDistortionTexture)
+            if(m_Asset.RequireOpaqueTexture)
             {
-                DistortionPass(ref context);
+                OpaqueTexturePass(ref context);
             }
         }
 
