@@ -15,13 +15,15 @@ TEXTURE2D(_GBufferTexture3);
 
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_GaussianPyramidColorTexture);
+TEXTURE2D(_ColorPyramidTexture);
 // Depth pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_PyramidDepthTexture);
+TEXTURE2D(_DepthPyramidTexture);
 
 CBUFFER_START(UnityGaussianPyramidParameters)
-float4 _GaussianPyramidColorMipSize; // (x,y) = PyramidToScreenScale, z = lodCount
-float4 _PyramidDepthMipSize;
+float4 _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4 _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
+float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
 CBUFFER_END
 
 // Ambient occlusion texture
@@ -194,10 +196,10 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
     //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
     //   (We avoid to raymarch the depth texture to get the refracted point.)
 
-    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
+    uint2 depthSize = uint2(_DepthPyramidSize.xy);
 
     // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
+    float pyramidDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
     float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
 
     // Distance from point to the back plane
@@ -1075,7 +1077,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
+    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_ColorPyramidScale.z);
 #endif
 
     return preLightData;
@@ -1825,8 +1827,8 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
             // Calculate screen space coordinates of refracted point in back plane
             float2 refractedBackPointNDC = ComputeNormalizedDeviceCoordinates(refractedBackPointWS, UNITY_MATRIX_VP);
-            uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-            float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointNDC * depthSize, 0).r, _ZBufferParams);
+            uint2 depthSize = uint2(_DepthPyramidSize.xy);
+            float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, refractedBackPointNDC * depthSize, 0).r, _ZBufferParams);
 
             // Exit if texel is out of color buffer
             // Or if the texel is from an object in front of the object
@@ -1839,7 +1841,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             }
 
             // Map the roughness to the correct mip map level of the color pyramid
-            lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC * _GaussianPyramidColorMipSize.xy, preLightData.transparentSSMipLevel).rgb;
+            lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, refractedBackPointNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;
 
             // Beer-Lamber law for absorption
             lighting.specularTransmitted *= preLightData.transparentTransmittance;
