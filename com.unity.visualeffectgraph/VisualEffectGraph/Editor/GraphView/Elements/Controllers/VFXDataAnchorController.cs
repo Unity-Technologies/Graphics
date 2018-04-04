@@ -422,7 +422,6 @@ namespace UnityEditor.VFX.UI
             if( op == null)
                 return false;
 
-
             var array = op.validTypes.ToArray();
             
             return array.Contains(controller.model.property.type);

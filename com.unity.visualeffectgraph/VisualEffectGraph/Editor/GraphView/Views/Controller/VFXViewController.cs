@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -344,9 +345,21 @@ namespace UnityEditor.VFX.UI
 
         public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
         {
-            var slotInput = input != null ? input.model : null;
             var slotOutput = output != null ? output.model : null;
-            if (slotInput.Link(slotOutput))
+            VFXSlot slotInput;
+            if( input is VFXUpcommingDataAnchorController)
+            {
+                VFXEditableOperator op = input.sourceNode.model as VFXEditableOperator;
+
+                op.AddOperand();
+
+                slotInput = op.GetInputSlot(op.GetNbInputSlots() -1);
+            }
+            else
+            {
+                slotInput = input != null ? input.model : null;
+            }
+            if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
                 VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
 

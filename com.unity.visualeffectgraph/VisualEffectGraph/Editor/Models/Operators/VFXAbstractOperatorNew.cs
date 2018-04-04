@@ -286,9 +286,9 @@ namespace UnityEditor.VFX
             return VFXCodeGeneratorHelper.GeneratePrefix((uint)index);
         }
 
-        protected Operand GetDefaultOperand(int index)
+        protected Operand GetDefaultOperand(int index, Type type = null)
         {
-            return new Operand() { name = GetDefaultName(index), type = defaultValueType };
+            return new Operand() { name = GetDefaultName(index), type = type != null ? type : defaultValueType };
         }
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -305,13 +305,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void AddOperand()
+        public void AddOperand(Type type = null)
         {
             int oldCount = m_Operands.Length;
             var infos = new Operand[oldCount + 1];
 
             Array.Copy(m_Operands, infos, oldCount);
-            infos[oldCount] = GetDefaultOperand(oldCount);
+            infos[oldCount] = GetDefaultOperand(oldCount, type);
             m_Operands = infos;
 
             Invalidate(InvalidationCause.kSettingChanged);
