@@ -37,12 +37,11 @@ namespace UnityEditor.VFX.UIElements
             }
             set
             {
-                if( m_Indeterminate != value)
+                if (m_Indeterminate != value)
                 {
                     m_Indeterminate = value;
                     this.value = this.value;
                 }
-                
             }
         }
 

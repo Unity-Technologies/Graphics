@@ -269,7 +269,6 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateThing(KeyDownEvent evt)
         {
-            
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -402,6 +401,8 @@ namespace UnityEditor.VFX.UI
             elementResized = VFXElementResized;
 
             Undo.undoRedoPerformed = OnUndoPerformed;
+
+            persistenceKey = "VFXView";
         }
 
         void OnUndoPerformed()
@@ -889,7 +890,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow,point, m_NodeProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, m_NodeProvider);
             }
         }
 

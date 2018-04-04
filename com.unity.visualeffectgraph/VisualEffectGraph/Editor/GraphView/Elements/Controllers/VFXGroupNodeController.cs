@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
             m_Index = -1;
         }
 
-        abstract protected T[] infos{get;}
+        abstract protected T[] infos {get; }
 
         protected VFXViewController m_ViewController;
 
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXGroupNodeController : VFXUIController<VFXUI.GroupInfo>
     {
-        public VFXGroupNodeController(VFXViewController viewController, VFXUI ui, int index) : base(viewController,ui,index)
+        public VFXGroupNodeController(VFXViewController viewController, VFXUI ui, int index) : base(viewController, ui, index)
         {
         }
 
@@ -127,19 +127,19 @@ namespace UnityEditor.VFX.UI
                 if (m_Index == -1) return Enumerable.Empty<Controller>();
 
                 if (m_UI.groupInfos[m_Index].contents != null)
-                    return m_UI.groupInfos[m_Index].contents.Where(t => t.isStickyNote || t.model != null).Select(t => t.isStickyNote ? (Controller)m_ViewController.GetStickyNoteController(t.id): (Controller)m_ViewController.GetControllerFromModel(t.model, t.id)).Where(t => t != null);
+                    return m_UI.groupInfos[m_Index].contents.Where(t => t.isStickyNote || t.model != null).Select(t => t.isStickyNote ? (Controller)m_ViewController.GetStickyNoteController(t.id) : (Controller)m_ViewController.GetControllerFromModel(t.model, t.id)).Where(t => t != null);
                 return Enumerable.Empty<Controller>();
             }
             //set { m_UI.groupInfos[m_Index].contents = value.Select(t => new VFXNodeID(t.model, t.id)).ToArray(); }
         }
 
 
-        override protected VFXUI.GroupInfo[] infos{get{return m_UI.groupInfos;}}
+        override protected VFXUI.GroupInfo[] infos {get {return m_UI.groupInfos; }}
 
 
         void AddNodeID(VFXNodeID nodeID)
         {
-            if ( m_Index < 0)
+            if (m_Index < 0)
                 return;
 
             if (m_UI.groupInfos[m_Index].contents != null)
@@ -148,20 +148,21 @@ namespace UnityEditor.VFX.UI
                 m_UI.groupInfos[m_Index].contents = new VFXNodeID[] { nodeID };
             m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
         }
+
         public void AddNode(VFXNodeController controller)
         {
-            if( controller == null)
+            if (controller == null)
                 return;
 
-             AddNodeID(new VFXNodeID(controller.model, controller.id));
+            AddNodeID(new VFXNodeID(controller.model, controller.id));
         }
 
         public void AddStickyNote(VFXStickyNoteController note)
         {
-            if( note == null)
+            if (note == null)
                 return;
 
-             AddNodeID(new VFXNodeID(note.index));
+            AddNodeID(new VFXNodeID(note.index));
         }
 
         public void RemoveNode(VFXNodeController controller)

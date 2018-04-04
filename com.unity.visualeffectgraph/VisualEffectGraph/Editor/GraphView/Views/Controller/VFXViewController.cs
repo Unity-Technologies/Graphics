@@ -617,7 +617,7 @@ namespace UnityEditor.VFX.UI
 
             //Patch group nodes, removing this sticky note and fixing ids that are bigger than index
             if (ui.groupInfos != null)
-            {    
+            {
                 for (int i = 0; i < ui.groupInfos.Length; ++i)
                 {
                     for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
