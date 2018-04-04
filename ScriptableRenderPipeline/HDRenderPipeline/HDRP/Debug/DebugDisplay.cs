@@ -447,10 +447,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     {
                                         case FullScreenDebugMode.FinalColorPyramid:
                                         case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            id = HDShaderIDs._ColorPyramidScale;
                                             break;
                                         default:
-                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            id = HDShaderIDs._DepthPyramidScale;
                                             break;
                                     }
                                     var size = Shader.GetGlobalVector(id);
@@ -464,10 +464,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     {
                                         case FullScreenDebugMode.FinalColorPyramid:
                                         case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            id = HDShaderIDs._ColorPyramidScale;
                                             break;
                                         default:
-                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            id = HDShaderIDs._DepthPyramidScale;
                                             break;
                                     }
                                     var size = Shader.GetGlobalVector(id);
@@ -482,10 +482,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     {
                                         case FullScreenDebugMode.FinalColorPyramid:
                                         case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            id = HDShaderIDs._ColorPyramidScale;
                                             break;
                                         default:
-                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            id = HDShaderIDs._DepthPyramidScale;
                                             break;
                                     }
                                     var size = Shader.GetGlobalVector(id);
