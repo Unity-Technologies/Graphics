@@ -622,9 +622,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void InitializeLightData(List<VisibleLight> visibleLights, out LightData lightData)
         {
             m_LocalLightIndices.Clear();
-            for (int i = 0; i < visibleLights.Count && i < m_MaxLocalLightsShadedPerPass; ++i)
+            for (int i = 0; i < visibleLights.Count; ++i)
+            {
                 if (visibleLights[i].lightType != LightType.Directional)
                     m_LocalLightIndices.Add(i);
+
+                if (m_LocalLightIndices.Count >= m_MaxLocalLightsShadedPerPass)
+                    break;
+            }
 
             // Clear to default all light constant data
             for (int i = 0; i < kMaxVisibleLocalLights; ++i)
@@ -639,8 +644,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // If we have a main light we don't shade it in the per-object light loop. We also remove it from the per-object cull list
             int mainLightPresent = (lightData.mainLightIndex >= 0) ? 1 : 0;
-            int additionalPixelLightsCount = visibleLightsCount - mainLightPresent;
-            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, m_MaxLocalLightsShadedPerPass) - additionalPixelLightsCount - mainLightPresent : 0;
+            int additionalPixelLightsCount = Math.Min(visibleLightsCount - mainLightPresent, m_MaxLocalLightsShadedPerPass);
+            int vertexLightCount = (m_Asset.SupportsVertexLight) ? Math.Min(visibleLights.Count, m_MaxLocalLightsShadedPerPass) - additionalPixelLightsCount : 0;
             vertexLightCount = Math.Min(vertexLightCount, kMaxVertexLights);
 
             lightData.pixelAdditionalLightsCount = additionalPixelLightsCount;
