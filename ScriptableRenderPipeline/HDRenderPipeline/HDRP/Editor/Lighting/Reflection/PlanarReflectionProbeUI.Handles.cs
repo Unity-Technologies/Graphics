@@ -77,6 +77,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
             }
 
+            if (d.useMirrorPlane)
+            {
+                var m = Handles.matrix;
+                Handles.matrix = mat;
+                Handles.color = k_GizmoMirrorPlaneCamera;
+                Handles.ArrowHandleCap(
+                    0, 
+                    d.captureMirrorPlaneLocalPosition, 
+                    Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal),
+                    HandleUtility.GetHandleSize(d.captureMirrorPlaneLocalPosition),
+                    Event.current.type
+                );
+                Handles.matrix = m;
+            }
+
             if (d.proxyVolumeReference != null)
                 ReflectionProxyVolumeComponentUI.DrawHandles_EditNone(s.reflectionProxyVolume, d.proxyVolumeReference);
         }
@@ -136,7 +151,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var showFrustrum = s.showCaptureHandles
                 || EditMode.editMode == EditCenter;
-            var showCaptureMirror = (s.showCaptureHandles && d.useMirrorPlane)
+            var showCaptureMirror = d.useMirrorPlane
                 || EditMode.editMode == EditMirrorPosition
                 || EditMode.editMode == EditMirrorRotation;
 
