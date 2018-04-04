@@ -147,6 +147,28 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     float reflectionHierarchyWeight = 0.0; // Max: 1.0
     float refractionHierarchyWeight = 0.0; // Max: 1.0
 
+    // Fetch first env light to provide the scene proxy
+    EnvLightData firstEnvLight;
+    ZERO_INITIALIZE(EnvLightData, firstEnvLight);
+    {
+        #ifdef LIGHTLOOP_TILE_PASS
+            uint envLightStart;
+            uint envLightCount;
+            GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+        #else
+            uint envLightCount = _EnvLightCount;
+        #endif
+        if (envLightCount > 0)
+        {
+            #ifdef LIGHTLOOP_TILE_PASS
+                uint envLightIndex = FetchIndex(envLightStart, 0);
+            #else
+                uint envLightIndex = 0;
+            #endif
+            firstEnvLight = _EnvLightDatas[envLightIndex];
+        }
+    }
+
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
     {
         IndirectLighting lighting = EvaluateBSDF_SSLighting(
@@ -155,6 +177,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             posInput,
             preLightData,
             bsdfData,
+            firstEnvLight,
             GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION,
             refractionHierarchyWeight);
         AccumulateIndirectLighting(lighting, aggregateLighting);
@@ -168,6 +191,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             posInput,
             preLightData,
             bsdfData,
+            firstEnvLight,
             GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION,
             reflectionHierarchyWeight);
         AccumulateIndirectLighting(lighting, aggregateLighting);

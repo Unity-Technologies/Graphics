@@ -16,13 +16,6 @@
 #define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (64)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+RefractionMode:  static fields
-//
-#define REFRACTIONMODE_NONE (0)
-#define REFRACTIONMODE_PLANE (1)
-#define REFRACTIONMODE_SPHERE (2)
-
-//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES (1000)

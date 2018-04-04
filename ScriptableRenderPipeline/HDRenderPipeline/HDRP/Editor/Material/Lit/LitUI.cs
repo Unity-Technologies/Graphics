@@ -88,6 +88,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             public static string refractionModelText = "Refraction Model";
+            public static GUIContent refractionSSRayModelText = new GUIContent("SSRay Model", "Screen Space Ray Model");
             public static GUIContent refractionIorText = new GUIContent("Index of refraction", "Index of refraction");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
             public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier (m)", "Thickness multiplier");
@@ -808,6 +809,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var mode = (Lit.RefractionModel)refractionModel.floatValue;
                     if (mode != Lit.RefractionModel.None)
                     {
+                        m_MaterialEditor.ShaderProperty(refractionSSRayModel, Styles.refractionSSRayModelText);
                         m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
                         blendMode.floatValue = (float)BlendMode.Alpha;
