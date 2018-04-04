@@ -507,21 +507,35 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             StopStereoRendering(ref context, frameRenderingConfiguration);
         }
 
-        private void OpaqueTexturePass(ref ScriptableRenderContext context)
+        private void OpaqueTexturePass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
         {
+            RenderTextureDescriptor opaqueDesc;
+            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
+                opaqueDesc = XRSettings.eyeTextureDesc;
+            else
+                opaqueDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
+
+            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
+
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
             switch(m_Asset.OpaqueTextureScale)
             {
                 case TextureScale.Half:
-                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, m_CurrCamera.pixelWidth / 2, m_CurrCamera.pixelHeight / 2, 0, FilterMode.Bilinear, m_ColorFormat);
+                    opaqueDesc.width = (int)((float)opaqueDesc.width * renderScale * 0.5f);
+                    opaqueDesc.height = (int)((float)opaqueDesc.height * renderScale * 0.5f);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 0);
                     break;
                 case TextureScale.Quarter:
-                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, m_CurrCamera.pixelWidth / 4, m_CurrCamera.pixelHeight / 4, 0, FilterMode.Bilinear, m_ColorFormat);
+                    opaqueDesc.width = (int)((float)opaqueDesc.width * renderScale * 0.25f);
+                    opaqueDesc.height = (int)((float)opaqueDesc.height * renderScale * 0.25f);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 1);
                     break;
                 default:
-                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight, 0, FilterMode.Bilinear, m_ColorFormat);
+                    opaqueDesc.width = (int)((float)opaqueDesc.width * renderScale);
+                    opaqueDesc.height = (int)((float)opaqueDesc.height * renderScale);
+                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
             }
@@ -609,7 +623,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             
             if(m_Asset.RequireOpaqueTexture)
             {
-                OpaqueTexturePass(ref context);
+                OpaqueTexturePass(ref context, config);
             }
         }
 
