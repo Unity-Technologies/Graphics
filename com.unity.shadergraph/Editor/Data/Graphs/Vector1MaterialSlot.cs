@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
         public override SlotValueType valueType { get { return SlotValueType.Vector1; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector1; } }
 
-        public override void GetPreviewProperties(ref List<PreviewProperty> properties, string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             var pp = new PreviewProperty(PropertyType.Vector1)
             {

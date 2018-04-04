@@ -471,7 +471,7 @@ namespace UnityEditor.ShaderGraph
                 if (s_TempEdges.Any())
                     continue;
 
-                s.GetPreviewProperties(ref s_TempPreviewProperties, GetVariableNameForSlot(s.id));
+                s.GetPreviewProperties(s_TempPreviewProperties, GetVariableNameForSlot(s.id));
                 for(int i = 0; i < s_TempPreviewProperties.Count; i++)
                 {
                     if (s_TempPreviewProperties[i].name == null)

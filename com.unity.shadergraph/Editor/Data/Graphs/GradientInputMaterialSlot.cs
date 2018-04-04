@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(prop);
         }
 
-        public override void GetPreviewProperties(ref List<PreviewProperty> properties, string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             properties.Add(new PreviewProperty(PropertyType.Vector1)
             {
