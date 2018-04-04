@@ -81,7 +81,7 @@ namespace  UnityEditor.VFX.UI
             return selectedAsset;
         }
 
-            protected void OnEnable()
+        protected void OnEnable()
         {
             graphView = new VFXView();
             graphView.StretchToParentSize();

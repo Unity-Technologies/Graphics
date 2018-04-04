@@ -67,15 +67,15 @@ namespace UnityEditor.VFX
 
         public override void Sanitize()
         {
-            if( type == null)
+            if (type == null)
             {
                 // First try to force deserialization
-                if( m_Type != null)
+                if (m_Type != null)
                 {
                     m_Type.OnAfterDeserialize();
                 }
                 // if it doesn't work set it to int.
-                if( type == null)
+                if (type == null)
                     m_Type = new SerializableType(typeof(int));
             }
             base.Sanitize();

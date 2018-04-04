@@ -325,7 +325,7 @@ namespace  UnityEditor.VFX.UI
         void OnControllerChanged(ControllerChangedEvent e)
         {
             m_Field.text = controller.exposedName;
-            m_Field.typeText = controller.portType != null ? controller.portType.UserFriendlyName() : "null" ;
+            m_Field.typeText = controller.portType != null ? controller.portType.UserFriendlyName() : "null";
 
             // if the order or exposed change, let the event be caught by the VFXBlackboard
             if (controller.order == m_CurrentOrder && controller.exposed == m_CurrentExposed)

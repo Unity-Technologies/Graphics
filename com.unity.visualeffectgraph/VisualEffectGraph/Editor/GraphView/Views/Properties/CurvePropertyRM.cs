@@ -46,6 +46,7 @@ namespace UnityEditor.VFX.UI
         {
             m_CurveField.SetEnabled(propertyEnabled);
         }
+
         protected override void UpdateIndeterminate()
         {
             m_CurveField.visible = !indeterminate;

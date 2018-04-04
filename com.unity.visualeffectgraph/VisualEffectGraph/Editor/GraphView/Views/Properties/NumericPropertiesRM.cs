@@ -97,8 +97,8 @@ namespace UnityEditor.VFX.UI
         {
             m_IndeterminateLabel = new Label()
             {
-                name= "indeterminate",
-                text=VFXControlConstants.indeterminateText
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
             };
             m_IndeterminateLabel.SetEnabled(false);
         }
@@ -106,10 +106,9 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateIndeterminate()
         {
             VisualElement field = this.field as VisualElement;
-            if(indeterminate)
+            if (indeterminate)
             {
-                
-                if(m_IndeterminateLabel.parent == null)
+                if (m_IndeterminateLabel.parent == null)
                 {
                     field.RemoveFromHierarchy();
                     Add(m_IndeterminateLabel);
@@ -117,7 +116,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if(field.parent == null)
+                if (field.parent == null)
                 {
                     m_IndeterminateLabel.RemoveFromHierarchy();
                     Add(field);
@@ -254,12 +253,11 @@ namespace UnityEditor.VFX.UI
             return field;
         }
 
-
         protected override void UpdateIndeterminate()
         {
-            if( m_TextField != null)
+            if (m_TextField != null)
                 (m_TextField as VFXFloatField).indeterminate = indeterminate;
-            if( m_Slider != null)
+            if (m_Slider != null)
                 (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }
 

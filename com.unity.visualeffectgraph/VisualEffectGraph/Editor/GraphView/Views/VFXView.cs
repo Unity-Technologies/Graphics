@@ -269,7 +269,6 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateThing(KeyDownEvent evt)
         {
-            
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -677,7 +676,7 @@ namespace UnityEditor.VFX.UI
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
-                    if( needOneListenToGeometry )
+                    if (needOneListenToGeometry)
                     {
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
@@ -695,7 +694,7 @@ namespace UnityEditor.VFX.UI
         bool m_UpdateUIBounds = false;
         void UpdateUIBounds()
         {
-            if( ! m_GeometrySet ) return;
+            if (!m_GeometrySet) return;
             if (m_InControllerChanged)
             {
                 m_UpdateUIBounds = true;
@@ -777,7 +776,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
 
         public void SafeRemoveElement(GraphElement element)
         {
@@ -892,7 +890,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow,point, m_NodeProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, m_NodeProvider);
             }
         }
 

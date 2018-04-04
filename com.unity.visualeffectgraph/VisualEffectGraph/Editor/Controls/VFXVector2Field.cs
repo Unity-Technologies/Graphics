@@ -8,24 +8,25 @@ using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UI
 
 namespace UnityEditor.VFX.UIElements
 {
-       class VFXVector2Field : VFXVectorNField<Vector2>
+    class VFXVector2Field : VFXVectorNField<Vector2>
     {
-        protected override  int componentCount{get{return 2;}}
-        protected override void SetValueComponent(ref Vector2 value,int i, float componentValue)
+        protected override  int componentCount {get {return 2; }}
+        protected override void SetValueComponent(ref Vector2 value, int i, float componentValue)
         {
-            switch(i)
+            switch (i)
             {
                 case 0:
                     value.x = componentValue;
-                break;
+                    break;
                 default:
                     value.y = componentValue;
-                break;
+                    break;
             }
         }
-        protected override float GetValueComponent(ref Vector2 value,int i)
+
+        protected override float GetValueComponent(ref Vector2 value, int i)
         {
-            switch(i)
+            switch (i)
             {
                 case 0:
                     return value.x;
