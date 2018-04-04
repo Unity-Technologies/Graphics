@@ -40,9 +40,10 @@ namespace UnityEditor.VFX.UIElements
             SetValueAndNotify(newValue);
         }
 
+        
         public override bool indeterminate
         {
-            get
+            get 
             {
                 return m_X.indeterminate;
             }

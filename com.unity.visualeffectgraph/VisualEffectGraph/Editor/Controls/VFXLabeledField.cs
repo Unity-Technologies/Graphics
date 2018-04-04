@@ -24,11 +24,10 @@ namespace UnityEditor.VFX.UIElements
 
         public bool indeterminate
         {
-            get {return m_Indeterminate; }
+            get{return m_Indeterminate;}
 
-            set
-            {
-                if (m_Indeterminate != value)
+            set{
+                if( m_Indeterminate != value)
                 {
                     m_Control.RemoveFromHierarchy();
                     Add(m_IndeterminateLabel);
@@ -74,11 +73,11 @@ namespace UnityEditor.VFX.UIElements
                     var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
                     dragger.SetDragZone(m_Label);
                 }
-
+            
             m_IndeterminateLabel = new Label()
             {
-                name = "indeterminate",
-                text = VFXControlConstants.indeterminateText
+                name= "indeterminate",
+                text=VFXControlConstants.indeterminateText
             };
             m_IndeterminateLabel.SetEnabled(false);
         }

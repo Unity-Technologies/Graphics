@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate()
         {
-            if (indeterminate)
+            if( indeterminate)
                 m_Toggle.AddToClassList("indeterminate");
             else
                 m_Toggle.RemoveFromClassList("indeterminate");
