@@ -156,9 +156,9 @@ Light GetLight(half i, float3 positionWS)
 #else
     // The following code is more optimal than indexing unity_4LightIndices0. 
     // Conditional moves are branch free even on mali-400
-    // The compiler further optimizes the lessThan operation into a single vectorized op.
+    half i_rem = (i < 2.0h) ? i : i - 2;
     half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
-    int lightIndex = (i < 1.0h) ? lightIndex2.x : lightIndex2.y;
+    int lightIndex = (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
 #endif
 
     // The following code will turn into a branching madhouse on platforms that don't support
@@ -188,7 +188,6 @@ half GetPixelLightCount()
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
-    //return _AdditionalLightCount.x;
     return min(_AdditionalLightCount.x, unity_LightIndicesOffsetAndCount.y);
 }
 
