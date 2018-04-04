@@ -201,89 +201,6 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 	}
 }
 
-// Valid in bitonic kernel only
-#undef ITERATION_INDEX
-#undef DST_INDEX
-
-// Merge sort on small chunks of kvp of size ELEMENTS_COUNT - execute in O(log²(ELEMENTS_COUNT))
-//[numthreads(MERGE_THREADS_COUNT, 1, 1)]
-//void MergeSort(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
-//{
-//	// remove out of bounds threads
-//	if (groupId.x > elementCount / ELEMENTS_COUNT)
-//		return;
-//
-//	// Load data from memory to LDS
-//	LoadFromMemory(id, groupId.x * MERGE_THREADS_COUNT + id, 1);
-//	GroupMemoryBarrierWithGroupSync();
-//
-//	// O(log(ELEMENTS_COUNT))
-//	for (int subArraySize = 1; subArraySize < ELEMENTS_COUNT; subArraySize <<= 1)
-//	{
-//		const int arraySize = subArraySize << 1;
-//		const int lastIndex = subArraySize - 1;
-//		const int arrayStart = arraySize * (id / arraySize);
-//		const int arrayIndex = id - arrayStart;
-//
-//		// determine initial frame of the window
-//		int2 window = uint2(max(0, arrayIndex - subArraySize), min(arrayIndex, lastIndex));
-//
-//		int index0, index1;
-//		float key0, key1;
-//
-//		//uint nbIter = 0;
-//		bool reverse = false;
-//		bool done = false;
-//
-//		// Binary search - O(log(subArraySize))
-//		do
-//		{
-//			int windowIndex = (window.x + window.y + 1) >> 1;
-//			int i0 = min(lastIndex,windowIndex);
-//			int i1 = min(lastIndex, arrayIndex - windowIndex);
-//
-//			index0 = i0 + arrayStart;
-//			index1 = i1 + arrayStart + subArraySize;
-//
-//			key0 = scratch[GetLDSIndex(index0)];
-//			key1 = scratch[GetLDSIndex(index1)];
-//
-//			if (i0 + i1 == arrayIndex)
-//			{
-//				if (i0 > 0  && scratch[GetLDSIndex(max(0, index0 - 1))] > key1)
-//					window.y = windowIndex - 1; // move window left
-//				else if (i1 > 0 && scratch[GetLDSIndex(max(0, index1 - 1))] > key0)
-//					window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
-//				else
-//					done = true; // We're done;
-//			}
-//			else // special case handling
-//			{
-//				reverse = true;
-//				done = true;;
-//			}
-//		} 
-//		while (!done);
-//
-//		// Select left or right: Must handle special case for equality
-//		bool select0 = /*(key0 == key1 && (id & 1)) || */((key0 < key1) != reverse);
-//		
-//		// Store selected key/value in register
-//		float key = select0 ? key0 : key1;
-//		float value = scratch[GetLDSIndex(select0 ? index0 : index1) + LDS_VALUES_OFFSET];
-//
-//		GroupMemoryBarrierWithGroupSync(); // Wait for all LDS reads to finish
-//
-//		// Update LDS
-//		scratch[GetLDSIndex(id)] = key;
-//		scratch[GetLDSIndex(id) + LDS_VALUES_OFFSET] = value;
-//
-//		GroupMemoryBarrierWithGroupSync(); // LDS Writes visible
-//	}
-//
-//	StoreToMemory(groupId.x * MERGE_THREADS_COUNT + id, id, 1);
-//}
-
 CBUFFER_START(MergePassConstants)
 uint subArraySize;
 CBUFFER_END
@@ -296,7 +213,8 @@ float GetKeyWithCheck(uint index)
 	return inputSequence[index].key;
 }
 
-[numthreads(256, 1, 1)]
+// Merge pass: take N sorted sub arrays as input and output N/2 sorted arrays twice bigger - execute in O(log(subArraySize))
+[numthreads(64, 1, 1)]
 void MERGE_PASS(uint id : SV_DispatchThreadID,uint3 groupId : SV_GroupID)
 {
 	if (id.x >= elementCount)
@@ -305,7 +223,7 @@ void MERGE_PASS(uint id : SV_DispatchThreadID,uint3 groupId : SV_GroupID)
 	const int arraySize = subArraySize << 1;
 	const int arrayStart = arraySize * (id.x / arraySize);
 
-	// If the current array considered is then than one half filled (due to element count), we can copy it directly as it is already sorted
+	// If the current array considered is less than one half filled (due to element count), we can copy it directly as it is already sorted
 	if (elementCount - (uint)arrayStart <= subArraySize)
 	{
 #if FINAL_PASS

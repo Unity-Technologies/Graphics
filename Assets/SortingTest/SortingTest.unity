@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.2257134, b: 0.30692226, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -549,8 +549,8 @@ MonoBehaviour:
   sortedMat0: {fileID: 2100000, guid: 86478a934c384f54a8b7cb28520e0acd, type: 2}
   sortedMat1: {fileID: 2100000, guid: f86a8f55af1c7d8498a0b51d9c2b1885, type: 2}
   diffMat: {fileID: 2100000, guid: 892055e2a67d97f4684792e8dadef107, type: 2}
-  kElementCount: 1024
-  kGroupCount: 64
+  kElementCount: 4096
+  kGroupCount: 256
 --- !u!4 &1829918322
 Transform:
   m_ObjectHideFlags: 0

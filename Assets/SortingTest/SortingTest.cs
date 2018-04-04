@@ -76,7 +76,7 @@ public class SortingTest : MonoBehaviour
 
     private void InitBuffer()
     {
-        // Random.InitState(123456);
+        Random.InitState(123456);
         var data = new KVP[kCount];
         for (uint i = 0; i < kCount; ++i)
         {
@@ -134,7 +134,7 @@ public class SortingTest : MonoBehaviour
             sortShader.SetBuffer(mergeKernel, "inputSequence", scratchBuffer[0]);
             sortShader.SetBuffer(mergeKernel, "sortedSequence", scratchBuffer[1]);
 
-            sortShader.Dispatch(mergeKernel, (kElementCount * kGroupCount) / 256, 1, 1);
+            sortShader.Dispatch(mergeKernel, (kElementCount * kGroupCount) / 64, 1, 1);
 
             sortedBuffer = scratchBuffer[1];
 
