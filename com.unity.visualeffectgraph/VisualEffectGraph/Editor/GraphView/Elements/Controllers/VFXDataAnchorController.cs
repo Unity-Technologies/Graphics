@@ -7,8 +7,6 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.UIElements.GraphView;
 
-using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
-
 namespace UnityEditor.VFX.UI
 {
     interface IVFXAnchorController
@@ -417,7 +415,7 @@ namespace UnityEditor.VFX.UI
         }
         public override bool CanLink(VFXDataAnchorController controller)
         {
-            VFXEditableOperator op = (sourceNode.model as VFXEditableOperator);
+            VFXOperatorNumericCascadedUnifiedNew op = (sourceNode.model as VFXOperatorNumericCascadedUnifiedNew);
 
             if( op == null)
                 return false;

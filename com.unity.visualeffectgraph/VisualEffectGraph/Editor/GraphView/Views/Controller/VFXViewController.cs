@@ -9,7 +9,6 @@ using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
-using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -152,9 +151,9 @@ namespace UnityEditor.VFX.UI
             {
                 edge.OnDisable();
                 // This will remove and operand when and edge is removed
-                if( edge.input != null && edge.input.sourceNode.model is VFXEditableOperator)
+                if( edge.input != null && edge.input.sourceNode.model is VFXOperatorNumericCascadedUnifiedNew)
                 {
-                    VFXEditableOperator op = edge.input.sourceNode.model as VFXEditableOperator;
+                    VFXOperatorNumericCascadedUnifiedNew op = edge.input.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
                     if( op.GetNbInputSlots() > 2)
                         op.RemoveOperand(op.GetSlotIndex(edge.input.model));
                     /*else should we reset to the defaultValueType here ? */
@@ -358,7 +357,7 @@ namespace UnityEditor.VFX.UI
             VFXSlot slotInput;
             if( input is VFXUpcommingDataAnchorController)
             {
-                VFXEditableOperator op = input.sourceNode.model as VFXEditableOperator;
+                VFXOperatorNumericCascadedUnifiedNew op = input.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
 
                 op.AddOperand(output.model.property.type);
 

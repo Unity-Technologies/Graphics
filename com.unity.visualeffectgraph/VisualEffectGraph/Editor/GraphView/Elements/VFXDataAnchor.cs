@@ -8,8 +8,6 @@ using Type = System.Type;
 using System.Linq;
 using UnityEngine.Profiling;
 
-using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
-
 namespace UnityEditor.VFX.UI
 {
     class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
@@ -74,7 +72,7 @@ namespace UnityEditor.VFX.UI
         }
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            VFXEditableOperator op = controller.sourceNode.model as VFXEditableOperator;
+            VFXOperatorNumericCascadedUnifiedNew op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
 
             if( op != null)
                 evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
@@ -82,7 +80,7 @@ namespace UnityEditor.VFX.UI
 
         void OnRemove(ContextualMenu.MenuAction e)
         {
-            VFXEditableOperator op = controller.sourceNode.model as VFXEditableOperator;
+            VFXOperatorNumericCascadedUnifiedNew op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
 
             op.RemoveOperand(op.GetSlotIndex(controller.model));
         }
@@ -319,7 +317,7 @@ namespace UnityEditor.VFX.UI
 
             if( mySlot == null)
             {
-                var op = controller.sourceNode.model as VFXEditableOperator;
+                var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
                 if( op != null)
                 {
                     validTypes = op.validTypes;
@@ -372,7 +370,7 @@ namespace UnityEditor.VFX.UI
             var mySlot = controller.model;
             IEnumerable<Type> validTypes = null;
 
-            var op = controller.sourceNode.model as VFXEditableOperator;
+            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
             if( mySlot == null && op != null)
             {
                 validTypes = op.validTypes;

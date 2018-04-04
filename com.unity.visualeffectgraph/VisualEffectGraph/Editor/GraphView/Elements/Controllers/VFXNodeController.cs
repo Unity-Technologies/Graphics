@@ -8,7 +8,6 @@ using System.Linq;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using UnityEngine.Experimental.VFX;
-using VFXEditableOperator = UnityEditor.VFX.VFXOperatorNumericCascadedUnifiedNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -56,7 +55,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return model is VFXEditableOperator;
+                return model is VFXOperatorNumericCascadedUnifiedNew;
             }
         }
 

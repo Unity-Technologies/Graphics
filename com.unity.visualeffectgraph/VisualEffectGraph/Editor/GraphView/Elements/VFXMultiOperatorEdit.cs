@@ -10,8 +10,6 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 
-using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
-
 namespace UnityEditor.VFX.UI
 {
     class VFXMultiOperatorEdit : VFXReorderableList, IControlledElement<VFXOperatorController>
@@ -41,14 +39,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXEditableOperator model
+        VFXOperatorNumericCascadedUnifiedNew model
         {
             get
             {
                 if (controller == null)
                     return null;
 
-                return controller.model as VFXEditableOperator;
+                return controller.model as VFXOperatorNumericCascadedUnifiedNew;
             }
         }
 
@@ -83,7 +81,7 @@ namespace UnityEditor.VFX.UI
         int m_CurrentIndex = -1;
         void OnTypeMenu(Label button, int index)
         {
-            VFXEditableOperator op = model;
+            VFXOperatorNumericCascadedUnifiedNew op = model;
             GenericMenu menu = new GenericMenu();
             int selectedIndex = -1;
             var selectedType = op.GetOperandType(index);
@@ -100,7 +98,7 @@ namespace UnityEditor.VFX.UI
 
         void OnChangeType(object type)
         {
-            VFXEditableOperator op = model;
+            VFXOperatorNumericCascadedUnifiedNew op = model;
 
             op.SetOperandType(m_CurrentIndex, (Type)type);
         }
@@ -109,7 +107,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_SelfChanging)
             {
-                VFXEditableOperator op = model;
+                VFXOperatorNumericCascadedUnifiedNew op = model;
 
                 if (value != op.GetOperandName(index)) // test mandatory because TextField might send ChangeEvent anytime
                     op.SetOperandName(index, value);
@@ -129,7 +127,7 @@ namespace UnityEditor.VFX.UI
         void SelfChange()
         {
             m_SelfChanging = true;
-            VFXEditableOperator op = model;
+            VFXOperatorNumericCascadedUnifiedNew op = model;
             int count = op.operandCount;
 
             bool sizeChanged = false;
@@ -168,7 +166,7 @@ namespace UnityEditor.VFX.UI
 
             public int index;
 
-            public OperandInfo(VFXMultiOperatorEdit owner, VFXEditableOperator op, int index)
+            public OperandInfo(VFXMultiOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index)
             {
                 this.AddStyleSheetPathWithSkinVariant("VFXControls");
                 m_Owner = owner;
@@ -184,7 +182,7 @@ namespace UnityEditor.VFX.UI
                 Add(type);
             }
 
-            public void Set(VFXEditableOperator op)
+            public void Set(VFXOperatorNumericCascadedUnifiedNew op)
             {
                 field.value = op.GetOperandName(index);
                 type.text = op.GetOperandType(index).UserFriendlyName();

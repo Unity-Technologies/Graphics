@@ -10,8 +10,6 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 
-using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
-
 namespace UnityEditor.VFX.UI
 {
     class VFXOperatorUI : VFXStandaloneSlotContainerUI
@@ -114,7 +112,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return controller != null && controller.model is VFXEditableOperator;
+                return controller != null && controller.model is VFXOperatorNumericCascadedUnifiedNew;
             }
         }
 
