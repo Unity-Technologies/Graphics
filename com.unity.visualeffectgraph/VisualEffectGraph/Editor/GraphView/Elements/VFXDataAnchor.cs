@@ -8,6 +8,8 @@ using Type = System.Type;
 using System.Linq;
 using UnityEngine.Profiling;
 
+using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
+
 namespace UnityEditor.VFX.UI
 {
     class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
@@ -297,6 +299,17 @@ namespace UnityEditor.VFX.UI
         {
             var mySlot = controller.model;
 
+            IEnumerable<Type> validTypes = null;
+
+            if( mySlot == null)
+            {
+                var op = controller.sourceNode.model as VFXEditableOperator;
+                if( op != null)
+                {
+                    validTypes = op.validTypes;
+                }
+            }
+
 
             VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
             if (desc == null)
@@ -312,21 +325,26 @@ namespace UnityEditor.VFX.UI
 
             int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
 
-            if( mySlot == null)
-            {
-                return count > 0;
-            }
-
-
             bool oneFound = false;
             for (int i = 0; i < count; ++i)
             {
                 VFXSlot slot = getSlots(i);
 
-                if (slot.CanLink(mySlot))
+                if( mySlot != null)
                 {
-                    oneFound = true;
-                    break;
+                    if (slot.CanLink(mySlot))
+                    {
+                        oneFound = true;
+                        break;
+                    }
+                }
+                else if( validTypes != null)
+                {
+                    if( validTypes.Contains(slot.property.type))
+                    {
+                        oneFound = true;
+                        break;
+                    }
                 }
             }
 
@@ -336,6 +354,13 @@ namespace UnityEditor.VFX.UI
         void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
             var mySlot = controller.model;
+            IEnumerable<Type> validTypes = null;
+
+            var op = controller.sourceNode.model as VFXEditableOperator;
+            if( mySlot == null && op != null)
+            {
+                validTypes = op.validTypes;
+            }
             VFXView view = GetFirstAncestorOfType<VFXView>();
             if (view == null) return;
             Vector2 tPos = view.ChangeCoordinatesTo(view.contentViewContainer, mPos);
@@ -352,17 +377,29 @@ namespace UnityEditor.VFX.UI
             var ports = direction == Direction.Input ? newNode.outputPorts : newNode.inputPorts;
 
             int count = ports.Count();
-
             for (int i = 0; i < count; ++i)
             {
                 var port = ports[i];
-
-                if (port.model.CanLink(mySlot))
+                
+                if( mySlot != null)
                 {
-                    if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
+                    if (port.model.CanLink(mySlot))
                     {
-                        break;
-                    }
+                        if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
+                        {
+                            break;
+                        }
+                    }   
+                }
+                else if( validTypes != null )
+                {
+                    if (validTypes.Contains(port.model.property.type))
+                    {   
+                        if (viewController.CreateLink(controller, port))
+                        {
+                            break;
+                        }
+                    } 
                 }
             }
 

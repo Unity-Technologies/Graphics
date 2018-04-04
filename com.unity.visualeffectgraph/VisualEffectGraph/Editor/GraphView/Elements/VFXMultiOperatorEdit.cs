@@ -69,9 +69,15 @@ namespace UnityEditor.VFX.UI
             model.AddOperand();
         }
 
+        public override bool CanRemove()
+        {
+            return model.operandCount > 2;
+        }
+
         public override void OnRemove(int index)
         {
-            model.RemoveOperand(index);
+            if( CanRemove())
+                model.RemoveOperand(index);
         }
 
         int m_CurrentIndex = -1;

@@ -351,7 +351,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXEditableOperator op = input.sourceNode.model as VFXEditableOperator;
 
-                op.AddOperand();
+                op.AddOperand(output.model.property.type);
 
                 slotInput = op.GetInputSlot(op.GetNbInputSlots() -1);
             }

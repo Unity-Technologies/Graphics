@@ -131,12 +131,17 @@ namespace UnityEditor.VFX.UI
             if (m_SelectedLine != -1 && m_SelectedLine < m_ListContainer.childCount)
             {
                 m_ListContainer.ElementAt(m_SelectedLine).pseudoStates |= PseudoStates.Selected;
-                m_Remove.SetEnabled(true);
+                m_Remove.SetEnabled(CanRemove());
             }
             else
             {
                 m_Remove.SetEnabled(false);
             }
+        }
+
+        public virtual bool CanRemove()
+        {
+            return true;
         }
 
         public void Select(VisualElement item)
@@ -312,6 +317,10 @@ namespace UnityEditor.VFX.UI
 
             item.Insert(0, draggingHandle);
             draggingHandle.AddManipulator(new LineDragger(this, item));
+
+            Select(m_ListContainer.childCount - 1);
+                
+            m_Remove.SetEnabled(CanRemove());
         }
 
         public void RemoveItemAt(int index)
