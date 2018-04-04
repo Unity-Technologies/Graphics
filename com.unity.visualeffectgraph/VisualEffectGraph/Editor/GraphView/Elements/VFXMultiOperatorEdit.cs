@@ -12,14 +12,14 @@ using UnityEditor.VFX.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXMultiOperatorEdit : VFXReorderableList, IControlledElement<VFXOperatorController>
+    class VFXMultiOperatorEdit : VFXReorderableList, IControlledElement<VFXCascadedOperatorController>
     {
-        VFXOperatorController m_Controller;
+        VFXCascadedOperatorController m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXOperatorController controller
+        public VFXCascadedOperatorController controller
         {
             get { return m_Controller; }
             set
@@ -39,22 +39,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXOperatorNumericCascadedUnifiedNew model
-        {
-            get
-            {
-                if (controller == null)
-                    return null;
-
-                return controller.model as VFXOperatorNumericCascadedUnifiedNew;
-            }
-        }
-
-
         protected override void ElementMoved(int movedIndex, int targetIndex)
         {
             base.ElementMoved(movedIndex, targetIndex);
-            model.OperandMoved(movedIndex, targetIndex);
+            controller.model.OperandMoved(movedIndex, targetIndex);
         }
 
         public VFXMultiOperatorEdit()
@@ -64,24 +52,24 @@ namespace UnityEditor.VFX.UI
 
         public override void OnAdd()
         {
-            model.AddOperand();
+            controller.model.AddOperand();
         }
 
         public override bool CanRemove()
         {
-            return model.operandCount > 2;
+            return controller.model.operandCount > 2;
         }
 
         public override void OnRemove(int index)
         {
             if( CanRemove())
-                model.RemoveOperand(index);
+                controller.model.RemoveOperand(index);
         }
 
         int m_CurrentIndex = -1;
         void OnTypeMenu(Label button, int index)
         {
-            VFXOperatorNumericCascadedUnifiedNew op = model;
+            var op = controller.model;
             GenericMenu menu = new GenericMenu();
             int selectedIndex = -1;
             var selectedType = op.GetOperandType(index);
@@ -98,7 +86,7 @@ namespace UnityEditor.VFX.UI
 
         void OnChangeType(object type)
         {
-            VFXOperatorNumericCascadedUnifiedNew op = model;
+            var op = controller.model;
 
             op.SetOperandType(m_CurrentIndex, (Type)type);
         }
@@ -107,7 +95,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!m_SelfChanging)
             {
-                VFXOperatorNumericCascadedUnifiedNew op = model;
+                var op = controller.model;
 
                 if (value != op.GetOperandName(index)) // test mandatory because TextField might send ChangeEvent anytime
                     op.SetOperandName(index, value);
@@ -127,7 +115,7 @@ namespace UnityEditor.VFX.UI
         void SelfChange()
         {
             m_SelfChanging = true;
-            VFXOperatorNumericCascadedUnifiedNew op = model;
+            var op = controller.model;
             int count = op.operandCount;
 
             bool sizeChanged = false;

@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
         }
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            VFXOperatorNumericCascadedUnifiedNew op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
 
             if( op != null)
                 evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
@@ -80,7 +80,7 @@ namespace UnityEditor.VFX.UI
 
         void OnRemove(ContextualMenu.MenuAction e)
         {
-            VFXOperatorNumericCascadedUnifiedNew op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
 
             op.RemoveOperand(op.GetSlotIndex(controller.model));
         }

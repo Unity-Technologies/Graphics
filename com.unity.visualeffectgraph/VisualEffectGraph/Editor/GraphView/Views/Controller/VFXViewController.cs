@@ -1157,7 +1157,10 @@ namespace UnityEditor.VFX.UI
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                newControllers.Add(new VFXOperatorController(model, this));
+                if( model is VFXOperatorNumericCascadedUnifiedNew)
+                    newControllers.Add(new VFXCascadedOperatorController(model, this));
+                else
+                    newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {

@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return controller != null && controller.model is VFXOperatorNumericCascadedUnifiedNew;
+                return controller != null && controller is VFXCascadedOperatorController;
             }
         }
 
@@ -135,6 +135,8 @@ namespace UnityEditor.VFX.UI
 
             if (isEditable)
             {
+                VFXCascadedOperatorController cascadedController = controller as VFXCascadedOperatorController;
+
                 if (m_EditButton.parent == null)
                 {
                     titleContainer.Insert(1, m_EditButton);
@@ -144,7 +146,7 @@ namespace UnityEditor.VFX.UI
                     m_EditContainer = new VFXMultiOperatorEdit();
                     m_EditContainer.name = "edit-container";
                 }
-                (m_EditContainer as VFXMultiOperatorEdit).controller = controller;
+                (m_EditContainer as VFXMultiOperatorEdit).controller = cascadedController;
             }
             else
             {

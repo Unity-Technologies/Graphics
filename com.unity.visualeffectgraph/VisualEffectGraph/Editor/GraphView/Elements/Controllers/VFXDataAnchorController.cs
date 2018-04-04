@@ -415,12 +415,12 @@ namespace UnityEditor.VFX.UI
         }
         public override bool CanLink(VFXDataAnchorController controller)
         {
-            VFXOperatorNumericCascadedUnifiedNew op = (sourceNode.model as VFXOperatorNumericCascadedUnifiedNew);
+            var op = (sourceNode as VFXCascadedOperatorController);
 
             if( op == null)
                 return false;
 
-            var array = op.validTypes.ToArray();
+            var array = op.model.validTypes.ToArray();
             
             return array.Contains(controller.model.property.type);
         }

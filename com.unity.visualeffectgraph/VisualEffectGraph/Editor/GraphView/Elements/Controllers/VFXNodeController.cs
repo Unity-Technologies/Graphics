@@ -51,15 +51,10 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
-        public bool hasUpcommingSlot
-        {
-            get
-            {
-                return model is VFXOperatorNumericCascadedUnifiedNew;
-            }
-        }
 
-        VFXUpcommingDataAnchorController m_UpcommingDataAnchor;
+        protected virtual void NewInputSet()
+        {
+        }
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
@@ -73,15 +68,11 @@ namespace UnityEditor.VFX.UI
             {
                 anchorController.OnDisable();
             }
-            if( hasUpcommingSlot )
-            {
-                if( m_UpcommingDataAnchor == null)
-                {
-                    m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this,false);
-                }
-                newAnchors.Add(m_UpcommingDataAnchor);
-            }
             m_InputPorts = newAnchors;
+
+            NewInputSet();
+
+
             newAnchors = new List<VFXDataAnchorController>();
             changed |= UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
 

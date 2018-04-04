@@ -253,7 +253,7 @@ namespace UnityEditor.VFX.Test
                 var vfxOperatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
                 Assert.IsNotNull(vfxOperatorController);
 
-                var slots = vfxOperatorController.Operator.inputSlots.Concat(vfxOperatorController.Operator.outputSlots).Reverse();
+                var slots = vfxOperatorController.model.inputSlots.Concat(vfxOperatorController.model.outputSlots).Reverse();
                 for (int i = 0; i < totalSlotCount; ++i)
                 {
                     var slot = slots.ElementAt(i);
@@ -267,7 +267,7 @@ namespace UnityEditor.VFX.Test
                 var vfxOperatorController = m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
                 Assert.IsNotNull(vfxOperatorController);
 
-                var slots = vfxOperatorController.Operator.inputSlots.Concat(vfxOperatorController.Operator.outputSlots);
+                var slots = vfxOperatorController.model.inputSlots.Concat(vfxOperatorController.model.outputSlots);
                 for (int i = 0; i < totalSlotCount; ++i)
                 {
                     var slot = slots.ElementAt(i);

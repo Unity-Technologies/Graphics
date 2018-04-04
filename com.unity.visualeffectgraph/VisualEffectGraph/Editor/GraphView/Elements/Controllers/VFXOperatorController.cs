@@ -30,12 +30,37 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public VFXOperator Operator
+        public new VFXOperator model
         {
             get
             {
-                return model as VFXOperator;
+                return base.model as VFXOperator;
             }
+        }
+    }
+
+    class VFXCascadedOperatorController : VFXOperatorController
+    {
+        public VFXCascadedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
+        }
+
+        public new VFXOperatorNumericCascadedUnifiedNew model
+        {
+            get
+            {
+                return base.model as VFXOperatorNumericCascadedUnifiedNew;
+            }
+        }
+
+        VFXUpcommingDataAnchorController m_UpcommingDataAnchor;
+        protected override void NewInputSet()
+        {
+            if( m_UpcommingDataAnchor == null)
+            {
+                m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this,false);
+            }
+            m_InputPorts.Add(m_UpcommingDataAnchor);
         }
     }
 }
