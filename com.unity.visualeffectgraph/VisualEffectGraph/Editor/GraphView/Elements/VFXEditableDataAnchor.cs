@@ -161,7 +161,6 @@ namespace UnityEditor.VFX.UI
             {
                 Remove(m_PropertyRM);
             }
-
             m_PropertyRM = PropertyRM.Create(controller, 100);
             if (m_PropertyRM != null)
             {

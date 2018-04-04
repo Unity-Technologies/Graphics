@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.UIElements;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.UIElements.GraphView;
+
+using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -46,6 +49,8 @@ namespace UnityEditor.VFX.UI
             m_Hidden = hidden;
             m_Expanded = expandedSelf;
 
+            if( model != null)
+            {
             portType = model.property.type;
 
             if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
@@ -53,6 +58,7 @@ namespace UnityEditor.VFX.UI
                 m_MasterSlotHandle = DataWatchService.sharedInstance.AddWatch(model.GetMasterSlot(), MasterSlotChanged);
             }
             ModelChanged(model);
+        }
         }
 
         void MasterSlotChanged(UnityEngine.Object obj)
@@ -87,9 +93,19 @@ namespace UnityEditor.VFX.UI
             base.OnDisable();
         }
 
-        public bool HasLink()
+        public virtual bool HasLink()
         {
             return model.HasLink();
+        }
+
+        public virtual bool CanLink(VFXDataAnchorController controller)
+        {
+            if( controller.model != null)
+            {
+                return model.CanLink(controller.model) && controller.model.CanLink(model);
+            }
+
+            return controller.CanLink(this);
         }
 
         public class Change
@@ -143,7 +159,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public object value
+        public virtual object value
         {
             get
             {
@@ -218,7 +234,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Attributes; }
         }
 
-        public int depth
+        public virtual int depth
         {
             get
             {
@@ -267,7 +283,7 @@ namespace UnityEditor.VFX.UI
             get { return expandedSelf; }
         }
 
-        public bool editable
+        public virtual bool editable
         {
             get
             {
@@ -334,6 +350,82 @@ namespace UnityEditor.VFX.UI
         public void DrawGizmo(VisualEffect component)
         {
             VFXValueGizmo.Draw(this, component);
+        }
+    }
+
+    class VFXUpcommingDataAnchorController : VFXDataAnchorController
+    {
+        public VFXUpcommingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null,sourceNode,hidden)
+        {
+        }
+        public override Direction direction
+        {
+            get
+            {
+                return Direction.Input;
+            }
+        }
+
+
+        public override bool editable
+        {
+            get{return true;}
+        }
+        public override bool expandedSelf
+        {
+            get
+            {
+                return false;
+            }
+        }
+        public override bool expandable
+        {
+            get{return false;}
+        }
+        public override bool HasLink()
+        {
+            return false;
+        }
+        public override void UpdateInfos()
+        {
+
+        }
+        public override object value
+        {
+            get
+            {
+                 return null;
+            }
+            set
+            {
+
+            }
+        }
+        public override int depth
+        {
+            get
+            {
+                return 0;
+            }
+        }
+        public override string name
+        {
+            get
+            {
+                return "";
+            }
+        }
+        public override bool CanLink(VFXDataAnchorController controller)
+        {
+            VFXEditableOperator op = (sourceNode.model as VFXEditableOperator);
+
+            if( op == null)
+                return false;
+
+
+            var array = op.validTypes.ToArray();
+            
+            return array.Contains(controller.model.property.type);
         }
     }
 }

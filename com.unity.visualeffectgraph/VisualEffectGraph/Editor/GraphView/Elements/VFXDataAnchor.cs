@@ -297,6 +297,7 @@ namespace UnityEditor.VFX.UI
         {
             var mySlot = controller.model;
 
+
             VFXModelDescriptor desc = d.modelDescriptor as VFXModelDescriptor;
             if (desc == null)
                 return false;
@@ -310,6 +311,11 @@ namespace UnityEditor.VFX.UI
             var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot> )container.GetOutputSlot : (System.Func<int, VFXSlot> )container.GetInputSlot;
 
             int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+
+            if( mySlot == null)
+            {
+                return count > 0;
+            }
 
 
             bool oneFound = false;
@@ -381,6 +387,9 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
+
+        
 
         void CopyValueToParameter(VFXParameter parameter)
         {

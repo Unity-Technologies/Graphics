@@ -6,6 +6,7 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
+
     class VFXOperatorController : VFXNodeController
     {
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)

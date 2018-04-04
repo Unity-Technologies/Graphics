@@ -171,10 +171,12 @@ namespace UnityEditor.VFX.UI
 
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
-            bool changed = false;
-            input.model.CleanupLinkedSlots();
-
+        
             VFXSlot inputSlot = input.model;
+            if( inputSlot == null)
+                return false;
+
+            bool changed = false;
             if (input.HasLink())
             {
                 VFXNodeController operatorControllerFrom = null;
@@ -745,11 +747,7 @@ namespace UnityEditor.VFX.UI
                     allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
 
                     var toSlot = startAnchorOperatorController.model;
-                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>
-                        {
-                            var candidate = o as VFXDataAnchorController;
-                            return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
-                        }).ToList();
+                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>startAnchorOperatorController.CanLink(o)).ToList();
                 }
             }
             else
@@ -761,12 +759,7 @@ namespace UnityEditor.VFX.UI
 
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
 
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(o =>
-                    {
-                        var candidate = o as VFXDataAnchorController;
-                        var toSlot = candidate.model;
-                        return toSlot.CanLink(startAnchorOperatorController.model) && startAnchorOperatorController.model.CanLink(toSlot);
-                    }).ToList();
+                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i =>startAnchorOperatorController.CanLink(i)).ToList();
             }
 
             return allCandidates.ToList();

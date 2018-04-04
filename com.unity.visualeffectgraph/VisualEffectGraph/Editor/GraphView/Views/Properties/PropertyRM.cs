@@ -215,9 +215,9 @@ namespace UnityEditor.VFX.UI
                     m_IconClickableAdded = false;
                 }
                     
-                m_Icon.style.backgroundImage = null;
+                    m_Icon.style.backgroundImage = null;
+                }
             }
-        }
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
@@ -307,7 +307,8 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = null;
             Type type = controller.portType;
-
+            if( type != null)
+            {
             if (type.IsEnum)
             {
                 propertyType = typeof(EnumPropertyRM);
@@ -339,6 +340,7 @@ namespace UnityEditor.VFX.UI
                     }
                     type = type.BaseType;
                 }
+            }
             }
             if (propertyType == null)
             {
@@ -547,14 +549,14 @@ namespace UnityEditor.VFX.UI
                     {
                         try
                         {
-                            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
-                        }
-                    }
+                    m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
                 }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
+                }
+            }
+        }
                 catch (System.Exception ex)
                 {
                     Debug.LogError("Catching exception to not break graph in UpdateGUI" + ex.Message);
