@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
         private IEnumerable<KeyValuePair<string, object>> m_Variants;
         protected VFXModel m_Template;
 
-        virtual public string name { get { return m_Template.name; } }
+        virtual public string name { get { return m_Template.libraryName; } }
         public VFXInfoAttribute info { get { return VFXInfoAttribute.Get(m_Template.GetType()); } }
         public Type modelType { get { return m_Template.GetType(); } }
         public VFXModel model

@@ -7,11 +7,11 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Spawner", variantProvider = typeof(AttributeVariantWritable))]
+    [VFXInfo(category = "Spawner", variantProvider = typeof(AttributeVariantReadWritable))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting, StringProvider(typeof(AttributeProvider))]
-        public string attribute = VFXAttribute.AllWritable.First();
+        public string attribute = VFXAttribute.AllReadWritable.First();
 
         private VFXAttribute currentAttribute
         {
