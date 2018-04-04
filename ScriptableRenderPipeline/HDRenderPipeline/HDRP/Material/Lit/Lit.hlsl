@@ -182,6 +182,8 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 
 #if HAS_REFRACTION
 # include "CoreRP/ShaderLibrary/Refraction.hlsl"
+# include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
+# include "HDRP/Lighting/LightDefinition.cs.hlsl"
 # define SSRTID Refraction
 # include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
 # undef SSRTID
@@ -194,10 +196,10 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 
 # if defined(_REFRACTION_SSRAY_PROXY)
 #  define REFRACTION_SSRAY_IN ScreenSpaceProxyRaycastInput
-#  define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceProxyRaycastRefraction(input, out hit)
+#  define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceProxyRaycastRefraction(input, hit)
 # elif defined(_REFRACTION_SSRAY_HIZ)
 #  define REFRACTION_SSRAY_IN ScreenSpaceHiZRaymarchInput
-#  define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceHiZRaymarchRefraction(input, out hit)
+#  define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceHiZRaymarchRefraction(input, hit)
 # endif
 #endif
 

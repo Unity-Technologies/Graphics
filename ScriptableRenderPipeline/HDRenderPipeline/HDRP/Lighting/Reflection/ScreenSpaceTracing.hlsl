@@ -273,10 +273,10 @@ void FillScreenSpaceRaymarchingPostIterationDebug(
 
 #ifdef SSRTID
 
-#define SSRT_SETTING(name) _SS#SSRTID#name
-#define SSRT_FUNC(name) name#SSRTID
+#define SSRT_SETTING(name) _SS ## SSRTID ## name
+#define SSRT_FUNC(name) name ## SSRTID
 
-CBUFFER_START(SSRT_FUNC(UnityScreenSpaceRaymarching)
+CBUFFER_START(SSRT_FUNC(UnityScreenSpaceRaymarching))
 int SSRT_SETTING(RayMinLevel);
 int SSRT_SETTING(RayMaxLevel);
 int SSRT_SETTING(RayMaxIterations);
@@ -285,7 +285,7 @@ CBUFFER_END
 
 
 bool SSRT_FUNC(ScreenSpaceProxyRaycast)(
-    ScreenSpaceEstimateRaycastInput input,
+    ScreenSpaceProxyRaycastInput input,
     out ScreenSpaceRayHit hit
 )
 {
@@ -308,16 +308,16 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast)(
     }
 
     float3 hitPositionWS    = input.rayOriginWS + input.rayDirWS * projectionDistance;
-    float3 hitPositionCS    = ComputeClipSpacePosition(hitPositionWS, GetWorldToHClipMatrix());
+    float4 hitPositionCS    = ComputeClipSpacePosition(hitPositionWS, GetWorldToHClipMatrix());
     float2 hitPositionNDC   = ComputeNormalizedDeviceCoordinates(hitPositionWS, GetWorldToHClipMatrix());
     uint2 hitPositionSS     = uint2(hitPositionNDC *_ScreenSize.xy);
     float hitLinearDepth    = hitPositionCS.w;
 
     float linearDepth       = LoadDepth(hitPositionSS, 0);
 
-    input.positionNDC       = hitPositionNDC;
-    input.positionSS        = hitPositionSS;
-    input.linearDepth       = hitLinearDepth;
+    hit.positionNDC       = hitPositionNDC;
+    hit.positionSS        = hitPositionSS;
+    hit.linearDepth       = hitLinearDepth;
 
     bool hitSuccessful      = linearDepth >= hitLinearDepth;
 
@@ -389,10 +389,10 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch)(
     ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
     bool hitSuccessful = true;
     uint iteration = 0u;
-    int minMipLevel = max(SSRT_SETTING(MinLevel), 0);
-    int maxMipLevel = min(SSRT_SETTING(MaxLevel), int(_DepthPyramidScale.z));
+    int minMipLevel = max(SSRT_SETTING(RayMinLevel), 0);
+    int maxMipLevel = min(SSRT_SETTING(RayMaxLevel), int(_DepthPyramidScale.z));
     uint2 bufferSize = uint2(_DepthPyramidSize.xy);
-    uint maxIterations = min(input.maxIterations, SSRT_SETTING(MaxIterations));
+    uint maxIterations = min(input.maxIterations, SSRT_SETTING(RayMaxIterations));
 
     float3 startPositionSS;
     float3 raySS;
@@ -515,7 +515,7 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch)(
     hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
 
-    if (hit.linearDepth > (1 / invHiZDepth) + SSRT_SETTING(DepthSuccessBias))
+    if (hit.linearDepth > (1 / invHiZDepth) + SSRT_SETTING(RayDepthSuccessBias))
         hitSuccessful = false;
 
 #ifdef DEBUG_DISPLAY
@@ -536,7 +536,7 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch)(
             startPositionSS, 
             hitSuccessful, 
             iteration, 
-            SSRT_SETTING(MaxIterations), 
+            SSRT_SETTING(RayMaxIterations), 
             maxMipLevel, 
             maxUsedLevel,
             intersectionKind, 
@@ -550,4 +550,5 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch)(
 }
 
 #undef SSRT_SETTING
+#undef SSRT_FUNC
 #endif
