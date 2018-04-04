@@ -68,7 +68,23 @@ namespace UnityEditor.VFX.UI
             m_Node = node;
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
+
+            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();
+        }
+        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            VFXEditableOperator op = controller.sourceNode.model as VFXEditableOperator;
+
+            if( op != null)
+                evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
+        }
+
+        void OnRemove(ContextualMenu.MenuAction e)
+        {
+            VFXEditableOperator op = controller.sourceNode.model as VFXEditableOperator;
+
+            op.RemoveOperand(op.GetSlotIndex(controller.model));
         }
 
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
