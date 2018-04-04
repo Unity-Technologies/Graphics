@@ -1565,11 +1565,21 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
-            evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
-                (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
-            evt.menu.AppendSeparator();
+            bool hasMenu = false;
+            if( evt.target is VFXNodeUI)
+            {
+                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                hasMenu = true;
+            }
+            if( evt.target is VFXView)
+            {
+                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
+                    (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                hasMenu = true;
+            }
+            if( hasMenu )
+                evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {
                 evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },
