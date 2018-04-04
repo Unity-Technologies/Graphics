@@ -144,8 +144,6 @@ public class VFXParameterBinderEditor : Editor
     {
         var set = o as MenuPropertySetName;
         set.property.FindPropertyRelative("m_Name").stringValue = set.value;
-        set.property.FindPropertyRelative("m_Id").intValue = ExposedParameter.GetID(set.value);
-
         m_ElementEditor.serializedObject.ApplyModifiedProperties();
     }
 

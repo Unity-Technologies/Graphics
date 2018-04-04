@@ -11,7 +11,6 @@ namespace UnityEngine.Experimental.VFX.Utility
     {
         [SerializeField]
         private string m_Name;
-        [SerializeField]
         private int m_Id;
 
         public static implicit operator ExposedParameter(string name)
@@ -26,6 +25,8 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public static implicit operator int(ExposedParameter parameter)
         {
+            if (parameter.m_Id == -1)
+                parameter.m_Id = GetID(parameter.m_Name);
             return parameter.m_Id;
         }
 
@@ -37,8 +38,9 @@ namespace UnityEngine.Experimental.VFX.Utility
         private ExposedParameter(string name)
         {
             m_Name = name;
-            m_Id = GetID(name);
+            m_Id = -1;
         }
+
 
         public static int GetID(string name)
         {
