@@ -901,11 +901,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
 
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", m_ShadowPass.HasDirectionalShadowmap);
+            bool shadowsEnabled = m_ShadowPass.HasDirectionalShadowmap || m_ShadowPass.HasLocalLightsShadowmap;
+            CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", shadowsEnabled);
 
             // TODO: Currently we are shading same keyword for directional and local lights
             // When we have ability to strip keywords we can use the one below instead
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", m_ShadowPass.HasLocalLightsShadowmap);
+            //CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", m_ShadowPass.HasDirectionalShadowmap);
             //CoreUtils.SetKeyword(cmd, "_LOCAL_SHADOWS_ENABLED", m_ShadowPass.HasLocalLightsShadowmap);
 
             //TIM: Not used in shader for V1 to reduce keywords
