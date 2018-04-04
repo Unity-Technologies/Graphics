@@ -129,11 +129,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int lodCount = GetPyramidLodCount(hdCamera);
             UpdatePyramidMips(hdCamera, m_DepthPyramidBuffer.rt.format, m_DepthPyramidMips, lodCount);
 
-            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidMipSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, lodCount, 0.0f));
+            Vector2 scale = GetPyramidToScreenScale(hdCamera);
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
+            cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(scale.x, scale.y, lodCount, 0.0f));
 
             m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, depthTexture, m_DepthPyramidBuffer, new RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight));
 
-            Vector2 scale = GetPyramidToScreenScale(hdCamera);
 
             RTHandle src = m_DepthPyramidBuffer;
             for (var i = 0; i < lodCount; i++)
@@ -187,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 src = dest;
             }
 
-            cmd.SetGlobalTexture(HDShaderIDs._PyramidDepthTexture, m_DepthPyramidBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, m_DepthPyramidBuffer);
         }
 
         public void RenderColorPyramid(
@@ -200,7 +201,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdatePyramidMips(hdCamera, m_ColorPyramidBuffer.rt.format, m_ColorPyramidMips, lodCount);
 
             Vector2 scale = GetPyramidToScreenScale(hdCamera);
-            cmd.SetGlobalVector(HDShaderIDs._GaussianPyramidColorMipSize, new Vector4(scale.x, scale.y, lodCount, 0.0f));
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
+            cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(scale.x, scale.y, lodCount, 0.0f));
 
             // Copy mip 0
             // Here we blit a "camera space" texture into a square texture but we want to keep the original viewport.
@@ -255,7 +257,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 src = dest;
             }
 
-            cmd.SetGlobalTexture(HDShaderIDs._GaussianPyramidColorTexture, m_ColorPyramidBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_ColorPyramidBuffer);
         }
     }
 }
