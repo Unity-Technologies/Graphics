@@ -43,7 +43,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         Model m_Model = Model.Metallic;
 
-        [EnumControl("Workflow")]
         public Model model
         {
             get { return m_Model; }
@@ -61,7 +60,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         SurfaceType m_SurfaceType;
 
-        [EnumControl("Surface")]
         public SurfaceType surfaceType
         {
             get { return m_SurfaceType; }
@@ -79,7 +77,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         AlphaMode m_AlphaMode;
 
-        [EnumControl("Blend")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -97,7 +94,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         bool m_TwoSided;
 
-        [ToggleControl("Two Sided")]
         public ToggleData twoSided
         {
             get { return new ToggleData(m_TwoSided); }
