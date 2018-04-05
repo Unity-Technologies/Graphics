@@ -280,27 +280,29 @@ namespace UnityEditor.VFX.UI
 
         VisualElement m_ListContainer;
 
+        VisualElement m_Toolbar;
+
         public VFXReorderableList()
         {
             m_ListContainer = new VisualElement() {name = "ListContainer"};
 
             Add(m_ListContainer);
 
-            var toolbar = new VisualElement() { name = "Toolbar"};
+            m_Toolbar = new VisualElement() { name = "Toolbar"};
 
             var add = new VisualElement() { name = "Add" };
             add.Add(new VisualElement() { name = "icon" });
             add.AddManipulator(new Clickable(OnAdd));
-            toolbar.Add(add);
+            m_Toolbar.Add(add);
 
             m_Remove = new VisualElement() { name = "Remove" };
             m_Remove.Add(new VisualElement() { name = "icon" });
             m_Remove.AddManipulator(new Clickable(OnRemoveButton));
-            toolbar.Add(m_Remove);
+            m_Toolbar.Add(m_Remove);
 
             m_Remove.SetEnabled(false);
 
-            Add(toolbar);
+            Add(m_Toolbar);
             this.AddStyleSheetPathWithSkinVariant("VFXReorderableList");
             AddToClassList("ReorderableList");
         }
@@ -312,15 +314,84 @@ namespace UnityEditor.VFX.UI
             m_ListContainer.Add(item);
             item.AddManipulator(new LineSelecter(this, item));
 
+            if( reorderable )
+            {
+                AddDragToItem(item);
+            }
+
+            Select(m_ListContainer.childCount - 1);
+                
+            m_Remove.SetEnabled(CanRemove());
+        }
+
+
+        void AddDragToItem(VisualElement item)
+        {
             var draggingHandle = new VisualElement() { name = "DraggingHandle" };
             draggingHandle.Add(new VisualElement() { name = "icon" });
 
             item.Insert(0, draggingHandle);
             draggingHandle.AddManipulator(new LineDragger(this, item));
+        }
 
-            Select(m_ListContainer.childCount - 1);
-                
-            m_Remove.SetEnabled(CanRemove());
+        void RemoveDragFromItem(VisualElement item)
+        {
+            if( item.childCount < 1 || item.ElementAt(0).name != "DraggingHandle")
+                return;
+
+            item.RemoveAt(0);
+        }
+
+
+        public bool toolbar
+        {
+            get{return m_Toolbar.parent != null;}
+
+            set{
+                if( value )
+                {
+                    if( m_Toolbar.parent == null)
+                    {
+                        Add(m_Toolbar);
+                    }
+                }
+                else
+                {
+                    if( m_Toolbar.parent != null)
+                    {
+                        m_Toolbar.RemoveFromHierarchy();
+                    }
+                }
+            }
+        }
+
+        bool m_Reorderable = true;
+
+        public bool reorderable
+        {
+            get
+            {
+                return m_Reorderable;
+            }
+            set
+            {
+                if( m_Reorderable != value)
+                {
+                    m_Reorderable = value;
+                    
+                    foreach(var item in m_ListContainer.Children())
+                    {
+                        if(m_Reorderable)
+                        {
+                            AddDragToItem(item);
+                        }
+                        else
+                        {  
+                            RemoveDragFromItem(item);
+                        }
+                    }
+                }
+            }
         }
 
         public void RemoveItemAt(int index)

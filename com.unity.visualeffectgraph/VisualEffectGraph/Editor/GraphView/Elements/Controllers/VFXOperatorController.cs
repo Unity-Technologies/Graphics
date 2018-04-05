@@ -44,18 +44,48 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXCascadedOperatorController : VFXOperatorController
+    class VFXUnifiedOperatorControllerBase<T> : VFXOperatorController where T : VFXOperatorNumericNew,IVFXOperatorNumericUnifiedNew
     {
-        public VFXCascadedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXUnifiedOperatorControllerBase(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
-        public new VFXOperatorNumericCascadedUnifiedNew model
+        public new T model
         {
             get
             {
-                return base.model as VFXOperatorNumericCascadedUnifiedNew;
+                return base.model as T;
             }
+        }
+        public override void WillCreateLink(ref VFXSlot myInput,ref VFXSlot otherOutput)
+        {
+            bool hasLink = inputPorts.Any(t=>t.model.HasLink());
+
+            if( ! hasLink && model.validTypes.Contains(otherOutput.property.type))
+            {
+                int index = model.GetSlotIndex(myInput);
+                model.SetOperandType(index,otherOutput.property.type);
+
+                myInput = model.GetInputSlot(index);
+            }
+        }
+
+        public override bool isEditable
+        {
+            get{return true;}
+        }
+    }
+    class VFXUnifiedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericUnifiedNew>
+    {
+        public VFXUnifiedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
+        }
+    }
+
+    class VFXCascadedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericCascadedUnifiedNew>
+    {
+        public VFXCascadedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
         }
 
         VFXUpcommingDataAnchorController m_UpcommingDataAnchor;

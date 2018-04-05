@@ -206,7 +206,14 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew
+    interface IVFXOperatorNumericUnifiedNew
+    {
+        int operandCount {get;}
+        Type GetOperandType(int index);
+        void SetOperandType(int index, Type type);
+    }
+
+    abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         SerializableType[] m_Type;
@@ -218,7 +225,14 @@ namespace UnityEditor.VFX
                 return 0.0;
             }
         }
-
+        public int operandCount
+        {
+            get{return m_Type.Length;}
+        }
+        public Type GetOperandType(int index)
+        {
+            return m_Type[index];
+        }
         public void SetOperandType(int index, Type type)
         {
             if (!validTypes.Contains(type))
@@ -274,7 +288,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericCascadedUnifiedNew : VFXOperatorNumericNew
+    abstract class VFXOperatorNumericCascadedUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         [Serializable]
         public struct Operand

@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.UI
         {
             if( controller is VFXCascadedOperatorController)
             {
-                var edit = new VFXMultiOperatorEdit();
+                var edit = new VFXCascadedOperatorEdit();
                 edit.controller = controller as VFXCascadedOperatorController;
                 return edit;
             }
@@ -110,6 +110,12 @@ namespace UnityEditor.VFX.UI
             {
                 var edit = new VFXUniformOperatorEdit();
                 edit.controller = controller as VFXUniformOperatorController;
+                return edit;
+            }
+            if( controller is VFXUnifiedOperatorController)
+            {
+                var edit = new VFXUnifiedOperatorEdit();
+                edit.controller = controller as VFXUnifiedOperatorController;
                 return edit;
             }
             return null;

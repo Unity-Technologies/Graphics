@@ -32,6 +32,11 @@ OperandInfo VFXStringField .textfield
 {
     flex:1;
 }
+
+OperandInfo Label
+{
+    flex:1;
+}
 OperandInfo .PopupButton
 {
     width:50;

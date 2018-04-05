@@ -357,21 +357,6 @@ namespace UnityEditor.VFX.UI
             {
                 return false;
             }
-            var slotOutput = output != null ? output.model : null;
-            VFXSlot slotInput;
-            if( input is VFXUpcommingDataAnchorController)
-            {
-                VFXOperatorNumericCascadedUnifiedNew op = input.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
-
-                op.AddOperand(output.model.property.type);
-
-                slotInput = op.GetInputSlot(op.GetNbInputSlots() -1);
-            }
-            else
-            {
-                slotInput = input != null ? input.model : null;
-            }
-
 
             VFXParameter.NodeLinkedSlot resulting = input.CreateLinkTo(output);
 
@@ -1170,6 +1155,10 @@ namespace UnityEditor.VFX.UI
                 else if( model is VFXOperatorNumericUniformNew)
                 {
                     newControllers.Add(new VFXUniformOperatorController(model, this));
+                }
+                else if( model is VFXOperatorNumericUnifiedNew)
+                {
+                    newControllers.Add(new VFXUnifiedOperatorController(model, this));
                 }
                 else
                     newControllers.Add(new VFXOperatorController(model, this));

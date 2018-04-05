@@ -76,14 +76,14 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXMultiOperatorEdit : VFXReorderableList, IControlledElement<VFXCascadedOperatorController>
+    class VFXMultiOperatorEdit<T,U> : VFXReorderableList, IControlledElement<T> where U : VFXOperatorNumericNew,IVFXOperatorNumericUnifiedNew where T : VFXUnifiedOperatorControllerBase<U>
     {
-        VFXCascadedOperatorController m_Controller;
+        T m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXCascadedOperatorController controller
+        public T controller
         {
             get { return m_Controller; }
             set
@@ -103,31 +103,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void ElementMoved(int movedIndex, int targetIndex)
-        {
-            base.ElementMoved(movedIndex, targetIndex);
-            controller.model.OperandMoved(movedIndex, targetIndex);
-        }
-
         public VFXMultiOperatorEdit()
         {
             RegisterCallback<ControllerChangedEvent>(OnChange);
-        }
-
-        public override void OnAdd()
-        {
-            controller.model.AddOperand();
-        }
-
-        public override bool CanRemove()
-        {
-            return controller.model.operandCount > 2;
-        }
-
-        public override void OnRemove(int index)
-        {
-            if( CanRemove())
-                controller.model.RemoveOperand(index);
         }
 
         int m_CurrentIndex = -1;
@@ -151,17 +129,6 @@ namespace UnityEditor.VFX.UI
             op.SetOperandType(m_CurrentIndex, (Type)type);
         }
 
-        void OnChangeLabel(string value, int index)
-        {
-            if (!m_SelfChanging)
-            {
-                var op = controller.model;
-
-                if (value != op.GetOperandName(index)) // test mandatory because TextField might send ChangeEvent anytime
-                    op.SetOperandName(index, value);
-            }
-        }
-
         void OnChange(ControllerChangedEvent e)
         {
             if (e.controller == controller)
@@ -170,7 +137,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        bool m_SelfChanging;
+        protected bool m_SelfChanging;
 
         void SelfChange()
         {
@@ -182,7 +149,9 @@ namespace UnityEditor.VFX.UI
 
             while (itemCount < count)
             {
-                AddItem(new OperandInfo(this, op, itemCount));
+                OperandInfoBase item = CreateOperandInfo(itemCount);
+                item.Set(op);
+                AddItem(item);
                 sizeChanged = true;
             }
             while (itemCount > count)
@@ -193,7 +162,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = 0; i < count; ++i)
             {
-                OperandInfo operand = ItemAt(i) as OperandInfo;
+                OperandInfoBase operand = ItemAt(i) as OperandInfoBase;
                 operand.index = i; // The operand might have been changed by the drag
                 operand.Set(op);
             }
@@ -206,34 +175,125 @@ namespace UnityEditor.VFX.UI
             m_SelfChanging = false;
         }
 
-        class OperandInfo : VisualElement
+        protected virtual OperandInfoBase CreateOperandInfo(int index)
         {
-            VFXStringField field;
+            return new OperandInfoBase(this,controller.model,index);
+        }
+
+        protected class OperandInfoBase : VisualElement
+        {
             Label type;
-            VFXMultiOperatorEdit m_Owner;
+            VFXMultiOperatorEdit<T,U> m_Owner;
 
             public int index;
 
-            public OperandInfo(VFXMultiOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index)
+            public OperandInfoBase(VFXMultiOperatorEdit<T,U> owner, U op, int index)
             {
                 this.AddStyleSheetPathWithSkinVariant("VFXControls");
                 m_Owner = owner;
-                field = new VFXStringField("name");
-                field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
                 type = new Label();
                 this.index = index;
                 type.AddToClassList("PopupButton");
                 type.AddManipulator(new DownClickable(() => owner.OnTypeMenu(type, index)));
-                Set(op);
 
-                Add(field);
                 Add(type);
             }
 
-            public void Set(VFXOperatorNumericCascadedUnifiedNew op)
+            public virtual void Set(U op)
             {
-                field.value = op.GetOperandName(index);
                 type.text = op.GetOperandType(index).UserFriendlyName();
+            }
+        }
+    }
+
+    class VFXUnifiedOperatorEdit : VFXMultiOperatorEdit<VFXUnifiedOperatorController,VFXOperatorNumericUnifiedNew>
+    {
+
+        public VFXUnifiedOperatorEdit()
+        {
+            toolbar = false;
+            reorderable = false;
+        }
+        protected override OperandInfoBase CreateOperandInfo(int index)
+        {
+            return new OperandInfo(this,controller.model,index);
+        }
+
+        class OperandInfo : OperandInfoBase
+        {
+            Label label;
+
+            public OperandInfo(VFXUnifiedOperatorEdit owner, VFXOperatorNumericUnifiedNew op, int index):base(owner,op,index)
+            {
+                label = new Label();
+
+                Insert(0,label);
+            }
+
+            public override void Set(VFXOperatorNumericUnifiedNew op)
+            {
+                base.Set(op);
+                label.text = op.GetInputSlot(index).name;
+            }
+        }
+    }
+    class VFXCascadedOperatorEdit : VFXMultiOperatorEdit<VFXCascadedOperatorController,VFXOperatorNumericCascadedUnifiedNew>
+    {
+
+        protected override void ElementMoved(int movedIndex, int targetIndex)
+        {
+            base.ElementMoved(movedIndex, targetIndex);
+            controller.model.OperandMoved(movedIndex, targetIndex);
+        }
+
+        public override void OnAdd()
+        {
+            controller.model.AddOperand();
+        }
+
+        public override bool CanRemove()
+        {
+            return controller.model.operandCount > 2;
+        }
+
+        public override void OnRemove(int index)
+        {
+            if( CanRemove())
+                controller.model.RemoveOperand(index);
+        }
+
+        void OnChangeLabel(string value, int index)
+        {
+            if (!m_SelfChanging)
+            {
+                var op = controller.model;
+
+                if (value != op.GetOperandName(index)) // test mandatory because TextField might send ChangeEvent anytime
+                    op.SetOperandName(index, value);
+            }
+        }
+        protected override OperandInfoBase CreateOperandInfo(int index)
+        {
+            return new OperandInfo(this,controller.model,index);
+        }
+
+        class OperandInfo : OperandInfoBase
+        {
+            VFXStringField field;
+
+            public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index):base(owner,op,index)
+            {
+                field = new VFXStringField("name");
+                field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
+
+                Insert(0,field);
+            }
+
+
+            public override void Set(VFXOperatorNumericCascadedUnifiedNew op)
+            {
+                base.Set(op);
+                field.value = op.GetOperandName(index);
             }
         }
     }
