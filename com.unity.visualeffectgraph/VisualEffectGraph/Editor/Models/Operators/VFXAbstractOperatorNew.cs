@@ -17,7 +17,10 @@ namespace UnityEditor.VFX
 
         protected abstract Type defaultValueType { get; }
 
-        protected abstract object GetDefaultValueForType(Type type);
+        protected virtual object GetDefaultValueForType(Type type)
+        {
+            return VFXTypeExtension.GetDefaultField(type);
+        }
     }
 
     abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
@@ -137,7 +140,12 @@ namespace UnityEditor.VFX
         protected virtual uint defaultValueUint { get { return (uint)defaultValueDouble; } }
     }
 
-    abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew
+    interface IVFXOperatorUniform
+    {
+        void SetOperandType(Type type);
+    }
+
+    abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         SerializableType m_Type;
