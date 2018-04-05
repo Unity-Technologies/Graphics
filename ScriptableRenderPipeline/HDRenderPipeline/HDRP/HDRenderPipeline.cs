@@ -165,6 +165,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandle                        m_DebugColorPickerBuffer;
         RTHandle                        m_DebugFullScreenTempBuffer;
         bool                            m_FullScreenDebugPushed;
+        bool                            m_NoRendering; // False by default mean we render normally, true mean we don't render anything
 
         public Material GetBlitMaterial() { return m_Blit; }
 
@@ -182,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GPUCopy,
                 new TexturePadding(asset.renderPipelineResources.texturePaddingCS)
             );
-            m_BufferPyramid = new BufferPyramid(bufferPyramidProcessor); 
+            m_BufferPyramid = new BufferPyramid(bufferPyramidProcessor);
 
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
 
@@ -353,6 +354,58 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode");
             }
 #endif
+            m_NoRendering = false;
+
+            if (!IsSupportedPlatform())
+            {
+                Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
+                m_NoRendering = true;
+            }
+        }
+
+        bool IsSupportedPlatform()
+        {
+            if (!SystemInfo.supportsComputeShaders)
+                return false;
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                return true;
+            }
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            {
+                string os = SystemInfo.operatingSystem;
+
+                // Metal support depends on OS version:
+                // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
+                // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
+                // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+                //
+                // Has worked experimentally with iOS in the past, but it's not currently supported
+                //
+
+                if (os.StartsWith("Mac"))
+                {
+                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
+                    int startIndex = os.LastIndexOf(" ");
+                    var parts = os.Substring(startIndex + 1).Split('.');
+                    int a = Convert.ToInt32(parts[0]);
+                    int b = Convert.ToInt32(parts[1]);
+                    // In case in the future there's a need to disable specific patch releases
+                    // int c = Convert.ToInt32(parts[2]);
+
+                    if (a >= 10 && b >= 13)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         void UnsetRenderingFeatures()
@@ -532,6 +585,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCullResults m_ReflectionProbeCullResults;
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+            if (m_NoRendering)
+                return;
+
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
@@ -640,7 +696,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             needFallback = false;
                                         }
                                     }
-                                    
+
                                     if (needFallback)
                                     {
                                         // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
