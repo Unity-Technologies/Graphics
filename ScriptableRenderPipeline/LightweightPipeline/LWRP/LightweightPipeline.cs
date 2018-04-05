@@ -654,6 +654,45 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightData.localLightIndices = m_LocalLightIndices;
 
             m_MixedLightingSetup = MixedLightingSetup.None;
+
+            if (lightData.totalAdditionalLightsCount > 0)
+            {
+                int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
+                int directionalLightCount = 0;
+
+                // Disable all directional lights from the perobject light indices
+                for (int i = 0; i < visibleLights.Count; ++i)
+                {
+                    VisibleLight light = visibleLights[i];
+                    if (light.lightType == LightType.Directional)
+                        perObjectLightIndexMap[i] = -1;
+                    else
+                        perObjectLightIndexMap[i] -= directionalLightCount;
+
+                }
+                m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
+
+                // if not using a compute buffer, engine will set indices in 2 vec4 constants
+                // unity_4LightIndices0 and unity_4LightIndices1
+                if (m_UseComputeBuffer)
+                {
+                    int lightIndicesCount = m_CullResults.GetLightIndicesCount();
+                    if (lightIndicesCount > 0)
+                    {
+                        if (m_LightIndicesBuffer == null)
+                        {
+                            m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                        }
+                        else if (m_LightIndicesBuffer.count < lightIndicesCount)
+                        {
+                            m_LightIndicesBuffer.Release();
+                            m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                        }
+
+                        m_CullResults.FillLightIndices(m_LightIndicesBuffer);
+                    }
+                }
+            }
         }
 
         // Main Light is always a directional light
@@ -827,23 +866,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             List<VisibleLight> lights = lightData.visibleLights;
             if (lightData.totalAdditionalLightsCount > 0)
             {
-                // We need to update per-object light list with the proper map to our global additional light buffer
-                // First we initialize all lights in the map to -1 to tell the system to discard main light index and
-                // remaining lights in the scene that don't fit the max additional light buffer (kMaxVisibileAdditionalLights)
-                int[] perObjectLightIndexMap = m_CullResults.GetLightIndexMap();
-                int directionalLightCount = 0;
                 int localLightsCount = 0;
                 for (int i = 0; i < lights.Count && localLightsCount < kMaxVisibleLocalLights; ++i)
                 {
                     VisibleLight light = lights[i];
-                    if (light.lightType == LightType.Directional)
+                    if (light.lightType != LightType.Directional)
                     {
-                        perObjectLightIndexMap[i] = -1;
-                        directionalLightCount++;
-                    }
-                    else
-                    {
-                        perObjectLightIndexMap[i] -= directionalLightCount;
                         InitializeLightConstants(lights, i, out m_LightPositions[localLightsCount],
                             out m_LightColors[localLightsCount],
                             out m_LightDistanceAttenuations[localLightsCount],
@@ -852,35 +880,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         localLightsCount++;
                     }
                 }
-                m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
 
                 cmd.SetGlobalVector(PerCameraBuffer._AdditionalLightCount, new Vector4(lightData.pixelAdditionalLightsCount,
                         lightData.totalAdditionalLightsCount, 0.0f, 0.0f));
 
                 // if not using a compute buffer, engine will set indices in 2 vec4 constants
                 // unity_4LightIndices0 and unity_4LightIndices1
-                // TODO: We can benefit from better thread usage if we set LightIndex map and call
-                // FillLightIndices way earlier.
                 if (m_UseComputeBuffer)
-                {
-                    int lightIndicesCount = m_CullResults.GetLightIndicesCount();
-
-                    if (lightIndicesCount > 0)
-                    {
-                        if (m_LightIndicesBuffer == null)
-                        {
-                            m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                        }
-                        else if (m_LightIndicesBuffer.count < lightIndicesCount)
-                        {
-                            m_LightIndicesBuffer.Release();
-                            m_LightIndicesBuffer = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                        }
-
-                        m_CullResults.FillLightIndices(m_LightIndicesBuffer);
-                        cmd.SetGlobalBuffer(PerCameraBuffer._LightIndexBuffer, m_LightIndicesBuffer);
-                    }
-                }
+                    cmd.SetGlobalBuffer("_LightIndexBuffer", m_LightIndicesBuffer);
             }
             else
             {
