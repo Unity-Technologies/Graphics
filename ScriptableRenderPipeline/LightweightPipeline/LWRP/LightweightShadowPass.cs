@@ -210,10 +210,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void BuildShadowSettings(LightweightPipelineAsset pipelineAsset)
         {
+            bool isOpenGLES2 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2;
+
             m_ShadowSettings = ShadowSettings.Default;
             m_ShadowSettings.shadowType = (LightShadows)pipelineAsset.ShadowSetting;
-            m_ShadowSettings.screenSpace = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            m_ShadowSettings.directionalLightCascadeCount = pipelineAsset.CascadeCount;
+
+            // Until we can have keyword stripping forcing single cascade hard shadows on gles2
+            m_ShadowSettings.screenSpace = !isOpenGLES2;
+            m_ShadowSettings.directionalLightCascadeCount = (isOpenGLES2)? 1 : pipelineAsset.CascadeCount;
 
             m_ShadowSettings.directionalShadowAtlasWidth = pipelineAsset.ShadowAtlasResolution;
             m_ShadowSettings.directionalShadowAtlasHeight = pipelineAsset.ShadowAtlasResolution;
