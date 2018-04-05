@@ -156,21 +156,21 @@ namespace UnityEditor.VFX.Test
 
             var elements = view.Query().OfType<GraphElement>().ToList();
 
-            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.Operator != newOperator);
+            var copyOperator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator);
 
-            var copaASlot = copyOperator.controller.Operator.GetInputSlot(0);
+            var copaASlot = copyOperator.controller.model.GetInputSlot(0);
 
             Assert.AreEqual((Vector3)copaASlot.value, originalA);
 
-            Assert.AreNotEqual(copyOperator.controller.Operator.position, newOperator.position);
+            Assert.AreNotEqual(copyOperator.controller.model.position, newOperator.position);
 
             view.PasteCallback();
 
             elements = view.Query().OfType<GraphElement>().ToList();
-            var copy2Operator = elements.OfType<VFXOperatorUI>().First(t => t.controller.Operator != newOperator && t != copyOperator);
+            var copy2Operator = elements.OfType<VFXOperatorUI>().First(t => t.controller.model != newOperator && t != copyOperator);
 
-            Assert.AreNotEqual(copy2Operator.controller.Operator.position, newOperator.position);
-            Assert.AreNotEqual(copy2Operator.controller.Operator.position, copyOperator.controller.Operator.position);
+            Assert.AreNotEqual(copy2Operator.controller.model.position, newOperator.position);
+            Assert.AreNotEqual(copy2Operator.controller.model.position, copyOperator.controller.model.position);
         }
 
         [Test]
@@ -236,7 +236,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(dataEdges.Length, 4);
 
-            VFXOperator[] operatorModels = operators.Select(u => u.controller.Operator).ToArray();
+            VFXOperator[] operatorModels = operators.Select(u => u.controller.model).ToArray();
 
             Assert.IsNotNull(dataEdges.Where(t =>
                     t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&

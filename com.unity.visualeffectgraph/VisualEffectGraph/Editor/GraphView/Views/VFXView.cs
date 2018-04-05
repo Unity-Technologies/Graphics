@@ -267,29 +267,8 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        protected void OnKeyDown(KeyDownEvent evt)
-        {
-            if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
-            {
-                OnCreateThing(evt as KeyDownEvent);
-            }
-        }
-
         void OnCreateThing(KeyDownEvent evt)
         {
-            VisualElement picked = panel.Pick(evt.originalMousePosition);
-            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
-
-            if (context != null)
-            {
-                context.OnCreateBlock(evt.originalMousePosition);
-            }
-            else
-            {
-                NodeCreationContext ctx = new NodeCreationContext();
-                ctx.screenMousePosition = GUIUtility.GUIToScreenPoint(evt.imguiEvent.mousePosition);
-                OnCreateNode(ctx);
-            }
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -414,7 +393,6 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
-            RegisterCallback<KeyDownEvent>(OnKeyDown);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
 
@@ -423,6 +401,8 @@ namespace UnityEditor.VFX.UI
             elementResized = VFXElementResized;
 
             Undo.undoRedoPerformed = OnUndoPerformed;
+
+            persistenceKey = "VFXView";
         }
 
         void OnUndoPerformed()
@@ -696,7 +676,7 @@ namespace UnityEditor.VFX.UI
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
-                    if( needOneListenToGeometry )
+                    if (needOneListenToGeometry)
                     {
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
@@ -714,7 +694,7 @@ namespace UnityEditor.VFX.UI
         bool m_UpdateUIBounds = false;
         void UpdateUIBounds()
         {
-            if( ! m_GeometrySet ) return;
+            if (!m_GeometrySet) return;
             if (m_InControllerChanged)
             {
                 m_UpdateUIBounds = true;
@@ -796,7 +776,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
 
         public void SafeRemoveElement(GraphElement element)
         {
@@ -901,7 +880,18 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
+            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            VisualElement picked = panel.Pick(point);
+            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
+
+            if (context != null)
+            {
+                context.OnCreateBlock(point);
+            }
+            else
+            {
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, m_NodeProvider);
+            }
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -1565,11 +1555,21 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
-            evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
-                (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
-            evt.menu.AppendSeparator();
+            bool hasMenu = false;
+            if( evt.target is VFXNodeUI)
+            {
+                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                hasMenu = true;
+            }
+            if( evt.target is VFXView)
+            {
+                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
+                    (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                hasMenu = true;
+            }
+            if( hasMenu )
+                evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {
                 evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },

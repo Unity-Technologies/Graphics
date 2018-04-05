@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
                     else
                         return "Pi (π/3)";
                 }
-                
+
                 return "Pi (π)";
             }
         }

@@ -147,7 +147,7 @@ namespace UnityEditor.VFX.UIElements
 
         public bool indeterminate
         {
-            get{return (m_Field as FloatField).indeterminate;}
+            get {return (m_Field as FloatField).indeterminate; }
 
             set
             {

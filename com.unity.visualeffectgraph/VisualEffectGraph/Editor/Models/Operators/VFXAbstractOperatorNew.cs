@@ -158,6 +158,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public Type GetOperandType()
+        {
+            return m_Type;
+        }
+
         public void SetOperandType(Type type)
         {
             if (!validTypes.Contains(type))
@@ -209,7 +214,14 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew
+    interface IVFXOperatorNumericUnifiedNew
+    {
+        int operandCount {get;}
+        Type GetOperandType(int index);
+        void SetOperandType(int index, Type type);
+    }
+
+    abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         SerializableType[] m_Type;
@@ -221,7 +233,14 @@ namespace UnityEditor.VFX
                 return 0.0;
             }
         }
-
+        public int operandCount
+        {
+            get{return m_Type.Length;}
+        }
+        public Type GetOperandType(int index)
+        {
+            return m_Type[index];
+        }
         public void SetOperandType(int index, Type type)
         {
             if (!validTypes.Contains(type))
@@ -277,7 +296,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericCascadedUnifiedNew : VFXOperatorNumericNew
+    abstract class VFXOperatorNumericCascadedUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         [Serializable]
         public struct Operand
@@ -294,9 +313,9 @@ namespace UnityEditor.VFX
             return VFXCodeGeneratorHelper.GeneratePrefix((uint)index);
         }
 
-        protected Operand GetDefaultOperand(int index)
+        protected Operand GetDefaultOperand(int index, Type type = null)
         {
-            return new Operand() { name = GetDefaultName(index), type = defaultValueType };
+            return new Operand() { name = GetDefaultName(index), type = type != null ? type : defaultValueType };
         }
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -313,13 +332,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void AddOperand()
+        public void AddOperand(Type type = null)
         {
             int oldCount = m_Operands.Length;
             var infos = new Operand[oldCount + 1];
 
             Array.Copy(m_Operands, infos, oldCount);
-            infos[oldCount] = GetDefaultOperand(oldCount);
+            infos[oldCount] = GetDefaultOperand(oldCount, type);
             m_Operands = infos;
 
             Invalidate(InvalidationCause.kSettingChanged);

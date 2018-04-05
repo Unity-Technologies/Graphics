@@ -88,23 +88,26 @@ namespace UnityEditor.VFX.UI
         public Controller(T model)
         {
             m_Model = model;
-
+            if( m_Model != null)
             m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
         }
 
         public override void OnDisable()
         {
-            if( m_Handle != null)
+            if (m_Handle != null)
             {
-                try
+            try
+            {
+                if( m_Handle != null)
                 {
-                    DataWatchService.sharedInstance.RemoveWatch(m_Handle);
-                    m_Handle = null;
-                }
-                catch (ArgumentException e)
-                {
-                    Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
-                }
+                DataWatchService.sharedInstance.RemoveWatch(m_Handle);
+                m_Handle = null;
+            }
+            }
+            catch (ArgumentException e)
+            {
+                Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
+            }
             }
             base.OnDisable();
         }

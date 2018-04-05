@@ -81,11 +81,12 @@ namespace UnityEditor.VFX.UI
             if (m_ColorField != null)
                 m_ColorField.SetEnabled(propertyEnabled);
         }
+
         protected override void UpdateIndeterminate()
         {
             m_VectorField.indeterminate = indeterminate;
             if (m_ColorField != null)
-                m_ColorField.visible = !indeterminate;
+                m_ColorField.indeterminate = indeterminate;
         }
 
         public override float GetPreferredControlWidth()

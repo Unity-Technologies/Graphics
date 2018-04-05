@@ -37,8 +37,11 @@ namespace UnityEditor.VFX.UIElements
             }
             set
             {
-                m_Indeterminate = value;
-                this.value = this.value;
+                if (m_Indeterminate != value)
+                {
+                    m_Indeterminate = value;
+                    this.value = this.value;
+                }
             }
         }
 
@@ -54,7 +57,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override string ValueToString(float v)
         {
-            if( indeterminate) return "_";
+            if (indeterminate) return VFXControlConstants.indeterminateText;
             return v.ToString(formatString);
         }
 

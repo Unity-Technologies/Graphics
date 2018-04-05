@@ -150,6 +150,15 @@ namespace UnityEditor.VFX.UI
             foreach (var edge in unusedEdges)
             {
                 edge.OnDisable();
+                // This will remove and operand when and edge is removed
+                if( edge.input != null && edge.input.sourceNode.model is VFXOperatorNumericCascadedUnifiedNew)
+                {
+                    VFXOperatorNumericCascadedUnifiedNew op = edge.input.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+                    if( op.GetNbInputSlots() > 2)
+                        op.RemoveOperand(op.GetSlotIndex(edge.input.model));
+                    /*else should we reset to the defaultValueType here ? */
+                }
+
                 m_DataEdges.Remove(edge);
                 changed = true;
             }
@@ -171,10 +180,12 @@ namespace UnityEditor.VFX.UI
 
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
-            bool changed = false;
-            input.model.CleanupLinkedSlots();
-
+        
             VFXSlot inputSlot = input.model;
+            if( inputSlot == null)
+                return false;
+
+            bool changed = false;
             if (input.HasLink())
             {
                 VFXNodeController operatorControllerFrom = null;
@@ -342,15 +353,20 @@ namespace UnityEditor.VFX.UI
 
         public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
         {
-            var slotInput = input != null ? input.model : null;
-            var slotOutput = output != null ? output.model : null;
-            if (slotInput.Link(slotOutput))
+            if( input == null)
+            {
+                return false;
+            }
+
+            VFXParameter.NodeLinkedSlot resulting = input.CreateLinkTo(output);
+
+            if (resulting.inputSlot != null && resulting.outputSlot != null)
             {
                 VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
 
                 if (fromController != null)
                 {
-                    fromController.infos.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput });
+                    fromController.infos.linkedSlots.Add(resulting);
                 }
                 DataEdgesMightHaveChanged();
                 return true;
@@ -418,11 +434,16 @@ namespace UnityEditor.VFX.UI
                 context.Detach();
 
                 RemoveFromGroupNodes(element as VFXNodeController);
+
+
+                Object.DestroyImmediate(context,true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
+
+                Object.DestroyImmediate(block.block,true);
             }
             else if (element is VFXParameterNodeController)
             {
@@ -464,6 +485,8 @@ namespace UnityEditor.VFX.UI
                 while (slotToClean != null);
 
                 graph.RemoveChild(container as VFXModel);
+
+                Object.DestroyImmediate(container as VFXModel,true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -616,20 +639,23 @@ namespace UnityEditor.VFX.UI
             }
 
             //Patch group nodes, removing this sticky note and fixing ids that are bigger than index
-            for (int i = 0; i < ui.groupInfos.Length; ++i)
+            if (ui.groupInfos != null)
             {
-                for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                for (int i = 0; i < ui.groupInfos.Length; ++i)
                 {
-                    if (ui.groupInfos[i].contents[j].isStickyNote)
+                    for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                     {
-                        if (ui.groupInfos[i].contents[j].id == index)
+                        if (ui.groupInfos[i].contents[j].isStickyNote)
                         {
-                            ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
-                            j--;
-                        }
-                        else if (ui.groupInfos[i].contents[j].id > index)
-                        {
-                            --(ui.groupInfos[i].contents[j].id);
+                            if (ui.groupInfos[i].contents[j].id == index)
+                            {
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
+                                j--;
+                            }
+                            else if (ui.groupInfos[i].contents[j].id > index)
+                            {
+                                --(ui.groupInfos[i].contents[j].id);
+                            }
                         }
                     }
                 }
@@ -745,11 +771,7 @@ namespace UnityEditor.VFX.UI
                     allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
 
                     var toSlot = startAnchorOperatorController.model;
-                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>
-                        {
-                            var candidate = o as VFXDataAnchorController;
-                            return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
-                        }).ToList();
+                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>startAnchorOperatorController.CanLink(o)).ToList();
                 }
             }
             else
@@ -761,12 +783,7 @@ namespace UnityEditor.VFX.UI
 
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
 
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(o =>
-                    {
-                        var candidate = o as VFXDataAnchorController;
-                        var toSlot = candidate.model;
-                        return toSlot.CanLink(startAnchorOperatorController.model) && startAnchorOperatorController.model.CanLink(toSlot);
-                    }).ToList();
+                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i =>startAnchorOperatorController.CanLink(i)).ToList();
             }
 
             return allCandidates.ToList();
@@ -1143,7 +1160,18 @@ namespace UnityEditor.VFX.UI
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                newControllers.Add(new VFXOperatorController(model, this));
+                if( model is VFXOperatorNumericCascadedUnifiedNew)
+                    newControllers.Add(new VFXCascadedOperatorController(model, this));
+                else if( model is VFXOperatorNumericUniformNew)
+                {
+                    newControllers.Add(new VFXUniformOperatorController(model, this));
+                }
+                else if( model is VFXOperatorNumericUnifiedNew)
+                {
+                    newControllers.Add(new VFXUnifiedOperatorController(model, this));
+                }
+                else
+                    newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {

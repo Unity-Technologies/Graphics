@@ -90,8 +90,42 @@ namespace UnityEditor.VFX.UI
             return value;
         }
     }
+    abstract class IntegerPropertyRM<T, U> : NumericPropertyRM<T, U>
+    {
+        VisualElement m_IndeterminateLabel;
+        public IntegerPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+            m_IndeterminateLabel = new Label()
+            {
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
+            };
+            m_IndeterminateLabel.SetEnabled(false);
+        }
 
-    class UintPropertyRM : NumericPropertyRM<uint, long>
+        protected override void UpdateIndeterminate()
+        {
+            VisualElement field = this.field as VisualElement;
+            if (indeterminate)
+            {
+                if (m_IndeterminateLabel.parent == null)
+                {
+                    field.RemoveFromHierarchy();
+                    Add(m_IndeterminateLabel);
+                }
+            }
+            else
+            {
+                if (field.parent == null)
+                {
+                    m_IndeterminateLabel.RemoveFromHierarchy();
+                    Add(field);
+                }
+            }
+        }
+    }
+
+    class UintPropertyRM : IntegerPropertyRM<uint, long>
     {
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -153,7 +187,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class IntPropertyRM : NumericPropertyRM<int, int>
+    class IntPropertyRM : IntegerPropertyRM<int, int>
     {
         public IntPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -219,12 +253,11 @@ namespace UnityEditor.VFX.UI
             return field;
         }
 
-
         protected override void UpdateIndeterminate()
         {
-            if( m_TextField != null)
+            if (m_TextField != null)
                 (m_TextField as VFXFloatField).indeterminate = indeterminate;
-            if( m_Slider != null)
+            if (m_Slider != null)
                 (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }
 
