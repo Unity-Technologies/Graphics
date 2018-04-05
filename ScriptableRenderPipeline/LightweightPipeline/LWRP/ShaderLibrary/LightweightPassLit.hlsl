@@ -1,7 +1,6 @@
 #ifndef LIGHTWEIGHT_PASS_LIT_INCLUDED
 #define LIGHTWEIGHT_PASS_LIT_INCLUDED
 
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
 struct LightweightVertexInput
@@ -18,7 +17,7 @@ struct LightweightVertexOutput
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-    float4 posWSShininess           : TEXCOORD2;    // xyz: posWS, w: Shininess * 128
+    float3 posWS                    : TEXCOORD2;
 
 #ifdef _NORMALMAP
     half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -31,7 +30,9 @@ struct LightweightVertexOutput
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
+#ifdef _SHADOWS_ENABLED
     float4 shadowCoord              : TEXCOORD7;
+#endif
 
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -40,7 +41,9 @@ struct LightweightVertexOutput
 
 void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputData inputData)
 {
-    inputData.positionWS = IN.posWSShininess.xyz;
+    inputData = (InputData)0;
+
+    inputData.positionWS = IN.posWS;
 
 #ifdef _NORMALMAP
     half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
@@ -51,7 +54,11 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 #endif
 
     inputData.viewDirectionWS = FragmentViewDirWS(viewDir);
+#ifdef _SHADOWS_ENABLED
     inputData.shadowCoord = IN.shadowCoord;
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
     inputData.fogCoord = IN.fogFactorAndVertexLight.x;
     inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(IN.lightmapUV, IN.vertexSH, inputData.normalWS);
@@ -61,7 +68,7 @@ void InitializeInputData(LightweightVertexOutput IN, half3 normalTS, out InputDa
 //                  Vertex and Fragment functions                            //
 ///////////////////////////////////////////////////////////////////////////////
 
-// Vertex: Used for Standard and StandardSimpleLighting shaders
+// Used in Standard (Physically Based) shader
 LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 {
     LightweightVertexOutput o = (LightweightVertexOutput)0;
@@ -72,11 +79,10 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
 
     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 
-    o.posWSShininess.xyz = TransformObjectToWorld(v.vertex.xyz);
-    o.posWSShininess.w = _Shininess * 128.0;
-    o.clipPos = TransformWorldToHClip(o.posWSShininess.xyz);
+    float3 posWS = TransformObjectToWorld(v.vertex.xyz);
+    o.clipPos = TransformWorldToHClip(posWS);
 
-    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - o.posWSShininess.xyz);
+    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - posWS);
 
 #ifdef _NORMALMAP
     o.normal.w = viewDir.x;
@@ -96,20 +102,24 @@ LightweightVertexOutput LitPassVertex(LightweightVertexInput v)
     OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
     OUTPUT_SH(o.normal.xyz, o.vertexSH);
 
-    half3 vertexLight = VertexLighting(o.posWSShininess.xyz, o.normal.xyz);
+    half3 vertexLight = VertexLighting(posWS, o.normal.xyz);
     half fogFactor = ComputeFogFactor(o.clipPos.z);
     o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
+#ifdef _SHADOWS_ENABLED
 #if SHADOWS_SCREEN
     o.shadowCoord = ComputeShadowCoord(o.clipPos);
 #else
-    o.shadowCoord = TransformWorldToShadowCoord(o.posWSShininess.xyz);
+    o.shadowCoord = TransformWorldToShadowCoord(posWS);
 #endif
+#endif
+
+    o.posWS = posWS;
 
     return o;
 }
 
-// Used for Standard shader
+// Used in Standard (Physically Based) shader
 half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(IN);
@@ -124,52 +134,6 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
 
     ApplyFog(color.rgb, inputData.fogCoord);
     return color;
-}
-
-// Used for Standard shader
-half4 LitPassFragmentNull(LightweightVertexOutput IN) : SV_Target
-{
-    LitPassFragment(IN);
-    return 0;
-}
-
-// Used for StandardSimpleLighting shader
-half4 LitPassFragmentSimple(LightweightVertexOutput IN) : SV_Target
-{
-    UNITY_SETUP_INSTANCE_ID(IN);
-
-    float2 uv = IN.uv;
-    half4 diffuseAlpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
-    half3 diffuse = diffuseAlpha.rgb * _Color.rgb;
-
-    half alpha = diffuseAlpha.a * _Color.a;
-    AlphaDiscard(alpha, _Cutoff);
-#ifdef _ALPHAPREMULTIPLY_ON
-    diffuse *= alpha;
-#endif
-
-#ifdef _NORMALMAP
-    half3 normalTS = Normal(uv);
-#else
-    half3 normalTS = half3(0, 0, 1);
-#endif
-
-    half3 emission = Emission(uv);
-    half4 specularGloss = SpecularGloss(uv, diffuseAlpha.a);
-    half shininess = IN.posWSShininess.w;
-
-    InputData inputData;
-    InitializeInputData(IN, normalTS, inputData);
-
-    return LightweightFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
-};
-
-
-// Used for StandardSimpleLighting shader
-half4 LitPassFragmentSimpleNull(LightweightVertexOutput IN) : SV_Target
-{
-    half4 result = LitPassFragmentSimple(IN);
-    return result.a;
 }
 
 #endif
