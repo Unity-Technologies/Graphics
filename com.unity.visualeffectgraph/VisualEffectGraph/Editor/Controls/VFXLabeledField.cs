@@ -10,12 +10,35 @@ namespace UnityEditor.VFX.UIElements
         protected Label m_Label;
         protected T m_Control;
 
+        public VisualElement m_IndeterminateLabel;
+
         public VFXLabeledField(Label existingLabel)
         {
             m_Label = existingLabel;
 
             CreateControl();
             SetupLabel();
+        }
+
+        bool m_Indeterminate;
+
+        public bool indeterminate
+        {
+            get {return m_Indeterminate; }
+
+            set
+            {
+                if (m_Indeterminate != value)
+                {
+                    m_Control.RemoveFromHierarchy();
+                    Add(m_IndeterminateLabel);
+                }
+                else
+                {
+                    m_IndeterminateLabel.RemoveFromHierarchy();
+                    Add(m_Control);
+                }
+            }
         }
 
         public VFXLabeledField(string label)
@@ -51,6 +74,13 @@ namespace UnityEditor.VFX.UIElements
                     var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
                     dragger.SetDragZone(m_Label);
                 }
+
+            m_IndeterminateLabel = new Label()
+            {
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
+            };
+            m_IndeterminateLabel.SetEnabled(false);
         }
 
         void CreateControl()

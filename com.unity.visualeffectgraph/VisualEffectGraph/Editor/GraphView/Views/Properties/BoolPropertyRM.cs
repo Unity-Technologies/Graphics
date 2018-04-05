@@ -42,6 +42,14 @@ namespace UnityEditor.VFX.UI
             m_Toggle.SetEnabled(propertyEnabled);
         }
 
+        protected override void UpdateIndeterminate()
+        {
+            if (indeterminate)
+                m_Toggle.AddToClassList("indeterminate");
+            else
+                m_Toggle.RemoveFromClassList("indeterminate");
+        }
+
         public override bool showsEverything { get { return true; } }
     }
 }

@@ -299,7 +299,7 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < positions.Length; ++i)
             {
-                var currentAbs = fnFindController(typeof(VFXOperatorAbsolute));
+                var currentAbs = fnFindController(typeof(Operator.Absolute));
                 Assert.IsNotNull(currentAbs);
                 Assert.AreEqual(positions[positions.Length - i - 1].x, currentAbs.model.position.x);
                 Assert.AreEqual(positions[positions.Length - i - 1].y, currentAbs.model.position.y);
@@ -309,7 +309,7 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < positions.Length; ++i)
             {
                 Undo.PerformRedo();
-                var currentAbs = fnFindController(typeof(VFXOperatorAbsolute));
+                var currentAbs = fnFindController(typeof(Operator.Absolute));
                 Assert.IsNotNull(currentAbs);
                 Assert.AreEqual(positions[i].x, currentAbs.model.position.x);
                 Assert.AreEqual(positions[i].y, currentAbs.model.position.y);
@@ -331,7 +331,7 @@ namespace UnityEditor.VFX.Test
                 {
                     var allOperatorController = fnAllOperatorController();
                     Assert.AreEqual(1, allOperatorController.Length);
-                    Assert.IsInstanceOf(typeof(VFXOperatorAbsolute), allOperatorController[0].model);
+                    Assert.IsInstanceOf(typeof(Operator.Absolute), allOperatorController[0].model);
                 };
 
             Action fnTestShouldNotExist = delegate()
@@ -506,8 +506,8 @@ namespace UnityEditor.VFX.Test
             var cos = m_ViewController.AddVFXOperator(new Vector2(0, 0), cosDesc);
             Undo.IncrementCurrentGroup();
             var sin = m_ViewController.AddVFXOperator(new Vector2(1, 1), sinDesc);
-            var cosController = fnFindController(typeof(VFXOperatorCosine));
-            var sinController = fnFindController(typeof(VFXOperatorSine));
+            var cosController = fnFindController(typeof(Operator.Cosine));
+            var sinController = fnFindController(typeof(Operator.Sine));
 
             Func<int> fnCountEdge = delegate()
                 {
@@ -524,8 +524,8 @@ namespace UnityEditor.VFX.Test
             Undo.PerformUndo();
             m_ViewController.ApplyChanges();
             Assert.AreEqual(0, fnCountEdge());
-            Assert.NotNull(fnFindController(typeof(VFXOperatorCosine)));
-            Assert.NotNull(fnFindController(typeof(VFXOperatorSine)));
+            Assert.NotNull(fnFindController(typeof(Operator.Cosine)));
+            Assert.NotNull(fnFindController(typeof(Operator.Sine)));
         }
 
         [Test]
@@ -567,7 +567,7 @@ namespace UnityEditor.VFX.Test
             blockAttribute.SetSettingValue("attribute", "color");
             fnFirstContextController().AddBlock(0, blockAttribute);
 
-            var edgeController = new VFXDataEdgeController(fnFirstBlockController().inputPorts[0], fnFindController(typeof(VFXOperatorCosine)).outputPorts[0]);
+            var edgeController = new VFXDataEdgeController(fnFirstBlockController().inputPorts[0], fnFindController(typeof(Operator.Cosine)).outputPorts[0]);
             m_ViewController.AddElement(edgeController);
             Undo.IncrementCurrentGroup();
 
@@ -611,9 +611,9 @@ namespace UnityEditor.VFX.Test
             var cos = m_ViewController.AddVFXOperator(new Vector2(3, 3), cosDesc);
             var sin = m_ViewController.AddVFXOperator(new Vector2(4, 4), sinDesc);
 
-            var absController = fnFindController(typeof(VFXOperatorAbsolute));
-            var appendController = fnFindController(typeof(VFXOperatorAppendVector));
-            var crossController = fnFindController(typeof(VFXOperatorCrossProduct));
+            var absController = fnFindController(typeof(Operator.Absolute));
+            var appendController = fnFindController(typeof(Operator.AppendVector));
+            var crossController = fnFindController(typeof(Operator.CrossProduct));
 
             for (int i = 0; i < 3; ++i)
             {
@@ -647,26 +647,26 @@ namespace UnityEditor.VFX.Test
 
             Undo.PerformUndo();
             Assert.AreEqual(4, fnCountEdge()); //... and restored !
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindController(typeof(Operator.AppendVector)).outputPorts[0] as VFXDataAnchorController).model);
             Undo.PerformRedo();
             Assert.AreEqual(2, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat2), (fnFindController(typeof(Operator.AppendVector)).outputPorts[0] as VFXDataAnchorController).model);
 
             //Improve test connecting cos & sin => then try delete append
             Undo.PerformUndo();
             Undo.IncrementCurrentGroup();
             Assert.AreEqual(4, fnCountEdge());
-            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0] as VFXDataAnchorController).model);
+            Assert.IsInstanceOf(typeof(VFXSlotFloat3), (fnFindController(typeof(Operator.AppendVector)).outputPorts[0] as VFXDataAnchorController).model);
 
-            var edgeControllerCos = new VFXDataEdgeController(fnFindController(typeof(VFXOperatorCosine)).inputPorts[0], fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0]);
+            var edgeControllerCos = new VFXDataEdgeController(fnFindController(typeof(Operator.Cosine)).inputPorts[0], fnFindController(typeof(Operator.AppendVector)).outputPorts[0]);
             m_ViewController.AddElement(edgeControllerCos);
             Assert.AreEqual(5, fnCountEdge());
 
-            var edgeControllerSin = new VFXDataEdgeController(fnFindController(typeof(VFXOperatorSine)).inputPorts[0], fnFindController(typeof(VFXOperatorAppendVector)).outputPorts[0]);
+            var edgeControllerSin = new VFXDataEdgeController(fnFindController(typeof(Operator.Sine)).inputPorts[0], fnFindController(typeof(Operator.AppendVector)).outputPorts[0]);
             m_ViewController.AddElement(edgeControllerSin);
             Assert.AreEqual(6, fnCountEdge());
 
-            m_ViewController.RemoveElement(fnFindController(typeof(VFXOperatorAppendVector)));
+            m_ViewController.RemoveElement(fnFindController(typeof(Operator.AppendVector)));
             Assert.AreEqual(0, fnCountEdge());
         }
 
@@ -679,12 +679,12 @@ namespace UnityEditor.VFX.Test
                     return m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
                 };
 
-            Action<VFXOperatorComponentMask, string> fnSetSetting = delegate(VFXOperatorComponentMask target, string mask)
+            Action<Operator.ComponentMask, string> fnSetSetting = delegate(Operator.ComponentMask target, string mask)
                 {
-                    target.x = target.y = target.z = target.w = VFXOperatorComponentMask.Component.None;
+                    target.x = target.y = target.z = target.w = Operator.ComponentMask.Component.None;
                     for (int i = 0; i < mask.Length; ++i)
                     {
-                        var current = (VFXOperatorComponentMask.Component)Enum.Parse(typeof(VFXOperatorComponentMask.Component),  mask[i].ToString().ToUpper());
+                        var current = (Operator.ComponentMask.Component)Enum.Parse(typeof(Operator.ComponentMask.Component),  mask[i].ToString().ToUpper());
                         if (i == 0)
                         {
                             target.x = current;
@@ -705,16 +705,16 @@ namespace UnityEditor.VFX.Test
                     target.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
                 };
 
-            Func<VFXOperatorComponentMask, string> fnGetSetting = delegate(VFXOperatorComponentMask target)
+            Func<Operator.ComponentMask, string> fnGetSetting = delegate(Operator.ComponentMask target)
                 {
                     var value = "";
-                    if (target.x != VFXOperatorComponentMask.Component.None)
+                    if (target.x != Operator.ComponentMask.Component.None)
                         value += target.x.ToString().ToLower();
-                    if (target.y != VFXOperatorComponentMask.Component.None)
+                    if (target.y != Operator.ComponentMask.Component.None)
                         value += target.y.ToString().ToLower();
-                    if (target.z != VFXOperatorComponentMask.Component.None)
+                    if (target.z != Operator.ComponentMask.Component.None)
                         value += target.z.ToString().ToLower();
-                    if (target.w != VFXOperatorComponentMask.Component.None)
+                    if (target.w != Operator.ComponentMask.Component.None)
                         value += target.w.ToString().ToLower();
                     return value;
                 };
@@ -727,22 +727,22 @@ namespace UnityEditor.VFX.Test
             {
                 var componentMaskController = fnFirstOperatorController();
                 Undo.IncrementCurrentGroup();
-                fnSetSetting(componentMaskController.model as VFXOperatorComponentMask, maskList[i]);
-                Assert.AreEqual(maskList[i], fnGetSetting(componentMaskController.model as VFXOperatorComponentMask));
+                fnSetSetting(componentMaskController.model as Operator.ComponentMask, maskList[i]);
+                Assert.AreEqual(maskList[i], fnGetSetting(componentMaskController.model as Operator.ComponentMask));
             }
 
             for (int i = maskList.Length - 1; i > 0; --i)
             {
                 Undo.PerformUndo();
                 var componentMaskController = fnFirstOperatorController();
-                Assert.AreEqual(maskList[i - 1], fnGetSetting(componentMaskController.model as VFXOperatorComponentMask));
+                Assert.AreEqual(maskList[i - 1], fnGetSetting(componentMaskController.model as Operator.ComponentMask));
             }
 
             for (int i = 0; i < maskList.Length - 1; ++i)
             {
                 Undo.PerformRedo();
                 var componentMaskController = fnFirstOperatorController();
-                Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskController.model as VFXOperatorComponentMask));
+                Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskController.model as Operator.ComponentMask));
             }
         }
 
