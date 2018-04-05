@@ -298,4 +298,21 @@ namespace UnityEditor.VFX
 
         public static FlipBook defaultValue = new FlipBook { x = 4, y = 4 };
     }
+
+    [VFXType, Serializable]
+    struct CameraType
+    {
+        [Tooltip("The camera's position in the world.")]
+        public Transform transform;
+        [Angle, Range(0.0f, Mathf.PI), Tooltip("The field of view.")]
+        public float fieldOfView;
+        [Min(0.0f), Tooltip("The near plane.")]
+        public float nearPlane;
+        [Min(0.0f), Tooltip("The far plane.")]
+        public float farPlane;
+        [Min(0.0f), Tooltip("The aspect ratio.")]
+        public float aspectRatio;
+
+        public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f };
+    }
 }
