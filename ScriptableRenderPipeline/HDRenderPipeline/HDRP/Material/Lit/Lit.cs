@@ -28,12 +28,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Sphere = 2
         };
 
+        [GenerateHLSL]
         public enum RefractionSSRayModel
         {
             None = 0,
             Proxy = 1,
             HiZ = 2
         };
+
+        [GenerateHLSL]
+        public enum HiZIntersectionKind
+        {
+            None,
+            Cell,
+            Depth
+        }
 
         //-----------------------------------------------------------------------------
         // SurfaceData

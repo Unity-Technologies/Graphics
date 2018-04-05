@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IntParameter                 rayMaxLevel = new IntParameter(6);
         public IntParameter                 rayMaxIterations = new IntParameter(1024);
         public FloatParameter               rayDepthSuccessBias = new FloatParameter(0.1f);
+        public FloatParameter               screenWeightDistance = new FloatParameter(0.1f);
 
         public void PushShaderParameters(CommandBuffer cmd)
         {
@@ -17,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._SSRefractionRayMaxLevel, rayMaxLevel.value);
             cmd.SetGlobalInt(HDShaderIDs._SSRefractionRayMaxIterations, rayMaxIterations.value);
             cmd.SetGlobalFloat(HDShaderIDs._SSRefractionRayDepthSuccessBias, rayDepthSuccessBias.value);
+            cmd.SetGlobalFloat(HDShaderIDs._SSRefractionInvScreenWeightDistance, 1f / screenWeightDistance.value);
         }
     }
 }

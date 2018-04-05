@@ -25,14 +25,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         None,
         Color,
-        PositionNDC,
         RayDirWS,
-        RayDirNDC,
         HitDepth,
         HitSuccess,
-        IterationCount,
-        MaxUsedMipLevel,
-        IntersectionKind
+        HiZPositionNDC,
+        HiZRayDirNDC,
+        HiZIterationCount,
+        HiZMaxUsedMipLevel,
+        HiZIntersectionKind
     }
 
     public enum ShadowMapDebugMode

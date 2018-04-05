@@ -26,6 +26,10 @@ float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unus
 float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
 CBUFFER_END
 
+CBUFFER_START(UnityScreenSpaceLightingParameters)
+float _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
+CBUFFER_END
+
 // Ambient occlusion texture
 TEXTURE2D(_AmbientOcclusionTexture);
 
@@ -1824,26 +1828,26 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 #endif
 
             // Initialize screen space tracing
-            REFRACTION_SSRAY_IN input;
-            ZERO_INITIALIZE(REFRACTION_SSRAY_IN, input);
+            REFRACTION_SSRAY_IN ssRayInput;
+            ZERO_INITIALIZE(REFRACTION_SSRAY_IN, ssRayInput);
 
             // Common initialization
-            input.rayOriginWS = rayOriginWS;
-            input.rayDirWS = rayDirWS;
+            ssRayInput.rayOriginWS = rayOriginWS;
+            ssRayInput.rayDirWS = rayDirWS;
 #if DEBUG_DISPLAY
-            input.debug = debug
+            ssRayInput.debug = debug;
 #endif
             // Algorithm specific initialization
 #ifdef _REFRACTION_SSRAY_HIZ
-            input.maxIterations = uint(-1);
+            ssRayInput.maxIterations = uint(-1);
 #elif _REFRACTION_SSRAY_PROXY
-            input.proxyData = envLightData;
+            ssRayInput.proxyData = envLightData;
 #endif
 
             // Perform ray query
             ScreenSpaceRayHit hit;
             ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
-            REFRACTION_SSRAY_QUERY(input, hit);
+            bool hitSuccessful = REFRACTION_SSRAY_QUERY(ssRayInput, hit);
 
             // Debug screen space tracing
 #ifdef DEBUG_DISPLAY
@@ -1860,7 +1864,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             if (!hitSuccessful)
                 return lighting;
 
-            float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * _InvScreenWeightDistance, 0, 1);
+            float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * _SSRefractionInvScreenWeightDistance, 0, 1);
             weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
             float weight = weightNDC.x * weightNDC.y;
 
