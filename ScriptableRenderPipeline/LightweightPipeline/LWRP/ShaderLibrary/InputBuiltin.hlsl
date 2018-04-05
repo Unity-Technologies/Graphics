@@ -91,43 +91,34 @@ CBUFFER_START(UnityPerDraw)
 
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
-float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
+real4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 float4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 
 float4 unity_LightmapST;
-float4 unity_DynamicLightmapST;
 
 // SH lighting environment
-float4 unity_SHAr;
-float4 unity_SHAg;
-float4 unity_SHAb;
-float4 unity_SHBr;
-float4 unity_SHBg;
-float4 unity_SHBb;
-float4 unity_SHC;
-
-// x = Disabled(0)/Enabled(1)
-// y = Computation are done in global space(0) or local space(1)
-// z = Texel size on U texture coordinate
-float4 unity_ProbeVolumeParams;
-float4x4 unity_ProbeVolumeWorldToObject;
-float3 unity_ProbeVolumeSizeInv;
-float3 unity_ProbeVolumeMin;
+real4 unity_SHAr;
+real4 unity_SHAg;
+real4 unity_SHAb;
+real4 unity_SHBr;
+real4 unity_SHBg;
+real4 unity_SHBb;
+real4 unity_SHC;
 
 // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
-float4 unity_ProbesOcclusion;
+real4 unity_ProbesOcclusion;
 
 // HDR environment map decode instructions
-half4 unity_SpecCube0_HDR;
+real4 unity_SpecCube0_HDR;
 
 // HDR lightmap decode instructions
-half4 unity_Lightmap_HDR;
+real4 unity_Lightmap_HDR;
 
 // These are set internally by the engine upon request by RendererConfiguration.
 // Check GetRendererSettings in LightweightPipeline.cs
-half4 unity_LightIndicesOffsetAndCount;
-half4 unity_4LightIndices0;
-half4 unity_4LightIndices1;
+real4 unity_LightIndicesOffsetAndCount;
+real4 unity_4LightIndices0;
+real4 unity_4LightIndices1;
 
 CBUFFER_END
 
@@ -150,7 +141,7 @@ CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 CBUFFER_START(UnityStereoEyeIndices)
-float4 unity_StereoEyeIndices[2];
+real4 unity_StereoEyeIndices[2];
 CBUFFER_END
 #endif
 
@@ -172,13 +163,13 @@ CBUFFER_END
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerFrame)
-float4 glstate_lightmodel_ambient;
-float4 unity_AmbientSky;
-float4 unity_AmbientEquator;
-float4 unity_AmbientGround;
-float4 unity_IndirectSpecColor;
+real4 glstate_lightmodel_ambient;
+real4 unity_AmbientSky;
+real4 unity_AmbientEquator;
+real4 unity_AmbientGround;
+real4 unity_IndirectSpecColor;
 float4 unity_FogParams;
-half4  unity_FogColor;
+real4  unity_FogColor;
 
 #if !defined(USING_STEREO_MATRICES)
 float4x4 glstate_matrix_projection;
@@ -189,7 +180,7 @@ float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;
 #endif
 
-float4 unity_ShadowColor;
+real4 unity_ShadowColor;
 CBUFFER_END
 
 // ----------------------------------------------------------------------------

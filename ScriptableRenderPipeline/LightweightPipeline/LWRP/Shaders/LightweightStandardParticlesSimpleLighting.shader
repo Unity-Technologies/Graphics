@@ -69,6 +69,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
@@ -81,7 +82,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
             #define NO_SHADOWS 1
-
+            
             #include "LWRP/ShaderLibrary/Particles.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
@@ -104,12 +105,12 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
             {
-                half4 albedo = Albedo(IN);
-                half alpha = AlphaBlendAndTest(albedo.a);
+                half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+                half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                 half3 diffuse = AlphaModulate(albedo.rgb, alpha);
-                half3 normalTS = NormalTS(IN);
-                half3 emission = Emission(IN);
-                half4 specularGloss = SpecularGloss(IN, albedo.a);
+                half3 normalTS = SampleNormalTS(IN, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+                half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                half4 specularGloss = SampleSpecularGloss(IN, albedo.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
                 half shininess = IN.viewDirShininess.w;
 
                 InputData inputData;

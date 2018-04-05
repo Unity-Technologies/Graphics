@@ -58,7 +58,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         // Lightweight Pipeline tag is required. If Lightweight pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Lightweight Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         // ------------------------------------------------------------------
@@ -77,12 +77,13 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON 
+            #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
@@ -98,12 +99,13 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile _ FOG_LINEAR FOG_EXP2
+            #pragma multi_compile _ _SHADOWS_ENABLED
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fog
 
             //--------------------------------------
             // GPU Instancing
@@ -112,6 +114,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
@@ -127,29 +130,22 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
-            
+
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON 
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature _OCCLUSIONMAP
-
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature _SPECULAR_SETUP
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
             #pragma vertex ShadowPassVertex
-            #pragma fragment LitPassFragmentNull
+            #pragma fragment ShadowPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
@@ -164,30 +160,23 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
-            
+
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON 
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-            #pragma shader_feature _OCCLUSIONMAP
-
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature _SPECULAR_SETUP
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #pragma vertex LitPassVertex
-            #pragma fragment LitPassFragmentNull
-
-            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
 
@@ -213,7 +202,9 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMetaPBR.hlsl"
+
             ENDHLSL
         }
 
