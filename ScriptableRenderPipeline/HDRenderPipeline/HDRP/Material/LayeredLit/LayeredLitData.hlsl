@@ -449,6 +449,8 @@ void SetEnabledHeightByLayer(inout float height0, inout float height1, inout flo
 
 void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 {
+    ZERO_INITIALIZE_ARRAY(float, outWeights, _MAX_LAYER);
+
     float masks[_MAX_LAYER];
     masks[0] = inputMasks.a;
 
@@ -556,11 +558,6 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 // This function handle triplanar
 void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, float4 blendMasks, out float outWeights[_MAX_LAYER])
 {
-    for (int i = 0; i < _MAX_LAYER; ++i)
-    {
-        outWeights[i] = 0.0f;
-    }
-
 #if defined(_DENSITY_MODE)
     // Note: blendMasks.argb because a is main layer
     float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
