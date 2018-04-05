@@ -163,7 +163,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
         RTHandle                        m_DebugColorPickerBuffer;
         RTHandle                        m_DebugFullScreenTempBuffer;
-        bool                            m_FullScreenDebugPushed;
+        bool                            m_FullScreenDebugPushm_NoRenderinged;
+        bool                            m_NoRendering; // False by default mean we render normally, true mean we don't render anything
 
         public Material GetBlitMaterial() { return m_Blit; }
 
@@ -348,7 +349,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode");
             }
+
+
 #endif
+            m_NoRendering = false;
+
+            if (!IsSupportedPlatform())
+            {
+                Debug.LogError("Platform " + SystemInfo.operatingSystem + " is not supported");
+                m_NoRendering = true;
+            }
+        }
+
+        bool IsSupportedPlatform()
+        {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                return true;
+            }
+
+           // if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            {
+                string os = "Mac OS X 10.10.4";// SystemInfo.operatingSystem;
+                // For metal support depends on OS version
+                // 10.11 doesn’t have tessellation + few other shader language features, unusable
+                // 10.12.x has some luck with AMD but mostly it’s a support hell
+                // Only support 10.13 and above
+                if (os.StartsWith("Mac"))
+                {
+                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
+                    int startIndex = os.LastIndexOf(" ");
+                    var parts = os.Substring(startIndex).Split('.');
+                    int a = Convert.ToInt32(parts[0]);
+                    int b = Convert.ToInt32(parts[1]);
+                    int c = Convert.ToInt32(parts[2]);
+
+                    if (a >= 10 && b >= 13)
+                        return true;
+
+                }
+            }
+
+            return false;
         }
 
         void UnsetRenderingFeatures()
@@ -528,6 +575,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCullResults m_ReflectionProbeCullResults;
         public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+            if (m_NoRendering)
+                return;
+
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
