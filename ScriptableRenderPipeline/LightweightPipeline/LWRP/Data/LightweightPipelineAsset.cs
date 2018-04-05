@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public enum TextureScale
     {
-        Full,
+        One,
         Half,
         Quarter
     }
