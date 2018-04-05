@@ -26,7 +26,8 @@ void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int
 
 void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, inout float blend, float lod)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, lod);
+	//float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, lod);
+	float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, sampler_DecalAtlas2D, texCoords, lod);
 	src.w *= blend;
 	blend = src.w;	// diffuse texture alpha affects all other channels
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
@@ -77,7 +78,8 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			int diffuseIndex = decalData.normalToWorld[1][3];
 			int normalIndex = decalData.normalToWorld[2][3];
 			int maskIndex = decalData.normalToWorld[3][3];
-			float lod = ComputeTextureLOD(positionDS.xz, _DecalAtlasResolution);								
+			positionDS.xz = positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw;
+			float lod = ComputeTextureLOD(positionDS.xz, _DecalAtlasResolution * decalData.diffuseScaleBias.xy);
 			decalBlend = ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) ? decalBlend : 0;	// use blend of 0 instead of an 'if' because compiler moves the lod calculation inside the 'if' which causes incorrect values 
 																												// if any of the pixels in the 2x2 quad gets rejected
 

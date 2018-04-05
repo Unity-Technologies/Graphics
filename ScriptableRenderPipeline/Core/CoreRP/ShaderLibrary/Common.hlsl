@@ -825,7 +825,7 @@ float2 GetQuadTexCoord(uint vertexID)
 	uint botBit = (vertexID & 1);
 	float u = topBit; 
 	float v = (topBit + botBit) & 1; // produces 0 for indices 0,3 and 1 for 1,2
-#if !UNITY_UV_STARTS_AT_TOP
+#if UNITY_UV_STARTS_AT_TOP
 	v = 1.0 - v;
 #endif
 	return float2(u, v);
