@@ -356,7 +356,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!IsSupportedPlatform())
             {
-                Debug.LogError("Platform " + SystemInfo.operatingSystem + " is not supported");
+                Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
                 m_NoRendering = true;
             }
         }
