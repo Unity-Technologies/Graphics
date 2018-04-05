@@ -16,8 +16,8 @@ Shader "Hidden/LightweightPipeline/Sampling"
 
     struct Interpolators
     {
-        half4  pos      : SV_POSITION;
-        half4  texcoord : TEXCOORD0;
+        float4  pos      : SV_POSITION;
+        float2  texcoord : TEXCOORD0;
     };
 
     Interpolators Vertex(VertexInput i)
@@ -27,13 +27,7 @@ Shader "Hidden/LightweightPipeline/Sampling"
         UNITY_TRANSFER_INSTANCE_ID(i, o);
 
         o.pos = TransformObjectToHClip(i.vertex.xyz);
-
-        float4 projPos = o.pos * 0.5;
-        projPos.xy = projPos.xy + projPos.w;
-
         o.texcoord.xy = i.texcoord;
-        o.texcoord.zw = projPos.xy;
-
         return o;
     }
 
@@ -47,7 +41,7 @@ Shader "Hidden/LightweightPipeline/Sampling"
         s += (SAMPLE_TEXTURE2D(tex, samplerTex, uv + d.xw));
         s += (SAMPLE_TEXTURE2D(tex, samplerTex, uv + d.zw));
 
-        return s * (1.0 / 4.0);
+        return s * (1.0h * 0.25h);
     }
 
     ENDHLSL

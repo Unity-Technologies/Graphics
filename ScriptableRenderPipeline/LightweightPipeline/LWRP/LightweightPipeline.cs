@@ -139,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CopyDepth;
         private RenderTargetIdentifier m_Color;
         private RenderTargetIdentifier m_OpaqueRT;
+        private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f};
 
         private bool m_IntermediateTextureArray;
         private bool m_RequireDepthTexture;
@@ -400,6 +401,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.color);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.copyColor);
+                cmd.ReleaseTemporaryRT(CameraRenderTargetID.opaque);
 
                 cmd.EndSample("LightweightPipeline.Render");
 
@@ -509,34 +511,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void OpaqueTexturePass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
         {
-            RenderTextureDescriptor opaqueDesc;
-            if (LightweightUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.Stereo))
-                opaqueDesc = XRSettings.eyeTextureDesc;
-            else
-                opaqueDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
-
-            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
-
+            var opaqueScaler = m_OpaqueScalerValues[(int)m_Asset.OpaqueTextureScale];
+            RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
+            
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
+            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
             switch(m_Asset.OpaqueTextureScale)
             {
+                case TextureScale.One:
+                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
+                    break;
                 case TextureScale.Half:
-                    opaqueDesc.width = (int)((float)opaqueDesc.width * renderScale * 0.5f);
-                    opaqueDesc.height = (int)((float)opaqueDesc.height * renderScale * 0.5f);
-                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 0);
                     break;
                 case TextureScale.Quarter:
-                    opaqueDesc.width = (int)((float)opaqueDesc.width * renderScale * 0.25f);
-                    opaqueDesc.height = (int)((float)opaqueDesc.height * renderScale * 0.25f);
-                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 1);
-                    break;
-                default:
-                    opaqueDesc.width = (int)((float)opaqueDesc.width * renderScale);
-                    opaqueDesc.height = (int)((float)opaqueDesc.height * renderScale);
-                    cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
-                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
             }
             SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
@@ -581,45 +570,45 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void AfterOpaque(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
         {
-            if (!m_RequireDepthTexture)
-                return;
-
-            CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
-            cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_DepthRT);
-
-            bool setRenderTarget = false;
-            RenderTargetIdentifier depthRT = m_DepthRT;
-
-            // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
-            // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
-            // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
-            if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
+            if (m_RequireDepthTexture)
             {
-                // When only have one effect in the stack we blit to a work RT then blit it back to active color RT.
-                // This seems like an extra blit but it saves us a depth copy/blit which has some corner cases like msaa depth resolve.
-                if (m_RequireCopyColor)
+                CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
+                cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_DepthRT);
+
+                bool setRenderTarget = false;
+                RenderTargetIdentifier depthRT = m_DepthRT;
+
+                // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
+                // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
+                // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
+                if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
                 {
-                    RenderPostProcess(cmd, m_CurrCameraColorRT, m_CopyColorRT, true);
-                    cmd.Blit(m_CopyColorRT, m_CurrCameraColorRT);
+                    // When only have one effect in the stack we blit to a work RT then blit it back to active color RT.
+                    // This seems like an extra blit but it saves us a depth copy/blit which has some corner cases like msaa depth resolve.
+                    if (m_RequireCopyColor)
+                    {
+                        RenderPostProcess(cmd, m_CurrCameraColorRT, m_CopyColorRT, true);
+                        cmd.Blit(m_CopyColorRT, m_CurrCameraColorRT);
+                    }
+                    else
+                        RenderPostProcess(cmd, m_CurrCameraColorRT, m_CurrCameraColorRT, true);
+
+                    setRenderTarget = true;
+                    SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
                 }
-                else
-                    RenderPostProcess(cmd, m_CurrCameraColorRT, m_CurrCameraColorRT, true);
 
-                setRenderTarget = true;
-                SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
+                if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
+                {
+                    CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
+                    depthRT = m_CopyDepth;
+                    setRenderTarget = true;
+                }
+
+                if (setRenderTarget)
+                    SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
             }
-
-            if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
-            {
-                CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
-                depthRT = m_CopyDepth;
-                setRenderTarget = true;
-            }
-
-            if (setRenderTarget)
-                SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
             
             if(m_Asset.RequireOpaqueTexture)
             {
@@ -790,6 +779,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 configuration |= FrameRenderingConfiguration.IntermediateTexture;
         }
 
+        private RenderTextureDescriptor CreateRTDesc(FrameRenderingConfiguration renderingConfig, float scaler = 1.0f)
+        {
+            RenderTextureDescriptor desc;
+            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
+                desc = XRSettings.eyeTextureDesc;
+            else
+                desc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
+
+            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
+            desc.width = (int)((float)desc.width * renderScale * scaler);
+            desc.height = (int)((float)desc.height * renderScale * scaler);
+            return desc;
+        }
+
         private void SetupIntermediateResources(FrameRenderingConfiguration renderingConfig, ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Setup Intermediate Resources");
@@ -807,17 +810,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupIntermediateRenderTextures(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, int msaaSamples)
         {
-            RenderTextureDescriptor baseDesc;
-            if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                baseDesc = XRSettings.eyeTextureDesc;
-            else
-                baseDesc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
-
-            float renderScale = (m_CurrCamera.cameraType == CameraType.Game) ? m_Asset.RenderScale : 1.0f;
-            baseDesc.width = (int)((float)baseDesc.width * renderScale);
-            baseDesc.height = (int)((float)baseDesc.height * renderScale);
-
             // TODO: Might be worth caching baseDesc for allocation of other targets (Screen-space Shadow Map?)
+            RenderTextureDescriptor baseDesc = CreateRTDesc(renderingConfig);
 
             if (m_RequireDepthTexture)
             {
