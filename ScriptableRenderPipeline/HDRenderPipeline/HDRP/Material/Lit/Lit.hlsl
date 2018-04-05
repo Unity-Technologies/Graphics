@@ -1868,9 +1868,12 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
             float weight = weightNDC.x * weightNDC.y;
 
+            float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+            float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+
             // Exit if texel is out of color buffer
             // Or if the texel is from an object in front of the object
-            if (hit.linearDepth < posInput.linearDepth
+            if (hitLinearDepth < posInput.linearDepth
                 || weight == 0)
             {
                 // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe

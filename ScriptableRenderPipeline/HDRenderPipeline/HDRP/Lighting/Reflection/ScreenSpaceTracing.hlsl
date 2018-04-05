@@ -246,8 +246,11 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
     switch(input.proxyData.influenceShapeType)
     {
         case ENVSHAPETYPE_SPHERE:
+        case ENVSHAPETYPE_SKY:
+        {
             projectionDistance = IntersectSphereProxy(input.proxyData, rayDirPS, rayOriginPS);
             break;
+        }
         case ENVSHAPETYPE_BOX:
             projectionDistance = IntersectBoxProxy(input.proxyData, rayDirPS, rayOriginPS);
             break;
@@ -260,11 +263,11 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
     uint2 hitPositionSS     = uint2(hitPositionNDC *_ScreenSize.xy);
     float hitLinearDepth    = hitPositionCS.w;
 
-    hit.positionNDC       = hitPositionNDC;
-    hit.positionSS        = hitPositionSS;
-    hit.linearDepth       = hitLinearDepth;
+    hit.positionNDC         = hitPositionNDC;
+    hit.positionSS          = hitPositionSS;
+    hit.linearDepth         = hitLinearDepth;
 
-    bool hitSuccessful      = rayOriginCS.w <= hitLinearDepth;
+    bool hitSuccessful      = true;
 
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, hit);
@@ -285,12 +288,14 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
         debug.endLinearDepth        = hitLinearDepth;
         debug.endPositionSSX        = hitPositionSS.x;
         debug.endPositionSSY        = hitPositionSS.y;
+        debug.proxyShapeType        = input.proxyData.influenceShapeType;
+        debug.projectionDistance    = projectionDistance;
         
         _DebugScreenSpaceTracingData[0] = debug;
     }
 #endif
 
-    return false;
+    return hitSuccessful;
 }
 
 // -------------------------------------------------

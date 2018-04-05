@@ -39,12 +39,12 @@ struct ScreenSpaceTracingDebug
     int iterationIntersectionKind;
     uint iterationCellSizeW;
     uint iterationCellSizeH;
+    int proxyShapeType;
+    float projectionDistance;
     bool endHitSuccess;
     float endLinearDepth;
     uint endPositionSSX;
     uint endPositionSSY;
-    uint unused01;
-    uint unused02;
 };
 
 //
@@ -106,6 +106,14 @@ uint GetIterationCellSizeH(ScreenSpaceTracingDebug value)
 {
 	return value.iterationCellSizeH;
 }
+int GetProxyShapeType(ScreenSpaceTracingDebug value)
+{
+	return value.proxyShapeType;
+}
+float GetProjectionDistance(ScreenSpaceTracingDebug value)
+{
+	return value.projectionDistance;
+}
 bool GetEndHitSuccess(ScreenSpaceTracingDebug value)
 {
 	return value.endHitSuccess;
@@ -121,14 +129,6 @@ uint GetEndPositionSSX(ScreenSpaceTracingDebug value)
 uint GetEndPositionSSY(ScreenSpaceTracingDebug value)
 {
 	return value.endPositionSSY;
-}
-uint GetUnused01(ScreenSpaceTracingDebug value)
-{
-	return value.unused01;
-}
-uint GetUnused02(ScreenSpaceTracingDebug value)
-{
-	return value.unused02;
 }
 
 

@@ -8,9 +8,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public IntParameter                 rayMinLevel = new IntParameter(2);
         public IntParameter                 rayMaxLevel = new IntParameter(6);
-        public IntParameter                 rayMaxIterations = new IntParameter(1024);
+        public IntParameter                 rayMaxIterations = new IntParameter(32);
         public FloatParameter               rayDepthSuccessBias = new FloatParameter(0.1f);
-        public FloatParameter               screenWeightDistance = new FloatParameter(0.1f);
+        public ClampedFloatParameter        screenWeightDistance = new ClampedFloatParameter(0.1f, 0, 1);
 
         public void PushShaderParameters(CommandBuffer cmd)
         {
