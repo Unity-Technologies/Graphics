@@ -25,97 +25,94 @@
 // PackingRules = Exact
 struct ScreenSpaceTracingDebug
 {
-    uint startPositionSSX;
-    uint startPositionSSY;
-    uint cellSizeW;
-    uint cellSizeH;
-    float3 positionSS;
-    float startLinearDepth;
-    uint level;
-    uint levelMax;
+    int tracingModel;
+    uint loopStartPositionSSX;
+    uint loopStartPositionSSY;
+    float loopStartLinearDepth;
+    float3 loopRayDirectionSS;
+    uint loopMipLevelMax;
+    uint loopIterationMax;
+    float3 iterationPositionSS;
+    uint iterationMipLevel;
     uint iteration;
-    uint iterationMax;
-    bool hitSuccess;
-    float hitLinearDepth;
-    float2 hitPositionSS;
-    float hiZLinearDepth;
-    float3 raySS;
-    uint intersectionKind;
-    float resultHitDepth;
+    float iterationLinearDepthBuffer;
+    int iterationIntersectionKind;
+    uint iterationCellSizeW;
+    uint iterationCellSizeH;
+    bool endHitSuccess;
+    float endLinearDepth;
     uint endPositionSSX;
     uint endPositionSSY;
+    uint unused01;
+    uint unused02;
 };
 
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ScreenSpaceTracingDebug
 //
-uint GetStartPositionSSX(ScreenSpaceTracingDebug value)
+int GetTracingModel(ScreenSpaceTracingDebug value)
 {
-	return value.startPositionSSX;
+	return value.tracingModel;
 }
-uint GetStartPositionSSY(ScreenSpaceTracingDebug value)
+uint GetLoopStartPositionSSX(ScreenSpaceTracingDebug value)
 {
-	return value.startPositionSSY;
+	return value.loopStartPositionSSX;
 }
-uint GetCellSizeW(ScreenSpaceTracingDebug value)
+uint GetLoopStartPositionSSY(ScreenSpaceTracingDebug value)
 {
-	return value.cellSizeW;
+	return value.loopStartPositionSSY;
 }
-uint GetCellSizeH(ScreenSpaceTracingDebug value)
+float GetLoopStartLinearDepth(ScreenSpaceTracingDebug value)
 {
-	return value.cellSizeH;
+	return value.loopStartLinearDepth;
 }
-float3 GetPositionSS(ScreenSpaceTracingDebug value)
+float3 GetLoopRayDirectionSS(ScreenSpaceTracingDebug value)
 {
-	return value.positionSS;
+	return value.loopRayDirectionSS;
 }
-float GetStartLinearDepth(ScreenSpaceTracingDebug value)
+uint GetLoopMipLevelMax(ScreenSpaceTracingDebug value)
 {
-	return value.startLinearDepth;
+	return value.loopMipLevelMax;
 }
-uint GetLevel(ScreenSpaceTracingDebug value)
+uint GetLoopIterationMax(ScreenSpaceTracingDebug value)
 {
-	return value.level;
+	return value.loopIterationMax;
 }
-uint GetLevelMax(ScreenSpaceTracingDebug value)
+float3 GetIterationPositionSS(ScreenSpaceTracingDebug value)
 {
-	return value.levelMax;
+	return value.iterationPositionSS;
+}
+uint GetIterationMipLevel(ScreenSpaceTracingDebug value)
+{
+	return value.iterationMipLevel;
 }
 uint GetIteration(ScreenSpaceTracingDebug value)
 {
 	return value.iteration;
 }
-uint GetIterationMax(ScreenSpaceTracingDebug value)
+float GetIterationLinearDepthBuffer(ScreenSpaceTracingDebug value)
 {
-	return value.iterationMax;
+	return value.iterationLinearDepthBuffer;
 }
-bool GetHitSuccess(ScreenSpaceTracingDebug value)
+int GetIterationIntersectionKind(ScreenSpaceTracingDebug value)
 {
-	return value.hitSuccess;
+	return value.iterationIntersectionKind;
 }
-float GetHitLinearDepth(ScreenSpaceTracingDebug value)
+uint GetIterationCellSizeW(ScreenSpaceTracingDebug value)
 {
-	return value.hitLinearDepth;
+	return value.iterationCellSizeW;
 }
-float2 GetHitPositionSS(ScreenSpaceTracingDebug value)
+uint GetIterationCellSizeH(ScreenSpaceTracingDebug value)
 {
-	return value.hitPositionSS;
+	return value.iterationCellSizeH;
 }
-float GetHiZLinearDepth(ScreenSpaceTracingDebug value)
+bool GetEndHitSuccess(ScreenSpaceTracingDebug value)
 {
-	return value.hiZLinearDepth;
+	return value.endHitSuccess;
 }
-float3 GetRaySS(ScreenSpaceTracingDebug value)
+float GetEndLinearDepth(ScreenSpaceTracingDebug value)
 {
-	return value.raySS;
-}
-uint GetIntersectionKind(ScreenSpaceTracingDebug value)
-{
-	return value.intersectionKind;
-}
-float GetResultHitDepth(ScreenSpaceTracingDebug value)
-{
-	return value.resultHitDepth;
+	return value.endLinearDepth;
 }
 uint GetEndPositionSSX(ScreenSpaceTracingDebug value)
 {
@@ -124,6 +121,14 @@ uint GetEndPositionSSX(ScreenSpaceTracingDebug value)
 uint GetEndPositionSSY(ScreenSpaceTracingDebug value)
 {
 	return value.endPositionSSY;
+}
+uint GetUnused01(ScreenSpaceTracingDebug value)
+{
+	return value.unused01;
+}
+uint GetUnused02(ScreenSpaceTracingDebug value)
+{
+	return value.unused02;
 }
 
 

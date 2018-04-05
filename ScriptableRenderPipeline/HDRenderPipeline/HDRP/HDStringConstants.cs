@@ -266,6 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SSRefractionRayMaxLevel = Shader.PropertyToID("_SSRefractionRayMaxLevel");
         public static readonly int _SSRefractionRayMaxIterations = Shader.PropertyToID("_SSRefractionRayMaxIterations");
         public static readonly int _SSRefractionRayDepthSuccessBias = Shader.PropertyToID("_SSRefractionRayDepthSuccessBias");
+        public static readonly int _SSRefractionInvScreenWeightDistance = Shader.PropertyToID("_SSRefractionInvScreenWeightDistance");
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");

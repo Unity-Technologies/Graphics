@@ -26,6 +26,7 @@ float _DebugExposure;
 CBUFFER_END
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
+RWStructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData;
 
 void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
 {
