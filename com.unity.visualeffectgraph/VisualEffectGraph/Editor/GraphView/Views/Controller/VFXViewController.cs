@@ -434,11 +434,16 @@ namespace UnityEditor.VFX.UI
                 context.Detach();
 
                 RemoveFromGroupNodes(element as VFXNodeController);
+
+
+                Object.DestroyImmediate(context,true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
+
+                Object.DestroyImmediate(block.block,true);
             }
             else if (element is VFXParameterNodeController)
             {
@@ -480,6 +485,8 @@ namespace UnityEditor.VFX.UI
                 while (slotToClean != null);
 
                 graph.RemoveChild(container as VFXModel);
+
+                Object.DestroyImmediate(container as VFXModel,true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -632,20 +639,23 @@ namespace UnityEditor.VFX.UI
             }
 
             //Patch group nodes, removing this sticky note and fixing ids that are bigger than index
-            for (int i = 0; i < ui.groupInfos.Length; ++i)
+            if (ui.groupInfos != null)
             {
-                for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                for (int i = 0; i < ui.groupInfos.Length; ++i)
                 {
-                    if (ui.groupInfos[i].contents[j].isStickyNote)
+                    for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                     {
-                        if (ui.groupInfos[i].contents[j].id == index)
+                        if (ui.groupInfos[i].contents[j].isStickyNote)
                         {
-                            ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
-                            j--;
-                        }
-                        else if (ui.groupInfos[i].contents[j].id > index)
-                        {
-                            --(ui.groupInfos[i].contents[j].id);
+                            if (ui.groupInfos[i].contents[j].id == index)
+                            {
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
+                                j--;
+                            }
+                            else if (ui.groupInfos[i].contents[j].id > index)
+                            {
+                                --(ui.groupInfos[i].contents[j].id);
+                            }
                         }
                     }
                 }

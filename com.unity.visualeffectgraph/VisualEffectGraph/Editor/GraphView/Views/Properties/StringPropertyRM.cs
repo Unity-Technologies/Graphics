@@ -116,7 +116,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate()
         {
-            if( m_StringField != null)
+            if (m_StringField != null)
             {
                 m_StringField.indeterminate = indeterminate;
             }
