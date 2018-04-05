@@ -38,9 +38,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public enum TextureScale
     {
-        One,
-        Half,
-        Quarter
+        OnePoint = 0,
+        HalfBilinear,
+        QuarterBox,
+        QuarterBilinear
     }
 
     public enum DefaultMaterialType
@@ -65,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
         [SerializeField] private bool m_RequireOpaqueTexture = false;
-        [SerializeField] private TextureScale m_OpaqueTextureScale = TextureScale.Half;
+        [SerializeField] private TextureScale m_OpaqueTextureScale = TextureScale.HalfBilinear;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;

@@ -51,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
+            public static string[] opaqueTextureScaleOptions = {"One (Point)", "Half (Bilinear)", "Quarter (Box)", "Quarter (Bilinear)"};
         }
 
         AnimBool m_ShowSoftParticles = new AnimBool();
@@ -99,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
             m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
-            m_ShowOpaqueTextureScale.value = m_OpaqueTextureScaleProp.boolValue;
+            m_ShowOpaqueTextureScale.value = m_RequireOpaqueTextureProp.boolValue;
         }
 
         void OnDisable()
@@ -119,6 +120,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             using (var group = new EditorGUILayout.FadeGroupScope(animation.faded))
                 if (group.visible)
                     EditorGUILayout.PropertyField(prop, content);
+        }
+
+        void DrawAnimatedPopup(SerializedProperty prop, GUIContent content, string[] options, AnimBool animation)
+        {
+            using (var group = new EditorGUILayout.FadeGroupScope(animation.faded))
+                if (group.visible)
+                    CoreEditorUtils.DrawPopup(content, prop, options);
         }
 
         public override void OnInspectorGUI()
@@ -141,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
             DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
             EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
-            DrawAnimatedProperty(m_OpaqueTextureScaleProp, Styles.opaqueTextureScale, m_ShowOpaqueTextureScale);
+            DrawAnimatedPopup(m_OpaqueTextureScaleProp, Styles.opaqueTextureScale, Styles.opaqueTextureScaleOptions, m_ShowOpaqueTextureScale);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
 
