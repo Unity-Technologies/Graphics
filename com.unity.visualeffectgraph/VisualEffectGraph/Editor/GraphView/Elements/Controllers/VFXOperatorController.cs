@@ -59,15 +59,19 @@ namespace UnityEditor.VFX.UI
         }
         public override void WillCreateLink(ref VFXSlot myInput,ref VFXSlot otherOutput)
         {
-            bool hasLink = inputPorts.Any(t=>t.model.HasLink());
 
-            if( ! hasLink && model.validTypes.Contains(otherOutput.property.type))
+            if( model.validTypes.Contains(otherOutput.property.type))
             {
                 int index = model.GetSlotIndex(myInput);
                 model.SetOperandType(index,otherOutput.property.type);
 
                 myInput = model.GetInputSlot(index);
             }
+        }
+
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput,VFXDataAnchorController otherOutput)
+        {
+            return model.validTypes.Contains(otherOutput.portType);
         }
 
         public override bool isEditable
@@ -116,12 +120,23 @@ namespace UnityEditor.VFX.UI
                 return base.model as VFXOperatorNumericUniformNew;
             }
         }
+
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput,VFXDataAnchorController otherOutput)
+        {
+            return model.validTypes.Contains(otherOutput.portType);
+        }
         
         public override void WillCreateLink(ref VFXSlot myInput,ref VFXSlot otherOutput)
         {
-            bool hasLink = inputPorts.Any(t=>t.model.HasLink());
+            //Since every input will change at the same time the metric to change is :
+            // if we have no input links yet
 
-            if( ! hasLink && model.validTypes.Contains(otherOutput.property.type))
+            var myInputCopy = myInput;
+            bool hasLink = inputPorts.Any(t=>t.model != myInputCopy && t.model.HasLink());
+            // The new link is impossible if we don't change (case of a vector3 trying to be linked to a vector4)
+            bool linkImpossibleNow = ! myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput);
+
+            if( (! hasLink || linkImpossibleNow) && model.validTypes.Contains(otherOutput.property.type))
             {
                 int index = model.GetSlotIndex(myInput);
                 model.SetOperandType(otherOutput.property.type);

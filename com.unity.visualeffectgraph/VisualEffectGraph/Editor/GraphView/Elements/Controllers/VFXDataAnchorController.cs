@@ -98,9 +98,13 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool CanLink(VFXDataAnchorController controller)
         {
-            if( controller.model != null)
+            if( controller.model != null )
             {
-                return model.CanLink(controller.model) && controller.model.CanLink(model);
+                if( model.CanLink(controller.model) && controller.model.CanLink(model) )
+                {
+                    return true;
+                }
+                return sourceNode.CouldLink(this,controller);
             }
 
             return controller.CanLink(this);

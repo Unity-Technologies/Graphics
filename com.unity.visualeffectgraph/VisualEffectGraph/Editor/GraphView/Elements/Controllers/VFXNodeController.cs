@@ -56,6 +56,21 @@ namespace UnityEditor.VFX.UI
         {
         }
 
+        public bool CouldLink(VFXDataAnchorController myAnchor,VFXDataAnchorController otherAnchor)
+        {
+            if( myAnchor.direction != Direction.Input)
+            {
+                return otherAnchor.sourceNode.CouldLinkMyInputTo(otherAnchor,myAnchor);
+            }
+
+            return CouldLinkMyInputTo(myAnchor,otherAnchor);
+        }
+
+        protected virtual bool CouldLinkMyInputTo(VFXDataAnchorController myInput,VFXDataAnchorController otherOutput)
+        {
+            return false;
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
