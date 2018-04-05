@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CopyDepth;
         private RenderTargetIdentifier m_Color;
         private RenderTargetIdentifier m_OpaqueRT;
-        private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f};
+        private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
 
         private bool m_IntermediateTextureArray;
         private bool m_RequireDepthTexture;
@@ -191,6 +191,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private Material m_ErrorMaterial;
         private Material m_ScreenSpaceShadowsMaterial;
         private Material m_SamplingMaterial;
+        private int m_SampleOffset;
         private int m_BlitTexID = Shader.PropertyToID("_BlitTex");
 
         private CopyTextureSupport m_CopyTextureSupport;
@@ -238,6 +239,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CameraRenderTargetID.depth = Shader.PropertyToID("_CameraDepthTexture");
             CameraRenderTargetID.depthCopy = Shader.PropertyToID("_CameraCopyDepthTexture");
             CameraRenderTargetID.opaque = Shader.PropertyToID("_CameraOpaqueTexture");
+
+            m_SampleOffset = Shader.PropertyToID("_SampleOffset");
 
             m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapRTID);
             m_ScreenSpaceShadowMapRT = new RenderTargetIdentifier(m_ScreenSpaceShadowMapRTID);
@@ -515,17 +518,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
             
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
-            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueTextureScale == TextureScale.OnePoint ? FilterMode.Point : FilterMode.Bilinear);
             switch(m_Asset.OpaqueTextureScale)
             {
-                case TextureScale.One:
+                case TextureScale.OnePoint:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
-                case TextureScale.Half:
+                case TextureScale.HalfBilinear:
+                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
+                    break;
+                case TextureScale.QuarterBox:
+                    m_SamplingMaterial.SetFloat(m_SampleOffset, 2);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 0);
                     break;
-                case TextureScale.Quarter:
-                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 1);
+                case TextureScale.QuarterBilinear:
+                    cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
             }
             SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);

@@ -69,35 +69,11 @@ Shader "Hidden/LightweightPipeline/Sampling"
             SAMPLER(sampler_MainTex);
             float4 _MainTex_TexelSize;
 
-            half4 FragBoxDownsample(Interpolators i) : SV_Target
-            {
-                half4 col = DownsampleBox4Tap(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), i.texcoord, _MainTex_TexelSize.xy, 1.0);
-                return half4(col.rgb, 1);
-            }
-            ENDHLSL
-        }
-
-        // 1 - 2x Downsample - Box filtering
-        Pass
-        {
-            Tags { "LightMode" = "LightweightForward"}
-
-            ZTest Always
-            ZWrite Off
-
-            HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma vertex Vertex
-            #pragma fragment FragBoxDownsample
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-            float4 _MainTex_TexelSize;
+            float _SampleOffset;
 
             half4 FragBoxDownsample(Interpolators i) : SV_Target
             {
-                half4 col = DownsampleBox4Tap(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), i.texcoord, _MainTex_TexelSize.xy, 2.0);
+                half4 col = DownsampleBox4Tap(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), i.texcoord, _MainTex_TexelSize.xy, _SampleOffset);
                 return half4(col.rgb, 1);
             }
             ENDHLSL
