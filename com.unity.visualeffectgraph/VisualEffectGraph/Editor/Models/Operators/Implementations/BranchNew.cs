@@ -6,7 +6,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math", variantProvider = typeof(InlineTypeProvider))] //PRovider is only a test waiting a real interface
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Operator
             public Sphere False = Sphere.defaultValue;
         }
 
-        public sealed override string name { get { return "BranchNew"; } }
+        public sealed override string name { get { return "BranchNew " + ((Type)m_Type).UserFriendlyName(); } }
 
         public void SetOperandType(Type type)
         {
