@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // 1x32 bits
         public Lit.RefractionSSRayModel tracingModel;
 
-        // 7x32 bits
+        // 6x32 bits
         public uint loopStartPositionSSX;                           // Proxy, HiZ
         public uint loopStartPositionSSY;                           // Proxy, HiZ
         public float loopStartLinearDepth;                          // Proxy, HiZ
@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint loopMipLevelMax;                                // HiZ
         public uint loopIterationMax;                               // HiZ
 
-        // 10x32 bits
+        // 9x32 bits
         public Vector3 iterationPositionSS;                         // HiZ
         public uint iterationMipLevel;                              // HiZ
         public uint iteration;                                      // HiZ
@@ -51,6 +51,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Lit.HiZIntersectionKind iterationIntersectionKind;   // HiZ
         public uint iterationCellSizeW;                             // HiZ
         public uint iterationCellSizeH;                             // HiZ
+        public EnvShapeType proxyShapeType;                         // Proxy
+        public float projectionDistance;                            // Proxy
 
         // 4x32 bits
         public bool endHitSuccess;                                  // Proxy, HiZ
@@ -58,9 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint endPositionSSX;                                 // Proxy, HiZ
         public uint endPositionSSY;                                 // Proxy, HiZ
 
-        // 2x32 bits (padding)
-        public uint unused01;
-        public uint unused02;
+        // 0x32 bits (padding)
 
         public Vector2 loopStartPositionSS { get { return new Vector2(loopStartPositionSSX, loopStartPositionSSY); } }
         public Vector2 endPositionSS { get { return new Vector2(endPositionSSX, endPositionSSY); } }
@@ -369,6 +369,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 children =
                                 {
                                     new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess },
+                                    new DebugUI.Value { displayName = "Proxy Shape", getter = () => screenSpaceTracingDebugData.proxyShapeType },
+                                    new DebugUI.Value { displayName = "Projection Distance", getter = () => screenSpaceTracingDebugData.projectionDistance },
+                                    new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
                                     new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
                                     new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },

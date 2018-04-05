@@ -167,6 +167,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #endif
             firstEnvLight = _EnvLightDatas[envLightIndex];
         }
+        else
+            firstEnvLight = InitSkyEnvLightData(0);
     }
 
     if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
