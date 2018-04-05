@@ -12,6 +12,70 @@ using UnityEditor.VFX.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
+    class VFXUniformOperatorEdit : VisualElement, IControlledElement<VFXUniformOperatorController>
+    {
+        Label m_TypePopup;
+        public VFXUniformOperatorEdit()
+        {
+            this.AddStyleSheetPathWithSkinVariant("VFXControls");
+            m_TypePopup = new Label();
+            m_TypePopup.AddToClassList("PopupButton");
+            m_TypePopup.AddManipulator(new DownClickable(() => OnTypeMenu()));
+
+            Add(m_TypePopup);
+
+            RegisterCallback<ControllerChangedEvent>(OnChange);
+        }
+
+        void OnTypeMenu()
+        {
+            var op = controller.model;
+            GenericMenu menu = new GenericMenu();
+            var selectedType = op.GetOperandType();
+            foreach (var type in op.validTypes)
+            {
+                menu.AddItem(EditorGUIUtility.TrTextContent(type.UserFriendlyName()), selectedType == type, OnChangeType, type);
+            }
+            menu.DropDown(m_TypePopup.worldBound);
+        }
+        void OnChangeType(object type)
+        {
+            var op = controller.model;
+
+            op.SetOperandType((Type)type);
+        }
+        VFXUniformOperatorController m_Controller;
+        Controller IControlledElement.controller
+        {
+            get { return m_Controller; }
+        }
+        public VFXUniformOperatorController controller
+        {
+            get { return m_Controller; }
+            set
+            {
+                if (m_Controller != value)
+                {
+                    if (m_Controller != null)
+                    {
+                        m_Controller.UnregisterHandler(this);
+                    }
+                    m_Controller = value;
+                    if (m_Controller != null)
+                    {
+                        m_Controller.RegisterHandler(this);
+                    }
+                }
+            }
+        }
+        void OnChange(ControllerChangedEvent e)
+        {
+            if (e.controller == controller)
+            {
+                m_TypePopup.text = controller.model.GetOperandType().UserFriendlyName();
+            }
+        }
+    }
     class VFXMultiOperatorEdit : VFXReorderableList, IControlledElement<VFXCascadedOperatorController>
     {
         VFXCascadedOperatorController m_Controller;
@@ -71,13 +135,9 @@ namespace UnityEditor.VFX.UI
         {
             var op = controller.model;
             GenericMenu menu = new GenericMenu();
-            int selectedIndex = -1;
             var selectedType = op.GetOperandType(index);
-            int cpt = 0;
             foreach (var type in op.validTypes)
             {
-                if (selectedType == type)
-                    selectedIndex = cpt++;
                 menu.AddItem(EditorGUIUtility.TrTextContent(type.UserFriendlyName()), selectedType == type, OnChangeType, type);
             }
             m_CurrentIndex = index;

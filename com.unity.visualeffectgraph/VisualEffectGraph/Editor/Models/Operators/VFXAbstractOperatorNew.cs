@@ -150,6 +150,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public Type GetOperandType()
+        {
+            return m_Type;
+        }
+
         public void SetOperandType(Type type)
         {
             if (!validTypes.Contains(type))

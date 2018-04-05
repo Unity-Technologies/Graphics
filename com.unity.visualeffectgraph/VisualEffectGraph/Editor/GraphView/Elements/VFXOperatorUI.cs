@@ -90,30 +90,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void RefreshLayout()
-        {
-            if (!isEditable || m_EditContainer == null || m_EditContainer.parent == null)
-            {
-                bool changed = topContainer.style.height.value != 0;
-                if (changed)
-                {
-                    topContainer.ResetPositionProperties();
-                }
-                base.RefreshLayout();
-            }
-            else
-            {
-                topContainer.style.height = m_EditContainer.layout.height;
-                topContainer.Dirty(ChangeType.Layout);
-            }
-        }
-
         public bool isEditable
         {
             get
             {
-                return controller != null && controller is VFXCascadedOperatorController;
+                return controller != null && controller.isEditable;
             }
+        }
+
+        protected VisualElement GetControllerEditor()
+        {
+            if( controller is VFXCascadedOperatorController)
+            {
+                var edit = new VFXMultiOperatorEdit();
+                edit.controller = controller as VFXCascadedOperatorController;
+                return edit;
+            }
+            if( controller is VFXUniformOperatorController)
+            {
+                var edit = new VFXUniformOperatorEdit();
+                edit.controller = controller as VFXUniformOperatorController;
+                return edit;
+            }
+            return null;
         }
 
         protected override void SelfChange()
@@ -143,10 +142,10 @@ namespace UnityEditor.VFX.UI
                 }
                 if (m_EditContainer == null)
                 {
-                    m_EditContainer = new VFXMultiOperatorEdit();
-                    m_EditContainer.name = "edit-container";
+                    m_EditContainer = GetControllerEditor();
+                    if(m_EditContainer != null)
+                        m_EditContainer.name = "edit-container";
                 }
-                (m_EditContainer as VFXMultiOperatorEdit).controller = cascadedController;
             }
             else
             {

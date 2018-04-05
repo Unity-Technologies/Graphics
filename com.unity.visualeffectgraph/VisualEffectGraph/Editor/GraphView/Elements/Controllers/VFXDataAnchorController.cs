@@ -106,6 +106,22 @@ namespace UnityEditor.VFX.UI
             return controller.CanLink(this);
         }
 
+
+        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        {
+            
+            var slotOutput = output != null ? output.model : null;
+            var slotInput = model;
+            sourceNode.WillCreateLink(ref slotInput,ref slotOutput);
+
+            if( slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
+            {
+                return new VFXParameter.NodeLinkedSlot(){inputSlot = slotInput,outputSlot = slotOutput};
+            }
+
+            return new VFXParameter.NodeLinkedSlot();
+        }
+
         public class Change
         {
             public const int hidden = 1;
@@ -423,6 +439,29 @@ namespace UnityEditor.VFX.UI
             var array = op.model.validTypes.ToArray();
             
             return array.Contains(controller.model.property.type);
+        }
+
+        public new VFXCascadedOperatorController sourceNode
+        {
+            get{ return base.sourceNode as VFXCascadedOperatorController;}
+        }
+
+        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        {
+            var slotOutput = output != null ? output.model : null;
+
+            VFXOperatorNumericCascadedUnifiedNew op = sourceNode.model;
+
+            op.AddOperand(output.model.property.type);
+
+            var slotInput = op.GetInputSlot(op.GetNbInputSlots() -1);
+
+            if( slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
+            {
+                return new VFXParameter.NodeLinkedSlot(){inputSlot = slotInput,outputSlot = slotOutput};
+            }
+
+            return new VFXParameter.NodeLinkedSlot();
         }
     }
 }

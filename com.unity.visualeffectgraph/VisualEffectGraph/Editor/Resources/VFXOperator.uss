@@ -40,9 +40,26 @@ OperandInfo .PopupButton
 #edit-container
 {
     position-type:Absolute;
-	position-top:0;
+    position-top:0;
+    position-bottom:0;
 	position-right:0;
     position-left:0;
+    background-color:#282828;
+}
+
+#edit-container.ReorderableList > #ListContainer
+{
+    flex:1;
+}
+
+VFXUniformOperatorEdit#edit-container
+{
+    justify-content:center;
+}
+VFXUniformOperatorEdit#edit-container Label
+{
+    margin-left:8;
+    margin-right:8;
 }
 
 

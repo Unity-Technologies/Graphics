@@ -140,6 +140,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public virtual void WillCreateLink( ref VFXSlot myInput,ref VFXSlot otherOutput)
+        {
+
+        }
+
         bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
