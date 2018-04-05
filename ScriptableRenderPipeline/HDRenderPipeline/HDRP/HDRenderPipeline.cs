@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
         RTHandle                        m_DebugColorPickerBuffer;
         RTHandle                        m_DebugFullScreenTempBuffer;
-        bool                            m_FullScreenDebugPushm_NoRenderinged;
+        bool                            m_FullScreenDebugPushed;
         bool                            m_NoRendering; // False by default mean we render normally, true mean we don't render anything
 
         public Material GetBlitMaterial() { return m_Blit; }
@@ -373,9 +373,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return true;
             }
 
-           // if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                string os = "Mac OS X 10.10.4";// SystemInfo.operatingSystem;
+                string os = SystemInfo.operatingSystem;
                 // For metal support depends on OS version
                 // 10.11 doesn’t have tessellation + few other shader language features, unusable
                 // 10.12.x has some luck with AMD but mostly it’s a support hell
@@ -384,7 +384,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
                     int startIndex = os.LastIndexOf(" ");
-                    var parts = os.Substring(startIndex).Split('.');
+                    var parts = os.Substring(startIndex + 1).Split('.');
                     int a = Convert.ToInt32(parts[0]);
                     int b = Convert.ToInt32(parts[1]);
                     int c = Convert.ToInt32(parts[2]);
