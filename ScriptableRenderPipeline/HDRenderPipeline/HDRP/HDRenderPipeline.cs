@@ -363,6 +363,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsSupportedPlatform()
         {
+            if (!SystemInfo.supportsComputeShaders)
+                return false;
+
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
@@ -376,10 +379,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
                 string os = SystemInfo.operatingSystem;
-                // For metal support depends on OS version
-                // 10.11 doesn’t have tessellation + few other shader language features, unusable
-                // 10.12.x has some luck with AMD but mostly it’s a support hell
-                // Only support 10.13 and above
+
+                // Metal support depends on OS version:
+                // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
+                // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
+                // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+                //
+                // Has worked experimentally with iOS in the past, but it's not currently supported
+                //
+
                 if (os.StartsWith("Mac"))
                 {
                     // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
@@ -387,11 +395,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var parts = os.Substring(startIndex + 1).Split('.');
                     int a = Convert.ToInt32(parts[0]);
                     int b = Convert.ToInt32(parts[1]);
-                    int c = Convert.ToInt32(parts[2]);
+                    // In case in the future there's a need to disable specific patch releases
+                    // int c = Convert.ToInt32(parts[2]);
 
                     if (a >= 10 && b >= 13)
                         return true;
-
                 }
             }
 
