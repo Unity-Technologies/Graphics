@@ -59,7 +59,7 @@ struct ShadowSamplingData
     half4 shadowOffset1;
     half4 shadowOffset2;
     half4 shadowOffset3;
-    half4 shadowmapSize;
+    float4 shadowmapSize;
 };
 
 ShadowSamplingData GetMainLightShadowSamplingData()
