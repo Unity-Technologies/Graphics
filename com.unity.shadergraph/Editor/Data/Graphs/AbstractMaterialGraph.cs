@@ -600,8 +600,36 @@ namespace UnityEditor.ShaderGraph
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<INode> remappedNodes, List<IEdge> remappedEdges)
         {
-            var nodeGuidMap = new Dictionary<Guid, Guid>();
+            var nodesToPaste = new List<INode>();
             foreach (var node in graphToPaste.GetNodes<INode>())
+            {
+                // If the pasted node is a property node, convert it into a concrete node
+                // if the associated property does not exist.
+                if (node is PropertyNode)
+                {
+                    PropertyNode propertyNode = (PropertyNode)node;
+
+                    // If the property is not in the current graph, do check if the
+                    // property can be made into a concrete node.
+                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    {
+                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
+                        if (pastedGraphMetaProperties.Any())
+                        {
+                            INode concreteNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            concreteNode.drawState = node.drawState;
+                            nodesToPaste.Add(concreteNode);
+                            continue;
+                        }
+                    }
+                }
+
+                nodesToPaste.Add(node);
+            }
+
+            var nodeGuidMap = new Dictionary<Guid, Guid>();
+            foreach (var node in nodesToPaste)
             {
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
