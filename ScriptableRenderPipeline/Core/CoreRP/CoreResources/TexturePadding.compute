@@ -14,7 +14,7 @@
 // Texture buffers
 // ------------------------------------------------
 
-RW_TEXTURE2D(float4, _Source);
+RW_TEXTURE2D(float4, _InOutTexture);
 
 // ------------------------------------------------
 // Constant buffers
@@ -40,5 +40,5 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
     const int2 loadId = targetId - int2(1 + dispatchThreadId.x, 0);
 #endif
 
-   _Source[targetId] = _Source[loadId];
+   _InOutTexture[targetId] = _InOutTexture[loadId];
 }
