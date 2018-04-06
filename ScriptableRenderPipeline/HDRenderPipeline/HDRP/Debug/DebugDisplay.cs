@@ -350,6 +350,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     displayName = "Debug Settings",
                     children =
                     {
+                        new DebugUI.Value { displayName = string.Empty, getter = () => "Click in the scene view, or press 'End' key to select the pixel under the mouse in the scene view to debug." },
                         new DebugUI.Value { displayName = "SSRay Model", getter = () => screenSpaceTracingDebugData.tracingModel }
                     }
                 };
@@ -382,6 +383,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     case Lit.RefractionSSRayModel.HiZ:
                     {
+                        debugSettingsContainer.children.Insert(1, new DebugUI.Value { displayName = string.Empty, getter = () => "Press PageUp/PageDown to Increase/Decrease the HiZ step." });
                         debugSettingsContainer.children.Add(
                             new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingRefractionDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
