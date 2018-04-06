@@ -19,7 +19,7 @@ half4 SampleSpecularGloss(half2 uv, half alpha, half4 specColor, TEXTURE2D_ARGS(
 {
     half4 specularGloss = half4(0.0h, 0.0h, 0.0h, 1.0h);
 #ifdef _SPECGLOSSMAP
-    specularGloss = SAMPLE_TEXTURE2D(TEXTURE2D_PARAM(specGlossMap, sampler_specGlossMap), uv);
+    specularGloss = SAMPLE_TEXTURE2D(specGlossMap, sampler_specGlossMap, uv);
 #elif defined(_SPECULAR_COLOR)
     specularGloss = specColor;
 #endif
