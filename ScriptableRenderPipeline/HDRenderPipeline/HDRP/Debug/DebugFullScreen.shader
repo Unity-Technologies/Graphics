@@ -210,7 +210,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     const float circleRadius = 3.5;
                     const float ringSize = 1.5;
-                    const float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
 
                     ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
 
@@ -272,9 +272,10 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float w = clamp(1 - startPositionRingSDF - positionRingSDF, 0, 1);
                     col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
 
+                    if (_ShowDepthPyramidDebug == 1)
+                        color.rgb = frac(float3(debugLinearDepth, debugLinearDepth, debugLinearDepth) * 0.1);
+
                     col = float4(col.rgb * col.a + color.rgb, 1);
-                    if (_ShowDepthPyramidDebug == 1) 
-                        col.rgb = float3(col.rgb * 0.5 + frac(float3(debugLinearDepth, debugLinearDepth, debugLinearDepth) * 0.1));
 
                     return col;
                 }
