@@ -13,6 +13,20 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting, Regex("[^w-zW-Z]", 4)]
         public string mask = "xyzw";
 
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                foreach (var p in base.inputProperties)
+                {
+                    if (p.property.type == typeof(FloatN))
+                        yield return new VFXPropertyWithValue(new VFXProperty(p.property.type, string.Empty), p.value); // remove name from FloatN slot
+                    else
+                        yield return p;
+                }
+            }
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
@@ -51,7 +65,7 @@ namespace UnityEditor.VFX.Operator
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var inputComponents = VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray();
+            var inputComponents = (inputExpression.Length > 0) ? VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray() : new VFXExpression[0];
 
             var componentStack = new Stack<VFXExpression>();
             int outputSize = GetMaskSize();
