@@ -526,9 +526,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd);
 
-                var ssrefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefractionVolume>();
-                if (ssrefraction != null)
-                    ssrefraction.PushShaderParameters(cmd);
+                var ssrefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
+                    ?? ScreenSpaceRefraction.@default;
+                ssrefraction.PushShaderParameters(cmd);
             }
         }
 

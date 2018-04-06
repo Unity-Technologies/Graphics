@@ -6,8 +6,8 @@ using UnityEditor.Experimental.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(ScreenSpaceRefractionVolume))]
-    public class ScreenSpaceRefractionVolumeEditor : VolumeComponentEditor
+    [VolumeComponentEditor(typeof(ScreenSpaceRefraction))]
+    public class ScreenSpaceRefractionEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_RayMinLevel;
         SerializedDataParameter m_RayMaxLevel;
@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<ScreenSpaceRefractionVolume>(serializedObject);
+            var o = new PropertyFetcher<ScreenSpaceRefraction>(serializedObject);
 
             m_RayMinLevel = Unpack(o.Find(x => x.rayMinLevel));
             m_RayMaxLevel = Unpack(o.Find(x => x.rayMaxLevel));
