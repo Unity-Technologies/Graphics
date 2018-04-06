@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-    [VFXInfo(category = "Math", variantProvider = typeof(BranchNewTypeProvider))] //This provider is only a test waiting a real interface
+    [VFXInfo(category = "Math", variantProvider = typeof(BranchNewTypeProvider), experimental = true)] //This provider is only a test waiting a real interface
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

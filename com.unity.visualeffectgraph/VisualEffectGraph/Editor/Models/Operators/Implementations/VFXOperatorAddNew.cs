@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math", experimental = true)]
     class VFXOperatorAddNew : VFXOperatorNumericCascadedUnifiedNew
     {
         override public string name { get { return "AddNew"; } }

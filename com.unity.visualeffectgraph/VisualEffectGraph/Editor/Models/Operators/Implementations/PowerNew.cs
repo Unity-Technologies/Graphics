@@ -1,6 +1,6 @@
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math", experimental = true)]
     class PowerNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "PowerNew"; } }

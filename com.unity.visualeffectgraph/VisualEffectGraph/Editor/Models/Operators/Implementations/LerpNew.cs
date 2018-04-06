@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math", experimental = true)]
     class LerpNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties

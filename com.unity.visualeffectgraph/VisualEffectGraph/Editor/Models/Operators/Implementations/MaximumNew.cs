@@ -3,7 +3,7 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math", experimental = true)]
     class MaximumNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "MaximumNew"; } }
