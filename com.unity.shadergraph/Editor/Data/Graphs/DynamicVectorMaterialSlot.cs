@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
             if (channelCount == 1)
                 return values;
             for (var i = 1; i < channelCount; i++)
-                values += ", " + value[i];
+                values += ", " + NodeUtils.FloatToShaderValue(value[i]);
             return string.Format("{0}{1}({2})", precision, channelCount, values);
         }
 
