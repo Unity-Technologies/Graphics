@@ -1,9 +1,6 @@
 NodeSettingsView {
 	width: 232;
 	position-type: absolute;
-	position-left: 146.5;
-	position-top: 22;
-	
 	slice-top: 40;
 	slice-left: 80;
 	slice-right: 25;
