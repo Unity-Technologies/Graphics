@@ -6,7 +6,30 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math", variantProvider = typeof(InlineTypeProvider))] //PRovider is only a test waiting a real interface
+
+    class BranchNewTypeProvider : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "m_Type", validTypes.Select(o => new SerializableType(o)).ToArray() }
+                };
+            }
+        }
+
+        static public IEnumerable<Type> validTypes
+        {
+            get
+            {
+                return VFXLibrary.GetSlotsType().Where(o => !o.IsSubclassOf(typeof(Texture)));
+            }
+        }
+    }
+
+    [VFXInfo(category = "Math", variantProvider = typeof(BranchNewTypeProvider))] //This provider is only a test waiting a real interface
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -37,7 +60,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return VFXLibrary.GetSlotsType();
+                return BranchNewTypeProvider.validTypes;
             }
         }
 
