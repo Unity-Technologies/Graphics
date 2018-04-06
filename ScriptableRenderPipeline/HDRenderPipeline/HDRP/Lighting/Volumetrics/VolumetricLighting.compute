@@ -269,7 +269,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float3 L             = -lightToSample * distRcp;
 
                     float3 color; float attenuation;
-                    EvaluateLight_Punctual(context, posInput, light, unused, 1,
+                    EvaluateLight_Punctual(context, posInput, light, unused,
                                            0, L, lightToSample, distances, color, attenuation);
 
                     // Important:
@@ -357,7 +357,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float4 distances     = float4(1, 1, 1, distProj);
 
                     float3 color; float attenuation;
-                    EvaluateLight_Punctual(context, posInput, light, unused, extinction,
+                    EvaluateLight_Punctual(context, posInput, light, unused,
                                            0, L, lightToSample, distances, color, attenuation);
 
                     // Important:
