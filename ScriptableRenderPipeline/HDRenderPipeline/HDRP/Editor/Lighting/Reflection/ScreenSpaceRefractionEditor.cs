@@ -28,10 +28,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("HiZ Settings"));
             PropertyField(m_RayMinLevel, CoreEditorUtils.GetContent("Ray Min Level"));
             PropertyField(m_RayMaxLevel, CoreEditorUtils.GetContent("Ray Max Level"));
             PropertyField(m_RayMaxIterations, CoreEditorUtils.GetContent("Ray Max Iterations"));
             PropertyField(m_RayDepthSuccessBias, CoreEditorUtils.GetContent("Ray Depth Success Bias"));
+
+            EditorGUILayout.Separator();
+            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Common Settings"));
             PropertyField(m_ScreenWeightDistance, CoreEditorUtils.GetContent("Screen Weight Distance"));
         }
     }
