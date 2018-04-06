@@ -152,7 +152,6 @@ namespace UnityEditor.ShaderGraph
                     container.Add(settingsElement);
             }
 
-            //return new MasterSettingsView(this);
             return container;
         }
 

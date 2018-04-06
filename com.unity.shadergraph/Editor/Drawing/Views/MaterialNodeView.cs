@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsDivider;
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
+        VisualElement m_CollapseButton;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -136,14 +137,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
 
-            /*if (node is PreviewNode)
-            {
-                var resizeHandle = new Label { name = "resize", text = "" };
-                resizeHandle.AddManipulator(new Draggable(OnResize));
-                Add(resizeHandle);
-                UpdateSize();
-            }*/
-
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
@@ -153,29 +146,40 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node.hasPreview)
                 m_PreviewFiller.BringToFront();
 
-            var buttonContainer = new VisualElement();
-            buttonContainer.name = "button-container";
-            VisualElement collapseButton = this.Q("collapse-button");
-            VisualElement parent = collapseButton.parent;
 
-            parent.Add(buttonContainer);
-
-            m_NodeSettingsView = new NodeSettingsView();
-            m_NodeSettingsView.visible = false;
-            Add(m_NodeSettingsView);
+            m_CollapseButton = this.Q("collapse-button");
 
             var settings = node as IHasSettings;
             if (settings != null)
             {
+                m_NodeSettingsView = new NodeSettingsView();
+                m_NodeSettingsView.visible = false;
+
+                Add(m_NodeSettingsView);
+
                 m_SettingsButton = new VisualElement {name = "settings-button"};
                 m_SettingsButton.Add(new VisualElement { name = "icon" });
+
                 m_SettingsButton.AddManipulator(new Clickable(() =>
                 {
                     UpdateSettingsExpandedState(settings);
                 }));
-                buttonContainer.Add(m_SettingsButton);
+                titleButtonContainer.Add(m_SettingsButton);
+                titleButtonContainer.Add(m_CollapseButton);
+
+                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }
-            buttonContainer.Add(collapseButton);
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            // style.positionTop and style.positionLeft are in relation to the parent,
+            // so we translate the layout of the settings button to be in the coordinate
+            // space of the settings view's parent.
+
+            var settingsButtonLayout = m_SettingsButton.ChangeCoordinatesTo(m_NodeSettingsView.parent, m_SettingsButton.layout);
+            m_NodeSettingsView.style.positionTop = settingsButtonLayout.yMax - 18f;
+            m_NodeSettingsView.style.positionLeft = settingsButtonLayout.xMin - 16f;
         }
 
         void OnSubGraphDoubleClick(MouseDownEvent evt)
@@ -208,8 +212,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
                 UpdatePortInputVisibilities();
-                if (node.hasPreview)
-                    m_PreviewFiller.BringToFront();
             }
         }
 

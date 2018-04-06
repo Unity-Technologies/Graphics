@@ -116,33 +116,39 @@ MaterialNodeView > #settings-container {
 	background-color : rgb(63, 63, 63);
 }
 
-MaterialNodeView > #node-border > #title > #button-container{
+/* MaterialNodeView > #node-border > #title > #title-button-container{
 	flex-direction: row;
 	justify-content : space-between;
+} */
+
+#settings-button {
+    width: 16;
+    align-self: center;
+    justify-content: center;
+    padding-left: 8;
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button{
-	align-self : center;
-	width : 12;
+#settings-button > #icon {
+    width : 12;
+    height : 12;
+    align-self: center;
+    visibility: hidden;
+    background-image : resource("Icons/SettingsIcons");
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button:hover{
+.node:hover #settings-button > #icon {
+    visibility: visible;
+}
+
+#settings-button:hover > #icon {
+    align-self: center;
     background-color: #2B2B2B;
     background-image : resource("Icons/SettingsIcons_hover");
-    width : 12;
-	height : 12;
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button.clicked{
+#settings-button.clicked > #icon{
     background-color: #2B2B2B;
     background-image : resource("Icons/SettingsIcons_hover");
-    width : 12;
-	height : 12;
+    visibility: visible;
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button > #icon{
-	align-self : center;
-	background-image : resource("Icons/SettingsIcons");
-	width : 12;
-	height : 12;
-}
