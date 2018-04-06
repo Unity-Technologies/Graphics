@@ -181,6 +181,7 @@ namespace UnityEditor.ShaderGraph
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
+            subShader.AddShaderChunk("Tags{ \"RenderPipeline\" = \"HDRenderPipeline\"}", true);
             subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" }", true);
 
             subShader.AddShaderChunk(

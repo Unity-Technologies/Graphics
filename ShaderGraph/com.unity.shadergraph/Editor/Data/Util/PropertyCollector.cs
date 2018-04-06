@@ -36,14 +36,17 @@ namespace UnityEditor.ShaderGraph
 
         public string GetPropertiesDeclaration(int baseIndentLevel)
         {
-            var sb = new StringBuilder();
+            var builder = new ShaderStringBuilder(baseIndentLevel);
+            GetPropertiesDeclaration(builder);
+            return builder.ToString();
+        }
+
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder)
+        {
             foreach (var prop in m_Properties)
             {
-                for (var i = 0; i < baseIndentLevel; i++)
-                    sb.Append("\t");
-                sb.AppendLine(prop.GetPropertyDeclarationString());
+                builder.AppendLine(prop.GetPropertyDeclarationString());
             }
-            return sb.ToString();
         }
 
         public List<TextureInfo> GetConfiguredTexutres()
