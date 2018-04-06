@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Asset = asset;
 
             SetRenderingFeatures();
-            
+
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
@@ -668,7 +668,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         perObjectLightIndexMap[i] = -1;
                     else
                         perObjectLightIndexMap[i] -= directionalLightCount;
-
                 }
                 m_CullResults.SetLightIndexMap(perObjectLightIndexMap);
 
@@ -1010,12 +1009,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private float GetScaledCameraWidth(Camera camera)
         {
-            return (float) camera.pixelWidth * GetRenderScale();
+            return (float)camera.pixelWidth * GetRenderScale();
         }
 
         private float GetScaledCameraHeight(Camera camera)
         {
-            return (float) camera.pixelHeight * GetRenderScale();
+            return (float)camera.pixelHeight * GetRenderScale();
         }
 
         private RendererConfiguration GetRendererSettings(ref LightData lightData)

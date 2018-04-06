@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 "LightweightAsset.asset", null, null);
         }
 
-
         //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineResources()
         {
@@ -96,7 +95,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var instance = CreateInstance<LightweightPipelineEditorResources>();
             AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightPipelineEditorResources).Name));
         }
-
 
         class CreateLightweightPipelineAsset : EndNameEditAction
         {
@@ -112,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static T LoadResourceFile<T>() where T : ScriptableObject
         {
             T resourceAsset = null;
-            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new []{m_SearchPathProject});
+            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] {m_SearchPathProject});
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
