@@ -240,7 +240,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodes = elements.OfType<MaterialNodeView>().Select(x => (INode)x.node);
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
             var properties = selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty);
-            var graph = new CopyPasteGraph(nodes, edges, properties);
+
+            // Collect the property nodes and get the corresponding properties
+            var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
+            var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+
+            var graph = new CopyPasteGraph(nodes, edges, properties, metaProperties);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -338,6 +343,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 IShaderProperty copiedProperty = property.Copy();
                 copiedProperty.displayName = propertyName;
                 graphView.graph.AddShaderProperty(copiedProperty);
+
+                // Update the property nodes that depends on the copied node
+                var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == property.guid);
+                foreach (var node in dependentPropertyNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.propertyGuid = copiedProperty.guid;
+                }
             }
 
             using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
