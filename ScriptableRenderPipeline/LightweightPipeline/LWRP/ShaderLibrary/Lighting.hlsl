@@ -81,8 +81,8 @@ half DistanceAttenuation(half distanceSqr, half3 distanceAttenuation)
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
     half quadFalloff = distanceAttenuation.x;
-    half denom = distanceSqr * quadFalloff + 1.0;
-    half lightAtten = 1.0 / denom;
+    half denom = distanceSqr * quadFalloff + 1.0h;
+    half lightAtten = 1.0h / denom;
 
     // We need to smoothly fade attenuation to light range. We start fading linearly at 80% of light range
     // Therefore:
@@ -156,7 +156,7 @@ Light GetLight(half i, float3 positionWS)
 #else
     // The following code is more optimal than indexing unity_4LightIndices0. 
     // Conditional moves are branch free even on mali-400
-    half i_rem = (i < 2.0h) ? i : i - 2;
+    half i_rem = (i < 2.0h) ? i : i - 2.0h;
     half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
     int lightIndex = (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
 #endif
@@ -554,8 +554,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        half index = half(i);
-        Light light = GetLight(index, inputData.positionWS);
+        Light light = GetLight(i, inputData.positionWS);
         light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, inputData.positionWS);
         color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
     }
@@ -580,8 +579,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     int pixelLightCount = GetPixelLightCount();
     for (int i = 0; i < pixelLightCount; ++i)
     {
-        half index = half(i);
-        Light light = GetLight(index, inputData.positionWS);
+        Light light = GetLight(i, inputData.positionWS);
         light.attenuation *= LocalLightRealtimeShadowAttenuation(light.index, inputData.positionWS);
         half3 attenuatedLightColor = light.color * light.attenuation;
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
