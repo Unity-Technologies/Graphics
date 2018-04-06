@@ -1,0 +1,55 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+
+RWByteAddressBuffer attributeBuffer;
+ByteAddressBuffer sourceAttributeBuffer;
+
+CBUFFER_START(initParams)
+    uint nbSpawned;		// Numbers of particle spawned
+    uint spawnIndex;	// Index of the first particle spawned
+	uint systemSeed;
+CBUFFER_END
+
+#if VFX_USE_ALIVE_CURRENT 
+ConsumeStructuredBuffer<uint> deadListIn;
+ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+#endif
+
+${VFXGeneratedBlockFunction}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+	uint maxThreadId = nbSpawned;
+#if VFX_USE_ALIVE_CURRENT
+	maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
+#endif
+
+    if (id.x < maxThreadId)
+    {
+		uint particleIndex = id.x + spawnIndex;
+		${VFXComputeSourceIndex}
+        ${VFXLoadAttributes}
+				
+#if VFX_USE_PARTICLEID_CURRENT
+		particleId = particleIndex;
+#endif
+#if VFX_USE_SEED_CURRENT
+		seed = WangHash(particleIndex ^ systemSeed);
+#endif
+		
+        ${VFXProcessBlocks}
+
+#if VFX_USE_ALIVE_CURRENT		
+        if (alive)
+        {	
+            uint index = deadListIn.Consume();
+            ${VFXStoreAttributes}
+        }
+#else
+		uint index = particleIndex;
+		${VFXStoreAttributes}
+#endif		
+    }
+}

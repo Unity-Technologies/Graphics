@@ -1,0 +1,64 @@
+#pragma require geometry
+#pragma vertex vert
+#pragma geometry geom
+
+uint vert(uint id : SV_VertexID) : TEXCOORD0
+{
+	return id;
+}
+
+[maxvertexcount(4)]
+void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_PS_INPUTS> outStream)
+{
+	uint index = intStream[0];
+	if (index < asuint(nbMax))
+	{
+		#if VFX_HAS_INDIRECT_DRAW
+		index = indirectBuffer[index];
+		#endif
+		${VFXLoadAttributes:{alive}}
+		if (alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXProcessBlocks}
+			
+			if (!alive)
+				return;
+			
+			#if USE_FLIPBOOK
+			${VFXLoadParameter:{flipBookSize}}
+			${VFXLoadParameter:{invFlipBookSize}}
+			#endif
+			
+			${VFXLoadSize}
+			
+			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
+			
+			[unroll]
+			for (int id = 0; id < 4; ++id)
+			{
+				VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+				
+				o.VFX_VARYING_UV.x = float((id & 2) >> 1);
+				o.VFX_VARYING_UV.y = float(id & 1);
+								
+				float3 vPos = mul(elementToVFX,float4(o.VFX_VARYING_UV.xy * 2.0f - 1.0f,0.0f,1.0f)).xyz;
+				o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+
+				${VFXVertexCommonProcess}
+				
+				#if USE_FLIPBOOK
+				#if USE_FLIPBOOK_INTERPOLATION
+				ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);
+				#else
+				ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV);
+				#endif
+				#endif
+				
+				${VFXVertexAdditionalProcess}
+				
+				outStream.Append(o);
+			}
+		}
+	}	
+}

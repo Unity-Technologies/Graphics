@@ -1,0 +1,97 @@
+// Forward pass
+Pass
+{		
+	Tags { "LightMode"=${VFXPassForward} }
+	
+	ZWrite Off
+	
+	HLSLPROGRAM
+	#pragma target 4.5
+	
+	#define VFX_NEEDS_POSSS 1
+	
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		float4 projPos : COLOR1;
+
+		#if VFX_NEEDS_COLOR_INTERPOLATOR
+		nointerpolation float4 color : COLOR0;
+		#endif
+		#if USE_ALPHA_TEST || USE_FLIPBOOK
+		// x: alpha threshold
+		// y: texture index
+		nointerpolation float2 builtInInterpolants : TEXCOORD0;
+		#if USE_FLIPBOOK
+		nointerpolation float4 flipbookSize : TEXCOORD1;
+		#endif
+		#endif
+		
+		nointerpolation float4 screenToDecal0 : TEXCOORD2;
+		nointerpolation float4 screenToDecal1 : TEXCOORD3;
+		nointerpolation float4 screenToDecal2 : TEXCOORD4;
+	};
+	
+	struct ps_output
+	{
+		float4 color : SV_Target0;
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSSS projPos
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_TEXINDEX builtInInterpolants.y
+#define VFX_VARYING_FLIPBOOKSIZE flipbookSize.xy
+#define VFX_VARYING_INVFLIPBOOKSIZE flipbookSize.zw
+				
+	${VFXBegin:VFXVertexAdditionalProcess}
+float4x4 screenToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
+screenToDecal = mul(screenToDecal, UNITY_MATRIX_I_V);
+o.screenToDecal0 = screenToDecal[0];
+o.screenToDecal1 = screenToDecal[1];
+o.screenToDecal2 = screenToDecal[2];
+	${VFXEnd}
+				
+	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
+		
+	#pragma fragment frag
+	ps_output frag(ps_input i)
+	{
+		ps_output o = (ps_output)0;
+		
+		float3 clipPos;
+		clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
+		clipPos.z = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos));
+		clipPos *= LinearEyeDepth(clipPos.z);
+		
+		float4 worldPos;
+		worldPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
+		worldPos.y = clipPos.y / -UNITY_MATRIX_P[1][1];
+		worldPos.z = (clipPos.z - UNITY_MATRIX_P[2][3]) / UNITY_MATRIX_P[2][2];
+		worldPos.w = 1.0f;
+		
+		float4x4 screenToElement;
+		screenToElement[0] = i.screenToDecal0;
+		screenToElement[1] = i.screenToDecal1;
+		screenToElement[2] = i.screenToDecal2;
+		screenToElement[3] = float4(0,0,0,1);
+		
+		float3 elementPos = mul(screenToElement,worldPos);
+				
+		const float bias = 0.0f;
+		clip(1.0f - abs(elementPos) + bias);
+
+		o.color = VFXGetParticleColor(i);
+
+		VFXSampler2D s = VFX_SAMPLER(mainTexture);
+		float2 uv = elementPos.xy * 0.5f + 0.5f;
+		o.color *= VFXGetTextureColorWithProceduralUV(s,i,uv);
+		
+		VFXClipFragmentColor(o.color.a,i);
+		return o;
+	}
+	ENDHLSL
+}

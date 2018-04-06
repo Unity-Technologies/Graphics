@@ -1,0 +1,12 @@
+Shader "Hidden/VFX/ParticleQuads"
+{
+	SubShader
+	{	
+		Cull Off
+		
+		${VFXInclude("Assets/VFXShaders/VFXParticleHeader.template")}
+		${VFXInclude("Assets/VFXShaders/ParticleQuads/PassDepth.template"),IS_OPAQUE_PARTICLE}
+		${VFXInclude("Assets/VFXShaders/ParticleQuads/PassForward.template")}
+		${VFXInclude("Assets/VFXShaders/ParticleQuads/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+	}
+}
