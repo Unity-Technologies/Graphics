@@ -116,11 +116,6 @@ MaterialNodeView > #settings-container {
 	background-color : rgb(63, 63, 63);
 }
 
-/* MaterialNodeView > #node-border > #title > #title-button-container{
-	flex-direction: row;
-	justify-content : space-between;
-} */
-
 #settings-button {
     width: 16;
     align-self: center;
