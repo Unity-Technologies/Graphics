@@ -19,23 +19,22 @@ TEXTURE2D(_ColorPyramidTexture);
 // Depth pyramid (width, height, lodcount, Unused)
 TEXTURE2D(_DepthPyramidTexture);
 
-CBUFFER_START(UnityGaussianPyramidParameters)
+CBUFFER_START(UnityLightingParameters)
+// Buffer pyramid
 float4 _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
 float4 _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
 float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
 float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
-CBUFFER_END
 
-CBUFFER_START(UnityScreenSpaceLightingParameters)
+// Screen space lighting
 float _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
+
+// Ambiant occlusion
+float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
 CBUFFER_END
 
 // Ambient occlusion texture
 TEXTURE2D(_AmbientOcclusionTexture);
-
-CBUFFER_START(UnityAmbientOcclusionParameters)
-float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-CBUFFER_END
 
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
