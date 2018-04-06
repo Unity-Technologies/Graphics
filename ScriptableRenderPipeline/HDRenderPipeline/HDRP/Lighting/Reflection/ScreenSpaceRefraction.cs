@@ -4,8 +4,22 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public class ScreenSpaceRefractionVolume : VolumeComponent
+    public class ScreenSpaceRefraction : VolumeComponent
     {
+        static ScreenSpaceRefraction s_Default = null;
+        public static ScreenSpaceRefraction @default
+        {
+            get
+            {
+                if (s_Default == null)
+                {
+                    s_Default = ScriptableObject.CreateInstance<ScreenSpaceRefraction>();
+                    s_Default.hideFlags = HideFlags.HideAndDontSave;
+                }
+                return s_Default;
+            }
+        }
+
         public IntParameter                 rayMinLevel = new IntParameter(2);
         public IntParameter                 rayMaxLevel = new IntParameter(6);
         public IntParameter                 rayMaxIterations = new IntParameter(32);
