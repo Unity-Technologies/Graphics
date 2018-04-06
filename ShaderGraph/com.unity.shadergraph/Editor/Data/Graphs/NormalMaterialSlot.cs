@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public NormalMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
-                                  ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, space, shaderStage, hidden)
+                                  ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+            : base(slotId, displayName, shaderOutputName, space, stageCapability, hidden)
         {}
 
         public override VisualElement InstantiateControl()

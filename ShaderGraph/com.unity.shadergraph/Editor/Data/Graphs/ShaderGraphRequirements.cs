@@ -54,7 +54,8 @@ namespace UnityEditor.ShaderGraph
             return newReqs;
         }
 
-        public static ShaderGraphRequirements FromNodes(List<INode> nodes)
+        public static ShaderGraphRequirements FromNodes<T>(List<T> nodes)
+            where T : class, INode
         {
             NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
             NeededCoordinateSpace requiresBitangent = nodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent());

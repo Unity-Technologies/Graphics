@@ -31,24 +31,27 @@ namespace UnityEditor.ShaderGraph
 
         public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
         {
-            vertexInputs.AddShaderChunk("struct GraphVertexInput", false);
-            vertexInputs.AddShaderChunk("{", false);
-            vertexInputs.Indent();
-            vertexInputs.AddShaderChunk("float4 vertex : POSITION;", false);
-            vertexInputs.AddShaderChunk("float3 normal : NORMAL;", false);
-            vertexInputs.AddShaderChunk("float4 tangent : TANGENT;", false);
+            var builder = new ShaderStringBuilder();
+            GenerateApplicationVertexInputs(graphRequiements, builder);
+            vertexInputs.AddShaderChunk(builder.ToString(), false);
+        }
 
-            if (graphRequiements.requiresVertexColor)
+        public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderStringBuilder vertexInputs)
+        {
+            vertexInputs.AppendLine("struct GraphVertexInput");
+            using (vertexInputs.BlockSemicolonScope())
             {
-                vertexInputs.AddShaderChunk("float4 color : COLOR;", false);
+                vertexInputs.AppendLine("float4 vertex : POSITION;");
+                vertexInputs.AppendLine("float3 normal : NORMAL;");
+                vertexInputs.AppendLine("float4 tangent : TANGENT;");
+                if (graphRequiements.requiresVertexColor)
+                {
+                    vertexInputs.AppendLine("float4 color : COLOR;");
+                }
+                foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
+                    vertexInputs.AppendLine("float4 texcoord{0} : TEXCOORD{0};", (int)channel);
+                vertexInputs.AppendLine("UNITY_VERTEX_INPUT_INSTANCE_ID");
             }
-
-            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
-                vertexInputs.AddShaderChunk(string.Format("float4 texcoord{0} : TEXCOORD{0};", (int)channel), false);
-
-            vertexInputs.AddShaderChunk("UNITY_VERTEX_INPUT_INSTANCE_ID", true);
-            vertexInputs.Deindent();
-            vertexInputs.AddShaderChunk("};", false);
         }
 
         static void Visit(List<INode> outputList, Dictionary<Guid, INode> unmarkedNodes, INode node)
@@ -313,12 +316,62 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionFunction.AddShaderChunk("}", false);
         }
 
+        const string k_VertexDescriptionStructName = "VertexDescription";
+        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots)
+        {
+            builder.AppendLine("struct {0}", k_VertexDescriptionStructName);
+            using (builder.BlockSemicolonScope())
+            {
+                foreach (var slot in slots)
+                    builder.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
+            }
+        }
+        public static void GenerateVertexDescriptionFunction(
+            ShaderStringBuilder builder,
+            FunctionRegistry functionRegistry,
+            PropertyCollector shaderProperties,
+            GenerationMode generationMode,
+            List<AbstractMaterialNode> nodes,
+            List<MaterialSlot> slots)
+        {
+            builder.AppendLine("{0} PopulateVertexData(VertexDescriptionInputs IN)", k_VertexDescriptionStructName);
+            using (builder.BlockScope())
+            {
+                builder.AppendLine("{0} description = ({0})0;", k_VertexDescriptionStructName);
+                foreach (var node in nodes)
+                {
+                    var generatesFunction = node as IGeneratesFunction;
+                    if (generatesFunction != null)
+                    {
+                        functionRegistry.builder.currentNode = node;
+                        generatesFunction.GenerateNodeFunction(functionRegistry, generationMode);
+                    }
+                    var generatesBodyCode = node as IGeneratesBodyCode;
+                    if (generatesBodyCode != null)
+                    {
+                        var generator = new ShaderGenerator();
+                        generatesBodyCode.GenerateNodeCode(generator, generationMode);
+                        builder.AppendLines(generator.GetShaderString(0));
+                    }
+                    node.CollectShaderProperties(shaderProperties, generationMode);
+                }
+                foreach (var slot in slots)
+                {
+                    var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                    var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    var slotValue = isSlotConnected ? ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, generationMode) : slot.GetDefaultValue(generationMode);
+                    builder.AppendLine("description.{0} = {1};", slotName, slotValue);
+                }
+                builder.AppendLine("return description;");
+            }
+        }
+
         public static GenerationResults GetPreviewShader(this AbstractMaterialGraph graph, AbstractMaterialNode node)
         {
             return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()));
         }
 
-        public static GenerationResults GetUberPreviewShader(this AbstractMaterialGraph graph)
+        public static GenerationResults GetUberColorShader(this AbstractMaterialGraph graph)
         {
             return graph.GetShader(null, GenerationMode.Preview, "hidden/preview");
         }

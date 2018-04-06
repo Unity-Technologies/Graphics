@@ -10,16 +10,17 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    public class UnlitMasterNode : MasterNode<IUnlitSubShader>
+    public class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
-        public const string VertexOffsetName = "VertexPosition";
+        public const string PositionName = "Position";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
+        public const int PositionSlotId = 9;
 
         [SerializeField]
         SurfaceType m_SurfaceType;
@@ -82,15 +83,17 @@ namespace UnityEditor.ShaderGraph
         {
             base.UpdateNodeAfterDeserialization();
             name = "Unlit Master";
-            AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStage.Fragment));
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStageCapability.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
             RemoveSlotsNameNotMatching(
                 new[]
             {
+                PositionSlotId,
                 ColorSlotId,
                 AlphaSlotId,
                 AlphaThresholdSlotId
@@ -100,6 +103,16 @@ namespace UnityEditor.ShaderGraph
         protected override VisualElement CreateCommonSettingsElement()
         {
             return new UnlitSettingsView(this);
+        }
+
+        public NeededCoordinateSpace RequiresPosition()
+        {
+            s_TempSlots.Clear();
+            GetInputSlots(s_TempSlots);
+            var binding = NeededCoordinateSpace.None;
+            foreach (var slot in s_TempSlots)
+                binding |= slot.RequiresPosition();
+            return binding;
         }
     }
 }
