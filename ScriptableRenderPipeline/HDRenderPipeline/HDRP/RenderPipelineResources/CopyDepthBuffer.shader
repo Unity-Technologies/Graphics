@@ -18,6 +18,7 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
             ZTest  Always
             ZWrite On
             Blend  Off
+            ColorMask 0
 
             HLSLPROGRAM
             #pragma target 4.5
