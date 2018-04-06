@@ -5,7 +5,7 @@
 // Attributes
 #define REQUIRE_TANGENT_TO_WORLD defined(_PIXEL_DISPLACEMENT)
 #define REQUIRE_NORMAL defined(TESSELLATION_ON) || REQUIRE_TANGENT_TO_WORLD || defined(_VERTEX_WIND) || defined(_VERTEX_DISPLACEMENT)
-#define REQUIRE_VERTEX_COLOR ((defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT)) && defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))) || defined(_VERTEX_WIND)
+#define REQUIRE_VERTEX_COLOR (defined(_VERTEX_DISPLACEMENT) || defined(_TESSELLATION_DISPLACEMENT) || (defined(LAYERED_LIT_SHADER) && (defined(_LAYER_MASK_VERTEX_COLOR_MUL) || defined(_LAYER_MASK_VERTEX_COLOR_ADD))) || defined(_VERTEX_WIND))
 
 // This first set of define allow to say which attributes will be use by the mesh in the vertex and domain shader (for tesselation)
 
@@ -52,6 +52,10 @@
         #define VARYINGS_NEED_TEXCOORD3
         #endif
     #endif
+#endif
+
+#if REQUIRE_VERTEX_COLOR
+#define VARYINGS_NEED_COLOR
 #endif
 
 // This include will define the various Attributes/Varyings structure
