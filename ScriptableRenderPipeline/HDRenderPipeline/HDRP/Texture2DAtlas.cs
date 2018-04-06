@@ -15,8 +15,7 @@ namespace UnityEngine.Experimental.Rendering
         {           
             public AtlasNode m_RightChild = null;
             public AtlasNode m_BottomChild = null;
-            public Rect m_Rect = new Rect(0,0,0,0);
-
+            public Vector4 m_Rect = new Vector4(0,0,0,0); // x,y is width and height (scale) z,w offset into atlas (bias)
 
             public AtlasNode Allocate(int width, int height)
             {
@@ -32,53 +31,68 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 //leaf node, check for fit
-                if ((width <= m_Rect.width) && (height <= m_Rect.height))
+                if ((width <= m_Rect.x) && (height <= m_Rect.y))
                 {
                     // perform the split
                     m_RightChild = new AtlasNode();
                     m_BottomChild = new AtlasNode();
 
-                    if (width > height) // logic to decide which way to split               +--------+------+
-                    {                                                                   //  |        |      |
-                        m_RightChild.m_Rect.x = m_Rect.x + width;                       //  |        |      |
-                        m_RightChild.m_Rect.y = m_Rect.y;                               //  +--------+------+
-                        m_RightChild.m_Rect.width = m_Rect.width - width;               //  |               |
-                        m_RightChild.m_Rect.height = height;                            //  |               |
-                                                                                        //  +---------------+        
+                    if (width > height) // logic to decide which way to split               
+                    {                                                           //  +--------+------+
+                        m_RightChild.m_Rect.z = m_Rect.z + width;               //  |        |      |
+                        m_RightChild.m_Rect.w = m_Rect.w;                       //  +--------+------+
+                        m_RightChild.m_Rect.x = m_Rect.x - width;               //  |               |
+                        m_RightChild.m_Rect.y = height;                         //  |               |
+                                                                                //  +---------------+        
+                        m_BottomChild.m_Rect.z = m_Rect.z;
+                        m_BottomChild.m_Rect.w = m_Rect.w + height;
                         m_BottomChild.m_Rect.x = m_Rect.x;
-                        m_BottomChild.m_Rect.y = m_Rect.y + height;
-                        m_BottomChild.m_Rect.width = m_Rect.width;
-                        m_BottomChild.m_Rect.height = m_Rect.height - height;
+                        m_BottomChild.m_Rect.y = m_Rect.y - height;
                     }
                     else
-                    {                                                                   //  +---+-----------+  
-                        m_RightChild.m_Rect.x = m_Rect.x + width;                       //  |   |           |
-                        m_RightChild.m_Rect.y = m_Rect.y;                               //  |   |           |
-                        m_RightChild.m_Rect.width = m_Rect.width - width;               //  +---+           +
-                        m_RightChild.m_Rect.height = m_Rect.height;                     //  |   |           |
-                                                                                        //  |   |           |
-                        m_BottomChild.m_Rect.x = m_Rect.x;                              //  +---+-----------+        
-                        m_BottomChild.m_Rect.y = m_Rect.y + height;
-                        m_BottomChild.m_Rect.width = m_Rect.width;
-                        m_BottomChild.m_Rect.height = m_Rect.height - height;
+                    {                                                           //  +---+-----------+  
+                        m_RightChild.m_Rect.z = m_Rect.z + width;               //  |   |           |
+                        m_RightChild.m_Rect.w = m_Rect.w;                       //  |   |           |
+                        m_RightChild.m_Rect.x = m_Rect.x - width;               //  +---+           +
+                        m_RightChild.m_Rect.y = m_Rect.y;                       //  |   |           |
+                                                                                //  +---+-----------+
+                        m_BottomChild.m_Rect.z = m_Rect.z;                                      
+                        m_BottomChild.m_Rect.w = m_Rect.w + height;
+                        m_BottomChild.m_Rect.x = width;
+                        m_BottomChild.m_Rect.y = m_Rect.y - height;
                     }
-                    m_Rect.width = width;
-                    m_Rect.height = height;
+                    m_Rect.x = width;
+                    m_Rect.y = height;
                     return this;
                 }
                 return null;
             }
+
+            public void Release()
+            {
+                if (m_RightChild != null)
+                {
+                    m_RightChild.Release();
+                    m_BottomChild.Release();
+                }
+                m_RightChild = null;
+                m_BottomChild = null;                
+            }
         }
 
         private AtlasNode m_Root;
+        private int m_Width;
+        private int m_Height;
 
         public AtlasAllocator(int width, int height)
         {
             m_Root = new AtlasNode();
-            m_Root.m_Rect.Set(0, 0, width, height);
+            m_Root.m_Rect.Set(width, height, 0, 0);
+            m_Width = width;
+            m_Height = height;
         }
 
-        public Rect Allocate(int width, int height)
+        public Vector4 Allocate(int width, int height)
         {
             AtlasNode node = m_Root.Allocate(width, height);
             if(node != null)
@@ -87,11 +101,17 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                return new Rect(0, 0, 0, 0);
+                return new Vector4(0, 0, 0, 0);
             }
         }
-    }
 
+        public void Release()
+        {
+            m_Root.Release();
+            m_Root = new AtlasNode();
+            m_Root.m_Rect.Set(m_Width, m_Height, 0, 0);
+        }
+    }
 
     public class Texture2DAtlas
     {
@@ -99,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering
         private int m_Width;
         private int m_Height;
         private RenderTextureFormat m_Format;
-
+        private AtlasAllocator m_AtlasAllocator = null;
         
         public RTHandle AtlasTexture
         {
@@ -126,6 +146,8 @@ namespace UnityEngine.Experimental.Rendering
                 false,
                 true,
                 false);
+
+            m_AtlasAllocator = new AtlasAllocator(width, height);
         }
 
         public void Release()
@@ -133,17 +155,30 @@ namespace UnityEngine.Experimental.Rendering
             RTHandle.Release(m_AtlasTexture);
         }
 
+        public void ResetAllocator()
+        {
+            m_AtlasAllocator.Release();
+        }
+
         public Vector4 AddTexture(CommandBuffer cmd, Texture texture)
         {
-            float scaleW = (float)texture.width / m_Width;
-            float scaleH = (float) texture.height / m_Height;
-            Vector4 scaleBias = new Vector4(scaleW, scaleH, 0, 0);
-            for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
-            {
-                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+            int width = texture.width;
+            int height = texture.height;
+            Vector4 scaleBias = m_AtlasAllocator.Allocate(width, height);
+            if ((scaleBias.x > 0) && (scaleBias.y > 0))
+            {               
+                scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height)); 
+                for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                }
+                return scaleBias;
             }
-            return scaleBias;
+            else
+            {
+                return new Vector4(0,0,0,0);
+            }
         }
     }
 }
