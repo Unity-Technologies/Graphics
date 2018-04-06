@@ -6,9 +6,9 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VFXExpressionExtractPositionFromMainCamera : VFXExpression
+    class VFXExpressionExtractMatrixFromMainCamera : VFXExpression
     {
-        public VFXExpressionExtractPositionFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
+        public VFXExpressionExtractMatrixFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
         {
         }
 
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.ExtractPositionFromMainCamera;
+                return VFXExpressionOperation.ExtractMatrixFromMainCamera;
             }
         }
 
@@ -24,95 +24,16 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXValueType.Float3;
+                return VFXValueType.Matrix4x4;
             }
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             if (Camera.main != null)
-            {
-                var matrix = Camera.main.cameraToWorldMatrix;
-                return VFXValue.Constant<Vector3>(matrix.GetColumn(3));
-            }
+                return VFXValue.Constant(Camera.main.cameraToWorldMatrix);
             else
-            {
-                return VFXValue.Constant(CameraType.defaultValue.transform.position);
-            }
-        }
-    }
-
-    class VFXExpressionExtractAnglesFromMainCamera : VFXExpression
-    {
-        public VFXExpressionExtractAnglesFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
-        {
-        }
-
-        public override VFXExpressionOperation operation
-        {
-            get
-            {
-                return VFXExpressionOperation.ExtractAnglesFromMainCamera;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
-            }
-        }
-
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
-        {
-            if (Camera.main != null)
-            {
-                var matrix = Camera.main.cameraToWorldMatrix;
-                matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                return VFXValue.Constant(matrix.rotation.eulerAngles);
-            }
-            else
-            {
-                return VFXValue.Constant(CameraType.defaultValue.transform.angles);
-            }
-        }
-    }
-
-    class VFXExpressionExtractScaleFromMainCamera : VFXExpression
-    {
-        public VFXExpressionExtractScaleFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
-        {
-        }
-
-        public override VFXExpressionOperation operation
-        {
-            get
-            {
-                return VFXExpressionOperation.ExtractScaleFromMainCamera;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
-            }
-        }
-
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
-        {
-            if (Camera.main != null)
-            {
-                var matrix = Camera.main.cameraToWorldMatrix;
-                matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                return VFXValue.Constant(matrix.lossyScale);
-            }
-            else
-            {
-                return VFXValue.Constant(CameraType.defaultValue.transform.scale);
-            }
+                return VFXValue.Constant(CameraType.defaultValue.transform);
         }
     }
 

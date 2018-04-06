@@ -16,16 +16,13 @@ namespace UnityEditor.VFX.Operator
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            VFXExpression position = new VFXExpressionExtractPositionFromMainCamera();
-            VFXExpression angles = new VFXExpressionExtractAnglesFromMainCamera();
-            VFXExpression scale = new VFXExpressionExtractScaleFromMainCamera();
-
+            VFXExpression matrix = new VFXExpressionExtractMatrixFromMainCamera();
             VFXExpression fov = new VFXExpressionExtractFOVFromMainCamera();
             VFXExpression nearPlane = new VFXExpressionExtractNearPlaneFromMainCamera();
             VFXExpression farPlane = new VFXExpressionExtractFarPlaneFromMainCamera();
             VFXExpression aspectRatio = new VFXExpressionExtractAspectRatioFromMainCamera();
 
-            return new[] { new VFXExpressionTRSToMatrix(position, angles, scale), fov, nearPlane, farPlane, aspectRatio };
+            return new[] { matrix, fov, nearPlane, farPlane, aspectRatio };
         }
     }
 }
