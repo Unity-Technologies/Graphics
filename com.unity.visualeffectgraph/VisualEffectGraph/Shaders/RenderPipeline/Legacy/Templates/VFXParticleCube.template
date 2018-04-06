@@ -4,8 +4,8 @@ Shader "Hidden/VFX/ParticleCubes"
 	{	
 		Cull Back
 		
-		${VFXInclude("Assets/VFXShaders/VFXParticleHeader.template")}
-		${VFXInclude("Assets/VFXShaders/ParticleHexahedron/PassForward.template")}
-		${VFXInclude("Assets/VFXShaders/ParticleHexahedron/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/PassForward.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

@@ -1,6 +1,6 @@
 ${VFXShaderTags}
 
-${VFXInclude("Assets/VFXShaders/VFXParticleCommon.template")}
+${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleCommon.template")}
 ${VFXOutputRenderState}	
 	
 HLSLINCLUDE

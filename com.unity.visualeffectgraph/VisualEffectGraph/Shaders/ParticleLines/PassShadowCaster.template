@@ -26,7 +26,7 @@ Pass
 		o.pos = UnityApplyLinearShadowBias(o.pos);
 	${VFXEnd}
 		
-	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleLines/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

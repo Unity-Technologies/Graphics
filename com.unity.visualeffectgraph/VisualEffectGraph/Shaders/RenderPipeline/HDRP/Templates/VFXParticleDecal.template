@@ -4,7 +4,7 @@ Shader "Hidden/VFX/ParticleDecals"
 	{	
 		Cull Back
 		
-		${VFXInclude("Assets/VFXShaders/VFXParticleHeader.template")}
-		${VFXInclude("Assets/VFXShaders/ParticleDecals/PassForward.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticleDecals/PassForward.template")}
 	}
 }

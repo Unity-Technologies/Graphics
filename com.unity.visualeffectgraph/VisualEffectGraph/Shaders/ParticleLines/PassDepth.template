@@ -22,7 +22,7 @@ Pass
 #define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 				
-	${VFXInclude("Assets/VFXShaders/ParticleLines/Pass.template")}	
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleLines/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

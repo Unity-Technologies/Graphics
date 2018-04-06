@@ -66,7 +66,7 @@ Pass
 #endif
 	${VFXEnd}
 				
-	${VFXInclude("Assets/VFXShaders/ParticleHexahedron/Pass.template")}	
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)

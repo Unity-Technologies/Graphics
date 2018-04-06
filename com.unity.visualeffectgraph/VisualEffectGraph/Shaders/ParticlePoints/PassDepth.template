@@ -25,7 +25,7 @@ Pass
 #undef VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 
-	${VFXInclude("Assets/VFXShaders/ParticlePoints/Pass.template")}	
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

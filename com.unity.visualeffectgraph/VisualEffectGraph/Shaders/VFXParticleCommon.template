@@ -34,4 +34,4 @@ size.z = min(size.x,size.y);
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXShaders/VFXCommonOutput.cginc"${VFXEnd}
+${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXEditor/Shaders/VFXCommonOutput.cginc"${VFXEnd}

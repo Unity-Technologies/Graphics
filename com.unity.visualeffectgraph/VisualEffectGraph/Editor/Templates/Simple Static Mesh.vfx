@@ -156,6 +156,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 642

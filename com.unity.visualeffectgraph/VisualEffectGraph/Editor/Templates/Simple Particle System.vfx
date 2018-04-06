@@ -327,6 +327,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 709
@@ -1508,7 +1509,7 @@ VisualEffectAsset:
         index: 21
       - nameId: bounds_size
         index: 22
-      processor: {fileID: 7200000, guid: 3cebec9e6a0e54e4aa6d2b64881b0121, type: 3}
+      processor: {fileID: 7200000, guid: 25314162b229f2644a3b48892b9efbf0, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1519,7 +1520,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 17
       params: []
-      processor: {fileID: 7200000, guid: 0c8fa762f5e43c941bebb313d9c9dc15, type: 3}
+      processor: {fileID: 7200000, guid: d3b1d0bb7f820044aa52c1919eab4321, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1534,7 +1535,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 0301463aa8d8ec24ba32420b42c52da3, type: 3}
+      processor: {fileID: 4800000, guid: b07855f319b1345409059f2afe852f8b, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

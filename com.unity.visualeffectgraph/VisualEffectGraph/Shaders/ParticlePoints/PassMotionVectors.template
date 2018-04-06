@@ -44,7 +44,7 @@ o.previousPos = mul(_PreviousVP, float4(oldPosition,1.0f));
 o.currentPos = mul(_NonJitteredVP, float4(position,1.0f));
 ${VFXEnd}
 
-	${VFXInclude("Assets/VFXShaders/ParticlePoints/Pass.template")}	
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)
