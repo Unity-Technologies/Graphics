@@ -155,7 +155,7 @@ Light GetLight(half i, float3 positionWS)
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     int lightIndex = _LightIndexBuffer[unity_LightIndicesOffsetAndCount.x + i];
 #else
-    // The following code is more optimal than indexing unity_4LightIndices0. 
+    // The following code is more optimal than indexing unity_4LightIndices0.
     // Conditional moves are branch free even on mali-400
     half i_rem = (i < 2.0h) ? i : i - 2.0h;
     half2 lightIndex2 = (i < 2.0h) ? unity_4LightIndices0.xy : unity_4LightIndices0.zw;
@@ -590,7 +590,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
 
     half3 fullDiffuse = diffuseColor + inputData.vertexLighting;
     half3 finalColor = fullDiffuse * diffuse + emission;
-    
+
 #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
     finalColor += specularColor;
 #endif

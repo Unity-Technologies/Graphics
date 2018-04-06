@@ -59,7 +59,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         {
             UNITY_SETUP_INSTANCE_ID(i);
 #if !defined(UNITY_STEREO_INSTANCING_ENABLED)
-            // Completely unclear why i.stereoTargetEyeIndex doesn't work here, considering 
+            // Completely unclear why i.stereoTargetEyeIndex doesn't work here, considering
             // this has to be correct in order for the texture array slices to be rasterized to
             // We can limit this workaround to stereo instancing for now.
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
@@ -91,7 +91,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         ENDHLSL
 
         Pass
-        {           
+        {
             ZTest Always
             ZWrite Off
             Cull Off
@@ -99,7 +99,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             HLSLPROGRAM
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ _SHADOWS_CASCADE
-            
+
             #pragma vertex   Vertex
             #pragma fragment Fragment
             ENDHLSL

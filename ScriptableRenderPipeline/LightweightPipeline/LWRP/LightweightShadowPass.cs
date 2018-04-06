@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float RenderingDistance { get { return m_ShadowSettings.maxShadowDistance; } }
 
         private const int kMaxCascades = 4;
-        
+
         private int m_ShadowCasterCascadesCount;
         private int m_DirectionalShadowmapID;
         private int m_LocalShadowmapID;
@@ -140,10 +140,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ScreenSpaceShadowmapTexture = new RenderTargetIdentifier(m_ScreenSpaceShadowmapID);
 
             m_DirectionalShadowmapDescriptor = new RenderTextureDescriptor(m_ShadowSettings.directionalShadowAtlasWidth,
-                m_ShadowSettings.directionalShadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, m_ShadowSettings.bufferBitCount);
+                    m_ShadowSettings.directionalShadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, m_ShadowSettings.bufferBitCount);
 
             m_LocalShadowmapDescriptor = new RenderTextureDescriptor(m_ShadowSettings.localShadowAtlasWidth,
-                m_ShadowSettings.localShadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, m_ShadowSettings.bufferBitCount);
+                    m_ShadowSettings.localShadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, m_ShadowSettings.bufferBitCount);
 
             m_ScreenSpaceShadowsMaterial = CoreUtils.CreateEngineMaterial(pipelineAsset.ScreenSpaceShadowShader);
 
@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             m_ShadowSettings.screenSpace = !isOpenGLES2;
-            m_ShadowSettings.directionalLightCascadeCount = (isOpenGLES2)? 1 : pipelineAsset.CascadeCount;
+            m_ShadowSettings.directionalLightCascadeCount = (isOpenGLES2) ? 1 : pipelineAsset.CascadeCount;
 
             m_ShadowSettings.directionalShadowAtlasWidth = pipelineAsset.ShadowAtlasResolution;
             m_ShadowSettings.directionalShadowAtlasHeight = pipelineAsset.ShadowAtlasResolution;
@@ -233,8 +233,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 : RenderTextureFormat.Depth;
 
             m_ShadowSettings.screenspaceShadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
-                    ? RenderTextureFormat.R8
-                    : RenderTextureFormat.ARGB32;
+                ? RenderTextureFormat.R8
+                : RenderTextureFormat.ARGB32;
 
             switch (m_ShadowSettings.directionalLightCascadeCount)
             {
@@ -274,7 +274,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CascadeSplitRadii = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
             for (int i = 0; i < m_CascadeSlices.Length; ++i)
-                m_CascadeSlices[i].Clear(); 
+                m_CascadeSlices[i].Clear();
 
             for (int i = 0; i < m_LocalLightSlices.Length; ++i)
                 m_LocalLightSlices[i].Clear();
@@ -370,7 +370,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             List<int> localLightIndices = lightData.localLightIndices;
             List<VisibleLight> visibleLights = lightData.visibleLights;
-            
+
             int shadowCastingLightsCount = 0;
             int localLightsCount = localLightIndices.Count;
             for (int i = 0; i < localLightsCount; ++i)
@@ -594,11 +594,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVectorArray(DirectionalShadowConstantBuffer._DirShadowSplitSpheres, m_CascadeSplitDistances);
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSphereRadii, m_CascadeSplitRadii);
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset1, new Vector4( invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset1, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset3, new Vector4( invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset3, new Vector4(invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
-                m_ShadowSettings.directionalShadowAtlasWidth, m_ShadowSettings.directionalShadowAtlasHeight));
+                    m_ShadowSettings.directionalShadowAtlasWidth, m_ShadowSettings.directionalShadowAtlasHeight));
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
@@ -617,13 +617,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalMatrixArray(LocalShadowConstantBuffer._LocalWorldToShadowAtlas, m_LocalShadowMatrices);
             cmd.SetGlobalFloatArray(LocalShadowConstantBuffer._LocalShadowStrength, m_LocalShadowStrength);
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset1, new Vector4( invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset1, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset2, new Vector4(-invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset3, new Vector4( invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));
+            cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset3, new Vector4(invHalfShadowAtlasWidth,  invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
-                m_ShadowSettings.localShadowAtlasWidth, m_ShadowSettings.localShadowAtlasHeight));
+                    m_ShadowSettings.localShadowAtlasWidth, m_ShadowSettings.localShadowAtlasHeight));
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
     };
-};
+}
