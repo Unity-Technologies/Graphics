@@ -1,27 +1,40 @@
-
 using UnityEngine;
 using UnityEditor;
 
-public class VFXViewPreference : MonoBehaviour
+public static class VFXViewPreference
 {
-    private static bool prefsLoaded = false;
-    public static bool displayExperimentalOperator { get; private set; }
+    private static bool m_Loaded = false;
+    private static bool m_DisplayExperimentalOperator = false;
+
+    public static bool displayExperimentalOperator
+    {
+        get
+        {
+            LoadIfNeeded();
+            return m_DisplayExperimentalOperator;
+        }
+    }
+
+    private static readonly string experimentalOperatorKey = "displayExperimentalOperatorKey";
+
+    private static void LoadIfNeeded()
+    {
+        if (!m_Loaded)
+        {
+            m_DisplayExperimentalOperator = EditorPrefs.GetBool(experimentalOperatorKey, false);
+            m_Loaded = true;
+        }
+    }
 
     [PreferenceItem("VFX")]
     public static void PreferencesGUI()
     {
-        var experimentalOperator = "displayExperimentalOperatorKey";
-        if (!prefsLoaded)
-        {
-            displayExperimentalOperator = EditorPrefs.GetBool(experimentalOperator, false);
-            prefsLoaded = true;
-        }
-
-        displayExperimentalOperator = EditorGUILayout.Toggle("Allow experimental operator", displayExperimentalOperator);
+        LoadIfNeeded();
+        m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Allow experimental operator", m_DisplayExperimentalOperator);
 
         if (GUI.changed)
         {
-            EditorPrefs.SetBool(experimentalOperator, displayExperimentalOperator);
+            EditorPrefs.SetBool(experimentalOperatorKey, m_DisplayExperimentalOperator);
         }
     }
 }
