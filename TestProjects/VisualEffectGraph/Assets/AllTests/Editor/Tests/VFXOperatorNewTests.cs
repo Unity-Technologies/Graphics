@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using NUnit.Framework;
+using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using System.Collections.Generic;
+using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Test
 {
@@ -38,8 +41,32 @@ namespace UnityEditor.VFX.Test
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var result = context.Compile(finalExpr);
             var eight = result.Get<float>();
-
             Assert.AreEqual(count, eight);
+
+            //< Process some remove (doesn't work for now *WIP*)
+#if false
+            var removeCount = 4.0f;
+            for (int i = 0; i < (int)removeCount; ++i)
+            {
+                var linkedSlots = add.inputSlots.Where(o => o.HasLink());
+                VFXSlot removeSlot = null;
+                if (i%2 == 0)
+                {
+                    removeSlot = linkedSlots.Last();
+                }
+                else
+                {
+                    removeSlot = linkedSlots.Last();
+                }
+                var index = add.inputSlots.IndexOf(removeSlot);
+                add.RemoveOperand(index);
+
+                finalExpr = add.outputSlots.First().GetExpression();
+                result = context.Compile(finalExpr);
+                var res = result.Get<float>();
+                Assert.AreEqual(count - (float)i - 1.0f, res);
+            }
+#endif
         }
 
         [Test]
@@ -236,6 +263,46 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXValueType.Float3, append.outputSlots[0].GetExpression().valueType);
             append.SetOperandType(1, typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float4, append.outputSlots[0].GetExpression().valueType);
+        }
+
+        [Test]
+        public void BranchNewBehavior()
+        {
+            var branch = ScriptableObject.CreateInstance<Operator.BranchNew>();
+            branch.SetOperandType(typeof(Sphere));
+
+            var sphereA = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
+            var sphereB = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
+
+            branch.inputSlots[0].value = false;
+            branch.inputSlots[1].value = sphereA;
+            branch.inputSlots[2].value = sphereB;
+
+            Func<Sphere, Sphere, bool> fnCompareSphere = delegate (Sphere aS, Sphere bS)
+            {
+                if (aS.center.x != bS.center.x) return false;
+                if (aS.center.y != bS.center.y) return false;
+                if (aS.center.z != bS.center.z) return false;
+                if (aS.radius != bS.radius) return false;
+                return true;
+            };
+
+            Func<VFXSlot, Sphere> fnSlotToSphere = delegate (VFXSlot slot)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var center = context.Compile(slot[0].GetExpression());
+                var radius = context.Compile(slot[1].GetExpression());
+                return new Sphere()
+                {
+                    center = center.Get<Vector3>(),
+                    radius = radius.Get<float>()
+                };
+            };
+
+            Assert.IsTrue(fnCompareSphere(fnSlotToSphere(branch.outputSlots[0]), sphereB));
+
+            branch.inputSlots[0].value = true;
+            Assert.IsTrue(fnCompareSphere(fnSlotToSphere(branch.outputSlots[0]), sphereA));
         }
     }
 }
