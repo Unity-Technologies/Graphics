@@ -7,10 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class DecalSystem
     {
         public const int kInvalidIndex = -1;
-        public const int kDecalAtlasWidth = 128;
-        public const int kDecalAtlasHeight = 128;
-        const int kDecalAtlasSlices = 256;  // 128x128x256 argb32 = 16MB......
-
         public class DecalHandle
         {
             public DecalHandle(int index, int materialID)
@@ -53,19 +49,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return hdrp.renderPipelineSettings.decalSettings.drawDistance;
                 }
                 return kDefaultDrawDistance;
-            }
-        }
-
-        public TextureCache2D TextureAtlas
-        {
-            get
-            {
-                if (m_DecalAtlas == null)
-                {
-                    m_DecalAtlas = new TextureCache2D("DecalAtlas");
-                    m_DecalAtlas.AllocTextureArray(kDecalAtlasSlices, kDecalAtlasWidth, kDecalAtlasHeight, TextureFormat.ARGB32, true);
-                }
-                return m_DecalAtlas;
             }
         }
 
@@ -115,13 +98,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private Texture2DAtlas m_Atlas = null;
 
+        public static int kDecalAtlasWidth = 4096;
+        public static int kDecalAtlasHeight= 4096;
+
         public Texture2DAtlas Atlas
         {
             get
             {
                 if (m_Atlas == null)
                 {
-                    m_Atlas = new Texture2DAtlas(4096, 4096, RenderTextureFormat.ARGB32);
+                    m_Atlas = new Texture2DAtlas(kDecalAtlasWidth, kDecalAtlasHeight, RenderTextureFormat.ARGB32);
                 }
                 return m_Atlas;
             }
@@ -373,27 +359,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             void UpdateTextureCache(CommandBuffer cmd)
             {
-//                m_DiffuseTexIndex = (m_DiffuseTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_DiffuseTexture) : -1;
-//                m_NormalTexIndex = (m_NormalTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_NormalTexture) : -1;
-//                m_MaskTexIndex = (m_MaskTexture != null) ? instance.TextureAtlas.FetchSlice(cmd, m_MaskTexture) : -1;
-
                 m_DiffuseScaleBias = (m_DiffuseTexture != null) ? instance.Atlas.AddTexture(cmd, m_DiffuseTexture) : Vector4.zero;
+                m_NormalScaleBias = (m_NormalTexture != null) ? instance.Atlas.AddTexture(cmd, m_NormalTexture) : Vector4.zero;
+                m_MaskScaleBias = (m_MaskTexture != null) ? instance.Atlas.AddTexture(cmd, m_MaskTexture) : Vector4.zero;
             }
 
             public void RemoveFromTextureCache()
             {
-                if (m_DiffuseTexture != null)
-                {
-                    instance.TextureAtlas.RemoveEntryFromSlice(m_DiffuseTexture);
-                }
-                if (m_NormalTexture != null)
-                {
-                    instance.TextureAtlas.RemoveEntryFromSlice(m_NormalTexture);
-                }
-                if (m_MaskTexture != null)
-                {
-                    instance.TextureAtlas.RemoveEntryFromSlice(m_MaskTexture);
-                }
             }
 
             public void UpdateCachedMaterialData(CommandBuffer cmd)
@@ -549,6 +521,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // updates textures, texture atlas indices and blend value
         public void UpdateCachedMaterialData(CommandBuffer cmd)
         {
+            Atlas.ResetAllocator();
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.UpdateCachedMaterialData(cmd);
