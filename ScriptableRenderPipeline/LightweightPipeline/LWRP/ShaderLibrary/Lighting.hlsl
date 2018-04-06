@@ -113,7 +113,7 @@ half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenu
 half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
 {
     half4 directionAndAttenuation;
-    float3 posToLightVec = lightInput.position.xyz - positionWS.xyz * lightInput.position.w;
+    float3 posToLightVec = lightInput.position.xyz - positionWS * lightInput.position.w;
     float distanceSqr = max(dot(posToLightVec, posToLightVec), FLT_MIN);
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
@@ -138,7 +138,8 @@ half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 position
 
 Light GetMainLight()
 {
-    Light light = (Light)0;
+    Light light;
+    light.index = 0;
     light.direction = _MainLightPosition.xyz;
     light.attenuation = 1.0;
     light.subtractiveModeAttenuation = _MainLightPosition.w;
