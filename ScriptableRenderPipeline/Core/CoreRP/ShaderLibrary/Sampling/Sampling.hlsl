@@ -116,6 +116,14 @@ real2 SampleDiskUniform(real u1, real u2)
     return r * real2(cosPhi, sinPhi);
 }
 
+real3 SampleSphereUniform(real u1, real u2)
+{
+    real phi      = TWO_PI * u2;
+    real cosTheta = 1.0 - 2.0 * u1;
+
+    return SphericalToCartesian(phi, cosTheta);
+}
+
 // Performs cosine-weighted sampling of the hemisphere.
 // Ref: PBRT v3, p. 780.
 real3 SampleHemisphereCosine(real u1, real u2)
@@ -132,18 +140,18 @@ real3 SampleHemisphereCosine(real u1, real u2)
     return localL;
 }
 
+// Cosine-weighted sampling without the tangent frame.
+// Ref: http://www.amietia.com/lambertnotangent.html
+real3 SampleHemisphereCosine(real u1, real u2, real3 normal)
+{
+    real3 pointOnSphere = SampleSphereUniform(u1, u2);
+    return normalize(normal + pointOnSphere);
+}
+
 real3 SampleHemisphereUniform(real u1, real u2)
 {
     real phi      = TWO_PI * u2;
     real cosTheta = 1.0 - u1;
-
-    return SphericalToCartesian(phi, cosTheta);
-}
-
-real3 SampleSphereUniform(real u1, real u2)
-{
-    real phi      = TWO_PI * u2;
-    real cosTheta = 1.0 - 2.0 * u1;
 
     return SphericalToCartesian(phi, cosTheta);
 }

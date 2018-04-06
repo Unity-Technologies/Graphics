@@ -226,11 +226,18 @@ void ImportanceSampleLambert(real2   u,
                          out real    NdotL,
                          out real    weightOverPdf)
 {
+#if 0
     real3 localL = SampleHemisphereCosine(u.x, u.y);
 
     NdotL = localL.z;
 
     L = mul(localL, localToWorld);
+#else
+    real3 N = localToWorld[2];
+
+    L     = SampleHemisphereCosine(u.x, u.y, N);
+    NdotL = saturate(dot(N, L));
+#endif
 
     // Importance sampling weight for each sample
     // pdf = N.L / PI
