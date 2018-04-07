@@ -105,7 +105,7 @@ TEXTURE2D_ARRAY(_DecalAtlas);
 SAMPLER(sampler_DecalAtlas);
 
 TEXTURE2D(_DecalAtlas2D);
-SAMPLER(sampler_DecalAtlas2D);
+SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,
