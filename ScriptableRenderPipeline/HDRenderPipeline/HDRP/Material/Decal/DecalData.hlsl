@@ -11,11 +11,8 @@ void GetSurfaceData(float2 texCoordDS, float4x4 normalToWorld, out DecalSurfaceD
 	surfaceData.mask = float4(0,0,0,0);
 	surfaceData.HTileMask = 0;
 	float totalBlend = clamp(normalToWorld[0][3], 0.0f, 1.0f);
-//	float2 diffuseScale = float2(normalToWorld[3][0], normalToWorld[3][1]);
-//	float2 diffuseOffset = float2(normalToWorld[3][2], normalToWorld[3][3]);
 #if _COLORMAP
 	surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoordDS.xy);
-	//surfaceData.baseColor = SAMPLE_TEXTURE2D(_DecalAtlas2D, sampler_DecalAtlas2D, texCoordDS.xy * diffuseScale + diffuseOffset);
 	surfaceData.baseColor.w *= totalBlend;
 	totalBlend = surfaceData.baseColor.w;	// base alpha affects all other channels;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
