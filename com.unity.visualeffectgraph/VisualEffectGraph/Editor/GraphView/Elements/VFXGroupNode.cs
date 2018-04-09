@@ -41,8 +41,9 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
-        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            
         }
 
         public void OnMoved()
