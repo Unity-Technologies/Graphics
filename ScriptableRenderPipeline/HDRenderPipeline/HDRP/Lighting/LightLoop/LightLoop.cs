@@ -205,6 +205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
+        public static uint s_LightFeatureMaskFlagsSSReflection = (uint)LightFeatureFlags.SSReflection;
         public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
         public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
