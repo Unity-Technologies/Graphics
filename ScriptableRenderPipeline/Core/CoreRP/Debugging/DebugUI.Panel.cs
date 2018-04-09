@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public bool isEditorOnly { get { return (flags & Flags.EditorOnly) != 0; } }
             public bool isRuntimeOnly { get { return (flags & Flags.RuntimeOnly) != 0; } }
-            public bool forceUpdate { get { return (flags & Flags.ForceUpdate) != 0; } }
+            public bool editorForceUpdate { get { return (flags & Flags.EditorForceUpdate) != 0; } }
 
             public ObservableList<Widget> children { get; private set; }
             public event Action<Panel> onSetDirty = delegate { };

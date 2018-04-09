@@ -427,7 +427,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugScreenSpaceTracingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelScreenSpaceTracing, true);
-            panel.flags |= DebugUI.Flags.ForceUpdate;
+            panel.flags |= DebugUI.Flags.EditorForceUpdate;
             panel.children.Add(m_DebugScreenSpaceTracingItems);
         }
 
