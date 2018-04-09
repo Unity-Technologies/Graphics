@@ -216,7 +216,7 @@ namespace UnityEditor.VFX
 
     interface IVFXOperatorNumericUnifiedNew
     {
-        int operandCount {get;}
+        int operandCount {get; }
         Type GetOperandType(int index);
         void SetOperandType(int index, Type type);
     }
@@ -235,12 +235,13 @@ namespace UnityEditor.VFX
         }
         public int operandCount
         {
-            get{return m_Type.Length;}
+            get {return m_Type.Length; }
         }
         public Type GetOperandType(int index)
         {
             return m_Type[index];
         }
+
         public void SetOperandType(int index, Type type)
         {
             if (!validTypes.Contains(type))
@@ -346,11 +347,16 @@ namespace UnityEditor.VFX
 
         public void RemoveOperand(int index)
         {
-            int oldCount = m_Operands.Length;
-            Operand[] infos = new Operand[oldCount - 1];
+            OperandMoved(index, operandCount - 1);
+            RemoveOperand();
+        }
 
-            Array.Copy(m_Operands, infos, index);
-            Array.Copy(m_Operands, index + 1, infos, index, oldCount - index - 1);
+        public void RemoveOperand()
+        {
+            int oldCount = m_Operands.Length;
+            var infos = new Operand[oldCount - 1];
+
+            Array.Copy(m_Operands, infos, oldCount - 1);
             m_Operands = infos;
 
             Invalidate(InvalidationCause.kSettingChanged);
