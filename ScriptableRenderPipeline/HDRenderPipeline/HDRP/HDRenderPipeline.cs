@@ -1591,7 +1591,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 context.command = cmd;
                 context.camera = hdcamera.camera;
                 context.sourceFormat = RenderTextureFormat.ARGBHalf;
-                context.flip = true;
+                context.flip = hdcamera.camera.targetTexture == null;
 
                 layer.Render(context);
             }
