@@ -353,12 +353,16 @@ namespace UnityEditor.VFX
 
         public void RemoveOperand()
         {
+            if (m_Operands.Length == 0)
+                return;
+
             int oldCount = m_Operands.Length;
             var infos = new Operand[oldCount - 1];
 
             Array.Copy(m_Operands, infos, oldCount - 1);
             m_Operands = infos;
 
+            inputSlots.Last().UnlinkAll(true);
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
