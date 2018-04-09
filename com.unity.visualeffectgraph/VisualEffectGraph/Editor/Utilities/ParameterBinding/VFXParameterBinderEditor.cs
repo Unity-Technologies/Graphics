@@ -87,7 +87,7 @@ public class VFXParameterBinderEditor : Editor
                         if (parm != parameter.stringValue)
                         {
                             parameter.stringValue = parm;
-                            property.FindPropertyRelative("m_Id").intValue = ExposedParameter.GetID(parm);
+                            property.FindPropertyRelative("m_Id").intValue = -1; // reset value, and wait for it to be regenerated.
                             serializedObject.ApplyModifiedProperties();
                         }
 
