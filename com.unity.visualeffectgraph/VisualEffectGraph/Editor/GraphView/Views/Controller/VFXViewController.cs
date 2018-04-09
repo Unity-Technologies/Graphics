@@ -150,14 +150,6 @@ namespace UnityEditor.VFX.UI
             foreach (var edge in unusedEdges)
             {
                 edge.OnDisable();
-                // This will remove and operand when and edge is removed
-                if( edge.input != null && edge.input.sourceNode.model is VFXOperatorNumericCascadedUnifiedNew)
-                {
-                    VFXOperatorNumericCascadedUnifiedNew op = edge.input.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
-                    if( op.GetNbInputSlots() > 2)
-                        op.RemoveOperand(op.GetSlotIndex(edge.input.model));
-                    /*else should we reset to the defaultValueType here ? */
-                }
 
                 m_DataEdges.Remove(edge);
                 changed = true;
@@ -180,9 +172,8 @@ namespace UnityEditor.VFX.UI
 
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
-        
             VFXSlot inputSlot = input.model;
-            if( inputSlot == null)
+            if (inputSlot == null)
                 return false;
 
             bool changed = false;
@@ -353,7 +344,7 @@ namespace UnityEditor.VFX.UI
 
         public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
         {
-            if( input == null)
+            if (input == null)
             {
                 return false;
             }
@@ -412,7 +403,9 @@ namespace UnityEditor.VFX.UI
         {
             if (element is VFXContextController)
             {
-                VFXContext context = ((VFXContextController)element).context;
+                VFXContextController contextController = ((VFXContextController)element);
+                VFXContext context = contextController.context;
+                contextController.NodeGoingToBeRemoved();
 
                 // Remove connections from context
                 foreach (var slot in context.inputSlots.Concat(context.outputSlots))
@@ -436,19 +429,20 @@ namespace UnityEditor.VFX.UI
                 RemoveFromGroupNodes(element as VFXNodeController);
 
 
-                Object.DestroyImmediate(context,true);
+                Object.DestroyImmediate(context, true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
+                block.NodeGoingToBeRemoved();
                 block.contextController.RemoveBlock(block.block);
 
-                Object.DestroyImmediate(block.block,true);
+                Object.DestroyImmediate(block.block, true);
             }
             else if (element is VFXParameterNodeController)
             {
                 var parameter = element as VFXParameterNodeController;
-
+                parameter.NodeGoingToBeRemoved();
                 parameter.parentController.model.RemoveNode(parameter.infos);
                 RemoveFromGroupNodes(element as VFXNodeController);
                 DataEdgesMightHaveChanged();
@@ -459,7 +453,9 @@ namespace UnityEditor.VFX.UI
 
                 if (element is VFXNodeController)
                 {
-                    container = (element as VFXNodeController).model as IVFXSlotContainer;
+                    VFXNodeController nodeController = (element as VFXNodeController);
+                    container = nodeController.model as IVFXSlotContainer;
+                    nodeController.NodeGoingToBeRemoved();
                     RemoveFromGroupNodes(element as VFXNodeController);
                 }
                 else
@@ -486,7 +482,7 @@ namespace UnityEditor.VFX.UI
 
                 graph.RemoveChild(container as VFXModel);
 
-                Object.DestroyImmediate(container as VFXModel,true);
+                Object.DestroyImmediate(container as VFXModel, true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -513,6 +509,7 @@ namespace UnityEditor.VFX.UI
 
                 if (to != null)
                 {
+                    to.sourceNode.OnEdgeGoingToBeRemoved(to);
                     var slot = to.model;
                     if (slot != null)
                     {
@@ -771,7 +768,7 @@ namespace UnityEditor.VFX.UI
                     allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
 
                     var toSlot = startAnchorOperatorController.model;
-                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>startAnchorOperatorController.CanLink(o)).ToList();
+                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o => startAnchorOperatorController.CanLink(o)).ToList();
                 }
             }
             else
@@ -783,7 +780,7 @@ namespace UnityEditor.VFX.UI
 
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
 
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i =>startAnchorOperatorController.CanLink(i)).ToList();
+                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i => startAnchorOperatorController.CanLink(i)).ToList();
             }
 
             return allCandidates.ToList();
@@ -1160,13 +1157,13 @@ namespace UnityEditor.VFX.UI
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                if( model is VFXOperatorNumericCascadedUnifiedNew)
+                if (model is VFXOperatorNumericCascadedUnifiedNew)
                     newControllers.Add(new VFXCascadedOperatorController(model, this));
-                else if( model is VFXOperatorNumericUniformNew)
+                else if (model is VFXOperatorNumericUniformNew)
                 {
                     newControllers.Add(new VFXUniformOperatorController(model, this));
                 }
-                else if( model is VFXOperatorNumericUnifiedNew)
+                else if (model is VFXOperatorNumericUnifiedNew)
                 {
                     newControllers.Add(new VFXUnifiedOperatorController(model, this));
                 }

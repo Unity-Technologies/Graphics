@@ -6,7 +6,6 @@ using System;
 
 namespace UnityEditor.VFX.UI
 {
-
     class VFXOperatorController : VFXNodeController
     {
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
@@ -40,11 +39,11 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool isEditable
         {
-            get{return false;}
+            get {return false; }
         }
     }
 
-    class VFXUnifiedOperatorControllerBase<T> : VFXOperatorController where T : VFXOperatorNumericNew,IVFXOperatorNumericUnifiedNew
+    class VFXUnifiedOperatorControllerBase<T> : VFXOperatorController where T : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         public VFXUnifiedOperatorControllerBase(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
@@ -57,26 +56,25 @@ namespace UnityEditor.VFX.UI
                 return base.model as T;
             }
         }
-        public override void WillCreateLink(ref VFXSlot myInput,ref VFXSlot otherOutput)
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
         {
-
-            if( model.validTypes.Contains(otherOutput.property.type))
+            if (model.validTypes.Contains(otherOutput.property.type))
             {
                 int index = model.GetSlotIndex(myInput);
-                model.SetOperandType(index,otherOutput.property.type);
+                model.SetOperandType(index, otherOutput.property.type);
 
                 myInput = model.GetInputSlot(index);
             }
         }
 
-        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput,VFXDataAnchorController otherOutput)
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
         {
             return model.validTypes.Contains(otherOutput.portType);
         }
 
         public override bool isEditable
         {
-            get{return true;}
+            get {return true; }
         }
     }
     class VFXUnifiedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericUnifiedNew>
@@ -95,16 +93,26 @@ namespace UnityEditor.VFX.UI
         VFXUpcommingDataAnchorController m_UpcommingDataAnchor;
         protected override void NewInputSet()
         {
-            if( m_UpcommingDataAnchor == null)
+            if (m_UpcommingDataAnchor == null)
             {
-                m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this,false);
+                m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this, false);
             }
             m_InputPorts.Add(m_UpcommingDataAnchor);
         }
 
+        public override void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)
+        {
+            base.OnEdgeGoingToBeRemoved(myInput);
+
+            if (model.operandCount > 2)
+            {
+                model.RemoveOperand(model.GetSlotIndex(myInput.model));
+            }
+        }
+
         public override bool isEditable
         {
-            get{return true;}
+            get {return true; }
         }
     }
 
@@ -113,6 +121,7 @@ namespace UnityEditor.VFX.UI
         public VFXUniformOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
         }
+
         public new VFXOperatorNumericUniformNew model
         {
             get
@@ -121,22 +130,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput,VFXDataAnchorController otherOutput)
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
         {
             return model.validTypes.Contains(otherOutput.portType);
         }
-        
-        public override void WillCreateLink(ref VFXSlot myInput,ref VFXSlot otherOutput)
+
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
         {
             //Since every input will change at the same time the metric to change is :
             // if we have no input links yet
 
             var myInputCopy = myInput;
-            bool hasLink = inputPorts.Any(t=>t.model != myInputCopy && t.model.HasLink());
+            bool hasLink = inputPorts.Any(t => t.model != myInputCopy && t.model.HasLink());
             // The new link is impossible if we don't change (case of a vector3 trying to be linked to a vector4)
-            bool linkImpossibleNow = ! myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput);
+            bool linkImpossibleNow = !myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput);
 
-            if( (! hasLink || linkImpossibleNow) && model.validTypes.Contains(otherOutput.property.type))
+            if ((!hasLink || linkImpossibleNow) && model.validTypes.Contains(otherOutput.property.type))
             {
                 int index = model.GetSlotIndex(myInput);
                 model.SetOperandType(otherOutput.property.type);
@@ -144,9 +153,10 @@ namespace UnityEditor.VFX.UI
                 myInput = model.GetInputSlot(index);
             }
         }
+
         public override bool isEditable
         {
-            get{return true;}
+            get {return true; }
         }
     }
 }
