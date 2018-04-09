@@ -38,12 +38,14 @@ namespace UnityEditor.VFX.UI
             }
             menu.DropDown(m_TypePopup.worldBound);
         }
+
         void OnChangeType(object type)
         {
             var op = controller.model;
 
             op.SetOperandType((Type)type);
         }
+
         VFXUniformOperatorController m_Controller;
         Controller IControlledElement.controller
         {
@@ -76,7 +78,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXMultiOperatorEdit<T,U> : VFXReorderableList, IControlledElement<T> where U : VFXOperatorNumericNew,IVFXOperatorNumericUnifiedNew where T : VFXUnifiedOperatorControllerBase<U>
+    class VFXMultiOperatorEdit<T, U> : VFXReorderableList, IControlledElement<T> where U : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew where T : VFXUnifiedOperatorControllerBase<U>
     {
         T m_Controller;
         Controller IControlledElement.controller
@@ -177,26 +179,31 @@ namespace UnityEditor.VFX.UI
 
         protected virtual OperandInfoBase CreateOperandInfo(int index)
         {
-            return new OperandInfoBase(this,controller.model,index);
+            return new OperandInfoBase(this, controller.model, index);
         }
 
         protected class OperandInfoBase : VisualElement
         {
             Label type;
-            VFXMultiOperatorEdit<T,U> m_Owner;
+            public VFXMultiOperatorEdit<T, U> m_Owner;
 
             public int index;
 
-            public OperandInfoBase(VFXMultiOperatorEdit<T,U> owner, U op, int index)
+            public OperandInfoBase(VFXMultiOperatorEdit<T, U> owner, U op, int index)
             {
                 this.AddStyleSheetPathWithSkinVariant("VFXControls");
                 m_Owner = owner;
                 type = new Label();
                 this.index = index;
                 type.AddToClassList("PopupButton");
-                type.AddManipulator(new DownClickable(() => owner.OnTypeMenu(type, index)));
+                type.AddManipulator(new DownClickable(OnTypeMenu));
 
                 Add(type);
+            }
+
+            void OnTypeMenu()
+            {
+                m_Owner.OnTypeMenu(type, index);
             }
 
             public virtual void Set(U op)
@@ -206,28 +213,28 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXUnifiedOperatorEdit : VFXMultiOperatorEdit<VFXUnifiedOperatorController,VFXOperatorNumericUnifiedNew>
+    class VFXUnifiedOperatorEdit : VFXMultiOperatorEdit<VFXUnifiedOperatorController, VFXOperatorNumericUnifiedNew>
     {
-
         public VFXUnifiedOperatorEdit()
         {
             toolbar = false;
             reorderable = false;
         }
+
         protected override OperandInfoBase CreateOperandInfo(int index)
         {
-            return new OperandInfo(this,controller.model,index);
+            return new OperandInfo(this, controller.model, index);
         }
 
         class OperandInfo : OperandInfoBase
         {
             Label label;
 
-            public OperandInfo(VFXUnifiedOperatorEdit owner, VFXOperatorNumericUnifiedNew op, int index):base(owner,op,index)
+            public OperandInfo(VFXUnifiedOperatorEdit owner, VFXOperatorNumericUnifiedNew op, int index) : base(owner, op, index)
             {
                 label = new Label();
 
-                Insert(0,label);
+                Insert(0, label);
             }
 
             public override void Set(VFXOperatorNumericUnifiedNew op)
@@ -237,9 +244,8 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXCascadedOperatorEdit : VFXMultiOperatorEdit<VFXCascadedOperatorController,VFXOperatorNumericCascadedUnifiedNew>
+    class VFXCascadedOperatorEdit : VFXMultiOperatorEdit<VFXCascadedOperatorController, VFXOperatorNumericCascadedUnifiedNew>
     {
-
         protected override void ElementMoved(int movedIndex, int targetIndex)
         {
             base.ElementMoved(movedIndex, targetIndex);
@@ -258,7 +264,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnRemove(int index)
         {
-            if( CanRemove())
+            if (CanRemove())
                 controller.model.RemoveOperand(index);
         }
 
@@ -272,23 +278,28 @@ namespace UnityEditor.VFX.UI
                     op.SetOperandName(index, value);
             }
         }
+
         protected override OperandInfoBase CreateOperandInfo(int index)
         {
-            return new OperandInfo(this,controller.model,index);
+            return new OperandInfo(this, controller.model, index);
         }
 
         class OperandInfo : OperandInfoBase
         {
             VFXStringField field;
 
-            public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index):base(owner,op,index)
+            public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index) : base(owner, op, index)
             {
                 field = new VFXStringField("name");
-                field.OnValueChanged = () => owner.OnChangeLabel(field.value, index);
+                field.OnValueChanged = OnChangeLabel;
 
-                Insert(0,field);
+                Insert(0, field);
             }
 
+            void OnChangeLabel()
+            {
+                (m_Owner as VFXCascadedOperatorEdit).OnChangeLabel(field.value, index);
+            }
 
             public override void Set(VFXOperatorNumericCascadedUnifiedNew op)
             {
