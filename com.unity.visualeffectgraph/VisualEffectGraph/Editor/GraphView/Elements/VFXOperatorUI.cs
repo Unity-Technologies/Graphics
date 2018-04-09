@@ -10,7 +10,7 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
 
-using VFXEditableOperator = UnityEditor.VFX.VFXOperatorMultiplyNew;
+using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
 
 namespace UnityEditor.VFX.UI
 {

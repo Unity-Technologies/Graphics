@@ -9,23 +9,15 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.All;
+            return VFXAttribute.AllExpectLocalOnly;
         }
     }
 
-    class WritableAttributeProvider : IStringProvider
+    class ReadWritableAttributeProvider : IStringProvider
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllWritable;
-        }
-    }
-
-    class ReadOnlyAttributeProvider : IStringProvider
-    {
-        public string[] GetAvailableString()
-        {
-            return VFXAttribute.AllReadOnly;
+            return VFXAttribute.AllReadWritable;
         }
     }
 
@@ -37,7 +29,21 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.All.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllExpectLocalOnly.Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+
+    class AttributeVariantReadWritable : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() }
                 };
             }
         }
@@ -61,6 +67,7 @@ namespace UnityEditor.VFX
             }
         }
 
+        override public string libraryName { get { return attribute; } }
         override public string name { get { return location + " " + attribute; } }
 
         public override void Sanitize()
@@ -69,9 +76,9 @@ namespace UnityEditor.VFX
             {
                 Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
 
-                var randOp = ScriptableObject.CreateInstance<VFXOperatorRandom>();
+                var randOp = ScriptableObject.CreateInstance<Operator.Random>();
                 randOp.constant = true;
-                randOp.seed = VFXOperatorRandom.SeedMode.PerParticle;
+                randOp.seed = Operator.Random.SeedMode.PerParticle;
 
                 VFXSlot.TransferLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
                 ReplaceModel(randOp, this);
