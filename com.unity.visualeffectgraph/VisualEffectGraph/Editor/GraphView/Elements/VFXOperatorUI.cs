@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
+using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -106,10 +107,16 @@ namespace UnityEditor.VFX.UI
                 edit.controller = controller as VFXCascadedOperatorController;
                 return edit;
             }
-            if( controller is VFXUniformOperatorController)
+            if( controller is VFXNumericUniformOperatorController)
             {
-                var edit = new VFXUniformOperatorEdit();
-                edit.controller = controller as VFXUniformOperatorController;
+                var edit = new VFXUniformOperatorEdit<VFXNumericUniformOperatorController,VFXOperatorNumericUniformNew>();
+                edit.controller = controller as VFXNumericUniformOperatorController;
+                return edit;
+            }
+            if( controller is VFXBranchOperatorController)
+            {
+                var edit = new VFXUniformOperatorEdit<VFXBranchOperatorController,BranchNew>();
+                edit.controller = controller as VFXBranchOperatorController;
                 return edit;
             }
             if( controller is VFXUnifiedOperatorController)

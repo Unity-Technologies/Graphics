@@ -47,6 +47,10 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override string name { get { return "BranchNew " + ((Type)m_Type).UserFriendlyName(); } }
 
+        public Type GetOperandType()
+        {
+            return m_Type;
+        }
         public void SetOperandType(Type type)
         {
             if (!validTypes.Contains(type))

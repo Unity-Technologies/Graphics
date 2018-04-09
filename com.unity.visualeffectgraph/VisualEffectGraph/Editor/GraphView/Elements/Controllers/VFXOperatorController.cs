@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
+using BranchNew = UnityEditor.VFX.Operator.BranchNew;
+
 namespace UnityEditor.VFX.UI
 {
     class VFXOperatorController : VFXNodeController
@@ -43,7 +45,32 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXUnifiedOperatorControllerBase<T> : VFXOperatorController where T : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    class VFXVariableOperatorController : VFXOperatorController
+    {
+        public VFXVariableOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
+        }
+
+        public new VFXOperatorDynamicOperand model
+        {
+            get
+            {
+                return base.model as VFXOperatorDynamicOperand;
+            }
+        }
+
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        {
+            return model.validTypes.Contains(otherOutput.portType);
+        }
+
+        public override bool isEditable
+        {
+            get {return true; }
+        }
+    }
+
+    class VFXUnifiedOperatorControllerBase<T> : VFXVariableOperatorController where T : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         public VFXUnifiedOperatorControllerBase(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
@@ -65,16 +92,6 @@ namespace UnityEditor.VFX.UI
 
                 myInput = model.GetInputSlot(index);
             }
-        }
-
-        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
-        {
-            return model.validTypes.Contains(otherOutput.portType);
-        }
-
-        public override bool isEditable
-        {
-            get {return true; }
         }
     }
     class VFXUnifiedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericUnifiedNew>
@@ -123,30 +140,20 @@ namespace UnityEditor.VFX.UI
                 model.RemoveOperand(index);
             }
         }
-
-        public override bool isEditable
-        {
-            get {return true; }
-        }
     }
 
-    class VFXUniformOperatorController : VFXOperatorController
+    class VFXUniformOperatorController<T> : VFXVariableOperatorController where T : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         public VFXUniformOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
         }
 
-        public new VFXOperatorNumericUniformNew model
+        public new T model
         {
             get
             {
-                return base.model as VFXOperatorNumericUniformNew;
+                return base.model as T;
             }
-        }
-
-        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
-        {
-            return model.validTypes.Contains(otherOutput.portType);
         }
 
         public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
@@ -167,10 +174,19 @@ namespace UnityEditor.VFX.UI
                 myInput = model.GetInputSlot(index);
             }
         }
+    }
 
-        public override bool isEditable
+    class VFXNumericUniformOperatorController : VFXUniformOperatorController<VFXOperatorNumericUniformNew>
+    {
+        public VFXNumericUniformOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
-            get {return true; }
+        }
+    }
+
+    class VFXBranchOperatorController : VFXUniformOperatorController<BranchNew>
+    {
+        public VFXBranchOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
         }
     }
 }

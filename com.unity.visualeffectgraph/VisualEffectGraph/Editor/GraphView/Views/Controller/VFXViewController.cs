@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -1161,11 +1162,15 @@ namespace UnityEditor.VFX.UI
                     newControllers.Add(new VFXCascadedOperatorController(model, this));
                 else if (model is VFXOperatorNumericUniformNew)
                 {
-                    newControllers.Add(new VFXUniformOperatorController(model, this));
+                    newControllers.Add(new VFXNumericUniformOperatorController(model, this));
                 }
                 else if (model is VFXOperatorNumericUnifiedNew)
                 {
                     newControllers.Add(new VFXUnifiedOperatorController(model, this));
+                }
+                else if (model is BranchNew)
+                {
+                    newControllers.Add(new VFXBranchOperatorController(model, this));
                 }
                 else
                     newControllers.Add(new VFXOperatorController(model, this));

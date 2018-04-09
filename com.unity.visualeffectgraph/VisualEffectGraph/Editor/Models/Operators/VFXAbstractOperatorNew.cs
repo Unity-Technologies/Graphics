@@ -228,6 +228,7 @@ namespace UnityEditor.VFX
 
     interface IVFXOperatorUniform
     {
+        Type GetOperandType();
         void SetOperandType(Type type);
     }
 

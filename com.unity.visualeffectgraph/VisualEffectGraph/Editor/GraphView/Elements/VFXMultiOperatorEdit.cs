@@ -9,10 +9,11 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
+using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXUniformOperatorEdit : VisualElement, IControlledElement<VFXUniformOperatorController>
+    class VFXUniformOperatorEdit<T,U> : VisualElement, IControlledElement<T> where U : VFXOperatorDynamicOperand, IVFXOperatorUniform where T : VFXUniformOperatorController<U>
     {
         Label m_TypePopup;
         public VFXUniformOperatorEdit()
@@ -46,12 +47,12 @@ namespace UnityEditor.VFX.UI
             op.SetOperandType((Type)type);
         }
 
-        VFXUniformOperatorController m_Controller;
+        T m_Controller;
         Controller IControlledElement.controller
         {
             get { return m_Controller; }
         }
-        public VFXUniformOperatorController controller
+        public T controller
         {
             get { return m_Controller; }
             set
