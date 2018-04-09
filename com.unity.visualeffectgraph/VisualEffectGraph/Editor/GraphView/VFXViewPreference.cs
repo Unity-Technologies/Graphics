@@ -15,7 +15,7 @@ public static class VFXViewPreference
         }
     }
 
-    private static readonly string experimentalOperatorKey = "displayExperimentalOperatorKey";
+    public const string experimentalOperatorKey = "displayExperimentalOperatorKey";
 
     private static void LoadIfNeeded()
     {
