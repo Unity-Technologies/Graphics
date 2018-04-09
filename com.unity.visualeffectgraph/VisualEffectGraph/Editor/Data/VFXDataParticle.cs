@@ -257,12 +257,42 @@ namespace UnityEditor.VFX
             return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.Boolean ? "uint" : "asuint");
         }
 
+        public override IEnumerable<VFXContext> InitImplicitContexts()
+        {
+            if (!owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting()))
+            {
+                m_Contexts = m_Owners;
+                return Enumerable.Empty<VFXContext>();
+            }
+
+            m_Contexts = new List<VFXContext>(m_Owners.Count + 1);
+            int index = 0;
+
+            // First add init and updates
+            for (index = 0; index < m_Owners.Count; ++index)
+            {
+                if ((m_Owners[index].contextType == VFXContextType.kOutput))
+                {
+                    ++index;
+                    break;
+                }
+                m_Contexts.Add(m_Owners[index]);
+            }
+
+            // Then the camera sort
+            var cameraSort = ScriptableObject.CreateInstance<VFXCameraSort>();
+            m_Contexts.Add(cameraSort);
+
+            // And finally output
+            for (; index < m_Owners.Count; ++index)
+                m_Contexts.Add(m_Owners[index]);
+
+            return new VFXContext[] { cameraSort };
+        }
+
         public bool NeedsIndirectBuffer()
         {
-            foreach (var output in owners.OfType<VFXAbstractParticleOutput>())
-                if (output.HasIndirectDraw())
-                    return true;
-            return false;
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
         }
 
         public override void FillDescs(

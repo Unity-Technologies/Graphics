@@ -76,10 +76,13 @@ namespace UnityEditor.VFX
         protected bool indirectDraw = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool sort = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool preRefraction = false;
 
-        public bool HasIndirectDraw() { return indirectDraw; }
-
+        public bool HasIndirectDraw()   { return indirectDraw || sort; }
+        public bool HasSorting()        { return sort; }
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }

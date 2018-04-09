@@ -1,0 +1,38 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+
+CBUFFER_START(params)
+    uint nbInputs;
+CBUFFER_END
+
+StructuredBuffer<uint> inputBuffer;
+
+struct Kvp
+{
+	float sortKey;
+	uint index;
+};
+
+RWStructuredBuffer<Kvp> outputBuffer;
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbInputs)	
+	{
+		uint index = inputBuffer[id.x];
+		${VFXLoadAttributes:{position}}
+		
+		// sqr distance from camera
+		float3 camPos = float3(0,0,0); // TMP
+		float3 wPos = TransformPositionVFXToWorld(position);
+		float3 camToPos = wPos - camPos;
+		
+		Kvp kvp;
+		kvp.sortKey = dot(camToPos,camToPos);
+		kvp.index = index;
+
+		outputBuffer[id.x] = kvp;
+	}
+}

@@ -24,6 +24,11 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
+        public IEnumerable<VFXContext> implicitContexts
+        {
+            get { return Enumerable.Empty<VFXContext>(); }
+        }
+
         public static VFXData CreateDataType(VFXDataType type)
         {
             switch (type)
@@ -148,6 +153,13 @@ namespace UnityEditor.VFX
 
         public abstract VFXDeviceTarget GetCompilationTarget(VFXContext context);
 
+        // Create implicit contexts and initialize cached contexts list
+        public virtual IEnumerable<VFXContext> InitImplicitContexts()
+        {
+            m_Contexts = m_Owners;
+            return Enumerable.Empty<VFXContext>();
+        }
+
         public void CollectAttributes()
         {
             m_ContextsToAttributes.Clear();
@@ -161,7 +173,7 @@ namespace UnityEditor.VFX
             {
                 ++count;
                 var attributeContexts = new List<VFXAttributeInfoContext>();
-                foreach (var context in owners)
+                foreach (var context in m_Contexts)
                 {
                     processedExp.Clear();
 
@@ -212,12 +224,12 @@ namespace UnityEditor.VFX
             m_ReadSourceAttributes.Clear();
             if (type == VFXDataType.kParticle)
             {
-                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float));
+                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float)); // TODO dirty
             }
 
-            int nbOwners = m_Owners.Count;
-            if (nbOwners > 16)
-                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", nbOwners));
+            int contextCount = m_Contexts.Count;
+            if (contextCount > 16)
+                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", contextCount));
 
             foreach (var kvp in m_AttributesToContexts)
             {
@@ -271,7 +283,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType != VFXContextType.kInit) // Init isnt taken into account for key computation
                     {
-                        int shift = m_Owners.IndexOf(context) << 1;
+                        int shift = m_Contexts.IndexOf(context) << 1;
                         int value = 0;
                         if ((kvp2.Value & VFXAttributeMode.Read) != 0)
                             value |= 0x01;
@@ -375,7 +387,7 @@ namespace UnityEditor.VFX
             var builder = new StringBuilder();
 
             builder.AppendLine(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
-            foreach (var context in owners)
+            foreach (var context in m_Contexts)
             {
                 Dictionary<VFXAttribute, VFXAttributeMode> attributeInfos;
                 if (m_ContextsToAttributes.TryGetValue(context, out attributeInfos))
@@ -405,6 +417,9 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         protected List<VFXContext> m_Owners;
+
+        [NonSerialized]
+        protected List<VFXContext> m_Contexts;
 
         [NonSerialized]
         protected Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> m_ContextsToAttributes = new Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>>();

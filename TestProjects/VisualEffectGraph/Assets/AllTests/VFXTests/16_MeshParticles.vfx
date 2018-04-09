@@ -979,7 +979,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114997603949784974}
   m_Children: []
-  m_UIPosition: {x: -983.65625, y: -447.85568}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -996,7 +996,15 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114342071248033808}
+      inputSlot: {fileID: 114441427102830814}
+    - outputSlot: {fileID: 114342071248033808}
+      inputSlot: {fileID: 114800354742086734}
+    position: {x: -983.65625, y: -447.85568}
+    expandedSlots: []
 --- !u!114 &114155846815806328
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1158,6 +1166,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  sort: 0
   preRefraction: 0
 --- !u!114 &114188793358913408
 MonoBehaviour:
@@ -3071,7 +3080,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114997603949784974}
   m_Children:
   - {fileID: 114967865259419442}
-  m_UIPosition: {x: -180.28918, y: 128.2595}
+  m_UIPosition: {x: -169.28918, y: 178.25952}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3264,12 +3273,13 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: -1760
+    y: -747
+    width: 3035
+    height: 1893
 --- !u!114 &114574152931840100
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4764,6 +4774,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 1
+  sort: 0
   preRefraction: 0
 --- !u!114 &114799116409686190
 MonoBehaviour:
@@ -5220,6 +5231,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  sort: 0
   preRefraction: 0
 --- !u!114 &114849367105866056
 MonoBehaviour:
@@ -5433,6 +5445,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  sort: 0
   preRefraction: 0
 --- !u!114 &114893539770069574
 MonoBehaviour:
@@ -7675,7 +7688,7 @@ VisualEffectAsset:
         index: 109
       - nameId: bounds_size
         index: 101
-      processor: {fileID: 7200000, guid: 365b24684f2331d488845e6add1cb72b, type: 3}
+      processor: {fileID: 7200000, guid: 45b8ec8c4e3e18441b01780e69e2b424, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -7692,7 +7705,7 @@ VisualEffectAsset:
       - nameId: deltaTime_c
         index: 135
       params: []
-      processor: {fileID: 7200000, guid: c68f8d043ba0d2d4fa076419871ba5da, type: 3}
+      processor: {fileID: 7200000, guid: f7f7530f854ada444bed893c42cd6d24, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7713,7 +7726,7 @@ VisualEffectAsset:
         index: 127
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 6a24fafb93cf12240a3a9cfcb702b1c5, type: 3}
+      processor: {fileID: 4800000, guid: b7225810e1722b04aaea1e9e3fbaeb93, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7738,7 +7751,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: c1808eee6b26d30468895612661b0295, type: 3}
+      processor: {fileID: 4800000, guid: f1773f3a63bd83d4cb5fe177f58d2ca4, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7761,7 +7774,7 @@ VisualEffectAsset:
         index: 138
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: ca79a748afd297f4c8431c07e52ba7eb, type: 3}
+      processor: {fileID: 4800000, guid: cf9428d2bf60dd8448a7ca949618058e, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7782,7 +7795,7 @@ VisualEffectAsset:
         index: 110
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 0dcd26c38caf3d94a8e5516f49ce7d4a, type: 3}
+      processor: {fileID: 4800000, guid: bff448d1c70a02843a1a947447526baf, type: 3}
   - type: 2
     flags: 0
     capacity: 0

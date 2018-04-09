@@ -952,7 +952,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114789286144881694}
   m_Children: []
-  m_UIPosition: {x: -553.16376, y: -134.03152}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -969,7 +969,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114646169453975412}
+      inputSlot: {fileID: 114807567015540888}
+    position: {x: -553.16376, y: -134.03152}
+    expandedSlots: []
 --- !u!114 &114789286144881694
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1030,6 +1036,7 @@ MonoBehaviour:
   useSoftParticle: 0
   sortPriority: 0
   indirectDraw: 0
+  sort: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114799785256960774
@@ -1207,7 +1214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114789286144881694}
   m_Children: []
-  m_UIPosition: {x: -918.9633, y: -329.98514}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1215,7 +1222,7 @@ MonoBehaviour:
   - {fileID: 114370700669197398}
   m_exposedName: velocity
   m_exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1224,7 +1231,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114370700669197398}
+      inputSlot: {fileID: 114289646818066756}
+    position: {x: -918.9633, y: -329.98514}
+    expandedSlots: []
 --- !u!114 &114936562591132906
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1685,7 +1698,7 @@ VisualEffectAsset:
         index: 17
       - nameId: bounds_size
         index: 18
-      processor: {fileID: 7200000, guid: 3d52da01472a02b4383574764f65251d, type: 3}
+      processor: {fileID: 7200000, guid: f608fc27c71c9de48adb35f497b991ef, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1696,7 +1709,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 16
       params: []
-      processor: {fileID: 7200000, guid: b2fe07af2710df94a8010cc4efd43ad9, type: 3}
+      processor: {fileID: 7200000, guid: 44b70cf7c8452da44acf7271d083ede0, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1709,7 +1722,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: d6bdd995acfdf4149bf4cb50f009357e, type: 3}
+      processor: {fileID: 4800000, guid: 63ce09913509b5348a6886e6dc186086, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
