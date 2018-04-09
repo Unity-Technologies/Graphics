@@ -1487,7 +1487,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_PostProcessRenderContext.sourceFormat = m_ColorFormat;
             m_PostProcessRenderContext.destination = dest;
             m_PostProcessRenderContext.command = cmd;
-            m_PostProcessRenderContext.flip = true;
+            m_PostProcessRenderContext.flip = m_CurrCamera.targetTexture == null;
 
             if (opaqueOnly)
             {
