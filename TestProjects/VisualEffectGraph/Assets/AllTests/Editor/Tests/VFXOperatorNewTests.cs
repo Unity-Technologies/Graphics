@@ -57,17 +57,22 @@ namespace UnityEditor.VFX.Test
                 {
                     removeSlot = linkedSlots.Last();
                 }
+
+                //Check expected link count
+                var linkCount = add.inputSlots.Where(o => o.HasLink()).Count();
+                Assert.AreEqual((int)count - i, linkCount);
+
                 var index = add.inputSlots.IndexOf(removeSlot);
                 add.RemoveOperand(index);
 
                 //Check expected link count
-                var linkCount = add.inputSlots.Where(o => o.HasLink()).Count();
+                linkCount = add.inputSlots.Where(o => o.HasLink()).Count();
                 Assert.AreEqual((int)count - i - 1, linkCount);
 
                 //Check if all input slot are still with a default value
                 foreach (var slot in add.inputSlots.Where(o => o.HasLink()))
                 {
-                    Assert.AreEqual(1.0f, slot.value);
+                    Assert.AreEqual(0.0f, slot.value);
                 }
 
                 //Check computed result
