@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.UIElements
                 m_Fields[i] = new FloatField(GetComponentName(i));
                 m_Fields[i].control.AddToClassList("fieldContainer");
                 m_Fields[i].AddToClassList("fieldContainer");
-                m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, 0);
+                m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
             }
 
             m_Fields[0].label.AddToClassList("first");
