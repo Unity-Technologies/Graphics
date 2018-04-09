@@ -134,7 +134,7 @@ namespace UnityEditor.Experimental.Rendering
             var selectedPanelIndex = m_Settings.selectedPanel;
             if (selectedPanelIndex >= 0 
                 && selectedPanelIndex < panels.Count 
-                && panels[selectedPanelIndex].forceUpdate)
+                && panels[selectedPanelIndex].editorForceUpdate)
                 EditorApplication.update += Repaint;
         }
 
@@ -359,9 +359,9 @@ namespace UnityEditor.Experimental.Rendering
                             var previousPanel = m_Settings.selectedPanel >= 0 && m_Settings.selectedPanel < panels.Count
                                 ? panels[m_Settings.selectedPanel]
                                 : null;
-                            if (previousPanel != null && previousPanel.forceUpdate && !panel.forceUpdate)
+                            if (previousPanel != null && previousPanel.editorForceUpdate && !panel.editorForceUpdate)
                                 EditorApplication.update -= Repaint;
-                            else if ((previousPanel == null || !previousPanel.forceUpdate) && panel.forceUpdate)
+                            else if ((previousPanel == null || !previousPanel.editorForceUpdate) && panel.editorForceUpdate)
                                 EditorApplication.update += Repaint;
                             m_Settings.selectedPanel = i;
                         }
