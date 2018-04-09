@@ -41,7 +41,7 @@ Shader "Hidden/LightweightPipeline/Sampling"
         s += (SAMPLE_TEXTURE2D(tex, samplerTex, uv + d.xw));
         s += (SAMPLE_TEXTURE2D(tex, samplerTex, uv + d.zw));
 
-        return s * (1.0h * 0.25h);
+        return s * (1.0 * 0.25);
     }
 
     ENDHLSL

@@ -36,12 +36,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _8x = 8
     }
 
-    public enum TextureScale
+    public enum Downsampling
     {
-        OnePoint = 0,
-        HalfBilinear,
-        QuarterBox,
-        QuarterBilinear
+        None = 0,
+        _2xBilinear,
+        _4xBox,
+        _4xBilinear
     }
 
     public enum DefaultMaterialType
@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
         [SerializeField] private bool m_RequireOpaqueTexture = false;
-        [SerializeField] private TextureScale m_OpaqueTextureScale = TextureScale.HalfBilinear;
+        [SerializeField] private Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
@@ -232,10 +232,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_RequireOpaqueTexture = value; }
         }
 
-        public TextureScale OpaqueTextureScale
+        public Downsampling OpaqueDownsampling
         {
-            get { return m_OpaqueTextureScale; }
-            set { m_OpaqueTextureScale = value; }
+            get { return m_OpaqueDownsampling; }
+            set { m_OpaqueDownsampling = value; }
         }
 
         public bool SupportsHDR

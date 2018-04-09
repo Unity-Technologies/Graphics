@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent requireOpaqueTexture = new GUIContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
 
-            public static GUIContent opaqueTextureScale = new GUIContent("Opaque Scale", "The scale of the original screen size that is used for the opaque texture");
+            public static GUIContent opaqueDownsampling = new GUIContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
 
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
-            public static string[] opaqueTextureScaleOptions = {"One (Point)", "Half (Bilinear)", "Quarter (Box)", "Quarter (Bilinear)"};
+            public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
         AnimBool m_ShowSoftParticles = new AnimBool();
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_RequireDepthTextureProp;
         private SerializedProperty m_RequireSoftParticlesProp;
         private SerializedProperty m_RequireOpaqueTextureProp;
-        private SerializedProperty m_OpaqueTextureScaleProp;
+        private SerializedProperty m_OpaqueDownsamplingProp;
         private SerializedProperty m_ShadowTypeProp;
         private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
-            m_OpaqueTextureScaleProp = serializedObject.FindProperty("m_OpaqueTextureScale");
+            m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
             m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
             DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
             EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
-            DrawAnimatedPopup(m_OpaqueTextureScaleProp, Styles.opaqueTextureScale, Styles.opaqueTextureScaleOptions, m_ShowOpaqueTextureScale);
+            DrawAnimatedPopup(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling, Styles.opaqueDownsamplingOptions, m_ShowOpaqueTextureScale);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
 
