@@ -218,6 +218,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool RequireDepthTexture
         {
             get { return m_RequireDepthTexture; }
+            set { m_RequireDepthTexture = value; }
         }
 
         public bool RequireSoftParticles
@@ -228,6 +229,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool RequireOpaqueTexture
         {
             get { return m_RequireOpaqueTexture; }
+            set { m_RequireOpaqueTexture = value; }
         }
 
         public TextureScale OpaqueTextureScale
