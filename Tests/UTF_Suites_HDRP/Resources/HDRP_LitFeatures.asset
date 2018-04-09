@@ -9,9 +9,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 95285c6cacdfe25449799296c7d847ae, type: 3}
-  m_Name: HDRP_Def
+  m_Name: HDRP_LitFeatures
   m_EditorClassIdentifier: 
-  suiteName: HDRPDef
+  suiteName: HDRPLitFeatures
   isDebugSuite: 0
   defaultTestSettings: {fileID: 0}
   defaultRenderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
@@ -27,4 +27,4 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 1
-  suiteVersion: 0
+  suiteVersion: 2
