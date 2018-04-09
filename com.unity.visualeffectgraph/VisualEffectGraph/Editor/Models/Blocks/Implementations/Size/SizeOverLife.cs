@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             [Tooltip("The value of the size over the relative (0..1) lifetime of the particle")]
-            public AnimationCurve curve;
+            public AnimationCurve curve = VFXResources.defaultResources.AnimationCurve;
             [Tooltip("Size Blending factor")]
             [Range(0.0f, 1.0f)]
             public float Blend = 0.5f;

@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             [Tooltip("The over-life Gradient")]
-            public Gradient gradient;
+            public Gradient gradient = VFXResources.defaultResources.Gradient;
             [Tooltip("Color blending factor")]
             [Range(0.0f, 1.0f)]
             public float BlendColor = 0.5f;

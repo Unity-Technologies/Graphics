@@ -50,9 +50,9 @@ namespace UnityEditor.VFX
         public class InputProperties
         {
             [Tooltip("Texture to be applied to the mesh.")]
-            public Texture2D mainTexture;
+            public Texture2D mainTexture = VFXResources.defaultResources.ParticleTexture;
             [Tooltip("Mesh to be used for particle rendering.")]
-            public Mesh mesh;
+            public Mesh mesh = VFXResources.defaultResources.DefaultMeshParticle;
             [Tooltip("Define a bitmask to control which submeshes are rendered.")]
             public uint subMeshMask = 0xffffffff;
         }

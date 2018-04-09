@@ -124,20 +124,15 @@ namespace UnityEditor.VFX.Block
                 {
                     if (currentAttribute.Equals(VFXAttribute.Color))
                     {
-                        Gradient defaultGradient = new Gradient()
-                        {
-                            colorKeys = new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.black, 1.0f) },
-                            alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.0f, 1.0f) }
-                        };
-                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(Gradient), localName), defaultGradient);
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(Gradient), localName), VFXResources.defaultResources.Gradient);
                     }
                     else
                     {
                         int size = VFXExpression.TypeToSize(currentAttribute.type);
-                        if (size > 0) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + (size == 1 ? "" : "_x")), AnimationCurve.EaseInOut(0, 0, 1, 1));
-                        if (size > 1) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + "_y"), AnimationCurve.EaseInOut(0, 0, 1, 1));
-                        if (size > 2) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + "_z"), AnimationCurve.EaseInOut(0, 0, 1, 1));
-                        if (size > 3) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + "_w"), AnimationCurve.EaseInOut(0, 0, 1, 1));
+                        if (size > 0) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + (size == 1 ? "" : "_x")), VFXResources.defaultResources.AnimationCurve);
+                        if (size > 1) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + "_y"), VFXResources.defaultResources.AnimationCurve);
+                        if (size > 2) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + "_z"), VFXResources.defaultResources.AnimationCurve);
+                        if (size > 3) yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName + "_w"), VFXResources.defaultResources.AnimationCurve);
                     }
                 }
 
