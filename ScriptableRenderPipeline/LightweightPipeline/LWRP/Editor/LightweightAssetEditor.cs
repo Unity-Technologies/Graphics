@@ -32,9 +32,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
 
-            public static GUIContent shadowNearPlaneOffset = new GUIContent("Near Plane Offset",
-                    "Offset shadow near plane to account for large triangles being distorted by pancaking.");
-
             public static GUIContent shadowDistante = new GUIContent("Distance", "Max shadow rendering distance.");
 
             public static GUIContent shadowAtlasResolution = new GUIContent("Shadowmap Resolution",
@@ -69,7 +66,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_RequireOpaqueTextureProp;
         private SerializedProperty m_OpaqueDownsamplingProp;
         private SerializedProperty m_ShadowTypeProp;
-        private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
         private SerializedProperty m_ShadowAtlasResolutionProp;
         private SerializedProperty m_ShadowCascadesProp;
@@ -88,7 +84,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
-            m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
             m_ShadowAtlasResolutionProp = serializedObject.FindProperty("m_ShadowAtlasResolution");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
@@ -161,7 +156,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel++;
             CoreEditorUtils.DrawPopup(Styles.shadowType, m_ShadowTypeProp, Styles.shadowTypeOptions);
             EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
-            EditorGUILayout.PropertyField(m_ShadowNearPlaneOffsetProp, Styles.shadowNearPlaneOffset);
             m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistante, m_ShadowDistanceProp.floatValue));
             CoreEditorUtils.DrawPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 

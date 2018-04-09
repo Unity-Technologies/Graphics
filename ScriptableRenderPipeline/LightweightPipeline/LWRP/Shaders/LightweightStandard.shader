@@ -101,6 +101,9 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
 
+            // TODO: Enabled this when we have C# keyword stripping
+            //#pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
