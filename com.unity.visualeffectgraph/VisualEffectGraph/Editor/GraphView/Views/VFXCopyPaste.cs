@@ -777,7 +777,7 @@ namespace UnityEditor.VFX.UI
             if (copiedUI != null)
             {
                 VFXUI ui = viewController.graph.UIInfos;
-                firstCopiedStickyNote = ui.stickyNoteInfos.Length;
+                firstCopiedStickyNote = ui.stickyNoteInfos!= null ? ui.stickyNoteInfos.Length : 0;
 
                 if (copiedUI.groupInfos != null && copiedUI.groupInfos.Length > 0)
                 {
