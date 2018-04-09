@@ -495,12 +495,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void OpaqueTexturePass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
         {
-            var opaqueScaler = m_OpaqueScalerValues[(int)m_Asset.OpaqueTextureScale];
+            var opaqueScaler = m_OpaqueScalerValues[(int)m_Asset.OpaqueDownsampling];
             RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
             
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
-            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueTextureScale == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            switch(m_Asset.OpaqueTextureScale)
+            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            switch(m_Asset.OpaqueDownsampling)
             {
                 case Downsampling.None:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
