@@ -363,24 +363,27 @@ namespace UnityEditor.VFX
                 var block = current.block;
                 var blockIndex = current.blockIndex;
 
-                var expressionParameter = new List<VFXExpression>();
-                var nameParameter = new List<string>();
-                var modeParameter = new List<VFXAttributeMode>();
-                foreach (var attribute in block.attributes)
-                {
-                    expressionParameter.Add(new VFXAttributeExpression(attribute.attrib));
-                    nameParameter.Add(attribute.attrib.name);
-                    modeParameter.Add(attribute.mode);
-                }
+                var parameters = block.attributes.Select(o =>
+                    {
+                        return new VFXShaderWriter.FunctionParameter
+                        {
+                            name = o.attrib.name,
+                            expression = new VFXAttributeExpression(o.attrib) as VFXExpression,
+                            mode = o.mode
+                        };
+                    }).ToList();
 
                 foreach (var parameter in block.parameters)
                 {
                     var expReduced = contextData.gpuMapper.FromNameAndId(parameter.name, blockIndex);
                     if (VFXExpression.IsTypeValidOnGPU(expReduced.valueType))
                     {
-                        expressionParameter.Add(expReduced);
-                        nameParameter.Add(parameter.name);
-                        modeParameter.Add(VFXAttributeMode.None);
+                        parameters.Add(new VFXShaderWriter.FunctionParameter
+                        {
+                            name = parameter.name,
+                            expression = expReduced,
+                            mode = VFXAttributeMode.None
+                        });
                     }
                 }
 
@@ -389,17 +392,21 @@ namespace UnityEditor.VFX
                 if (!blockDeclared.Contains(methodName))
                 {
                     blockDeclared.Add(methodName);
-                    blockFunction.WriteBlockFunction(contextData.gpuMapper, methodName, block.source, expressionParameter, nameParameter, modeParameter, commentMethod);
+                    blockFunction.WriteBlockFunction(contextData.gpuMapper,
+                        methodName,
+                        block.source,
+                        parameters,
+                        commentMethod);
                 }
 
                 //< Parameters (computed and/or extracted from uniform)
                 var expressionToNameLocal = expressionToName;
-                bool needScope = expressionParameter.Any(e => !expressionToNameLocal.ContainsKey(e));
+                bool needScope = parameters.Any(o => !expressionToNameLocal.ContainsKey(o.expression));
                 if (needScope)
                 {
                     expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToNameLocal);
                     blockCallFunction.EnterScope();
-                    foreach (var exp in expressionParameter)
+                    foreach (var exp in parameters.Select(o => o.expression))
                     {
                         if (expressionToNameLocal.ContainsKey(exp))
                         {
@@ -409,7 +416,10 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                blockCallFunction.WriteCallFunction(methodName, expressionParameter, nameParameter, modeParameter, contextData.gpuMapper, expressionToNameLocal);
+                blockCallFunction.WriteCallFunction(methodName,
+                    parameters,
+                    contextData.gpuMapper,
+                    expressionToNameLocal);
 
                 if (needScope)
                     blockCallFunction.ExitScope();

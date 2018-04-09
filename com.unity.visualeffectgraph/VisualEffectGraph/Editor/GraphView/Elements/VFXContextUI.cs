@@ -178,8 +178,13 @@ namespace UnityEditor.VFX.UI
 
         public VFXContextUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXContext.uxml"))
         {
-            AddStyleSheetPath("VFXContext");
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
+
+            AddStyleSheetPath("VFXContext");
+            AddStyleSheetPath("Selectable");
+
+            AddToClassList("VFXContext");
+            AddToClassList("selectable");
 
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
@@ -197,7 +202,6 @@ namespace UnityEditor.VFX.UI
             m_FooterTitle = m_Footer.Q<Label>("title-label");
             m_FooterIcon = m_Footer.Q<Image>("icon");
 
-            AddToClassList("VFXContext");
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");

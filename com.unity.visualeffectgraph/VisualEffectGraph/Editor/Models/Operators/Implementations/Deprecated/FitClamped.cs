@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.Operator
 {
     //[VFXInfo(category = "Math")] DEPRECATED
-    class VFXOperatorFitClamped : VFXOperatorFloatUnifiedWithVariadicOutput
+    class FitClamped : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {
@@ -30,9 +30,9 @@ namespace UnityEditor.VFX
 
         public override void Sanitize()
         {
-            Debug.Log("Sanitizing Graph: Automatically replace VFXOperatorFitClamped with VFXOperatorRemap");
+            Debug.Log("Sanitizing Graph: Automatically replace FitClamped with Remap");
 
-            var remap = CreateInstance<Operator.Remap>();
+            var remap = CreateInstance<Remap>();
             remap.SetSettingValue("Clamp", true);
 
             // Transfer links

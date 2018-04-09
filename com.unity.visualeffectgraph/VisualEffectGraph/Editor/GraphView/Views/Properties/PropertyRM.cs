@@ -9,6 +9,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -85,7 +86,7 @@ namespace UnityEditor.VFX.UI
         public VisualElement m_Icon;
         Clickable m_IconClickable;
 
-        Texture2D[] m_IconStates;
+        static Texture2D[] m_IconStates;
 
         public Label m_Label;
 
@@ -100,6 +101,18 @@ namespace UnityEditor.VFX.UI
             {
                 m_PropertyEnabled = value;
                 UpdateEnabled();
+            }
+        }
+        public bool m_Indeterminate;
+
+        public bool indeterminate
+        {
+            get { return m_Indeterminate; }
+
+            set
+            {
+                m_Indeterminate = value;
+                UpdateIndeterminate();
             }
         }
 
@@ -136,6 +149,8 @@ namespace UnityEditor.VFX.UI
 
         protected abstract void UpdateEnabled();
 
+        protected abstract void UpdateIndeterminate();
+
 
         public void ForceUpdate()
         {
@@ -170,6 +185,8 @@ namespace UnityEditor.VFX.UI
             //m_Label.AddTooltip(tooltip);
         }
 
+        bool m_IconClickableAdded;
+
         void UpdateExpandable()
         {
             if (m_Provider.expandable)
@@ -180,28 +197,31 @@ namespace UnityEditor.VFX.UI
                         Resources.Load<Texture2D>("VFX/plus"),
                         Resources.Load<Texture2D>("VFX/minus")
                     };
-
-                    m_Icon.AddManipulator(m_IconClickable);
                 }
+                if (!m_IconClickableAdded)
+                {
+                    m_Icon.AddManipulator(m_IconClickable);
+                    m_IconClickableAdded = false;
+                }
+
                 m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
             }
             else
             {
-                if (m_IconStates != null)
+                if (m_IconClickableAdded)
                 {
-                    m_IconStates = null;
-
                     m_Icon.RemoveManipulator(m_IconClickable);
-
-                    m_Icon.style.backgroundImage = null;
+                    m_IconClickableAdded = false;
                 }
+
+                m_Icon.style.backgroundImage = null;
             }
         }
 
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
             this.AddStyleSheetPathWithSkinVariant("VFXControls");
-            AddStyleSheetPath("PropertyRM");
+            this.AddStyleSheetPathWithSkinVariant("PropertyRM");
 
             m_Provider = provider;
             m_labelWidth = labelWidth;
@@ -265,7 +285,6 @@ namespace UnityEditor.VFX.UI
             {typeof(Vector), typeof(VectorPropertyRM)},
             {typeof(Position), typeof(PositionPropertyRM)},
             {typeof(DirectionType), typeof(DirectionPropertyRM)},
-            {typeof(ISpaceable), typeof(SpaceablePropertyRM<ISpaceable>)},
             {typeof(bool), typeof(BoolPropertyRM)},
             {typeof(float), typeof(FloatPropertyRM)},
             {typeof(int), typeof(IntPropertyRM)},
@@ -288,29 +307,39 @@ namespace UnityEditor.VFX.UI
             Type propertyType = null;
             Type type = controller.portType;
 
-            if (type.IsEnum)
+            if (type != null)
             {
-                propertyType = typeof(EnumPropertyRM);
-            }
-            else
-            {
-                while (type != typeof(object) && type != null)
+                if (type.IsEnum)
+                {
+                    propertyType = typeof(EnumPropertyRM);
+                }
+                else if (typeof(ISpaceable).IsAssignableFrom(type))
                 {
                     if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                     {
-                        foreach (var inter in type.GetInterfaces())
-                        {
-                            if (m_TypeDictionary.TryGetValue(inter, out propertyType))
-                            {
-                                break;
-                            }
-                        }
+                        propertyType = typeof(SpaceablePropertyRM<ISpaceable>);
                     }
-                    if (propertyType != null)
+                }
+                else
+                {
+                    while (type != typeof(object) && type != null)
                     {
-                        break;
+                        if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                        {
+                            /*foreach (var inter in type.GetInterfaces())
+                            {
+                                if (m_TypeDictionary.TryGetValue(inter, out propertyType))
+                                {
+                                    break;
+                                }
+                            }*/
+                        }
+                        if (propertyType != null)
+                        {
+                            break;
+                        }
+                        type = type.BaseType;
                     }
-                    type = type.BaseType;
                 }
             }
             if (propertyType == null)
@@ -325,7 +354,12 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = GetPropertyType(controller);
 
-            return System.Activator.CreateInstance(propertyType, new object[] { controller, labelWidth }) as PropertyRM;
+
+            Profiler.BeginSample(propertyType.Name + ".CreateInstance");
+            PropertyRM result = System.Activator.CreateInstance(propertyType, new object[] { controller, labelWidth }) as PropertyRM;
+            Profiler.EndSample();
+
+            return result;
         }
 
         public virtual object FilterValue(object value)
@@ -427,6 +461,11 @@ namespace UnityEditor.VFX.UI
             m_Field.SetEnabled(propertyEnabled);
         }
 
+        protected override void UpdateIndeterminate()
+        {
+            m_Field.visible = !indeterminate;
+        }
+
         protected ValueControl<T> m_Field;
         public override void UpdateGUI(bool force)
         {
@@ -489,6 +528,11 @@ namespace UnityEditor.VFX.UI
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
         }
 
+        protected override void UpdateIndeterminate()
+        {
+            (m_Field as VisualElement).visible = !indeterminate;
+        }
+
         INotifyValueChanged<U> m_Field;
 
 
@@ -542,6 +586,11 @@ namespace UnityEditor.VFX.UI
         {
             get { return (base.field as VFXLabeledField<T, U>).control; }
         }
+        protected override void UpdateIndeterminate()
+        {
+            fieldControl.indeterminate = indeterminate;
+        }
+
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);
@@ -568,6 +617,10 @@ namespace UnityEditor.VFX.UI
         }
 
         protected override void UpdateEnabled()
+        {
+        }
+
+        protected override void UpdateIndeterminate()
         {
         }
 
