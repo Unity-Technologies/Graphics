@@ -119,6 +119,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LastSSRayModel = m_ScreenSpaceTracingDebugData.tracingModel;
                     RefreshScreenSpaceTracingDebug<Lit.RefractionSSRayModel>(null, m_LastSSRayModel);
                 }
+
+                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.RefractionSSRayModel.HiZ)
+                {
+                    showSSRayDepthPyramid = false;
+                    showSSRayGrid = false;
+                }
             }
         }
 
