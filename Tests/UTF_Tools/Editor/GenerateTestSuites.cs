@@ -19,9 +19,7 @@ public class GenerateTestSuites
 			Debug.Log(AssetDatabase.GUIDToAssetPath(guid));
 		}
 
-		// HDRP
-		string hdrp_SuitesFolder = GetPathInTest(hdrp_TestSuitesFolder);
-		string hdrp_PipelinesFolder = GetPathInTest(hdrp_CommonPipelineAssetsFolder);
+		// ---------- HDRP ----------
 		string[] hdrp_PipelineAssetsGUIDs = AssetDatabase.FindAssets("t:RenderPipelineAsset", new string[]{hdrp_PipelinesFolder});
 		foreach( string guid in hdrp_PipelineAssetsGUIDs)
 		{
@@ -30,10 +28,20 @@ public class GenerateTestSuites
 			GenerateTestSuiteFromScenes( hdrp_SuitesFolder , "HDRP_"+hdrp_PipelineAsset.name.Replace("HDRP_Test_", ""), scenesGUIDs, hdrp_PipelineAsset);
 		}
 
-		//GenerateTestSuiteFromScenes("Assets/", "HDRP_Tests", scenesGUIDs, null, HDRPPlatforms);
+		// ---------- LWRP ----------
+		/*
+		string[] lwrp_PipelineAssetsGUIDs = AssetDatabase.FindAssets("t:RenderPipelineAsset", new string[]{lwrp_PipelinesFolder});
+		foreach( string guid in lwrp_PipelineAssetsGUIDs)
+		{
+			RenderPipelineAsset lwrp_PipelineAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>( AssetDatabase.GUIDToAssetPath(guid));
+
+			GenerateTestSuiteFromScenes( lwrp_SuitesFolder , "LWRP_"+lwrp_PipelineAsset.name.Replace("LWRP_Test_", ""), scenesGUIDs, lwrp_PipelineAsset, lwrp_Platform);
+		}
+		//*/
+
 	}
 
-	private static int HDRPPlatforms =
+	private static int hdrp_Platforms =
 		1 << (int) RuntimePlatform.WindowsEditor |
 		1 << (int) RuntimePlatform.WindowsPlayer |
 		1 << (int) RuntimePlatform.OSXEditor |
@@ -45,20 +53,39 @@ public class GenerateTestSuites
 		1 << (int) RuntimePlatform.PS4 |
 		1 << (int) RuntimePlatform.XboxOne ;
 
-	//Previously was : Directory.GetParent(Directory.GetFiles(Application.dataPath, "SRPMARKER", SearchOption.AllDirectories).First()).ToString();
+	private static int lwrp_Platform =
+		1 << (int) RuntimePlatform.WindowsEditor |
+		1 << (int) RuntimePlatform.WindowsPlayer |
+		1 << (int) RuntimePlatform.OSXEditor |
+		1 << (int) RuntimePlatform.OSXPlayer |
+		1 << (int) RuntimePlatform.LinuxEditor |
+		1 << (int) RuntimePlatform.LinuxPlayer |
+		1 << (int) RuntimePlatform.WSAPlayerX86 |
+		1 << (int) RuntimePlatform.WSAPlayerX64 |
+		1 << (int) RuntimePlatform.PS4 |
+		1 << (int) RuntimePlatform.XboxOne |
+		1 << (int) RuntimePlatform.Android |
+		1 << (int) RuntimePlatform.IPhonePlayer |
+		1 << (int) RuntimePlatform.Switch |
+		1 << (int) RuntimePlatform.PS3 |
+		1 << (int) RuntimePlatform.XBOX360 |
+		1 << (int) RuntimePlatform.WiiU |
+		1 << (int) RuntimePlatform.WebGLPlayer ;
+	
 	public static readonly string srp_RootPath = Path.GetDirectoryName( AssetDatabase.GUIDToAssetPath( AssetDatabase.FindAssets("SRPMARKER")[0] ) );
 
-	public static readonly string[] hdrp_TestsFolderHierarchy = { "Tests", "UTF_Tests_HDRP", "Scenes" };
-	public static readonly string[] hdrp_CommonPipelineAssetsFolder = { "Tests", "UTF_Tests_HDRP", "Common", "RP_Assets" };
-
-	public static readonly string[] hdrp_TestSuitesFolder = {"Tests", "UTF_Suites_HDRP" , "Resources" };
-
-	public static readonly string hdrp_TestsFolder = hdrp_TestsFolderHierarchy.Aggregate(srp_RootPath, Path.Combine);
-
-	public static string GetPathInTest( string[] foldersPath )
+	public static string GetPathInSRP( string[] foldersPath )
 	{
 		return foldersPath.Aggregate( srp_RootPath, Path.Combine );
 	}
+
+	public static readonly string hdrp_TestsFolder = GetPathInSRP( new string[]{ "Tests", "UTF_Tests_HDRP", "Scenes" } );
+	public static readonly string hdrp_PipelinesFolder = GetPathInSRP( new string[] { "Tests", "UTF_Tests_HDRP", "Common", "RP_Assets" } );
+	public static readonly string hdrp_SuitesFolder = GetPathInSRP( new string[] {"Tests", "UTF_Suites_HDRP" , "Resources" } );
+
+	public static readonly string lwrp_TestsFolder = GetPathInSRP( new string[]{ "Tests", "UTF_Tests_LWRP", "Scenes" } );
+	public static readonly string lwrp_PipelinesFolder = GetPathInSRP( new string[] { "Tests", "UTF_Tests_LWRP", "Common", "RP_Assets" } );
+	public static readonly string lwrp_SuitesFolder = GetPathInSRP( new string[] {"Tests", "UTF_Suites_LWRP" , "Resources" } );
 
 	public static void GenerateTestSuiteFromScenes( string path, string name, string[] scenesGUIDs, RenderPipelineAsset renderPipelineAsset = null, int platforms = -1 )
 	{
