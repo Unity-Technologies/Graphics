@@ -36,6 +36,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _8x = 8
     }
 
+    public enum Downsampling
+    {
+        None = 0,
+        _2xBilinear,
+        _4xBox,
+        _4xBilinear
+    }
+
     public enum DefaultMaterialType
     {
         Standard = 0,
@@ -57,6 +65,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
+        [SerializeField] private bool m_RequireOpaqueTexture = false;
+        [SerializeField] private Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
@@ -205,11 +215,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool RequireDepthTexture
         {
             get { return m_RequireDepthTexture; }
+            set { m_RequireDepthTexture = value; }
         }
 
         public bool RequireSoftParticles
         {
             get { return m_RequireSoftParticles; }
+        }
+
+        public bool RequireOpaqueTexture
+        {
+            get { return m_RequireOpaqueTexture; }
+            set { m_RequireOpaqueTexture = value; }
+        }
+
+        public Downsampling OpaqueDownsampling
+        {
+            get { return m_OpaqueDownsampling; }
+            set { m_OpaqueDownsampling = value; }
         }
 
         public bool SupportsHDR
@@ -334,6 +357,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader ScreenSpaceShadowShader
         {
             get { return resources != null ? resources.ScreenSpaceShadowShader : null; }
+        }
+
+        public Shader SamplingShader
+        {
+            get { return resources != null ? resources.SamplingShader : null; }
         }
     }
 }
