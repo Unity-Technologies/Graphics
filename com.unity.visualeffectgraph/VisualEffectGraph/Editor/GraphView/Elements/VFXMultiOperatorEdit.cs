@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.UI
         public VFXUniformOperatorEdit()
         {
             this.AddStyleSheetPathWithSkinVariant("VFXControls");
+            AddToClassList("VFXUniformOperatorEdit");
             m_TypePopup = new Label();
             m_TypePopup.AddToClassList("PopupButton");
             m_TypePopup.AddManipulator(new DownClickable(() => OnTypeMenu()));
@@ -290,7 +291,7 @@ namespace UnityEditor.VFX.UI
 
             public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index) : base(owner, op, index)
             {
-                field = new VFXStringField("name");
+                field = new VFXStringField("");
                 field.OnValueChanged = OnChangeLabel;
 
                 Insert(0, field);

@@ -32,14 +32,19 @@ OperandInfo VFXStringField .textfield
 {
     flex:1;
 }
+OperandInfo .PopupButton
+{
+    flex:0;
+    width:55;
+}
 
-OperandInfo Label
+VFXUnifiedOperatorEdit OperandInfo Label
 {
     flex:1;
 }
-OperandInfo .PopupButton
+VFXUnifiedOperatorEdit OperandInfo .PopupButton
 {
-    width:50;
+    width:80;
 }
 
 #edit-container
@@ -57,11 +62,11 @@ OperandInfo .PopupButton
     flex:1;
 }
 
-VFXUniformOperatorEdit#edit-container
+.VFXUniformOperatorEdit#edit-container
 {
     justify-content:center;
 }
-VFXUniformOperatorEdit#edit-container Label
+.VFXUniformOperatorEdit#edit-container Label
 {
     margin-left:8;
     margin-right:8;
