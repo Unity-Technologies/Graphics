@@ -13,13 +13,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum ForwardPass
         {
             Opaque,
+            OpaqueSSReflection,
             PreRefraction,
-            Transparent
+            Transparent,
         }
 
         static readonly string[] k_ForwardPassDebugName =
         {
             "Forward Opaque Debug",
+            "Forward SS Reflection Debug",
             "Forward PreRefraction Debug",
             "Forward Transparent Debug"
         };
@@ -27,6 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static readonly string[] k_ForwardPassName =
         {
             "Forward Opaque",
+            "Forward SS Reflection",
             "Forward PreRefraction",
             "Forward Transparent"
         };
@@ -108,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
         ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
+        ShaderPassName[] m_ForwardSSReflectionPassNames = { HDShaderPassNames.s_ForwardName };
 
         ShaderPassName[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentBackfaceName,
                                                         HDShaderPassNames.s_ForwardOnlyName,
@@ -842,6 +846,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
+                    RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
@@ -851,8 +856,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
-
-                    RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     StopStereoRendering(renderContext, hdCamera.camera);
 
@@ -958,6 +961,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
                         RenderGaussianPyramidColor(hdCamera, cmd, renderContext, true);
+                        RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueSSReflection);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -1426,59 +1430,70 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
-                if (pass == ForwardPass.Opaque)
+                // Assign debug data
+                var debugScreenSpaceTracing = m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
+                    && (pass == ForwardPass.Transparent || pass == ForwardPass.OpaqueSSReflection);
+                if (debugScreenSpaceTracing)
                 {
-                    // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
-                    if (m_FrameSettings.enableSubsurfaceScattering)
+                    cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                    cmd.SetRandomWriteTarget(1, m_DebugScreenSpaceTracingData);
+                }
+
+                switch (pass)
+                {
+                    case ForwardPass.Opaque:
                     {
-                        RenderTargetIdentifier[] m_MRTWithSSS =
-                            new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
-                        m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
-                        m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
-                        for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                        // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
+                        if (m_FrameSettings.enableSubsurfaceScattering)
                         {
-                            m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
+                            RenderTargetIdentifier[] m_MRTWithSSS =
+                                new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
+                            m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
+                            m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
+                            for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                            {
+                                m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
+                            }
+
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_CameraDepthStencilBuffer);
+                        }
+                        else
+                        {
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
                         }
 
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_CameraDepthStencilBuffer);
+                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
+                            HDShaderPassNames.s_ForwardOnlyName;
+                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
+
+                        var passNames = m_FrameSettings.enableForwardRenderingOnly
+                            ? m_ForwardAndForwardOnlyPassNames
+                            : m_ForwardOnlyPassNames;
+                        RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
+                        break;
                     }
-                    else
+                    case ForwardPass.OpaqueSSReflection:
                     {
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                        cmd.EnableShaderKeyword("SSREFLECTION_ONLY");
+                        RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, m_ForwardSSReflectionPassNames, m_currentRendererConfigurationBakedLighting);
+                        cmd.DisableShaderKeyword("SSREFLECTION_ONLY");
+                        break;
                     }
-
-                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
-                        HDShaderPassNames.s_ForwardOnlyName;
-                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
-
-                    var passNames = m_FrameSettings.enableForwardRenderingOnly
-                        ? m_ForwardAndForwardOnlyPassNames
-                        : m_ForwardOnlyPassNames;
-                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
-                }
-                else
-                {
-                    // Assign debug data
-                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
-                        && pass == ForwardPass.Transparent)
+                    default:
                     {
-                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                        cmd.SetRandomWriteTarget(1, m_DebugScreenSpaceTracingData);
-                    }
-
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
-                    {
-                        DecalSystem.instance.SetAtlas(cmd); // for clustered decals
-                    }
-                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
-
-                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
-                        && pass == ForwardPass.Transparent)
-                    {
-                        cmd.ClearRandomWriteTargets();
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                        if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                        {
+                            DecalSystem.instance.SetAtlas(cmd); // for clustered decals
+                        }
+                        RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
+                        break;
                     }
                 }
+
+                if (debugScreenSpaceTracing)
+                    cmd.ClearRandomWriteTargets();
             }
         }
 

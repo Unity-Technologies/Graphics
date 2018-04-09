@@ -76,7 +76,11 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef _SURFACE_TYPE_TRANSPARENT
         uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 #else
+#ifdef SSREFLECTION_ONLY
+        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_SSREFLECTION;
+#else
         uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+#endif
 #endif
         float3 diffuseLighting;
         float3 specularLighting;
