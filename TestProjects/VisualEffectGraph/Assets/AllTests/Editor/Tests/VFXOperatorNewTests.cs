@@ -318,5 +318,23 @@ namespace UnityEditor.VFX.Test
             branch.inputSlots[0].value = true;
             Assert.IsTrue(fnCompareSphere(fnSlotToSphere(branch.outputSlots[0]), sphereA));
         }
+
+        [Test]
+        public void VerifyTypeCompatibility()
+        {
+            var typeAffinity = VFXOperatorDynamicOperand.kTypeAffinity;
+            foreach (var type in typeAffinity)
+            {
+                var slotBase = VFXSlot.Create(new VFXProperty(type.Key, "o"), VFXSlot.Direction.kOutput);
+                foreach (var affinity in type.Value)
+                {
+                    var slotAffinity = VFXSlot.Create(new VFXProperty(affinity, "i"), VFXSlot.Direction.kInput);
+                    if (!slotBase.CanLink(slotAffinity))
+                    {
+                        Assert.Fail(string.Format("VFXSlot of {1} CanConvertFrom({0}) excepts return true", slotBase.property.type.UserFriendlyName(), slotAffinity.property.type.UserFriendlyName()));
+                    }
+                }
+            }
+        }
     }
 }

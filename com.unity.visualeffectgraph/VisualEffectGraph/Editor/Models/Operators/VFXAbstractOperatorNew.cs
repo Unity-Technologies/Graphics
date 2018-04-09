@@ -8,6 +8,79 @@ namespace UnityEditor.VFX
 {
     abstract class VFXOperatorDynamicOperand : VFXOperator
     {
+        /* Global rules */
+        //output depends on all input type applying float > uint > int > bool (http://c0x.coding-guidelines.com/6.3.1.8.html)
+        public static readonly Type[] kExpectedTypeOrdering = new[]
+        {
+            typeof(Vector4),
+            typeof(Vector3),
+            typeof(Vector2),
+            typeof(float),
+            typeof(uint),
+            typeof(int),
+        };
+
+        public static Dictionary<Type, Type[]> kTypeAffinity = ComputeTypeAffinity();
+        static private Dictionary<Type, Type[]> ComputeTypeAffinity()
+        {
+            //Init with best friend type
+            var data = new Dictionary<Type, List<Type>>
+            {
+                { typeof(Color),            new[] {typeof(Vector4) }.ToList() },
+                { typeof(Vector4),          new[] {typeof(Vector3) }.ToList() },
+                { typeof(Position),         new[] {typeof(Vector3) }.ToList() },
+                { typeof(DirectionType),    new[] {typeof(Vector3) }.ToList() },
+                { typeof(Vector),           new[] {typeof(Vector3) }.ToList() },
+                { typeof(Vector3),          new[] {typeof(Vector2) }.ToList() },
+                { typeof(Vector2),          new[] {typeof(float)   }.ToList() },
+                { typeof(float),            new[] {typeof(uint)    }.ToList() },
+                { typeof(int),              new[] {typeof(uint)    }.ToList() },
+                { typeof(uint),             new[] {typeof(int)     }.ToList() },
+            };
+
+            //Compute affinity graph
+            var keys = data.Keys.ToArray();
+            var newEntryList = new List<KeyValuePair<Type, List<Type>>>();
+            do
+            {
+                newEntryList.Clear();
+                foreach (var key in keys)
+                {
+                    var values = data[key];
+                    var newEntry = values.SelectMany(o => data[o])
+                        .Except(values.Concat(Enumerable.Repeat(key, 1)));
+                    if (newEntry.Any())
+                    {
+                        newEntryList.Add(new KeyValuePair<Type, List<Type>>(key, newEntry.ToList()));
+                    }
+                }
+
+                var newData = new Dictionary<Type, List<Type>>();
+                foreach (var entry in data)
+                {
+                    var newEntriesAtKey = newEntryList.Where(o => o.Key == entry.Key);
+                    if (newEntriesAtKey.Any())
+                    {
+                        newData.Add(entry.Key, entry.Value.Concat(newEntriesAtKey.First().Value).ToList());
+                    }
+                    else
+                    {
+                        newData.Add(entry.Key, entry.Value);
+                    }
+                }
+                data = newData;
+            }
+            while (newEntryList.Any());
+
+            //Copy to array
+            var final = new Dictionary<Type, Type[]>();
+            foreach (var entry in data)
+            {
+                final.Add(entry.Key, entry.Value.ToArray());
+            }
+            return final;
+        }
+
         public sealed override void OnEnable()
         {
             base.OnEnable();
@@ -34,6 +107,19 @@ namespace UnityEditor.VFX
             typeof(float),
             typeof(uint),
             typeof(int),
+        };
+
+        private static readonly Dictionary<Type, Type[]> kBestCompatibleTypeRule = new Dictionary<Type, Type[]>
+        {
+            { typeof(Color),            new[] {typeof(Vector4) } },
+            { typeof(Position),         new[] {typeof(Vector3) } },
+            { typeof(DirectionType),    new[] {typeof(Vector3) } },
+            { typeof(Vector),           new[] {typeof(Vector3) } },
+            { typeof(Vector3),          new[] {typeof(Vector2) } },
+            { typeof(Vector2),          new[] {typeof(float)   } },
+            { typeof(float),            new[] {typeof(uint)    } },
+            { typeof(int),              new[] {typeof(uint)    } },
+            { typeof(uint),             new[] {typeof(uint)    } },
         };
 
         private static readonly Type[] kValidTypeWithoutInteger = kExpectedTypeOrdering.Except(new[] { typeof(uint), typeof(int) }).ToArray();

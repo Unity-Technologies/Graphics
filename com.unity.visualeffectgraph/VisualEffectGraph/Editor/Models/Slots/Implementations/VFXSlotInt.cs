@@ -14,6 +14,9 @@ namespace UnityEditor.VFX
                 || type == typeof(float)
                 || type == typeof(Vector2)
                 || type == typeof(Vector3)
+                || type == typeof(Position)
+                || type == typeof(DirectionType)
+                || type == typeof(Vector)
                 || type == typeof(Vector4)
                 || type == typeof(Color);
         }
