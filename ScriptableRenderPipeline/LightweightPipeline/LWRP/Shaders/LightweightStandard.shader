@@ -139,6 +139,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
@@ -167,6 +168,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             //--------------------------------------
             // GPU Instancing
