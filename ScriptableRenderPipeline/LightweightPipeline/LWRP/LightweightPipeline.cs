@@ -499,20 +499,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
             
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
-            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueTextureScale == TextureScale.OnePoint ? FilterMode.Point : FilterMode.Bilinear);
+            cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueTextureScale == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
             switch(m_Asset.OpaqueTextureScale)
             {
-                case TextureScale.OnePoint:
+                case Downsampling.None:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
-                case TextureScale.HalfBilinear:
+                case Downsampling._2xBilinear:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
-                case TextureScale.QuarterBox:
+                case Downsampling._4xBox:
                     m_SamplingMaterial.SetFloat(m_SampleOffset, 2);
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque, m_SamplingMaterial, 0);
                     break;
-                case TextureScale.QuarterBilinear:
+                case Downsampling._4xBilinear:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
             }
