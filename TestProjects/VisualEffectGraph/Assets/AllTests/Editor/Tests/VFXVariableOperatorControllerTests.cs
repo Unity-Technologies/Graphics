@@ -131,7 +131,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedOperatorTests()
         {
-            var variableOperator = CreateNew("AddNew",new Vector2(1,2));
+            var variableOperator = CreateNew("AddNew",new Vector2(1,2)) as VFXCascadedOperatorController;
             var operatorModel = variableOperator.model as VFXOperatorNumericNew;
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(),new Vector2(2,2),typeof(VFXInlineOperator));
@@ -192,6 +192,34 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(typeof(Vector4),input.portType);
             Assert.IsNotNull(m_ViewController.dataEdges.FirstOrDefault(t=>t.input == input && t.output == output));
+
+            variableOperator.RemoveOperand(0);
+            Assert.AreEqual(2,operatorModel.inputSlots.Count);
+            variableOperator.RemoveOperand(1);
+            Assert.AreEqual(2,operatorModel.inputSlots.Count);
+
+            variableOperator.model.SetOperandName(0,"Miaou");
+            variableOperator.model.SetOperandName(1,"Meuh");
+
+            variableOperator.ApplyChanges();
+
+            Assert.AreEqual("Miaou",variableOperator.inputPorts[0].name);
+            Assert.AreEqual("Meuh",variableOperator.inputPorts.First(t => t.model == variableOperator.model.inputSlots[1]).name);
+
+            //Check that move preserves name, type and links.
+            variableOperator.model.OperandMoved(0,1);
+            variableOperator.ApplyChanges();
+            m_ViewController.LightApplyChanges();
+
+            Assert.AreEqual("Meuh",variableOperator.inputPorts[0].name);
+            Assert.AreEqual(typeof(Vector4),variableOperator.inputPorts[0].portType);
+            Assert.IsNotNull(m_ViewController.dataEdges.FirstOrDefault(t=>t.input == variableOperator.inputPorts[0] && t.output == vector4inline.outputPorts[0]));
+
+            VFXDataAnchorController miaou = variableOperator.inputPorts.First(t => t.model == variableOperator.model.inputSlots[1]);
+
+            Assert.AreEqual("Miaou",miaou.name);
+            Assert.AreEqual(typeof(Vector3),miaou.portType);
+            Assert.IsNotNull(m_ViewController.dataEdges.FirstOrDefault(t=>t.input == miaou && t.output == vector3inline.outputPorts[0]));
         }
     }
 }

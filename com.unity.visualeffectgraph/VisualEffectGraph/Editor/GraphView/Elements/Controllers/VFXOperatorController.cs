@@ -104,9 +104,23 @@ namespace UnityEditor.VFX.UI
         {
             base.OnEdgeGoingToBeRemoved(myInput);
 
-            if (model.operandCount > 2)
+            RemoveOperand(myInput);
+        }
+
+        public bool CanRemove()
+        {
+            return model.operandCount > 2;
+        }
+
+        public void RemoveOperand(VFXDataAnchorController myInput)
+        {
+            RemoveOperand(model.GetSlotIndex(myInput.model));
+        }
+        public void RemoveOperand(int index)
+        {
+            if (CanRemove())
             {
-                model.RemoveOperand(model.GetSlotIndex(myInput.model));
+                model.RemoveOperand(index);
             }
         }
 

@@ -80,9 +80,9 @@ namespace UnityEditor.VFX.UI
 
         void OnRemove(ContextualMenu.MenuAction e)
         {
-            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+            var op = controller.sourceNode as VFXCascadedOperatorController;
 
-            op.RemoveOperand(op.GetSlotIndex(controller.model));
+            op.RemoveOperand(controller);
         }
 
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)

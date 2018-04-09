@@ -259,13 +259,12 @@ namespace UnityEditor.VFX.UI
 
         public override bool CanRemove()
         {
-            return controller.model.operandCount > 2;
+            return controller.CanRemove();
         }
 
         public override void OnRemove(int index)
         {
-            if (CanRemove())
-                controller.model.RemoveOperand(index);
+            controller.RemoveOperand(index);
         }
 
         void OnChangeLabel(string value, int index)
