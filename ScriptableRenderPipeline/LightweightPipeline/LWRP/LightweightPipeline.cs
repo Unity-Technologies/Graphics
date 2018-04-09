@@ -89,7 +89,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_DepthRT;
         private RenderTargetIdentifier m_CopyDepth;
         private RenderTargetIdentifier m_Color;
-        private RenderTargetIdentifier m_OpaqueRT;
         private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
 
         private float m_RenderScale;
@@ -173,7 +172,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CopyColorRT = new RenderTargetIdentifier(CameraRenderTargetID.copyColor);
             m_DepthRT = new RenderTargetIdentifier(CameraRenderTargetID.depth);
             m_CopyDepth = new RenderTargetIdentifier(CameraRenderTargetID.depthCopy);
-            m_OpaqueRT = new RenderTargetIdentifier(CameraRenderTargetID.opaque);
             m_PostProcessRenderContext = new PostProcessRenderContext();
 
             m_CopyTextureSupport = SystemInfo.copyTextureSupport;
