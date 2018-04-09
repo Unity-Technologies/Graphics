@@ -1545,7 +1545,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: 
+      m_SerializableObject: '{"m_Components":[]}'
   m_Property:
     name: c
     m_serializedType:
@@ -2979,12 +2979,13 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: -1031
+    y: 386
+    width: 1610
+    height: 2499
 --- !u!114 &114782163398082670
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3058,7 +3059,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114811252617829750}
   m_Children: []
-  m_UIPosition: {x: -233.32379, y: 888.9455}
+  m_UIPosition: {x: -234.32379, y: 874.94543}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4608,7 +4609,7 @@ VisualEffectAsset:
         index: 54
       - nameId: bounds_size
         index: 70
-      processor: {fileID: 7200000, guid: 6ae862c75d1b8154bbb836e61ca77217, type: 3}
+      processor: {fileID: 7200000, guid: a9e972b58e66d274b89c1b6c78091bb0, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4631,7 +4632,7 @@ VisualEffectAsset:
       - nameId: VectorField_b
         index: 66
       params: []
-      processor: {fileID: 7200000, guid: 794ee11d3c6b59444808145a28a07e01, type: 3}
+      processor: {fileID: 7200000, guid: b6a2e1a60d7a1574cb43281bf8df1848, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4668,7 +4669,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 02e766f0d3254f94dbc9e03a7869bbe3, type: 3}
+      processor: {fileID: 4800000, guid: f125632aeae11e1458ecce129152deb0, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

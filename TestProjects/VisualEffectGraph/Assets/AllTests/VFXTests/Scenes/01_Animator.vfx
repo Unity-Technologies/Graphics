@@ -331,7 +331,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"c4c66e4864ec59c4f826a03689258bb6","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
   m_Property:
     name: mainTexture
     m_serializedType:
@@ -952,7 +952,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114789286144881694}
   m_Children: []
-  m_UIPosition: {x: -553.16376, y: -134.03152}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -969,7 +969,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114646169453975412}
+      inputSlot: {fileID: 114807567015540888}
+    position: {x: -553.16376, y: -134.03152}
+    expandedSlots: []
 --- !u!114 &114789286144881694
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1207,7 +1213,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114789286144881694}
   m_Children: []
-  m_UIPosition: {x: -918.9633, y: -329.98514}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1215,7 +1221,7 @@ MonoBehaviour:
   - {fileID: 114370700669197398}
   m_exposedName: velocity
   m_exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1224,7 +1230,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114370700669197398}
+      inputSlot: {fileID: 114289646818066756}
+    position: {x: -918.9633, y: -329.98514}
+    expandedSlots: []
 --- !u!114 &114936562591132906
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1540,7 +1552,7 @@ VisualEffectAsset:
     m_NamedObject:
       m_Array:
       - m_ExpressionIndex: 14
-        m_Value: {fileID: 2800000, guid: c4c66e4864ec59c4f826a03689258bb6, type: 3}
+        m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
     m_Bool:
       m_Array: []
   m_Buffers:
@@ -1685,7 +1697,7 @@ VisualEffectAsset:
         index: 17
       - nameId: bounds_size
         index: 18
-      processor: {fileID: 7200000, guid: 3d52da01472a02b4383574764f65251d, type: 3}
+      processor: {fileID: 7200000, guid: 92611aae739f649489c5b3a09b7f3745, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1696,7 +1708,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 16
       params: []
-      processor: {fileID: 7200000, guid: b2fe07af2710df94a8010cc4efd43ad9, type: 3}
+      processor: {fileID: 7200000, guid: caa7ee94601a9094ba1c3ee10392f928, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1709,7 +1721,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: d6bdd995acfdf4149bf4cb50f009357e, type: 3}
+      processor: {fileID: 4800000, guid: 3b57887f8daf41f46be0ac73630b72c2, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

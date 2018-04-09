@@ -31,7 +31,7 @@ public class Test_Explorer : MonoBehaviour
     [PostProcessScene(666)]
     public static void OnPostprocessScene()
     {
-        var listScene = Directory.GetFiles("Assets/VFXTests/", "*.unity").Take(31).ToArray();
+        var listScene = Directory.GetFiles("Assets/VFXTests/Scenes/", "*.unity").Take(31).ToArray();
 
         var scenes = EditorBuildSettings.scenes.ToList();
         scenes.AddRange(listScene.Select(o => new EditorBuildSettingsScene(o, true)));
