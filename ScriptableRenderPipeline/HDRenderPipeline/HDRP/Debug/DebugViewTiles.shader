@@ -76,7 +76,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
                 uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
                 uint2 pixelCoord = (tileCoord + uint2((quadVertex+1) & 1, (quadVertex >> 1) & 1)) * tileSize;
 
-                float2 clipCoord = (pixelCoord / _ScreenParams.xy) * 2.0 - 1.0;
+                float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
                 clipCoord.y *= -1;
 
                 Varyings output;

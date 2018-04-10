@@ -128,7 +128,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 #endif
 
  #if defined(HAVE_VERTEX_MODIFICATION)
-		ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
+		ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _PreviousTime);
 #endif
 
 	    //Need this since we are using the current position from VertMesh()

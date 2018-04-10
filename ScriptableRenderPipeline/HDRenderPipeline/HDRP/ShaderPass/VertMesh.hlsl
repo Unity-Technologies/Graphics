@@ -114,7 +114,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     // TODO: deal with camera center rendering and instancing (This is the reason why we always perform two  steps transform to clip space + instancing matrix)
 
 #if defined(HAVE_VERTEX_MODIFICATION)
-    ApplyVertexModification(input, normalWS, positionWS, _Time);
+    ApplyVertexModification(input, normalWS, positionWS, _CurrentTime);
 #endif
 
     positionWS = GetCameraRelativePositionWS(positionWS);

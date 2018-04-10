@@ -2277,8 +2277,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
-                hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
-
                 // TODO: Update for stereo
                 cmd.DispatchCompute(deferredDirectionalShadowComputeShader, kernel, numTilesX, numTilesY, 1);
 
@@ -2327,9 +2325,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numVariants = 1;
                     if (enableFeatureVariants)
                         numVariants = LightDefinitions.s_NumFeatureVariants;
-
-
-                    hdCamera.SetupComputeShader(deferredComputeShader, cmd);
 
                     for (int variant = 0; variant < numVariants; variant++)
                     {

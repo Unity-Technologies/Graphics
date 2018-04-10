@@ -149,7 +149,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 float4 mousePixelCoord = _MousePixelCoord;
                 if (_RequireToFlipInputTexture > 0.0)
                 {
-                    mousePixelCoord.y = _ScreenParams.y - mousePixelCoord.y;
+                    mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
                     // Note: We must not flip the mousePixelCoord.w coordinate
                 }
 
