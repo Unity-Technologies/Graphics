@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public bool RequiresMeshUV(UVChannel channel)
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             foreach (var slot in this.GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
             {

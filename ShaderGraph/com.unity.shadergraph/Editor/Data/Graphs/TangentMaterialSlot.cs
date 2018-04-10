@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Tangent));
         }
 
-        public NeededCoordinateSpace RequiresTangent()
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
             if (isConnected)
                 return NeededCoordinateSpace.None;

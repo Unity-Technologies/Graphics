@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(string.Format("{0} {1} = {2}.a;", precision, GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)), true);
         }
 
-        public bool RequiresMeshUV(UVChannel channel)
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             s_TempSlots.Clear();
             GetInputSlots(s_TempSlots);
