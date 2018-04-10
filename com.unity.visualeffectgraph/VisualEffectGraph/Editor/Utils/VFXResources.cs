@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         private static VFXResources s_Instance;
 
         private const string defaultFileName = "VFXDefaultResources.asset";
-        private const string defaultPath = "Assets/VFXEditor/Editor/"; // Change this to a getter once we handle package mode pathes
+        private const string defaultPath = "Assets/VFXEditor/Editor/"; // Change this to a getter once we handle package mode paths
 
         [InitializeOnLoadMethod]
         public static void Initialize()
@@ -31,11 +31,11 @@ namespace UnityEditor.VFX
         }
 
         [Header("Default Resources")]
-        public Texture2D ParticleTexture;
-        public Texture2D NoiseTexture;
-        public Texture3D VectorField;
-        public Mesh DefaultMeshParticle;
-        public AnimationCurve AnimationCurve;
-        public Gradient Gradient;
+        public Texture2D particleTexture;
+        public Texture2D noiseTexture;
+        public Texture3D vectorField;
+        public Mesh particleMesh;
+        public AnimationCurve animationCurve;
+        public Gradient gradient;
     }
 }

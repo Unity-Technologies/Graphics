@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public Texture2D mainTexture = VFXResources.defaultResources.ParticleTexture;
+            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
     }
 }
