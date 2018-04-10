@@ -7,15 +7,15 @@ using UnityEditor.VFX;
 
 public class VFXMigration
 {
-    [MenuItem("VFX Editor/Migrate to .vfx")]
-    static void Migrate()
+    //[MenuItem("VFX Editor/Migrate to .vfx")]
+    public static void Migrate()
     {
         MigrateFolder("Assets");
         AssetDatabase.Refresh();
     }
 
-    [MenuItem("VFX Editor/Resave All VFX assets")]
-    static void Resave()
+    //[MenuItem("VFX Editor/Resave All VFX assets")]
+    public static void Resave()
     {
         ResaveFolder("Assets");
 
