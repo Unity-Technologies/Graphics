@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             [Tooltip("The vector field used as a force for particles")]
-            public Texture3D VectorField;
+            public Texture3D VectorField = VFXResources.defaultResources.vectorField;
             [Tooltip("The position, rotation and scale of the vectorfield")]
             public Transform FieldTransform = Transform.defaultValue;
             [Tooltip("Intensity of the motion vectors")]
@@ -20,8 +20,8 @@ namespace UnityEditor.VFX.Block
             public float DragCoefficient;
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Texture Data Layout : Actual Values, or Unsigned Normalized (Centered on Gray)")]
-        public TextureDataEncoding DataEncoding = TextureDataEncoding.Signed;
+        [VFXSetting, Tooltip("Texture Data Layout : Actual Values, or Unsigned Normalized (Centered on Gray)")]
+        public TextureDataEncoding DataEncoding = TextureDataEncoding.UnsignedNormalized;
 
         public override string name { get { return "Vector Field Force"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
