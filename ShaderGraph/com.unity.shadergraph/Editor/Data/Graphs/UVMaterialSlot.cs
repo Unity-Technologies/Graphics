@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}.xy", channel.GetUVName());
         }
 
-        public bool RequiresMeshUV(UVChannel channel)
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             if (isConnected)
                 return false;

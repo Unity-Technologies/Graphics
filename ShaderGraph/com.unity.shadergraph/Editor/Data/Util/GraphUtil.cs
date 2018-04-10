@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph
                 NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             }
 
-            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
+            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
             GenerateApplicationVertexInputs(requirements, vertexInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);

@@ -163,17 +163,17 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(sb.ToString(), false);
         }
         
-        public NeededCoordinateSpace RequiresPosition()
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.World.ToNeededCoordinateSpace();
         }
 
-        public NeededCoordinateSpace RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.World.ToNeededCoordinateSpace();
         }
 
-        public NeededCoordinateSpace RequiresTangent()
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
             switch(m_TextureType)
             {
@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public NeededCoordinateSpace RequiresBitangent()
+        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
             switch(m_TextureType)
             {

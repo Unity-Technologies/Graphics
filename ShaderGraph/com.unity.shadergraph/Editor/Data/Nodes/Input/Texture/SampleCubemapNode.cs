@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(result, true);
         }
 
-        public NeededCoordinateSpace RequiresViewDirection()
+        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             var viewDirSlot = FindInputSlot<MaterialSlot>(ViewDirInputId);
             var edgesViewDir = owner.GetEdges(viewDirSlot.slotReference);
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
         }
 
-        public NeededCoordinateSpace RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             var normalSlot = FindInputSlot<MaterialSlot>(NormalInputId);
             var edgesNormal = owner.GetEdges(normalSlot.slotReference);

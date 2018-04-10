@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             return m_ScreenSpaceType.ToValueAsVariable();
         }
 
-        public bool RequiresScreenPosition()
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
             return !isConnected;
         }

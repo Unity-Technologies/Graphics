@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.ViewDirection));
         }
 
-        public NeededCoordinateSpace RequiresViewDirection()
+        public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             return space.ToNeededCoordinateSpace();
         }

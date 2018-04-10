@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", ShaderGeneratorNames.VertexColor);
         }
 
-        public bool RequiresScreenPosition()
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
             return !isConnected;
         }
