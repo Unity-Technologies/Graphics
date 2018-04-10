@@ -145,7 +145,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentHeight;
 
         // Use to detect frame changes
-        int m_FrameCount;
+        int   m_FrameCount;
+        float m_TimeSinceLevelLoad;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
@@ -454,15 +455,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                hdCamera.SetupGlobalParams(cmd);
-                if (m_FrameSettings.enableStereo)
-                    hdCamera.SetupGlobalStereoParams(cmd);
+                float  ct = Time.timeSinceLevelLoad;
+                float  pt = (m_TimeSinceLevelLoad > 0) ? m_TimeSinceLevelLoad : ct;
+                float  dt = Time.deltaTime;
+                float sdt = Time.smoothDeltaTime;
+
+                // Set up UnityPerFrame CBuffer.
+                cmd.SetGlobalVector(HDShaderIDs._CurrentTime,    new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
+                cmd.SetGlobalVector(HDShaderIDs._PreviousTime,   new Vector4(pt * 0.05f, pt, pt * 2.0f, pt * 3.0f));
+                cmd.SetGlobalVector(HDShaderIDs._DeltaTime,      new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
+                cmd.SetGlobalVector(HDShaderIDs._SinCurrentTime, new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
+                cmd.SetGlobalVector(HDShaderIDs._CosCurrentTime, new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
 
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
 
                 m_VolumetricLightingModule.PushGlobalParams(hdCamera, cmd);
+
+                // Set up UnityPerView CBuffer.
+                hdCamera.SetupGlobalParams(cmd);
+                if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
+
+                // Update the current time.
+                m_TimeSinceLevelLoad = ct;
             }
         }
 
@@ -1087,7 +1103,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._GaussianPyramidColorTexture, m_BufferPyramid.colorPyramid);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBuffer);
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
-                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
 
                 cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
             }

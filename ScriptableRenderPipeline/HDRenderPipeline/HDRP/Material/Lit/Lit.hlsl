@@ -198,7 +198,7 @@ float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, fl
 
     // Get the depth of the approximated back plane
     float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+    float depth = LinearEyeDepth(pyramidDepth, _DepthBufferParam);
 
     // Distance from point to the back plane
     float depthFromPositionInput = depth - posInputs.linearDepth;
@@ -1826,7 +1826,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             // Calculate screen space coordinates of refracted point in back plane
             float2 refractedBackPointNDC = ComputeNormalizedDeviceCoordinates(refractedBackPointWS, UNITY_MATRIX_VP);
             uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-            float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointNDC * depthSize, 0).r, _ZBufferParams);
+            float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointNDC * depthSize, 0).r, _DepthBufferParam);
 
             // Exit if texel is out of color buffer
             // Or if the texel is from an object in front of the object

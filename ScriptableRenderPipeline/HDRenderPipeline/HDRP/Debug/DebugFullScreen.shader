@@ -139,16 +139,17 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float kGrid = 64.0;
 
                     // Arrow grid (aspect ratio is kept)
-                    float rows = floor(kGrid * _ScreenParams.y / _ScreenParams.x);
+                    float aspect = _ScreenSize.y * _ScreenSize.z;
+                    float rows = floor(kGrid * aspect);
                     float cols = kGrid;
-                    float2 size = _ScreenParams.xy / float2(cols, rows);
+                    float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
                     float2 texcoord = input.positionCS.xy;
                     float2 center = (floor(texcoord / size) + 0.5) * size;
                     texcoord -= center;
 
                     // Sample the center of the cell to get the current arrow vector
-                    float2 arrow_coord = center / _ScreenParams.xy;
+                    float2 arrow_coord = center * _ScreenSize.zw;
 
                     if (_RequireToFlipInputTexture > 0.0)
                     {

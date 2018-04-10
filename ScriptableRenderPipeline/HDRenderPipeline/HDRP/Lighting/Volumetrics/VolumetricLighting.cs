@@ -539,8 +539,6 @@ public class VolumetricLightingModule
             Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
             Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
 
-            camera.SetupComputeShader(m_VolumetricLightingCS, cmd);
-
             Vector2[] xySeq = GetHexagonalClosePackedSpheres7();
 
             // This is a sequence of 7 equidistant numbers from 1/14 to 13/14.

@@ -183,9 +183,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.ClearRandomWriteTargets();
                     }
 
-                    // TODO: Remove this once fix, see comment inside the function
-                    hdCamera.SetupComputeShader(m_SubsurfaceScatteringCS, cmd);
-
                     unsafe
                     {
                         // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
