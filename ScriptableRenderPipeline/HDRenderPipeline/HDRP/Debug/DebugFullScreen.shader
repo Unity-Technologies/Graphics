@@ -236,7 +236,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                     float cellSDF = 0;
                     float debugLinearDepth = 0;
-                    if (debug.tracingModel == REFRACTIONSSRAYMODEL_HI_Z)
+                    if (debug.tracingModel == SSRAYMODEL_HI_Z)
                     {
                         const uint2 iterationCellSize = uint2(debug.iterationCellSizeW, debug.iterationCellSizeH);
                         const float hasData = iterationCellSize.x != 0 || iterationCellSize.y != 0;
