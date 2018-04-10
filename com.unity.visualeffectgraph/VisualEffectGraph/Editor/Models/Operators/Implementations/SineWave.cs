@@ -17,10 +17,10 @@ namespace UnityEditor.VFX.Operator
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             //(1-cos(F*2*pi*x))/2
-            var size = VFXExpression.TypeToSize(inputExpression[0].valueType);
-            var one = VFXOperatorUtility.OneExpression[size];
-            var tau = VFXOperatorUtility.TauExpression[size];
-            var two = VFXOperatorUtility.TwoExpression[size];
+            var type = inputExpression[0].valueType;
+            var one = VFXOperatorUtility.OneExpression[type];
+            var tau = VFXOperatorUtility.TauExpression[type];
+            var two = VFXOperatorUtility.TwoExpression[type];
 
             return new[] { new VFXExpressionDivide(one - new VFXExpressionCos(inputExpression[0] * inputExpression[1] * tau), two) };
         }
