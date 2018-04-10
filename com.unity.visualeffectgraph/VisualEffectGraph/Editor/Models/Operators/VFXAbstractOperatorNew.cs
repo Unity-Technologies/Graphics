@@ -19,8 +19,8 @@ namespace UnityEditor.VFX
             typeof(uint),
             typeof(int),
         };
-        
-        public static readonly Dictionary<Type, Type[]> kTypeAffinity = new Dictionary<Type, Type[]> 
+
+        public static readonly Dictionary<Type, Type[]> kTypeAffinity = new Dictionary<Type, Type[]>
         {
             { typeof(Vector4), new[] {typeof(Color), typeof(Vector3), typeof(Position), typeof(DirectionType), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
             { typeof(Color), new[] {typeof(Vector4), typeof(Vector3), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
@@ -372,7 +372,7 @@ namespace UnityEditor.VFX
 
         public void AddOperand(Type type = null)
         {
-            if (!validTypes.Contains(type))
+            if (type != null && !validTypes.Contains(type))
                 throw new InvalidOperationException("Unexpected type : " + type);
 
             int oldCount = m_Operands.Length;
