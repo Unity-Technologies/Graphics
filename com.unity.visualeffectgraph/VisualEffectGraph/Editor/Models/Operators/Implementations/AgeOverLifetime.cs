@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return "Age Over Lifetime";
+                return "Age Over Lifetime [0..1]";
             }
         }
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
