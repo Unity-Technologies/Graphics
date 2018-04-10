@@ -127,7 +127,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private CameraComparer m_CameraComparer = new CameraComparer();
 
-        private Mesh m_BlitQuad;
         private Material m_BlitMaterial;
         private Material m_CopyDepthMaterial;
         private Material m_ErrorMaterial;
@@ -195,7 +194,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             Shader.globalRenderPipeline = "LightweightPipeline";
 
-            m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_Asset.SamplingShader);
@@ -1127,13 +1125,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             else
             {
-                if (m_BlitQuad == null)
-                    m_BlitQuad = LightweightUtils.CreateQuadMesh(false);
-
+                // Viewport doesn't work when rendering to an RT
+                // We have to manually blit by rendering a fullscreen quad
                 SetRenderTarget(cmd, destRT);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(m_CurrCamera.pixelRect);
-                cmd.DrawMesh(m_BlitQuad, Matrix4x4.identity, material);
+                LightweightUtils.DrawFullScreen(cmd, m_BlitMaterial);
             }
         }
 
