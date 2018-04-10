@@ -31,7 +31,7 @@ Shader "Hidden/LightweightPipeline/Sampling"
         return o;
     }
 
-    half4 DownsampleBox4Tap(Texture2D tex, SamplerState samplerTex, float2 uv, float2 texelSize, float amount)
+    half4 DownsampleBox4Tap(TEXTURE2D_ARGS(tex, samplerTex), float2 uv, float2 texelSize, float amount)
     {
         float4 d = texelSize.xyxy * float4(-amount, -amount, amount, amount);
 
