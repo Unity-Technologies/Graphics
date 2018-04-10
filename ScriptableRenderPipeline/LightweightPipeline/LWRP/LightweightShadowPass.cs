@@ -202,6 +202,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // stereo functionality, we use the screen-space shadow map as the source (until we have
             // a better solution).
             // An alternative would be DrawProcedural, but that would require further changes in the shader.
+            cmd.SetRenderTarget(m_ScreenSpaceShadowmapTexture);
+            cmd.ClearRenderTarget(true, true, Color.white);
             cmd.Blit(m_ScreenSpaceShadowmapTexture, m_ScreenSpaceShadowmapTexture, m_ScreenSpaceShadowsMaterial);
 
             LightweightUtils.StartStereoRendering(camera, ref context, frameRenderingConfiguration);
