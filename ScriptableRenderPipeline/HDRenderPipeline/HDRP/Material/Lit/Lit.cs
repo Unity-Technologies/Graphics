@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         [GenerateHLSL]
-        public enum RefractionSSRayModel
+        public enum SSRayModel
         {
             None = 0,
             Proxy = 1,

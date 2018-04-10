@@ -43,6 +43,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
+            // SSReflection
+            public static GUIContent reflectionSSRayModelText = new GUIContent("SSRay Model", "Screen Space Ray Model");
 
             // Details
             public static string detailText = "Detail Inputs";
@@ -292,6 +294,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kRefractionModel = "_RefractionModel";
         protected MaterialProperty refractionSSRayModel = null;
         protected const string kRefractionSSRayModel = "_RefractionSSRayModel";
+        protected MaterialProperty reflectionSSRayModel = null;
+        protected const string kReflectionSSRayModel = "_ReflectionSSRayModel";
 
         protected override bool showBlendModePopup
         {
@@ -401,6 +405,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Transparency
             refractionModel = FindProperty(kRefractionModel, props, false);
             refractionSSRayModel = FindProperty(kRefractionSSRayModel, props, false);
+            reflectionSSRayModel = FindProperty(kReflectionSSRayModel, props, false);
             transmittanceColor = FindProperty(kTransmittanceColor, props, false);
             transmittanceColorMap = FindProperty(kTransmittanceColorMap, props, false);
             atDistance = FindProperty(kATDistance, props, false);
@@ -835,6 +840,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 --EditorGUI.indentLevel;
             }
+            else if (surfaceTypeValue == SurfaceType.Opaque)
+            {
+                m_MaterialEditor.ShaderProperty(reflectionSSRayModel, Styles.reflectionSSRayModelText);
+            }
         }
 
         protected void DoEmissiveGUI(Material material)
@@ -973,14 +982,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == BaseLitGUI.MaterialId.LitSpecular);
 
             var refractionModelValue = (Lit.RefractionModel)material.GetFloat(kRefractionModel);
-            var refractionSSRayModelValue = (Lit.RefractionSSRayModel)material.GetFloat(kRefractionSSRayModel);
+            var refractionSSRayModelValue = (Lit.SSRayModel)material.GetFloat(kRefractionSSRayModel);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
             CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == Lit.RefractionModel.Plane) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == Lit.RefractionModel.Sphere) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_PROXY", (refractionSSRayModelValue == Lit.RefractionSSRayModel.Proxy) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_HIZ", (refractionSSRayModelValue == Lit.RefractionSSRayModel.HiZ) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_PROXY", (refractionSSRayModelValue == Lit.SSRayModel.Proxy) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_HIZ", (refractionSSRayModelValue == Lit.SSRayModel.HiZ) && canHaveRefraction);
+
+            // SS Reflection
+            var reflectionSSRayModelValue = (Lit.SSRayModel)material.GetFloat(kReflectionSSRayModel);
+            CoreUtils.SetKeyword(material, "_REFLECTION_SSRAY_PROXY", (reflectionSSRayModelValue == Lit.SSRayModel.Proxy));
+            CoreUtils.SetKeyword(material, "_REFLECTION_SSRAY_HIZ", (reflectionSSRayModelValue == Lit.SSRayModel.HiZ));
         }
     }
 } // namespace UnityEditor

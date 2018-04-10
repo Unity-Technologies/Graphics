@@ -201,17 +201,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 envLightData = InitSkyEnvLightData(0);
         }
 
-        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
-        {
-            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
-            AccumulateIndirectLighting(lighting, aggregateLighting);
-        }
-
         if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
         {
             IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
                                                                     GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+            AccumulateIndirectLighting(lighting, aggregateLighting);
+        }
+
+        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+        {
+            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
+                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
 

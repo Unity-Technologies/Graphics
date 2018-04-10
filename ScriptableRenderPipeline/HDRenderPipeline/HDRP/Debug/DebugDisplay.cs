@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
                                                         // Used to debug SSRay model
         // 1x32 bits
-        public Lit.RefractionSSRayModel tracingModel;
+        public Lit.SSRayModel tracingModel;
 
         // 6x32 bits
         public uint loopStartPositionSSX;                           // Proxy, HiZ
@@ -106,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static GUIContent[] debugScreenSpaceTracingHiZStrings = null;
         public static int[] debugScreenSpaceTracingHiZValues = null;
 
-        Lit.RefractionSSRayModel m_LastSSRayModel = Lit.RefractionSSRayModel.None;
+        Lit.SSRayModel m_LastSSRayModel = Lit.SSRayModel.None;
         ScreenSpaceTracingDebug m_ScreenSpaceTracingDebugData;
         public ScreenSpaceTracingDebug screenSpaceTracingDebugData 
         {
@@ -117,10 +117,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_LastSSRayModel != m_ScreenSpaceTracingDebugData.tracingModel)
                 {
                     m_LastSSRayModel = m_ScreenSpaceTracingDebugData.tracingModel;
-                    RefreshScreenSpaceTracingDebug<Lit.RefractionSSRayModel>(null, m_LastSSRayModel);
+                    RefreshScreenSpaceTracingDebug<Lit.SSRayModel>(null, m_LastSSRayModel);
                 }
 
-                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.RefractionSSRayModel.HiZ)
+                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.SSRayModel.HiZ)
                 {
                     showSSRayDepthPyramid = false;
                     showSSRayGrid = false;
@@ -292,6 +292,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        bool IsScreenSpaceTracingReflectionDebugEnabled()
+        {
+            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing 
+                && lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection;
+        }
+
+        void SetScreenSpaceTracingReflectionDebugEnabled(bool value)
+        {
+            if (value)
+            {
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.ScreenSpaceTracingReflection;
+                fullScreenDebugMode = FullScreenDebugMode.ScreenSpaceTracing;
+            }
+            else
+            {
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                fullScreenDebugMode = FullScreenDebugMode.None;
+            }
+        }
+
         void SetScreenSpaceTracingRefractionDebugMode(int value)
         {
             var val = (DebugScreenSpaceTracing)value;
@@ -339,17 +359,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var list = new List<DebugUI.Container>();
 
-            var refractionContainer = new DebugUI.Container
+            var settingsContainer = new DebugUI.Container
             {
-                displayName = "Refraction",
+                displayName = "Refraction / Reflection",
                 children = 
                 {
-                    new DebugUI.BoolField { displayName = "Debug Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
+                    new DebugUI.BoolField { displayName = "Debug Refraction Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
+                    new DebugUI.BoolField { displayName = "Debug Reflection Enabled", getter = IsScreenSpaceTracingReflectionDebugEnabled, setter = SetScreenSpaceTracingReflectionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
                 }
             };
-            list.Add(refractionContainer);
+            list.Add(settingsContainer);
 
-            if (IsScreenSpaceTracingRefractionDebugEnabled())
+            if (IsScreenSpaceTracingRefractionDebugEnabled()
+                || IsScreenSpaceTracingReflectionDebugEnabled())
             {
                 var debugSettingsContainer = new DebugUI.Container
                 {
@@ -360,16 +382,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.Value { displayName = "SSRay Model", getter = () => screenSpaceTracingDebugData.tracingModel }
                     }
                 };
-                refractionContainer.children.Add(debugSettingsContainer);
+                settingsContainer.children.Add(debugSettingsContainer);
 
                 switch (screenSpaceTracingDebugData.tracingModel)
                 {
-                    case Lit.RefractionSSRayModel.Proxy:
+                    case Lit.SSRayModel.Proxy:
                     {
                         debugSettingsContainer.children.Add(
                             new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingRefractionDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
                         );
-                        refractionContainer.children.Add(
+                        settingsContainer.children.Add(
                             new DebugUI.Container
                             {
                                 displayName = "Debug Values",
@@ -387,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         );
                         break;
                     }
-                    case Lit.RefractionSSRayModel.HiZ:
+                    case Lit.SSRayModel.HiZ:
                     {
                         debugSettingsContainer.children.Insert(1, new DebugUI.Value { displayName = string.Empty, getter = () => "Press PageUp/PageDown to Increase/Decrease the HiZ step." });
                         debugSettingsContainer.children.Add(
@@ -395,7 +417,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
                             new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
                         );
-                        refractionContainer.children.Add(
+                        settingsContainer.children.Add(
                             new DebugUI.Container
                             {
                                 displayName = "Debug Values (loop)",
