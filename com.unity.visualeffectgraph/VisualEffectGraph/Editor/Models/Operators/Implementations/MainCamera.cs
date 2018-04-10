@@ -21,8 +21,9 @@ namespace UnityEditor.VFX.Operator
             VFXExpression nearPlane = new VFXExpressionExtractNearPlaneFromMainCamera();
             VFXExpression farPlane = new VFXExpressionExtractFarPlaneFromMainCamera();
             VFXExpression aspectRatio = new VFXExpressionExtractAspectRatioFromMainCamera();
+            VFXExpression pixelDimensions = new VFXExpressionExtractPixelDimensionsFromMainCamera();
 
-            return new[] { matrix, fov, nearPlane, farPlane, aspectRatio };
+            return new[] { matrix, fov, nearPlane, farPlane, aspectRatio, pixelDimensions };
         }
     }
 }

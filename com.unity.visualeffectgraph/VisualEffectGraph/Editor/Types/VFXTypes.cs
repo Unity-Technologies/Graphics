@@ -302,7 +302,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct CameraType
     {
-        [Tooltip("The camera's position in the world.")]
+        [Tooltip("The camera's Transform in the world.")]
         public Transform transform;
         [Angle, Range(0.0f, Mathf.PI), Tooltip("The field of view.")]
         public float fieldOfView;
@@ -312,7 +312,9 @@ namespace UnityEditor.VFX
         public float farPlane;
         [Min(0.0f), Tooltip("The aspect ratio.")]
         public float aspectRatio;
+        [Min(0.0f), Tooltip("The width and height of the camera in pixels.")]
+        public Vector2 pixelDimensions;
 
-        public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f };
+        public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f, pixelDimensions = new Vector2(1920, 1080) };
     }
 }

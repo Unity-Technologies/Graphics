@@ -120,4 +120,27 @@ namespace UnityEditor.VFX
                 return VFXValue.Constant(CameraType.defaultValue.aspectRatio);
         }
     }
+
+    class VFXExpressionExtractPixelDimensionsFromMainCamera : VFXExpression
+    {
+        public VFXExpressionExtractPixelDimensionsFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.ExtractPixelDimensionsFromMainCamera;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(new Vector2(Camera.main.pixelWidth, Camera.main.pixelHeight));
+            else
+                return VFXValue.Constant(CameraType.defaultValue.pixelDimensions);
+        }
+    }
 }
