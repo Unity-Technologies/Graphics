@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Range(0.0f,1.0f), Tooltip("The progression to sample on the bezier [0..1]")]
+            [Range(0.0f, 1.0f), Tooltip("The progression to sample on the bezier [0..1]")]
             public float t;
             [Tooltip("The position of the first control point")]
             public Position A = new Position() { position = new Vector3(0, 0, 0) };
@@ -39,8 +39,8 @@ namespace UnityEditor.VFX.Operator
             var posC = inputExpression[3];
             var posD = inputExpression[4];
 
-            var vt = VFXOperatorUtility.CastFloat( t, VFXValueType.Float3);
-            var vtc = VFXOperatorUtility.CastFloat(VFXOperatorUtility.OneExpression[1]-t, VFXValueType.Float3);
+            var vt = VFXOperatorUtility.CastFloat(t, VFXValueType.Float3);
+            var vtc = VFXOperatorUtility.CastFloat(VFXOperatorUtility.OneExpression[VFXValueType.Float] - t, VFXValueType.Float3);
             var three = VFXOperatorUtility.CastFloat(VFXValue.Constant(3.0f), VFXValueType.Float3);
             var six = VFXOperatorUtility.CastFloat(VFXValue.Constant(6.0f), VFXValueType.Float3);
 
