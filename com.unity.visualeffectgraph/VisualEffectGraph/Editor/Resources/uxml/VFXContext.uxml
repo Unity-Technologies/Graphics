@@ -23,6 +23,7 @@
         </ui:VisualElement>
         
         <ui:VisualElement name="block-container" pickingMode="Ignore">
+          <ui:Label name="no-blocks" text="Press space to add blocks" pickingMode="Ignore" />
         </ui:VisualElement>
         
         <ui:VisualElement name="footer" pickingMode="Ignore"  class="extremity">

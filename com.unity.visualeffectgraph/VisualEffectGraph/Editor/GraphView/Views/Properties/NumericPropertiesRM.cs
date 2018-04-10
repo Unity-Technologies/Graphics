@@ -21,8 +21,8 @@ namespace UnityEditor.VFX.UI
             return range != Vector2.zero && range.y != Mathf.Infinity;
         }
 
-        VFXBaseSliderField<U> m_Slider;
-        TextValueField<U> m_TextField;
+        protected VFXBaseSliderField<U> m_Slider;
+        protected TextValueField<U> m_TextField;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -53,8 +53,8 @@ namespace UnityEditor.VFX.UI
         protected override bool HasFocus()
         {
             if (m_Slider != null)
-                return m_Slider.hasFocus;
-            return m_TextField.hasFocus;
+                return m_Slider.HasFocus();
+            return m_TextField.HasFocus();
         }
 
         public override bool IsCompatible(IPropertyRMProvider provider)
@@ -90,8 +90,42 @@ namespace UnityEditor.VFX.UI
             return value;
         }
     }
+    abstract class IntegerPropertyRM<T, U> : NumericPropertyRM<T, U>
+    {
+        VisualElement m_IndeterminateLabel;
+        public IntegerPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        {
+            m_IndeterminateLabel = new Label()
+            {
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
+            };
+            m_IndeterminateLabel.SetEnabled(false);
+        }
 
-    class UintPropertyRM : NumericPropertyRM<uint, long>
+        protected override void UpdateIndeterminate()
+        {
+            VisualElement field = this.field as VisualElement;
+            if (indeterminate)
+            {
+                if (m_IndeterminateLabel.parent == null)
+                {
+                    field.RemoveFromHierarchy();
+                    Add(m_IndeterminateLabel);
+                }
+            }
+            else
+            {
+                if (field.parent == null)
+                {
+                    m_IndeterminateLabel.RemoveFromHierarchy();
+                    Add(field);
+                }
+            }
+        }
+    }
+
+    class UintPropertyRM : IntegerPropertyRM<uint, long>
     {
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -116,6 +150,27 @@ namespace UnityEditor.VFX.UI
             return field;
         }
 
+        public override object FilterValue(object value)
+        {
+            if ((uint)value < 0)
+            {
+                value = (uint)0;
+            }
+            return base.FilterValue(value);
+        }
+
+        public override uint Convert(object value)
+        {
+            long longValue = (long)value;
+
+            if (longValue < 0)
+            {
+                longValue = 0;
+            }
+
+            return (uint)longValue;
+        }
+
         public override uint FilterValue(Vector2 range, uint value)
         {
             uint val = value;
@@ -132,7 +187,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class IntPropertyRM : NumericPropertyRM<int, int>
+    class IntPropertyRM : IntegerPropertyRM<int, int>
     {
         public IntPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -196,6 +251,14 @@ namespace UnityEditor.VFX.UI
             var field = new VFXLabeledField<VFXFloatSliderField, float>(m_Label);
             slider = field.control;
             return field;
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+            if (m_TextField != null)
+                (m_TextField as VFXFloatField).indeterminate = indeterminate;
+            if (m_Slider != null)
+                (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }
 
         public override float FilterValue(Vector2 range, float value)

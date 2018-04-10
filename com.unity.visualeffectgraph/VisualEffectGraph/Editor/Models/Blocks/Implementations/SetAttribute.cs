@@ -3,29 +3,12 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX
-{
-    class AttributeVariantWritable : IVariantProvider
-    {
-        public Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "attribute", VFXAttribute.All.Where(o => !VFXAttribute.AllReadOnly.Contains(o)).Cast<object>().ToArray() }
-                };
-            }
-        }
-    }
-}
-
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantWritable))]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritable))]
     class SetAttribute : VFXBlock
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(WritableAttributeProvider))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
         public string attribute = VFXAttribute.All.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
@@ -101,6 +84,14 @@ namespace UnityEditor.VFX.Block
             {
                 return VFXAttribute.Find(attribute);
             }
+        }
+
+        public override void Sanitize()
+        {
+            if (attribute == "size")   attribute = "sizeX";
+            else if (attribute == "angle")  attribute = "angleZ";
+
+            base.Sanitize();
         }
     }
 }

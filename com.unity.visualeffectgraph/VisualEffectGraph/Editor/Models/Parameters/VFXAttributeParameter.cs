@@ -9,23 +9,15 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.All;
+            return VFXAttribute.AllExpectLocalOnly;
         }
     }
 
-    class WritableAttributeProvider : IStringProvider
+    class ReadWritableAttributeProvider : IStringProvider
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllWritable;
-        }
-    }
-
-    class ReadOnlyAttributeProvider : IStringProvider
-    {
-        public string[] GetAvailableString()
-        {
-            return VFXAttribute.AllReadOnly;
+            return VFXAttribute.AllReadWritable;
         }
     }
 
@@ -37,16 +29,34 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.All.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllExpectLocalOnly.Cast<object>().ToArray() }
                 };
             }
         }
     }
 
-    abstract class VFXAttributeParameter : VFXOperator
+    class AttributeVariantReadWritable : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
+    class VFXAttributeParameter : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.All.First();
+
+        [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
+        public VFXAttributeLocation location = VFXAttributeLocation.Current;
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
@@ -57,33 +67,29 @@ namespace UnityEditor.VFX
             }
         }
 
-        override public string name { get { return string.Format("{0} {1}", location.ToString(), attribute); } }
+        override public string libraryName { get { return attribute; } }
+        override public string name { get { return location + " " + attribute; } }
 
         public override void Sanitize()
         {
             if (attribute == "phase") // Replace old phase attribute with random operator
             {
-                Debug.Log("Sanitizing Graph: Automatically replace CPahse Attribute Parameter with a Fixed Random Operator");
+                Debug.Log("Sanitizing Graph: Automatically replace Phase Attribute Parameter with a Fixed Random Operator");
 
-                var randOp = ScriptableObject.CreateInstance<VFXOperatorRandom>();
+                var randOp = ScriptableObject.CreateInstance<Operator.Random>();
                 randOp.constant = true;
-                randOp.seed = VFXOperatorRandom.SeedMode.PerParticle;
+                randOp.seed = Operator.Random.SeedMode.PerParticle;
 
-                // transfer position
-                randOp.position = position;
-
-                // Transfer links
-                var links = GetOutputSlot(0).LinkedSlots.ToArray();
-                GetOutputSlot(0).UnlinkAll();
-                foreach (var s in links)
-                    randOp.GetOutputSlot(0).Link(s);
-
-                // Replace operator
-                var parent = GetParent();
-                Detach();
-                randOp.Attach(parent);
+                VFXSlot.TransferLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
+                ReplaceModel(randOp, this);
             }
-            base.Sanitize();
+            else
+            {
+                if (attribute == "size")   attribute = "sizeX";
+                else if (attribute == "angle")  attribute = "angleZ";
+
+                base.Sanitize();
+            }
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -92,7 +98,5 @@ namespace UnityEditor.VFX
             var expression = new VFXAttributeExpression(attribute, location);
             return new VFXExpression[] { expression };
         }
-
-        abstract public VFXAttributeLocation location { get; }
     }
 }

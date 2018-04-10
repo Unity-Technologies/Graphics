@@ -135,6 +135,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public bool indeterminate
+        {
+            get
+            {
+                return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
+            }
+        }
+
         public object value
         {
             get
@@ -143,11 +151,18 @@ namespace UnityEditor.VFX.UI
                 {
                     if (!editable)
                     {
-                        VFXViewController controller = m_SourceNode.viewController;
+                        VFXViewController nodeController = m_SourceNode.viewController;
 
-                        if (controller.CanGetEvaluatedContent(model))
+                        try
                         {
-                            return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
+                            if (nodeController.CanGetEvaluatedContent(model))
+                            {
+                                return VFXConverter.ConvertTo(nodeController.GetEvaluatedContent(model), portType);
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
                     }
 
@@ -265,7 +280,7 @@ namespace UnityEditor.VFX.UI
                     VFXSlot slot = model;
                     while (slot != null)
                     {
-                        if (slot.LinkedSlots.Count() > 0)
+                        if (slot.HasLink())
                         {
                             editable = false;
                             break;
@@ -276,7 +291,7 @@ namespace UnityEditor.VFX.UI
 
                     foreach (VFXSlot child in model.children)
                     {
-                        if (child.LinkedSlots.Count() > 0)
+                        if (child.HasLink())
                         {
                             editable = false;
                         }

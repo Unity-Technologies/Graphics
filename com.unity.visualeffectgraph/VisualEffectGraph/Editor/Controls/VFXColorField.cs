@@ -16,6 +16,8 @@ namespace UnityEditor.VFX.UIElements
 
         VisualElement m_HDRLabel;
 
+        VisualElement m_IndeterminateLabel;
+
         VisualElement m_Container;
 
         VisualElement CreateColorContainer()
@@ -56,6 +58,12 @@ namespace UnityEditor.VFX.UIElements
                 text = "HDR"
             };
 
+            m_IndeterminateLabel = new Label() {
+                pickingMode = PickingMode.Ignore,
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
+            };
+
             m_HDRLabel.style.textAlignment = TextAnchor.MiddleCenter;
             m_HDRLabel.style.positionType = PositionType.Absolute;
             m_HDRLabel.style.positionTop = 0;
@@ -63,11 +71,19 @@ namespace UnityEditor.VFX.UIElements
             m_HDRLabel.style.positionLeft = 0;
             m_HDRLabel.style.positionRight = 0;
 
+            m_IndeterminateLabel.style.textAlignment = TextAnchor.MiddleLeft;
+            m_IndeterminateLabel.style.positionType = PositionType.Absolute;
+            m_IndeterminateLabel.style.positionTop = 0;
+            m_IndeterminateLabel.style.positionBottom = 0;
+            m_IndeterminateLabel.style.positionLeft = 0;
+            m_IndeterminateLabel.style.positionRight = 0;
+
             m_HDRLabel.AddToClassList("hdr");
 
             m_Container.Add(m_ColorDisplay);
             m_Container.Add(m_AlphaContainer);
             m_Container.Add(m_HDRLabel);
+            m_Container.Add(m_IndeterminateLabel);
 
             m_AlphaContainer.Add(m_AlphaDisplay);
             m_AlphaContainer.Add(m_NotAlphaDisplay);
@@ -175,20 +191,48 @@ namespace UnityEditor.VFX.UIElements
                 OnValueChanged();
         }
 
+        bool m_Indeterminate;
+
+        public bool indeterminate
+        {
+            get {return m_Indeterminate; }
+            set
+            {
+                m_Indeterminate = value;
+                ValueToGUI(true);
+            }
+        }
+
         protected override void ValueToGUI(bool force)
         {
-            Color displayedColor = (new Color(m_Value.r, m_Value.g, m_Value.b, 1)).gamma;
-            m_ColorDisplay.style.backgroundColor = displayedColor;
-            m_AlphaDisplay.style.flex = m_Value.a;
-            m_NotAlphaDisplay.style.flex = 1 - m_Value.a;
-
-            bool hdr = m_Value.r > 1 || m_Value.g > 1 || m_Value.b > 1;
-            if ((m_HDRLabel.parent != null) != hdr)
+            if (indeterminate)
             {
-                if (hdr)
-                    m_Container.Add(m_HDRLabel);
-                else
-                    m_Container.Remove(m_HDRLabel);
+                m_ColorDisplay.style.backgroundColor = VFXControlConstants.indeterminateTextColor;
+                m_AlphaDisplay.style.flex = 1;
+                m_NotAlphaDisplay.style.flex = 0;
+                m_HDRLabel.RemoveFromHierarchy();
+                if (m_IndeterminateLabel.parent == null)
+                    m_Container.Add(m_IndeterminateLabel);
+            }
+            else
+            {
+                m_IndeterminateLabel.RemoveFromHierarchy();
+                Color displayedColor = (new Color(m_Value.r, m_Value.g, m_Value.b, 1)).gamma;
+                m_ColorDisplay.style.backgroundColor = displayedColor;
+                m_AlphaDisplay.style.flex = m_Value.a;
+                m_NotAlphaDisplay.style.flex = 1 - m_Value.a;
+
+                bool hdr = m_Value.r > 1 || m_Value.g > 1 || m_Value.b > 1;
+                if ((m_HDRLabel.parent != null) != hdr)
+                {
+                    if (hdr)
+                    {
+                        if (m_HDRLabel.parent == null)
+                            m_Container.Add(m_HDRLabel);
+                    }
+                    else
+                        m_HDRLabel.RemoveFromHierarchy();
+                }
             }
         }
     }

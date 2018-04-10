@@ -139,25 +139,56 @@ namespace UnityEditor.VFX.UI
             return allSerializedObjects;
         }
 
-        static VFXUI CopyGroupNodes(IEnumerable<Controller> elements, VFXContext[] copiedContexts, VFXModel[] copiedSlotContainers)
+        static VFXUI CopyGroupNodesAndStickyNotes(IEnumerable<Controller> elements, VFXContext[] copiedContexts, VFXModel[] copiedSlotContainers)
         {
             VFXGroupNodeController[] groupNodes = elements.OfType<VFXGroupNodeController>().ToArray();
+            VFXStickyNoteController[] stickyNotes = elements.OfType<VFXStickyNoteController>().ToArray();
 
             VFXUI copiedGroupUI = null;
-            if (groupNodes.Length > 0)
+            if (groupNodes.Length > 0 || stickyNotes.Length > 0)
             {
                 copiedGroupUI = ScriptableObject.CreateInstance<VFXUI>();
-                copiedGroupUI.groupInfos = new VFXUI.GroupInfo[groupNodes.Length];
 
-                for (int i = 0; i < groupNodes.Length; ++i)
+                var stickyNodeIndexToCopiedIndex = new Dictionary<int,int>();
+
+                if (stickyNotes.Length > 0)
                 {
-                    VFXGroupNodeController groupNode = groupNodes[i];
-                    VFXUI.GroupInfo info = groupNode.model.groupInfos[groupNode.index];
-                    copiedGroupUI.groupInfos[i] = new VFXUI.GroupInfo() { title = info.title, position = info.position };
+                    copiedGroupUI.stickyNoteInfos = new VFXUI.StickyNoteInfo[stickyNotes.Length];
 
-                    // only keep nodes that are copied because a node can not be in two groups at the same time.
-                    if (info.content != null)
-                        copiedGroupUI.groupInfos[i].content = info.content.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model)).ToArray();
+                    for (int i = 0; i < stickyNotes.Length; ++i)
+                    {
+                        VFXStickyNoteController stickyNote = stickyNotes[i];
+                        stickyNodeIndexToCopiedIndex[stickyNote.index] = i;
+                        VFXUI.StickyNoteInfo info = stickyNote.model.stickyNoteInfos[stickyNote.index];
+                        copiedGroupUI.stickyNoteInfos[i] = new VFXUI.StickyNoteInfo(info);
+                    }
+                }
+
+                if (groupNodes.Length > 0)
+                {
+                    copiedGroupUI.groupInfos = new VFXUI.GroupInfo[groupNodes.Length];
+
+                    for (int i = 0; i < groupNodes.Length; ++i)
+                    {
+                        VFXGroupNodeController groupNode = groupNodes[i];
+                        VFXUI.GroupInfo info = groupNode.model.groupInfos[groupNode.index];
+                        copiedGroupUI.groupInfos[i] = new VFXUI.GroupInfo(info);
+
+                        // only keep nodes and sticky notes that are copied because a element can not be in two groups at the same time.
+                        if (info.contents != null)
+                        {
+                            var groupInfo = copiedGroupUI.groupInfos[i];
+                            groupInfo.contents = info.contents.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model) || (t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id)) ).ToArray();
+
+                            for(int j = 0 ; j < groupInfo.contents.Length ; ++j)
+                            {
+                                if(groupInfo.contents[j].isStickyNote)
+                                {
+                                    groupInfo.contents[j].id = stickyNodeIndexToCopiedIndex[groupInfo.contents[j].id];
+                                }
+                            }
+                        }
+                    }
                 }
             }
             return copiedGroupUI;
@@ -167,7 +198,57 @@ namespace UnityEditor.VFX.UI
         {
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
-            foreach (var edge in dataEdges)
+
+
+            //order edge so that they are from left to right ( edge linking node with the no linked input first)
+            Dictionary<VFXNodeController, int> useCount = new Dictionary<VFXNodeController, int>();
+
+            var orderedEdges = new List<VFXDataEdgeController>();
+
+            var edges = new HashSet<VFXDataEdgeController>(dataEdges);
+
+            // Ensure that operators that can change shape always all their input edges created before their output edges and in the same order
+            bool sortFailed = false;
+            try
+            {
+                while (edges.Count > 0)
+                {
+                    var edgeInputs = edges.GroupBy(t => t.input.sourceNode).ToDictionary(t => t.Key, t => t.Select(u => u));
+
+                    //Select the edges that have an input node which all its input edges have an output node that have no input edge
+                    // Order them by index
+
+                    var edgesWithoutParent = edges.Where(t => !edgeInputs[t.input.sourceNode].Any(u => edgeInputs.ContainsKey(u.output.sourceNode))).OrderBy(t => t.input.model.GetMasterSlot().owner.GetSlotIndex(t.input.model.GetMasterSlot())).ToList();
+                    /*foreach(var gen in edgesWithoutParent)
+                    {
+                        int index = gen.input.model.GetMasterSlot().owner.GetSlotIndex(gen.input.model.GetMasterSlot());
+                        Debug.Log("Edge with input:" + gen.input.sourceNode.title + "index"+ index);
+                    }*/
+                    orderedEdges.AddRange(edgesWithoutParent);
+
+                    int count = edges.Count;
+                    foreach (var e in edgesWithoutParent)
+                    {
+                        edges.Remove(e);
+                    }
+                    if (edges.Count >= count)
+                    {
+                        sortFailed = true;
+                        Debug.LogError("Sorting of data edges failed. Please provide a screenshot of the graph with the selected node to @tristan");
+                        break;
+                    }
+                    //Debug.Log("------------------------------");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Sorting of data edges threw. Please provide a screenshot of the graph with the selected node to @tristan" + e.Message);
+                sortFailed = true;
+            }
+
+            IEnumerable<VFXDataEdgeController> usedEdges = sortFailed ? dataEdges : orderedEdges;
+
+            foreach (var edge in usedEdges)
             {
                 DataEdge copyPasteEdge = new DataEdge();
 
@@ -213,6 +294,7 @@ namespace UnityEditor.VFX.UI
 
                 copyData.dataEdges[cpt++] = copyPasteEdge;
             }
+            // Sort the edge so the one that links the node that have the least links
         }
 
         static void CopyFlowEdges(Data copyData, IEnumerable<VFXFlowEdgeController> flowEdges, ScriptableObject[] allSerializedObjects)
@@ -271,7 +353,7 @@ namespace UnityEditor.VFX.UI
 
             VFXData[] datas = copiedContexts.Select(t => t.GetData()).Where(t => t != null).ToArray();
 
-            VFXUI copiedGroupUI = CopyGroupNodes(elements, copiedContexts, copiedSlotContainers);
+            VFXUI copiedGroupUI = CopyGroupNodesAndStickyNotes(elements, copiedContexts, copiedSlotContainers);
 
             ScriptableObject[] allSerializedObjects = PrepareSerializedObjects(copyData, copiedGroupUI);
 
@@ -369,7 +451,7 @@ namespace UnityEditor.VFX.UI
             return slot;
         }
 
-        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null)
+        public static void UnserializeAndPasteElements(VFXViewController viewController, Vector2 center, string data, VFXView view = null, VFXGroupNodeController groupNode = null)
         {
             var copyData = JsonUtility.FromJson<Data>(data);
 
@@ -384,10 +466,10 @@ namespace UnityEditor.VFX.UI
                 copyData.blocks = allSerializedObjects.OfType<VFXBlock>().ToArray();
             }
 
-            PasteCopy(viewController, center, copyData, allSerializedObjects, view);
+            PasteCopy(viewController, center, copyData, allSerializedObjects, view, groupNode);
         }
 
-        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view)
+        public static void PasteCopy(VFXViewController viewController, Vector2 center, object data, ScriptableObject[] allSerializedObjects, VFXView view, VFXGroupNodeController groupNode)
         {
             Data copyData = (Data)data;
 
@@ -401,7 +483,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                PasteNodes(viewController, center, copyData, allSerializedObjects, view);
+                PasteNodes(viewController, center, copyData, allSerializedObjects, view, groupNode);
             }
         }
 
@@ -546,7 +628,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view)
+        static void PasteNodes(VFXViewController viewController, Vector2 center, Data copyData, ScriptableObject[] allSerializedObjects, VFXView view, VFXGroupNodeController groupNode)
         {
             var graph = viewController.graph;
             Vector2 pasteOffset = (copyData.bounds.width > 0 && copyData.bounds.height > 0) ? center - copyData.bounds.center : Vector2.zero;
@@ -578,6 +660,36 @@ namespace UnityEditor.VFX.UI
                         {
                             foundSamePosition = true;
                             break;
+                        }
+                    }
+                }
+                else
+                {
+                    VFXUI ui = allSerializedObjects.OfType<VFXUI>().First();
+
+                    if (ui != null)
+                    {
+                        if (ui.stickyNoteInfos != null && ui.stickyNoteInfos.Length > 0)
+                        {
+                            foreach (var stickyNote in viewController.stickyNotes)
+                            {
+                                if ((ui.stickyNoteInfos[0].position.position + pasteOffset - stickyNote.position.position).sqrMagnitude < 1)
+                                {
+                                    foundSamePosition = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else if (ui.groupInfos != null && ui.groupInfos.Length > 0)
+                        {
+                            foreach (var gn in viewController.groupNodes)
+                            {
+                                if ((ui.groupInfos[0].position.position + pasteOffset - gn.position.position).sqrMagnitude < 1)
+                                {
+                                    foundSamePosition = true;
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -661,35 +773,52 @@ namespace UnityEditor.VFX.UI
 
             VFXUI copiedUI = allSerializedObjects.OfType<VFXUI>().FirstOrDefault();
             int firstCopiedGroup = -1;
+            int firstCopiedStickyNote = -1;
             if (copiedUI != null)
             {
                 VFXUI ui = viewController.graph.UIInfos;
+                firstCopiedStickyNote = ui.stickyNoteInfos!= null ? ui.stickyNoteInfos.Length : 0;
 
-                if (ui.groupInfos == null)
+                if (copiedUI.groupInfos != null && copiedUI.groupInfos.Length > 0)
                 {
-                    ui.groupInfos = new VFXUI.GroupInfo[0];
-                }
-                firstCopiedGroup = ui.groupInfos.Length;
-
-                foreach (var groupInfos in copiedUI.groupInfos)
-                {
-                    for (int i = 0; i < groupInfos.content.Length; ++i)
+                    if (ui.groupInfos == null)
                     {
-                        // if we link the parameter node to an existing parameter instead of the copied parameter we have to patch the groupnode content to point the that parameter with the correct id.
-                        if (groupInfos.content[i].model is VFXParameter)
+                        ui.groupInfos = new VFXUI.GroupInfo[0];
+                    }
+                    firstCopiedGroup = ui.groupInfos.Length;
+
+                    foreach (var groupInfos in copiedUI.groupInfos)
+                    {
+                        for (int i = 0; i < groupInfos.contents.Length; ++i)
                         {
-                            VFXParameter parameter = groupInfos.content[i].model as VFXParameter;
-                            var paramInfo = copyData.parameters.FirstOrDefault(t => t.copiedParameter == parameter);
-                            if (paramInfo.parameter != null) // parameter will not be null unless the struct returned is the default.
+                            // if we link the parameter node to an existing parameter instead of the copied parameter we have to patch the groupnode content to point the that parameter with the correct id.
+                            if (groupInfos.contents[i].model is VFXParameter)
                             {
-                                groupInfos.content[i].model = paramInfo.parameter;
-                                groupInfos.content[i].id = paramInfo.idMap[groupInfos.content[i].id];
+                                VFXParameter parameter = groupInfos.contents[i].model as VFXParameter;
+                                var paramInfo = copyData.parameters.FirstOrDefault(t => t.copiedParameter == parameter);
+                                if (paramInfo.parameter != null) // parameter will not be null unless the struct returned is the default.
+                                {
+                                    groupInfos.contents[i].model = paramInfo.parameter;
+                                    groupInfos.contents[i].id = paramInfo.idMap[groupInfos.contents[i].id];
+                                }
+                            }
+                            else if( groupInfos.contents[i].isStickyNote)
+                            {
+                                groupInfos.contents[i].id += firstCopiedStickyNote;
                             }
                         }
                     }
-                }
 
-                ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo() { title = t.title, position = new Rect(t.position.position + pasteOffset, t.position.size), content = t.content })).ToArray();
+                    ui.groupInfos = ui.groupInfos.Concat(copiedUI.groupInfos.Select(t => new VFXUI.GroupInfo(t) { position = new Rect(t.position.position + pasteOffset, t.position.size) })).ToArray();
+                }
+                if (copiedUI.stickyNoteInfos != null && copiedUI.stickyNoteInfos.Length > 0)
+                {
+                    if (ui.stickyNoteInfos == null)
+                    {
+                        ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[0];
+                    }
+                    ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(copiedUI.stickyNoteInfos.Select(t => new VFXUI.StickyNoteInfo(t) { position = new Rect(t.position.position + pasteOffset, t.position.size) })).ToArray();
+                }
             }
 
             CopyDataEdges(copyData, allSerializedObjects);
@@ -777,14 +906,34 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
+                if (groupNode != null)
+                {
+                    foreach (var newSlotContainerUI in newSlotContainerUIs)
+                    {
+                        groupNode.AddNode(newSlotContainerUI.controller);
+                    }
+                }
+
                 //Select all groups that are new
                 if (firstCopiedGroup >= 0)
                 {
-                    foreach (var groupNode in elements.OfType<VFXGroupNode>())
+                    foreach (var gn in elements.OfType<VFXGroupNode>())
                     {
-                        if (groupNode.controller.index >= firstCopiedGroup)
+                        if (gn.controller.index >= firstCopiedGroup)
                         {
-                            view.AddToSelection(groupNode);
+                            view.AddToSelection(gn);
+                        }
+                    }
+                }
+
+                //Select all groups that are new
+                if (firstCopiedStickyNote >= 0)
+                {
+                    foreach (var gn in elements.OfType<VFXStickyNote>())
+                    {
+                        if (gn.controller.index >= firstCopiedStickyNote)
+                        {
+                            view.AddToSelection(gn);
                         }
                     }
                 }

@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected bool m_IgnoreNotification;
 
-        public abstract bool hasFocus {get; }
+        public abstract bool HasFocus();
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
         {
             RegisterCallback(callback);
@@ -129,12 +129,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool hasFocus
+        public override bool HasFocus()
         {
-            get
-            {
-                return (m_Field as FloatField).hasFocus;
-            }
+            return (m_Field as FloatField).HasFocus();
         }
 
         protected override float ValueToFloat(float value)
@@ -146,6 +143,17 @@ namespace UnityEditor.VFX.UIElements
         {
             if (!m_IgnoreNotification)
                 SetValueAndNotify(newValue);
+        }
+
+        public bool indeterminate
+        {
+            get {return (m_Field as FloatField).indeterminate; }
+
+            set
+            {
+                (m_Field as FloatField).indeterminate = value;
+                m_Slider.SetEnabled(value);
+            }
         }
     }
     class VFXIntSliderField : VFXBaseSliderField<int>
@@ -166,12 +174,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool hasFocus
+        public override bool HasFocus()
         {
-            get
-            {
-                return (m_Field as IntegerField).hasFocus;
-            }
+            return (m_Field as IntegerField).hasFocus;
         }
 
         protected override float ValueToFloat(int value)
@@ -202,12 +207,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool hasFocus
+        public override bool HasFocus()
         {
-            get
-            {
-                return (m_Field as IntegerField).hasFocus;
-            }
+            return (m_Field as IntegerField).HasFocus();
         }
 
         protected override float ValueToFloat(long value)

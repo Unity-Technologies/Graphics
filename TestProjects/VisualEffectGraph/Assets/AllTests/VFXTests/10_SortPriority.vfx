@@ -98,6 +98,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the torus.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114013519469770754
@@ -168,6 +170,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114021878177030100
@@ -427,6 +431,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114081559765722142
@@ -465,6 +471,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114083766730158950
@@ -606,14 +614,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the torus is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114136071996146866
@@ -675,6 +689,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114154326512499508
@@ -828,6 +844,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114170205429185430
@@ -1046,6 +1064,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The thickness of the torus ring.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114269319803850758
@@ -1115,6 +1135,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114274668368147192
@@ -1248,6 +1270,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114302080307601540
@@ -1382,6 +1406,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114351549193131304
@@ -1513,6 +1539,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The box used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114795647579902914}
@@ -1549,6 +1577,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114371045087095600
@@ -1737,6 +1767,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114389357076046474
@@ -1901,6 +1933,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114425393565848594
@@ -1939,6 +1973,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114430449274858876
@@ -2028,6 +2064,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114449178898447184
@@ -2097,6 +2135,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114453374090180400
@@ -2197,6 +2237,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The size of the box along each axis.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114483081641050852
@@ -2259,6 +2301,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114506759060856108
@@ -2332,6 +2376,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The torus used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114399298363440684}
@@ -2368,6 +2414,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the torus ring.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114525045353926142
@@ -2611,6 +2659,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The thickness of the torus ring.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114574594137845096
@@ -2711,14 +2761,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the sphere is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114599985718282858
@@ -2785,14 +2841,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the sphere is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114611208827977948
@@ -2831,6 +2893,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114622348998386822
@@ -3106,6 +3170,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the box.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114659924738597174
@@ -3203,6 +3269,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The sphere used for positioning particles.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114844554627693744}
@@ -3302,6 +3370,8 @@ MonoBehaviour:
       m_Min: 0
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114701271570148598
@@ -3376,6 +3446,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The radius of the torus ring.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114705137109448598
@@ -3553,6 +3625,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the torus.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114770147834105936
@@ -3805,6 +3879,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114821620033462108
@@ -3843,6 +3919,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114826167990830044
@@ -3911,6 +3989,8 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The centre of the sphere.
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114836039961534576
@@ -4106,14 +4186,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the torus is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114883437124638586
@@ -4529,14 +4615,20 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: Controls how much of the sphere is used.
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 0
       m_Min: 0
       m_Max: 6.2831855
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 4
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114965956261382790
@@ -5660,6 +5752,7 @@ VisualEffectAsset:
   - type: 0
     flags: 0
     capacity: 0
+    layer: 4294967295
     buffers:
     - nameId: spawner_output
       index: 1
@@ -5675,6 +5768,7 @@ VisualEffectAsset:
   - type: 1
     flags: 1
     capacity: 10000
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
@@ -5720,7 +5814,7 @@ VisualEffectAsset:
         index: 62
       - nameId: bounds_size
         index: 60
-      processor: {fileID: 7200000, guid: b7d3b9652c442104698aa5be3de6af67, type: 3}
+      processor: {fileID: 7200000, guid: e334d10a8a0e1c14e863cdbe1b69fa4b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5731,7 +5825,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 74
       params: []
-      processor: {fileID: 7200000, guid: 2643de32f24fe9942bfed67024a0a6e5, type: 3}
+      processor: {fileID: 7200000, guid: 57ab40db01b3bb048862b6dd37d4cadb, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5746,10 +5840,11 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 2
-      processor: {fileID: 4800000, guid: 39e47d86f0244e3498a5b184628d09c9, type: 3}
+      processor: {fileID: 4800000, guid: d59559ec6bc199b41ae7bee1ca244327, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 4
@@ -5791,7 +5886,7 @@ VisualEffectAsset:
         index: 79
       - nameId: bounds_size
         index: 68
-      processor: {fileID: 7200000, guid: 0873ec5ab50f6df43944be7d5b516d6c, type: 3}
+      processor: {fileID: 7200000, guid: f34b1ab9db76ef649837353b9bea8f6c, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5802,7 +5897,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 74
       params: []
-      processor: {fileID: 7200000, guid: 6e57a96e63b35b24ebb8c5f9dbbe94b0, type: 3}
+      processor: {fileID: 7200000, guid: 96815f1b21c8e3048ba5cb5a34fc8d66, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5817,10 +5912,11 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 1
-      processor: {fileID: 4800000, guid: 278918ee72518d243b1c4edc055de96b, type: 3}
+      processor: {fileID: 4800000, guid: 736eb9733938f184692a2c6b84c9a8f0, type: 3}
   - type: 1
     flags: 1
     capacity: 10000
+    layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 8
@@ -5860,7 +5956,7 @@ VisualEffectAsset:
         index: 69
       - nameId: bounds_size
         index: 67
-      processor: {fileID: 7200000, guid: 9096cd0bded70574785114705d232d6d, type: 3}
+      processor: {fileID: 7200000, guid: 0e1180c35f4f72744adff7654f36487f, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5871,7 +5967,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 74
       params: []
-      processor: {fileID: 7200000, guid: 9222da4a4a6e45d49b4257e6933be12e, type: 3}
+      processor: {fileID: 7200000, guid: 3d69ee16b89a1d84fa9bf80b2fb35140, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -5886,7 +5982,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7460a448104701e448a4a9fdcf99f221, type: 3}
+      processor: {fileID: 4800000, guid: 7ac078c7df722a44989700d20853ba48, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5901,4 +5997,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 2
+  m_RuntimeVersion: 3

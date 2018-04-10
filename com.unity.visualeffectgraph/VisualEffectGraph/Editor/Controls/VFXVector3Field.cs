@@ -6,71 +6,126 @@ using UnityEditor.Experimental.UIElements;
 using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
 namespace UnityEditor.VFX.UIElements
 {
-    class VFXVector3Field : VFXControl<Vector3>
+    abstract class VFXVectorNField<T> : VFXControl<T>
     {
-        FloatField m_X;
-        FloatField m_Y;
-        FloatField m_Z;
+        FloatField[] m_Fields;
+
+        protected abstract int componentCount {get; }
+        public virtual string GetComponentName(int i)
+        {
+            switch (i)
+            {
+                case 0:
+                    return "x";
+                case 1:
+                    return "y";
+                case 2:
+                    return "z";
+                case 3:
+                    return "w";
+                default:
+                    return "a";
+            }
+        }
+
         void CreateTextField()
         {
-            m_X = new FloatField("X");
-            m_Y = new FloatField("Y");
-            m_Z = new FloatField("Z");
+            m_Fields = new FloatField[componentCount];
 
-            m_X.label.AddToClassList("first");
-            m_X.control.AddToClassList("fieldContainer");
-            m_Y.control.AddToClassList("fieldContainer");
-            m_Z.control.AddToClassList("fieldContainer");
-            m_X.AddToClassList("fieldContainer");
-            m_Y.AddToClassList("fieldContainer");
-            m_Z.AddToClassList("fieldContainer");
 
-            m_X.RegisterCallback<ChangeEvent<float>>(OnXValueChanged);
-            m_Y.RegisterCallback<ChangeEvent<float>>(OnYValueChanged);
-            m_Z.RegisterCallback<ChangeEvent<float>>(OnZValueChanged);
+            for (int i = 0; i < m_Fields.Length; ++i)
+            {
+                m_Fields[i] = new FloatField(GetComponentName(i));
+                m_Fields[i].control.AddToClassList("fieldContainer");
+                m_Fields[i].AddToClassList("fieldContainer");
+                m_Fields[i].RegisterCallback<ChangeEvent<float>, int>(OnValueChanged, i);
+            }
+
+            m_Fields[0].label.AddToClassList("first");
         }
 
-        void OnXValueChanged(ChangeEvent<float> e)
+        public override bool indeterminate
         {
-            Vector3 newValue = value;
-            newValue.x = (float)m_X.value;
+            get
+            {
+                return m_Fields[0].control.indeterminate;
+            }
+            set
+            {
+                foreach (var field in m_Fields)
+                {
+                    field.control.indeterminate = value;
+                }
+            }
+        }
+
+        protected abstract void SetValueComponent(ref T value, int i, float componentValue);
+        protected abstract float GetValueComponent(ref T value, int i);
+
+        void OnValueChanged(ChangeEvent<float> e, int component)
+        {
+            T newValue = value;
+            SetValueComponent(ref newValue, component, m_Fields[component].value);
             SetValueAndNotify(newValue);
         }
 
-        void OnYValueChanged(ChangeEvent<float> e)
-        {
-            Vector3 newValue = value;
-            newValue.y = (float)m_Y.value;
-            SetValueAndNotify(newValue);
-        }
-
-        void OnZValueChanged(ChangeEvent<float> e)
-        {
-            Vector3 newValue = value;
-            newValue.z = (float)m_Z.value;
-            SetValueAndNotify(newValue);
-        }
-
-        public VFXVector3Field()
+        public VFXVectorNField()
         {
             CreateTextField();
 
             style.flexDirection = FlexDirection.Row;
-            Add(m_X);
-            Add(m_Y);
-            Add(m_Z);
+
+            foreach (var field in m_Fields)
+            {
+                Add(field);
+            }
         }
 
         protected override void ValueToGUI(bool force)
         {
-            if (!m_X.control.hasFocus || force)
-                m_X.value = value.x;
+            T value = this.value;
+            for (int i = 0; i < m_Fields.Length; ++i)
+            {
+                if (!m_Fields[i].control.HasFocus() || force)
+                {
+                    m_Fields[i].value = GetValueComponent(ref value, i);
+                }
+            }
+        }
+    }
+    class VFXVector3Field : VFXVectorNField<Vector3>
+    {
+        protected override  int componentCount {get {return 3; }}
+        protected override void SetValueComponent(ref Vector3 value, int i, float componentValue)
+        {
+            switch (i)
+            {
+                case 0:
+                    value.x = componentValue;
+                    break;
+                case 1:
+                    value.y = componentValue;
+                    break;
+                default:
+                    value.z = componentValue;
+                    break;
+            }
+        }
 
-            if (!m_Y.control.hasFocus || force)
-                m_Y.value = value.y;
-
-            if (!m_Z.control.hasFocus || force)
-                m_Z.value = value.z;
+        protected override float GetValueComponent(ref Vector3 value, int i)
+        {
+            switch (i)
+            {
+                case 0:
+                    return value.x;
+                    break;
+                case 1:
+                    return value.y;
+                    break;
+                default:
+                    return value.z;
+                    break;
+            }
         }
     }
 }

@@ -151,12 +151,18 @@ namespace UnityEditor.VFX
         public uint capacity
         {
             get { return m_Capacity; }
-            set
+            set { m_Capacity = value; }
+        }
+
+        private uint alignedCapacity
+        {
+            get
             {
+                uint capacity = m_Capacity;
                 const uint kThreadPerGroup = 64;
-                if (value > kThreadPerGroup)
-                    value = (uint)((value + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
-                m_Capacity = (value + 3u) & ~3u;
+                if (capacity > kThreadPerGroup)
+                    capacity = (uint)((capacity + kThreadPerGroup - 1) & ~(kThreadPerGroup - 1)); // multiple of kThreadPerGroup
+                return (capacity + 3u) & ~3u; // Align on 4 boundary
             }
         }
 
@@ -173,7 +179,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_layoutAttributeCurrent.GetBufferSize(m_Capacity);
+                return m_layoutAttributeCurrent.GetBufferSize(alignedCapacity);
             }
         }
 
@@ -185,7 +191,7 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
-            return m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
+            return m_Capacity > 0 && m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
         }
 
         public override VFXDeviceTarget GetCompilationTarget(VFXContext context)
@@ -195,7 +201,7 @@ namespace UnityEditor.VFX
 
         public override void GenerateAttributeLayout()
         {
-            m_layoutAttributeCurrent.GenerateAttributeLayout(m_Capacity, m_StoredCurrentAttributes);
+            m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
             var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
             m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
         }
@@ -279,7 +285,7 @@ namespace UnityEditor.VFX
             if (attributeBufferSize > 0)
             {
                 attributeBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(m_Capacity));
+                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity));
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
@@ -388,6 +394,7 @@ namespace UnityEditor.VFX
             outSystemDescs.Add(new VFXSystemDesc()
             {
                 flags = systemFlag,
+                layer = uint.MaxValue,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
                 buffers = systemBufferMappings.ToArray(),

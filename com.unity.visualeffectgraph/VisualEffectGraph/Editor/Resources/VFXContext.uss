@@ -17,8 +17,8 @@ VFXContextUI > #node-border
 	border-bottom-width:1;
 	padding-top : 5;
 	padding-bottom : 5;
-	margin-top : 5;
-	margin-bottom : 5;
+	margin-top : 19;
+	margin-bottom : 19;
 	margin-left:2;
 	margin-right:2;
 }
@@ -27,7 +27,7 @@ VFXContextUI > #node-border
 
 VFXContextUI.outputTypenone > #node-border
 {
-    end-color:#FF00FF;
+    end-color:#C24F30;
 }
 
 
@@ -84,46 +84,10 @@ VFXContextUI.typenone  > #node-border
 
 VFXContextUI > #selection-border
 {
-    position-type: absolute;
-    position-left:0;
-    position-right:0;
-    position-top:0;
-    position-bottom:0;
 	border-radius:10;
-	margin-top:4;
-	margin-bottom:4;
+	margin-top:18;
+	margin-bottom:18;
 }
-
-VFXContextUI:hover  > #selection-border{
-    border-color: rgba(68,192,255, 0.5);
-    border-top-width:1;
-    border-left-width:1;
-    border-right-width:1;
-    border-bottom-width:1;
-    border-top: 1;
-    border-left: 1;
-    border-right: 1;
-    border-bottom: 1;
-}
-
-VFXContextUI:selected  > #selection-border
-{
-	border-color: #44C0FF;
-	border-left-width:1;
-	border-right-width:1;
-	border-top-width:1;
-	border-bottom-width:1;
-}
-
-VFXContextUI:selected:hover  > #selection-border
-{
-	border-left-width:2;
-	border-right-width:2;
-	border-top-width:2;
-	border-bottom-width:2;
-}
-
-
 
 VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
 {
@@ -282,15 +246,27 @@ VFXContextUI #block-container {
 {
     flex-direction: row;
     justify-content: center;
-    padding-left: 40;
-    padding-right: 20;
+    padding-left: 0;
+    padding-right: 0;
     position-type: Absolute;
     position-left: 0;
     position-right: 0;
-    height: 14;
+    height: 28;
 }
 
 #flow-outputs
 {
     position-bottom: 0;
+}
+VFXContextUI #no-blocks
+{
+    border-left-width: 1;
+    border-right-width: 1;
+    border-bottom-width: 1;
+    border-top-width: 1;
+    border-color: #393939;
+    text-color: #393939;
+    height: 24;
+    text-alignment: middle-center;
+    border-radius:8;
 }

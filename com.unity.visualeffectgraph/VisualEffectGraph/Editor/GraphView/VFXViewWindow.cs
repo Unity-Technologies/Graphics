@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
@@ -20,17 +21,17 @@ namespace  UnityEditor.VFX.UI
             m_ShortcutHandler = new ShortcutHandler(
                     new Dictionary<Event, ShortcutDelegate>
             {
-                { Event.KeyboardEvent("a"), view.FrameAll },
-                { Event.KeyboardEvent("f"), view.FrameSelection },
-                { Event.KeyboardEvent("o"), view.FrameOrigin },
-                { Event.KeyboardEvent("^#>"), view.FramePrev },
-                { Event.KeyboardEvent("^>"), view.FrameNext },
+                {Event.KeyboardEvent("a"), view.FrameAll },
+                {Event.KeyboardEvent("f"), view.FrameSelection },
+                {Event.KeyboardEvent("o"), view.FrameOrigin },
+                {Event.KeyboardEvent("^#>"), view.FramePrev },
+                {Event.KeyboardEvent("^>"), view.FrameNext },
                 {Event.KeyboardEvent("#^r"), view.Resync},
                 {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                {Event.KeyboardEvent("#r"), view.ReinitComponents},
+                {Event.KeyboardEvent("^r"), view.ReinitComponents},
                 {Event.KeyboardEvent("F5"), view.ReinitComponents},
             });
         }
@@ -110,10 +111,10 @@ namespace  UnityEditor.VFX.UI
 
             currentWindow = this;
 
-            if (m_ViewScale != Vector3.zero)
+            /*if (m_ViewScale != Vector3.zero)
             {
                 graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
-            }
+            }*/
         }
 
         protected void OnDisable()
@@ -133,15 +134,19 @@ namespace  UnityEditor.VFX.UI
         void OnSelectionChange()
         {
             var objs = Selection.objects;
+            VFXViewController controller = graphView.controller;
+
             if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
             {
-                VFXViewController controller = graphView.controller;
-
                 if (controller == null || controller.model != objs[0] as VisualEffectAsset)
                 {
                     LoadAsset(objs[0] as VisualEffectAsset);
                 }
             }
+            /*else if( controller != null && objs.All(t => t is VFXModel && (t as VFXModel).GetGraph() == controller.graph)
+            {
+                graphView.SelectMo
+            }*/
         }
 
         void OnEnterPanel(AttachToPanelEvent e)

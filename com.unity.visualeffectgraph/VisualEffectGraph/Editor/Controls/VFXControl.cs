@@ -7,6 +7,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UIElements
 {
+    public static class VFXControlConstants
+    {
+        public const string indeterminateText = "\u2014";
+        public static readonly Color indeterminateTextColor = new Color(0.82f, 0.82f, 0.82f);
+    }
+
     public abstract class VFXControl<T> : VisualElement, INotifyValueChanged<T>
     {
         T m_Value;
@@ -36,6 +42,8 @@ namespace UnityEditor.VFX.UIElements
         {
             ValueToGUI(true);
         }
+
+        public abstract bool indeterminate {get; set; }
 
         protected abstract void ValueToGUI(bool force);
 
