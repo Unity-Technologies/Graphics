@@ -85,36 +85,6 @@ namespace UnityEditor.VFX
             get { return allowInteger ? kExpectedTypeOrdering : kValidTypeWithoutInteger; }
         }
 
-        protected static IEnumerable<VFXExpression> Temp_CastToFloat(IEnumerable<VFXExpression> expressions)
-        {
-            return expressions.Select(o =>
-                {
-                    if (o.valueType == VFXValueType.Int32)
-                        return new VFXExpressionCastIntToFloat(o) as VFXExpression;
-                    if (o.valueType == VFXValueType.Uint32)
-                        return new VFXExpressionCastUintToFloat(o) as VFXExpression;
-                    return o;
-                });
-        }
-
-        protected static IEnumerable<VFXExpression> Temp_CastToTarget(IEnumerable<VFXExpression> expression, IEnumerable<VFXPropertyWithValue> targetSlot)
-        {
-            if (expression.Count() != targetSlot.Count())
-                throw new NotImplementedException();
-
-            var itExpression = expression.GetEnumerator();
-            var itSlot = targetSlot.GetEnumerator();
-            while (itExpression.MoveNext() && itSlot.MoveNext())
-            {
-                if (itSlot.Current.property.type == typeof(int))
-                    yield return new VFXExpressionCastFloatToInt(itExpression.Current);
-                else if (itSlot.Current.property.type == typeof(uint))
-                    yield return new VFXExpressionCastFloatToUint(itExpression.Current);
-                else
-                    yield return itExpression.Current;
-            }
-        }
-
         protected virtual Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
             if (!inputTypes.Any())
@@ -168,6 +138,58 @@ namespace UnityEditor.VFX
                     return defaultValueUint;
             }
             return null;
+        }
+
+        protected IEnumerable<VFXExpression> UnifyExpression(IEnumerable<VFXExpression> inputExpression)
+        {
+            var minIndex = inputExpression.Select(o => Array.IndexOf(kExpectedTypeOrdering, VFXExpression.TypeToType(o.valueType))).Min();
+            var unifiedType = VFXExpression.GetVFXValueTypeFromType(kExpectedTypeOrdering[minIndex]);
+
+            foreach (var expression in inputExpression)
+            {
+                if (expression.valueType == unifiedType)
+                {
+                    yield return expression;
+                    continue;
+                }
+
+                var currentExpression = expression;
+                if (VFXExpression.IsFloatValueType(unifiedType))
+                {
+                    if (VFXExpression.IsUIntValueType(expression.valueType))
+                    {
+                        currentExpression = new VFXExpressionCastUintToFloat(currentExpression);
+                    }
+                    else if (VFXExpression.IsIntValueType(expression.valueType))
+                    {
+                        currentExpression = new VFXExpressionCastIntToFloat(currentExpression);
+                    }
+                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, defaultValueFloat);
+                }
+                else if (VFXExpression.IsIntValueType(unifiedType))
+                {
+                    if (VFXExpression.IsUIntValueType(currentExpression.valueType))
+                    {
+                        currentExpression = new VFXExpressionCastUintToInt(currentExpression);
+                    }
+                    else if (VFXExpression.IsFloatValueType(currentExpression.valueType))
+                    {
+                        currentExpression = new VFXExpressionCastFloatToInt(VFXOperatorUtility.ExtractComponents(currentExpression).First());
+                    }
+                }
+                else if (VFXExpression.IsUIntValueType(unifiedType))
+                {
+                    if (VFXExpression.IsIntValueType(currentExpression.valueType))
+                    {
+                        currentExpression = new VFXExpressionCastIntToUint(currentExpression);
+                    }
+                    else if (VFXExpression.IsFloatValueType(expression.valueType))
+                    {
+                        currentExpression = new VFXExpressionCastFloatToUint(VFXOperatorUtility.ExtractComponents(expression).First());
+                    }
+                }
+                yield return currentExpression;
+            }
         }
 
         protected abstract double defaultValueDouble { get; }
@@ -239,15 +261,8 @@ namespace UnityEditor.VFX
         public sealed override void UpdateOutputExpressions()
         {
             var inputExpression = GetInputExpressions();
-
-            /* Temporary : int/uint casting (another branch to handle these operation is in review */
-            inputExpression = Temp_CastToFloat(inputExpression);
-
             var outputExpression = BuildExpression(inputExpression.ToArray());
-
-            /* Temporary int/uint casting (another branch to handle these operation is in review */
-            var outputExpressionFixed = Temp_CastToTarget(outputExpression, outputProperties);
-            SetOutputExpressions(outputExpressionFixed.ToArray());
+            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 
@@ -320,17 +335,9 @@ namespace UnityEditor.VFX
         public sealed override void UpdateOutputExpressions()
         {
             var inputExpression = GetInputExpressions();
-
-            /* Temporary : int/uint casting (another branch to handle these operation is in review */
-            inputExpression = Temp_CastToFloat(inputExpression);
-            //Unify behavior (actually, also temporary, since it should handle int to float conversion in some cases)
-            inputExpression = VFXOperatorUtility.UpcastAllFloatN(inputExpression, defaultValueFloat);
-
+            inputExpression = UnifyExpression(inputExpression);
             var outputExpression = BuildExpression(inputExpression.ToArray());
-
-            /* Temporary int/uint casting (another branch to handle these operation is in review */
-            var outputExpressionFixed = Temp_CastToTarget(outputExpression, outputProperties);
-            SetOutputExpressions(outputExpressionFixed.ToArray());
+            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 
@@ -472,10 +479,8 @@ namespace UnityEditor.VFX
         {
             var inputExpression = GetInputExpressions();
 
-            /* Temporary : int/uint casting (another branch to handle these operation is in review */
-            inputExpression = Temp_CastToFloat(inputExpression);
             //Unify behavior (actually, also temporary, since it should handle int to float conversion in some cases)
-            inputExpression = VFXOperatorUtility.UpcastAllFloatN(inputExpression, defaultValueFloat);
+            inputExpression = UnifyExpression(inputExpression);
 
             //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
@@ -487,10 +492,7 @@ namespace UnityEditor.VFX
                 outputExpression.Push(compose);
             }
 
-            /* Temporary int/uint casting (another branch to handle these operation is in review */
-            var outputExpressionFixed = Temp_CastToTarget(outputExpression, outputProperties);
-
-            SetOutputExpressions(outputExpressionFixed.ToArray());
+            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 }
