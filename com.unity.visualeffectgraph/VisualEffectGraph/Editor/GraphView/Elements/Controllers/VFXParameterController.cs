@@ -442,7 +442,7 @@ namespace UnityEditor.VFX.UI
 
         public object minValue
         {
-            get { return parameter.m_Min.Get(); }
+            get { return parameter.m_Min != null ? parameter.m_Min.Get() : null; }
             set
             {
                 if (value != null)
@@ -463,7 +463,7 @@ namespace UnityEditor.VFX.UI
         }
         public object maxValue
         {
-            get { return parameter.m_Max.Get(); }
+            get { return parameter.m_Max != null ? parameter.m_Max.Get() : null; }
             set
             {
                 if (value != null)

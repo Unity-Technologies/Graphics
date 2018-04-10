@@ -10,6 +10,7 @@ using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -84,7 +85,8 @@ namespace UnityEditor.VFX.UI
 
         public void NotifyUpdate()
         {
-            if( model == null || m_Graph != model.graph)
+            Profiler.BeginSample("VFXViewController.NotifyUpdate");
+            if( model == null || m_Graph == null || m_Graph != model.graph )
             {
                 ModelChanged(model);
             }
@@ -106,6 +108,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             otherModifiedModels.Clear();
+            Profiler.EndSample();
         }
 
 
