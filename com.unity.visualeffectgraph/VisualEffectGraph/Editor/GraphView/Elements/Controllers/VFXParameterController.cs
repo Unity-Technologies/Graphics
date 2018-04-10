@@ -215,9 +215,7 @@ namespace UnityEditor.VFX.UI
     {
         VFXSubParameterController[] m_SubControllers;
 
-        VFXViewController m_ViewController;
-
-        IDataWatchHandle m_SlotHandle;
+        VFXSlot m_Slot;
 
         VFXMinMaxParameterController m_MinController;
         public VFXMinMaxParameterController minController
@@ -244,18 +242,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(model)
+        public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(viewController,model)
         {
-            m_ViewController = viewController;
-
-            m_SlotHandle = DataWatchService.sharedInstance.AddWatch(model.outputSlots[0], OnSlotChanged);
+            m_Slot = model.outputSlots[0];
+            viewController.RegisterNotification(m_Slot,OnSlotChanged);
         }
 
         public const int ValueChanged = 1;
 
-        void OnSlotChanged(UnityEngine.Object model)
+        void OnSlotChanged()
         {
-            if (m_SlotHandle == null)
+            if (m_Slot == null)
                 return;
             NotifyChange(ValueChanged);
         }
@@ -314,7 +311,7 @@ namespace UnityEditor.VFX.UI
 
         public string MakeNameUnique(string name)
         {
-            HashSet<string> allNames = new HashSet<string>(m_ViewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
+            HashSet<string> allNames = new HashSet<string>(viewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
 
             return MakeNameUnique(name, allNames);
         }
@@ -547,7 +544,7 @@ namespace UnityEditor.VFX.UI
             model.ValidateNodes();
             bool controllerListChanged = UpdateControllers();
             if (controllerListChanged)
-                m_ViewController.NotifyParameterControllerChange();
+                viewController.NotifyParameterControllerChange();
             NotifyChange(AnyThing);
         }
 
@@ -560,16 +557,16 @@ namespace UnityEditor.VFX.UI
             {
                 removedController.Value.OnDisable();
                 m_Controllers.Remove(removedController.Key);
-                m_ViewController.RemoveControllerFromModel(parameter, removedController.Value);
+                viewController.RemoveControllerFromModel(parameter, removedController.Value);
                 changed = true;
             }
 
             foreach (var addedController in nodes.Where(t => !m_Controllers.ContainsKey(t.Key)).ToArray())
             {
-                VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, m_ViewController);
+                VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, viewController);
 
                 m_Controllers[addedController.Key] = controller;
-                m_ViewController.AddControllerToModel(parameter, controller);
+                viewController.AddControllerToModel(parameter, controller);
 
                 controller.ForceUpdate();
                 changed = true;
@@ -626,8 +623,10 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            DataWatchService.sharedInstance.RemoveWatch(m_SlotHandle);
-            m_SlotHandle = null;
+            if(!object.ReferenceEquals(m_Slot,null))
+            {
+                viewController.UnRegisterNotification(m_Slot,OnSlotChanged);
+            }
 
             base.OnDisable();
         }

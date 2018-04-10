@@ -11,12 +11,8 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXNodeController : Controller<VFXModel>
+    abstract class VFXNodeController : VFXController<VFXModel>
     {
-        public VFXViewController viewController { get { return m_ViewController; } }
-
-        VFXViewController m_ViewController;
-
         protected List<VFXDataAnchorController> m_InputPorts = new List<VFXDataAnchorController>();
 
         protected List<VFXDataAnchorController> m_OutputPorts = new List<VFXDataAnchorController>();
@@ -31,9 +27,8 @@ namespace UnityEditor.VFX.UI
             get { return m_OutputPorts.AsReadOnly(); }
         }
 
-        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(model)
+        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(viewController,model)
         {
-            m_ViewController = viewController;
 
             var settings = model.GetSettings(true);
             m_Settings = new VFXSettingController[settings.Count()];

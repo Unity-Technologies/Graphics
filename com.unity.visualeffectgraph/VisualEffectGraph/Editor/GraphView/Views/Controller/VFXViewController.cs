@@ -1,3 +1,4 @@
+#define NOTIFICATION_VALIDATION
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Reflection;
 
 namespace UnityEditor.VFX.UI
 {
+
     internal partial class VFXViewController : Controller<VisualEffectAsset>
     {
         private int m_UseCount;
@@ -26,6 +28,84 @@ namespace UnityEditor.VFX.UI
                     RemoveController(this);
                 }
             }
+        }
+
+        HashSet<ScriptableObject> modifiedModels = new HashSet<ScriptableObject>();
+        HashSet<ScriptableObject> otherModifiedModels = new HashSet<ScriptableObject>();
+
+        public void OnObjectModified(ScriptableObject obj)
+        {
+            modifiedModels.Add(obj);
+        }
+
+        Dictionary<ScriptableObject,List<Action>> m_Notified = new Dictionary<ScriptableObject,List<Action>>();
+
+
+        public void RegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
+        {
+            if( target == null) 
+                return;
+
+            target.onModified += OnObjectModified;
+            List<Action> notifieds;
+            if(m_Notified.TryGetValue(target,out notifieds))
+            {
+                #if NOTIFICATION_VALIDATION
+                if(notifieds.Contains(action))
+                    Debug.LogError("Adding the same notification twice on:" + target.name);
+                #endif
+                notifieds.Add(action);
+            }
+            else
+            {
+                notifieds = new List<Action>();
+                notifieds.Add(action);
+
+                m_Notified.Add(target,notifieds);
+            }
+        }
+
+        public void UnRegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
+        {
+            if( target == null) 
+                return;
+
+            target.onModified -= OnObjectModified;
+            List<Action> notifieds;
+            if(m_Notified.TryGetValue(target,out notifieds))
+            {
+                #if NOTIFICATION_VALIDATION
+                if(!notifieds.Contains(action))
+                    Debug.LogError("Removing a non existent notification" + target.name);
+                #endif
+                notifieds.Remove(action);
+            }
+        }
+
+        public void NotifyUpdate()
+        {
+            if( model == null || m_Graph != model.graph)
+            {
+                ModelChanged(model);
+            }
+            
+            var tmp = modifiedModels;
+            modifiedModels = otherModifiedModels;
+            otherModifiedModels = tmp;
+
+        
+            foreach( var obj in otherModifiedModels)
+            {
+                List<Action> notifieds;
+                if( m_Notified.TryGetValue(obj,out notifieds))
+                {
+                    foreach(var notified in notifieds)
+                    {
+                        notified();
+                    }
+                }
+            }
+            otherModifiedModels.Clear();
         }
 
 
@@ -56,13 +136,13 @@ namespace UnityEditor.VFX.UI
         public void LightApplyChanges()
         {
             ModelChanged(model);
-            GraphChanged(graph);
+            GraphChanged();
         }
 
         public override void ApplyChanges()
         {
             ModelChanged(model);
-            GraphChanged(graph);
+            GraphChanged();
 
             foreach (var controller in allChildren)
             {
@@ -73,19 +153,19 @@ namespace UnityEditor.VFX.UI
         void GraphLost()
         {
             Clear();
-            if (m_Graph != null)
+            if (!object.ReferenceEquals(m_Graph,null))
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
+                UnRegisterNotification(m_Graph,GraphChanged);
+
                 m_Graph = null;
             }
-            if (m_GraphHandle != null)
+            if (!object.ReferenceEquals(m_UI,null))
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
-                DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
-                m_GraphHandle = null;
-                m_UIHandle = null;
+                UnRegisterNotification(m_UI,UIChanged);
+                m_UI = null;
             }
         }
 
@@ -518,7 +598,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void ModelChanged(UnityEngine.Object obj)
+        protected override void ModelChanged(Object obj)
         {
             if (model == null)
             {
@@ -532,12 +612,10 @@ namespace UnityEditor.VFX.UI
             // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
             if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
-                if (m_GraphHandle != null)
+                if (!object.ReferenceEquals(m_Graph,null))
                 {
-                    DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
-                    m_GraphHandle = null;
-                    DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
-                    m_UIHandle = null;
+                    UnRegisterNotification(m_Graph,GraphChanged);
+                    UnRegisterNotification(m_UI,UIChanged);
                 }
                 if (m_Graph != null)
                 {
@@ -552,17 +630,17 @@ namespace UnityEditor.VFX.UI
 
                 if (m_Graph != null)
                 {
-                    m_GraphHandle = DataWatchService.sharedInstance.AddWatch(m_Graph, GraphChanged);
+                    RegisterNotification(m_Graph,GraphChanged);
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
 
-                    VFXUI ui = m_Graph.UIInfos;
+                    m_UI = m_Graph.UIInfos;
 
-                    m_UIHandle = DataWatchService.sharedInstance.AddWatch(ui, UIChanged);
+                    RegisterNotification(m_UI,UIChanged);
 
-                    GraphChanged(m_Graph);
+                    GraphChanged();
                 }
             }
         }
@@ -670,10 +748,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected void GraphChanged(UnityEngine.Object obj)
+        protected void GraphChanged()
         {
-            if (m_GraphHandle == null)
-                return;
             if (m_Graph == null)
             {
                 if (model != null)
@@ -691,9 +767,9 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        protected void UIChanged(UnityEngine.Object obj)
+        protected void UIChanged()
         {
-            if (m_UIHandle == null) return;
+            if (m_UI == null) return;
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
             RecreateUI();
@@ -1004,7 +1080,7 @@ namespace UnityEditor.VFX.UI
 
 
             InitializeUndoStack();
-            GraphChanged(graph);
+            GraphChanged();
         }
 
         public ReadOnlyCollection<VFXGroupNodeController> groupNodes
@@ -1066,7 +1142,7 @@ namespace UnityEditor.VFX.UI
         {
             Clear();
             ModelChanged(model);
-            GraphChanged(graph);
+            GraphChanged();
         }
 
         bool m_Syncing;
@@ -1269,8 +1345,7 @@ namespace UnityEditor.VFX.UI
 
         private VFXGraph m_Graph;
 
-        IDataWatchHandle m_GraphHandle;
-        IDataWatchHandle m_UIHandle;
+        private VFXUI m_UI;
 
         private VFXView m_View; // Don't call directly as it is lazy initialized
     }

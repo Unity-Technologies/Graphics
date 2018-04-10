@@ -42,10 +42,10 @@ namespace UnityEditor.VFX.UI
             {
                 UnregisterAnchors();
             }
-            if (m_DataHandle != null)
+            if (!object.ReferenceEquals(m_Data,null))
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
-                m_DataHandle = null;
+                viewController.UnRegisterNotification(m_Data,DataChanged);
+                m_Data = null;
             }
 
             base.OnDisable();
@@ -59,10 +59,8 @@ namespace UnityEditor.VFX.UI
                 viewController.UnregisterFlowAnchorController(anchor);
         }
 
-        protected void DataChanged(UnityEngine.Object obj)
+        protected void DataChanged()
         {
-            if (m_DataHandle == null)
-                return;
             NotifyChange(AnyThing);
         }
 
@@ -82,25 +80,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        VFXData m_Data = null;
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             SyncControllers();
             // make sure we listen to the right data
-            if (m_DataHandle == null && context.GetData() != null)
+
+            if( !object.ReferenceEquals(m_Data,null) && context.GetData() != m_Data)
             {
-                m_DataHandle = DataWatchService.sharedInstance.AddWatch(context.GetData(), DataChanged);
+                viewController.UnRegisterNotification(m_Data,DataChanged);
+                m_Data = null;
             }
-            if (m_DataHandle != null && context.GetData() != m_DataHandle.watched)
+            if( m_Data == null && context.GetData() != null)
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_DataHandle);
-                if (context.GetData() != null)
-                {
-                    m_DataHandle = DataWatchService.sharedInstance.AddWatch(context.GetData(), DataChanged);
-                }
-                else
-                {
-                    m_DataHandle = null;
-                }
+                m_Data = context.GetData();
+
+                viewController.RegisterNotification(m_Data,DataChanged);
             }
 
             viewController.FlowEdgesMightHaveChanged();

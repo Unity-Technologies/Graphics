@@ -168,6 +168,7 @@ namespace  UnityEditor.VFX.UI
             VFXViewController controller = graphView.controller;
             if (controller != null && controller.model != null && controller.graph != null)
             {
+                controller.NotifyUpdate();
                 var graph = controller.graph;
                 var filename = m_AssetName;
                 if (!graph.saved)
