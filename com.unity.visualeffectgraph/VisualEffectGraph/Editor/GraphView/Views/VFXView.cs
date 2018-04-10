@@ -1426,7 +1426,7 @@ namespace UnityEditor.VFX.UI
             return VFXCopyPaste.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
         }
 
-        Vector2 visibleCenter
+        Vector2 pasteCenter
         {
             get
             {
@@ -1440,7 +1440,7 @@ namespace UnityEditor.VFX.UI
 
         void UnserializeAndPasteElements(string operationName, string data)
         {
-            VFXCopyPaste.UnserializeAndPasteElements(controller, visibleCenter, data, this);
+            VFXCopyPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);
 
             pasteOffset += defaultPasteOffset;
         }
@@ -1539,10 +1539,10 @@ namespace UnityEditor.VFX.UI
             controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
         }
 
-        void AddStickyNote(Vector2 position)
+        void AddStickyNote(Vector2 position,VFXGroupNode group = null)
         {
             position = contentViewContainer.WorldToLocal(position);
-            controller.AddStickyNote(position);
+            controller.AddStickyNote(position,group != null ? group.controller : null);
         }
 
         void OnCreateNodeInGroupNode(ContextualMenu.MenuAction e)
@@ -1555,10 +1555,20 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
+            bool hasMenu = false;
+            if( evt.target is VFXNodeUI)
+            {
             evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
                 (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                hasMenu = true;
+            }
+            if( evt.target is VFXView)
+            {
             evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
                 (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                hasMenu = true;
+            }
+            if( hasMenu )
             evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {
@@ -1567,6 +1577,18 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendAction("Copy", (e) => { CopySelectionCallback(); },
                     (e) => { return canCopySelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
             }
+
+            if (evt.target is VFXGroupNode)
+            {
+                VFXGroupNode group = evt.target as VFXGroupNode;
+                evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                
+                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition, group); },
+                (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                hasMenu = true;
+                evt.menu.AppendSeparator();
+            }
+
             base.BuildContextualMenu(evt);
             /*
             if (evt.target is UIElements.GraphView.GraphView)
