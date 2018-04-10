@@ -20,14 +20,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Matrix4x4;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             if (Camera.main != null)
@@ -48,14 +40,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOperation.ExtractFOVFromMainCamera;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float;
             }
         }
 
@@ -82,14 +66,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             if (Camera.main != null)
@@ -113,14 +89,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             if (Camera.main != null)
@@ -141,14 +109,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOperation.ExtractAspectRatioFromMainCamera;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float;
             }
         }
 
