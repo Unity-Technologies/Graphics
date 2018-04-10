@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Implicit")]
+    //[VFXInfo(category = "Implicit")] //There's no way the user can meaningfully interact with them.
     class Age : VFXBlock
     {
         public override string name { get { return "Age"; } }
