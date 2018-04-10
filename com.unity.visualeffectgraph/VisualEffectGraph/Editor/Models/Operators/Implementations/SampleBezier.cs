@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.Operator
             var posD = inputExpression[4];
 
             var vt = VFXOperatorUtility.CastFloat( t, VFXValueType.Float3);
-            var vtc = VFXOperatorUtility.CastFloat(VFXOperatorUtility.OneExpression[1]-t, VFXValueType.Float3);
+            var vtc = VFXOperatorUtility.CastFloat(VFXOperatorUtility.OneExpression[VFXValueType.Float]-t, VFXValueType.Float3);
             var three = VFXOperatorUtility.CastFloat(VFXValue.Constant(3.0f), VFXValueType.Float3);
             var six = VFXOperatorUtility.CastFloat(VFXValue.Constant(6.0f), VFXValueType.Float3);
 

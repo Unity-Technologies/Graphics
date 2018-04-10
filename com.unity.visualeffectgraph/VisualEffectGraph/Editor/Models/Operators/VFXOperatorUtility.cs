@@ -68,8 +68,7 @@ namespace UnityEditor.VFX
         static public VFXExpression Saturate(VFXExpression input)
         {
             //Max(Min(x, 1.0f), 0.0f))
-            int size = VFXExpression.TypeToSize(input.valueType);
-            return Clamp(input, ZeroExpression[size], OneExpression[size]);
+            return Clamp(input, ZeroExpression[input.valueType], OneExpression[input.valueType]);
         }
 
         static public VFXExpression Frac(VFXExpression input)
