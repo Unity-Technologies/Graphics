@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class MultiplyNew : VFXOperatorFloatUnifiedWithVariadicOutputNew
     {
         [Serializable]
