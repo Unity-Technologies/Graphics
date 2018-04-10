@@ -44,10 +44,10 @@ void ApplyBlendMask(inout float4 dst, inout int matMask, float2 texCoords, int m
 	matMask |= mapMask;
 }
 
-float ComputeTextureLOD(float2 uv, float2 uvdx, float2 uvdy, float2 scale)
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
 {
-	float2 ddx_ = scale * (uvdx - uv);
-	float2 ddy_ = scale * (uvdy - uv);
+	float2 ddx_ = scale * uvdx;
+	float2 ddy_ = scale * uvdy;
 	float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
 	return max(0.5 * log2(d), 0.0);
@@ -77,38 +77,36 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 
 		float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
-		// get world space position for adjacent pixels to be used later in mipmap lod calculation
-		float3 positionWSDX = positionWS + ddx(positionWS);
-		float3 positionWSDY = positionWS + ddy(positionWS);
+		// get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
+		float3 positionWSDdx = ddx(positionWS);
+		float3 positionWSDdy = ddy(positionWS);
 
         for (uint i = 0; i < decalCount; i++)
         {
             DecalData decalData = FetchDecal(decalStart, i);
+			
+			float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
+			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);	// decal clip space
+
+			float2 sampleDiffuse = positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw;
+			float2 sampleNormal = positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw;
+			float2 sampleMask = positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw;
 
 			// need to compute the mipmap LOD manually because we are sampling inside a loop
-			float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
-			float3 positionDSDX = mul(decalData.worldToDecal, float4(positionWSDX, 1.0)).xyz;
-			float3 positionDSDY = mul(decalData.worldToDecal, float4(positionWSDY, 1.0)).xyz;
-
-			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
-			positionDSDX = positionDSDX * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
-			positionDSDY = positionDSDY * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
+			float3 positionDSDdx = mul(decalData.worldToDecal, float4(positionWSDdx, 0.0)).xyz;	// transform the derivatives to decal space, any translation is irrelevant
+			float3 positionDSDdy = mul(decalData.worldToDecal, float4(positionWSDdy, 0.0)).xyz;
+		
+			float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy;	// factor in the atlas scale
+			float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
+			float lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution);
 			
-			float2 sampleDiffuse = positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw;
-			float2 sampleDiffuseDX = positionDSDX.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw;
-			float2 sampleDiffuseDY = positionDSDY.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw;
+			float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;		
+			float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
+			float lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution);
 
-			float2 sampleNormal = positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw;
-			float2 sampleNormalDX = positionDSDX.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw;
-			float2 sampleNormalDY = positionDSDY.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw;
-
-			float2 sampleMask = positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw;
-			float2 sampleMaskDX = positionDSDX.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw;
-			float2 sampleMaskDY = positionDSDY.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw;
-
-			float lodDiffuse = ComputeTextureLOD(sampleDiffuse, sampleDiffuseDX, sampleDiffuseDY, _DecalAtlasResolution);
-			float lodNormal = ComputeTextureLOD(sampleNormal, sampleNormalDX, sampleNormalDY, _DecalAtlasResolution);
-			float lodMask = ComputeTextureLOD(sampleMask, sampleMaskDX, sampleMaskDY, _DecalAtlasResolution);
+			float2 sampleMaskDdx = positionDSDdx.xz * decalData.maskScaleBias.xy;		
+			float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
+			float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
 
 			float decalBlend = decalData.normalToWorld[0][3];
 
