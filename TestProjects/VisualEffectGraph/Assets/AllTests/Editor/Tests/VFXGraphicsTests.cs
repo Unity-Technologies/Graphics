@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Test
                 graph.RecompileIfNeeded();
             }
 
-            instance.camera.cameraType = CameraType.Preview;
+            instance.camera.cameraType = UnityEngine.CameraType.Preview;
             instance.camera.enabled = false;
 
             instance.camera.renderingPath = RenderingPath.Forward;
