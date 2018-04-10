@@ -440,9 +440,7 @@ namespace UnityEditor.VFX.UI
             if( op == null)
                 return false;
 
-            var array = op.model.validTypes.ToArray();
-            
-            return array.Contains(controller.model.property.type);
+            return op.model.GetBestAffinityType(controller.model.property.type) != null;
         }
 
         public new VFXCascadedOperatorController sourceNode
@@ -456,10 +454,9 @@ namespace UnityEditor.VFX.UI
 
             VFXOperatorNumericCascadedUnifiedNew op = sourceNode.model;
 
-            op.AddOperand(output.model.property.type);
+            op.AddOperand(op.GetBestAffinityType(output.model.property.type));
 
             var slotInput = op.GetInputSlot(op.GetNbInputSlots() -1);
-
             if( slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
                 return new VFXParameter.NodeLinkedSlot(){inputSlot = slotInput,outputSlot = slotOutput};

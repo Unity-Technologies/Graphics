@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 using UnityEngine.Experimental.VFX;
+using System.Text;
 
 namespace UnityEditor.VFX.Test
 {
@@ -326,7 +327,7 @@ namespace UnityEditor.VFX.Test
             return slotOutput.CanLink(slotInput);
         }
 
-        private static Dictionary<Type, Type[]> ComputeBasicTypeAffinity()
+        private static Dictionary<Type, Type[]> ComputeHeuristcalAffinity()
         {
             var inputType = new[]
             {
@@ -377,32 +378,26 @@ namespace UnityEditor.VFX.Test
             return inputTypeHeurisicalDict;
         }
 
+        private static string DumpAffinityDictionnary(Dictionary<Type, Type[]> typeAffiny)
+        {
+            var dump = new StringBuilder();
+            foreach (var type in typeAffiny)
+            {
+                dump.AppendFormat("{{ typeof({0}), new[] {{", type.Key.UserFriendlyName());
+                dump.Append(type.Value.Select(o => string.Format("typeof({0})", o.UserFriendlyName())).Aggregate((a, b) => string.Format("{0}, {1}", a, b)));
+                dump.Append("} },");
+                dump.AppendLine();
+            }
+            return dump.ToString();
+        }
+
         [Test]
         public void VerifyTypeCompatibility()
         {
-            var typeAffinity = ComputeBasicTypeAffinity();
-
-            string rules = "";
-            foreach (var type in typeAffinity)
-            {
-                rules += "{ typeof(" + type.Key.UserFriendlyName() + "), new[] {";
-                rules += type.Value.Select(o => "typeof(" + o.UserFriendlyName() + ")").Aggregate((a, b) => a + ", " + b);
-                rules += "}},\n";
-            }
-            Debug.Log(rules);
-
-            foreach (var type in typeAffinity)
-            {
-                var slotBase = VFXSlot.Create(new VFXProperty(type.Key, "o"), VFXSlot.Direction.kOutput);
-                foreach (var affinity in type.Value)
-                {
-                    var slotAffinity = VFXSlot.Create(new VFXProperty(affinity, "i"), VFXSlot.Direction.kInput);
-                    if (!slotBase.CanLink(slotAffinity))
-                    {
-                        //Assert.Fail(string.Format("VFXSlot of {1} CanConvertFrom({0}) excepts return true", slotBase.property.type.UserFriendlyName(), slotAffinity.property.type.UserFriendlyName()));
-                    }
-                }
-            }
+            var affinityHeurisitic = ComputeHeuristcalAffinity();
+            var dumpAffinityHeuristic = DumpAffinityDictionnary(affinityHeurisitic);
+            var dumpAffinityCurrent = DumpAffinityDictionnary(VFXOperatorDynamicOperand.kTypeAffinity);
+            Assert.AreEqual(dumpAffinityHeuristic, dumpAffinityCurrent, "kTypeAffinity or CanConvertFrom has been changed, it's not necessary an error, but consider it carefully and update kTypeAffinity");
         }
     }
 }

@@ -19,10 +19,41 @@ namespace UnityEditor.VFX
             typeof(uint),
             typeof(int),
         };
+        
+        public static readonly Dictionary<Type, Type[]> kTypeAffinity = new Dictionary<Type, Type[]> 
+        {
+            { typeof(Vector4), new[] {typeof(Color), typeof(Vector3), typeof(Position), typeof(DirectionType), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
+            { typeof(Color), new[] {typeof(Vector4), typeof(Vector3), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
+            { typeof(Vector3), new[] {typeof(Position), typeof(DirectionType), typeof(Vector), typeof(Color), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
+            { typeof(Position), new[] {typeof(Vector3)} },
+            { typeof(DirectionType), new[] {typeof(Vector3)} },
+            { typeof(Vector), new[] {typeof(Vector3)} },
+            { typeof(Vector2), new[] {typeof(float), typeof(int), typeof(uint)} },
+            { typeof(float), new[] {typeof(int), typeof(uint), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color)} },
+            { typeof(int), new[] {typeof(uint), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color)} },
+            { typeof(uint), new[] {typeof(int), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color)} },
+        };
 
         public sealed override void OnEnable()
         {
             base.OnEnable();
+        }
+
+        public Type GetBestAffinityType(Type type)
+        {
+            if (validTypes.Contains(type))
+            {
+                return type;
+            }
+
+            Type[] affinity = null;
+            if (!kTypeAffinity.TryGetValue(type, out affinity))
+            {
+                return null;
+            }
+
+            var bestAffinity = affinity.Where(o => validTypes.Contains(o)).FirstOrDefault();
+            return bestAffinity; //Can be null
         }
 
         public abstract IEnumerable<Type> validTypes { get; }
@@ -90,6 +121,10 @@ namespace UnityEditor.VFX
                 return defaultValueType;
 
             var minIndex = inputTypes.Select(o => Array.IndexOf(kExpectedTypeOrdering, o)).Min();
+
+            if (minIndex == -1)
+                throw new IndexOutOfRangeException("Unexpected type");
+
             return kExpectedTypeOrdering[minIndex];
         }
 
@@ -337,6 +372,9 @@ namespace UnityEditor.VFX
 
         public void AddOperand(Type type = null)
         {
+            if (!validTypes.Contains(type))
+                throw new InvalidOperationException("Unexpected type : " + type);
+
             int oldCount = m_Operands.Length;
             var infos = new Operand[oldCount + 1];
 
@@ -392,7 +430,10 @@ namespace UnityEditor.VFX
         public void SetOperandType(int index, Type type)
         {
             if (!validTypes.Contains(type))
-                throw new InvalidOperationException();
+            {
+                Debug.LogError("Invalid type : " + type);
+                return;
+            }
 
             m_Operands[index].type = type;
             Invalidate(InvalidationCause.kSettingChanged);

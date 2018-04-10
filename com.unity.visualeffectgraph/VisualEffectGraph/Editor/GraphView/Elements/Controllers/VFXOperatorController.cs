@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.UI
 
         protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
         {
-            return model.validTypes.Contains(otherOutput.portType);
+            return model.GetBestAffinityType(otherOutput.portType) != null;
         }
 
         public override bool isEditable
@@ -85,11 +85,11 @@ namespace UnityEditor.VFX.UI
         }
         public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
         {
-            if (model.validTypes.Contains(otherOutput.property.type))
+            var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+            if (bestAffinityType != null)
             {
                 int index = model.GetSlotIndex(myInput);
-                model.SetOperandType(index, otherOutput.property.type);
-
+                model.SetOperandType(index, bestAffinityType);
                 myInput = model.GetInputSlot(index);
             }
         }
@@ -166,11 +166,11 @@ namespace UnityEditor.VFX.UI
             // The new link is impossible if we don't change (case of a vector3 trying to be linked to a vector4)
             bool linkImpossibleNow = !myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput);
 
-            if ((!hasLink || linkImpossibleNow) && model.validTypes.Contains(otherOutput.property.type))
+            var bestAffinity = model.GetBestAffinityType(otherOutput.property.type);
+            if ((!hasLink || linkImpossibleNow) && bestAffinity != null)
             {
                 int index = model.GetSlotIndex(myInput);
-                model.SetOperandType(otherOutput.property.type);
-
+                model.SetOperandType(bestAffinity);
                 myInput = model.GetInputSlot(index);
             }
         }
