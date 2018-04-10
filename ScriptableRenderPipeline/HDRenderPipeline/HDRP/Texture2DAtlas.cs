@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -120,7 +121,8 @@ namespace UnityEngine.Experimental.Rendering
         private int m_Height;
         private RenderTextureFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
-        
+        private Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>(); 
+
         public RTHandle AtlasTexture
         {
             get
@@ -152,33 +154,42 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Release()
         {
+            ResetAllocator();
             RTHandle.Release(m_AtlasTexture);
         }
 
         public void ResetAllocator()
         {
             m_AtlasAllocator.Release();
+            m_AllocationCache.Clear();
         }
 
         public Vector4 AddTexture(CommandBuffer cmd, Texture texture)
         {
-            int width = texture.width;
-            int height = texture.height;
-            Vector4 scaleBias = m_AtlasAllocator.Allocate(width, height);
-            if ((scaleBias.x > 0) && (scaleBias.y > 0))
-            {               
-                scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height)); 
-                for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
-                {
-                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
-                }
-                return scaleBias;
-            }
-            else
+            IntPtr key = texture.GetNativeTexturePtr();
+            Vector4 scaleBias;
+            if (!m_AllocationCache.TryGetValue(key, out scaleBias))
             {
-                return new Vector4(0,0,0,0);
+                int width = texture.width;
+                int height = texture.height;
+                scaleBias = m_AtlasAllocator.Allocate(width, height);
+                if ((scaleBias.x > 0) && (scaleBias.y > 0))
+                {
+                    scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+                    for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
+                    {
+                        cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                        HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                    }
+                    m_AllocationCache.Add(key, scaleBias);
+                    return scaleBias;
+                }
+                else
+                {
+                    return new Vector4(0, 0, 0, 0);
+                }
             }
+            return scaleBias;
         }
     }
 }

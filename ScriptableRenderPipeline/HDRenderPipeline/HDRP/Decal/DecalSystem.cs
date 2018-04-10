@@ -89,7 +89,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		static public float[] m_BoundingDistances = new float[1];
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
-        private TextureCache2D m_DecalAtlas = null;
 
         // current camera
         private Camera m_Camera;
@@ -97,6 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public int m_DecalsVisibleThisFrame = 0;
 
         private Texture2DAtlas m_Atlas = null;
+        public bool m_AllocationSuccess = true;
 
         public static int kDecalAtlasWidth = 4096;
         public static int kDecalAtlasHeight= 4096;
@@ -357,11 +357,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            private bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
+            {
+                if (texture != null)
+                {
+                    scaleBias = instance.Atlas.AddTexture(cmd, texture);
+                    if (scaleBias == Vector4.zero)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    scaleBias = Vector4.zero;
+                }
+                return true;
+            }
+
             void UpdateTextureCache(CommandBuffer cmd)
             {
-                m_DiffuseScaleBias = (m_DiffuseTexture != null) ? instance.Atlas.AddTexture(cmd, m_DiffuseTexture) : Vector4.zero;
-                m_NormalScaleBias = (m_NormalTexture != null) ? instance.Atlas.AddTexture(cmd, m_NormalTexture) : Vector4.zero;
-                m_MaskScaleBias = (m_MaskTexture != null) ? instance.Atlas.AddTexture(cmd, m_MaskTexture) : Vector4.zero;
+                instance.m_AllocationSuccess &= AddTexture(cmd, ref m_DiffuseScaleBias, m_DiffuseTexture);
+                instance.m_AllocationSuccess &= AddTexture(cmd, ref m_NormalScaleBias, m_NormalTexture);
+                instance.m_AllocationSuccess &= AddTexture(cmd, ref m_MaskScaleBias, m_MaskTexture);
             }
 
             public void RemoveFromTextureCache()
@@ -521,10 +538,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // updates textures, texture atlas indices and blend value
         public void UpdateCachedMaterialData(CommandBuffer cmd)
         {
-            Atlas.ResetAllocator();
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.UpdateCachedMaterialData(cmd);
+            }
+
+            if (!instance.m_AllocationSuccess) // texture failed to find space in the atlas
+            {
+                Atlas.ResetAllocator(); // clear all allocations and try again in the hope that a previously allocated texture is not in this frame
+                foreach (var pair in m_DecalSets)
+                {
+                    pair.Value.UpdateCachedMaterialData(cmd);
+                }
             }
         }
 
@@ -547,13 +572,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
-            if (m_DecalAtlas != null)
-                m_DecalAtlas.Release();
             if (m_Atlas != null)
                 m_Atlas.Release();
             CoreUtils.Destroy(m_DecalMesh);
             // set to null so that they get recreated
-            m_DecalAtlas = null;
             m_DecalMesh = null;
             m_Atlas = null;
         }
