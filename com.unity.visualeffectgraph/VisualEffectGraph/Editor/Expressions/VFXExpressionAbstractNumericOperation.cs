@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
         static protected bool IsNumeric(VFXValueType type)
         {
-            return IsFloatValueType(type) || type == VFXValueType.Uint32 || type == VFXValueType.Int32;
+            return IsFloatValueType(type) || IsUIntValueType(type) || IsIntValueType(type);
         }
 
         sealed public override VFXExpressionOperation operation { get { return m_Operation; } }

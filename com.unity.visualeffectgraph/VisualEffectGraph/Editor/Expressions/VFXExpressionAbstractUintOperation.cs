@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         {
             if (!IsUIntValueType(parent.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionUnaryFloatOperation");
+                throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
             }
         }
 
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
         sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
         {
             if (!IsUIntValueType(type))
-                throw new InvalidOperationException("VFXExpressionUnaryFloatOperation : Unexpected type");
+                throw new InvalidOperationException("VFXExpressionUnaryUIntOperation : Unexpected type");
 
             return GetUnaryOperationCode(x);
         }
