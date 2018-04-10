@@ -148,6 +148,22 @@ namespace UnityEditor.VFX.UI
             if (groupNodes.Length > 0 || stickyNotes.Length > 0)
             {
                 copiedGroupUI = ScriptableObject.CreateInstance<VFXUI>();
+
+                var stickyNodeIndexToCopiedIndex = new Dictionary<int,int>();
+
+                if (stickyNotes.Length > 0)
+                {
+                    copiedGroupUI.stickyNoteInfos = new VFXUI.StickyNoteInfo[stickyNotes.Length];
+
+                    for (int i = 0; i < stickyNotes.Length; ++i)
+                    {
+                        VFXStickyNoteController stickyNote = stickyNotes[i];
+                        stickyNodeIndexToCopiedIndex[stickyNote.index] = i;
+                        VFXUI.StickyNoteInfo info = stickyNote.model.stickyNoteInfos[stickyNote.index];
+                        copiedGroupUI.stickyNoteInfos[i] = new VFXUI.StickyNoteInfo(info);
+                    }
+                }
+
                 if (groupNodes.Length > 0)
                 {
                     copiedGroupUI.groupInfos = new VFXUI.GroupInfo[groupNodes.Length];
@@ -158,20 +174,20 @@ namespace UnityEditor.VFX.UI
                         VFXUI.GroupInfo info = groupNode.model.groupInfos[groupNode.index];
                         copiedGroupUI.groupInfos[i] = new VFXUI.GroupInfo(info);
 
-                        // only keep nodes that are copied because a node can not be in two groups at the same time.
+                        // only keep nodes and sticky notes that are copied because a element can not be in two groups at the same time.
                         if (info.contents != null)
-                            copiedGroupUI.groupInfos[i].contents = info.contents.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model)).ToArray();
-                    }
-                }
-                if (stickyNotes.Length > 0)
-                {
-                    copiedGroupUI.stickyNoteInfos = new VFXUI.StickyNoteInfo[stickyNotes.Length];
+                        {
+                            var groupInfo = copiedGroupUI.groupInfos[i];
+                            groupInfo.contents = info.contents.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model) || (t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id)) ).ToArray();
 
-                    for (int i = 0; i < stickyNotes.Length; ++i)
-                    {
-                        VFXStickyNoteController groupNode = stickyNotes[i];
-                        VFXUI.StickyNoteInfo info = groupNode.model.stickyNoteInfos[groupNode.index];
-                        copiedGroupUI.stickyNoteInfos[i] = new VFXUI.StickyNoteInfo(info);
+                            for(int j = 0 ; j < groupInfo.contents.Length ; ++j)
+                            {
+                                if(groupInfo.contents[j].isStickyNote)
+                                {
+                                    groupInfo.contents[j].id = stickyNodeIndexToCopiedIndex[groupInfo.contents[j].id];
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -761,6 +777,7 @@ namespace UnityEditor.VFX.UI
             if (copiedUI != null)
             {
                 VFXUI ui = viewController.graph.UIInfos;
+                firstCopiedStickyNote = ui.stickyNoteInfos!= null ? ui.stickyNoteInfos.Length : 0;
 
                 if (copiedUI.groupInfos != null && copiedUI.groupInfos.Length > 0)
                 {
@@ -785,6 +802,10 @@ namespace UnityEditor.VFX.UI
                                     groupInfos.contents[i].id = paramInfo.idMap[groupInfos.contents[i].id];
                                 }
                             }
+                            else if( groupInfos.contents[i].isStickyNote)
+                            {
+                                groupInfos.contents[i].id += firstCopiedStickyNote;
+                            }
                         }
                     }
 
@@ -796,7 +817,6 @@ namespace UnityEditor.VFX.UI
                     {
                         ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[0];
                     }
-                    firstCopiedStickyNote = ui.stickyNoteInfos.Length;
                     ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(copiedUI.stickyNoteInfos.Select(t => new VFXUI.StickyNoteInfo(t) { position = new Rect(t.position.position + pasteOffset, t.position.size) })).ToArray();
                 }
             }
