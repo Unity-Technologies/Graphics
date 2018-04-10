@@ -11,27 +11,29 @@ namespace UnityEditor.VFX.Operator
         {
             [Range(0.0f,1.0f), Tooltip("The progression to sample on the bezier [0..1]")]
             public float t;
-            [Tooltip("The position of the start point")]
+            [Tooltip("The position of the first control point")]
             public Position A = new Position() { position = new Vector3(0, 0, 0) };
-            [Tooltip("The position of the first influence point")]
+            [Tooltip("The position of the second control point")]
             public Position B = new Position() { position = new Vector3(0, 1, 0) };
-            [Tooltip("The position of the second influence point")]
+            [Tooltip("The position of the third control point")]
             public Position C = new Position() { position = new Vector3(1, 1, 0) };
-            [Tooltip("The position of the end point")]
+            [Tooltip("The position of the fourth control point")]
             public Position D = new Position() { position = new Vector3(1, 0, 0) };
         }
 
         public class OutputProperties
         {
+            [Tooltip("The position along the bezier at T progression")]
             public Position Position;
-            public Vector3 Tangent;
+            [Tooltip("The derivative of the bezier (non-normalized) at T progression")]
+            public Vector Tangent;
         }
 
         override public string name { get { return "Sample Bezier"; } }
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var t = VFXOperatorUtility.Saturate(inputExpression[0]);
+            var t = inputExpression[0];
             var posA = inputExpression[1];
             var posB = inputExpression[2];
             var posC = inputExpression[3];
