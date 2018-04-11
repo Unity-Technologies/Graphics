@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedHDCamera(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
-            var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects);
+            var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects, HDAdditionalCameraData.InitDefaultHDAdditionalCameraData);
             serializedAdditionalDataObject = new SerializedObject(additionals);
 
             var hideFlags = serializedAdditionalDataObject.FindProperty("m_ObjectHideFlags");
