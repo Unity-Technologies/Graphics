@@ -67,6 +67,14 @@ namespace UnityEditor.VFX
         public VFXContext(VFXContextType contextType) : this(contextType, VFXDataType.kNone, VFXDataType.kNone)
         {}
 
+        // Called by VFXData
+        public static T CreateImplicitContext<T>(VFXData data) where T : VFXContext
+        {
+            var context = ScriptableObject.CreateInstance<T>();
+            context.m_Data = data;
+            return context;
+        }
+
         public override void OnEnable()
         {
             base.OnEnable();

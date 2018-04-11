@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "CameraSort"; } }
         public override string codeGeneratorTemplate { get { return "VFXShaders/VFXCameraSort"; } }
         public override bool codeGeneratorCompute { get { return true; } }
-        public override VFXTaskType taskType { get { return VFXTaskType.Update; } }
+        public override VFXTaskType taskType { get { return VFXTaskType.CameraSort; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

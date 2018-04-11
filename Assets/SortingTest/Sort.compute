@@ -32,9 +32,6 @@
 // see https://en.wikipedia.org/wiki/Bitonic_sorter 
 #define USE_ALTERNATE_BITONIC_NETWORK 0
 
-// For final pass we dont need to output key/value pairs but only sorted values
-#define FINAL_PASS 0 // TODO Remove that
-
 #define BITONIC_THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
 #define MERGE_THREADS_COUNT ELEMENTS_COUNT
 
@@ -70,6 +67,8 @@ RWStructuredBuffer<uint> sortedSequence;
 RWStructuredBuffer<KVP> sortedSequence;
 #endif
 
+Buffer<uint> deadElementCount;
+
 // Layout of the scratch memory is as follows:
 // First all keys (potentially padded by a DWORD every LDS_PADDING_PERIOD
 // Then all values with the same padding pattern
@@ -78,6 +77,11 @@ groupshared float scratch[SCRATCH_SIZE];
 CBUFFER_START(SortConstants)
 uint elementCount;
 CBUFFER_END
+
+uint GetElementCount()
+{
+	return elementCount - deadElementCount[0];
+}
 
 bool CompareKeys(float key0, float key1)
 {
@@ -103,7 +107,7 @@ void LoadFromMemory(uint ldsIndex,uint memIndex,uint size)
 	for (uint i = 0; i < size; ++i)
 	{
 		KVP kvp = { REJECTED_VALUE, 0 };
-		if (memIndex + i < elementCount)
+		if (memIndex + i < GetElementCount())
 			kvp = inputSequence[memIndex + i];
 
 		uint paddedLdsIndex = GetLDSIndex(ldsIndex + i);
@@ -116,7 +120,7 @@ void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
 {
 	[unroll]
 	for (uint i = 0; i < size; ++i)
-		if (memIndex + i < elementCount)
+		if (memIndex + i < GetElementCount())
 		{
 			uint paddedLdsIndex = GetLDSIndex(ldsIndex + i);
 			uint value = asuint(scratch[paddedLdsIndex + LDS_VALUES_OFFSET]);
@@ -135,7 +139,7 @@ void StoreToMemory(uint memIndex, uint ldsIndex,uint size)
 void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 {
 	// Skip useless groups
-	if (groupId.x > elementCount / ELEMENTS_COUNT)
+	if (groupId.x > GetElementCount() / ELEMENTS_COUNT)
 		return;
 
 	// Load data from memory to LDS
@@ -207,7 +211,7 @@ CBUFFER_END
 
 float GetKeyWithCheck(uint index)
 {
-	if (index >= elementCount) // TODO Handle elementCount more efficiently
+	if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
 		return REJECTED_VALUE;
 
 	return inputSequence[index].key;
@@ -217,14 +221,14 @@ float GetKeyWithCheck(uint index)
 [numthreads(64, 1, 1)]
 void MERGE_PASS(uint id : SV_DispatchThreadID,uint3 groupId : SV_GroupID)
 {
-	if (id.x >= elementCount)
+	if (id.x >= GetElementCount())
 		return;
 
 	const int arraySize = subArraySize << 1;
 	const int arrayStart = arraySize * (id.x / arraySize);
 
 	// If the current array considered is less than one half filled (due to element count), we can copy it directly as it is already sorted
-	if (elementCount - (uint)arrayStart <= subArraySize)
+	if (GetElementCount() - (uint)arrayStart <= subArraySize)
 	{
 #if FINAL_PASS
 		sortedSequence[id.x] = inputSequence[id.x].value;
