@@ -189,5 +189,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
             m_frameSettingsIsDirty = true;
         }
+
+        // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
+        public static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
+        {
+            var camera = cameraData.gameObject.GetComponent<Camera>();
+
+            cameraData.clearDepth = camera.clearFlags != CameraClearFlags.Nothing;
+
+            if (camera.clearFlags == CameraClearFlags.Skybox)
+                    cameraData.clearColorMode = ClearColorMode.Sky;
+                else if (camera.clearFlags == CameraClearFlags.SolidColor)
+                    cameraData.clearColorMode = ClearColorMode.BackgroundColor;
+                else // None
+                    cameraData.clearColorMode = ClearColorMode.None;
+        }
     }
 }
