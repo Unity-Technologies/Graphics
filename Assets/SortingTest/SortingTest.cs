@@ -19,6 +19,7 @@ public class SortingTest : MonoBehaviour
     private ComputeBuffer inputBuffer;
     private ComputeBuffer sortedBuffer;
     private ComputeBuffer[] scratchBuffer = new ComputeBuffer[2];
+    private ComputeBuffer deadElementCount;
 
     public int kElementCount = 1024;
     public int kGroupCount = 1;
@@ -66,6 +67,9 @@ public class SortingTest : MonoBehaviour
          diffMat.SetBuffer("buffer1", sortedBuffer1);
          diffMat.SetInt("elementCount", kElementCount);
          diffMat.SetInt("groupCount", kGroupCount);*/
+
+        deadElementCount = new ComputeBuffer(1, 4);
+        deadElementCount.SetData(new[] { 0 });
     }
 
     private struct KVP
@@ -123,6 +127,7 @@ public class SortingTest : MonoBehaviour
 
         sortShader.SetBuffer(sortKernelBitonic, "inputSequence", inputBuffer);
         sortShader.SetBuffer(sortKernelBitonic, "sortedSequence", scratchBuffer[0]);
+        sortShader.SetBuffer(sortKernelBitonic, "deadElementCount", deadElementCount);
         sortShader.Dispatch(sortKernelBitonic, kGroupCount, 1, 1);
 
         sortedBuffer = scratchBuffer[0];
@@ -133,6 +138,7 @@ public class SortingTest : MonoBehaviour
             sortShader.SetInt("subArraySize", arraySize);
             sortShader.SetBuffer(mergeKernel, "inputSequence", scratchBuffer[0]);
             sortShader.SetBuffer(mergeKernel, "sortedSequence", scratchBuffer[1]);
+            sortShader.SetBuffer(mergeKernel, "deadElementCount", deadElementCount);
 
             sortShader.Dispatch(mergeKernel, (kElementCount * kGroupCount) / 64, 1, 1);
 
