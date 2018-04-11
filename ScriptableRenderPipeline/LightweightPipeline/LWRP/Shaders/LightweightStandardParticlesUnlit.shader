@@ -76,9 +76,10 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                     o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz);
                     o.posWS.w = ComputeFogFactor(o.clipPos.z);
                     o.clipPos = TransformWorldToHClip(o.posWS.xyz);
-                    o.color = v.color * _Color;
+                    o.color = v.color;
 
-                    vertColor(o.color);
+                    // TODO: Instancing
+                    //vertColor(o.color);
                     vertTexcoord(v, o);
                     vertFading(o, o.posWS, o.clipPos);
 
