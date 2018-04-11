@@ -186,6 +186,10 @@ namespace UnityEditor.VFX.UI
             AddToClassList("VFXContext");
             AddToClassList("selectable");
 
+            this.mainContainer.clippingOptions = ClippingOptions.ClipContents;
+
+            mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
+
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
             m_FlowOutputConnectorContainer = this.Q("flow-outputs");

@@ -14,7 +14,6 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-
     internal partial class VFXViewController : Controller<VisualEffectAsset>
     {
         private int m_UseCount;
@@ -39,20 +38,20 @@ namespace UnityEditor.VFX.UI
             modifiedModels.Add(obj);
         }
 
-        Dictionary<ScriptableObject,List<Action>> m_Notified = new Dictionary<ScriptableObject,List<Action>>();
+        Dictionary<ScriptableObject, List<Action>> m_Notified = new Dictionary<ScriptableObject, List<Action>>();
 
 
         public void RegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
         {
-            if( target == null) 
+            if (target == null)
                 return;
 
             target.onModified += OnObjectModified;
             List<Action> notifieds;
-            if(m_Notified.TryGetValue(target,out notifieds))
+            if (m_Notified.TryGetValue(target, out notifieds))
             {
                 #if NOTIFICATION_VALIDATION
-                if(notifieds.Contains(action))
+                if (notifieds.Contains(action))
                     Debug.LogError("Adding the same notification twice on:" + target.name);
                 #endif
                 notifieds.Add(action);
@@ -62,21 +61,21 @@ namespace UnityEditor.VFX.UI
                 notifieds = new List<Action>();
                 notifieds.Add(action);
 
-                m_Notified.Add(target,notifieds);
+                m_Notified.Add(target, notifieds);
             }
         }
 
         public void UnRegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
         {
-            if( target == null) 
+            if (target == null)
                 return;
 
             target.onModified -= OnObjectModified;
             List<Action> notifieds;
-            if(m_Notified.TryGetValue(target,out notifieds))
+            if (m_Notified.TryGetValue(target, out notifieds))
             {
                 #if NOTIFICATION_VALIDATION
-                if(!notifieds.Contains(action))
+                if (!notifieds.Contains(action))
                     Debug.LogError("Removing a non existent notification" + target.name);
                 #endif
                 notifieds.Remove(action);
@@ -86,31 +85,35 @@ namespace UnityEditor.VFX.UI
         public void NotifyUpdate()
         {
             Profiler.BeginSample("VFXViewController.NotifyUpdate");
-            if( model == null || m_Graph == null || m_Graph != model.graph )
+            if (model == null || m_Graph == null || m_Graph != model.graph)
             {
+                Debug.LogWarning("ModelChanged");
                 ModelChanged(model);
             }
-            
+
             var tmp = modifiedModels;
             modifiedModels = otherModifiedModels;
             otherModifiedModels = tmp;
 
-        
-            foreach( var obj in otherModifiedModels)
+            int cpt = 0;
+            foreach (var obj in otherModifiedModels)
             {
                 List<Action> notifieds;
-                if( m_Notified.TryGetValue(obj,out notifieds))
+                if (m_Notified.TryGetValue(obj, out notifieds))
                 {
-                    foreach(var notified in notifieds)
+                    foreach (var notified in notifieds)
                     {
                         notified();
+                        cpt++;
                     }
                 }
             }
+
+            if (cpt > 0)
+                Debug.LogWarningFormat("{0} notification sent this frame", cpt);
             otherModifiedModels.Clear();
             Profiler.EndSample();
         }
-
 
         public VFXGraph graph { get {return model.graph as VFXGraph; }}
 
@@ -156,18 +159,18 @@ namespace UnityEditor.VFX.UI
         void GraphLost()
         {
             Clear();
-            if (!object.ReferenceEquals(m_Graph,null))
+            if (!object.ReferenceEquals(m_Graph, null))
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
-                UnRegisterNotification(m_Graph,GraphChanged);
+                UnRegisterNotification(m_Graph, GraphChanged);
 
                 m_Graph = null;
             }
-            if (!object.ReferenceEquals(m_UI,null))
+            if (!object.ReferenceEquals(m_UI, null))
             {
-                UnRegisterNotification(m_UI,UIChanged);
+                UnRegisterNotification(m_UI, UIChanged);
                 m_UI = null;
             }
         }
@@ -503,14 +506,14 @@ namespace UnityEditor.VFX.UI
                 RemoveFromGroupNodes(element as VFXNodeController);
 
 
-                Object.DestroyImmediate(context,true);
+                Object.DestroyImmediate(context, true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
 
-                Object.DestroyImmediate(block.block,true);
+                Object.DestroyImmediate(block.block, true);
             }
             else if (element is VFXParameterNodeController)
             {
@@ -553,7 +556,7 @@ namespace UnityEditor.VFX.UI
 
                 graph.RemoveChild(container as VFXModel);
 
-                Object.DestroyImmediate(container as VFXModel,true);
+                Object.DestroyImmediate(container as VFXModel, true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -615,10 +618,10 @@ namespace UnityEditor.VFX.UI
             // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
             if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
-                if (!object.ReferenceEquals(m_Graph,null))
+                if (!object.ReferenceEquals(m_Graph, null))
                 {
-                    UnRegisterNotification(m_Graph,GraphChanged);
-                    UnRegisterNotification(m_UI,UIChanged);
+                    UnRegisterNotification(m_Graph, GraphChanged);
+                    UnRegisterNotification(m_UI, UIChanged);
                 }
                 if (m_Graph != null)
                 {
@@ -633,7 +636,7 @@ namespace UnityEditor.VFX.UI
 
                 if (m_Graph != null)
                 {
-                    RegisterNotification(m_Graph,GraphChanged);
+                    RegisterNotification(m_Graph, GraphChanged);
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
@@ -641,7 +644,7 @@ namespace UnityEditor.VFX.UI
 
                     m_UI = m_Graph.UIInfos;
 
-                    RegisterNotification(m_UI,UIChanged);
+                    RegisterNotification(m_UI, UIChanged);
 
                     GraphChanged();
                 }
@@ -655,26 +658,29 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-        public void AddStickyNote(Vector2 position,VFXGroupNodeController group)
+        public void AddStickyNote(Vector2 position, VFXGroupNodeController group)
         {
             var ui = graph.UIInfos;
 
-            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "Title", 
-            position = new Rect(position, Vector2.one * 100), 
-            contents = "type something here", 
-            theme = StickyNote.Theme.Classic.ToString(),
-            textSize = StickyNote.TextSize.Small.ToString()};
+            var stickyNoteInfo = new VFXUI.StickyNoteInfo
+            {
+                title = "Title",
+                position = new Rect(position, Vector2.one * 100),
+                contents = "type something here",
+                theme = StickyNote.Theme.Classic.ToString(),
+                textSize = StickyNote.TextSize.Small.ToString()
+            };
 
             if (ui.stickyNoteInfos != null)
                 ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(Enumerable.Repeat(stickyNoteInfo, 1)).ToArray();
             else
                 ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[] { stickyNoteInfo };
 
-            if(group != null)
+            if (group != null)
             {
                 LightApplyChanges();
 
-                group.AddStickyNote(m_StickyNoteControllers[ui.stickyNoteInfos.Length-1]);
+                group.AddStickyNote(m_StickyNoteControllers[ui.stickyNoteInfos.Length - 1]);
             }
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
