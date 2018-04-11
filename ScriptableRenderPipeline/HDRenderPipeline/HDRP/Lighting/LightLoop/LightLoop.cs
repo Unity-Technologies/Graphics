@@ -2218,7 +2218,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
-            if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null)
+            if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null || m_CurrentSunLightShadowIndex < 0)
             {
                 cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.blackTexture);
                 return;
