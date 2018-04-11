@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
 
         public override sealed string name { get { return "CosineNew"; } }
 
-        protected override sealed bool allowInteger { get { return false; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

@@ -68,8 +68,6 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
     {
-        private static readonly Type[] kValidTypeWithoutInteger = kExpectedTypeOrdering.Except(new[] { typeof(uint), typeof(int) }).ToArray();
-
         protected sealed override Type defaultValueType
         {
             get
@@ -78,11 +76,40 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected virtual bool allowInteger { get { return true; } }
+        [Flags]
+        protected enum ValidTypeRule
+        {
+            allowVectorType = 1 << 1,
+            allowOneDimensionType = 1 << 2,
+            allowInteger = 1 << 3,
+
+            allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
+            allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
+        };
+
+        private static readonly Type[] kVectorType = new Type[] { typeof(Vector4), typeof(Vector3), typeof(Vector2) };
+        private static readonly Type[] kOneDimensionType = new Type[] { typeof(float), typeof(uint), typeof(int) };
+        private static readonly Type[] kIntegerType = new Type[] { typeof(uint), typeof(int) };
+
+        protected virtual ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverything; } }
 
         public sealed override IEnumerable<Type> validTypes
         {
-            get { return allowInteger ? kExpectedTypeOrdering : kValidTypeWithoutInteger; }
+            get
+            {
+                IEnumerable<Type> types = kExpectedTypeOrdering;
+                if ((typeFilter & ValidTypeRule.allowVectorType) != ValidTypeRule.allowVectorType)
+                    types = types.Except(kVectorType);
+
+                if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
+                    types = types.Except(kOneDimensionType);
+
+                if ((typeFilter & ValidTypeRule.allowInteger) != ValidTypeRule.allowInteger)
+                    types = types.Except(kIntegerType);
+
+                return types;
+            }
         }
 
         protected virtual Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)

@@ -23,11 +23,11 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return "LenghtNew";
+                return "LengthNew";
             }
         }
 
-        protected override sealed bool allowInteger { get { return false; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowVectorType; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

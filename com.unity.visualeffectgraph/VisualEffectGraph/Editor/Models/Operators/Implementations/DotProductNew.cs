@@ -21,6 +21,14 @@ namespace UnityEditor.VFX.Operator
 
         public override sealed string name { get { return "DotProductNew"; } }
 
+        protected sealed override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptOneDimension;
+            }
+        }
+
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[1]) };

@@ -5,7 +5,7 @@ namespace UnityEditor.VFX.Operator
     {
         public override sealed string name { get { return "PowerNew"; } }
         protected override sealed double defaultValueDouble { get { return 1.0; } }
-        protected override sealed bool allowInteger { get { return false; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
