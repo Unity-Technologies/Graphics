@@ -24,20 +24,19 @@
     #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
-    #define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+    #define _CameraPositionWS unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
 // ----------------------------------------------------------------------------
 
-/*
-    *****************************************************
-    *                                                   *
-    *  UnityPerCamera has been deprecated. Do NOT use!  *
-    *  Refer to UnityPerFrame and UnityPerView instead. *
-    *                                                   *
-    *****************************************************
+//  *****************************************************
+//  *                                                   *
+//  *  UnityPerCamera has been deprecated. Do NOT use!  *
+//  *  Refer to UnityPerFrame and UnityPerView instead. *
+//  *                                                   *
+//  *****************************************************
 
 CBUFFER_START(UnityPerCamera)
     // Time (t = time since current level load) values from Unity
@@ -63,10 +62,6 @@ CBUFFER_START(UnityPerCamera)
     // w = 1 + 1.0/height
     float4 _ScreenParams;
 
-    // x = camera.pixelWidth / RTHandle.maxWidth
-    // y = camera.pixelHeight / RTHandle.maxHeight
-    float4 _ScreenToTargetScale;
-
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1-far/near
     // y = far/near
@@ -85,8 +80,6 @@ CBUFFER_START(UnityPerCamera)
     // w = 1.0 if camera is ortho, 0.0 if perspective
     float4 unity_OrthoParams;
 CBUFFER_END
-*/
-
 
 CBUFFER_START(UnityPerCameraRare)
     float4 unity_CameraWorldClipPlanes[6];
@@ -269,7 +262,11 @@ CBUFFER_START(UnityPerView)
 
     // TODO: sort the vars below by the frequency of use (descending), and put commonly used ones together.
     // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
+#if defined(USING_STEREO_MATRICES)
+    float3 _Align16;
+#else
     float3 _CameraPositionWS;
+#endif
     float  _DetViewMatrix;        // determinant(_ViewMatrix)
     float4 _ScreenSize;           // { w, h, 1 / w, 1 / h }
     float4 _ScreenToTargetScale;  // { w / RTHandle.maxWidth, h / RTHandle.maxHeight, 0, 0 }
