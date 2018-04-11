@@ -29,13 +29,6 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderGenerator vertexInputs)
-        {
-            var builder = new ShaderStringBuilder();
-            GenerateApplicationVertexInputs(graphRequiements, builder);
-            vertexInputs.AddShaderChunk(builder.ToString(), false);
-        }
-
         public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderStringBuilder vertexInputs)
         {
             vertexInputs.AppendLine("struct GraphVertexInput");
@@ -72,19 +65,31 @@ namespace UnityEditor.ShaderGraph
 
         public static GenerationResults GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, GenerationMode mode, string name)
         {
+            // ----------------------------------------------------- //
+            //                         SETUP                         //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // String builders
+
+            var finalShader = new ShaderStringBuilder();
             var results = new GenerationResults();
             bool isUber = node == null;
-
-            var vertexInputs = new ShaderGenerator();
-            var vertexShader = new ShaderGenerator();
-            var surfaceDescriptionFunction = new ShaderGenerator();
-            var surfaceDescriptionStruct = new ShaderGenerator();
+            
+            var shaderProperties = new PropertyCollector();
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
-            var surfaceInputs = new ShaderGenerator();
 
-            surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
-            surfaceInputs.Indent();
+            var vertexDescriptionFunction = new ShaderStringBuilder(0);    
+
+            var surfaceDescriptionInputStruct = new ShaderStringBuilder(0);
+            var surfaceDescriptionStruct = new ShaderStringBuilder(0);
+            var surfaceDescriptionFunction = new ShaderStringBuilder(0);
+
+            var vertexInputs = new ShaderStringBuilder(0);        
+
+            // -------------------------------------
+            // Get Slot and Node lists
 
             var activeNodeList = ListPool<INode>.Get();
             if (isUber)
@@ -101,45 +106,6 @@ namespace UnityEditor.ShaderGraph
                 NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             }
 
-            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
-            GenerateApplicationVertexInputs(requirements, vertexInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, surfaceInputs);
-
-            if (requirements.requiresVertexColor)
-                surfaceInputs.AddShaderChunk(String.Format("float4 {0};", ShaderGeneratorNames.VertexColor), false);
-
-            if (requirements.requiresScreenPosition)
-                surfaceInputs.AddShaderChunk(String.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
-
-            results.previewMode = PreviewMode.Preview3D;
-            if (!isUber)
-            {
-                foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
-                {
-                    if (pNode.previewMode == PreviewMode.Preview3D)
-                    {
-                        results.previewMode = PreviewMode.Preview3D;
-                        break;
-                    }
-                }
-            }
-
-            foreach (var channel in requirements.requiresMeshUVs.Distinct())
-                surfaceInputs.AddShaderChunk(String.Format("half4 {0};", channel.GetUVName()), false);
-
-            surfaceInputs.Deindent();
-            surfaceInputs.AddShaderChunk("};", false);
-
-            vertexShader.AddShaderChunk("GraphVertexInput PopulateVertexData(GraphVertexInput v){", false);
-            vertexShader.Indent();
-            vertexShader.AddShaderChunk("return v;", false);
-            vertexShader.Deindent();
-            vertexShader.AddShaderChunk("}", false);
-
             var slots = new List<MaterialSlot>();
             foreach (var activeNode in isUber ? activeNodeList.Where(n => ((AbstractMaterialNode)n).hasPreview) : ((INode)node).ToEnumerable())
             {
@@ -148,9 +114,15 @@ namespace UnityEditor.ShaderGraph
                 else
                     slots.AddRange(activeNode.GetOutputSlots<MaterialSlot>());
             }
-            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, !isUber);
 
-            var shaderProperties = new PropertyCollector();
+            // -------------------------------------
+            // Get Requirements
+
+            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
+
+            // -------------------------------------
+            // Add preview shader output property
+            
             results.outputIdProperty = new Vector1ShaderProperty
             {
                 displayName = "OutputId",
@@ -160,7 +132,68 @@ namespace UnityEditor.ShaderGraph
             if (isUber)
                 shaderProperties.AddShaderProperty(results.outputIdProperty);
 
-            GenerateSurfaceDescription(
+            // ----------------------------------------------------- //
+            //                START VERTEX DESCRIPTION               //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Generate Vertex Description function
+            
+            vertexDescriptionFunction.AppendLine("GraphVertexInput PopulateVertexData(GraphVertexInput v)");
+            using(vertexDescriptionFunction.BlockScope())
+            {
+                vertexDescriptionFunction.AppendLine("return v;");
+            }
+
+            // ----------------------------------------------------- //
+            //               START SURFACE DESCRIPTION               //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Generate Input structure for Surface Description function
+            // Surface Description Input requirements are needed to exclude intermediate translation spaces
+            
+            surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
+            using(surfaceDescriptionInputStruct.BlockSemicolonScope())
+            {
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
+
+                if (requirements.requiresVertexColor)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (requirements.requiresScreenPosition)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                results.previewMode = PreviewMode.Preview3D;
+                if (!isUber)
+                {
+                    foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
+                    {
+                        if (pNode.previewMode == PreviewMode.Preview3D)
+                        {
+                            results.previewMode = PreviewMode.Preview3D;
+                            break;
+                        }
+                    }
+                }
+
+                foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                    surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+            }
+
+            // -------------------------------------
+            // Generate Output structure for Surface Description function
+
+            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, !isUber);
+
+            // -------------------------------------
+            // Generate Surface Description function
+
+            GenerateSurfaceDescriptionFunction(
                 activeNodeList,
                 node,
                 graph,
@@ -171,70 +204,102 @@ namespace UnityEditor.ShaderGraph
                 mode,
                 outputIdProperty: results.outputIdProperty);
 
-            var finalBuilder = new ShaderStringBuilder();
-            finalBuilder.AppendLine(@"Shader ""{0}""", name);
-            using (finalBuilder.BlockScope())
+            // ----------------------------------------------------- //
+            //           GENERATE VERTEX > PIXEL PIPELINE            //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Generate Input structure for Vertex shader
+
+            GenerateApplicationVertexInputs(requirements, vertexInputs);
+
+            // ----------------------------------------------------- //
+            //                      FINALIZE                         //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Build final shader
+
+            finalShader.AppendLine(@"Shader ""{0}""", name);
+            using (finalShader.BlockScope())
             {
-                finalBuilder.AppendLine("Properties");
-                using (finalBuilder.BlockScope())
+                finalShader.AppendLine("Properties");
+                using (finalShader.BlockScope())
                 {
-                    finalBuilder.AppendLines(shaderProperties.GetPropertiesBlock(0));
+                    finalShader.AppendLines(shaderProperties.GetPropertiesBlock(0));
                 }
+                finalShader.AppendNewLine();
 
-                finalBuilder.AppendLine(@"HLSLINCLUDE");
-                finalBuilder.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
-                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
-                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
-                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
-                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/UnityInstancing.hlsl""");
-                finalBuilder.AppendLine(@"#include ""CoreRP/ShaderLibrary/EntityLighting.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
-                finalBuilder.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
+                finalShader.AppendLine(@"HLSLINCLUDE");
+                finalShader.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
+                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/Common.hlsl""");
+                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/Packing.hlsl""");
+                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/Color.hlsl""");
+                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/UnityInstancing.hlsl""");
+                finalShader.AppendLine(@"#include ""CoreRP/ShaderLibrary/EntityLighting.hlsl""");
+                finalShader.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariables.hlsl""");
+                finalShader.AppendLine(@"#include ""ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
+                finalShader.AppendLine(@"#include ""ShaderGraphLibrary/Functions.hlsl""");
+                finalShader.AppendNewLine();
 
-                finalBuilder.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
-                finalBuilder.AppendLines(surfaceInputs.GetShaderString(0));
-                finalBuilder.Concat(functionBuilder);
-                finalBuilder.AppendLines(vertexInputs.GetShaderString(0));
-                finalBuilder.AppendLines(surfaceDescriptionStruct.GetShaderString(0));
-                finalBuilder.AppendLines(vertexShader.GetShaderString(0));
-                finalBuilder.AppendLines(surfaceDescriptionFunction.GetShaderString(0));
-                finalBuilder.AppendLine(@"ENDHLSL");
+                finalShader.AppendLines(shaderProperties.GetPropertiesDeclaration(0));
 
-                finalBuilder.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
+                finalShader.Concat(functionBuilder);
+                finalShader.AppendNewLine();
+
+                finalShader.AppendLines(surfaceDescriptionInputStruct.ToString());
+                finalShader.AppendNewLine();
+                finalShader.AppendLines(surfaceDescriptionStruct.ToString());
+                finalShader.AppendNewLine();
+                finalShader.AppendLines(surfaceDescriptionFunction.ToString());
+                finalShader.AppendNewLine();
+
+                finalShader.AppendLines(vertexInputs.ToString());
+                finalShader.AppendNewLine();
+                finalShader.AppendLines(vertexDescriptionFunction.ToString());
+                finalShader.AppendNewLine();
+
+                finalShader.AppendLine(@"ENDHLSL");
+
+                finalShader.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
                 ListPool<INode>.Release(activeNodeList);
             }
 
+            // -------------------------------------
+            // Finalize
+
             results.configuredTextures = shaderProperties.GetConfiguredTexutres();
             ShaderSourceMap sourceMap;
-            results.shader = finalBuilder.ToString(out sourceMap);
+            results.shader = finalShader.ToString(out sourceMap);
             results.sourceMap = sourceMap;
             return results;
         }
 
-        public static void GenerateSurfaceDescriptionStruct(ShaderGenerator surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
+        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
         {
-            surfaceDescriptionStruct.AddShaderChunk("struct SurfaceDescription{", false);
-            surfaceDescriptionStruct.Indent();
-            if (isMaster)
+            surfaceDescriptionStruct.AppendLine("struct SurfaceDescription");
+            using(surfaceDescriptionStruct.BlockSemicolonScope())
             {
-                foreach (var slot in slots)
-                    surfaceDescriptionStruct.AddShaderChunk(String.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), NodeUtils.GetHLSLSafeName(slot.shaderOutputName)), false);
-                surfaceDescriptionStruct.Deindent();
+                if (isMaster)
+                {
+                    foreach (var slot in slots)
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", 
+                            NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), 
+                            NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
+                    //surfaceDescriptionStruct.Deindent();
+                }
+                else
+                {
+                    surfaceDescriptionStruct.AppendLine("float4 PreviewOutput;");
+                }
             }
-            else
-            {
-                surfaceDescriptionStruct.AddShaderChunk("float4 PreviewOutput;", false);
-            }
-            surfaceDescriptionStruct.Deindent();
-            surfaceDescriptionStruct.AddShaderChunk("};", false);
         }
 
-        public static void GenerateSurfaceDescription(
+        public static void GenerateSurfaceDescriptionFunction(
             List<INode> activeNodeList,
             AbstractMaterialNode masterNode,
             AbstractMaterialGraph graph,
-            ShaderGenerator surfaceDescriptionFunction,
+            ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             ShaderGraphRequirements requirements,
@@ -247,73 +312,74 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            surfaceDescriptionFunction.AddShaderChunk(String.Format("{0} {1}(SurfaceInputs IN) {{", surfaceDescriptionName, functionName), false);
-            surfaceDescriptionFunction.Indent();
-            surfaceDescriptionFunction.AddShaderChunk(String.Format("{0} surface = ({0})0;", surfaceDescriptionName), false);
-
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
+            using(surfaceDescriptionFunction.BlockScope())
             {
-                if (activeNode is IGeneratesFunction)
+                ShaderGenerator sg = new ShaderGenerator();
+                surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
+                foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 {
-                    functionRegistry.builder.currentNode = activeNode;
-                    (activeNode as IGeneratesFunction).GenerateNodeFunction(functionRegistry, mode);
-                }
-                if (activeNode is IGeneratesBodyCode)
-                    (activeNode as IGeneratesBodyCode).GenerateNodeCode(surfaceDescriptionFunction, mode);
-                if (masterNode == null && activeNode.hasPreview)
-                {
-                    var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-                    if (outputSlot != null)
-                        surfaceDescriptionFunction.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
-                }
-
-                // In case of the subgraph output node, the preview is generated
-                // from the first input to the node.
-                if (activeNode is SubGraphOutputNode)
-                {
-                    var inputSlot = activeNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
-                    if (inputSlot != null)
+                    if (activeNode is IGeneratesFunction)
                     {
-                        var foundEdges = graph.GetEdges(inputSlot.slotReference).ToArray();
-                        string slotValue = foundEdges.Any() ? activeNode.GetSlotValue(inputSlot.id, mode) : inputSlot.GetDefaultValue(mode);
-                        surfaceDescriptionFunction.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, slotValue), false);
+                        functionRegistry.builder.currentNode = activeNode;
+                        (activeNode as IGeneratesFunction).GenerateNodeFunction(functionRegistry, mode);
+                    }
+                    if (activeNode is IGeneratesBodyCode)
+                        (activeNode as IGeneratesBodyCode).GenerateNodeCode(sg, mode);
+                    if (masterNode == null && activeNode.hasPreview)
+                    {
+                        var outputSlot = activeNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                        if (outputSlot != null)
+                            sg.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, outputSlot.id, activeNode.GetVariableNameForSlot(outputSlot.id))), false);
+                    }
+
+                    // In case of the subgraph output node, the preview is generated
+                    // from the first input to the node.
+                    if (activeNode is SubGraphOutputNode)
+                    {
+                        var inputSlot = activeNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                        if (inputSlot != null)
+                        {
+                            var foundEdges = graph.GetEdges(inputSlot.slotReference).ToArray();
+                            string slotValue = foundEdges.Any() ? activeNode.GetSlotValue(inputSlot.id, mode) : inputSlot.GetDefaultValue(mode);
+                            sg.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, slotValue), false);
+                        }
+                    }
+
+                    activeNode.CollectShaderProperties(shaderProperties, mode);
+                }
+                surfaceDescriptionFunction.AppendLines(sg.GetShaderString(0));
+                functionRegistry.builder.currentNode = null;
+
+                if (masterNode != null)
+                {
+                    if (masterNode is IMasterNode)
+                    {
+                        var usedSlots = slots ?? masterNode.GetInputSlots<MaterialSlot>();
+                        foreach (var input in usedSlots)
+                        {
+                            var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                            if (foundEdges.Any())
+                            {
+                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), masterNode.GetSlotValue(input.id, mode));
+                            }
+                            else
+                            {
+                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode));
+                            }
+                        }
+                    }
+                    else if (masterNode.hasPreview)
+                    {
+                        foreach (var slot in masterNode.GetOutputSlots<MaterialSlot>())
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetSlotValue(slot.id, mode));
                     }
                 }
 
-                activeNode.CollectShaderProperties(shaderProperties, mode);
+                surfaceDescriptionFunction.AppendLine("return surface;");
             }
-            functionRegistry.builder.currentNode = null;
-
-            if (masterNode != null)
-            {
-                if (masterNode is IMasterNode)
-                {
-                    var usedSlots = slots ?? masterNode.GetInputSlots<MaterialSlot>();
-                    foreach (var input in usedSlots)
-                    {
-                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
-                        if (foundEdges.Any())
-                        {
-                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), masterNode.GetSlotValue(input.id, mode)), true);
-                        }
-                        else
-                        {
-                            surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode)), true);
-                        }
-                    }
-                }
-                else if (masterNode.hasPreview)
-                {
-                    foreach (var slot in masterNode.GetOutputSlots<MaterialSlot>())
-                        surfaceDescriptionFunction.AddShaderChunk(string.Format("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(slot.shaderOutputName), masterNode.GetSlotValue(slot.id, mode)), true);
-                }
-            }
-
-            surfaceDescriptionFunction.AddShaderChunk("return surface;", false);
-            surfaceDescriptionFunction.Deindent();
-            surfaceDescriptionFunction.AddShaderChunk("}", false);
         }
 
         const string k_VertexDescriptionStructName = "VertexDescription";
@@ -327,16 +393,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
         public static void GenerateVertexDescriptionFunction(
+            AbstractMaterialGraph graph,
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
-            GenerationMode generationMode,
+            GenerationMode mode,
             List<AbstractMaterialNode> nodes,
             List<MaterialSlot> slots)
         {
+            if (graph == null)
+                return;
+
+            graph.CollectShaderProperties(shaderProperties, mode);
+
             builder.AppendLine("{0} PopulateVertexData(VertexDescriptionInputs IN)", k_VertexDescriptionStructName);
             using (builder.BlockScope())
             {
+                ShaderGenerator sg = new ShaderGenerator();
                 builder.AppendLine("{0} description = ({0})0;", k_VertexDescriptionStructName);
                 foreach (var node in nodes)
                 {
@@ -344,22 +417,21 @@ namespace UnityEditor.ShaderGraph
                     if (generatesFunction != null)
                     {
                         functionRegistry.builder.currentNode = node;
-                        generatesFunction.GenerateNodeFunction(functionRegistry, generationMode);
+                        generatesFunction.GenerateNodeFunction(functionRegistry, mode);
                     }
                     var generatesBodyCode = node as IGeneratesBodyCode;
                     if (generatesBodyCode != null)
                     {
-                        var generator = new ShaderGenerator();
-                        generatesBodyCode.GenerateNodeCode(generator, generationMode);
-                        builder.AppendLines(generator.GetShaderString(0));
+                        generatesBodyCode.GenerateNodeCode(sg, mode);               
                     }
-                    node.CollectShaderProperties(shaderProperties, generationMode);
+                    node.CollectShaderProperties(shaderProperties, mode);
                 }
+                builder.AppendLines(sg.GetShaderString(0));
                 foreach (var slot in slots)
                 {
                     var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
                     var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                    var slotValue = isSlotConnected ? ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, generationMode) : slot.GetDefaultValue(generationMode);
+                    var slotValue = isSlotConnected ? ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode) : slot.GetDefaultValue(mode);
                     builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                 }
                 builder.AppendLine("return description;");
