@@ -17,9 +17,9 @@ namespace UnityEditor.VFX.UI
         public VFXContext context       { get { return model as VFXContext; } }
 
         private List<VFXBlockController> m_BlockControllers = new List<VFXBlockController>();
-        public IEnumerable<VFXBlockController> blockControllers
+        public ReadOnlyCollection<VFXBlockController> blockControllers
         {
-            get { return m_BlockControllers; }
+            get { return m_BlockControllers.AsReadOnly(); }
         }
 
         protected List<VFXFlowAnchorController> m_FlowInputAnchors = new List<VFXFlowAnchorController>();
