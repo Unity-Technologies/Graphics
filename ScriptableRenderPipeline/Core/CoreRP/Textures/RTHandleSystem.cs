@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
@@ -6,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     public delegate Vector2Int ScaleFunc(Vector2Int size);
 
-    public partial class RTHandleSystem
+    public partial class RTHandleSystem : IDisposable
     {
         internal enum RTCategory
         {
@@ -33,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
         public int maxWidth { get { return GetMaxWidth(m_ScaledRTCurrentCategory); } }
         public int maxHeight { get { return GetMaxHeight(m_ScaledRTCurrentCategory); } }
 
-        internal RTHandleSystem()
+        public RTHandleSystem()
         {
             m_AutoSizedRTs = new List<RTHandle>();
             for (int i = 0; i < (int)RTCategory.Count; ++i)
@@ -41,6 +42,11 @@ namespace UnityEngine.Experimental.Rendering
                 m_MaxWidths[i] = 1;
                 m_MaxHeights[i] = 1;
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
 
         // Call this once to set the initial size and allow msaa targets or not.
@@ -95,6 +101,19 @@ namespace UnityEngine.Experimental.Rendering
 
         int GetMaxWidth(RTCategory category) { return m_MaxWidths[(int)category]; }
         int GetMaxHeight(RTCategory category) { return m_MaxHeights[(int)category]; }
+
+        void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                for (int i = 0, c = m_AutoSizedRTs.Count; i < c; ++i)
+                {
+                    var rt = m_AutoSizedRTs[i];
+                    Release(rt);
+                }
+                m_AutoSizedRTs.Clear();
+            }
+        }
 
         void Resize(int width, int height, RTCategory category, MSAASamples msaaSamples)
         {
