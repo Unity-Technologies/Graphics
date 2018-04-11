@@ -334,20 +334,27 @@ namespace UnityEditor.VFX.Test
             Func<VFXValueType, VisualEffect, string, bool> fnHas_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     var editor = Editor.CreateEditor(vfx);
-                    var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
-                    var vfxField = propertySheet.FindPropertyRelative(fieldName);
-                    if (vfxField != null)
+                    try
                     {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
+                        var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
+                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var vfxField = propertySheet.FindPropertyRelative(fieldName);
+                        if (vfxField != null)
                         {
-                            var property = vfxField.GetArrayElementAtIndex(i);
-                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                            if (nameProperty == name)
+                            for (int i = 0; i < vfxField.arraySize; ++i)
                             {
-                                return true;
+                                var property = vfxField.GetArrayElementAtIndex(i);
+                                var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                                if (nameProperty == name)
+                                {
+                                    return true;
+                                }
                             }
                         }
+                    }
+                    finally
+                    {
+                        GameObject.DestroyImmediate(editor);
                     }
                     return false;
                 };
@@ -405,90 +412,105 @@ namespace UnityEditor.VFX.Test
             Func<VFXValueType, VisualEffect, string, object> fnGet_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name)
                 {
                     var editor = Editor.CreateEditor(vfx);
-                    var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    editor.serializedObject.Update();
-
-                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
-                    var vfxField = propertySheet.FindPropertyRelative(fieldName);
-                    if (vfxField != null)
+                    try
                     {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
-                        {
-                            var property = vfxField.GetArrayElementAtIndex(i);
-                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                            if (nameProperty == name)
-                            {
-                                property = property.FindPropertyRelative("m_Value");
+                        var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
+                        editor.serializedObject.Update();
 
-                                switch (type)
+                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var vfxField = propertySheet.FindPropertyRelative(fieldName);
+                        if (vfxField != null)
+                        {
+                            for (int i = 0; i < vfxField.arraySize; ++i)
+                            {
+                                var property = vfxField.GetArrayElementAtIndex(i);
+                                var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                                if (nameProperty == name)
                                 {
-                                    case VFXValueType.Float: return property.floatValue;
-                                    case VFXValueType.Float2: return property.vector2Value;
-                                    case VFXValueType.Float3: return property.vector3Value;
-                                    case VFXValueType.Float4: return property.vector4Value;
-                                    case VFXValueType.Int32: return property.intValue;
-                                    case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
-                                    case VFXValueType.Curve: return property.animationCurveValue;
-                                    case VFXValueType.ColorGradient: return property.gradientValue;
-                                    case VFXValueType.Mesh: return property.objectReferenceValue;
-                                    case VFXValueType.Texture2D:
-                                    case VFXValueType.Texture2DArray:
-                                    case VFXValueType.Texture3D:
-                                    case VFXValueType.TextureCube:
-                                    case VFXValueType.TextureCubeArray: return property.objectReferenceValue;
-                                    case VFXValueType.Boolean: return property.boolValue;
-                                    case VFXValueType.Matrix4x4: return fnMatrixFromSerializedProperty(property);
+                                    property = property.FindPropertyRelative("m_Value");
+
+                                    switch (type)
+                                    {
+                                        case VFXValueType.Float: return property.floatValue;
+                                        case VFXValueType.Float2: return property.vector2Value;
+                                        case VFXValueType.Float3: return property.vector3Value;
+                                        case VFXValueType.Float4: return property.vector4Value;
+                                        case VFXValueType.Int32: return property.intValue;
+                                        case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
+                                        case VFXValueType.Curve: return property.animationCurveValue;
+                                        case VFXValueType.ColorGradient: return property.gradientValue;
+                                        case VFXValueType.Mesh: return property.objectReferenceValue;
+                                        case VFXValueType.Texture2D:
+                                        case VFXValueType.Texture2DArray:
+                                        case VFXValueType.Texture3D:
+                                        case VFXValueType.TextureCube:
+                                        case VFXValueType.TextureCubeArray: return property.objectReferenceValue;
+                                        case VFXValueType.Boolean: return property.boolValue;
+                                        case VFXValueType.Matrix4x4: return fnMatrixFromSerializedProperty(property);
+                                    }
+                                    Assert.Fail();
                                 }
-                                Assert.Fail();
                             }
                         }
                     }
+                    finally
+                    {
+                        GameObject.DestroyImmediate(editor);
+                    }
+
                     return null;
                 };
 
             Action<VFXValueType, VisualEffect, string, object> fnSet_UsingSerializedProperty = delegate(VFXValueType type, VisualEffect vfx, string name, object value)
                 {
                     var editor = Editor.CreateEditor(vfx);
-                    editor.serializedObject.Update();
-
-                    var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                    var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
-                    var vfxField = propertySheet.FindPropertyRelative(fieldName);
-                    if (vfxField != null)
+                    try
                     {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
-                        {
-                            var property = vfxField.GetArrayElementAtIndex(i);
-                            var propertyName = property.FindPropertyRelative("m_Name").stringValue;
-                            if (propertyName == name)
-                            {
-                                var propertyValue = property.FindPropertyRelative("m_Value");
-                                var propertyOverriden = property.FindPropertyRelative("m_Overridden");
+                        editor.serializedObject.Update();
 
-                                switch (type)
+                        var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
+                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var vfxField = propertySheet.FindPropertyRelative(fieldName);
+                        if (vfxField != null)
+                        {
+                            for (int i = 0; i < vfxField.arraySize; ++i)
+                            {
+                                var property = vfxField.GetArrayElementAtIndex(i);
+                                var propertyName = property.FindPropertyRelative("m_Name").stringValue;
+                                if (propertyName == name)
                                 {
-                                    case VFXValueType.Float: propertyValue.floatValue = (float)value; break;
-                                    case VFXValueType.Float2: propertyValue.vector2Value = (Vector2)value; break;
-                                    case VFXValueType.Float3: propertyValue.vector3Value = (Vector3)value; break;
-                                    case VFXValueType.Float4: propertyValue.vector4Value = (Vector4)value; break;
-                                    case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
-                                    case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
-                                    case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
-                                    case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
-                                    case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
-                                    case VFXValueType.Texture2D:
-                                    case VFXValueType.Texture2DArray:
-                                    case VFXValueType.Texture3D:
-                                    case VFXValueType.TextureCube:
-                                    case VFXValueType.TextureCubeArray: propertyValue.objectReferenceValue = (UnityEngine.Object)value;   break;
-                                    case VFXValueType.Boolean: propertyValue.boolValue = (bool)value; break;
-                                    case VFXValueType.Matrix4x4: fnMatrixToSerializedProperty(propertyValue, (Matrix4x4)value); break;
+                                    var propertyValue = property.FindPropertyRelative("m_Value");
+                                    var propertyOverriden = property.FindPropertyRelative("m_Overridden");
+
+                                    switch (type)
+                                    {
+                                        case VFXValueType.Float: propertyValue.floatValue = (float)value; break;
+                                        case VFXValueType.Float2: propertyValue.vector2Value = (Vector2)value; break;
+                                        case VFXValueType.Float3: propertyValue.vector3Value = (Vector3)value; break;
+                                        case VFXValueType.Float4: propertyValue.vector4Value = (Vector4)value; break;
+                                        case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
+                                        case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
+                                        case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
+                                        case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
+                                        case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
+                                        case VFXValueType.Texture2D:
+                                        case VFXValueType.Texture2DArray:
+                                        case VFXValueType.Texture3D:
+                                        case VFXValueType.TextureCube:
+                                        case VFXValueType.TextureCubeArray: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
+                                        case VFXValueType.Boolean: propertyValue.boolValue = (bool)value; break;
+                                        case VFXValueType.Matrix4x4: fnMatrixToSerializedProperty(propertyValue, (Matrix4x4)value); break;
+                                    }
+                                    propertyOverriden.boolValue = true;
                                 }
-                                propertyOverriden.boolValue = true;
                             }
                         }
+                        editor.serializedObject.ApplyModifiedProperties();
                     }
-                    editor.serializedObject.ApplyModifiedProperties();
+                    finally
+                    {
+                        GameObject.DestroyImmediate(editor);
+                    }
                 };
 
             Func<VFXValueType, VisualEffect, string, bool> fnHas = bindingModes ? fnHas_UsingBindings : fnHas_UsingSerializedProperty;

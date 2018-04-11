@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("The gradient to sample from.")]
-            public Gradient gradient = new Gradient();
+            public Gradient gradient = VFXResources.defaultResources.gradient;
             [Range(0.0f, 1.0f), Tooltip("The time along the gradient to take a sample from.")]
             public float time = 0.0f;
         }

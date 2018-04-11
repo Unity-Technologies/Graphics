@@ -418,11 +418,16 @@ namespace UnityEditor.VFX.UI
                 context.Detach();
 
                 RemoveFromGroupNodes(element as VFXNodeController);
+
+
+                Object.DestroyImmediate(context,true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
                 block.contextController.RemoveBlock(block.block);
+
+                Object.DestroyImmediate(block.block,true);
             }
             else if (element is VFXParameterNodeController)
             {
@@ -464,6 +469,8 @@ namespace UnityEditor.VFX.UI
                 while (slotToClean != null);
 
                 graph.RemoveChild(container as VFXModel);
+
+                Object.DestroyImmediate(container as VFXModel,true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -567,16 +574,27 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-        public void AddStickyNote(Vector2 position)
+        public void AddStickyNote(Vector2 position,VFXGroupNodeController group)
         {
             var ui = graph.UIInfos;
 
-            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "", position = new Rect(position, Vector2.one * 100), contents = "type something here", theme = StickyNote.Theme.Classic.ToString()};
+            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "Title", 
+            position = new Rect(position, Vector2.one * 100), 
+            contents = "type something here", 
+            theme = StickyNote.Theme.Classic.ToString(),
+            textSize = StickyNote.TextSize.Small.ToString()};
 
             if (ui.stickyNoteInfos != null)
                 ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(Enumerable.Repeat(stickyNoteInfo, 1)).ToArray();
             else
                 ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[] { stickyNoteInfo };
+
+            if(group != null)
+            {
+                LightApplyChanges();
+
+                group.AddStickyNote(m_StickyNoteControllers[ui.stickyNoteInfos.Length-1]);
+            }
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
@@ -616,20 +634,23 @@ namespace UnityEditor.VFX.UI
             }
 
             //Patch group nodes, removing this sticky note and fixing ids that are bigger than index
-            for (int i = 0; i < ui.groupInfos.Length; ++i)
+            if (ui.groupInfos != null)
             {
-                for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                for (int i = 0; i < ui.groupInfos.Length; ++i)
                 {
-                    if (ui.groupInfos[i].contents[j].isStickyNote)
+                    for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                     {
-                        if (ui.groupInfos[i].contents[j].id == index)
+                        if (ui.groupInfos[i].contents[j].isStickyNote)
                         {
-                            ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
-                            j--;
-                        }
-                        else if (ui.groupInfos[i].contents[j].id > index)
-                        {
-                            --(ui.groupInfos[i].contents[j].id);
+                            if (ui.groupInfos[i].contents[j].id == index)
+                            {
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, idx) => idx != j).ToArray();
+                                j--;
+                            }
+                            else if (ui.groupInfos[i].contents[j].id > index)
+                            {
+                                --(ui.groupInfos[i].contents[j].id);
+                            }
                         }
                     }
                 }

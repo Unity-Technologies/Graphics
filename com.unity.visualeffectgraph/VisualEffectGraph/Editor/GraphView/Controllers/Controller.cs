@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            if( m_Handle != null)
+            if (m_Handle != null)
             {
                 try
                 {

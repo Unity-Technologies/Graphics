@@ -185,7 +185,6 @@ namespace UnityEditor.VFX.UI
             //m_Label.AddTooltip(tooltip);
         }
 
-
         bool m_IconClickableAdded;
 
         void UpdateExpandable()
@@ -199,22 +198,22 @@ namespace UnityEditor.VFX.UI
                         Resources.Load<Texture2D>("VFX/minus")
                     };
                 }
-                if( ! m_IconClickableAdded)
+                if (!m_IconClickableAdded)
                 {
                     m_Icon.AddManipulator(m_IconClickable);
                     m_IconClickableAdded = false;
                 }
-                        
+
                 m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
             }
             else
             {
-                if( m_IconClickableAdded)
+                if (m_IconClickableAdded)
                 {
                     m_Icon.RemoveManipulator(m_IconClickable);
                     m_IconClickableAdded = false;
                 }
-                    
+
                 m_Icon.style.backgroundImage = null;
             }
         }
@@ -222,7 +221,7 @@ namespace UnityEditor.VFX.UI
         public PropertyRM(IPropertyRMProvider provider, float labelWidth)
         {
             this.AddStyleSheetPathWithSkinVariant("VFXControls");
-            AddStyleSheetPath("PropertyRM");
+            this.AddStyleSheetPathWithSkinVariant("PropertyRM");
 
             m_Provider = provider;
             m_labelWidth = labelWidth;
@@ -308,36 +307,39 @@ namespace UnityEditor.VFX.UI
             Type propertyType = null;
             Type type = controller.portType;
 
-            if (type.IsEnum)
+            if (type != null)
             {
-                propertyType = typeof(EnumPropertyRM);
-            }
-            else if( typeof(ISpaceable).IsAssignableFrom(type))
-            {
-                if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                if (type.IsEnum)
                 {
-                    propertyType = typeof(SpaceablePropertyRM<ISpaceable>);
+                    propertyType = typeof(EnumPropertyRM);
                 }
-            }
-            else
-            {
-                while (type != typeof(object) && type != null)
+                else if (typeof(ISpaceable).IsAssignableFrom(type))
                 {
                     if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                     {
-                        /*foreach (var inter in type.GetInterfaces())
-                        {
-                            if (m_TypeDictionary.TryGetValue(inter, out propertyType))
-                            {
-                                break;
-                            }
-                        }*/
+                        propertyType = typeof(SpaceablePropertyRM<ISpaceable>);
                     }
-                    if (propertyType != null)
+                }
+                else
+                {
+                    while (type != typeof(object) && type != null)
                     {
-                        break;
+                        if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                        {
+                            /*foreach (var inter in type.GetInterfaces())
+                            {
+                                if (m_TypeDictionary.TryGetValue(inter, out propertyType))
+                                {
+                                    break;
+                                }
+                            }*/
+                        }
+                        if (propertyType != null)
+                        {
+                            break;
+                        }
+                        type = type.BaseType;
                     }
-                    type = type.BaseType;
                 }
             }
             if (propertyType == null)
@@ -352,8 +354,8 @@ namespace UnityEditor.VFX.UI
         {
             Type propertyType = GetPropertyType(controller);
 
-            
-            Profiler.BeginSample(propertyType.Name+".CreateInstance");
+
+            Profiler.BeginSample(propertyType.Name + ".CreateInstance");
             PropertyRM result = System.Activator.CreateInstance(propertyType, new object[] { controller, labelWidth }) as PropertyRM;
             Profiler.EndSample();
 
@@ -458,6 +460,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Field.SetEnabled(propertyEnabled);
         }
+
         protected override void UpdateIndeterminate()
         {
             m_Field.visible = !indeterminate;
@@ -524,6 +527,7 @@ namespace UnityEditor.VFX.UI
         {
             (m_Field as VisualElement).SetEnabled(propertyEnabled);
         }
+
         protected override void UpdateIndeterminate()
         {
             (m_Field as VisualElement).visible = !indeterminate;
@@ -586,6 +590,7 @@ namespace UnityEditor.VFX.UI
         {
             fieldControl.indeterminate = indeterminate;
         }
+
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);
@@ -614,6 +619,7 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
         }
+
         protected override void UpdateIndeterminate()
         {
         }

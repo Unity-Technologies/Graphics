@@ -194,7 +194,7 @@ namespace UnityEditor.VFX.UI
                 controller.UpdateInfos();
                 bool editable = controller.editable;
                 m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
-                m_PropertyRM.indeterminate = ! editable && controller.indeterminate;
+                m_PropertyRM.indeterminate = !editable && controller.indeterminate;
                 m_PropertyRM.Update();
             }
         }

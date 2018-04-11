@@ -41,8 +41,9 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
-        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            
         }
 
         public void OnMoved()
@@ -69,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
 
                 var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<IControlledElement>().Where(t=>t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
+                var elementContent = containedElements.OfType<IControlledElement>().Where(t => t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
 
                 bool elementsChanged = false;
                 var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
@@ -108,7 +109,7 @@ namespace UnityEditor.VFX.UI
 
         bool m_ModificationFromController;
 
-        public static bool inRemoveElement{get;set;}
+        public static bool inRemoveElement {get; set; }
 
         public void ElementAddedToGroupNode(GraphElement element)
         {
@@ -122,7 +123,7 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
-                else if( element is VFXStickyNote)
+                else if (element is VFXStickyNote)
                 {
                     controller.AddStickyNote((element as VFXStickyNote).controller);
                 }
@@ -131,7 +132,7 @@ namespace UnityEditor.VFX.UI
 
         public void ElementRemovedFromGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromController && ! inRemoveElement)
+            if (!m_ModificationFromController && !inRemoveElement)
             {
                 ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
                 if (node != null)
@@ -140,7 +141,7 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
-                else if( element is VFXStickyNote)
+                else if (element is VFXStickyNote)
                 {
                     controller.RemoveStickyNote((element as VFXStickyNote).controller);
                 }
