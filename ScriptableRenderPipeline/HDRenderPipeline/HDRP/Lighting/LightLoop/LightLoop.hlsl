@@ -147,32 +147,100 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     float reflectionHierarchyWeight = 0.0; // Max: 1.0
     float refractionHierarchyWeight = 0.0; // Max: 1.0
 
-    if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+    // First loop iteration is:
+    //  1. Screen Space Refraction / Reflection
+    //  2. Environment Reflection / Refraction
+    //  3. Sky Reflection / Refraction
+    //
+    // Following loop iterations are:
+    //  1. Environment Reflection / Refraction
+    //  2. Sky Reflection / Refraction
+
+    // Common variable for all iterations
+    // Define macro for a better understanding of the loop
+#ifdef LIGHTLOOP_TILE_PASS
+    uint envLightStart;
+# define FETCHINDEX(index) FetchIndex(envLightStart, index);
+#else
+# define FETCHINDEX(index) index
+#endif
+    uint envLightCount;
+
+#define CONCAT(L, R) L##R
+#define EVALUATE_BSDF_ENV(envLightData, TYPE, type) {\
+    IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, envLightData, bsdfData, \
+    envLightData.influenceShapeType, \
+    CONCAT(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), CONCAT(type, HierarchyWeight)); \
+    AccumulateIndirectLighting(lighting, aggregateLighting);\
+}
+
+    // First loop iteration
+    if (featureFlags & (
+              LIGHTFEATUREFLAGS_ENV 
+            | LIGHTFEATUREFLAGS_SKY
+            | LIGHTFEATUREFLAGS_SSREFRACTION
+            | LIGHTFEATUREFLAGS_SSREFLECTION
+        )
+    )
     {
-        IndirectLighting lighting = EvaluateBSDF_SSLighting(
-            context,
-            V,
-            posInput,
-            preLightData,
-            bsdfData,
-            GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION,
-            refractionHierarchyWeight);
-        AccumulateIndirectLighting(lighting, aggregateLighting);
+        // Fetch first env light to provide the scene proxy for screen space computation
+        EnvLightData envLightData;
+        ZERO_INITIALIZE(EnvLightData, envLightData);
+        {
+            #ifdef LIGHTLOOP_TILE_PASS
+                GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+            #else
+                envLightCount = _EnvLightCount;
+            #endif
+            if (envLightCount > 0)
+            {
+                uint envLightIndex = FETCHINDEX(0);
+                envLightData = _EnvLightDatas[envLightIndex];
+            }
+            else
+                envLightData = InitSkyEnvLightData(0);
+        }
+
+        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+        {
+            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
+                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
+            AccumulateIndirectLighting(lighting, aggregateLighting);
+        }
+
+        if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
+        {
+            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
+                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+            AccumulateIndirectLighting(lighting, aggregateLighting);
+        }
+
+        if ((featureFlags & LIGHTFEATUREFLAGS_ENV) && envLightCount > 0)
+        {
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+            
+            EVALUATE_BSDF_ENV(envLightData, REFLECTION, reflection);
+
+            if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+                EVALUATE_BSDF_ENV(envLightData, REFRACTION, refraction);
+        }
+
+        // Only apply the sky IBL if the sky texture is available
+        if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
+        {
+            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+
+            // The sky data are generated on the fly so the compiler can optimize the code
+            EnvLightData envLightSky = InitSkyEnvLightData(0);
+            EVALUATE_BSDF_ENV(envLightSky, REFLECTION, reflection);
+
+            if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+                EVALUATE_BSDF_ENV(envLightSky, REFRACTION, refraction);
+        }
     }
 
-    if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
-    {
-        IndirectLighting lighting = EvaluateBSDF_SSLighting(
-            context,
-            V,
-            posInput,
-            preLightData,
-            bsdfData,
-            GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION,
-            reflectionHierarchyWeight);
-        AccumulateIndirectLighting(lighting, aggregateLighting);
-    }
-
+    // Following loop iterations
     if (featureFlags & LIGHTFEATUREFLAGS_ENV || featureFlags & LIGHTFEATUREFLAGS_SKY)
     {
         // Reflection probes are sorted by volume (in the increasing order).
@@ -180,26 +248,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
-        #ifdef LIGHTLOOP_TILE_PASS
-            uint envLightStart;
-            uint envLightCount;
-            GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-        #else
-            uint envLightCount = _EnvLightCount;
-        #endif
-
             // Note: In case of IBL we are sorted from smaller to bigger projected solid angle bounds. We are not sorted by type so we can't do a 'while' approach like for area light.
             for (i = 0; i < envLightCount && reflectionHierarchyWeight < 1.0; ++i)
             {
-            #ifdef LIGHTLOOP_TILE_PASS
-                uint envLightIndex = FetchIndex(envLightStart, i);
-            #else
-                uint envLightIndex = i;
-            #endif
-                IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData,
-                                                                _EnvLightDatas[envLightIndex].influenceShapeType,
-                                                                GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
-                AccumulateIndirectLighting(lighting, aggregateLighting);
+                uint envLightIndex = FETCHINDEX(i);
+                EVALUATE_BSDF_ENV(_EnvLightDatas[envLightIndex], REFLECTION, reflection);
             }
 
             // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
@@ -211,15 +264,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 for (i = 0; i < envLightCount && refractionHierarchyWeight < 1.0; ++i)
                 {
-                #ifdef LIGHTLOOP_TILE_PASS
-                    uint envLightIndex = FetchIndex(envLightStart, i);
-                #else
-                    uint envLightIndex = i;
-                #endif
-                    IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, _EnvLightDatas[envLightIndex], bsdfData,
-                                                                    _EnvLightDatas[envLightIndex].influenceShapeType,
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
-                    AccumulateIndirectLighting(lighting, aggregateLighting);
+                    uint envLightIndex = FETCHINDEX(i);
+                    EVALUATE_BSDF_ENV(_EnvLightDatas[envLightIndex], REFRACTION, refraction);
                 }
             }
         }
@@ -235,11 +281,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                 // The sky data are generated on the fly so the compiler can optimize the code
                 EnvLightData envLightSky = InitSkyEnvLightData(0);
-
-                IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, bsdfData, 
-                                                                    ENVSHAPETYPE_SKY, 
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
-                AccumulateIndirectLighting(lighting, aggregateLighting);
+                EVALUATE_BSDF_ENV(envLightSky, REFLECTION, reflection);
             }
 
             if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
@@ -251,15 +293,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     
                     // The sky data are generated on the fly so the compiler can optimize the code
                     EnvLightData envLightSky = InitSkyEnvLightData(0);
-
-                    IndirectLighting lighting = EvaluateBSDF_Env(       context, V, posInput, preLightData, envLightSky, bsdfData, 
-                                                                        ENVSHAPETYPE_SKY, 
-                                                                        GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
-                    AccumulateIndirectLighting(lighting, aggregateLighting);
+                    EVALUATE_BSDF_ENV(envLightSky, REFRACTION, refraction);
                 }
             }
         }
     }
+#undef EVALUATE_BSDF_ENV
+#undef CONCAT
+#undef FETCHINDEX
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
