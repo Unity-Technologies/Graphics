@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         protected int m_BufferCount;
         protected RenderTargetIdentifier[] m_RTIDs;
-        protected RTHandle[] m_RTs;
+        protected RTHandleSystem.RTHandle[] m_RTs;
         protected int[] m_TextureShaderIDs;
 
         public int bufferCount { get { return m_BufferCount; } }
@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_BufferCount = maxBufferCount;
             m_RTIDs = new RenderTargetIdentifier[maxBufferCount];
-            m_RTs = new RTHandle[maxBufferCount];
+            m_RTs = new RTHandleSystem.RTHandle[maxBufferCount];
             m_TextureShaderIDs = new int[maxBufferCount];
         }
 
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_RTIDs;
         }
 
-        public RTHandle GetBuffer(int index)
+        public RTHandleSystem.RTHandle GetBuffer(int index)
         {
             Debug.Assert(index < m_BufferCount);
             return m_RTs[index];
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             for (int i = 0; i < m_BufferCount; ++i)
             {
-                RTHandle.Release(m_RTs[i]);
+                RTHandles.Release(m_RTs[i]);
                 m_RTs[i] = null;
             }
         }

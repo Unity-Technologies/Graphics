@@ -48,19 +48,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderDepthPyramid(
             int width, int height,
             CommandBuffer cmd,
-            RTHandle sourceTexture,
-            RTHandle targetTexture,
-            List<RTHandle> mips,
+            RTHandleSystem.RTHandle sourceTexture,
+            RTHandleSystem.RTHandle targetTexture,
+            List<RTHandleSystem.RTHandle> mips,
             int lodCount,
             Vector2 scale
         )
         {
             m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, sourceTexture, targetTexture, new RectInt(0, 0, width, height));
 
-            RTHandle src = targetTexture;
+            var src = targetTexture;
             for (var i = 0; i < lodCount; i++)
             {
-                RTHandle dest = mips[i];
+                var dest = mips[i];
 
                 var srcMip = new RectInt(0, 0, width >> i, height >> i);
                 var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
@@ -113,9 +113,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderColorPyramid(
             HDCamera hdCamera,
             CommandBuffer cmd,
-            RTHandle sourceTexture,
-            RTHandle targetTexture,
-            List<RTHandle> mips,
+            RTHandleSystem.RTHandle sourceTexture,
+            RTHandleSystem.RTHandle targetTexture,
+            List<RTHandleSystem.RTHandle> mips,
             int lodCount,
             Vector2 scale
         )

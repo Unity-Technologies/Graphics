@@ -5,14 +5,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     class BufferPyramid
     {
-        RTHandle m_ColorPyramidBuffer;
-        List<RTHandle> m_ColorPyramidMips = new List<RTHandle>();
+        RTHandleSystem.RTHandle m_ColorPyramidBuffer;
+        List<RTHandleSystem.RTHandle> m_ColorPyramidMips = new List<RTHandleSystem.RTHandle>();
 
-        RTHandle m_DepthPyramidBuffer;
-        List<RTHandle> m_DepthPyramidMips = new List<RTHandle>();
+        RTHandleSystem.RTHandle m_DepthPyramidBuffer;
+        List<RTHandleSystem.RTHandle> m_DepthPyramidMips = new List<RTHandleSystem.RTHandle>();
 
-        public RTHandle colorPyramid { get { return m_ColorPyramidBuffer; } }
-        public RTHandle depthPyramid { get { return m_DepthPyramidBuffer; } }
+        public RTHandleSystem.RTHandle colorPyramid { get { return m_ColorPyramidBuffer; } }
+        public RTHandleSystem.RTHandle depthPyramid { get { return m_DepthPyramidBuffer; } }
 
         BufferPyramidProcessor m_Processor;
 
@@ -32,23 +32,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CreateBuffers()
         {
-            m_ColorPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "ColorPyramid");
-            m_DepthPyramidBuffer = RTHandle.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.RGFloat, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "DepthPyramid"); // Need randomReadWrite because we downsample the first mip with a compute shader.
+            m_ColorPyramidBuffer = RTHandles.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "ColorPyramid");
+            m_DepthPyramidBuffer = RTHandles.Alloc(size => CalculatePyramidSize(size), filterMode: FilterMode.Trilinear, colorFormat: RenderTextureFormat.RGFloat, sRGB: false, useMipMap: true, autoGenerateMips: false, enableRandomWrite: true, name: "DepthPyramid"); // Need randomReadWrite because we downsample the first mip with a compute shader.
         }
 
         public void DestroyBuffers()
         {
-            RTHandle.Release(m_ColorPyramidBuffer);
-            RTHandle.Release(m_DepthPyramidBuffer);
+            RTHandles.Release(m_ColorPyramidBuffer);
+            RTHandles.Release(m_DepthPyramidBuffer);
 
             foreach (var rth in m_ColorPyramidMips)
             {
-                RTHandle.Release(rth);
+                RTHandles.Release(rth);
             }
 
             foreach (var rth in m_DepthPyramidMips)
             {
-                RTHandle.Release(rth);
+                RTHandles.Release(rth);
             }
         }
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector2Int((int)(pyramidSize * GetXRscale()), pyramidSize);
         }
 
-        void UpdatePyramidMips(HDCamera camera, RenderTextureFormat format, List<RTHandle> mipList, int lodCount)
+        void UpdatePyramidMips(HDCamera camera, RenderTextureFormat format, List<RTHandleSystem.RTHandle> mipList, int lodCount)
         {
             int currentLodCount = mipList.Count;
             if (lodCount > currentLodCount)
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 for (int i = currentLodCount; i < lodCount; ++i)
                 {
                     int mipIndexCopy = i + 1; // Don't remove this copy! It's important for the value to be correctly captured by the lambda.
-                    RTHandle newMip = RTHandle.Alloc(size => CalculatePyramidMipSize(CalculatePyramidSize(size), mipIndexCopy), colorFormat: format, sRGB: false, enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: string.Format("PyramidMip{0}", i));
+                    var newMip = RTHandles.Alloc(size => CalculatePyramidMipSize(CalculatePyramidSize(size), mipIndexCopy), colorFormat: format, sRGB: false, enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: string.Format("PyramidMip{0}", i));
                     mipList.Add(newMip);
                 }
             }
@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDCamera hdCamera,
             CommandBuffer cmd,
             ScriptableRenderContext renderContext,
-            RTHandle depthTexture)
+            RTHandleSystem.RTHandle depthTexture)
         {
             int lodCount = GetPyramidLodCount(hdCamera);
             UpdatePyramidMips(hdCamera, m_DepthPyramidBuffer.rt.format, m_DepthPyramidMips, lodCount);
@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDCamera hdCamera,
             CommandBuffer cmd, 
             ScriptableRenderContext renderContext,
-            RTHandle colorTexture)
+            RTHandleSystem.RTHandle colorTexture)
         {
             int lodCount = GetPyramidLodCount(hdCamera);
             UpdatePyramidMips(hdCamera, m_ColorPyramidBuffer.rt.format, m_ColorPyramidMips, lodCount);
