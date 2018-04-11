@@ -14,6 +14,7 @@ void GetSurfaceData(float2 texCoordDS, float4x4 decalToWorld, out DecalSurfaceDa
 #if _COLORMAP
 	surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoordDS.xy);
 	surfaceData.baseColor.w *= totalBlend;
+	totalBlend = surfaceData.baseColor.w;	// base alpha affects aall other channels;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #endif
 #if _NORMALMAP

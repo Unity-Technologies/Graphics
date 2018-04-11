@@ -173,12 +173,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Currently, Unity does not offer a way to access the GCN HTile even on PS4 and Xbox One.
                         // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
+
+                        // Clear the HTile texture. TODO: move this to ClearBuffers(). Clear operations must be batched!
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 
+                        HDUtils.SetRenderTarget(cmd, hdCamera, depthStencilBufferRT); // No need for color buffer here
                         cmd.SetRandomWriteTarget(1, m_HTile);
                         // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                         // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
-                        HDUtils.SetRenderTarget(cmd, hdCamera, depthStencilBufferRT); // No need for color buffer here
                         CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSplitLighting, null, 2);
                         cmd.ClearRandomWriteTargets();
                     }

@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return null;
             }
         }
+        public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -130,13 +131,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
+        private static void SetViewportAndClear(CommandBuffer cmd, HDCamera camera, RTHandle buffer, ClearFlag clearFlag, Color clearColor)
+        {
+            // Clearing a partial viewport currently does not go through the hardware clear.
+            // Instead it goes through a quad rendered with a specific shader.
+            // When enabling wireframe mode in the scene view, unfortunately it overrides this shader thus breaking every clears.
+            // That's why in the editor we don't set the viewport before clearing (it's set to full screen by the previous SetRenderTarget) but AFTER so that we benefit from un-bugged hardware clear.
+            // We consider that the small loss in performance is acceptable in the editor.
+            // A refactor of wireframe is needed before we can fix this properly (with not doing anything!)
+#if !UNITY_EDITOR
+            SetViewport(cmd, camera, buffer);
+#endif
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+#if UNITY_EDITOR
+            SetViewport(cmd, camera, buffer);
+#endif
+        }
+
         // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
         // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
-            SetViewport(cmd, camera, buffer);
-            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+            SetViewportAndClear(cmd, camera, buffer, clearFlag, clearColor);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
@@ -157,8 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, miplevel, cubemapFace, depthSlice);
-            SetViewport(cmd, camera, colorBuffer);
-            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+            SetViewportAndClear(cmd, camera, colorBuffer, clearFlag, clearColor);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
@@ -170,8 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
             CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer); // Don't clear here, viewport needs to be set before we do.
-            SetViewport(cmd, camera, depthBuffer);
-            CoreUtils.ClearRenderTarget(cmd, clearFlag, CoreUtils.clearColorAllBlack);
+            SetViewportAndClear(cmd, camera, depthBuffer, clearFlag, CoreUtils.clearColorAllBlack);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
@@ -293,6 +308,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
+        }
+
+        // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
+        public static Vector4 GetMouseClickCoordinates(HDCamera camera)
+        {
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
         }
     }

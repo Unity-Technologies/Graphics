@@ -15,21 +15,26 @@ TEXTURE2D(_GBufferTexture3);
 
 // Rough refraction texture
 // Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_GaussianPyramidColorTexture);
+TEXTURE2D(_ColorPyramidTexture);
 // Depth pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_PyramidDepthTexture);
+TEXTURE2D(_DepthPyramidTexture);
 
-CBUFFER_START(UnityGaussianPyramidParameters)
-float4 _GaussianPyramidColorMipSize; // (x,y) = PyramidToScreenScale, z = lodCount
-float4 _PyramidDepthMipSize;
+CBUFFER_START(UnityLightingParameters)
+// Buffer pyramid
+float4 _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4 _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
+float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
+
+// Screen space lighting
+float _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
+
+// Ambiant occlusion
+float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
 CBUFFER_END
 
 // Ambient occlusion texture
 TEXTURE2D(_AmbientOcclusionTexture);
-
-CBUFFER_START(UnityAmbientOcclusionParameters)
-float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-CBUFFER_END
 
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
@@ -51,7 +56,7 @@ TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
 #define GBufferType2 float4
 #define GBufferType3 float4
 
-#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+#define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE)) && (defined(_REFRACTION_SSRAY_PROXY) || defined(_REFRACTION_SSRAY_HIZ))
 
 #define DEFAULT_SPECULAR_VALUE 0.04
 
@@ -180,36 +185,26 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 
 #if HAS_REFRACTION
 # include "CoreRP/ShaderLibrary/Refraction.hlsl"
+# include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
+# include "HDRP/Lighting/LightDefinition.cs.hlsl"
+# define SSRTID Refraction
+# include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
+# undef SSRTID
 
 # if defined(_REFRACTION_PLANE)
 #  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
 # elif defined(_REFRACTION_SPHERE)
 #  define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
 # endif
+
+# if defined(_REFRACTION_SSRAY_PROXY)
+#  define REFRACTION_SSRAY_IN ScreenSpaceProxyRaycastInput
+#  define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceProxyRaycastRefraction(input, hit)
+# elif defined(_REFRACTION_SSRAY_HIZ)
+#  define REFRACTION_SSRAY_IN ScreenSpaceHiZRaymarchInput
+#  define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceHiZRaymarchRefraction(input, hit)
+# endif
 #endif
-
-float3 EstimateRaycast(float3 V, PositionInputs posInputs, float3 positionWS, float3 rayWS)
-{
-    // For all refraction approximation, to calculate the refracted point in world space,
-    //   we approximate the scene as a plane (back plane) with normal -V at the depth hit point.
-    //   (We avoid to raymarch the depth texture to get the refracted point.)
-
-    uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-
-    // Get the depth of the approximated back plane
-    float pyramidDepth = LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, posInputs.positionNDC * (depthSize >> 2), 2).r;
-    float depth = LinearEyeDepth(pyramidDepth, _DepthBufferParam);
-
-    // Distance from point to the back plane
-    float depthFromPositionInput = depth - posInputs.linearDepth;
-
-    float offset = dot(-V, positionWS - posInputs.positionWS);
-    float depthFromPosition = depthFromPositionInput - offset;
-
-    float hitDistanceFromPosition = depthFromPosition / dot(-V, rayWS);
-
-    return positionWS + rayWS * hitDistanceFromPosition;
-}
 
 // This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
 // This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
@@ -1075,7 +1070,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_GaussianPyramidColorMipSize.z);
+    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_ColorPyramidScale.z);
 #endif
 
     return preLightData;
@@ -1803,6 +1798,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
                                             float3 V, PositionInputs posInput,
                                             PreLightData preLightData, BSDFData bsdfData,
+                                            EnvLightData envLightData,
                                             int GPUImageBasedLightingType,
                                             inout float hierarchyWeight)
 {
@@ -1814,6 +1810,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         case GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION:
         {
 #if HAS_REFRACTION
+
             // Refraction process:
             //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
             //  2. We calculate the screen space position of the refracted point
@@ -1821,33 +1818,79 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
             //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
-            float3 refractedBackPointWS = EstimateRaycast(V, posInput, preLightData.transparentPositionWS, preLightData.transparentRefractV);
+            float3 rayOriginWS      = preLightData.transparentPositionWS;
+            float3 rayDirWS         = preLightData.transparentRefractV;
+#if DEBUG_DISPLAY
+            int debugMode           = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
+            bool debug              = _DebugLightingMode == debugMode
+                && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
+#endif
 
-            // Calculate screen space coordinates of refracted point in back plane
-            float2 refractedBackPointNDC = ComputeNormalizedDeviceCoordinates(refractedBackPointWS, UNITY_MATRIX_VP);
-            uint2 depthSize = uint2(_PyramidDepthMipSize.xy);
-            float refractedBackPointDepth = LinearEyeDepth(LOAD_TEXTURE2D_LOD(_PyramidDepthTexture, refractedBackPointNDC * depthSize, 0).r, _DepthBufferParam);
+            // Initialize screen space tracing
+            REFRACTION_SSRAY_IN ssRayInput;
+            ZERO_INITIALIZE(REFRACTION_SSRAY_IN, ssRayInput);
+
+            // Common initialization
+            ssRayInput.rayOriginWS = rayOriginWS;
+            ssRayInput.rayDirWS = rayDirWS;
+#if DEBUG_DISPLAY
+            ssRayInput.debug = debug;
+#endif
+            // Algorithm specific initialization
+#ifdef _REFRACTION_SSRAY_HIZ
+            ssRayInput.maxIterations = uint(-1);
+#elif _REFRACTION_SSRAY_PROXY
+            ssRayInput.proxyData = envLightData;
+#endif
+
+            // Perform ray query
+            ScreenSpaceRayHit hit;
+            ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
+            bool hitSuccessful = REFRACTION_SSRAY_QUERY(ssRayInput, hit);
+
+            // Debug screen space tracing
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == debugMode
+                && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
+            {
+                float weight = 1.0;
+                UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+                lighting.specularTransmitted = hit.debugOutput;
+                return lighting;
+            }
+#endif
+
+            if (!hitSuccessful)
+                return lighting;
+
+            float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * _SSRefractionInvScreenWeightDistance, 0, 1);
+            weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
+            float weight = weightNDC.x * weightNDC.y;
+
+            float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+            float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 
             // Exit if texel is out of color buffer
             // Or if the texel is from an object in front of the object
-            if (refractedBackPointDepth < posInput.linearDepth
-                || any(refractedBackPointNDC < 0.0)
-                || any(refractedBackPointNDC > 1.0))
+            if (hitLinearDepth < posInput.linearDepth
+                || weight == 0)
             {
                 // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
                 return lighting;
             }
 
-            // Map the roughness to the correct mip map level of the color pyramid
-            lighting.specularTransmitted = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, s_trilinear_clamp_sampler, refractedBackPointNDC * _GaussianPyramidColorMipSize.xy, preLightData.transparentSSMipLevel).rgb;
-
-            // Beer-Lamber law for absorption
-            lighting.specularTransmitted *= preLightData.transparentTransmittance;
-
-            float weight = 1.0;
             UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
+
+            float3 preLD = SAMPLE_TEXTURE2D_LOD(
+                _ColorPyramidTexture, 
+                s_trilinear_clamp_sampler, 
+                hit.positionNDC * _ColorPyramidScale.xy, 
+                preLightData.transparentSSMipLevel
+            ).rgb;
+
                                                                      // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
-            lighting.specularTransmitted *= (1.0 - preLightData.specularFGD) * weight;
+            float3 F = preLightData.specularFGD;
+            lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
 #else
             // No refraction, no need to go further
             hierarchyWeight = 1.0;
@@ -2112,36 +2155,40 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
 #ifdef DEBUG_DISPLAY
 
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    switch(_DebugLightingMode)
     {
+        case DEBUGLIGHTINGMODE_LUX_METER:
         diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
-    {
+            break;
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO:
         diffuseLighting = indirectAmbientOcclusion;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO)
-    {
+            break;
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO:
         diffuseLighting = specularOcclusion;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
+            break;
     #if GTAO_MULTIBOUNCE_APPROX
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO)
-    {
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO:
         diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO)
-    {
+            break;
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO:
         diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
+            break;
     #endif
-    else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+        case DEBUGMIPMAPMODE_NONE:
+            diffuseLighting = bsdfData.diffuseColor;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            break;
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
+            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
     {
-        diffuseLighting = bsdfData.diffuseColor;
+                diffuseLighting = lighting.indirect.specularTransmitted;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+    }
+            break;
     }
 #endif
 }

@@ -65,6 +65,10 @@ namespace UnityEditor.Experimental.Rendering
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.skyReflectionSize, _.GetContent("Sky Reflection Size"));
             EditorGUILayout.PropertyField(d.skyLightingOverrideLayerMask, _.GetContent("Sky Lighting Override Mask|This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override"));
+            if(d.skyLightingOverrideLayerMask.intValue == -1)
+            {
+                EditorGUILayout.HelpBox("Be careful, Sky Lighting Override Mask is set to Everything. This is most likely a mistake as it serves no purpose.", MessageType.Warning);
+            }
             --EditorGUI.indentLevel;
         }
     }

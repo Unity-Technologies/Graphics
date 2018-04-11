@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private int m_ScreenSpaceShadowMapRTID;
         private Matrix4x4[] m_ShadowMatrices = new Matrix4x4[kMaxCascades + 1];
         private RenderTargetIdentifier m_CurrCameraColorRT;
-        private RenderTargetIdentifier m_ShadowMapRT;
+        private RenderTexture m_ShadowMapRT;
         private RenderTargetIdentifier m_ScreenSpaceShadowMapRT;
         private RenderTargetIdentifier m_ColorRT;
         private RenderTargetIdentifier m_CopyColorRT;
@@ -232,7 +232,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CameraRenderTargetID.depth = Shader.PropertyToID("_CameraDepthTexture");
             CameraRenderTargetID.depthCopy = Shader.PropertyToID("_CameraCopyDepthTexture");
 
-            m_ShadowMapRT = new RenderTargetIdentifier(m_ShadowMapRTID);
             m_ScreenSpaceShadowMapRT = new RenderTargetIdentifier(m_ScreenSpaceShadowMapRTID);
 
             m_ColorRT = new RenderTargetIdentifier(CameraRenderTargetID.color);
@@ -366,17 +365,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (shadows && m_ShadowSettings.screenSpace)
                     ShadowCollectPass(visibleLights, ref context, ref lightData, frameRenderingConfiguration);
 
-                if (!shadows)
-                {
-                    var setRT = CommandBufferPool.Get("Generate Small Shadow Buffer");
-                    if (m_ShadowSettings.screenSpace)
-                        setRT.GetTemporaryRT(m_ScreenSpaceShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.screenspaceShadowmapTextureFormat);
-                    else
-                        setRT.GetTemporaryRT(m_ShadowMapRTID, 4, 4, 0, FilterMode.Bilinear, m_ShadowSettings.shadowmapTextureFormat);
-                    setRT.Blit(Texture2D.whiteTexture, m_ScreenSpaceShadowMapRT);
-                    context.ExecuteCommandBuffer(setRT);
-                }
-
                 ForwardPass(visibleLights, frameRenderingConfiguration, ref context, ref lightData, stereoEnabled);
 
 
@@ -385,7 +373,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (sceneViewCamera)
                     CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
 #endif
-                cmd.ReleaseTemporaryRT(m_ShadowMapRTID);
                 cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowMapRTID);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depthCopy);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
@@ -398,11 +385,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CommandBufferPool.Release(cmd);
 
                 context.Submit();
+                if (m_ShadowMapRT)
+                {
+                    RenderTexture.ReleaseTemporary(m_ShadowMapRT);
+                    m_ShadowMapRT = null;
+                }
             }
         }
 
         private bool ShadowPass(List<VisibleLight> visibleLights, ref ScriptableRenderContext context, ref LightData lightData)
         {
+            m_ShadowMapRT = null;
             if (m_Asset.AreShadowsEnabled() && lightData.mainLightIndex != -1)
             {
                 VisibleLight mainLight = visibleLights[lightData.mainLightIndex];
@@ -1145,6 +1138,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float invShadowResolution = 1.0f / m_Asset.ShadowAtlasResolution;
             float invHalfShadowResolution = 0.5f * invShadowResolution;
             cmd.Clear();
+            cmd.SetGlobalTexture(m_ShadowMapRTID, m_ShadowMapRT);
             cmd.SetGlobalMatrixArray(ShadowConstantBuffer._WorldToShadow, m_ShadowMatrices);
             cmd.SetGlobalVector(ShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVectorArray(ShadowConstantBuffer._DirShadowSplitSpheres, m_DirectionalShadowSplitDistances);
@@ -1206,8 +1200,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool success = false;
 
             var cmd = CommandBufferPool.Get("Prepare Shadowmap");
-            cmd.GetTemporaryRT(m_ShadowMapRTID, m_ShadowSettings.shadowAtlasWidth,
-                m_ShadowSettings.shadowAtlasHeight, kShadowBufferBits, FilterMode.Bilinear, m_ShadowSettings.shadowmapTextureFormat);
+            RenderTextureDescriptor shadowmapDescriptor = new RenderTextureDescriptor(m_ShadowSettings.shadowAtlasWidth,
+                m_ShadowSettings.shadowAtlasHeight, m_ShadowSettings.shadowmapTextureFormat, kShadowBufferBits);
+            shadowmapDescriptor.shadowSamplingMode = ShadowSamplingMode.CompareDepths;
+            m_ShadowMapRT = RenderTexture.GetTemporary(shadowmapDescriptor);
+            m_ShadowMapRT.filterMode = FilterMode.Bilinear;
+            m_ShadowMapRT.wrapMode = TextureWrapMode.Clamp;
+
             // LightweightPipeline.SetRenderTarget is meant to be used with camera targets, not shadowmaps
             CoreUtils.SetRenderTarget(cmd, m_ShadowMapRT, ClearFlag.Depth, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
 
@@ -1311,9 +1310,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             cmd.SetViewport(new Rect(m_ShadowSlices[cascadeIndex].atlasX, m_ShadowSlices[cascadeIndex].atlasY,
                     m_ShadowSlices[cascadeIndex].shadowResolution, m_ShadowSlices[cascadeIndex].shadowResolution));
+            cmd.EnableScissorRect(new Rect(m_ShadowSlices[cascadeIndex].atlasX + 4, m_ShadowSlices[cascadeIndex].atlasY + 4,
+                m_ShadowSlices[cascadeIndex].shadowResolution - 8, m_ShadowSlices[cascadeIndex].shadowResolution - 8));
+
             cmd.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
             context.DrawShadows(ref settings);
+            cmd.DisableScissorRect();
+            context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
 
@@ -1444,7 +1449,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_PostProcessRenderContext.sourceFormat = m_ColorFormat;
             m_PostProcessRenderContext.destination = dest;
             m_PostProcessRenderContext.command = cmd;
-            m_PostProcessRenderContext.flip = true;
+            m_PostProcessRenderContext.flip = m_CurrCamera.targetTexture == null;
 
             if (opaqueOnly)
             {

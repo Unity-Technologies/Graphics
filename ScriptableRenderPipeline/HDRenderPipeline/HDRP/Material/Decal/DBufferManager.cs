@@ -65,6 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (frameSettings.enableDBuffer)
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
+                cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(DecalSystem.kDecalAtlasSize, DecalSystem.kDecalAtlasSize));
                 BindBufferAsTextures(cmd);
             }
             else

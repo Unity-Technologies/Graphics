@@ -37,6 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RTHandle         depthBuffer;
         public HDCamera         hdCamera;
 
+        public DebugDisplaySettings debugSettings;
+
         public static RenderTargetIdentifier nullRT = -1;
     }
 
@@ -209,11 +211,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyRenderingContext.Cleanup();
         }
 
-        public bool IsSkyValid()
+        public bool IsLightingSkyValid()
         {
             return m_VisualSky.IsValid() || m_LightingOverrideSky.IsValid();
         }
 
+        public bool IsVisualSkyValid()
+        {
+            return m_VisualSky.IsValid();
+        }
 
         void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
         {
@@ -284,7 +290,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_UpdateRequired = false;
 
             SetGlobalSkyTexture(cmd);
-            if (IsSkyValid())
+            if (IsLightingSkyValid())
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
             }
@@ -294,9 +300,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, CommandBuffer cmd)
+        public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)
         {
-            m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, cmd);
+            m_SkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, cmd);
         }
 
         public void RenderOpaqueAtmosphericScattering(CommandBuffer cmd)
