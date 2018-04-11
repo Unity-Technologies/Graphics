@@ -171,6 +171,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         FrameSettings m_FrameSettings; // Init every frame
 
+        ComputeBuffer m_DebugScreenSpaceTracingData = null;
+        ScreenSpaceTracingDebug[] m_DebugScreenSpaceTracingDataArray = new ScreenSpaceTracingDebug[1];
+
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_ValidAPI = true;
@@ -245,6 +248,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             FrameSettings.RegisterDebug("Scene View", m_Asset.GetFrameSettings());
 #endif
+            m_DebugScreenSpaceTracingData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ScreenSpaceTracingDebug)));
 
             InitializeRenderTextures();
 
@@ -326,6 +330,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandle.Release(m_DebugColorPickerBuffer);
             RTHandle.Release(m_DebugFullScreenTempBuffer);
+            
+            m_DebugScreenSpaceTracingData.Release();
         }
 
 
@@ -536,6 +542,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
 
                 m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd);
+
+                var ssrefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
+                    ?? ScreenSpaceRefraction.@default;
+                ssrefraction.PushShaderParameters(cmd);
             }
         }
 
@@ -1027,6 +1037,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 #endif
+                    PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.ScreenSpaceTracing);
                     // Caution: RenderDebug need to take into account that we have flip the screen (so anything capture before the flip will be flipped)
                     RenderDebug(hdCamera, cmd);
 
@@ -1041,6 +1052,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 CommandBufferPool.Release(cmd);
                 renderContext.Submit();
+
+                if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing)
+                {
+                    m_DebugScreenSpaceTracingData.GetData(m_DebugScreenSpaceTracingDataArray);
+                    var data = m_DebugScreenSpaceTracingDataArray[0];
+                    m_CurrentDebugDisplaySettings.screenSpaceTracingDebugData = data;
+                }
             } // For each camera
         }
 
@@ -1457,12 +1475,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    // Assign debug data
+                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
+                        && pass == ForwardPass.Transparent)
+                    {
+                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                        cmd.SetRandomWriteTarget(1, m_DebugScreenSpaceTracingData);
+                    }
+
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
                     if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
+
+                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
+                        && pass == ForwardPass.Transparent)
+                    {
+                        cmd.ClearRandomWriteTargets();
+                    }
                 }
             }
         }
@@ -1633,6 +1665,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
+                cmd.SetGlobalInt(HDShaderIDs._DebugLightingSubMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingSubMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
 
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
@@ -1641,7 +1674,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSpecularColor, debugSpecularColor);
 
                 cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
+                cmd.SetGlobalVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, m_Asset.renderPipelineResources.debugFontTexture);
+                cmd.SetGlobalInt(HDShaderIDs._DebugStep, HDUtils.debugStep);
+                cmd.SetGlobalInt(HDShaderIDs._ShowGrid, m_CurrentDebugDisplaySettings.showSSRayGrid ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._ShowDepthPyramidDebug, m_CurrentDebugDisplaySettings.showSSRayDepthPyramid ? 1 : 0);
 
                 // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
                 cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);
@@ -1714,6 +1751,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
                     // (i.e. we have perform a flip, we need to flip the input texture)
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
+                    m_DebugFullScreen.SetBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                    m_DebugFullScreen.SetTexture(HDShaderIDs._DepthPyramidTexture, m_BufferPyramid.depthPyramid);
                     HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget, hdCamera);
