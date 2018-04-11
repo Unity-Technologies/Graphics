@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4   cameraPositionWS;
-        public float     viewParam;
+        public float     detViewMatrix;
         public Vector4   screenSize;
         public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
@@ -74,9 +74,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         public bool isFirstFrame { get; private set; }
 
+        // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+        // TODO: pass this as "_DepthBufferParam" if the projection matrix is oblique.
         public Vector4 invProjParam
         {
-            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
             get
             {
                 var p = projMatrix;
@@ -215,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            viewParam = viewMatrix.determinant;
+            detViewMatrix = viewMatrix.determinant;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -289,7 +290,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // What constants in UnityPerPass need updating for stereo considerations?
             // _ViewProjMatrix - It is used directly for generating tesselation factors. This should be the same
             //                   across both eyes for consistency, and to keep shadow-generation eye-independent
-            // _ViewParam -      Used for isFrontFace determination, should be the same for both eyes. There is the scenario
+            // _DetViewMatrix -  Used for isFrontFace determination, should be the same for both eyes. There is the scenario
             //                   where there might be multi-eye sets that are divergent enough where this assumption is not valid,
             //                   but that's a future problem
             // _InvProjParam -   Intention was for generating linear depths, but not currently used.  Will need to be stereo-ized if
@@ -319,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
 
-            viewParam = viewMatrix.determinant;
+            detViewMatrix = viewMatrix.determinant;
 
             frustum = Frustum.Create(viewProjMatrix, true, true);
 
@@ -431,7 +432,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._CameraPositionWS,          cameraPositionWS);
-            cmd.SetGlobalFloat( HDShaderIDs._ViewParam,                 viewParam);
+            cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
             cmd.SetGlobalVector(HDShaderIDs._DepthBufferParam,          depthBufferParam);

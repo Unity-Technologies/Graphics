@@ -50,7 +50,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             {
                 // input.positionCS is SV_Position
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;
