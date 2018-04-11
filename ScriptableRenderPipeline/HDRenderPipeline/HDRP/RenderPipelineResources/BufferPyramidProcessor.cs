@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public BufferPyramidProcessor(
             ComputeShader colorPyramidCS,
-            ComputeShader depthPyramidCS, 
+            ComputeShader depthPyramidCS,
             GPUCopy gpuCopy,
             TexturePadding texturePadding
         )
@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Source, src);
                 cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Result, dest);
                 cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(
-                    srcWorkMip.width, srcWorkMip.height, 
+                    srcWorkMip.width, srcWorkMip.height,
                     (1.0f / srcWorkMip.width) * scale.x, (1.0f / srcWorkMip.height) * scale.y)
                 );
 
@@ -112,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderColorPyramid(
             HDCamera hdCamera,
-            CommandBuffer cmd, 
+            CommandBuffer cmd,
             RTHandle sourceTexture,
             RTHandle targetTexture,
             List<RTHandle> mips,
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderColorPyramid(
             RectInt srcRect,
-            CommandBuffer cmd, 
+            CommandBuffer cmd,
             Texture sourceTexture,
             RenderTexture targetTexture,
             List<RenderTexture> mips,
@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderColorPyramidMips(
             RectInt srcRect,
-            CommandBuffer cmd, 
+            CommandBuffer cmd,
             RenderTexture targetTexture,
             List<RenderTexture> mips,
             int lodCount,
@@ -189,10 +189,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var dest = mips[i];
 
                 var srcMip = new RectInt(0, 0, srcRect.width >> i, srcRect.height >> i);
-                var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
+                //var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
                 var srcWorkMip = new RectInt(
-                    0, 
-                    0, 
+                    0,
+                    0,
                     Mathf.CeilToInt(srcMip.width / 16.0f) * 16,
                     Mathf.CeilToInt(srcMip.height / 16.0f) * 16
                 );
@@ -206,8 +206,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorPyramidKernel, _Result, dest);
                 // _Size is used as a scale inside the whole render target so here we need to keep the full size (and not the scaled size depending on the current camera)
                 cmd.SetComputeVectorParam(
-                    m_ColorPyramidCS, 
-                    _Size, 
+                    m_ColorPyramidCS,
+                    _Size,
                     new Vector4(dest.width, dest.height, 1f / dest.width, 1f / dest.height)
                 );
                 cmd.DispatchCompute(
@@ -223,8 +223,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
                 cmd.CopyTexture(
-                    mips[i], 
-                    0, 0, 0, 0, 
+                    mips[i],
+                    0, 0, 0, 0,
                     dstMipWidthToCopy, dstMipHeightToCopy, targetTexture, 0, i + 1, 0, 0
                 );
 
