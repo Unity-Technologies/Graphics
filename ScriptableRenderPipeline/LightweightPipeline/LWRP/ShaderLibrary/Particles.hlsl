@@ -199,7 +199,7 @@ half3 SampleEmission(VertexOutputLit IN, half3 emissionColor, TEXTURE2D_ARGS(emi
 
 half4 SampleAlbedo(VertexOutputLit IN, TEXTURE2D_ARGS(albedoMap, sampler_albedoMap))
 {
-    half4 albedo = readTexture(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), IN) * IN.color;
+    half4 albedo = readTexture(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), IN) * _Color;
 
     // No distortion Support
     fragColorMode(IN);
