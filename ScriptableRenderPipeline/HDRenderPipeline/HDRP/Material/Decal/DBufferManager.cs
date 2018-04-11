@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public int vsibleDecalCount { get; set; }
 
-        RTHandle m_HTile;
+        RTHandleSystem.RTHandle m_HTile;
 
         public DBufferManager()
             : base(Decal.GetMaterialDBufferCount())
@@ -23,19 +23,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int dbufferIndex = 0; dbufferIndex < m_BufferCount; ++dbufferIndex)
             {
-                m_RTs[dbufferIndex] = RTHandle.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: string.Format("DBuffer{0}", dbufferIndex));
+                m_RTs[dbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: string.Format("DBuffer{0}", dbufferIndex));
                 m_RTIDs[dbufferIndex] = m_RTs[dbufferIndex].nameID;
                 m_TextureShaderIDs[dbufferIndex] = HDShaderIDs._DBufferTexture[dbufferIndex];
             }
 
             // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            m_HTile = RTHandle.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "DBufferHTile"); // Enable UAV
+            m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "DBufferHTile"); // Enable UAV
         }
 
         override public void DestroyBuffers()
         {
             base.DestroyBuffers();
-            RTHandle.Release(m_HTile);
+            RTHandles.Release(m_HTile);
         }
 
         public void ClearNormalTargetAndHTile(CommandBuffer cmd, HDCamera camera, Color clearColor)
