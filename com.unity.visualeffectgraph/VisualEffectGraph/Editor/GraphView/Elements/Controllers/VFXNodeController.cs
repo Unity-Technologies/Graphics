@@ -51,6 +51,25 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
+        protected virtual void NewInputSet()
+        {
+        }
+
+        public bool CouldLink(VFXDataAnchorController myAnchor, VFXDataAnchorController otherAnchor)
+        {
+            if (myAnchor.direction != Direction.Input)
+            {
+                return otherAnchor.sourceNode.CouldLinkMyInputTo(otherAnchor, myAnchor);
+            }
+
+            return CouldLinkMyInputTo(myAnchor, otherAnchor);
+        }
+
+        protected virtual bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        {
+            return false;
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
@@ -64,6 +83,10 @@ namespace UnityEditor.VFX.UI
                 anchorController.OnDisable();
             }
             m_InputPorts = newAnchors;
+
+            NewInputSet();
+
+
             newAnchors = new List<VFXDataAnchorController>();
             changed |= UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
 
@@ -129,6 +152,24 @@ namespace UnityEditor.VFX.UI
             {
                 viewController.DataEdgesMightHaveChanged();
             }
+        }
+
+        public virtual void NodeGoingToBeRemoved()
+        {
+            var outputEdges = outputPorts.SelectMany(t => t.connections);
+
+            foreach (var edge in outputEdges)
+            {
+                edge.input.sourceNode.OnEdgeGoingToBeRemoved(edge.input);
+            }
+        }
+
+        public virtual void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)
+        {
+        }
+
+        public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        {
         }
 
         bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)

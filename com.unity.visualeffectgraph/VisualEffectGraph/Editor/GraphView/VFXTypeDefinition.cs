@@ -48,6 +48,10 @@ namespace UnityEditor.VFX.UI
 
         public static string GetTypeCSSClass(Type type)
         {
+            if( type == null)
+            {
+                return "typeUnknown";
+            }
             int index = MatchType(type);
             if (index >= 0)
             {

@@ -95,8 +95,6 @@
 	margin-right:0;
 	margin-top:0;
 	margin-bottom:0;
-	margin-left:0;
-	margin-right:0;
 	height:16;
 }
 
@@ -159,9 +157,23 @@ FloatPropertyRM VFXFloatField
     flex:1;
 }
 
-IntPropertyRM IntField
+IntPropertyRM IntegerField
 {
     align-self:flex-end;
+    margin-left:0;
+	margin-right:0;
+	margin-top:0;
+	margin-bottom:0;
+    flex:1;
+}
+
+UintPropertyRM LongField
+{
+    align-self:flex-end;
+    margin-left:0;
+	margin-right:0;
+	margin-top:0;
+	margin-bottom:0;
     flex:1;
 }
 

@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -150,6 +151,7 @@ namespace UnityEditor.VFX.UI
             foreach (var edge in unusedEdges)
             {
                 edge.OnDisable();
+
                 m_DataEdges.Remove(edge);
                 changed = true;
             }
@@ -171,10 +173,11 @@ namespace UnityEditor.VFX.UI
 
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)
         {
-            bool changed = false;
-            input.model.CleanupLinkedSlots();
-
             VFXSlot inputSlot = input.model;
+            if (inputSlot == null)
+                return false;
+
+            bool changed = false;
             if (input.HasLink())
             {
                 VFXNodeController operatorControllerFrom = null;
@@ -342,15 +345,20 @@ namespace UnityEditor.VFX.UI
 
         public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
         {
-            var slotInput = input != null ? input.model : null;
-            var slotOutput = output != null ? output.model : null;
-            if (slotInput.Link(slotOutput))
+            if (input == null)
+            {
+                return false;
+            }
+
+            VFXParameter.NodeLinkedSlot resulting = input.CreateLinkTo(output);
+
+            if (resulting.inputSlot != null && resulting.outputSlot != null)
             {
                 VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
 
                 if (fromController != null)
                 {
-                    fromController.infos.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot = slotInput, outputSlot = slotOutput });
+                    fromController.infos.linkedSlots.Add(resulting);
                 }
                 DataEdgesMightHaveChanged();
                 return true;
@@ -396,7 +404,9 @@ namespace UnityEditor.VFX.UI
         {
             if (element is VFXContextController)
             {
-                VFXContext context = ((VFXContextController)element).context;
+                VFXContextController contextController = ((VFXContextController)element);
+                VFXContext context = contextController.context;
+                contextController.NodeGoingToBeRemoved();
 
                 // Remove connections from context
                 foreach (var slot in context.inputSlots.Concat(context.outputSlots))
@@ -420,19 +430,20 @@ namespace UnityEditor.VFX.UI
                 RemoveFromGroupNodes(element as VFXNodeController);
 
 
-                Object.DestroyImmediate(context,true);
+                Object.DestroyImmediate(context, true);
             }
             else if (element is VFXBlockController)
             {
                 var block = element as VFXBlockController;
+                block.NodeGoingToBeRemoved();
                 block.contextController.RemoveBlock(block.block);
 
-                Object.DestroyImmediate(block.block,true);
+                Object.DestroyImmediate(block.block, true);
             }
             else if (element is VFXParameterNodeController)
             {
                 var parameter = element as VFXParameterNodeController;
-
+                parameter.NodeGoingToBeRemoved();
                 parameter.parentController.model.RemoveNode(parameter.infos);
                 RemoveFromGroupNodes(element as VFXNodeController);
                 DataEdgesMightHaveChanged();
@@ -443,7 +454,9 @@ namespace UnityEditor.VFX.UI
 
                 if (element is VFXNodeController)
                 {
-                    container = (element as VFXNodeController).model as IVFXSlotContainer;
+                    VFXNodeController nodeController = (element as VFXNodeController);
+                    container = nodeController.model as IVFXSlotContainer;
+                    nodeController.NodeGoingToBeRemoved();
                     RemoveFromGroupNodes(element as VFXNodeController);
                 }
                 else
@@ -470,7 +483,7 @@ namespace UnityEditor.VFX.UI
 
                 graph.RemoveChild(container as VFXModel);
 
-                Object.DestroyImmediate(container as VFXModel,true);
+                Object.DestroyImmediate(container as VFXModel, true);
                 DataEdgesMightHaveChanged();
             }
             else if (element is VFXFlowEdgeController)
@@ -497,6 +510,7 @@ namespace UnityEditor.VFX.UI
 
                 if (to != null)
                 {
+                    to.sourceNode.OnEdgeGoingToBeRemoved(to);
                     var slot = to.model;
                     if (slot != null)
                     {
@@ -766,11 +780,7 @@ namespace UnityEditor.VFX.UI
                     allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
 
                     var toSlot = startAnchorOperatorController.model;
-                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o =>
-                        {
-                            var candidate = o as VFXDataAnchorController;
-                            return toSlot.CanLink(candidate.model) && candidate.model.CanLink(toSlot);
-                        }).ToList();
+                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o => startAnchorOperatorController.CanLink(o)).ToList();
                 }
             }
             else
@@ -782,12 +792,7 @@ namespace UnityEditor.VFX.UI
 
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
 
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(o =>
-                    {
-                        var candidate = o as VFXDataAnchorController;
-                        var toSlot = candidate.model;
-                        return toSlot.CanLink(startAnchorOperatorController.model) && startAnchorOperatorController.model.CanLink(toSlot);
-                    }).ToList();
+                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i => startAnchorOperatorController.CanLink(i)).ToList();
             }
 
             return allCandidates.ToList();
@@ -1164,7 +1169,22 @@ namespace UnityEditor.VFX.UI
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                newControllers.Add(new VFXOperatorController(model, this));
+                if (model is VFXOperatorNumericCascadedUnifiedNew)
+                    newControllers.Add(new VFXCascadedOperatorController(model, this));
+                else if (model is VFXOperatorNumericUniformNew)
+                {
+                    newControllers.Add(new VFXNumericUniformOperatorController(model, this));
+                }
+                else if (model is VFXOperatorNumericUnifiedNew)
+                {
+                    newControllers.Add(new VFXUnifiedOperatorController(model, this));
+                }
+                else if (model is BranchNew)
+                {
+                    newControllers.Add(new VFXBranchOperatorController(model, this));
+                }
+                else
+                    newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {

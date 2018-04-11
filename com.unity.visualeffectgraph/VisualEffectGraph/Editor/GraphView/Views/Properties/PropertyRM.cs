@@ -309,38 +309,38 @@ namespace UnityEditor.VFX.UI
 
             if (type != null)
             {
-                if (type.IsEnum)
-                {
-                    propertyType = typeof(EnumPropertyRM);
-                }
+            if (type.IsEnum)
+            {
+                propertyType = typeof(EnumPropertyRM);
+            }
                 else if (typeof(ISpaceable).IsAssignableFrom(type))
+            {
+                if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                {
+                    propertyType = typeof(SpaceablePropertyRM<ISpaceable>);
+                }
+            }
+            else
+            {
+                while (type != typeof(object) && type != null)
                 {
                     if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                     {
-                        propertyType = typeof(SpaceablePropertyRM<ISpaceable>);
-                    }
-                }
-                else
-                {
-                    while (type != typeof(object) && type != null)
-                    {
-                        if (!m_TypeDictionary.TryGetValue(type, out propertyType))
+                        /*foreach (var inter in type.GetInterfaces())
                         {
-                            /*foreach (var inter in type.GetInterfaces())
+                            if (m_TypeDictionary.TryGetValue(inter, out propertyType))
                             {
-                                if (m_TypeDictionary.TryGetValue(inter, out propertyType))
-                                {
-                                    break;
-                                }
-                            }*/
-                        }
-                        if (propertyType != null)
-                        {
-                            break;
-                        }
-                        type = type.BaseType;
+                                break;
+                            }
+                        }*/
                     }
+                    if (propertyType != null)
+                    {
+                        break;
+                    }
+                    type = type.BaseType;
                 }
+            }
             }
             if (propertyType == null)
             {
