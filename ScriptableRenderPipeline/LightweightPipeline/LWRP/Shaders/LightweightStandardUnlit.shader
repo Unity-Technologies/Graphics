@@ -19,7 +19,7 @@ Shader "LightweightPipeline/Standard Unlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -35,15 +35,16 @@ Shader "LightweightPipeline/Standard Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fog
             #pragma shader_feature _SAMPLE_GI
             #pragma shader_feature _ALPHATEST_ON
-            #pragma multi_compile_instancing
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fog
+            #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
@@ -105,6 +106,11 @@ Shader "LightweightPipeline/Standard Unlit"
                 half3 color = texColor.rgb * _Color.rgb;
                 half alpha = texColor.a * _Color.a;
                 AlphaDiscard(alpha, _Cutoff);
+
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
+
 
 #if _SAMPLE_GI
     #if _NORMALMAP
