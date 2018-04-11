@@ -26,8 +26,8 @@ void InitializeSurfaceData(VertexOutputLit IN, out SurfaceData surfaceData)
     surfaceData.smoothness = metallicGloss.g;
     surfaceData.occlusion = 1.0;
 
+    surfaceData.albedo = AlphaModulate(surfaceData.albedo, albedo.a);
     surfaceData.alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
-    surfaceData.albedo = AlphaModulate(surfaceData.albedo, surfaceData.alpha);
 }
 
 #endif // LIGHTWEIGHT_PARTICLES_PBR_INCLUDED
