@@ -273,8 +273,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Asset.renderPipelineSettings.supportDBuffer)
                 m_DbufferManager.CreateBuffers();
 
-            m_BufferPyramid.CreateBuffers();
-
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB : false, enableRandomWrite: true, enableMSAA: true, name : "CameraColor");
@@ -548,6 +546,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var ssrefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
                     ?? ScreenSpaceRefraction.@default;
                 ssrefraction.PushShaderParameters(cmd);
+
+                var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
+                if (previousDepthPyramidRT != null)
+                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
+                var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                if (previousColorPyramidRT != null)
+                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
 
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
@@ -896,7 +901,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
 
-                    RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+                    RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     StopStereoRendering(renderContext, hdCamera.camera);
 
@@ -1005,7 +1010,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
-                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, true);
+                        RenderColorPyramid(hdCamera, cmd, renderContext, true);
+                        RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueSSReflection);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -1014,7 +1020,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
-                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, false);
+                        RenderColorPyramid(hdCamera, cmd, renderContext, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
@@ -1228,14 +1234,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
+                var colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, colorPyramidRT);
 
                 // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
                 var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, pyramidScale.x / hdCamera.screenSize.x, pyramidScale.y / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, m_BufferPyramid.colorPyramid);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, colorPyramidRT);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBuffer);
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
 
@@ -1582,7 +1589,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderGaussianPyramidColor(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
+        void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
         {
             if (isPreRefraction)
             {
@@ -1596,23 +1603,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
             }
 
-            using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
-                m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer);
+            var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorPyramid, m_BufferPyramid.AllocColorRT);
 
-            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
-            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.colorPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            using (new ProfilingSample(cmd, "Color Pyramid", CustomSamplerId.ColorPyramid.GetSampler()))
+                m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer, cameraRT);
+
+            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
+            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
-        void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        void RenderDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             if (!m_FrameSettings.enableRoughRefraction)
                 return;
 
-            using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
-                m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture());
+            var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthPyramid, m_BufferPyramid.AllocDepthRT);
 
-            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
-            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.depthPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
+            using (new ProfilingSample(cmd, "Depth Pyramid", CustomSamplerId.DepthPyramid.GetSampler()))
+                m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture(), cameraRT);
+
+            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
+            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
         }
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
@@ -1772,7 +1785,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // (i.e. we have perform a flip, we need to flip the input texture)
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     m_DebugFullScreen.SetBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                    m_DebugFullScreen.SetTexture(HDShaderIDs._DepthPyramidTexture, m_BufferPyramid.depthPyramid);
+                    m_DebugFullScreen.SetTexture(HDShaderIDs._DepthPyramidTexture, hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid));
                     HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget, hdCamera);
