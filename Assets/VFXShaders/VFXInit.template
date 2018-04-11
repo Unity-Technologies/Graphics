@@ -6,12 +6,14 @@ RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
 
 CBUFFER_START(initParams)
-    uint nbSpawned;					// Numbers of particle spawned (undefined if VFX_USE_SPAWNER_FROM_GPU)
-    uint spawnIndex;				// Index of the first particle spawned (undefined if VFX_USE_SPAWNER_FROM_GPU)
-    
-    uint offsetInAdditionalOutput; 	// Only with SPAWNER_FROM_GPU
-    uint systemSeed;
-	uint nbMax;						// Only with SPAWNER_FROM_GPU
+#if !VFX_USE_SPAWNER_FROM_GPU
+    uint nbSpawned;					// Numbers of particle spawned
+    uint spawnIndex;				// Index of the first particle spawned
+#else
+    uint offsetInAdditionalOutput;
+	uint nbMax;
+#endif
+	uint systemSeed;
 CBUFFER_END
 
 #if VFX_USE_ALIVE_CURRENT
