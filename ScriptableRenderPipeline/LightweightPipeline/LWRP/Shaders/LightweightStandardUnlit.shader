@@ -64,7 +64,7 @@ Shader "LightweightPipeline/Standard Unlit"
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
 #if _SAMPLE_GI
-                float4 lightmapOrVertexSH       : TEXCOORD1;
+                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
                 half3 normal                    : TEXCOORD2;
     #if _NORMALMAP
                 half3 tangent                   : TEXCOORD3;
@@ -91,8 +91,8 @@ Shader "LightweightPipeline/Standard Unlit"
 
 #if _SAMPLE_GI
                 OUTPUT_NORMAL(v, o);
-                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapOrVertexSH.xy);
-                OUTPUT_SH(o.normal, o.lightmapOrVertexSH);
+                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
+                OUTPUT_SH(o.normal, o.vertexSH);
 #endif
                 return o;
             }
@@ -118,7 +118,7 @@ Shader "LightweightPipeline/Standard Unlit"
     #else
                 half3 normalWS = normalize(IN.normal);
     #endif
-                color *= SampleGI(IN.lightmapOrVertexSH, normalWS);
+                color += SAMPLE_GI(IN.lightmapUV, IN.vertexSH, normalWS);
 #endif
                 ApplyFog(color, IN.uv0AndFogCoord.z);
 
