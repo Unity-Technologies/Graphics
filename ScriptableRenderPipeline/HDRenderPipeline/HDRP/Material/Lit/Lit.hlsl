@@ -1900,7 +1900,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
         rayOriginWS             = posInput.positionWS;
         rayDirWS                = preLightData.iblR;
-        mipLevel                = preLightData.transparentSSMipLevel;
+        mipLevel                = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
         invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
 #if DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
