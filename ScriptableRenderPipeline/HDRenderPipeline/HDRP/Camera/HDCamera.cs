@@ -142,6 +142,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         HDAdditionalCameraData m_AdditionalCameraData;
 
+        public BufferedRTHandleSystem historyRTSystem 
+        {
+             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.historyRTSystem : null; } 
+        }
+
         public HDCamera(Camera cam)
         {
             camera = cam;
@@ -248,6 +253,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            historyRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            historyRTSystem.Swap();
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
@@ -454,6 +461,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams, Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));
+        }
+
+        public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
+        {
+            if (m_AdditionalCameraData == null)
+                return null;
+
+            return m_AdditionalCameraData.historyRTSystem.GetFrameRT(id, 1);
+        }
+
+        public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
+        {
+            if (m_AdditionalCameraData == null)
+                return null;
+            
+            return m_AdditionalCameraData.historyRTSystem.GetFrameRT(id, 0);
+        }
+
+        // Allocate buffers frames and return current frame
+        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<RTHandleSystem, RTHandleSystem.RTHandle> allocator)
+        {
+            
+            if (m_AdditionalCameraData == null)
+                return null;
+
+            m_AdditionalCameraData.historyRTSystem.AllocBuffer(id, allocator, 2);
+            return m_AdditionalCameraData.historyRTSystem.GetFrameRT(id, 0);
         }
     }
 }
