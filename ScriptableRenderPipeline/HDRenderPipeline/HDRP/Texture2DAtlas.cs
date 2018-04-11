@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Height,
                 1,
                 DepthBits.None,
-                RenderTextureFormat.ARGB32,
+                m_Format,
                 FilterMode.Point,
                 TextureWrapMode.Clamp,
                 TextureDimension.Tex2D,

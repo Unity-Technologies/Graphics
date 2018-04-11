@@ -98,16 +98,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private Texture2DAtlas m_Atlas = null;
         public bool m_AllocationSuccess = true;
 
-        public static int kDecalAtlasWidth = 4096;
-        public static int kDecalAtlasHeight= 4096;
-
         public Texture2DAtlas Atlas
         {
             get
             {
                 if (m_Atlas == null)
                 {
-                    m_Atlas = new Texture2DAtlas(kDecalAtlasWidth, kDecalAtlasHeight, RenderTextureFormat.ARGB32);
+                    m_Atlas = new Texture2DAtlas(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight, RenderTextureFormat.ARGB32);
                 }
                 return m_Atlas;
             }
@@ -546,10 +543,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!instance.m_AllocationSuccess) // texture failed to find space in the atlas
             {
+                instance.m_AllocationSuccess = true;
                 Atlas.ResetAllocator(); // clear all allocations and try again in the hope that a previously allocated texture is not in this frame
                 foreach (var pair in m_DecalSets)
                 {
                     pair.Value.UpdateCachedMaterialData(cmd);
+                }
+                if(!instance.m_AllocationSuccess) // still failed to allocate, decal atlas size needs to increase
+                {
+                    Debug.LogError("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
                 }
             }
         }

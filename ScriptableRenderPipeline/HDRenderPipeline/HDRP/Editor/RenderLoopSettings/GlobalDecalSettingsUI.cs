@@ -25,7 +25,8 @@ namespace UnityEditor.Experimental.Rendering
 			EditorGUILayout.LabelField(_.GetContent("Decals"), EditorStyles.boldLabel);
 			++EditorGUI.indentLevel;
 			EditorGUILayout.PropertyField(d.drawDistance, _.GetContent("Draw Distance"));
-			EditorGUILayout.PropertyField(d.atlasSize, _.GetContent("Atlas Size"));
+			EditorGUILayout.PropertyField(d.atlasWidth, _.GetContent("Atlas Width"));
+            EditorGUILayout.PropertyField(d.atlasHeight, _.GetContent("Atlas Height"));
 			--EditorGUI.indentLevel;
 		}
 	}
