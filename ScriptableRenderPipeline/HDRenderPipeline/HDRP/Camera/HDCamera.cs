@@ -281,10 +281,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
 
-            int maxWidth = RTHandle.maxWidth;
-            int maxHeight = RTHandle.maxHeight;
+            int maxWidth = RTHandles.maxWidth;
+            int maxHeight = RTHandles.maxHeight;
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
 
