@@ -538,6 +538,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // updates textures, texture atlas indices and blend value
         public void UpdateCachedMaterialData(CommandBuffer cmd)
         {
+            instance.m_AllocationSuccess = true;
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.UpdateCachedMaterialData(cmd);
