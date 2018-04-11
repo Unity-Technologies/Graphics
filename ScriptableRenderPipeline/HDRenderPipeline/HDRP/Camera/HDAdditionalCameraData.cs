@@ -70,6 +70,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool    m_IsDebugRegistered = false;
         string  m_CameraRegisterName;
 
+        BufferedRTHandleSystem m_HistoryRTSystem;
+        public BufferedRTHandleSystem historyRTSystem { get { return m_HistoryRTSystem; } }
+
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
         // taking into account the customization via the debug menu
         public FrameSettings GetFrameSettings()
@@ -143,6 +146,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void Awake()
+        {
+            m_HistoryRTSystem = new BufferedRTHandleSystem();
+        }
+
         void OnEnable()
         {
             // Be sure legacy HDR option is disable on camera as it cause banding in SceneView. Yes, it is a contradiction, but well, Unity...
@@ -176,6 +184,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnDisable()
         {
             UnRegisterDebug();
+        }
+
+        void OnDestroy()
+        {
+            m_HistoryRTSystem.Dispose();
+            m_HistoryRTSystem = null;
         }
 
         public void OnBeforeSerialize()
