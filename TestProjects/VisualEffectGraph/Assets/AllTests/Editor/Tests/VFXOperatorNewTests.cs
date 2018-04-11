@@ -399,5 +399,40 @@ namespace UnityEditor.VFX.Test
             var dumpAffinityCurrent = DumpAffinityDictionnary(VFXOperatorDynamicOperand.kTypeAffinity);
             Assert.AreEqual(dumpAffinityHeuristic, dumpAffinityCurrent, "kTypeAffinity or CanConvertFrom has been changed, it's not necessary an error, but consider it carefully and update kTypeAffinity");
         }
+
+        [Test]
+        public void ModuloNewWithInteger()
+        {
+            var a = 1610612737u;
+            var b = 805306361u;
+
+            var moduloUInt = ScriptableObject.CreateInstance<Operator.ModuloNew>();
+            moduloUInt.SetOperandType(typeof(uint));
+
+            var moduloFloat = ScriptableObject.CreateInstance<Operator.ModuloNew>();
+            moduloFloat.SetOperandType(typeof(float));
+
+            var aOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            aOperator.SetSettingValue("m_Type", (SerializableType)typeof(uint));
+            var bOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            bOperator.SetSettingValue("m_Type", (SerializableType)typeof(uint));
+
+            aOperator.inputSlots[0].value = a;
+            bOperator.inputSlots[0].value = b;
+
+            moduloUInt.inputSlots[0].Link(aOperator.outputSlots.First());
+            moduloUInt.inputSlots[1].Link(bOperator.outputSlots.First());
+
+            moduloFloat.inputSlots[0].Link(aOperator.outputSlots.First());
+            moduloFloat.inputSlots[1].Link(bOperator.outputSlots.First());
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultUInt = context.Compile(moduloUInt.outputSlots[0].GetExpression());
+            var resultFloat = context.Compile(moduloFloat.outputSlots[0].GetExpression());
+
+            
+            Assert.AreEqual(a % b, resultUInt.Get<uint>());
+            Assert.AreEqual(Mathf.Repeat(a, b), resultFloat.Get<float>());
+        }
     }
 }
