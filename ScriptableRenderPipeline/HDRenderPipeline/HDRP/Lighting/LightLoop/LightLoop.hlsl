@@ -1,3 +1,5 @@
+#include "CoreRP/ShaderLibrary/Macros.hlsl"
+
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
@@ -166,11 +168,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
     uint envLightCount;
 
-#define CONCAT(L, R) L##R
 #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) {\
     IndirectLighting lighting = EvaluateBSDF_Env(   context, V, posInput, preLightData, envLightData, bsdfData, \
     envLightData.influenceShapeType, \
-    CONCAT(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), CONCAT(type, HierarchyWeight)); \
+    MERGE_NAME (GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME (type, HierarchyWeight)); \
     AccumulateIndirectLighting(lighting, aggregateLighting);\
 }
 
@@ -299,7 +300,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 #undef EVALUATE_BSDF_ENV
-#undef CONCAT
 #undef FETCHINDEX
 
     // Also Apply indiret diffuse (GI)
