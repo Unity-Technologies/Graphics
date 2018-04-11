@@ -1868,7 +1868,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             float weight = weightNDC.x * weightNDC.y;
 
             float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
-            float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+            float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _DepthBufferParam);
 
             // Exit if texel is out of color buffer
             // Or if the texel is from an object in front of the object

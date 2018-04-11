@@ -93,7 +93,7 @@ bool IsPositionAboveDepth(float rayDepth, float invLinearDepth)
 float LoadDepth(float2 positionSS, int level)
 {
     float pyramidDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, int2(positionSS.xy) >> level, level).r;
-    float linearDepth = LinearEyeDepth(pyramidDepth, _ZBufferParams);
+    float linearDepth = LinearEyeDepth(pyramidDepth, _DepthBufferParam);
     return linearDepth;
 }
 
