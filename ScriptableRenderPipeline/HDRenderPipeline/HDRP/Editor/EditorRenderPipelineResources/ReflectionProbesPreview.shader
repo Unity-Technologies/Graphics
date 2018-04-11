@@ -24,7 +24,7 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "CoreRP/ShaderLibrary/common.hlsl"
+            #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "HDRP/ShaderVariables.hlsl"
 
 		    struct appdata
