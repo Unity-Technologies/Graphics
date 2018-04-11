@@ -187,7 +187,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
     // Handle handness of the view matrix (In Unity view matrix default to a determinant of -1)
     // when we render a cubemap the view matrix handness is flipped (due to convention used for cubemap) we have a determinant of +1
-    output.isFrontFace = _ViewParam <  0.0 ? output.isFrontFace : !output.isFrontFace;
+    output.isFrontFace = _DetViewMatrix < 0.0 ? output.isFrontFace : !output.isFrontFace;
 #endif
 
     return output;
