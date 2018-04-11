@@ -31,6 +31,7 @@ MonoBehaviour:
   colorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
   depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
   copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
+  texturePaddingCS: {fileID: 7200000, guid: 6736f53014c69f84aa2130aeae99730b, type: 3}
   applyDistortionCS: {fileID: 7200000, guid: 2fa6c0e3fe6dc3145a4156f21913fe5c, type: 3}
   clearDispatchIndirectShader: {fileID: 7200000, guid: fc1f553acb80a6446a32d33e403d0656,
     type: 3}
@@ -50,7 +51,9 @@ MonoBehaviour:
     type: 3}
   deferredDirectionalShadowComputeShader: {fileID: 7200000, guid: fbde6fae193b2a94e9fd97c163c204f4,
     type: 3}
-  volumetricLightingCS: {fileID: 7200000, guid: 799166e2ee6a4b041bba9e74f6942097,
+  volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a,
+    type: 3}
+  volumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97,
     type: 3}
   subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
     type: 3}

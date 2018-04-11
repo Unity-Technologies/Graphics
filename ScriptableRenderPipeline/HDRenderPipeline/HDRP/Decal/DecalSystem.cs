@@ -6,7 +6,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DecalSystem
     {
-        public const int kInvalidIndex = -1;  
+        public const int kInvalidIndex = -1;
+        public const int kDecalAtlasSize = 128;
 
         public class DecalHandle
         {
@@ -60,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_DecalAtlas == null)
                 {
                     m_DecalAtlas = new TextureCache2D("DecalAtlas");
-                    m_DecalAtlas.AllocTextureArray(2048, 128, 128, TextureFormat.RGBA32, true);
+                    m_DecalAtlas.AllocTextureArray(2048, kDecalAtlasSize, kDecalAtlasSize, TextureFormat.ARGB32, true);
                 }
                 return m_DecalAtlas;
             }

@@ -104,7 +104,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap
 #define SAMPLER_HEIGHTMAP_IDX sampler_HeightMap
 
-#define SAMPLER_SUBSURFACE_MASKMAP_IDX sampler_SubsurfaceMaskMap
+#define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap
 
 // include LitDataIndividualLayer to define GetSurfaceData
@@ -220,7 +220,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
 #ifndef _DISABLE_DBUFFER
-    AddDecalContribution(posInput, surfaceData);
+    AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
 #if defined(DEBUG_DISPLAY)
