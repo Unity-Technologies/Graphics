@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering
             // Iterate over assemblyList, discover all applicable types with fully qualified names
             var assemblyList = AppDomain.CurrentDomain.GetAssemblies()
                 // We need to exclude dynamic assemblies (their type can't be queried, throwing an exception below)
-                .Where(ass => !ass.IsDynamic)
+                //.Where(ass => !ass.IsDynamic)
                 .ToList();
 
             foreach (var assembly in assemblyList)
