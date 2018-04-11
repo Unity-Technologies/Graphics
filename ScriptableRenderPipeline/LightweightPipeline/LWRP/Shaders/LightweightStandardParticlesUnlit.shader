@@ -88,12 +88,11 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 half4 fragParticleUnlit(VertexOutputLit IN) : SV_Target
                 {
                     half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+                    half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
                     half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                     half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
-                    half3 diffuse = AlphaModulate(albedo.rgb, alpha);
-
+                    
                     half3 result = diffuse + emission;
-
                     half fogFactor = IN.posWS.w;
                     ApplyFogColor(result, half3(0, 0, 0), fogFactor);
                     return half4(result, alpha);

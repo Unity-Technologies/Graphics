@@ -231,7 +231,7 @@ half AlphaBlendAndTest(half alpha, half cutoff)
 #else
     half result = 1.0h;
 #endif
-    AlphaDiscard(result, cutoff, 0.0001h);
+    AlphaDiscard(alpha, cutoff, 0.0001h);
 
     return result;
 }
