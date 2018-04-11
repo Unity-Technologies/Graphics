@@ -534,7 +534,6 @@ public class VolumetricLightingSystem
             Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
             Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
                                    
-            camera.SetupComputeShader( m_VolumeVoxelizationCS, cmd);
             cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,   vBuffer.GetDensityBuffer());
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,     s_VisibleVolumeBoundsBuffer);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeProperties, s_VisibleVolumePropertiesBuffer);
