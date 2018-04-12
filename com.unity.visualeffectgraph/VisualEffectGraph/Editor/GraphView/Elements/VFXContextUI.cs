@@ -192,7 +192,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("VFXContext");
             AddToClassList("selectable");
 
-            this.mainContainer.clippingOptions = ClippingOptions.ClipContents;
+            this.mainContainer.clippingOptions = ClippingOptions.NoClipping;
 
             mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
 
