@@ -26,10 +26,8 @@ public class LightweightUnlitGUI : LightweightShaderGUI
     public override void FindProperties(MaterialProperty[] properties)
     {
         base.FindProperties(properties);
-        alphaClipProp  = FindProperty("_AlphaClip", properties);
         mainTexProp = FindProperty("_MainTex", properties);
         mainColorProp = FindProperty("_Color", properties);
-        alphaCutoffProp = FindProperty("_Cutoff", properties);
         sampleGIProp = FindProperty("_SampleGI", properties, false);
         bumpMap = FindProperty("_BumpMap", properties, false);
     }
@@ -41,9 +39,11 @@ public class LightweightUnlitGUI : LightweightShaderGUI
             base.ShaderPropertiesGUI(material);
             GUILayout.Label(Styles.surfaceProperties, EditorStyles.boldLabel);
             int surfaceTypeValue = (int)surfaceTypeProp.floatValue;
+            if (alphaClipProp.floatValue >= 1.0f)
+                surfaceTypeValue = 1;
             GUIContent mainTexLabel = Styles.mainTexLabels[Math.Min(surfaceTypeValue, 1)];
             m_MaterialEditor.TexturePropertySingleLine(mainTexLabel, mainTexProp, mainColorProp);
-            
+
             EditorGUILayout.Space();
             m_MaterialEditor.ShaderProperty(sampleGIProp, Styles.sampleGILabel);
             if (sampleGIProp.floatValue >= 1.0)
