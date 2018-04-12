@@ -58,7 +58,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         // Lightweight Pipeline tag is required. If Lightweight pipeline is not set in the graphics settings
         // this Subshader will fail. One can add a subshader below or fallback to Standard built-in to make this
         // material work with both Lightweight Pipeline and Builtin Unity Pipeline
-        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         // ------------------------------------------------------------------
@@ -114,6 +114,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
@@ -144,6 +145,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
@@ -174,6 +176,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
@@ -200,7 +203,9 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMetaPBR.hlsl"
+
             ENDHLSL
         }
 

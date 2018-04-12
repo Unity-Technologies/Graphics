@@ -51,7 +51,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 300
 
         Pass
@@ -98,7 +98,9 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
             #define BUMP_SCALE_NOT_SUPPORTED 1
-            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
+
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassLitSimple.hlsl"
             ENDHLSL
         }
 
@@ -128,6 +130,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
@@ -158,6 +161,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
@@ -178,7 +182,9 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _EMISSION
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfaceSimple.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMetaSimple.hlsl"
+
             ENDHLSL
         }
     }

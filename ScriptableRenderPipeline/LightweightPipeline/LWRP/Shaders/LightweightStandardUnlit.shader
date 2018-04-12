@@ -19,7 +19,7 @@ Shader "LightweightPipeline/Standard Unlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -47,7 +47,7 @@ Shader "LightweightPipeline/Standard Unlit"
 
             // Lighting include is needed because of GI
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
-            #include "LWRP/ShaderLibrary/InputSurface.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
 
             struct VertexInput
             {
@@ -145,6 +145,7 @@ Shader "LightweightPipeline/Standard Unlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
