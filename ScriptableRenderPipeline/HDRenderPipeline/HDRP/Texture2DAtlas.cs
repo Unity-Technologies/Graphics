@@ -93,16 +93,18 @@ namespace UnityEngine.Experimental.Rendering
             m_Height = height;
         }
 
-        public Vector4 Allocate(int width, int height)
+        public bool Allocate(ref Vector4 result, int width, int height)
         {
             AtlasNode node = m_Root.Allocate(width, height);
             if(node != null)
             { 
-                return node.m_Rect;
+                result = node.m_Rect;
+                return true;
             }
             else
             {
-                return new Vector4(0, 0, 0, 0);
+                result = Vector4.zero;
+                return false;
             }
         }
 
@@ -164,16 +166,14 @@ namespace UnityEngine.Experimental.Rendering
             m_AllocationCache.Clear();
         }
 
-        public Vector4 AddTexture(CommandBuffer cmd, Texture texture)
+        public bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
         {
-            IntPtr key = texture.GetNativeTexturePtr();
-            Vector4 scaleBias;
+            IntPtr key = texture.GetNativeTexturePtr();            
             if (!m_AllocationCache.TryGetValue(key, out scaleBias))
             {
                 int width = texture.width;
                 int height = texture.height;
-                scaleBias = m_AtlasAllocator.Allocate(width, height);
-                if ((scaleBias.x > 0) && (scaleBias.y > 0))
+                if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))
                 {
                     scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
                     for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
@@ -182,14 +182,14 @@ namespace UnityEngine.Experimental.Rendering
                         HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
                     }
                     m_AllocationCache.Add(key, scaleBias);
-                    return scaleBias;
+                    return true; //scaleBias;
                 }
                 else
                 {
-                    return new Vector4(0, 0, 0, 0);
+                    return false; new Vector4(0, 0, 0, 0);
                 }
             }
-            return scaleBias;
+            return true;  //scaleBias;
         }
     }
 }
