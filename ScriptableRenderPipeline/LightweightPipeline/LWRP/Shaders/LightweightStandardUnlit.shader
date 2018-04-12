@@ -19,7 +19,7 @@ Shader "LightweightPipeline/Standard Unlit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "RenderType" = "Opaque" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -35,15 +35,16 @@ Shader "LightweightPipeline/Standard Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fog
             #pragma shader_feature _SAMPLE_GI
             #pragma shader_feature _ALPHATEST_ON
-            #pragma multi_compile_instancing
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fog
+            #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
@@ -63,7 +64,7 @@ Shader "LightweightPipeline/Standard Unlit"
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
 #if _SAMPLE_GI
-                float4 lightmapOrVertexSH       : TEXCOORD1;
+                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
                 half3 normal                    : TEXCOORD2;
     #if _NORMALMAP
                 half3 tangent                   : TEXCOORD3;
@@ -90,8 +91,8 @@ Shader "LightweightPipeline/Standard Unlit"
 
 #if _SAMPLE_GI
                 OUTPUT_NORMAL(v, o);
-                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapOrVertexSH.xy);
-                OUTPUT_SH(o.normal, o.lightmapOrVertexSH);
+                OUTPUT_LIGHTMAP_UV(v.lightmapUV, unity_LightmapST, o.lightmapUV);
+                OUTPUT_SH(o.normal, o.vertexSH);
 #endif
                 return o;
             }
@@ -106,13 +107,18 @@ Shader "LightweightPipeline/Standard Unlit"
                 half alpha = texColor.a * _Color.a;
                 AlphaDiscard(alpha, _Cutoff);
 
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
+
+
 #if _SAMPLE_GI
     #if _NORMALMAP
                 half3 normalWS = TangentToWorldNormal(surfaceData.normalTS, IN.tangent, IN.binormal, IN.normal);
     #else
                 half3 normalWS = normalize(IN.normal);
     #endif
-                color *= SampleGI(IN.lightmapOrVertexSH, normalWS);
+                color += SAMPLE_GI(IN.lightmapUV, IN.vertexSH, normalWS);
 #endif
                 ApplyFog(color, IN.uv0AndFogCoord.z);
 
