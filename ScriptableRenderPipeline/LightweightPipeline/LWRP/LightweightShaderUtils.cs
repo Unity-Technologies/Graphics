@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             "LightweightPipeline/Standard (Physically Based)",
             "LightweightPipeline/Standard (Simple Lighting)",
             "LightweightPipeline/Standard Unlit",
-            "LightweightPipeline/Standard Terrain",
+            "LightweightPipeline/Terrain/Standard Terrain",
             "LightweightPipeline/Particles/Standard",
             "LightweightPipeline/Particles/Standard Unlit",
             "Hidden/LightweightPipeline/Blit",
