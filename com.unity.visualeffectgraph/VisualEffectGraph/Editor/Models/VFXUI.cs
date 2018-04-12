@@ -90,9 +90,14 @@ namespace UnityEditor.VFX
 
         public Rect uiBounds;
 
-        public Action<VFXModel> onModified;
-        Action<VFXModel> IModifiable.onModified{get{return onModified;}set{onModified = value;}}
+        Action<ScriptableObject> onModified;
+        Action<ScriptableObject> IModifiable.onModified{get{return onModified;}set{onModified = value;}}
 
+        public void Modified()
+        {
+            if(onModified != null)
+                onModified(this);
+        }
         internal void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)

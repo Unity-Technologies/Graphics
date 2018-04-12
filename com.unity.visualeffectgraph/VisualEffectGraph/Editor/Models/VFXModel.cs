@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
 {
     interface IModifiable
     {
-        Action<VFXModel> onModified {get;set;}
+        Action<ScriptableObject> onModified {get;set;}
     }
 
     [Serializable]
@@ -84,8 +84,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        public Action<VFXModel> onModified;
-        Action<VFXModel> IModifiable.onModified{get{return onModified;}set{onModified = value;}}
+        public Action<ScriptableObject> onModified;
+        Action<ScriptableObject> IModifiable.onModified{get{return onModified;}set{onModified = value;}}
 
         void OnValidate()
         {

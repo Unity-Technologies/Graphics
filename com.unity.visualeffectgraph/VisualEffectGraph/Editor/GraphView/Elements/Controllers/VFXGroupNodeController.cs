@@ -29,7 +29,10 @@ namespace UnityEditor.VFX.UI
             get { return m_Index; }
             set { m_Index = value; }
         }
-
+        void OnModelChanged()
+        {
+            ModelChanged(m_UI);
+        }
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             if (m_Index == -1) return;
@@ -37,9 +40,17 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
+
+        public override void OnDisable()
+        {
+            m_ViewController.UnRegisterNotification(m_UI,OnModelChanged);
+            base.OnDisable();
+        }
+
         public VFXUIController(VFXViewController viewController, VFXUI ui, int index) : base(ui)
         {
             m_UI = ui;
+            viewController.RegisterNotification(m_UI,OnModelChanged);
             m_Index = index;
             m_ViewController = viewController;
         }
@@ -83,7 +94,7 @@ namespace UnityEditor.VFX.UI
                 ValidateRect(ref value);
 
                 infos[m_Index].position = value;
-                m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+                Modified();
             }
         }
         public string title
@@ -101,9 +112,15 @@ namespace UnityEditor.VFX.UI
                 if (title != value && m_Index >= 0)
                 {
                     infos[m_Index].title = value;
-                    m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+                    Modified();
                 }
             }
+        }
+
+        protected void Modified()
+        {
+            m_UI.Modified();
+            m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
         }
 
         public override void ApplyChanges()
@@ -146,7 +163,8 @@ namespace UnityEditor.VFX.UI
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Concat(Enumerable.Repeat(nodeID, 1)).Distinct().ToArray();
             else
                 m_UI.groupInfos[m_Index].contents = new VFXNodeID[] { nodeID };
-            m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+            
+            Modified();
         }
 
         public void AddNode(VFXNodeController controller)
@@ -172,7 +190,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_UI.groupInfos[m_Index].contents != null)
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != controller.model || t.id != controller.id).ToArray();
-            m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+            Modified();
         }
 
         public void RemoveStickyNote(VFXStickyNoteController controller)
@@ -182,7 +200,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_UI.groupInfos[m_Index].contents != null)
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != controller.index).ToArray();
-            m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+            Modified();
         }
 
         public bool ContainsNode(VFXNodeController controller)
