@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UI
 
         public Type portType { get; set; }
 
-        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(sourceNode.viewController,model)
+        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(sourceNode.viewController, model)
         {
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_MasterSlot = model.GetMasterSlot();
 
-                viewController.RegisterNotification(m_MasterSlot,MasterSlotChanged);
+                viewController.RegisterNotification(m_MasterSlot, MasterSlotChanged);
             }
             ModelChanged(model);
         }
@@ -81,9 +81,9 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            if (!object.ReferenceEquals(m_MasterSlot,null))
+            if (!object.ReferenceEquals(m_MasterSlot, null))
             {
-                viewController.UnRegisterNotification(m_MasterSlot,MasterSlotChanged);
+                viewController.UnRegisterNotification(m_MasterSlot, MasterSlotChanged);
                 m_MasterSlot = null;
             }
             base.OnDisable();

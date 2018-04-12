@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(category = "Sampling")]
     class SampleTexture2DArray : VFXOperator
     {
         override public string name { get { return "Sample Texture2DArray"; } }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Vector")]
+    [VFXInfo(category = "Math/Vector")]
     class DotProduct : VFXOperatorFloatUnified
     {
         public class InputProperties

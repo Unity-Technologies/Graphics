@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(category = "Sampling")]
     class SampleTexture3D : VFXOperator
     {
         override public string name { get { return "Sample Texture3D"; } }
@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("The texture to sample from.")]
-            public Texture3D texture = null;
+            public Texture3D texture = VFXResources.defaultResources.vectorField;
             [Tooltip("The texture coordinate used for the sampling.")]
             public Vector3 uvw = Vector3.zero;
             [Min(0), Tooltip("The mip level to sample from.")]

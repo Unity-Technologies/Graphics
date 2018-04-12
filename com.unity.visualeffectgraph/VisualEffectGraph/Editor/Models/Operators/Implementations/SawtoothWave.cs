@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Wave")]
     class SawtoothWave : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
