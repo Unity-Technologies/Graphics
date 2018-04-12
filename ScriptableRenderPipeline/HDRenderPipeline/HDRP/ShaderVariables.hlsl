@@ -195,7 +195,7 @@ CBUFFER_START(UnityPerFrame)
 
     float4 unity_ShadowColor;
 
-    // Time (t = time since current level load) values from Unity.
+    // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     float4 _CurrentTime;                // { t/20, t, t*2, t*3 }
     float4 _PreviousTime;               // { t/20, t, t*2, t*3 }
     float4 _DeltaTime;                  // { dt, 1/dt, smoothdt, 1/smoothdt }
