@@ -1021,6 +1021,7 @@ namespace UnityEditor.VFX.UI
             m_DataEdges.Clear();
             m_FlowEdges.Clear();
             m_GroupNodeControllers.Clear();
+            m_StickyNoteControllers.Clear();
         }
 
         private Dictionary<VFXModel, List<VFXModel.InvalidateEvent>> m_registeredEvent = new Dictionary<VFXModel, List<VFXModel.InvalidateEvent>>();
