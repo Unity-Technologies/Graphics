@@ -182,7 +182,7 @@ namespace UnityEditor.VFX.Test
             var sceneView = EditorWindow.GetWindow(typeof(SceneView));
             if (sceneView != null)
                 sceneView.Close();
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
 
             float simulateTime = 6.0f;
             float frequency = 1.0f / 20.0f;
