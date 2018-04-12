@@ -3,7 +3,7 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "CoreRP/ShaderLibrary/common.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "LightLoop.cs.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal
