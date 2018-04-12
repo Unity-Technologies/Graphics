@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -27,6 +28,46 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class LightweightUtils
     {
+        static Mesh s_FullscreenMesh = null;
+        public static Mesh fullscreenMesh
+        {
+            get
+            {
+                if (s_FullscreenMesh != null)
+                    return s_FullscreenMesh;
+
+                float topV = 1.0f;
+                float bottomV = 0.0f;
+
+                Mesh mesh = new Mesh {name = "Fullscreen Quad"};
+                mesh.SetVertices(new List<Vector3>
+                {
+                    new Vector3(-1.0f, -1.0f, 0.0f),
+                    new Vector3(-1.0f,  1.0f, 0.0f),
+                    new Vector3( 1.0f, -1.0f, 0.0f),
+                    new Vector3( 1.0f,  1.0f, 0.0f)
+                });
+
+                mesh.SetUVs(0, new List<Vector2>
+                {
+                    new Vector2(0.0f, bottomV),
+                    new Vector2(0.0f, topV),
+                    new Vector2(1.0f, bottomV),
+                    new Vector2(1.0f, topV)
+                });
+
+                mesh.SetIndices(new[] { 0, 1, 2, 2, 1, 3 }, MeshTopology.Triangles, 0, false);
+                mesh.UploadMeshData(true);
+                return mesh;
+            }
+        }
+
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
+        }
+
         public static void StartStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
         {
             if (HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
@@ -101,41 +142,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static bool HasFlag(FrameRenderingConfiguration mask, FrameRenderingConfiguration flag)
         {
             return (mask & flag) != 0;
-        }
-
-        public static Mesh CreateQuadMesh(bool uvStartsAtTop)
-        {
-            float topV, bottomV;
-            if (uvStartsAtTop)
-            {
-                topV = 0.0f;
-                bottomV = 1.0f;
-            }
-            else
-            {
-                topV = 1.0f;
-                bottomV = 0.0f;
-            }
-
-            Mesh mesh = new Mesh();
-            mesh.vertices = new Vector3[]
-            {
-                new Vector3(-1.0f, -1.0f, 0.0f),
-                new Vector3(-1.0f,  1.0f, 0.0f),
-                new Vector3(1.0f, -1.0f, 0.0f),
-                new Vector3(1.0f,  1.0f, 0.0f)
-            };
-
-            mesh.uv = new Vector2[]
-            {
-                new Vector2(0.0f, bottomV),
-                new Vector2(0.0f, topV),
-                new Vector2(1.0f, bottomV),
-                new Vector2(1.0f, topV)
-            };
-
-            mesh.triangles = new int[] { 0, 1, 2, 2, 1, 3 };
-            return mesh;
         }
     }
 }
