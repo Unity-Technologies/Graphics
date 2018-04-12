@@ -182,14 +182,14 @@ namespace UnityEngine.Experimental.Rendering
                         HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
                     }
                     m_AllocationCache.Add(key, scaleBias);
-                    return true; //scaleBias;
+                    return true; 
                 }
                 else
                 {
-                    return false; new Vector4(0, 0, 0, 0);
+                    return false; 
                 }
             }
-            return true;  //scaleBias;
+            return true;  
         }
     }
 }
