@@ -108,13 +108,13 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXUpcommingDataAnchorController m_UpcommingDataAnchor;
-        protected override void NewInputSet()
+        protected override void NewInputSet(List<VFXDataAnchorController> newInputs)
         {
             if (m_UpcommingDataAnchor == null)
             {
                 m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this, false);
             }
-            m_InputPorts.Add(m_UpcommingDataAnchor);
+            newInputs.Add(m_UpcommingDataAnchor);
         }
 
         public override void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)

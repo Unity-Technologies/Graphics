@@ -378,6 +378,11 @@ namespace UnityEditor.VFX.UI
         public VFXUpcommingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null,sourceNode,hidden)
         {
         }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+        }
         public override Direction direction
         {
             get

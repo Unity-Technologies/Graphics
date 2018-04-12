@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
-        protected virtual void NewInputSet()
+        protected virtual void NewInputSet(List<VFXDataAnchorController> newInputs)
         {
         }
 
@@ -68,18 +68,17 @@ namespace UnityEditor.VFX.UI
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
-            List<VFXDataAnchorController> newAnchors = new List<VFXDataAnchorController>();
+            var newAnchors = new List<VFXDataAnchorController>();
 
             m_SyncingSlots = true;
             bool changed = UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+            NewInputSet(newAnchors);
 
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
             }
             m_InputPorts = newAnchors;
-
-            NewInputSet();
 
 
             newAnchors = new List<VFXDataAnchorController>();
@@ -167,7 +166,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        protected virtual bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
             bool changed = false;
