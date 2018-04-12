@@ -85,7 +85,7 @@ float4 LoadSampleFromVideoMemory(int2 pixelCoord)
     float3 irradiance = LOAD_TEXTURE2D(_IrradianceSource, pixelCoord).rgb;
     float  depth      = LOAD_TEXTURE2D(_DepthTexture,     pixelCoord).r;
 
-    return float4(irradiance, LinearEyeDepth(depth, _DepthBufferParam));
+    return float4(irradiance, LinearEyeDepth(depth, _DepthBufferParams));
 }
 
 // Returns {irradiance, linearDepth}.
@@ -271,7 +271,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
     UNITY_BRANCH if (passedStencilTest)
     {
         centerDepth = LOAD_TEXTURE2D(_DepthTexture, pixelCoord).r;
-        centerViewZ = LinearEyeDepth(centerDepth, _DepthBufferParam);
+        centerViewZ = LinearEyeDepth(centerDepth, _DepthBufferParams);
     }
 
 #if SSS_USE_LDS_CACHE
@@ -321,7 +321,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         // Save some bandwidth by only loading depth values for SSS pixels.
         UNITY_BRANCH if (TestLightingForSSS(irradiance2))
         {
-            viewZ2 = LinearEyeDepth(LOAD_TEXTURE2D(_DepthTexture, pixelCoord2).r, _DepthBufferParam);
+            viewZ2 = LinearEyeDepth(LOAD_TEXTURE2D(_DepthTexture, pixelCoord2).r, _DepthBufferParams);
         }
 
         // Populate the border region of the LDS cache.
