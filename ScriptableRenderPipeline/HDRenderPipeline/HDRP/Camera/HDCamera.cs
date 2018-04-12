@@ -426,7 +426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Set up UnityPerView CBuffer.
-        public void SetupGlobalParams(CommandBuffer cmd)
+        public void SetupGlobalParams(CommandBuffer cmd, float currentTime, float previousTime)
         {
             cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
@@ -444,6 +444,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._FrustumParams,             frustumParams);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation,          taaFrameRotation);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
+
+            // Time is also a part of the UnityPerView CBuffer.
+            // Different views can have different values of the "Animated Materials" setting.
+            bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(camera);
+
+            float  ct = animateMaterials ? currentTime  : 0;
+            float  pt = animateMaterials ? previousTime : 0;
+            float  dt = Time.deltaTime;
+            float sdt = Time.smoothDeltaTime;
+
+            cmd.SetGlobalVector(HDShaderIDs._CurrentTime,    new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
+            cmd.SetGlobalVector(HDShaderIDs._PreviousTime,   new Vector4(pt * 0.05f, pt, pt * 2.0f, pt * 3.0f));
+            cmd.SetGlobalVector(HDShaderIDs._DeltaTime,      new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
+            cmd.SetGlobalVector(HDShaderIDs._SinCurrentTime, new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
+            cmd.SetGlobalVector(HDShaderIDs._CosCurrentTime, new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
         }
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)
