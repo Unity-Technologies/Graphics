@@ -1,8 +1,8 @@
 #ifndef LIGHTWEIGHT_INPUT_SURFACE_GRASS_INCLUDED
 #define LIGHTWEIGHT_INPUT_SURFACE_GRASS_INCLUDED
 
-#include "../Core.hlsl"
-#include "../InputSurfaceCommon.hlsl"
+#include "LWRP/ShaderLibrary/Core.hlsl"
+#include "LWRP/ShaderLibrary/InputSurfaceCommon.hlsl"
 
 // Terrain engine shader helpers
 CBUFFER_START(TerrainGrass)
