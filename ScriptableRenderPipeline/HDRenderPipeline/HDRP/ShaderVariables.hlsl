@@ -260,7 +260,7 @@ CBUFFER_START(UnityPerView)
     float4x4 _NonJitteredViewProjMatrix;
     float4x4 _PrevViewProjMatrix; // non-jittered
 
-    // TODO: sort the vars below by the frequency of use (descending), and put commonly used ones together.
+    // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
     // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
 #if defined(USING_STEREO_MATRICES)
     float3 _Align16;
@@ -272,15 +272,15 @@ CBUFFER_START(UnityPerView)
     float4 _ScreenToTargetScale;  // { w / RTHandle.maxWidth, h / RTHandle.maxHeight, 0, 0 }
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-    // x = 1-far/near
-    // y = far/near
-    // z = x/far
-    // w = y/far
+    // x = 1 - f/n
+    // y = f/n
+    // z = 1/f - 1/n
+    // w = 1/n
     // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
-    // x = -1+far/near
+    // x = -1 + f/n
     // y = 1
-    // z = x/far
-    // w = 1/far
+    // z = -1/n + -1/f
+    // w = 1/f
     float4 _DepthBufferParams;
 
     // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
