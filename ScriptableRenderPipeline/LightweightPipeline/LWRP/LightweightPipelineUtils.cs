@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, 0, properties);
+            commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
         public static void StartStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
