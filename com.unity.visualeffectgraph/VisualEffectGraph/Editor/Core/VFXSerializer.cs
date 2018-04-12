@@ -75,6 +75,7 @@ namespace UnityEditor.VFX
             if (obj != null)
             {
                 Type type = m_Type;
+
                 if (!type.IsAssignableFrom(obj.GetType()))
                 {
                     if (type == typeof(FloatN))
@@ -87,7 +88,7 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        throw new ArgumentException(string.Format("Cannot assing an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
+                        throw new ArgumentException(string.Format("Cannot assign an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
                     }
                 }
                 newValue = VFXSerializer.Save(obj);

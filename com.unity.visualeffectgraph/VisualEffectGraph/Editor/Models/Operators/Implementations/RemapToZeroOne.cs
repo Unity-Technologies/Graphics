@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Remap")]
     class RemapToZeroOne : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
@@ -19,9 +19,9 @@ namespace UnityEditor.VFX.Operator
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
+            var type = inputExpression[0].valueType;
 
-            var zerofive = VFXOperatorUtility.HalfExpression[size];
+            var zerofive = VFXOperatorUtility.HalfExpression[type];
             var expression = VFXOperatorUtility.Mad(inputExpression[0], zerofive, zerofive);
 
             if (Clamp)

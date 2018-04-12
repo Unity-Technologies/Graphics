@@ -10,15 +10,16 @@ namespace UnityEditor.VFX
 {
     static class VFXCodeGeneratorHelper
     {
+        private static readonly char[] kAlpha = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
         public static string GeneratePrefix(uint index)
         {
-            var alpha = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
-            string prefix = "";
-            index = index + 1;
+            if (index == 0u) return "a";
+
+            var prefix = "";
             while (index != 0u)
             {
-                prefix = alpha[index % alpha.Length] + prefix;
-                index /= (uint)alpha.Length;
+                prefix = kAlpha[index % kAlpha.Length] + prefix;
+                index /= (uint)kAlpha.Length;
             }
             return prefix;
         }

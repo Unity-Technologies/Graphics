@@ -9,8 +9,13 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
+    interface IModifiable
+    {
+        Action<ScriptableObject> onModified {get; set; }
+    }
+
     [Serializable]
-    abstract class VFXModel : ScriptableObject
+    abstract class VFXModel : ScriptableObject, IModifiable
     {
         public enum InvalidationCause
         {
@@ -77,6 +82,15 @@ namespace UnityEditor.VFX
                     Profiler.EndSample();
                 }
             }
+        }
+
+        public Action<ScriptableObject> onModified;
+        Action<ScriptableObject> IModifiable.onModified {get {return onModified; } set {onModified = value; }}
+
+        void OnValidate()
+        {
+            if (onModified != null)
+                onModified(this);
         }
 
         protected virtual void OnAdded() {}
@@ -243,6 +257,10 @@ namespace UnityEditor.VFX
 
         protected virtual void Invalidate(VFXModel model, InvalidationCause cause)
         {
+            if (model.onModified != null)
+            {
+                model.onModified(this);
+            }
             OnInvalidate(model, cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);

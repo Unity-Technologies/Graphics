@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
             return GetRawInputExpressions();
         }
 
-        private static void GetInputExpressionsRecursive(List<VFXExpression> results, IEnumerable<VFXSlot> slots)
+        protected static void GetInputExpressionsRecursive(List<VFXExpression> results, IEnumerable<VFXSlot> slots)
         {
             foreach (var s in slots)
             {

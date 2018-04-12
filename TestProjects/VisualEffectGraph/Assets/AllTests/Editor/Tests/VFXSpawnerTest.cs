@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentSpawner()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
 
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateEventStartAndStop()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
@@ -147,7 +147,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateEventAttributeAndStart()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerAndComponent()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -253,7 +253,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerLinkedWithSourceAttribute()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();

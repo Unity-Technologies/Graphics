@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Modulo : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Fmod(inputExpression[0], inputExpression[1]) };
+            return new[] { VFXOperatorUtility.Modulo(inputExpression[0], inputExpression[1]) };
         }
     }
 }

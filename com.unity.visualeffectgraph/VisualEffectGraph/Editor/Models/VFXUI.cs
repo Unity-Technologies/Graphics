@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
 
         public bool isStickyNote;
     }
-    class VFXUI : ScriptableObject
+    class VFXUI : ScriptableObject, IModifiable
     {
         [System.Serializable]
         public class UIInfo
@@ -89,6 +89,15 @@ namespace UnityEditor.VFX
         public StickyNoteInfo[] stickyNoteInfos;
 
         public Rect uiBounds;
+
+        Action<ScriptableObject> onModified;
+        Action<ScriptableObject> IModifiable.onModified {get {return onModified; } set {onModified = value; }}
+
+        public void Modified()
+        {
+            if (onModified != null)
+                onModified(this);
+        }
 
         internal void Sanitize(VFXGraph graph)
         {

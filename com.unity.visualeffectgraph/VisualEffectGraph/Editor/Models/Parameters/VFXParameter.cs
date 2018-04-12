@@ -53,6 +53,7 @@ namespace UnityEditor.VFX
                         m_Min = null;
                         m_Max = null;
                     }
+                    Invalidate(InvalidationCause.kUIChanged);
                 }
             }
         }

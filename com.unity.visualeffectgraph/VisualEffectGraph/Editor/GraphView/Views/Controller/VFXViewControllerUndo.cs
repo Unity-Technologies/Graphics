@@ -206,12 +206,8 @@ namespace UnityEditor.VFX.UI
                     m_reentrant = true;
                     ExpressionGraphDirty = true;
                     model.GetOrCreateGraph().UpdateSubAssets();
-
-                    bool throttling = DataWatchService.sharedInstance.disableThrottling;
-
-                    DataWatchService.sharedInstance.disableThrottling = true;
-                    DataWatchService.sharedInstance.PollNativeData();
-                    DataWatchService.sharedInstance.disableThrottling = throttling;
+                    model.GetOrCreateGraph().UIInfos.Modified();
+                    NotifyUpdate();
                     m_reentrant = false;
                     m_graphUndoStack.CleanDirtyState();
                 }
