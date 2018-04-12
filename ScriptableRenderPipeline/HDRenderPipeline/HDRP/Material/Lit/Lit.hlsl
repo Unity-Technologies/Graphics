@@ -1842,9 +1842,6 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     }
 #endif
 
-    // If we are here, either SSRefraction or SSReflection is active, but not both.
-    // Opaque pass => none, Transparent pass => refraction only, SSReflection pass => SSReflection only
-
     // -------------------------------
     // Setup macro helpers
     // -------------------------------
@@ -2241,12 +2238,6 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
     diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
-#elif SSREFLECTION_ONLY
-    diffuseLighting = LOAD_TEXTURE2D_LOD(
-        _ColorPyramidTexture,
-        posInput.positionSS,
-        0
-    ).rgb;
 #endif
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;

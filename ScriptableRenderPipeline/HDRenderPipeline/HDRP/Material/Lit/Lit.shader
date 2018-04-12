@@ -560,7 +560,6 @@ Shader "HDRenderPipeline/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile _ SSREFLECTION_ONLY
             // #include "../../Lighting/Forward.hlsl"
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS
