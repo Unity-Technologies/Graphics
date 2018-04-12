@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Use to detect frame changes
         int   m_FrameCount;
-        float m_TimeSinceLevelLoad;
+        float m_TimeSinceStartup;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
@@ -534,8 +534,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                float  ct = Time.timeSinceLevelLoad;
-                float  pt = (m_TimeSinceLevelLoad > 0) ? m_TimeSinceLevelLoad : ct;
+                bool animateMaterials = true;
+
+            #if UNITY_EDITOR
+                if (hdCamera.camera.cameraType == CameraType.Game)
+                {
+                    animateMaterials = Application.isPlaying;
+                }
+                else
+                {
+                    animateMaterials = false;
+
+                    // Determine whether the "Animated Materials" checkbox of the current view is checked.
+                    foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                    {
+                        if (sv.camera == hdCamera.camera && sv.sceneViewState.showMaterialUpdate)
+                        {
+                            animateMaterials = true;
+                            break;
+                        }
+                    }
+                }
+            #endif
+
+                // Do not use 'Time.timeSinceLevelLoad' - it ticks in the Scene View for a fraction of a second
+                // after you select an object even if the "Animated Materials" option is disabled.
+                float  ct = animateMaterials ? Time.realtimeSinceStartup : 0;
+                float  pt = (m_TimeSinceStartup > 0) ? m_TimeSinceStartup : ct;
                 float  dt = Time.deltaTime;
                 float sdt = Time.smoothDeltaTime;
 
@@ -561,7 +586,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
 
                 // Update the current time.
-                m_TimeSinceLevelLoad = ct;
+                m_TimeSinceStartup = ct;
             }
         }
 
