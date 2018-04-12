@@ -110,8 +110,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            if (cpt > 0)
-                Debug.LogWarningFormat("{0} notification sent this frame", cpt);
+            /*if (cpt > 0)
+                Debug.LogWarningFormat("{0} notification sent this frame", cpt);*/
             otherModifiedModels.Clear();
             Profiler.EndSample();
         }

@@ -79,25 +79,33 @@ namespace UnityEditor.VFX.UI
 
         public void OnValueChanged(ChangeEvent<Color> e)
         {
-            OnValueChanged();
+            OnValueChanged(false);
         }
 
         public void OnValueChanged(ChangeEvent<float> e)
         {
-            OnValueChanged();
+            OnValueChanged(true);
+        }
+        
+        void OnValueChanged()
+        {
+            OnValueChanged(false);
         }
 
-        public void OnValueChanged()
+        void OnValueChanged(bool fromField)
         {
-            Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
-            if (newValue != m_Value)
+            if( fromField)
             {
-                m_Value = newValue;
-                NotifyValueChanged();
+                Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
+                if (newValue != m_Value)
+                {
+                    m_Value = newValue;
+                    NotifyValueChanged();
+                }
             }
             else
             {
-                newValue = m_ColorField.value;
+                Color newValue = m_ColorField.value;
                 if (newValue != m_Value)
                 {
                     m_Value = newValue;
