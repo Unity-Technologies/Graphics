@@ -82,40 +82,10 @@ namespace UnityEditor.VFX.UI
     {
         T m_Model;
 
-        IDataWatchHandle m_Handle;
-
 
         public Controller(T model)
         {
             m_Model = model;
-            if( m_Model != null)
-            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
-        }
-
-        public override void OnDisable()
-        {
-            if (m_Handle != null)
-            {
-            try
-            {
-                if( m_Handle != null)
-                {
-                DataWatchService.sharedInstance.RemoveWatch(m_Handle);
-                m_Handle = null;
-            }
-            }
-            catch (ArgumentException e)
-            {
-                Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
-            }
-            }
-            base.OnDisable();
-        }
-
-        void OnModelChanged(UnityEngine.Object obj)
-        {
-            if (m_Handle != null)
-                ModelChanged(obj);
         }
 
         protected abstract void ModelChanged(UnityEngine.Object obj);
@@ -136,9 +106,27 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXController<T> : Controller<T> where T : VFXModel
     {
-        public VFXController(T model) : base(model)
+        VFXViewController m_ViewController;
+        public VFXController(VFXViewController viewController, T model) : base(model)
         {
+            m_ViewController = viewController;
+            m_ViewController.RegisterNotification(model,OnModelChanged);
         }
+
+
+        public VFXViewController viewController{get{return m_ViewController;}}
+
+        public override void OnDisable()
+        {
+            m_ViewController.UnRegisterNotification(model,OnModelChanged);
+            base.OnDisable();
+        }
+
+        void OnModelChanged()
+        {
+            ModelChanged(model);
+        }
+        
 
         public virtual string name
         {

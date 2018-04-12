@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Constants")]
+    [VFXInfo(category = "Math/Constants")]
     class Pi : VFXOperator
     {
         override public string libraryName { get { return "Pi (π)"; } }

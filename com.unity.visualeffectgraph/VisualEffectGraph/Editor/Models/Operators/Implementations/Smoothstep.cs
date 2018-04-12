@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Smoothstep : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties

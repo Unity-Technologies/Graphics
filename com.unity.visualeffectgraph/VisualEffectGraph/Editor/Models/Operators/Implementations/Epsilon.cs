@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Constants")]
+    [VFXInfo(category = "Math/Constants")]
     class Epsilon : VFXOperator
     {
         override public string name { get { return "Epsilon (ε)"; } }

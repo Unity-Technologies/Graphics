@@ -1,3 +1,4 @@
+#define NOTIFICATION_VALIDATION
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using UnityEngine.Experimental.UIElements;
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using UnityEngine.Profiling;
 using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
@@ -29,6 +31,90 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        HashSet<ScriptableObject> modifiedModels = new HashSet<ScriptableObject>();
+        HashSet<ScriptableObject> otherModifiedModels = new HashSet<ScriptableObject>();
+
+        public void OnObjectModified(ScriptableObject obj)
+        {
+            modifiedModels.Add(obj);
+        }
+
+        Dictionary<ScriptableObject, List<Action>> m_Notified = new Dictionary<ScriptableObject, List<Action>>();
+
+
+        public void RegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
+        {
+            if (target == null)
+                return;
+
+            target.onModified += OnObjectModified;
+            List<Action> notifieds;
+            if (m_Notified.TryGetValue(target, out notifieds))
+            {
+                #if NOTIFICATION_VALIDATION
+                if (notifieds.Contains(action))
+                    Debug.LogError("Adding the same notification twice on:" + target.name);
+                #endif
+                notifieds.Add(action);
+            }
+            else
+            {
+                notifieds = new List<Action>();
+                notifieds.Add(action);
+
+                m_Notified.Add(target, notifieds);
+            }
+        }
+
+        public void UnRegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
+        {
+            if (target == null)
+                return;
+
+            target.onModified -= OnObjectModified;
+            List<Action> notifieds;
+            if (m_Notified.TryGetValue(target, out notifieds))
+            {
+                #if NOTIFICATION_VALIDATION
+                if (!notifieds.Contains(action))
+                    Debug.LogError("Removing a non existent notification" + target.name);
+                #endif
+                notifieds.Remove(action);
+            }
+        }
+
+        public void NotifyUpdate()
+        {
+            Profiler.BeginSample("VFXViewController.NotifyUpdate");
+            if (model == null || m_Graph == null || m_Graph != model.graph)
+            {
+                Debug.LogWarning("ModelChanged");
+                ModelChanged(model);
+            }
+
+            var tmp = modifiedModels;
+            modifiedModels = otherModifiedModels;
+            otherModifiedModels = tmp;
+
+            int cpt = 0;
+            foreach (var obj in otherModifiedModels)
+            {
+                List<Action> notifieds;
+                if (m_Notified.TryGetValue(obj, out notifieds))
+                {
+                    foreach (var notified in notifieds)
+                    {
+                        notified();
+                        cpt++;
+                    }
+                }
+            }
+
+            if (cpt > 0)
+                Debug.LogWarningFormat("{0} notification sent this frame", cpt);
+            otherModifiedModels.Clear();
+            Profiler.EndSample();
+        }
 
         public VFXGraph graph { get {return model.graph as VFXGraph; }}
 
@@ -57,13 +143,13 @@ namespace UnityEditor.VFX.UI
         public void LightApplyChanges()
         {
             ModelChanged(model);
-            GraphChanged(graph);
+            GraphChanged();
         }
 
         public override void ApplyChanges()
         {
             ModelChanged(model);
-            GraphChanged(graph);
+            GraphChanged();
 
             foreach (var controller in allChildren)
             {
@@ -74,19 +160,19 @@ namespace UnityEditor.VFX.UI
         void GraphLost()
         {
             Clear();
-            if (m_Graph != null)
+            if (!object.ReferenceEquals(m_Graph, null))
             {
                 RemoveInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                 RemoveInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
+                UnRegisterNotification(m_Graph, GraphChanged);
+
                 m_Graph = null;
             }
-            if (m_GraphHandle != null)
+            if (!object.ReferenceEquals(m_UI, null))
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
-                DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
-                m_GraphHandle = null;
-                m_UIHandle = null;
+                UnRegisterNotification(m_UI, UIChanged);
+                m_UI = null;
             }
         }
 
@@ -532,7 +618,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void ModelChanged(UnityEngine.Object obj)
+        protected override void ModelChanged(Object obj)
         {
             if (model == null)
             {
@@ -546,12 +632,10 @@ namespace UnityEditor.VFX.UI
             // a standard equals will return true is the m_Graph is a destroyed object with the same instance ID ( like with a source control revert )
             if (!object.ReferenceEquals(m_Graph, model.GetOrCreateGraph()))
             {
-                if (m_GraphHandle != null)
+                if (!object.ReferenceEquals(m_Graph, null))
                 {
-                    DataWatchService.sharedInstance.RemoveWatch(m_GraphHandle);
-                    m_GraphHandle = null;
-                    DataWatchService.sharedInstance.RemoveWatch(m_UIHandle);
-                    m_UIHandle = null;
+                    UnRegisterNotification(m_Graph, GraphChanged);
+                    UnRegisterNotification(m_UI, UIChanged);
                 }
                 if (m_Graph != null)
                 {
@@ -566,17 +650,17 @@ namespace UnityEditor.VFX.UI
 
                 if (m_Graph != null)
                 {
-                    m_GraphHandle = DataWatchService.sharedInstance.AddWatch(m_Graph, GraphChanged);
+                    RegisterNotification(m_Graph, GraphChanged);
 
                     AddInvalidateDelegate(m_Graph, InvalidateExpressionGraph);
                     AddInvalidateDelegate(m_Graph, IncremenentGraphUndoRedoState);
 
 
-                    VFXUI ui = m_Graph.UIInfos;
+                    m_UI = m_Graph.UIInfos;
 
-                    m_UIHandle = DataWatchService.sharedInstance.AddWatch(ui, UIChanged);
+                    RegisterNotification(m_UI, UIChanged);
 
-                    GraphChanged(m_Graph);
+                    GraphChanged();
                 }
             }
         }
@@ -588,26 +672,29 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-        public void AddStickyNote(Vector2 position,VFXGroupNodeController group)
+        public void AddStickyNote(Vector2 position, VFXGroupNodeController group)
         {
             var ui = graph.UIInfos;
 
-            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "Title", 
-            position = new Rect(position, Vector2.one * 100), 
-            contents = "type something here", 
+            var stickyNoteInfo = new VFXUI.StickyNoteInfo
+            {
+                title = "Title",
+                position = new Rect(position, Vector2.one * 100),
+                contents = "type something here",
             theme = StickyNote.Theme.Classic.ToString(),
-            textSize = StickyNote.TextSize.Small.ToString()};
+                textSize = StickyNote.TextSize.Small.ToString()
+            };
 
             if (ui.stickyNoteInfos != null)
                 ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(Enumerable.Repeat(stickyNoteInfo, 1)).ToArray();
             else
                 ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[] { stickyNoteInfo };
 
-            if(group != null)
+            if (group != null)
             {
                 LightApplyChanges();
 
-                group.AddStickyNote(m_StickyNoteControllers[ui.stickyNoteInfos.Length-1]);
+                group.AddStickyNote(m_StickyNoteControllers[ui.stickyNoteInfos.Length - 1]);
             }
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
@@ -684,10 +771,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected void GraphChanged(UnityEngine.Object obj)
+        protected void GraphChanged()
         {
-            if (m_GraphHandle == null)
-                return;
             if (m_Graph == null)
             {
                 if (model != null)
@@ -705,9 +790,9 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-        protected void UIChanged(UnityEngine.Object obj)
+        protected void UIChanged()
         {
-            if (m_UIHandle == null) return;
+            if (m_UI == null) return;
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
             RecreateUI();
@@ -1009,7 +1094,7 @@ namespace UnityEditor.VFX.UI
 
 
             InitializeUndoStack();
-            GraphChanged(graph);
+            GraphChanged();
         }
 
         public ReadOnlyCollection<VFXGroupNodeController> groupNodes
@@ -1071,7 +1156,7 @@ namespace UnityEditor.VFX.UI
         {
             Clear();
             ModelChanged(model);
-            GraphChanged(graph);
+            GraphChanged();
         }
 
         bool m_Syncing;
@@ -1184,7 +1269,7 @@ namespace UnityEditor.VFX.UI
                     newControllers.Add(new VFXBranchOperatorController(model, this));
                 }
                 else
-                    newControllers.Add(new VFXOperatorController(model, this));
+                newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {
@@ -1289,8 +1374,7 @@ namespace UnityEditor.VFX.UI
 
         private VFXGraph m_Graph;
 
-        IDataWatchHandle m_GraphHandle;
-        IDataWatchHandle m_UIHandle;
+        private VFXUI m_UI;
 
         private VFXView m_View; // Don't call directly as it is lazy initialized
     }
