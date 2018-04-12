@@ -620,19 +620,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
-            if (m_FrameCount != Time.frameCount)
             {
-                // New frame.
-                HDCamera.CleanUnused();
-
-                m_FrameCount = Time.frameCount;
-
-                // Do not use 'Time.timeSinceLevelLoad' - it does not tick all the time as expected.
+                // SRP.Render() can be called several times per frame.
+                // Also, most Time variables do not consistently update in the Scene View.
+                // This makes reliable detection of the start of the new frame VERY hard.
+                // One of the exceptions is 'Time.realtimeSinceStartup'.
+                // Therefore, outside of the Play Mode we update the time at 60 fps,
+                // and in the Player, we rely on 'Time.frameCount'.
                 float t = Time.realtimeSinceStartup;
+                int   c = Time.frameCount;
 
-                // Make sure both are never 0.
-                m_PreviousTime = (m_CurrentTime > 0) ? m_CurrentTime : t;
-                m_CurrentTime  = t;
+                bool newFrame;
+
+                if (Application.isPlaying)
+                {
+                    newFrame = m_FrameCount != c;
+
+                    if (newFrame) m_FrameCount = c;
+                }
+            #if UNITY_EDITOR
+                else
+                {
+                    newFrame = ((t - m_CurrentTime) * 1000.0f) > 16.6;
+
+                    if (newFrame) m_FrameCount++;
+                }
+            #endif
+
+                if (newFrame)
+                {
+                    HDCamera.CleanUnused();
+
+                    // Make sure both are never 0.
+                    m_PreviousTime = (m_CurrentTime > 0) ? m_CurrentTime : t;
+                    m_CurrentTime  = t;
+                }
             }
 
             // TODO: Render only visible probes
