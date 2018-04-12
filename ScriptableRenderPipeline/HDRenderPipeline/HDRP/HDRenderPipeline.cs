@@ -626,7 +626,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // This makes reliable detection of the start of the new frame VERY hard.
                 // One of the exceptions is 'Time.realtimeSinceStartup'.
                 // Therefore, outside of the Play Mode we update the time at 60 fps,
-                // and in the Player, we rely on 'Time.frameCount'.
+                // and in the Play Mode we rely on 'Time.frameCount'.
                 float t = Time.realtimeSinceStartup;
                 int   c = Time.frameCount;
 
@@ -638,14 +638,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     if (newFrame) m_FrameCount = c;
                 }
-            #if UNITY_EDITOR
                 else
                 {
                     newFrame = ((t - m_CurrentTime) * 1000.0f) > 16.6;
 
                     if (newFrame) m_FrameCount++;
                 }
-            #endif
 
                 if (newFrame)
                 {
