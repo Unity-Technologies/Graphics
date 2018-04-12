@@ -461,5 +461,48 @@ namespace UnityEngine.Experimental.Rendering
             mesh.triangles = triangles;
             return mesh;
         }
+
+        // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
+        public static  bool AreAnimatedMaterialsEnabled(Camera camera)
+        {
+            bool animateMaterials = true;
+
+        #if UNITY_EDITOR
+            animateMaterials = false;
+
+            if (camera.cameraType == CameraType.Game)
+            {
+                animateMaterials = Application.isPlaying;
+            }
+            else if (camera.cameraType == CameraType.Preview)
+            {
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.MaterialEditor med in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.MaterialEditor)))
+                {
+                    // Warning: currently, there's no way to determine whether a given camera corresponds to this MaterialEditor.
+                    // Therefore, if at least one of the visible MaterialEditors is in Play Mode, all of them will play.
+                    if (med.isVisible && med.RequiresConstantRepaint())
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showMaterialUpdate)
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
+            }
+        #endif
+
+            return animateMaterials;
+        }
     }
 }
