@@ -51,8 +51,7 @@ namespace UnityEditor.VFX
                 AssetDatabase.CreateAsset(newAsset, defaultPath + defaultFileName);
                 asset = AssetDatabase.LoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
             }
-            else
-                s_Instance = asset;
+            s_Instance = asset;
         }
 
         [Header("Default Resources")]
