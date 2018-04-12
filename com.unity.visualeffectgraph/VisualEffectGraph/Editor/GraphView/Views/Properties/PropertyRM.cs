@@ -516,6 +516,10 @@ namespace UnityEditor.VFX.UI
                     m_Value = newValue;
                     NotifyValueChanged();
                 }
+                else
+                {
+                    UpdateGUI(false);
+                }
             }
             catch (System.Exception ex)
             {
