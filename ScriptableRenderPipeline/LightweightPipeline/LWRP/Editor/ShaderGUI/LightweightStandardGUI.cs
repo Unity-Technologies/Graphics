@@ -45,7 +45,7 @@ namespace UnityEditor
 
         private MaterialProperty albedoColor;
         private MaterialProperty albedoMap;
-        
+
         private MaterialProperty smoothness;
         private MaterialProperty smoothnessScale;
         private MaterialProperty smoothnessMapChannel;
@@ -71,7 +71,7 @@ namespace UnityEditor
             workflowMode = FindProperty("_WorkflowMode", properties);
             albedoColor = FindProperty("_Color", properties);
             albedoMap = FindProperty("_MainTex", properties);
-            
+
             smoothness = FindProperty("_Glossiness", properties);
             smoothnessScale = FindProperty("_GlossMapScale", properties, false);
             smoothnessMapChannel = FindProperty("_SmoothnessTextureChannel", properties, false);
@@ -106,10 +106,9 @@ namespace UnityEditor
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
+                DoPopup(Styles.workflowModeText, workflowMode, Styles.workflowNames);
                 base.ShaderPropertiesGUI(material);
                 GUILayout.Label(Styles.surfaceProperties, EditorStyles.boldLabel);
-
-                DoPopup(Styles.workflowModeText, workflowMode, Styles.workflowNames);
 
                 DoAlbedoArea();
                 DoMetallicSpecularArea();
