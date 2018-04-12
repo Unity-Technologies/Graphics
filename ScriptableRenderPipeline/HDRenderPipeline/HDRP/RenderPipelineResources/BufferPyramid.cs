@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, targetColorTexture);
         }
 
-        public RTHandleSystem.RTHandle AllocColorRT(RTHandleSystem rtHandleSystem)
+        public RTHandleSystem.RTHandle AllocColorRT(string id, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(
                 size => CalculatePyramidSize(size), 
@@ -137,11 +137,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 useMipMap: true, 
                 autoGenerateMips: false, 
                 enableRandomWrite: true, 
-                name: "ColorPyramid"
+                name: string.Format("ColorPyramid-{0}-{1}", id, frameIndex)
             );
         }
 
-        public RTHandleSystem.RTHandle AllocDepthRT(RTHandleSystem rtHandleSystem)
+        public RTHandleSystem.RTHandle AllocDepthRT(string id, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(
                 size => CalculatePyramidSize(size), 
@@ -150,9 +150,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 sRGB: false, 
                 useMipMap: true, 
                 autoGenerateMips: false, 
-                enableRandomWrite: true, 
-                name: "DepthPyramid"
-            ); // Need randomReadWrite because we downsample the first mip with a compute shader.
+                enableRandomWrite: true, // Need randomReadWrite because we downsample the first mip with a compute shader.
+                name: string.Format("DepthPyramid-{0}-{1}", id, frameIndex)
+            );
         }
     }
 }
