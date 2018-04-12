@@ -7,7 +7,7 @@
 
 #include "HLSLSupport.cginc"
 
-#define DECREASING_ORDER 0
+#define DECREASING_ORDER 1
 #define DEBUG_NO_INFINITE_LOOP 0
 
 #ifndef ELEMENTS_COUNT

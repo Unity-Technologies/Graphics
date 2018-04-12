@@ -427,7 +427,10 @@ namespace UnityEditor.VFX
                 }
 
                 if (context.taskType == VFXTaskType.CameraSort)
+                {
+                    bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
                     bufferMappings.Add(new VFXMapping("outputBuffer", sortBufferAIndex));
+                }
 
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))

@@ -3,10 +3,17 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 CBUFFER_START(params)
-    uint nbInputs;
+    uint nbMax;
 CBUFFER_END
 
+CBUFFER_START(cameraParams)
+    float3 cameraPosition;
+CBUFFER_END
+
+ByteAddressBuffer attributeBuffer;
 StructuredBuffer<uint> inputBuffer;
+
+Buffer<uint> deadListCount;
 
 struct Kvp
 {
@@ -19,15 +26,14 @@ RWStructuredBuffer<Kvp> outputBuffer;
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 {
-	if (id.x < nbInputs)	
+	if (id.x < nbMax - deadListCount[0])	
 	{
 		uint index = inputBuffer[id.x];
 		${VFXLoadAttributes:{position}}
 		
 		// sqr distance from camera
-		float3 camPos = float3(0,0,0); // TMP
-		float3 wPos = TransformPositionVFXToWorld(position);
-		float3 camToPos = wPos - camPos;
+		float3 wPos = position;//TransformPositionVFXToWorld(position);
+		float3 camToPos = wPos - cameraPosition;
 		
 		Kvp kvp;
 		kvp.sortKey = dot(camToPos,camToPos);
