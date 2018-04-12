@@ -80,12 +80,15 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
                 VertexOutputLit o;
                 OUTPUT_NORMAL(v, o);
 
-                o.color = v.color * _Color;
                 o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz).xyz;
                 o.posWS.w = ComputeFogFactor(o.clipPos.z);
                 o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
                 o.viewDirShininess.w = 0.0;
+                o.color = v.color;
+
+                // TODO: Instancing
+                // vertColor(v.color);
                 vertTexcoord(v, o);
                 vertFading(o, o.posWS, o.clipPos);
                 return o;

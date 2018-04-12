@@ -391,18 +391,9 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
 #ifdef LIGHTMAP_ON
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleGI(lmName, normalWSName)
-half3 SampleGI(float2 sampleData, half3 normalWS)
-{
-    return SampleLightmap(sampleData, normalWS);
-}
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleGI(shName, normalWSName)
-half3 SampleGI(half3 sampleData, half3 normalWS)
-{
-    // If lightmap is not enabled we sample GI from SH
-    return SampleSHPixel(sampleData, normalWS);
-}
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
