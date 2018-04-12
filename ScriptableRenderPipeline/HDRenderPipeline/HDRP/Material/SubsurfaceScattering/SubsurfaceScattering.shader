@@ -175,7 +175,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                         // Ref #2: Separable SSS, Supplementary Materials, Section E.
                         float rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
-                        float sampleDepth = LinearEyeDepth(rawDepth, _DepthBufferParam);
+                        float sampleDepth = LinearEyeDepth(rawDepth, _DepthBufferParams);
                         float zDistance   = centimPerUnit * sampleDepth - (centimPerUnit * centerPosVS.z);
                         sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);
 

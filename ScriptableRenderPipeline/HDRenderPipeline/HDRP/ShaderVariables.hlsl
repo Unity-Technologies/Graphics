@@ -281,7 +281,7 @@ CBUFFER_START(UnityPerView)
     // y = 1
     // z = x/far
     // w = 1/far
-    float4 _DepthBufferParam;
+    float4 _DepthBufferParams;
 
     // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
     float4 _TaaFrameRotation;     // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }

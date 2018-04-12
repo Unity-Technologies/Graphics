@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Camera    camera;
         public uint      taaFrameIndex;
         public Vector2   taaFrameRotation;
-        public Vector4   depthBufferParam;
+        public Vector4   depthBufferParams;
 
         public PostProcessRenderContext postprocessRenderContext;
 
@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool isFirstFrame { get; private set; }
 
         // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
-        // TODO: pass this as "_DepthBufferParam" if the projection matrix is oblique.
+        // TODO: pass this as "_DepthBufferParams" if the projection matrix is oblique.
         public Vector4 invProjParam
         {
             get
@@ -236,11 +236,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // http://www.humus.name/temp/Linearize%20depth.txt
             if (reverseZ)
             {
-                depthBufferParam = new Vector4(-1 + f/n, 1, -1/f + 1/n, 1/f);
+                depthBufferParams = new Vector4(-1 + f/n, 1, -1/f + 1/n, 1/f);
             }
             else
             {
-                depthBufferParam = new Vector4(1 - f/n, f/n, 1/f - 1/n, 1/n);
+                depthBufferParams = new Vector4(1 - f/n, f/n, 1/f - 1/n, 1/n);
             }
 
             frustum = Frustum.Create(viewProjMatrix, depth_0_1, reverseZ);
@@ -435,7 +435,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
-            cmd.SetGlobalVector(HDShaderIDs._DepthBufferParam,          depthBufferParam);
+            cmd.SetGlobalVector(HDShaderIDs._DepthBufferParams,         depthBufferParams);
             cmd.SetGlobalVector(HDShaderIDs._InvProjParam,              invProjParam);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation,          taaFrameRotation);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
