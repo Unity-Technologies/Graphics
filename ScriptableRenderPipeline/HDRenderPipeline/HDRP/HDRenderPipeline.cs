@@ -1290,12 +1290,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 				// for alpha compositing, color is cleared to 0, alpha to 1
 				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 
-				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
+//				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+//				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
+
+                m_DbufferManager.ClearTargets(cmd, camera);
 
 				// we need to do a separate clear for normals, because they are cleared to a different color
-				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
-				m_DbufferManager.ClearNormalTargetAndHTile(cmd, camera, clearColorNormal);
+//				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+//				m_DbufferManager.ClearNormalTargetAndHTile(cmd, camera, clearColorNormal);
 
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
