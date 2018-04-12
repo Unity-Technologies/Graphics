@@ -51,13 +51,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
         }
 
-        public void ClearNormalTargetAndHTile(CommandBuffer cmd, HDCamera camera, Color clearColor)
-        {
-            // index 1 is normals
-            HDUtils.SetRenderTarget(cmd, camera, m_RTs[1], ClearFlag.Color, clearColor);
-            HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-        }
-
         public void SetHTile(int bindSlot, CommandBuffer cmd)
         {
             cmd.SetRandomWriteTarget(bindSlot, m_HTile);
