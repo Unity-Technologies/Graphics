@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint      taaFrameIndex;
         public Vector2   taaFrameRotation;
         public Vector4   depthBufferParams;
+        public Vector4   frustumParams;
 
         public PostProcessRenderContext postprocessRenderContext;
 
@@ -243,6 +244,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 depthBufferParams = new Vector4(1 - f/n, f/n, 1/f - 1/n, 1/n);
             }
 
+            float orthoHeight = camera.orthographic ? 2 * camera.orthographicSize : 0;
+            float orthoWidth  = orthoHeight * camera.aspect;
+            frustumParams     = new Vector4(n, f, orthoWidth, orthoHeight);
+
             frustum = Frustum.Create(viewProjMatrix, depth_0_1, reverseZ);
 
             // Left, right, top, bottom, near, far.
@@ -436,7 +441,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
             cmd.SetGlobalVector(HDShaderIDs._DepthBufferParams,         depthBufferParams);
-            cmd.SetGlobalVector(HDShaderIDs._InvProjParam,              invProjParam);
+            cmd.SetGlobalVector(HDShaderIDs._FrustumParams,             frustumParams);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation,          taaFrameRotation);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
         }

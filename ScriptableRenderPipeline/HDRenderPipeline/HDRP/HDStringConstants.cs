@@ -212,6 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
         public static readonly int _DetViewMatrix = Shader.PropertyToID("_DetViewMatrix");
         public static readonly int _DepthBufferParams = Shader.PropertyToID("_DepthBufferParams");
+        public static readonly int _FrustumParams = Shader.PropertyToID("_FrustumParams");
         public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
         public static readonly int _ScreenToTargetScale = Shader.PropertyToID("_ScreenToTargetScale");
