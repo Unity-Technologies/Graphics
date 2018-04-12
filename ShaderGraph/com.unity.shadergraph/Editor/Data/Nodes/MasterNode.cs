@@ -73,27 +73,23 @@ namespace UnityEditor.ShaderGraph
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 activeNode.CollectShaderProperties(shaderProperties, mode);
 
-            var finalShader = new ShaderGenerator();
-            finalShader.AddShaderChunk(string.Format(@"Shader ""{0}""", outputName), false);
-            finalShader.AddShaderChunk("{", false);
-            finalShader.Indent();
+            var finalShader = new ShaderStringBuilder();
+            finalShader.AppendLine(@"Shader ""{0}""", outputName);
+            using(finalShader.BlockScope())
+            {
+                finalShader.AppendLine("Properties");
+                using(finalShader.BlockScope())
+                {
+                    finalShader.AppendLine(shaderProperties.GetPropertiesBlock(0));
+                }
 
-            finalShader.AddShaderChunk("Properties", false);
-            finalShader.AddShaderChunk("{", false);
-            finalShader.Indent();
-            finalShader.AddShaderChunk(shaderProperties.GetPropertiesBlock(0), false);
-            finalShader.Deindent();
-            finalShader.AddShaderChunk("}", false);
-
-            foreach (var subShader in m_SubShaders)
-                finalShader.AddShaderChunk(subShader.GetSubshader(this, mode), true);
-
-            finalShader.AddShaderChunk(@"FallBack ""Hidden/InternalErrorShader""", false);
-            finalShader.Deindent();
-            finalShader.AddShaderChunk("}", false);
-
+                foreach (var subShader in m_SubShaders)
+                    finalShader.AppendLines(subShader.GetSubshader(this, mode));
+                
+                finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
+            }
             configuredTextures = shaderProperties.GetConfiguredTexutres();
-            return finalShader.GetShaderString(0);
+            return finalShader.ToString();
         }
 
         public bool IsPipelineCompatible(IRenderPipeline renderPipeline)

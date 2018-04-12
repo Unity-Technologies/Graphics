@@ -110,13 +110,16 @@ namespace UnityEditor.ShaderGraph
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetSlots(slots);
+            
+            List<MaterialSlot> validSlots = new List<MaterialSlot>();
             for(int i = 0; i < slots.Count; i++)
             {
                 if(slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
-                    slots.Remove(slots[i]);
-
+                    continue;
+                
+                validSlots.Add(slots[i]);
             }
-            return slots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+            return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
     }
 }
