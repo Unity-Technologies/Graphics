@@ -22,5 +22,18 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
             }
         }
+
+        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
+        {
+            var localSpace = ((VFXDataParticle)GetData()).space == CoordinateSpace.Local;
+            if (localSpace && target == VFXDeviceTarget.GPU) // Needs to add locaToWorld matrix
+            {
+                var gpuMapper = new VFXExpressionMapper();
+                gpuMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "localToWorld", -1);
+                return gpuMapper;
+            }
+
+            return null; // cpu
+        }
     }
 }

@@ -24,19 +24,22 @@ struct Kvp
 RWStructuredBuffer<Kvp> outputBuffer;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
+void CSMain(uint3 id : SV_DispatchThreadID)
 {
 	if (id.x < nbMax - deadListCount[0])	
 	{
 		uint index = inputBuffer[id.x];
 		${VFXLoadAttributes:{position}}
 		
-		// sqr distance from camera
-		float3 wPos = position;//TransformPositionVFXToWorld(position);
+#if VFX_LOCAL_SPACE
+		float3 wPos = mul(localToWorld,float4(position,1.0f)).xyz;
+#else
+		float3 wPos = position;
+#endif
 		float3 camToPos = wPos - cameraPosition;
 		
 		Kvp kvp;
-		kvp.sortKey = dot(camToPos,camToPos);
+		kvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
 		kvp.index = index;
 
 		outputBuffer[id.x] = kvp;
