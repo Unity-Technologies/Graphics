@@ -534,28 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                bool animateMaterials = true;
-
-            #if UNITY_EDITOR
-                if (hdCamera.camera.cameraType == CameraType.Game)
-                {
-                    animateMaterials = Application.isPlaying;
-                }
-                else
-                {
-                    animateMaterials = false;
-
-                    // Determine whether the "Animated Materials" checkbox of the current view is checked.
-                    foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
-                    {
-                        if (sv.camera == hdCamera.camera && sv.sceneViewState.showMaterialUpdate)
-                        {
-                            animateMaterials = true;
-                            break;
-                        }
-                    }
-                }
-            #endif
+                bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(hdCamera.camera);
 
                 // Do not use 'Time.timeSinceLevelLoad' - it ticks in the Scene View for a fraction of a second
                 // after you select an object even if the "Animated Materials" option is disabled.
