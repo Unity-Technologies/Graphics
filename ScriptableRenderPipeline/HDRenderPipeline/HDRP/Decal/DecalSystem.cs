@@ -119,12 +119,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 TextureScaleBias other = obj as TextureScaleBias;
                 int size = m_Texture.width * m_Texture.height;
-                int otherSide = other.m_Texture.width * other.m_Texture.height;
-                if(size > otherSide)
+                int otherSize = other.m_Texture.width * other.m_Texture.height;
+                if(size > otherSize)
                 {
                     return -1;
                 }
-                else if( size < otherSide)
+                else if( size < otherSize)
                 {
                     return 1;
                 }
@@ -540,12 +540,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._DecalAtlas2DID, Atlas.AtlasTexture);
         }
 
-        public void AddTexture(CommandBuffer cmd, TextureScaleBias textureScaleBias) //ref Vector4 scaleBias, Texture texture)
+        public void AddTexture(CommandBuffer cmd, TextureScaleBias textureScaleBias) 
         {
             if (textureScaleBias.m_Texture != null)
             {
-                textureScaleBias.m_ScaleBias = Atlas.AddTexture(cmd, textureScaleBias.m_Texture);
-                if (textureScaleBias.m_ScaleBias == Vector4.zero)
+                if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias,textureScaleBias.m_Texture))
                 {
                     m_AllocationSuccess = false;
                 }
