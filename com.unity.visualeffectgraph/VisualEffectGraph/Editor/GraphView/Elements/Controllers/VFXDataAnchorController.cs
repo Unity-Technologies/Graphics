@@ -37,11 +37,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        IDataWatchHandle m_MasterSlotHandle;
+        VFXSlot m_MasterSlot;
 
         public Type portType { get; set; }
 
-        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model)
+        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(sourceNode.viewController, model)
         {
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
@@ -53,17 +53,19 @@ namespace UnityEditor.VFX.UI
 
             if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
             {
-                m_MasterSlotHandle = DataWatchService.sharedInstance.AddWatch(model.GetMasterSlot(), MasterSlotChanged);
+                m_MasterSlot = model.GetMasterSlot();
+
+                viewController.RegisterNotification(m_MasterSlot, MasterSlotChanged);
             }
             ModelChanged(model);
         }
         }
 
-        void MasterSlotChanged(UnityEngine.Object obj)
+        void MasterSlotChanged()
         {
-            if (m_MasterSlotHandle == null)
+            if (m_MasterSlot == null)
                 return;
-            ModelChanged(obj);
+            ModelChanged(m_MasterSlot);
         }
 
         bool m_Expanded;
@@ -83,10 +85,10 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            if (m_MasterSlotHandle != null)
+            if (!object.ReferenceEquals(m_MasterSlot, null))
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
-                m_MasterSlotHandle = null;
+                viewController.UnRegisterNotification(m_MasterSlot, MasterSlotChanged);
+                m_MasterSlot = null;
             }
             base.OnDisable();
         }

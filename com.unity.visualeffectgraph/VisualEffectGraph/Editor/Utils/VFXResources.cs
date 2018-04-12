@@ -36,26 +36,23 @@ namespace UnityEditor.VFX
 
                 newAsset.gradient = new Gradient();
                 newAsset.gradient.colorKeys = new GradientColorKey[]
-                    {
-                        new GradientColorKey(Color.white, 0.0f),
-                        new GradientColorKey(Color.gray, 1.0f),
-
-                    };
+                {
+                    new GradientColorKey(Color.white, 0.0f),
+                    new GradientColorKey(Color.gray, 1.0f),
+                };
                 newAsset.gradient.alphaKeys = new GradientAlphaKey[]
-                    {
-                        new GradientAlphaKey(0.0f, 0.0f),
-                        new GradientAlphaKey(1.0f, 0.1f),
-                        new GradientAlphaKey(0.8f, 0.8f),
-                        new GradientAlphaKey(0.0f, 1.0f),
-                    };
+                {
+                    new GradientAlphaKey(0.0f, 0.0f),
+                    new GradientAlphaKey(1.0f, 0.1f),
+                    new GradientAlphaKey(0.8f, 0.8f),
+                    new GradientAlphaKey(0.0f, 1.0f),
+                };
 
                 AssetDatabase.CreateAsset(newAsset, defaultPath + defaultFileName);
                 asset = AssetDatabase.LoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
             }
             else
-
-            s_Instance = asset;
-
+                s_Instance = asset;
         }
 
         [Header("Default Resources")]

@@ -73,9 +73,10 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXContextUI.SetAllStyleClasses");
 
             VFXContextType contextType = controller.context.contextType;
-            foreach (var value in System.Enum.GetNames(typeof(VFXContextType)))
+            foreach (VFXContextType value in System.Enum.GetValues(typeof(VFXContextType)))
             {
-                RemoveFromClassList(ContextEnumToClassName(value));
+                if( value != contextType)
+                    RemoveFromClassList(ContextEnumToClassName(value.ToString()));
             }
             AddToClassList(ContextEnumToClassName(contextType.ToString()));
 
@@ -84,30 +85,35 @@ namespace UnityEditor.VFX.UI
             {
                 inputType = controller.context.ownedType;
             }
-            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                RemoveFromClassList("inputType" + ContextEnumToClassName(value));
+                if( inputType != value)
+                    RemoveFromClassList("inputType" + ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("inputType" + ContextEnumToClassName(inputType.ToString()));
 
             var outputType = controller.context.outputType;
-            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                RemoveFromClassList("outputType" + ContextEnumToClassName(value));
+                if( value != outputType)
+                    RemoveFromClassList("outputType" + ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("outputType" + ContextEnumToClassName(outputType.ToString()));
 
             var type = controller.context.ownedType;
-            foreach (var value in System.Enum.GetNames(typeof(VFXDataType)))
+            foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                RemoveFromClassList("type" + ContextEnumToClassName(value));
+                if( value != type)
+                    RemoveFromClassList("type" + ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
 
 
-            foreach (int val in System.Enum.GetValues(typeof(CoordinateSpace)))
+            var space = controller.context.space;
+            foreach (CoordinateSpace val in System.Enum.GetValues(typeof(CoordinateSpace)))
             {
-                m_HeaderSpace.RemoveFromClassList("space" + ((CoordinateSpace)val).ToString());
+                if( val != space)
+                    m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
             }
             m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
             Profiler.EndSample();
@@ -185,6 +191,10 @@ namespace UnityEditor.VFX.UI
 
             AddToClassList("VFXContext");
             AddToClassList("selectable");
+
+            this.mainContainer.clippingOptions = ClippingOptions.NoClipping;
+
+            mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
 
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
@@ -433,39 +443,54 @@ namespace UnityEditor.VFX.UI
         {
             Profiler.BeginSample("VFXContextUI.RefreshContext");
             var blockControllers = controller.blockControllers;
+            int blockControllerCount = blockControllers.Count();
 
             // recreate the children list based on the controller list to keep the order.
 
             var blocksUIs = new Dictionary<VFXBlockController, VFXBlockUI>();
+
+            bool somethingChanged = m_BlockContainer.childCount < blockControllerCount;
+
+            int cptBlock = 0;
             for (int i = 0; i < m_BlockContainer.childCount; ++i)
             {
                 var child = m_BlockContainer.ElementAt(i) as VFXBlockUI;
                 if (child != null)
+                {
                     blocksUIs.Add(child.controller, child);
-            }
-
-            foreach (var kv in blocksUIs)
-            {
-                m_BlockContainer.Remove(kv.Value);
-            }
-            if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
-            {
-                m_NoBlock.RemoveFromHierarchy();
-            }
-            else if (m_NoBlock.parent == null)
-            {
-                m_BlockContainer.Add(m_NoBlock);
-            }
-            foreach (var blockController in blockControllers)
-            {
-                VFXBlockUI blockUI;
-                if (blocksUIs.TryGetValue(blockController, out blockUI))
-                {
-                    m_BlockContainer.Add(blockUI);
+                    
+                    if( !somethingChanged && blockControllerCount > cptBlock && child.controller != blockControllers[cptBlock])
+                    {
+                        somethingChanged = true;
+                    }
+                    cptBlock++;
                 }
-                else
+            }
+            if(somethingChanged || cptBlock != blockControllerCount)
+            {
+                foreach (var kv in blocksUIs)
                 {
-                    InstantiateBlock(blockController);
+                    m_BlockContainer.Remove(kv.Value);
+                }
+                if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
+                {
+                    m_NoBlock.RemoveFromHierarchy();
+                }
+                else if (m_NoBlock.parent == null)
+                {
+                    m_BlockContainer.Add(m_NoBlock);
+                }
+                foreach (var blockController in blockControllers)
+                {
+                    VFXBlockUI blockUI;
+                    if (blocksUIs.TryGetValue(blockController, out blockUI))
+                    {
+                        m_BlockContainer.Add(blockUI);
+                    }
+                    else
+                    {
+                        InstantiateBlock(blockController);
+                    }
                 }
             }
             Profiler.EndSample();
