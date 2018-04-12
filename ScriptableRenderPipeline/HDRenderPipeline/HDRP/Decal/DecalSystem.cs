@@ -581,6 +581,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TextureList.Sort();   // sort the texture list largest to smallest for better packing
                 Atlas.ResetAllocator(); // clear all allocations 
                 // try again                
+                m_AllocationSuccess = true;
                 foreach (TextureScaleBias textureScaleBias in m_TextureList)
                 {
                     AddTexture(cmd, textureScaleBias);
