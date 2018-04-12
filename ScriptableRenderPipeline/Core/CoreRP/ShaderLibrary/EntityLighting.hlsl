@@ -1,7 +1,7 @@
 #ifndef UNITY_ENTITY_LIGHTING_INCLUDED
 #define UNITY_ENTITY_LIGHTING_INCLUDED
 
-#include "common.hlsl"
+#include "Common.hlsl"
 
 // TODO: Check if PI is correctly handled!
 

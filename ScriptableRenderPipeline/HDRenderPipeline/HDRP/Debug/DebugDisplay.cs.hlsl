@@ -14,11 +14,122 @@
 #define FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID (4)
 #define FULLSCREENDEBUGMODE_DEPTH_PYRAMID (5)
 #define FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID (6)
-#define FULLSCREENDEBUGMODE_MAX_LIGHTING_FULL_SCREEN_DEBUG (7)
-#define FULLSCREENDEBUGMODE_MIN_RENDERING_FULL_SCREEN_DEBUG (8)
-#define FULLSCREENDEBUGMODE_MOTION_VECTORS (9)
-#define FULLSCREENDEBUGMODE_NAN_TRACKER (10)
-#define FULLSCREENDEBUGMODE_MAX_RENDERING_FULL_SCREEN_DEBUG (11)
+#define FULLSCREENDEBUGMODE_SCREEN_SPACE_TRACING (7)
+#define FULLSCREENDEBUGMODE_MAX_LIGHTING_FULL_SCREEN_DEBUG (8)
+#define FULLSCREENDEBUGMODE_MIN_RENDERING_FULL_SCREEN_DEBUG (9)
+#define FULLSCREENDEBUGMODE_MOTION_VECTORS (10)
+#define FULLSCREENDEBUGMODE_NAN_TRACKER (11)
+#define FULLSCREENDEBUGMODE_MAX_RENDERING_FULL_SCREEN_DEBUG (12)
+
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ScreenSpaceTracingDebug
+// PackingRules = Exact
+struct ScreenSpaceTracingDebug
+{
+    int tracingModel;
+    uint loopStartPositionSSX;
+    uint loopStartPositionSSY;
+    float loopStartLinearDepth;
+    float3 loopRayDirectionSS;
+    uint loopMipLevelMax;
+    uint loopIterationMax;
+    float3 iterationPositionSS;
+    uint iterationMipLevel;
+    uint iteration;
+    float iterationLinearDepthBuffer;
+    int iterationIntersectionKind;
+    uint iterationCellSizeW;
+    uint iterationCellSizeH;
+    int proxyShapeType;
+    float projectionDistance;
+    bool endHitSuccess;
+    float endLinearDepth;
+    uint endPositionSSX;
+    uint endPositionSSY;
+};
+
+//
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ScreenSpaceTracingDebug
+//
+int GetTracingModel(ScreenSpaceTracingDebug value)
+{
+	return value.tracingModel;
+}
+uint GetLoopStartPositionSSX(ScreenSpaceTracingDebug value)
+{
+	return value.loopStartPositionSSX;
+}
+uint GetLoopStartPositionSSY(ScreenSpaceTracingDebug value)
+{
+	return value.loopStartPositionSSY;
+}
+float GetLoopStartLinearDepth(ScreenSpaceTracingDebug value)
+{
+	return value.loopStartLinearDepth;
+}
+float3 GetLoopRayDirectionSS(ScreenSpaceTracingDebug value)
+{
+	return value.loopRayDirectionSS;
+}
+uint GetLoopMipLevelMax(ScreenSpaceTracingDebug value)
+{
+	return value.loopMipLevelMax;
+}
+uint GetLoopIterationMax(ScreenSpaceTracingDebug value)
+{
+	return value.loopIterationMax;
+}
+float3 GetIterationPositionSS(ScreenSpaceTracingDebug value)
+{
+	return value.iterationPositionSS;
+}
+uint GetIterationMipLevel(ScreenSpaceTracingDebug value)
+{
+	return value.iterationMipLevel;
+}
+uint GetIteration(ScreenSpaceTracingDebug value)
+{
+	return value.iteration;
+}
+float GetIterationLinearDepthBuffer(ScreenSpaceTracingDebug value)
+{
+	return value.iterationLinearDepthBuffer;
+}
+int GetIterationIntersectionKind(ScreenSpaceTracingDebug value)
+{
+	return value.iterationIntersectionKind;
+}
+uint GetIterationCellSizeW(ScreenSpaceTracingDebug value)
+{
+	return value.iterationCellSizeW;
+}
+uint GetIterationCellSizeH(ScreenSpaceTracingDebug value)
+{
+	return value.iterationCellSizeH;
+}
+int GetProxyShapeType(ScreenSpaceTracingDebug value)
+{
+	return value.proxyShapeType;
+}
+float GetProjectionDistance(ScreenSpaceTracingDebug value)
+{
+	return value.projectionDistance;
+}
+bool GetEndHitSuccess(ScreenSpaceTracingDebug value)
+{
+	return value.endHitSuccess;
+}
+float GetEndLinearDepth(ScreenSpaceTracingDebug value)
+{
+	return value.endLinearDepth;
+}
+uint GetEndPositionSSX(ScreenSpaceTracingDebug value)
+{
+	return value.endPositionSSX;
+}
+uint GetEndPositionSSY(ScreenSpaceTracingDebug value)
+{
+	return value.endPositionSSY;
+}
 
 
 #endif
