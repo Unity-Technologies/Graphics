@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Use to detect frame changes
         int   m_FrameCount;
-        float m_TimeSinceStartup;
+        float m_PreviousTime, m_CurrentTime;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
@@ -534,22 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(hdCamera.camera);
-
-                // Do not use 'Time.timeSinceLevelLoad' - it ticks in the Scene View for a fraction of a second
-                // after you select an object even if the "Animated Materials" option is disabled.
-                float  ct = animateMaterials ? Time.realtimeSinceStartup : 0;
-                float  pt = (m_TimeSinceStartup > 0) ? m_TimeSinceStartup : ct;
-                float  dt = Time.deltaTime;
-                float sdt = Time.smoothDeltaTime;
-
                 // Set up UnityPerFrame CBuffer.
-                cmd.SetGlobalVector(HDShaderIDs._CurrentTime,    new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
-                cmd.SetGlobalVector(HDShaderIDs._PreviousTime,   new Vector4(pt * 0.05f, pt, pt * 2.0f, pt * 3.0f));
-                cmd.SetGlobalVector(HDShaderIDs._DeltaTime,      new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
-                cmd.SetGlobalVector(HDShaderIDs._SinCurrentTime, new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
-                cmd.SetGlobalVector(HDShaderIDs._CosCurrentTime, new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
-
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
@@ -561,11 +546,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ssrefraction.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
-                hdCamera.SetupGlobalParams(cmd);
+                hdCamera.SetupGlobalParams(cmd, m_CurrentTime, m_PreviousTime);
                 if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
-
-                // Update the current time.
-                m_TimeSinceStartup = ct;
             }
         }
 
@@ -640,8 +622,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_FrameCount != Time.frameCount)
             {
+                // New frame.
                 HDCamera.CleanUnused();
+
                 m_FrameCount = Time.frameCount;
+
+                // Do not use 'Time.timeSinceLevelLoad' - it does not tick all the time as expected.
+                float t = Time.realtimeSinceStartup;
+
+                // Make sure both are never 0.
+                m_PreviousTime = (m_CurrentTime > 0) ? m_CurrentTime : t;
+                m_CurrentTime  = t;
             }
 
             // TODO: Render only visible probes
@@ -944,7 +935,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Overwrite camera properties set during the shader pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); 
-                            hdCamera.SetupGlobalParams(cmd);
+                            hdCamera.SetupGlobalParams(cmd, m_CurrentTime, m_PreviousTime);
                             if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
 
