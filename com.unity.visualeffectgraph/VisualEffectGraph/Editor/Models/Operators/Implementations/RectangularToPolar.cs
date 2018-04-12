@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(category = "Math/Coordinates")]
     class RectangularToPolar : VFXOperator
     {
         public class InputProperties

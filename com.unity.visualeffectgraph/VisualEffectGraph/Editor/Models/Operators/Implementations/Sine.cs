@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Trigonometry")]
     class Sine : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Sine"; } }

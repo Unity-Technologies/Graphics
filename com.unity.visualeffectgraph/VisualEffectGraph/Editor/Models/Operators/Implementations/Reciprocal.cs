@@ -1,7 +1,7 @@
 using System;
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Reciprocal : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Reciprocal (1/x)"; } }

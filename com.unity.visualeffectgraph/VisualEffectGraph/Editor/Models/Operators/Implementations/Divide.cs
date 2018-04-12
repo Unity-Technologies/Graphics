@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Divide : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Divide"; } }
