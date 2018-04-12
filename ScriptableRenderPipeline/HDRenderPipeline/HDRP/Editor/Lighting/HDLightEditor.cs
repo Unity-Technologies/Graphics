@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty affectSpecular;
             public SerializedProperty lightTypeExtent;
             public SerializedProperty spotLightShape;
-            public SerializedProperty spotBackReflector;
+            public SerializedProperty enableSpotReflector;
             public SerializedProperty shapeWidth;
             public SerializedProperty shapeHeight;
             public SerializedProperty aspectRatio;
@@ -115,7 +115,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 affectSpecular = o.Find(x => x.affectSpecular),
                 lightTypeExtent = o.Find(x => x.lightTypeExtent),
                 spotLightShape = o.Find(x => x.spotLightShape),
-                spotBackReflector = o.Find(x => x.spotBackReflector),
+                enableSpotReflector = o.Find(x => x.enableSpotReflector),
                 shapeWidth = o.Find(x => x.shapeWidth),
                 shapeHeight = o.Find(x => x.shapeHeight),
                 aspectRatio = o.Find(x => x.aspectRatio),
@@ -264,14 +264,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (spotLightShape == SpotLightShape.Cone)
                     {
                         settings.DrawSpotAngle();
-                        EditorGUILayout.PropertyField(m_AdditionalLightData.spotBackReflector, s_Styles.spotBackReflector);
+                        EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
                         EditorGUILayout.Slider(m_AdditionalLightData.spotInnerPercent, 0f, 100f, s_Styles.spotInnerPercent);
                     }
                     // TODO : replace with angle and ratio
                     else if (spotLightShape == SpotLightShape.Pyramid)
                     {
                         settings.DrawSpotAngle();
-                        EditorGUILayout.PropertyField(m_AdditionalLightData.spotBackReflector, s_Styles.spotBackReflector);
+                        EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
                         EditorGUILayout.Slider(m_AdditionalLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
                     }
                     else if (spotLightShape == SpotLightShape.Box)
@@ -350,13 +350,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
 
                     var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
-                    if (spotLightShape == SpotLightShape.Cone)
+
+                    if (m_AdditionalLightData.enableSpotReflector.boolValue)
                     {
-                        settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue * Mathf.Deg2Rad, m_AdditionalLightData.spotBackReflector.boolValue );
-                    }
-                    else if (spotLightShape == SpotLightShape.Pyramid)
-                    {
-                        if (m_AdditionalLightData.spotBackReflector.boolValue)
+                        if (spotLightShape == SpotLightShape.Cone)
+                        {
+                            settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue * Mathf.Deg2Rad, true );
+                        }
+                        else if (spotLightShape == SpotLightShape.Pyramid)
                         {
                             var aspectRatio = m_AdditionalLightData.aspectRatio.floatValue;
                             // Since the smallest angles is = to the fov, and we don't care of the angle order, simply make sure the aspect ratio is > 1
@@ -364,21 +365,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             var angleA = settings.spotAngle.floatValue * Mathf.Deg2Rad;
 
-                            var halfAngle = angleA * 0.5f;
-                            var length = Mathf.Sin(halfAngle);
-                            length *= aspectRatio;
-                            halfAngle = Mathf.Atan(length);
+                            var halfAngle = angleA * 0.5f; // half of the smallest angle
+                            var length = Mathf.Sin(halfAngle); // half length of the smallest side of the rectangle
+                            length *= aspectRatio; // half length of the bigest side of the rectangle
+                            halfAngle = Mathf.Atan(length); // half of the bigest angle
 
                             var angleB = halfAngle * 2f;
 
                             settings.intensity.floatValue = LightUtils.ConvertFrustrumLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, angleA, angleB );
                         }
-                        else
+                        else // Box shape, fallback to punctual light.
                         {
                             settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
                         }
                     }
-                    else // box shape, no conversion implemented for the moment. Should use a fresnel light model.
+                    else // Reflector disabled, fallback to punctual light.
                     {
                         settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
                     }
