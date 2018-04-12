@@ -14,6 +14,7 @@ MonoBehaviour:
   components:
   - {fileID: 114827887035766406}
   - {fileID: 114408460862325740}
+  - {fileID: 114596847542454078}
 --- !u!114 &114408460862325740
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -48,6 +49,35 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
+--- !u!114 &114596847542454078
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e17fad69ea181b4483974138b566975, type: 3}
+  m_Name: ScreenSpaceRefraction
+  m_EditorClassIdentifier: 
+  active: 1
+  rayMinLevel:
+    m_OverrideState: 0
+    m_Value: 2
+  rayMaxLevel:
+    m_OverrideState: 0
+    m_Value: 6
+  rayMaxIterations:
+    m_OverrideState: 0
+    m_Value: 32
+  rayDepthSuccessBias:
+    m_OverrideState: 0
+    m_Value: 0.2
+  screenWeightDistance:
+    m_OverrideState: 1
+    m_Value: 0.05
+    min: 0
+    max: 1
 --- !u!114 &114827887035766406
 MonoBehaviour:
   m_ObjectHideFlags: 3

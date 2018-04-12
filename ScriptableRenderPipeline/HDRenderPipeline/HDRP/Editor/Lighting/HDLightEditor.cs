@@ -330,7 +330,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_AdditionalLightData.directionalIntensity.floatValue = Mathf.Max(0, m_AdditionalLightData.directionalIntensity.floatValue);
             m_AdditionalLightData.punctualIntensity.floatValue    = Mathf.Max(0, m_AdditionalLightData.punctualIntensity.floatValue);
             m_AdditionalLightData.areaIntensity.floatValue        = Mathf.Max(0, m_AdditionalLightData.areaIntensity.floatValue);
-            
+
             switch (m_LightShape)
             {
                 case LightShape.Directional:
@@ -499,7 +499,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Internal utilities
         void ApplyAdditionalComponentsVisibility(bool hide)
         {
-            var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
+            // UX team decided thta we should always show component in inspector.
+            // However already authored scene save this settings, so force the component to be visible
+            // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
+            var flags = HideFlags.None;
 
             foreach (var t in m_SerializedAdditionalLightData.targetObjects)
                 ((HDAdditionalLightData)t).hideFlags = flags;

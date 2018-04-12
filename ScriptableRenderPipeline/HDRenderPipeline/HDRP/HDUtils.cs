@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return null;
             }
         }
+        public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -316,6 +317,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
+        }
+
+        // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
+        public static Vector4 GetMouseClickCoordinates(HDCamera camera)
+        {
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
         }
     }

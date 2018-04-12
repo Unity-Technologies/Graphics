@@ -43,11 +43,13 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedHDCamera(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
-            var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects);
+            var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects, HDAdditionalCameraData.InitDefaultHDAdditionalCameraData);
             serializedAdditionalDataObject = new SerializedObject(additionals);
 
             var hideFlags = serializedAdditionalDataObject.FindProperty("m_ObjectHideFlags");
-            hideFlags.intValue = (int)HideFlags.HideInInspector;
+            // We don't hide additional camera data anymore on UX team request. To be compatible with already author scene we force to be visible
+            //hideFlags.intValue = (int)HideFlags.HideInInspector;
+            hideFlags.intValue = (int)HideFlags.None;
             serializedAdditionalDataObject.ApplyModifiedProperties();
 
             //backgroundColor = serializedObject.FindProperty("m_BackGroundColor");
