@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
 
         public void UnRegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
         {
-            if (target == null)
+            if (object.ReferenceEquals(target, null))
                 return;
 
             target.onModified -= OnObjectModified;
@@ -83,8 +83,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        bool m_InNotify = false;
+
+        HashSet<ScriptableObject> removedDuringNotify = new HashSet<ScriptableObject>();
+
         public void NotifyUpdate()
         {
+            m_InNotify = true;
             Profiler.BeginSample("VFXViewController.NotifyUpdate");
             if (model == null || m_Graph == null || m_Graph != model.graph)
             {
@@ -102,7 +107,7 @@ namespace UnityEditor.VFX.UI
                 List<Action> notifieds;
                 if (m_Notified.TryGetValue(obj, out notifieds))
                 {
-                    foreach (var notified in notifieds)
+                    foreach (var notified in notifieds.ToArray())
                     {
                         notified();
                         cpt++;
@@ -114,6 +119,8 @@ namespace UnityEditor.VFX.UI
                 Debug.LogWarningFormat("{0} notification sent this frame", cpt);*/
             otherModifiedModels.Clear();
             Profiler.EndSample();
+
+            m_InNotify = false;
         }
 
         public VFXGraph graph { get {return model.graph as VFXGraph; }}
@@ -481,7 +488,7 @@ namespace UnityEditor.VFX.UI
             var removedContexts = new HashSet<VFXContextController>(removedControllers.OfType<VFXContextController>());
 
             //remove all blocks that are in a removed context.
-            var removed = removedControllers.Where(t=> !(t is VFXBlockController) || ! removedContexts.Contains((t as VFXBlockController).contextController) ).ToArray();
+            var removed = removedControllers.Where(t => !(t is VFXBlockController) || !removedContexts.Contains((t as VFXBlockController).contextController)).ToArray();
 
             foreach (var controller in removed)
             {
@@ -684,7 +691,7 @@ namespace UnityEditor.VFX.UI
                 title = "Title",
                 position = new Rect(position, Vector2.one * 100),
                 contents = "type something here",
-            theme = StickyNote.Theme.Classic.ToString(),
+                theme = StickyNote.Theme.Classic.ToString(),
                 textSize = StickyNote.TextSize.Small.ToString()
             };
 
@@ -1273,7 +1280,7 @@ namespace UnityEditor.VFX.UI
                     newControllers.Add(new VFXBranchOperatorController(model, this));
                 }
                 else
-                newControllers.Add(new VFXOperatorController(model, this));
+                    newControllers.Add(new VFXOperatorController(model, this));
             }
             else if (model is VFXContext)
             {
