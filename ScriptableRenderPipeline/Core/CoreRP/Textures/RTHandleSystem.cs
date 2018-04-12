@@ -9,6 +9,12 @@ namespace UnityEngine.Experimental.Rendering
 
     public partial class RTHandleSystem : IDisposable
     {
+        public enum ResizeMode
+        {
+            Auto,
+            OnDemand
+        }
+
         internal enum RTCategory
         {
             Regular = 0,
@@ -17,10 +23,12 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Parameters for auto-scaled Render Textures
-        bool             m_ScaledRTSupportsMSAA = false;
-        MSAASamples      m_ScaledRTCurrentMSAASamples = MSAASamples.None;
-        List<RTHandle>   m_AutoSizedRTs;
-        RTCategory       m_ScaledRTCurrentCategory = RTCategory.Regular;
+        bool                m_ScaledRTSupportsMSAA = false;
+        MSAASamples         m_ScaledRTCurrentMSAASamples = MSAASamples.None;
+        HashSet<RTHandle>   m_AutoSizedRTs;
+        RTHandle[]          m_AutoSizedRTsArray; // For fast iteration
+        HashSet<RTHandle>   m_ResizeOnDemandRTs;
+        RTCategory          m_ScaledRTCurrentCategory = RTCategory.Regular;
 
         int[] m_MaxWidths = new int[(int)RTCategory.Count];
         int[] m_MaxHeights = new int[(int)RTCategory.Count];
@@ -36,7 +44,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public RTHandleSystem()
         {
-            m_AutoSizedRTs = new List<RTHandle>();
+            m_AutoSizedRTs = new HashSet<RTHandle>();
+            m_ResizeOnDemandRTs = new HashSet<RTHandle>();
             for (int i = 0; i < (int)RTCategory.Count; ++i)
             {
                 m_MaxWidths[i] = 1;
@@ -99,6 +108,62 @@ namespace UnityEngine.Experimental.Rendering
                 Resize(width, height, category, msaaSamples);
         }
 
+        public void SwitchResizeMode(RTHandle rth, ResizeMode mode)
+        {
+            switch (mode)
+            {
+                case ResizeMode.OnDemand:
+                    m_AutoSizedRTs.Remove(rth);
+                    m_ResizeOnDemandRTs.Add(rth);
+                    break;
+                case ResizeMode.Auto:
+                    // Resize now so it is consistent with other auto resize RTHs
+                    if (m_ResizeOnDemandRTs.Contains(rth))
+                        DemandResize(rth);
+                    m_ResizeOnDemandRTs.Remove(rth);
+                    m_AutoSizedRTs.Add(rth);
+                    break;
+            }
+        }
+
+        public void DemandResize(RTHandle rth)
+        {
+            Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), string.Format("The RTHandle {0} is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.", rth));
+            
+            for (int i = 0, c = (int)RTCategory.Count; i < c; ++i)
+            {
+                if (rth.m_RTs[i] == null)
+                    continue;
+
+                var rt = rth.m_RTs[i];
+                var scaledSize = rth.GetScaledSize(new Vector2Int(m_MaxWidths[i], m_MaxHeights[i]));
+                scaledSize = Vector2Int.Max(Vector2Int.one, scaledSize);
+
+                var enableMSAA = i == (int)RTCategory.MSAA;
+                var sizeChanged = rt.width != scaledSize.x || rt.height != scaledSize.y;
+                var msaaSampleChanged = enableMSAA && rt.antiAliasing != (int)m_ScaledRTCurrentMSAASamples;
+
+                if (sizeChanged || msaaSampleChanged)
+                {
+                    rt.Release();
+
+                    if (enableMSAA)
+                        rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
+
+                    rt.name = CoreUtils.GetRenderTargetAutoName(
+                        rt.width, 
+                        rt.height, 
+                        rt.format, 
+                        rth.m_Name, 
+                        mips: rt.useMipMap, 
+                        enableMSAA : enableMSAA, 
+                        msaaSamples: m_ScaledRTCurrentMSAASamples
+                    );
+                    rt.Create();
+                }
+            }
+        }
+
         int GetMaxWidth(RTCategory category) { return m_MaxWidths[(int)category]; }
         int GetMaxHeight(RTCategory category) { return m_MaxHeights[(int)category]; }
 
@@ -106,12 +171,24 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (disposing)
             {
-                for (int i = 0, c = m_AutoSizedRTs.Count; i < c; ++i)
+                Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+                m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
                 {
-                    var rt = m_AutoSizedRTs[i];
+                    var rt = m_AutoSizedRTsArray[i];
                     Release(rt);
                 }
                 m_AutoSizedRTs.Clear();
+
+                Array.Resize(ref m_AutoSizedRTsArray, m_ResizeOnDemandRTs.Count);
+                m_ResizeOnDemandRTs.CopyTo(m_AutoSizedRTsArray);
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
+                {
+                    var rt = m_AutoSizedRTsArray[i];
+                    Release(rt);
+                }
+                m_ResizeOnDemandRTs.Clear();
+                m_AutoSizedRTsArray = null;
             }
         }
 
@@ -124,8 +201,11 @@ namespace UnityEngine.Experimental.Rendering
             var maxSize = new Vector2Int(width, height);
             m_ScaledRTCurrentCategory = category;
 
-            foreach (var rth in m_AutoSizedRTs)
+            Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+            m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
+            for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
             {
+                var rth = m_AutoSizedRTsArray[i];
                 var rt = rth.m_RTs[(int)category];
 
                 // This can happen if you create a RTH for MSAA. By default we only create the MSAA version of the target.
@@ -417,9 +497,11 @@ namespace UnityEngine.Experimental.Rendering
         public string DumpRTInfo()
         {
             string result = "";
-            for (int i = 0; i < m_AutoSizedRTs.Count; ++i)
+            Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+            m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
+            for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
             {
-                RenderTexture rt = m_AutoSizedRTs[i].rt;
+                var rt = m_AutoSizedRTsArray[i].rt;
                 result = string.Format("{0}\nRT ({1})\t Format: {2} W: {3} H {4}\n", result, i, rt.format, rt.width, rt.height );
             }
 

@@ -149,9 +149,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         HDAdditionalCameraData m_AdditionalCameraData;
 
+        // Fallback used when the HDAdditionalCameraData is missing
+        BufferedRTHandleSystem m_HistoryRTSystemFallback = null;
         public BufferedRTHandleSystem historyRTSystem 
         {
-             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.historyRTSystem : null; } 
+             get 
+             { 
+                 if (m_AdditionalCameraData == null)
+                 {
+                     if (m_HistoryRTSystemFallback == null)
+                        m_HistoryRTSystemFallback = new BufferedRTHandleSystem();
+                    return m_HistoryRTSystemFallback;
+                 }
+                 return m_AdditionalCameraData.historyRTSystem;
+             } 
         }
 
         public HDCamera(Camera cam)
@@ -289,6 +300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
             historyRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
             historyRTSystem.Swap();
+            
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
@@ -421,6 +433,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return hdcam;
         }
 
+        public static void ClearAll()
+        {
+            int frameCheck = Time.frameCount - 1;
+
+            foreach (var cam in s_Cameras)
+                cam.Value.historyRTSystem.ReleaseAll();
+
+            s_Cameras.Clear();
+            s_Cleanup.Clear();
+        }
+
         // Look for any camera that hasn't been used in the last frame and remove them for the pool.
         public static void CleanUnused()
         {
@@ -433,7 +456,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             foreach (var cam in s_Cleanup)
+            {
+                var hdCam = s_Cameras[cam];
+                if (hdCam.m_HistoryRTSystemFallback != null)
+                {
+                    hdCam.m_HistoryRTSystemFallback.Dispose();
+                    hdCam.m_HistoryRTSystemFallback = null;
+                }
                 s_Cameras.Remove(cam);
+            }
 
             s_Cleanup.Clear();
         }
@@ -506,29 +537,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
         {
-            if (m_AdditionalCameraData == null)
-                return null;
-
-            return m_AdditionalCameraData.historyRTSystem.GetFrameRT(id, 1);
+            return historyRTSystem.GetFrameRT(id, 1);
         }
 
         public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
         {
-            if (m_AdditionalCameraData == null)
-                return null;
-            
-            return m_AdditionalCameraData.historyRTSystem.GetFrameRT(id, 0);
+            return historyRTSystem.GetFrameRT(id, 0);
         }
 
         // Allocate buffers frames and return current frame
-        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<RTHandleSystem, RTHandleSystem.RTHandle> allocator)
+        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
         {
-            
-            if (m_AdditionalCameraData == null)
-                return null;
-
-            m_AdditionalCameraData.historyRTSystem.AllocBuffer(id, allocator, 2);
-            return m_AdditionalCameraData.historyRTSystem.GetFrameRT(id, 0);
+            historyRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
+            return historyRTSystem.GetFrameRT(id, 0);
         }
     }
 }
