@@ -13,6 +13,8 @@ namespace UnityEditor.ShaderGraph
         PropertyType propertyType { get; }
         Guid guid { get; }
         bool generatePropertyBlock { get; set; }
+        bool useCustomReferenceName { get; set; }
+        string customReferenceName { get; set; }
         Vector4 defaultValue { get; }
         string overrideReferenceName { get; set; }
 

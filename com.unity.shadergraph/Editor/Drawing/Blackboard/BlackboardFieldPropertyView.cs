@@ -3,6 +3,7 @@ using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using Toggle = UnityEngine.Experimental.UIElements.Toggle;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -10,9 +11,30 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         readonly AbstractMaterialGraph m_Graph;
 
+        Toggle m_UseCustomReferenceNameToggle;
+        TextField m_ReferenceNameField;
+
         public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
         {
             m_Graph = graph;
+
+            m_ReferenceNameField = new TextField(30, false, false, ' ');
+            AddRow("Reference name", m_ReferenceNameField);
+            m_UseCustomReferenceNameToggle = new Toggle(() =>
+            {
+                property.useCustomReferenceName = m_UseCustomReferenceNameToggle.on;
+                m_ReferenceNameField.SetEnabled(property.useCustomReferenceName);
+                m_Graph.ValidateGraph();
+            });
+            m_UseCustomReferenceNameToggle.on = property.useCustomReferenceName;
+            m_ReferenceNameField.value = property.customReferenceName;
+            m_ReferenceNameField.SetEnabled(property.useCustomReferenceName);
+            m_ReferenceNameField.OnValueChanged(newName =>
+            {
+                property.customReferenceName = newName.newValue;
+            });
+            AddRow("Specify reference name", m_UseCustomReferenceNameToggle);
+
             if (property is Vector1ShaderProperty)
             {
                 VisualElement floatRow = new VisualElement();
@@ -230,6 +252,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 //            AddRow("Range", new Toggle(null));
 //            AddRow("Default", new TextField());
 //            AddRow("Tooltip", new TextField());
+
 
             AddToClassList("sgblackboardFieldPropertyView");
         }
