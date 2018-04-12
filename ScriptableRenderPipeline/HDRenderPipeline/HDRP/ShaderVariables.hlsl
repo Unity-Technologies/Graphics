@@ -283,6 +283,12 @@ CBUFFER_START(UnityPerView)
     // w = 1/f
     float4 _DepthBufferParams;
 
+    // x = near plane
+    // y = far plane
+    // z = orthographic camera's width  (0 if perspective)
+    // w = orthographic camera's height (0 if perspective)
+    float4 _FrustumParams;
+
     // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
     float4 _TaaFrameRotation;     // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
 
