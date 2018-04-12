@@ -574,16 +574,27 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-        public void AddStickyNote(Vector2 position)
+        public void AddStickyNote(Vector2 position,VFXGroupNodeController group)
         {
             var ui = graph.UIInfos;
 
-            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "", position = new Rect(position, Vector2.one * 100), contents = "type something here", theme = StickyNote.Theme.Classic.ToString()};
+            var stickyNoteInfo = new VFXUI.StickyNoteInfo { title = "Title", 
+            position = new Rect(position, Vector2.one * 100), 
+            contents = "type something here", 
+            theme = StickyNote.Theme.Classic.ToString(),
+            textSize = StickyNote.TextSize.Small.ToString()};
 
             if (ui.stickyNoteInfos != null)
                 ui.stickyNoteInfos = ui.stickyNoteInfos.Concat(Enumerable.Repeat(stickyNoteInfo, 1)).ToArray();
             else
                 ui.stickyNoteInfos = new VFXUI.StickyNoteInfo[] { stickyNoteInfo };
+
+            if(group != null)
+            {
+                LightApplyChanges();
+
+                group.AddStickyNote(m_StickyNoteControllers[ui.stickyNoteInfos.Length-1]);
+            }
 
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }

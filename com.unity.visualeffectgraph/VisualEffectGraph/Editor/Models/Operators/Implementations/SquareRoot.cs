@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class SquareRoot : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Square Root"; } }
