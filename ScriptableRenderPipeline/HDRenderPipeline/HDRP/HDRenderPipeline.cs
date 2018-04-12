@@ -332,6 +332,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_DebugFullScreenTempBuffer);
             
             m_DebugScreenSpaceTracingData.Release();
+
+            HDCamera.CleanUnused();
         }
 
 
@@ -1011,7 +1013,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
                         RenderColorPyramid(hdCamera, cmd, renderContext, true);
-                        RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueSSReflection);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -1469,9 +1470,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var camera = hdCamera.camera;
 
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
+                var debugScreenSpaceTracing = m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing;
 
-                if (pass == ForwardPass.Opaque)
+                switch (pass)
                 {
+                        var bindIndex = 0;
                         // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                         if (m_FrameSettings.enableSubsurfaceScattering)
                         {
@@ -1485,10 +1488,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_CameraDepthStencilBuffer);
+                            bindIndex += m_MRTWithSSS.Length;
                         }
                         else
                         {
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                            ++bindIndex;
                         }
 
                         m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
@@ -1498,29 +1503,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var passNames = m_FrameSettings.enableForwardRenderingOnly
                             ? m_ForwardAndForwardOnlyPassNames
                             : m_ForwardOnlyPassNames;
-                        RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
-                    }
-                else
-                    {
-                    // Assign debug data
-                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
-                        && pass == ForwardPass.Transparent)
-                    {
-                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                        cmd.SetRandomWriteTarget(1, m_DebugScreenSpaceTracingData);
-                    }
-
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                        var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
+                        if (debugSSTThisPass)
                         {
+                            cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                            cmd.SetRandomWriteTarget(bindIndex, m_DebugScreenSpaceTracingData);
+                        }
+                        RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
+                        if (debugSSTThisPass)
+                            cmd.ClearRandomWriteTargets();
+                        break;
+                    {
+                    default:
+                    {
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                        if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                             DecalSystem.instance.SetAtlas(cmd); // for clustered decals
+
+                        var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
+                        if (debugSSTThisPass)
+                        {
+                            cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                            cmd.SetRandomWriteTarget(1, m_DebugScreenSpaceTracingData);
                         }
                         RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
 
-                    if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
-                        && pass == ForwardPass.Transparent)
-                    {
-                        cmd.ClearRandomWriteTargets();
+                        if (debugSSTThisPass)
+                            cmd.ClearRandomWriteTargets();
                     }
                 }
             }
