@@ -636,11 +636,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     newFrame = m_FrameCount != c;
 
-                    if (newFrame) m_FrameCount = c;
+                    m_FrameCount = c;
                 }
                 else
                 {
-                    newFrame = ((t - m_CurrentTime) * 1000.0f) > 16.6;
+                    newFrame = (t - m_CurrentTime) > 0.0166f;
 
                     if (newFrame) m_FrameCount++;
                 }
@@ -953,7 +953,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // This call overwrites camera properties passed to the shader system.
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
-                            // Overwrite camera properties set during the shader pass with the original camera properties.
+                            // Overwrite camera properties set during the shadow pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); 
                             hdCamera.SetupGlobalParams(cmd, m_CurrentTime, m_PreviousTime);
                             if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
