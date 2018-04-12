@@ -9,8 +9,13 @@ namespace UnityEditor.VFX.UI
 {
     public abstract class Controller
     {
+        public bool m_DisableCalled = false;
         public virtual void OnDisable()
         {
+            if( m_DisableCalled) 
+                Debug.LogError(GetType().Name + ".Disable called twice");
+
+            m_DisableCalled = true;
             foreach (var element in allChildren)
             {
                 element.OnDisable();
@@ -70,6 +75,7 @@ namespace UnityEditor.VFX.UI
 
         public abstract void ApplyChanges();
 
+
         public virtual  IEnumerable<Controller> allChildren
         {
             get { return Enumerable.Empty<Controller>(); }
@@ -90,7 +96,6 @@ namespace UnityEditor.VFX.UI
 
         protected abstract void ModelChanged(UnityEngine.Object obj);
 
-
         public override void ApplyChanges()
         {
             ModelChanged(model);
@@ -107,10 +112,14 @@ namespace UnityEditor.VFX.UI
     abstract class VFXController<T> : Controller<T> where T : VFXModel
     {
         VFXViewController m_ViewController;
+
+
+        bool m_Registered = false;
         public VFXController(VFXViewController viewController, T model) : base(model)
         {
             m_ViewController = viewController;
             m_ViewController.RegisterNotification(model,OnModelChanged);
+            m_Registered = true;
         }
 
 
@@ -119,6 +128,7 @@ namespace UnityEditor.VFX.UI
         public override void OnDisable()
         {
             m_ViewController.UnRegisterNotification(model,OnModelChanged);
+            m_Registered = false;
             base.OnDisable();
         }
 

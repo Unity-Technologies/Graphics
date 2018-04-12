@@ -478,7 +478,10 @@ namespace UnityEditor.VFX.UI
 
         public void Remove(IEnumerable<Controller> removedControllers)
         {
-            var removed = removedControllers.ToArray();
+            var removedContexts = new HashSet<VFXContextController>(removedControllers.OfType<VFXContextController>());
+
+            //remove all blocks that are in a removed context.
+            var removed = removedControllers.Where(t=> !(t is VFXBlockController) || ! removedContexts.Contains((t as VFXBlockController).contextController) ).ToArray();
 
             foreach (var controller in removed)
             {
