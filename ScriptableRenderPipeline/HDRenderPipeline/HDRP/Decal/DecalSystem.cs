@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private class DecalSet
         {
-            private void InitializeMaterialValues()
+            public void InitializeMaterialValues()
             {
                 m_Diffuse.m_Texture = m_Material.GetTexture("_BaseColorMap");
                 m_Normal.m_Texture = m_Material.GetTexture("_NormalMap");
@@ -264,7 +264,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return m_NumResults;
             }
 
-
             private void GetDecalVolumeDataAndBound(Matrix4x4 decalToWorld, Matrix4x4 worldToView)
             {
                 var influenceX = decalToWorld.GetColumn(0) * 0.5f;
@@ -381,13 +380,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            void UpdateTextureCache(CommandBuffer cmd)
-            {
-                instance.AddTexture(cmd, m_Diffuse);
-                instance.AddTexture(cmd, m_Normal);
-                instance.AddTexture(cmd, m_Mask);
-            }
-
             public void AddToTextureList(ref List<TextureScaleBias> textureList)
             {
                 if(m_Diffuse.m_Texture != null)
@@ -404,11 +396,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public void UpdateCachedMaterialData(CommandBuffer cmd)
-            {
-                InitializeMaterialValues(); // refresh in case they changed in the UI
-                UpdateTextureCache(cmd);
-            }
+           
+           
 
             public void RenderIntoDBuffer(CommandBuffer cmd)
             {
@@ -568,31 +557,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // updates textures, texture atlas indices and blend value
-        public void UpdateCachedMaterialData(CommandBuffer cmd)
+        public void UpdateCachedMaterialData()
         {
-            instance.m_AllocationSuccess = true;
+            //instance.m_AllocationSuccess = true;
+            m_TextureList.Clear();
             foreach (var pair in m_DecalSets)
             {
-                pair.Value.UpdateCachedMaterialData(cmd);
+                pair.Value.InitializeMaterialValues();
+                pair.Value.AddToTextureList(ref m_TextureList);
+            }
+        }
+
+        public void UpdateTextureAtlas(CommandBuffer cmd)
+        { 
+            m_AllocationSuccess = true;
+            foreach (TextureScaleBias textureScaleBias in m_TextureList)
+            {
+                AddTexture(cmd, textureScaleBias);
             }
 
-            if (!instance.m_AllocationSuccess) // texture failed to find space in the atlas
+            if (!m_AllocationSuccess) // texture failed to find space in the atlas
             {
-                instance.m_AllocationSuccess = true;
+                m_TextureList.Sort();   // sort the texture list largest to smallest for better packing
                 Atlas.ResetAllocator(); // clear all allocations 
-                m_TextureList.Clear();
-                foreach (var pair in m_DecalSets)
-                {
-                    pair.Value.AddToTextureList(ref m_TextureList);
-                }
-                m_TextureList.Sort();
-                // texture list now contains all decal textures sorted from largest to smallest for optimal packing
+                // try again                
                 foreach (TextureScaleBias textureScaleBias in m_TextureList)
                 {
                     AddTexture(cmd, textureScaleBias);
                 }
 
-                if(!instance.m_AllocationSuccess) // still failed to allocate, decal atlas size needs to increase
+                if(!m_AllocationSuccess) // still failed to allocate, decal atlas size needs to increase
                 {
                     Debug.LogWarning("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
                 }
