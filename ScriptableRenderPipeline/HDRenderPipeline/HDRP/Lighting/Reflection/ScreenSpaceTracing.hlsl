@@ -176,7 +176,7 @@ void DebugComputeCommonOutput(
         hit.debugOutput =  frac(hit.linearDepth * 0.1);
         break;
     case DEBUGSCREENSPACETRACING_HIT_SUCCESS:
-        hit.debugOutput =  hitSuccessful;
+        hit.debugOutput =  float3(hitSuccessful, 1, 0);
         break;
     }
 }

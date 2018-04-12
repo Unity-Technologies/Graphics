@@ -312,12 +312,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void SetScreenSpaceTracingRefractionDebugMode(int value)
+        void SetScreenSpaceTracingDebugMode(int value)
         {
             var val = (DebugScreenSpaceTracing)value;
             if (val != DebugScreenSpaceTracing.None)
             {
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.ScreenSpaceTracingRefraction;
                 lightingDebugSettings.debugScreenSpaceTracingMode = (DebugScreenSpaceTracing)value;
             }
             else
@@ -389,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case Lit.SSRayModel.Proxy:
                     {
                         debugSettingsContainer.children.Add(
-                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingRefractionDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
+                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
                         );
                         settingsContainer.children.Add(
                             new DebugUI.Container
@@ -413,7 +412,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         debugSettingsContainer.children.Insert(1, new DebugUI.Value { displayName = string.Empty, getter = () => "Press PageUp/PageDown to Increase/Decrease the HiZ step." });
                         debugSettingsContainer.children.Add(
-                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingRefractionDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
+                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
                             new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
                         );
