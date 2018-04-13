@@ -24,12 +24,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Default is the default rendering path define by the HDRendeRPipelineAsset FrameSettings.
         // Custom allow users to define the FrameSettigns for this path
         // Then enum can contain either preset of FrameSettings or hard coded path
-        // Unlit below is a hard coded path (a path that can't be implemented only with FrameSettings)
+        // FullscreenPassthrough below is a hard coded path (a path that can't be implemented only with FrameSettings)
         public enum RenderingPath
         {
             Default,
             Custom,  // Fine grained
-            Unlit  // Hard coded path
+            FullscreenPassthrough  // Hard coded path
         };
 
         public enum ClearColorMode
@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void UnRegisterDebug()
         {
-            if (m_camera == null) 
+            if (m_camera == null)
                 return;
 
             if (m_IsDebugRegistered)
@@ -150,9 +150,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
             m_camera = GetComponent<Camera>();
-            if (m_camera == null) 
+            if (m_camera == null)
                 return;
-                
+
             m_camera.allowHDR = false;
 
             //  Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call

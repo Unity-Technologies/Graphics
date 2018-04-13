@@ -14,19 +14,19 @@ DecalData FetchDecal(uint start, uint i)
 
 // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
 // we need to find a way to calculate mips. For now just fetch first mip of the decals
-void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float3x3 decalToWorld, float blend, float lod)
+void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, float3x3 decalToWorld, float blend, float lod)
 {
 	float4 src;
-	src.xyz =  mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, lod))) * 0.5f + 0.5f;
+	src.xyz = mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod))) * 0.5f + 0.5f;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
 	dst.w = dst.w * (1.0f - src.w);
 	matMask |= mapMask;
 }
 
-void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, inout float blend, float lod)
+void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, inout float blend, float lod)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, lod);
+	float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
 	src.w *= blend;
 	blend = src.w;	// diffuse texture alpha affects all other channels
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
@@ -34,9 +34,9 @@ void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, in
 	matMask |= mapMask;
 }
 
-void ApplyBlendMask(inout float4 dst, inout int matMask, float2 texCoords, int sliceIndex, int mapMask, float blend, float lod)
+void ApplyBlendMask(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, float blend, float lod)
 {
-	float4 src = SAMPLE_TEXTURE2D_ARRAY_LOD(_DecalAtlas, sampler_DecalAtlas, texCoords, sliceIndex, lod);
+	float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
 	src.z = src.w;
 	src.w = blend;
 	dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
@@ -65,40 +65,70 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         decalCount = _DecalCount;
         decalStart = 0;
     #endif
+
 		float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-		uint i = 0;
-		UNITY_LOOP
-        for (i = 0; i < decalCount; i++)
+
+		// get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
+		float3 positionWSDdx = ddx(positionWS);
+		float3 positionWSDdy = ddy(positionWS);
+
+        for (uint i = 0; i < decalCount; i++)
         {
             DecalData decalData = FetchDecal(decalStart, i);
+			
 			float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
-			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
-			float decalBlend = decalData.normalToWorld[0][3];
-			int diffuseIndex = decalData.normalToWorld[1][3];
-			int normalIndex = decalData.normalToWorld[2][3];
-			int maskIndex = decalData.normalToWorld[3][3];
-			float lod = ComputeTextureLOD(positionDS.xz, _DecalAtlasResolution);								
-			decalBlend = ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f))) ? decalBlend : 0;	// use blend of 0 instead of an 'if' because compiler moves the lod calculation inside the 'if' which causes incorrect values 
-																												// if any of the pixels in the 2x2 quad gets rejected
-
-			// Verified that lod calculation works with a test texture, looking at the shader code in Razor the lod calculation is outside the dynamic branches where the texture fetch happens,
-			// however compiler was placing it inside the branch that was rejecting the pixel, which was causing incorrect lod to be calculated for any 2x2 quad where any of the pixels were rejected, 
-			// so had to use alpha blend of 0 instead of branching to solve that issue."
-
-			if(diffuseIndex != -1)
+			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);	// decal clip space
+			if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
 			{
-				ApplyBlendDiffuse(DBuffer0, mask, positionDS.xz, diffuseIndex, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lod);
-				alpha = alpha < decalBlend ? decalBlend : alpha;	// use decal alpha if it higher than transparent alpha
-			}
+				// clamp by half a texel to avoid sampling neighboring textures in the atlas
+				float2 clampAmount = float2(0.5f / _DecalAtlasResolution.x, 0.5f / _DecalAtlasResolution.y);
 
-			if(normalIndex != -1)
-			{
-				ApplyBlendNormal(DBuffer1, mask, positionDS.xz, normalIndex, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lod);
-			}
+				float2 diffuseMin = decalData.diffuseScaleBias.zw + clampAmount;									// offset into atlas is in .zw
+				float2 diffuseMax = decalData.diffuseScaleBias.zw + decalData.diffuseScaleBias.xy - clampAmount;	// scale relative to full atlas size is in .xy so total texture extent in atlas is (1,1) * scale
 
-			if(maskIndex != -1)
-			{
-				ApplyBlendMask(DBuffer2, mask, positionDS.xz, maskIndex, DBUFFERHTILEBIT_MASK, decalBlend, lod);
+				float2 normalMin = decalData.normalScaleBias.zw + clampAmount;
+				float2 normalMax = decalData.normalScaleBias.zw + decalData.normalScaleBias.xy - clampAmount;
+
+				float2 maskMin = decalData.maskScaleBias.zw + clampAmount;
+				float2 maskMax = decalData.maskScaleBias.zw + decalData.maskScaleBias.xy - clampAmount;
+
+				float2 sampleDiffuse = clamp(positionDS.xz * decalData.diffuseScaleBias.xy + decalData.diffuseScaleBias.zw, diffuseMin, diffuseMax);
+				float2 sampleNormal = clamp(positionDS.xz * decalData.normalScaleBias.xy + decalData.normalScaleBias.zw, normalMin, normalMax);
+				float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
+
+				// need to compute the mipmap LOD manually because we are sampling inside a loop
+				float3 positionDSDdx = mul(decalData.worldToDecal, float4(positionWSDdx, 0.0)).xyz;	// transform the derivatives to decal space, any translation is irrelevant
+				float3 positionDSDdy = mul(decalData.worldToDecal, float4(positionWSDdy, 0.0)).xyz;
+		
+				float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy;	// factor in the atlas scale
+				float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
+				float lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution);
+			
+				float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;		
+				float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
+				float lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution);
+
+				float2 sampleMaskDdx = positionDSDdx.xz * decalData.maskScaleBias.xy;		
+				float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
+				float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
+
+				float decalBlend = decalData.normalToWorld[0][3];
+
+				if((decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0))
+				{
+					ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse);
+					alpha = alpha < decalBlend ? decalBlend : alpha;	// use decal alpha if it is higher than transparent alpha
+				}
+
+				if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
+				{
+					ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lodNormal);
+				}
+
+				if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
+				{
+					ApplyBlendMask(DBuffer2, mask, sampleMask, DBUFFERHTILEBIT_MASK, decalBlend, lodMask);
+				}
 			}
 		}
 #else

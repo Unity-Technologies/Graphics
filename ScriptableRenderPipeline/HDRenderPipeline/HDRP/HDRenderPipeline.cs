@@ -636,10 +636,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderPipeline.BeginCameraRendering(camera);
 
-                if (camera.cameraType != CameraType.Reflection)
-                    // TODO: Render only visible probes
-                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
-
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
                 var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
@@ -667,6 +663,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
+
+                // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
+                if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.FullscreenPassthrough)
+                {
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                    renderContext.Submit();
+                    continue;
+                }
+
+                if (camera.cameraType != CameraType.Reflection)
+                    // TODO: Render only visible probes
+                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
@@ -791,8 +800,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             DecalSystem.instance.EndCull();
                             m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
-                            DecalSystem.instance.UpdateCachedMaterialData(cmd);     // textures, alpha or fade distances could've changed
-                            DecalSystem.instance.CreateDrawData();                  // prepare data is separate from draw
+                            DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
+                            DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible
+                            DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                         }
                     }
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
@@ -802,24 +812,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
                     m_MaterialList.ForEach(material => material.Bind());
-
-                    if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.Unlit)
-                    {
-                        // TODO: Add another path dedicated to planar reflection / real time cubemap that implement simpler lighting
-                        // It is up to the users to only send unlit object for this camera path
-
-                        using (new ProfilingSample(cmd, "Forward", CustomSamplerId.Forward.GetSampler()))
-                        {
-                            HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color | ClearFlag.Depth);
-                            RenderOpaqueRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
-                            RenderTransparentRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
-                        }
-
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        CommandBufferPool.Release(cmd);
-                        renderContext.Submit();
-                        continue;
-                    }
 
                     // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
                     DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd);
@@ -1018,7 +1010,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // During rendering we use our own depth buffer instead of the one provided by the scene view (because we need to be able to control its life cycle)
                     // In order for scene view gizmos/icons etc to be depth test correctly, we need to copy the content of our own depth buffer into the scene view depth buffer.
                     // On subtlety here is that our buffer can be bigger than the camera one so we need to copy only the corresponding portion
-                    // (it's handled automatically by the copy shader because it uses a load in pxiel coordinates based on the target).
+                    // (it's handled automatically by the copy shader because it uses a load in pixel coordinates based on the target).
                     // This copy will also have the effect of re-binding this depth buffer correctly for subsequent editor rendering.
 
                     // NOTE: This needs to be done before the call to RenderDebug because debug overlays need to update the depth for the scene view as well.
@@ -1286,17 +1278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
-
-				// for alpha compositing, color is cleared to 0, alpha to 1
-				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-
-				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
-
-				// we need to do a separate clear for normals, because they are cleared to a different color
-				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
-				m_DbufferManager.ClearNormalTargetAndHTile(cmd, camera, clearColorNormal);
-
+                m_DbufferManager.ClearTargets(cmd, camera);
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -1479,7 +1461,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
