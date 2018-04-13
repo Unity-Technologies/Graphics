@@ -135,6 +135,8 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
 #include "Lit/Lit.hlsl"
 #elif defined(UNITY_MATERIAL_UNLIT)
 #include "Unlit/Unlit.hlsl"
+#elif defined(UNITY_MATERIAL_STACKLIT)
+#include "StackLit/StackLit.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------
