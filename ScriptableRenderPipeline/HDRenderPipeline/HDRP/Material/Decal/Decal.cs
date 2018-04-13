@@ -59,5 +59,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Matrix4x4 worldToDecal;
         public Matrix4x4 normalToWorld;
+        public Vector4 diffuseScaleBias;
+        public Vector4 normalScaleBias;
+        public Vector4 maskScaleBias;
     };
 }
