@@ -57,6 +57,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Only for Spotlight, should be hide for other light
         public SpotLightShape spotLightShape = SpotLightShape.Cone;
 
+        // Only for Spotlight, should be hide for other light
+        public bool enableSpotReflector = false;
+
         // Only for Rectangle/Line/box projector lights
         public float shapeWidth = 0.5f;
 

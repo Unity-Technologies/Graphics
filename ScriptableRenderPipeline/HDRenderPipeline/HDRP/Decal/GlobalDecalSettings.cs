@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 	public class GlobalDecalSettings
 	{
 		public int drawDistance = 1000;
-		public int atlasSize = 8192;
+		public int atlasWidth = 4096;
+        public int atlasHeight = 4096;
 	}
 }

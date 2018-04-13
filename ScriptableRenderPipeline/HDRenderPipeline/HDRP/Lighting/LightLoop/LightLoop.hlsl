@@ -225,20 +225,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
                 EVALUATE_BSDF_ENV(envLightData, REFRACTION, refraction);
         }
-
-        // Only apply the sky IBL if the sky texture is available
-        if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
-        {
-            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-
-            // The sky data are generated on the fly so the compiler can optimize the code
-            EnvLightData envLightSky = InitSkyEnvLightData(0);
-            EVALUATE_BSDF_ENV(envLightSky, REFLECTION, reflection);
-
-            if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
-                EVALUATE_BSDF_ENV(envLightSky, REFRACTION, refraction);
-        }
     }
 
     // Following loop iterations
@@ -250,7 +236,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
             // Note: In case of IBL we are sorted from smaller to bigger projected solid angle bounds. We are not sorted by type so we can't do a 'while' approach like for area light.
-            for (i = 0; i < envLightCount && reflectionHierarchyWeight < 1.0; ++i)
+            for (i = 1; i < envLightCount && reflectionHierarchyWeight < 1.0; ++i)
             {
                 uint envLightIndex = FETCHINDEX(i);
                 EVALUATE_BSDF_ENV(_EnvLightDatas[envLightIndex], REFLECTION, reflection);
@@ -263,7 +249,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be aa waste to not use screen and only cubemap.
             if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
             {
-                for (i = 0; i < envLightCount && refractionHierarchyWeight < 1.0; ++i)
+                for (i = 1; i < envLightCount && refractionHierarchyWeight < 1.0; ++i)
                 {
                     uint envLightIndex = FETCHINDEX(i);
                     EVALUATE_BSDF_ENV(_EnvLightDatas[envLightIndex], REFRACTION, refraction);

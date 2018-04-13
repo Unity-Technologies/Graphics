@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ValidAPI = false;
 
                 return ;
-            }            
+            }
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
@@ -331,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandle.Release(m_DebugColorPickerBuffer);
             RTHandle.Release(m_DebugFullScreenTempBuffer);
-            
+
             m_DebugScreenSpaceTracingData.Release();
         }
 
@@ -371,12 +371,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!IsSupportedPlatform())
             {
-                Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
-
-#if UNITY_EDITOR
-                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
-                    sv.ShowNotification(new GUIContent("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur"));
-#endif                
+                CoreUtils.DisplayUnsupportedAPIMessage();
 
                 return false;
             }
@@ -827,8 +822,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             DecalSystem.instance.EndCull();
                             m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
-                            DecalSystem.instance.UpdateCachedMaterialData(cmd);     // textures, alpha or fade distances could've changed
-                            DecalSystem.instance.CreateDrawData();                  // prepare data is separate from draw
+                            DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
+                            DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible
+                            DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                         }
                     }
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
@@ -1325,17 +1321,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
-
-				// for alpha compositing, color is cleared to 0, alpha to 1
-				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-
-				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
-
-				// we need to do a separate clear for normals, because they are cleared to a different color
-				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
-				m_DbufferManager.ClearNormalTargetAndHTile(cmd, camera, clearColorNormal);
-
+                m_DbufferManager.ClearTargets(cmd, camera);
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -1518,7 +1504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
