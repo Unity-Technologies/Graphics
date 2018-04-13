@@ -112,6 +112,6 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
         }
     }
 
-    Fallback "LightweightPipeline/Particles/Standard (Simple Lighting)"
+    Fallback "LightweightPipeline/Particles/Standard Unlit"
     CustomEditor "LightweightStandardParticlesShaderGUI"
 }
