@@ -1139,7 +1139,7 @@ namespace UnityEditor.VFX.UI
             if (change.movedElements != null && change.movedElements.Count > 0)
             {
                 HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
-                foreach (var groupNode in vfxGroupNodes.ToList())
+                foreach (var groupNode in groupNodes.Values)
                 {
                     var containedElements = groupNode.containedElements;
 
