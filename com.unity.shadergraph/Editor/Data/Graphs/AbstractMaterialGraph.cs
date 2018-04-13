@@ -437,6 +437,41 @@ namespace UnityEditor.ShaderGraph
         public string SanitizePropertyReferenceName(string referenceName)
         {
             referenceName = referenceName.Trim();
+            referenceName = Regex.Replace(referenceName, @"\s+", "_");
+            referenceName = Regex.Replace(referenceName, @"^[^A-Za-z_]", "_");
+            referenceName = Regex.Replace(referenceName, @"[^A-Za-z_0-9]", "_");
+
+            // Similat to teh property names, duplicate names are handled by appending `_n`
+            // to the end of the referene name.
+            if (m_Properties.Any(p => p.referenceName == referenceName && p.guid != guid))
+            {
+                // Strip out the "_n" part of the name.
+                var baseRegex = new Regex(@"^(.*)_(\d+)$");
+                var baseMatch = baseRegex.Match(referenceName);
+                if (baseMatch.Success)
+                    referenceName = baseMatch.Groups[1].Value;
+
+                var regex = new Regex(@"^" + Regex.Escape(referenceName) + @"_(\d+)$");
+                var existingDuplicateNumbers = m_Properties.Where(p => p.guid != guid).Select(p => regex.Match(p.referenceName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).Distinct().ToList();
+
+                var duplicateNumber = 1;
+                existingDuplicateNumbers.Sort();
+                if (existingDuplicateNumbers.Any() && existingDuplicateNumbers.First() == 1)
+                {
+                    duplicateNumber = existingDuplicateNumbers.Last() + 1;
+                    for (var i = 1; i < existingDuplicateNumbers.Count; i++)
+                    {
+                        if (existingDuplicateNumbers[i - 1] != existingDuplicateNumbers[i] - 1)
+                        {
+                            duplicateNumber = existingDuplicateNumbers[i - 1] + 1;
+                            break;
+                        }
+                    }
+                }
+
+                referenceName = string.Format("{0}_{1}", referenceName, duplicateNumber);
+            }
+
             return referenceName;
         }
 

@@ -14,13 +14,7 @@ namespace UnityEditor.ShaderGraph
         private string m_Name;
 
         [SerializeField]
-        private string m_CustomReferenceName;
-
-        [SerializeField]
         private bool m_GeneratePropertyBlock = true;
-
-        [SerializeField]
-        private bool m_UseCustomReferenceName = false;
 
         [SerializeField]
         private SerializableGuid m_Guid = new SerializableGuid();
@@ -42,28 +36,12 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
-        public string customReferenceName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(m_CustomReferenceName))
-                    m_CustomReferenceName = "_" + displayName;
-                return m_CustomReferenceName;
-            }
-            set { m_CustomReferenceName = value; }
-        }
-
         string m_DefaultReferenceName;
 
         public string referenceName
         {
             get
             {
-                if (useCustomReferenceName)
-                {
-                    return customReferenceName;
-                }
-
                 if (string.IsNullOrEmpty(overrideReferenceName))
                 {
                     if (string.IsNullOrEmpty(m_DefaultReferenceName))
@@ -74,7 +52,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public string overrideReferenceName { get; set; }
+        [SerializeField]
+        string m_OverrideReferenceName;
+
+        public string overrideReferenceName
+        {
+            get { return m_OverrideReferenceName; }
+            set { m_OverrideReferenceName = value; }
+        }
 
         public abstract PropertyType propertyType { get; }
 
@@ -87,12 +72,6 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_GeneratePropertyBlock; }
             set { m_GeneratePropertyBlock = value; }
-        }
-
-        public bool useCustomReferenceName
-        {
-            get { return m_UseCustomReferenceName; }
-            set { m_UseCustomReferenceName = value; }
         }
 
         public abstract Vector4 defaultValue { get; }
