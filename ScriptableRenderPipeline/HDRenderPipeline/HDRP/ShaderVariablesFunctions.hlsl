@@ -103,7 +103,7 @@ float3 TransformViewToHClipDir(float3 directionVS)
 float3 GetAbsolutePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS += _CameraPositionWS;
+    positionWS += _WorldSpaceCameraPos;
 #endif
     return positionWS;
 }
@@ -111,18 +111,17 @@ float3 GetAbsolutePositionWS(float3 positionWS)
 float3 GetCameraRelativePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS -= _CameraPositionWS;
+    positionWS -= _WorldSpaceCameraPos;
 #endif
     return positionWS;
 }
 
-// Note: '_CameraPositionWS' is set by the legacy Unity code.
 float3 GetPrimaryCameraPosition()
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
     return float3(0, 0, 0);
 #else
-    return _CameraPositionWS;
+    return _WorldSpaceCameraPos;
 #endif
 }
 
@@ -133,7 +132,7 @@ float3 GetCurrentViewPosition()
     return GetPrimaryCameraPosition();
 #else
     // This is a generic solution.
-    // However, for the primary camera, using '_CameraPositionWS' is better for cache locality,
+    // However, using '_WorldSpaceCameraPos' is better for cache locality,
     // and in case we enable camera-relative rendering, we can statically set the position is 0.
     return UNITY_MATRIX_I_V._14_24_34;
 #endif
@@ -149,7 +148,14 @@ float3 GetViewForwardDir()
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
+    return (unity_OrthoParams.w == 0);
+#else
+    // This is a generic solution.
+    // However, using 'unity_OrthoParams' is better for cache locality.
+    // TODO: set 'unity_OrthoParams' during the shadow pass.
     return UNITY_MATRIX_P[3][3] == 0;
+#endif
 }
 
 // Computes the world space view direction (pointing towards the viewer).

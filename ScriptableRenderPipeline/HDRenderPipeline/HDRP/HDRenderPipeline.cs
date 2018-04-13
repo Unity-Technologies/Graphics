@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Use to detect frame changes
         int   m_FrameCount;
-        float m_PreviousTime, m_CurrentTime;
+        float m_LastTime, m_Time;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
@@ -546,7 +546,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ssrefraction.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
-                hdCamera.SetupGlobalParams(cmd, m_CurrentTime, m_PreviousTime);
+                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
                 if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
             }
         }
@@ -640,7 +640,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    newFrame = (t - m_CurrentTime) > 0.0166f;
+                    newFrame = (t - m_Time) > 0.0166f;
 
                     if (newFrame) m_FrameCount++;
                 }
@@ -650,8 +650,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDCamera.CleanUnused();
 
                     // Make sure both are never 0.
-                    m_PreviousTime = (m_CurrentTime > 0) ? m_CurrentTime : t;
-                    m_CurrentTime  = t;
+                    m_LastTime = (m_Time > 0) ? m_Time : t;
+                    m_Time  = t;
                 }
             }
 
@@ -955,7 +955,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); 
-                            hdCamera.SetupGlobalParams(cmd, m_CurrentTime, m_PreviousTime);
+                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
                             if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
 
