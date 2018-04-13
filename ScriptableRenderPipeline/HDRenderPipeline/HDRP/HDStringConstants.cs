@@ -143,11 +143,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
-        public static readonly int _CurrentTime    = Shader.PropertyToID("_CurrentTime");
-        public static readonly int _PreviousTime   = Shader.PropertyToID("_PreviousTime");
-        public static readonly int _SinCurrentTime = Shader.PropertyToID("_SinCurrentTime");
-        public static readonly int _CosCurrentTime = Shader.PropertyToID("_CosCurrentTime");
-        public static readonly int _DeltaTime      = Shader.PropertyToID("_DeltaTime");
+        public static readonly int _Time           = Shader.PropertyToID("_Time");
+        public static readonly int _LastTime       = Shader.PropertyToID("_LastTime");
+        public static readonly int _SinTime        = Shader.PropertyToID("_SinTime");
+        public static readonly int _CosTime        = Shader.PropertyToID("_CosTime");
+        public static readonly int unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
@@ -202,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DecalCount = Shader.PropertyToID("_DecalCount");
         public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
 
-        public static readonly int _CameraPositionWS = Shader.PropertyToID("_CameraPositionWS");
+        public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
         public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
@@ -211,10 +211,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
         public static readonly int _InvViewProjMatrix = Shader.PropertyToID("_InvViewProjMatrix");
         public static readonly int _DetViewMatrix = Shader.PropertyToID("_DetViewMatrix");
-        public static readonly int _DepthBufferParams = Shader.PropertyToID("_DepthBufferParams");
-        public static readonly int _FrustumParams = Shader.PropertyToID("_FrustumParams");
+        public static readonly int _ZBufferParams = Shader.PropertyToID("_ZBufferParams");
+        public static readonly int _ProjectionParams = Shader.PropertyToID("_ProjectionParams");
+        public static readonly int unity_OrthoParams = Shader.PropertyToID("unity_OrthoParams");
         public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
         public static readonly int _ScreenToTargetScale = Shader.PropertyToID("_ScreenToTargetScale");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");

@@ -24,68 +24,12 @@
     #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
-    #define _CameraPositionWS unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+    #define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
 // ----------------------------------------------------------------------------
-
-//  *****************************************************
-//  *                                                   *
-//  *  UnityPerCamera has been deprecated. Do NOT use!  *
-//  *       Please refer to UnityPerView instead.       *
-//  *                                                   *
-//  *****************************************************
-
-CBUFFER_START(UnityPerCamera)
-    // Time (t = time since current level load) values from Unity
-    // DEPRECATED: use _CurrentTime, _PreviousTime, _DeltaTime, _SinCurrentTime, _CosCurrentTime
-    float4 _Time; // (t/20, t, t*2, t*3)
-    float4 _LastTime; // Last frame time (t/20, t, t*2, t*3)
-    float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-    float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-    float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
-
-#if !defined(USING_STEREO_MATRICES)
-    // DEPRECATED: use _CameraPositionWS
-    float3 _WorldSpaceCameraPos;
-#endif
-
-    // x = 1 or -1 (-1 if projection is flipped)
-    // y = near plane
-    // z = far plane
-    // w = 1/far plane
-    // DEPRECATED: use _FrustumParams, UNITY_UV_STARTS_AT_TOP
-    float4 _ProjectionParams;
-
-    // x = width
-    // y = height
-    // z = 1 + 1.0/width
-    // w = 1 + 1.0/height
-    // DEPRECATED: use _ScreenSize
-    float4 _ScreenParams;
-
-    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-    // x = 1-far/near
-    // y = far/near
-    // z = x/far
-    // w = y/far
-    // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
-    // x = -1+far/near
-    // y = 1
-    // z = x/far
-    // w = 1/far
-    // DEPRECATED: use _DepthBufferParams
-    float4 _ZBufferParams;
-
-    // x = orthographic camera's width
-    // y = orthographic camera's height
-    // z = unused
-    // w = 1.0 if camera is ortho, 0.0 if perspective
-    // DEPRECATED: use _FrustumParams, IsPerspectiveProjection()
-    float4 unity_OrthoParams;
-CBUFFER_END
 
 //  *********************************************************
 //  *                                                       *
@@ -263,7 +207,7 @@ CBUFFER_START(UnityPerView)
 #if defined(USING_STEREO_MATRICES)
     float3 _Align16;
 #else
-    float3 _CameraPositionWS;
+    float3 _WorldSpaceCameraPos;
 #endif
     float  _DetViewMatrix;              // determinant(_ViewMatrix)
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
@@ -279,25 +223,37 @@ CBUFFER_START(UnityPerView)
     // y = 1
     // z = -1/n + -1/f
     // w = 1/f
-    float4 _DepthBufferParams;
+    float4 _ZBufferParams;
 
-    // x = near plane
-    // y = far plane
-    // z = orthographic camera's width  (0 if perspective)
-    // w = orthographic camera's height (0 if perspective)
-    float4 _FrustumParams;
+    // x = 1 or -1 (-1 if projection is flipped)
+    // y = near plane
+    // z = far plane
+    // w = 1/far plane
+    float4 _ProjectionParams;
+
+    // x = orthographic camera's width
+    // y = orthographic camera's height
+    // z = unused
+    // w = 1.0 if camera is ortho, 0.0 if perspective
+    float4 unity_OrthoParams;
+
+    // x = width
+    // y = height
+    // z = 1 + 1.0/width
+    // w = 1 + 1.0/height
+    float4 _ScreenParams;
 
     float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
-    // t = animateMaterials ? Time.realtimeSinceStartup : 0.
-    float4 _CurrentTime;                // { t/20, t, t*2, t*3 }
-    float4 _PreviousTime;               // { t/20, t, t*2, t*3 }
-    float4 _DeltaTime;                  // { dt, 1/dt, smoothdt, 1/smoothdt }
-    float4 _SinCurrentTime;             // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
-    float4 _CosCurrentTime;             // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
-
     // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
+
     float4 _TaaFrameRotation;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
+    // t = animateMaterials ? Time.realtimeSinceStartup : 0.
+    float4 _Time;                       // { t/20, t, t*2, t*3 }
+    float4 _LastTime;                   // { t/20, t, t*2, t*3 }
+    float4 _SinTime;                    // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
+    float4 _CosTime;                    // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
+    float4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
