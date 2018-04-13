@@ -34,7 +34,7 @@
 //  *****************************************************
 //  *                                                   *
 //  *  UnityPerCamera has been deprecated. Do NOT use!  *
-//  *  Refer to UnityPerFrame and UnityPerView instead. *
+//  *       Please refer to UnityPerView instead.       *
 //  *                                                   *
 //  *****************************************************
 
@@ -87,13 +87,22 @@ CBUFFER_START(UnityPerCamera)
     float4 unity_OrthoParams;
 CBUFFER_END
 
+//  *********************************************************
+//  *                                                       *
+//  *  UnityPerCameraRare has been deprecated. Do NOT use!  *
+//  *         Please refer to UnityPerView instead.         *
+//  *                                                       *
+//  *********************************************************
+
 CBUFFER_START(UnityPerCameraRare)
+    // DEPRECATED: use _FrustumPlanes
     float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)
     // Projection matrices of the camera. Note that this might be different from projection matrix
     // that is set right now, e.g. while rendering shadows the matrices below are still the projection
     // of original camera.
+    // DEPRECATED: use _ProjMatrix, _InvProjMatrix, _ViewMatrix, _InvViewMatrix
     float4x4 unity_CameraProjection;
     float4x4 unity_CameraInvProjection;
     float4x4 unity_WorldToCamera;
