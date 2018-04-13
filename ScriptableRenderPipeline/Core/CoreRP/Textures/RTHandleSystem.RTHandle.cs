@@ -17,7 +17,8 @@ namespace UnityEngine.Experimental.Rendering
             internal Vector2 scaleFactor        = Vector2.one;
             internal ScaleFunc scaleFunc;
 
-            public bool useScaling { get; internal set; }
+            public bool                         useScaling { get; internal set; }
+            public Vector2Int                   referenceSize {get; internal set; }
 
             public RenderTexture rt
             {
@@ -83,7 +84,8 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     var refRT = m_RTs[(int)RTCategory.MSAA];
                     Debug.Assert(refRT != null);
-                    var scaledSize = GetScaledSize(new Vector2Int(m_Owner.maxWidthRegular, m_Owner.maxHeightRegular));
+                    referenceSize = new Vector2Int(m_Owner.maxWidthRegular, m_Owner.maxHeightRegular);
+                    var scaledSize = GetScaledSize(referenceSize);
 
                     var newRT = new RenderTexture(scaledSize.x, scaledSize.y, refRT.depth, refRT.format, refRT.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear)
                     {
