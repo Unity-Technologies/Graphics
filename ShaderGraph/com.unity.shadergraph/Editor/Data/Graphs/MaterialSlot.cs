@@ -288,18 +288,18 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsCompatibleWith(MaterialSlot otherSlot)
         {
-            if(stageCapability != ShaderStageCapability.All && otherSlot.stageCapability != ShaderStageCapability.All)
-            {
-                if(stageCapability != otherSlot.stageCapability)
-                    return false;
-            }
-
             return otherSlot != null
                 && otherSlot.owner != owner
                 && otherSlot.isInputSlot != isInputSlot
                 && ((isInputSlot
                      ? otherSlot.IsCompatibleWithInputSlotType(valueType)
                      : IsCompatibleWithInputSlotType(otherSlot.valueType)));
+        }
+
+        public bool IsCompatibleStageWith(MaterialSlot otherSlot)
+        {
+            var candidateStage = otherSlot.stageCapability;
+            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability;
         }
 
         public virtual string GetDefaultValue(GenerationMode generationMode)
