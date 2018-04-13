@@ -500,6 +500,22 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             }
+            
+            // TODO: how to handle reflection views? We don't know the parent window they are being rendered into,
+            // so we don't know whether we can animate them...
+            //
+            // IMHO, a better solution would be:
+            // A window invokes a camera render. The camera knows which window called it, so it can query its properies
+            // (such as animated materials). This camera provides the space-time position. It should also be able
+            // to access the rendering settings somehow. Using this information, it is then able to construct the
+            // primary view with information about camera-relative rendering, LOD, time, rendering passes/features
+            // enabled, etc. We then render this view. It can have multiple sub-views (shadows, reflections).
+            // They inherit all the properties of the primary view, but also have the ability to override them
+            // (e.g. primary cam pos and time are retained, matrices are modified, SSS and tessellation are disabled).
+            // These views can then have multiple sub-views (probably not practical for games),
+            // which simply amounts to a recursive call, and then the story repeats itself.
+            //
+            // TLDR: we need to know the caller and its status/properties to make decisions.
         #endif
 
             return animateMaterials;
