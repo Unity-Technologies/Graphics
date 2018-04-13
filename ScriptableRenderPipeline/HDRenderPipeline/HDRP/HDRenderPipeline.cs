@@ -545,20 +545,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd);
 
-                var ssrefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
+                var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
                     ?? ScreenSpaceRefraction.@default;
-                ssrefraction.PushShaderParameters(cmd);
-
-                var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
-                if (previousDepthPyramidRT != null)
-                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
-                var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
-                if (previousColorPyramidRT != null)
-                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
+                ssRefraction.PushShaderParameters(cmd);
+                var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>()
+                    ?? ScreenSpaceReflection.@default;
+                ssReflection.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
                 if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
+
+                var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
+                if (previousDepthPyramidRT != null)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
+                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(
+                        previousDepthPyramidRT.referenceSize.x, 
+                        previousDepthPyramidRT.referenceSize.y, 
+                        1f / previousDepthPyramidRT.referenceSize.x, 
+                        1f / previousDepthPyramidRT.referenceSize.y
+                    ));
+                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(
+                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width, 
+                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height, 
+                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2), 
+                        0.0f
+                    ));
+                }
+                    
+                var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                if (previousColorPyramidRT != null)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
+                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(
+                        previousColorPyramidRT.referenceSize.x, 
+                        previousColorPyramidRT.referenceSize.y, 
+                        1f / previousColorPyramidRT.referenceSize.x, 
+                        1f / previousColorPyramidRT.referenceSize.y
+                    ));
+                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(
+                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width, 
+                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height, 
+                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2), 
+                        0.0f
+                    ));
+                }
             }
         }
 
@@ -644,7 +676,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool newFrame;
 
                 if (Application.isPlaying)
-                {
+            {
                     newFrame = m_FrameCount != c;
 
                     m_FrameCount = c;
@@ -1096,6 +1128,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugScreenSpaceTracingData.GetData(m_DebugScreenSpaceTracingDataArray);
                     var data = m_DebugScreenSpaceTracingDataArray[0];
                     m_CurrentDebugDisplaySettings.screenSpaceTracingDebugData = data;
+
+                    // Assign -1 in tracing model to notifiy we took the data.
+                    // When debugging in forward, we want only the first time the pixel is drawn
+                    data.tracingModel = (Lit.SSRayModel)(-1);
+                    m_DebugScreenSpaceTracingDataArray[0] = data;
+                    m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
             } // For each camera
         }
@@ -1474,7 +1512,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 switch (pass)
                 {
-                        var bindIndex = 0;
                         // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                         if (m_FrameSettings.enableSubsurfaceScattering)
                         {
@@ -1488,12 +1525,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_CameraDepthStencilBuffer);
-                            bindIndex += m_MRTWithSSS.Length;
                         }
                         else
                         {
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                            ++bindIndex;
                         }
 
                         m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
@@ -1507,7 +1542,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (debugSSTThisPass)
                         {
                             cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                            cmd.SetRandomWriteTarget(bindIndex, m_DebugScreenSpaceTracingData);
+                            cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
                         }
                         RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
                         if (debugSSTThisPass)
@@ -1524,7 +1559,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (debugSSTThisPass)
                         {
                             cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                            cmd.SetRandomWriteTarget(1, m_DebugScreenSpaceTracingData);
+                            cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
                         }
                         RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
 
