@@ -58,17 +58,65 @@ namespace UnityEditor.VFX
         [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
         public VFXAttributeLocation location = VFXAttributeLocation.Current;
 
+        [VFXSetting, Regex("[^x-zX-Z]", 3)]
+        public string mask = "xyz";
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (string setting in base.filteredOutSettings) yield return setting;
+                var attribute = VFXAttribute.Find(this.attribute);
+                if (attribute.variadic == VFXVariadic.False) yield return "mask";
+            }
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
                 var attribute = VFXAttribute.Find(this.attribute);
-                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(attribute.type), attribute.name));
+                if (attribute.variadic == VFXVariadic.True)
+                {
+                    Type slotType = null;
+                    switch (GetMaskSize())
+                    {
+                        case 1: slotType = typeof(float); break;
+                        case 2: slotType = typeof(Vector2); break;
+                        case 3: slotType = typeof(Vector3); break;
+                        case 4: slotType = typeof(Vector4); break;
+                        default: break;
+                    }
+
+                    if (slotType != null)
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, attribute.name));
+                }
+                else
+                {
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(attribute.type), attribute.name));
+                }
             }
         }
 
         override public string libraryName { get { return attribute; } }
-        override public string name { get { return location + " " + attribute; } }
+        override public string name
+        {
+            get
+            {
+                string result = location + " " + attribute;
+
+                var attrib = VFXAttribute.Find(this.attribute);
+                if (attrib.variadic == VFXVariadic.True)
+                    result += "." + mask;
+
+                return result;
+            }
+        }
+
+        private int GetMaskSize()
+        {
+            return Math.Min(3, mask.Length);
+        }
 
         public override void Sanitize()
         {
@@ -97,15 +145,28 @@ namespace UnityEditor.VFX
             var attribute = VFXAttribute.Find(this.attribute);
             if (attribute.variadic == VFXVariadic.True)
             {
-                var attributeX = VFXAttribute.Find(attribute.name + "X");
-                var attributeY = VFXAttribute.Find(attribute.name + "Y");
-                var attributeZ = VFXAttribute.Find(attribute.name + "Z");
+                var attributes = new VFXAttribute[] { VFXAttribute.Find(attribute.name + "X"), VFXAttribute.Find(attribute.name + "Y"), VFXAttribute.Find(attribute.name + "Z") };
+                var expressions = attributes.Select(a => new VFXAttributeExpression(a, location)).ToArray();
 
-                var expressionX = new VFXAttributeExpression(attributeX, location);
-                var expressionY = new VFXAttributeExpression(attributeY, location);
-                var expressionZ = new VFXAttributeExpression(attributeZ, location);
+                var componentStack = new Stack<VFXExpression>();
+                int outputSize = GetMaskSize();
+                for (int iComponent = 0; iComponent < outputSize; iComponent++)
+                {
+                    char componentChar = char.ToLower(mask[iComponent]);
+                    int currentComponent = Math.Min(componentChar - 'x', 2);
+                    componentStack.Push(expressions[currentComponent]);
+                }
 
-                return new VFXExpression[] { new VFXExpressionCombine(expressionX, expressionY, expressionZ) };
+                VFXExpression finalExpression = null;
+                if (componentStack.Count == 1)
+                {
+                    finalExpression = componentStack.Pop();
+                }
+                else
+                {
+                    finalExpression = new VFXExpressionCombine(componentStack.Reverse().ToArray());
+                }
+                return new[] { finalExpression };
             }
             else
             {

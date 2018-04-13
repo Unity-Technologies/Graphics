@@ -8,7 +8,8 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Vector")]
     class Swizzle : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Swizzle"; } }
+        override public string libraryName { get { return "Swizzle"; } }
+        override public string name { get { return "Swizzle." + mask; } }
 
         [VFXSetting, Regex("[^w-zW-Z]", 4)]
         public string mask = "xyzw";
@@ -73,7 +74,7 @@ namespace UnityEditor.VFX.Operator
             {
                 char componentChar = char.ToLower(mask[iComponent]);
                 int currentComponent = Math.Min(CharToComponentIndex(componentChar), inputComponents.Length - 1);
-                componentStack.Push(inputComponents[(int)currentComponent]);
+                componentStack.Push(inputComponents[currentComponent]);
             }
 
             VFXExpression finalExpression = null;
