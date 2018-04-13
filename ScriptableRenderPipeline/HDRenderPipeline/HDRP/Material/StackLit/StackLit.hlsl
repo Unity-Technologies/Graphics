@@ -6,7 +6,7 @@
 //#include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 //#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
-//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used: 
+//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:
 //
 // We need this for AO, Depth/Color pyramids, LTC lights data, FGD pre-integrated data.
 //
@@ -49,11 +49,11 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
 // This function is similar to ApplyDebugToSurfaceData but for BSDFData
 //
-// NOTE: 
+// NOTE:
 //
-// This will be available and used in ShaderPassForward.hlsl since in StackLit.shader, 
-// just before including the core code of the pass (ShaderPassForward.hlsl) we include 
-// Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us, 
+// This will be available and used in ShaderPassForward.hlsl since in StackLit.shader,
+// just before including the core code of the pass (ShaderPassForward.hlsl) we include
+// Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us,
 // StackLit.shader, via the #if defined(UNITY_MATERIAL_*) glue mechanism.
 //
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
@@ -61,7 +61,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
     // this can be use also in case of debug lighting mode like specular only
-    
+
     //NEWLITTODO
     //bool overrideSpecularColor = _DebugLightingSpecularColor.x != 0.0;
 
@@ -81,7 +81,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
-    
+
     // NEWLITTODO: will be much more involved obviously, and use metallic, etc.
     bsdfData.diffuseColor = surfaceData.baseColor;
     bsdfData.normalWS = surfaceData.normalWS;
@@ -97,19 +97,35 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
-    //NEWLITTODO
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE:
+            // Convert to view space
+            result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+            break;
+    }
 }
 
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
-    //NEWLITTODO
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+            // Convert to view space
+            result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+            break;
+    }
 }
 
 
 //-----------------------------------------------------------------------------
-// PreLightData 
-// 
+// PreLightData
+//
 // Make sure we respect naming conventions to reuse ShaderPassForward as is,
 // ie struct (even if opaque to the ShaderPassForward) name is PreLightData,
 // GetPreLightData prototype.
@@ -130,7 +146,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
 
-    float NdotV = ClampNdotV(preLightData.NdotV);
+    //float NdotV = ClampNdotV(preLightData.NdotV);
 
 
     return preLightData;
@@ -276,7 +292,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     //float  LdotV = dot(L, V);
 
-    // color and attenuation are outputted  by EvaluateLight: 
+    // color and attenuation are outputted  by EvaluateLight:
     float3 color;
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
@@ -293,7 +309,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     }
 
     // NEWLITTODO: Mixed thickness, transmission
-    
+
     // Save ALU by applying light and cookie colors only once.
     lighting.diffuse  *= color;
     lighting.specular *= color;
@@ -349,7 +365,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  LdotV = dot(L, V);
 
     // NEWLITTODO: mixedThickness, transmission
-    
+
     float3 color;
     float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
@@ -364,10 +380,10 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         // Simulate a sphere light with this hack
         // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
         // same result) but we don't care as it is a hack anyway
-        
+
         //NEWLITTODO: Do we want this hack in stacklit ? Yes we have area lights, but cheap and not much maintenance to leave it here.
         // For now no roughness anyways.
-        
+
         //bsdfData.coatRoughness = max(bsdfData.coatRoughness, lightData.minRoughness);
         //bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
         //bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
@@ -379,7 +395,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     }
 
     //NEWLITTODO : transmission
-    
+
 
     // Save ALU by applying light and cookie colors only once.
     lighting.diffuse  *= color;
@@ -396,7 +412,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     return lighting;
 }
 
-// NEWLITTODO: For a refence rendering option for area light, like LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> : 
+// NEWLITTODO: For a refence rendering option for area light, like LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> :
 //#include "LitReference.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -409,7 +425,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-    
+
     //NEWLITTODO
 
     return lighting;
@@ -461,7 +477,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
-    
+
     //NEWLITTODO
 
     return lighting;
@@ -534,7 +550,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     #endif
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        // NEWLITTODO    
+        // NEWLITTODO
         //diffuseLighting = bsdfData.diffuseColor;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
