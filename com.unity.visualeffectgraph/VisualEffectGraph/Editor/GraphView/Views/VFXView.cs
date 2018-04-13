@@ -453,6 +453,18 @@ namespace UnityEditor.VFX.UI
         void ControllerChanged(int change)
         {
             m_InControllerChanged = true;
+
+            if( change == VFXViewController.Change.groupNode)
+            {
+                SyncGroupNodes();
+                
+                var groupNodes = this.groupNodes;  
+                foreach( var groupNode in groupNodes.Values)
+                {
+                    groupNode.SelfChange();
+                }
+                return;
+            }
             Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.Change.destroy)
             {
@@ -577,7 +589,16 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<GeometryChangedEvent>(OnFrameNewControllerWithPanel);
         }
 
-        Dictionary<VFXNodeController, GraphElement> rootNodes = new Dictionary<VFXNodeController, GraphElement>();
+        Dictionary<VFXNodeController, VFXNodeUI> rootNodes = new Dictionary<VFXNodeController, VFXNodeUI>();
+        Dictionary<Controller, GraphElement> rootGroupNodeElements = new Dictionary<Controller, GraphElement>();
+
+
+        public GraphElement GetGroupNodeElement(Controller controller)
+        {
+            GraphElement result = null;
+            rootGroupNodeElements.TryGetValue(controller,out result);
+            return result;
+        }
 
 
         Dictionary<VFXGroupNodeController, VFXGroupNode> groupNodes
@@ -625,6 +646,7 @@ namespace UnityEditor.VFX.UI
             (e.target as GraphElement).UnregisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
         }
 
+
         void SyncNodes()
         {
             Profiler.BeginSample("VFXView.SyncNodes");
@@ -635,6 +657,7 @@ namespace UnityEditor.VFX.UI
                     SafeRemoveElement(element);
                 }
                 rootNodes.Clear();
+                rootGroupNodeElements.Clear();
             }
             else
             {
@@ -648,6 +671,7 @@ namespace UnityEditor.VFX.UI
                 {
                     SafeRemoveElement(rootNodes[deletedController]);
                     rootNodes.Remove(deletedController);
+                    rootGroupNodeElements.Remove(deletedController);
                     changed = true;
                 }
 
@@ -655,7 +679,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var newController in controller.nodes.Except(rootNodes.Keys).ToArray())
                 {
-                    GraphElement newElement = null;
+                    VFXNodeUI newElement = null;
                     if (newController is VFXContextController)
                     {
                         newElement = new VFXContextUI();
@@ -675,6 +699,7 @@ namespace UnityEditor.VFX.UI
                     changed = true;
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
+                    rootGroupNodeElements[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
                     if (needOneListenToGeometry)
                     {
@@ -705,7 +730,7 @@ namespace UnityEditor.VFX.UI
             if (panel != null)
             {
                 (panel as BaseVisualElementPanel).ValidateLayout();
-                controller.graph.UIInfos.uiBounds = GetElementsBounds(rootNodes.Values.Concat(groupNodes.Values.Cast<GraphElement>()).Concat(stickyNotes.Values.Cast<GraphElement>()));
+                controller.graph.UIInfos.uiBounds = GetElementsBounds(rootGroupNodeElements.Values.Concat(groupNodes.Values.Cast<GraphElement>()));
             }
         }
 
@@ -756,8 +781,10 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var kv in stickyNotes)
                 {
+                    
                     SafeRemoveElement(kv.Value);
                 }
+                rootGroupNodeElements.Clear();
             }
             else
             {
@@ -766,6 +793,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var deletedController in deletedControllers)
                 {
                     SafeRemoveElement(stickyNotes[deletedController]);
+                    rootGroupNodeElements.Remove(deletedController);
                 }
 
                 foreach (var newController in controller.stickyNotes.Except(stickyNotes.Keys))
@@ -773,6 +801,7 @@ namespace UnityEditor.VFX.UI
                     var newElement = new VFXStickyNote();
                     newElement.controller = newController;
                     AddElement(newElement);
+                    rootGroupNodeElements[newController] = newElement;
                 }
             }
         }

@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+
     [Serializable]
     struct VFXNodeID
     {
@@ -32,7 +33,7 @@ namespace UnityEditor.VFX
 
         public bool isStickyNote;
     }
-    class VFXUI : ScriptableObject, IModifiable
+    class VFXUI : VFXObject
     {
         [System.Serializable]
         public class UIInfo
@@ -90,14 +91,7 @@ namespace UnityEditor.VFX
 
         public Rect uiBounds;
 
-        Action<ScriptableObject> onModified;
-        Action<ScriptableObject> IModifiable.onModified{get{return onModified;}set{onModified = value;}}
 
-        public void Modified()
-        {
-            if(onModified != null)
-                onModified(this);
-        }
         internal void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)
