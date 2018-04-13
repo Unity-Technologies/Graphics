@@ -452,7 +452,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.tangent", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Vector)), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.tangent.xyz", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Vector)), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
                 interpolatorIndex++;
             }
@@ -485,7 +485,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.Position);
                 interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Position)), false);
+                vertexShader.AddShaderChunk(string.Format("o.{0} = {1}.xyz;", name, ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Position)), false);
                 pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
                 interpolatorIndex++;
             }
@@ -707,7 +707,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     break;
             }
-            
+
             return materialOptions;
         }
 
