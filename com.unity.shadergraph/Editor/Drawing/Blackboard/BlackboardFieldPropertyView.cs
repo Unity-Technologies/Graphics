@@ -24,14 +24,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 property.useCustomReferenceName = m_UseCustomReferenceNameToggle.on;
                 m_ReferenceNameField.SetEnabled(property.useCustomReferenceName);
-                m_Graph.ValidateGraph();
+                m_ReferenceNameField.value = property.referenceName;
+                DirtyNodes(ModificationScope.Graph);
             });
             m_UseCustomReferenceNameToggle.on = property.useCustomReferenceName;
-            m_ReferenceNameField.value = property.customReferenceName;
+            m_ReferenceNameField.value = property.referenceName;
             m_ReferenceNameField.SetEnabled(property.useCustomReferenceName);
             m_ReferenceNameField.OnValueChanged(newName =>
             {
+                if (!property.useCustomReferenceName)
+                    return;
                 property.customReferenceName = newName.newValue;
+                DirtyNodes(ModificationScope.Graph);
             });
             AddRow("Specify reference name", m_UseCustomReferenceNameToggle);
 
@@ -284,10 +288,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void DirtyNodes()
+        void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             foreach (var node in m_Graph.GetNodes<PropertyNode>())
-                node.Dirty(ModificationScope.Node);
+                node.Dirty(modificationScope);
         }
     }
 }

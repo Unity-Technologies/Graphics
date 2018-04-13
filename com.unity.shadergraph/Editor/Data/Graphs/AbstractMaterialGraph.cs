@@ -434,6 +434,12 @@ namespace UnityEditor.ShaderGraph
             return displayName;
         }
 
+        public string SanitizePropertyReferenceName(string referenceName)
+        {
+            referenceName = referenceName.Trim();
+            return referenceName;
+        }
+
         public void RemoveShaderProperty(Guid guid)
         {
             var propertyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == guid).ToList();
