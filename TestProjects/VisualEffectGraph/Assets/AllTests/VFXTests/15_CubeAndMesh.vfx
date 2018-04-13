@@ -405,6 +405,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 0
@@ -4310,6 +4311,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useRimLight: 1
@@ -5258,8 +5260,7 @@ VisualEffectAsset:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 4000
-    capacity: 500
+    size: 4096
     layout:
     - name: position
       type: 3
@@ -5270,30 +5271,31 @@ VisualEffectAsset:
     - name: lifetime
       type: 1
       offset:
-        bucket: 2000
+        bucket: 2048
         structure: 1
         element: 0
     - name: angleZ
       type: 1
       offset:
-        bucket: 2500
+        bucket: 2560
         structure: 3
         element: 0
     - name: alive
       type: 17
       offset:
-        bucket: 2500
+        bucket: 2560
         structure: 3
         element: 1
     - name: age
       type: 1
       offset:
-        bucket: 2500
+        bucket: 2560
         structure: 3
         element: 2
+    capacity: 512
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -5301,14 +5303,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 500
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -5381,24 +5387,24 @@ VisualEffectAsset:
       - nameId: sourceAttributeBuffer
         index: 1
       values:
-      - nameId: Torus_center_b
+      - nameId: Torus_center_a
         index: 70
-      - nameId: Torus_majorRadius_b
+      - nameId: Torus_majorRadius_a
         index: 10
-      - nameId: Torus_minorRadius_b
+      - nameId: Torus_minorRadius_a
         index: 8
-      - nameId: Torus_arc_b
+      - nameId: Torus_arc_a
         index: 77
-      - nameId: r_b
+      - nameId: r_a
         index: 73
-      - nameId: Lifetime_c
+      - nameId: Lifetime_b
         index: 76
       params:
       - nameId: bounds_center
         index: 64
       - nameId: bounds_size
         index: 79
-      processor: {fileID: 7200000, guid: 1d9ec6d570e36a44da954bffa9878ac2, type: 3}
+      processor: {fileID: 7200000, guid: ae233973695c12543b109e7baceab5ff, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5406,24 +5412,24 @@ VisualEffectAsset:
       - nameId: deadListOut
         index: 2
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 26
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 61
-      - nameId: deltaTime_c
+      - nameId: deltaTime_b
         index: 18
       params: []
-      processor: {fileID: 7200000, guid: 1b10fe1ec73201248abfd1292a2b1438, type: 3}
+      processor: {fileID: 7200000, guid: c498b2ebf9e0d2c4681816a3e1c37bd6, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: Position_b
+      - nameId: Position_a
         index: 69
-      - nameId: curve_c
+      - nameId: curve_b
         index: 66
-      - nameId: Color_d
+      - nameId: Color_c
         index: 80
       - nameId: alphaThreshold
         index: 74
@@ -5436,7 +5442,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7658b7a52f790a14f8c5a665458a80fb, type: 3}
+      processor: {fileID: 4800000, guid: b4df983f3a09f6141a6ce4ee56e2a676, type: 3}
   - type: 2
     flags: 0
     capacity: 0
@@ -5475,4 +5481,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

@@ -642,6 +642,11 @@ namespace UnityEditor.VFX
                 var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
+                IEnumerable<VFXContext> implicitContexts = Enumerable.Empty<VFXContext>();
+                foreach (var d in compilableData) // Flag compiled contexts
+                    implicitContexts = implicitContexts.Concat(d.InitImplicitContexts());
+                compilableContexts = compilableContexts.Concat(implicitContexts.ToArray());
+
                 foreach (var c in compilableContexts) // Flag compiled contexts
                     c.MarkAsCompiled(true);
 
@@ -667,7 +672,6 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
                 foreach (var context in compilableContexts)
                 {
-                    uint contextId = (uint)context.GetParent().GetIndex(context);
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
                     var contextData = contextToCompiledData[context];
                     contextData.cpuMapper = cpuMapper;
