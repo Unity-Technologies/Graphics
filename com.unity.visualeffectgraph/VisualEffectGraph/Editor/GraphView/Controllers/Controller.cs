@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
         public bool m_DisableCalled = false;
         public virtual void OnDisable()
         {
-            if( m_DisableCalled) 
+            if (m_DisableCalled)
                 Debug.LogError(GetType().Name + ".Disable called twice");
 
             m_DisableCalled = true;
@@ -118,16 +118,15 @@ namespace UnityEditor.VFX.UI
         public VFXController(VFXViewController viewController, T model) : base(model)
         {
             m_ViewController = viewController;
-            m_ViewController.RegisterNotification(model,OnModelChanged);
+            m_ViewController.RegisterNotification(model, OnModelChanged);
             m_Registered = true;
         }
 
-
-        public VFXViewController viewController{get{return m_ViewController;}}
+        public VFXViewController viewController {get {return m_ViewController; }}
 
         public override void OnDisable()
         {
-            m_ViewController.UnRegisterNotification(model,OnModelChanged);
+            m_ViewController.UnRegisterNotification(model, OnModelChanged);
             m_Registered = false;
             base.OnDisable();
         }
@@ -136,7 +135,6 @@ namespace UnityEditor.VFX.UI
         {
             ModelChanged(model);
         }
-        
 
         public virtual string name
         {

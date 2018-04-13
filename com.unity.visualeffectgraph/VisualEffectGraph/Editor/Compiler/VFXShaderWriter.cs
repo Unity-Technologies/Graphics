@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
         public static string GeneratePrefix(uint index)
         {
             if (index == 0u) return "a";
-            
+
             var prefix = "";
             while (index != 0u)
             {

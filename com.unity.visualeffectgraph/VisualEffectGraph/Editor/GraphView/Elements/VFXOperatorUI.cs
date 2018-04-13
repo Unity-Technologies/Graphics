@@ -101,25 +101,25 @@ namespace UnityEditor.VFX.UI
 
         protected VisualElement GetControllerEditor()
         {
-            if( controller is VFXCascadedOperatorController)
+            if (controller is VFXCascadedOperatorController)
             {
                 var edit = new VFXCascadedOperatorEdit();
                 edit.controller = controller as VFXCascadedOperatorController;
                 return edit;
             }
-            if( controller is VFXNumericUniformOperatorController)
+            if (controller is VFXNumericUniformOperatorController)
             {
-                var edit = new VFXUniformOperatorEdit<VFXNumericUniformOperatorController,VFXOperatorNumericUniformNew>();
+                var edit = new VFXUniformOperatorEdit<VFXNumericUniformOperatorController, VFXOperatorNumericUniformNew>();
                 edit.controller = controller as VFXNumericUniformOperatorController;
                 return edit;
             }
-            if( controller is VFXBranchOperatorController)
+            if (controller is VFXBranchOperatorController)
             {
-                var edit = new VFXUniformOperatorEdit<VFXBranchOperatorController,BranchNew>();
+                var edit = new VFXUniformOperatorEdit<VFXBranchOperatorController, BranchNew>();
                 edit.controller = controller as VFXBranchOperatorController;
                 return edit;
             }
-            if( controller is VFXUnifiedOperatorController)
+            if (controller is VFXUnifiedOperatorController)
             {
                 var edit = new VFXUnifiedOperatorEdit();
                 edit.controller = controller as VFXUnifiedOperatorController;
@@ -156,7 +156,7 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer == null)
                 {
                     m_EditContainer = GetControllerEditor();
-                    if(m_EditContainer != null)
+                    if (m_EditContainer != null)
                         m_EditContainer.name = "edit-container";
                 }
             }

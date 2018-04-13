@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
 {
     interface IModifiable
     {
-        Action<ScriptableObject> onModified {get;set;}
+        Action<ScriptableObject> onModified {get; set; }
     }
 
     [Serializable]
@@ -85,11 +85,11 @@ namespace UnityEditor.VFX
         }
 
         public Action<ScriptableObject> onModified;
-        Action<ScriptableObject> IModifiable.onModified{get{return onModified;}set{onModified = value;}}
+        Action<ScriptableObject> IModifiable.onModified {get {return onModified; } set {onModified = value; }}
 
         void OnValidate()
         {
-            if( onModified != null)
+            if (onModified != null)
                 onModified(this);
         }
 
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX
 
         protected virtual void Invalidate(VFXModel model, InvalidationCause cause)
         {
-            if(model.onModified != null)
+            if (model.onModified != null)
             {
                 model.onModified(this);
             }

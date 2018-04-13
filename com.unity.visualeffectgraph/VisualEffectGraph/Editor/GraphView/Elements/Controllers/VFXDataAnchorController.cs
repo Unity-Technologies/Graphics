@@ -47,18 +47,18 @@ namespace UnityEditor.VFX.UI
             m_Hidden = hidden;
             m_Expanded = expandedSelf;
 
-            if( model != null)
+            if (model != null)
             {
-            portType = model.property.type;
+                portType = model.property.type;
 
-            if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
-            {
-                m_MasterSlot = model.GetMasterSlot();
+                if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
+                {
+                    m_MasterSlot = model.GetMasterSlot();
 
-                viewController.RegisterNotification(m_MasterSlot, MasterSlotChanged);
+                    viewController.RegisterNotification(m_MasterSlot, MasterSlotChanged);
+                }
+                ModelChanged(model);
             }
-            ModelChanged(model);
-        }
         }
 
         void MasterSlotChanged()
@@ -100,29 +100,27 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool CanLink(VFXDataAnchorController controller)
         {
-            if( controller.model != null )
+            if (controller.model != null)
             {
-                if( model.CanLink(controller.model) && controller.model.CanLink(model) )
+                if (model.CanLink(controller.model) && controller.model.CanLink(model))
                 {
                     return true;
                 }
-                return sourceNode.CouldLink(this,controller);
+                return sourceNode.CouldLink(this, controller);
             }
 
             return controller.CanLink(this);
         }
 
-
         public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
         {
-            
             var slotOutput = output != null ? output.model : null;
             var slotInput = model;
-            sourceNode.WillCreateLink(ref slotInput,ref slotOutput);
+            sourceNode.WillCreateLink(ref slotInput, ref slotOutput);
 
-            if( slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
+            if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
-                return new VFXParameter.NodeLinkedSlot(){inputSlot = slotInput,outputSlot = slotOutput};
+                return new VFXParameter.NodeLinkedSlot() {inputSlot = slotInput, outputSlot = slotOutput};
             }
 
             return new VFXParameter.NodeLinkedSlot();
@@ -375,7 +373,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXUpcommingDataAnchorController : VFXDataAnchorController
     {
-        public VFXUpcommingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null,sourceNode,hidden)
+        public VFXUpcommingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null, sourceNode, hidden)
         {
         }
 
@@ -383,6 +381,7 @@ namespace UnityEditor.VFX.UI
         {
             base.OnDisable();
         }
+
         public override Direction direction
         {
             get
@@ -394,7 +393,7 @@ namespace UnityEditor.VFX.UI
 
         public override bool editable
         {
-            get{return true;}
+            get {return true; }
         }
         public override bool expandedSelf
         {
@@ -405,25 +404,25 @@ namespace UnityEditor.VFX.UI
         }
         public override bool expandable
         {
-            get{return false;}
+            get {return false; }
         }
         public override bool HasLink()
         {
             return false;
         }
+
         public override void UpdateInfos()
         {
-
         }
+
         public override object value
         {
             get
             {
-                 return null;
+                return null;
             }
             set
             {
-
             }
         }
         public override int depth
@@ -444,7 +443,7 @@ namespace UnityEditor.VFX.UI
         {
             var op = (sourceNode as VFXCascadedOperatorController);
 
-            if( op == null)
+            if (op == null)
                 return false;
 
             return op.model.GetBestAffinityType(controller.model.property.type) != null;
@@ -452,7 +451,7 @@ namespace UnityEditor.VFX.UI
 
         public new VFXCascadedOperatorController sourceNode
         {
-            get{ return base.sourceNode as VFXCascadedOperatorController;}
+            get { return base.sourceNode as VFXCascadedOperatorController; }
         }
 
         public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
@@ -463,10 +462,10 @@ namespace UnityEditor.VFX.UI
 
             op.AddOperand(op.GetBestAffinityType(output.model.property.type));
 
-            var slotInput = op.GetInputSlot(op.GetNbInputSlots() -1);
-            if( slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
+            var slotInput = op.GetInputSlot(op.GetNbInputSlots() - 1);
+            if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
             {
-                return new VFXParameter.NodeLinkedSlot(){inputSlot = slotInput,outputSlot = slotOutput};
+                return new VFXParameter.NodeLinkedSlot() {inputSlot = slotInput, outputSlot = slotOutput};
             }
 
             return new VFXParameter.NodeLinkedSlot();

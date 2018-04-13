@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
             VFXContextType contextType = controller.context.contextType;
             foreach (VFXContextType value in System.Enum.GetValues(typeof(VFXContextType)))
             {
-                if( value != contextType)
+                if (value != contextType)
                     RemoveFromClassList(ContextEnumToClassName(value.ToString()));
             }
             AddToClassList(ContextEnumToClassName(contextType.ToString()));
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
             }
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                if( inputType != value)
+                if (inputType != value)
                     RemoveFromClassList("inputType" + ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("inputType" + ContextEnumToClassName(inputType.ToString()));
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.UI
             var outputType = controller.context.outputType;
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                if( value != outputType)
+                if (value != outputType)
                     RemoveFromClassList("outputType" + ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("outputType" + ContextEnumToClassName(outputType.ToString()));
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
             var type = controller.context.ownedType;
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                if( value != type)
+                if (value != type)
                     RemoveFromClassList("type" + ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
             var space = controller.context.space;
             foreach (CoordinateSpace val in System.Enum.GetValues(typeof(CoordinateSpace)))
             {
-                if( val != space)
+                if (val != space)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
             }
             m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
@@ -458,15 +458,15 @@ namespace UnityEditor.VFX.UI
                 if (child != null)
                 {
                     blocksUIs.Add(child.controller, child);
-                    
-                    if( !somethingChanged && blockControllerCount > cptBlock && child.controller != blockControllers[cptBlock])
+
+                    if (!somethingChanged && blockControllerCount > cptBlock && child.controller != blockControllers[cptBlock])
                     {
                         somethingChanged = true;
                     }
                     cptBlock++;
                 }
             }
-            if(somethingChanged || cptBlock != blockControllerCount)
+            if (somethingChanged || cptBlock != blockControllerCount)
             {
                 foreach (var kv in blocksUIs)
                 {

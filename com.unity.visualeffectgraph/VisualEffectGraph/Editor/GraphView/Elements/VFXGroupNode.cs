@@ -43,7 +43,6 @@ namespace UnityEditor.VFX.UI
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            
         }
 
         public void OnMoved()

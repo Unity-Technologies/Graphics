@@ -133,6 +133,7 @@ namespace UnityEditor.VFX.UI
         {
             RemoveOperand(model.GetSlotIndex(myInput.model));
         }
+
         public void RemoveOperand(int index)
         {
             if (CanRemove())

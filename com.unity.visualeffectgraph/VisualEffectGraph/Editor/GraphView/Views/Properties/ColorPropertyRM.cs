@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.UI
         {
             OnValueChanged(true);
         }
-        
+
         void OnValueChanged()
         {
             OnValueChanged(false);
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.UI
 
         void OnValueChanged(bool fromField)
         {
-            if( fromField)
+            if (fromField)
             {
                 Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
                 if (newValue != m_Value)

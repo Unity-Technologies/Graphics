@@ -6,7 +6,6 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-
     class BranchNewTypeProvider : IVariantProvider
     {
         public Dictionary<string, object[]> variants
@@ -51,6 +50,7 @@ namespace UnityEditor.VFX.Operator
         {
             return m_Type;
         }
+
         public void SetOperandType(Type type)
         {
             if (!validTypes.Contains(type))
