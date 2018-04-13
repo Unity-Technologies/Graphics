@@ -462,6 +462,17 @@ namespace UnityEngine.Experimental.Rendering
             return mesh;
         }
 
+        public static void DisplayUnsupportedAPIMessage()
+        {
+            Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
+
+#if UNITY_EDITOR
+            foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                sv.ShowNotification(new GUIContent("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur"));
+#endif
+
+        }
+
         // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
         public static  bool AreAnimatedMaterialsEnabled(Camera camera)
         {
