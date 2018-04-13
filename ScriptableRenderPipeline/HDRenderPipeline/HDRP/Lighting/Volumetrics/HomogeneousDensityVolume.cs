@@ -4,7 +4,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Homogeneous Density Volume", 1100)]
     public class HomogeneousDensityVolume : MonoBehaviour
     {
-        public VolumeParameters volumeParameters = new VolumeParameters();
+        public DensityVolumeParameters parameters = new DensityVolumeParameters();
 
         private void Awake()
         {
@@ -24,14 +24,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void OnValidate()
         {
-            volumeParameters.Constrain();
+            parameters.Constrain();
         }
 
         void OnDrawGizmos()
         {
-            if (volumeParameters.IsLocalVolume())
+            if (parameters.IsLocalVolume())
             {
-                Gizmos.color  = volumeParameters.albedo;
+                Gizmos.color  = parameters.albedo;
                 Gizmos.matrix = transform.localToWorldMatrix;
                 Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
             }
@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (HomogeneousDensityVolume volume in volumes)
             {
-                if (volume.enabled && !volume.volumeParameters.IsLocalVolume())
+                if (volume.enabled && !volume.parameters.IsLocalVolume())
                 {
                     globalVolume = volume;
                     break;

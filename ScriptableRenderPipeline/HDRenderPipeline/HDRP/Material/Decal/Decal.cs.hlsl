@@ -40,6 +40,9 @@ struct DecalData
 {
     float4x4 worldToDecal;
     float4x4 normalToWorld;
+	float4 diffuseScaleBias;
+	float4 normalScaleBias;
+	float4 maskScaleBias;
 };
 
 //
