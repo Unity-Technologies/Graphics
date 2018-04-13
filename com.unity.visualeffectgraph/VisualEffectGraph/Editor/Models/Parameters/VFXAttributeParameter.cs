@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllExpectLocalOnly;
+            return VFXAttribute.AllExceptLocalOnly;
         }
     }
 
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllExpectLocalOnly.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllExceptLocalOnly.Concat(VFXAttribute.AllVariadic).Cast<object>().ToArray() }
                 };
             }
         }
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
     class VFXAttributeParameter : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
-        public string attribute = VFXAttribute.All.First();
+        public string attribute = VFXAttribute.All.Concat(VFXAttribute.AllVariadic).First();
 
         [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
         public VFXAttributeLocation location = VFXAttributeLocation.Current;
@@ -95,8 +95,23 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var attribute = VFXAttribute.Find(this.attribute);
-            var expression = new VFXAttributeExpression(attribute, location);
-            return new VFXExpression[] { expression };
+            if (attribute.variadic == VFXVariadic.True)
+            {
+                var attributeX = VFXAttribute.Find(attribute.name + "X");
+                var attributeY = VFXAttribute.Find(attribute.name + "Y");
+                var attributeZ = VFXAttribute.Find(attribute.name + "Z");
+
+                var expressionX = new VFXAttributeExpression(attributeX, location);
+                var expressionY = new VFXAttributeExpression(attributeY, location);
+                var expressionZ = new VFXAttributeExpression(attributeZ, location);
+
+                return new VFXExpression[] { new VFXExpressionCombine(expressionX, expressionY, expressionZ) };
+            }
+            else
+            {
+                var expression = new VFXAttributeExpression(attribute, location);
+                return new VFXExpression[] { expression };
+            }
         }
     }
 }

@@ -55,9 +55,17 @@ namespace UnityEditor.VFX
         public static readonly string[] AllLocalOnly = AllAttributeLocalOnly.Select(e => e.name).ToArray();
         public static readonly string[] AllWriteOnly = AllAttributeWriteOnly.Select(e => e.name).ToArray();
 
-        public static readonly string[] AllExpectLocalOnly = All.Except(AllLocalOnly).ToArray();
+        public static readonly string[] AllExceptLocalOnly = All.Except(AllLocalOnly).ToArray();
         public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
         public static readonly string[] AllReadWritable = All.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
+
+        public static readonly VFXAttribute[] AllVariadicAttribute = new VFXAttribute[]
+        {
+            new VFXAttribute("size", VFXValue.Constant(new Vector3(kDefaultSize, kDefaultSize, kDefaultSize)), VFXVariadic.True),
+            new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True)
+        };
+
+        public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
@@ -74,31 +82,35 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXAttribute(string name, VFXValueType type)
+        public VFXAttribute(string name, VFXValueType type, VFXVariadic variadic = VFXVariadic.False)
         {
             this.name = name;
             this.value = GetValueFromType(type);
+            this.variadic = variadic;
         }
 
-        public VFXAttribute(string name, VFXValue value)
+        public VFXAttribute(string name, VFXValue value, VFXVariadic variadic = VFXVariadic.False)
         {
             this.name = name;
             this.value = value;
+            this.variadic = variadic;
         }
 
         public static VFXAttribute Find(string attributeName)
         {
-            if (!AllAttribute.Any(e => e.name == attributeName))
-            {
-                throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
-            }
+            if (AllAttribute.Any(e => e.name == attributeName))
+                return AllAttribute.First(e => e.name == attributeName);
 
-            var attribute = AllAttribute.First(e => e.name == attributeName);
-            return attribute;
+            if (AllVariadicAttribute.Any(e => e.name == attributeName))
+                return AllVariadicAttribute.First(e => e.name == attributeName);
+
+            throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));          
         }
 
         public string name;
         public VFXValue value;
+        public VFXVariadic variadic;
+
         public VFXValueType type
         {
             get
@@ -125,6 +137,12 @@ namespace UnityEditor.VFX
         Current = 0,
         Source = 1,
         Initial = 2
+    }
+
+    enum VFXVariadic
+    {
+        False = 0,
+        True = 1
     }
 
     sealed class VFXAttributeExpression : VFXExpression
