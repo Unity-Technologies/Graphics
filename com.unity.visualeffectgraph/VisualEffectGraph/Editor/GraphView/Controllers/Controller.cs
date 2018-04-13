@@ -9,8 +9,13 @@ namespace UnityEditor.VFX.UI
 {
     public abstract class Controller
     {
+        public bool m_DisableCalled = false;
         public virtual void OnDisable()
         {
+            if (m_DisableCalled)
+                Debug.LogError(GetType().Name + ".Disable called twice");
+
+            m_DisableCalled = true;
             foreach (var element in allChildren)
             {
                 element.OnDisable();
@@ -70,6 +75,7 @@ namespace UnityEditor.VFX.UI
 
         public abstract void ApplyChanges();
 
+
         public virtual  IEnumerable<Controller> allChildren
         {
             get { return Enumerable.Empty<Controller>(); }
@@ -82,41 +88,13 @@ namespace UnityEditor.VFX.UI
     {
         T m_Model;
 
-        IDataWatchHandle m_Handle;
-
 
         public Controller(T model)
         {
             m_Model = model;
-
-            m_Handle = DataWatchService.sharedInstance.AddWatch(m_Model, OnModelChanged);
-        }
-
-        public override void OnDisable()
-        {
-            if( m_Handle != null)
-            {
-                try
-                {
-                    DataWatchService.sharedInstance.RemoveWatch(m_Handle);
-                    m_Handle = null;
-                }
-                catch (ArgumentException e)
-                {
-                    Debug.LogError("handle on Controller" + GetType().Name + " was probably removed twice");
-                }
-            }
-            base.OnDisable();
-        }
-
-        void OnModelChanged(UnityEngine.Object obj)
-        {
-            if (m_Handle != null)
-                ModelChanged(obj);
         }
 
         protected abstract void ModelChanged(UnityEngine.Object obj);
-
 
         public override void ApplyChanges()
         {
@@ -133,8 +111,29 @@ namespace UnityEditor.VFX.UI
 
     abstract class VFXController<T> : Controller<T> where T : VFXModel
     {
-        public VFXController(T model) : base(model)
+        VFXViewController m_ViewController;
+
+
+        bool m_Registered = false;
+        public VFXController(VFXViewController viewController, T model) : base(model)
         {
+            m_ViewController = viewController;
+            m_ViewController.RegisterNotification(model, OnModelChanged);
+            m_Registered = true;
+        }
+
+        public VFXViewController viewController {get {return m_ViewController; }}
+
+        public override void OnDisable()
+        {
+            m_ViewController.UnRegisterNotification(model, OnModelChanged);
+            m_Registered = false;
+            base.OnDisable();
+        }
+
+        void OnModelChanged()
+        {
+            ModelChanged(model);
         }
 
         public virtual string name

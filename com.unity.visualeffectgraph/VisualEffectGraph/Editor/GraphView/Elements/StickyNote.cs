@@ -425,7 +425,7 @@ namespace UnityEditor.VFX.UI
                 {
                     evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
                 }*/
-                if( theme == Theme.Black)
+                if (theme == Theme.Black)
                     evt.menu.AppendAction("Light Theme", OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, Theme.Classic);
                 else
                     evt.menu.AppendAction("Dark Theme", OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, Theme.Black);

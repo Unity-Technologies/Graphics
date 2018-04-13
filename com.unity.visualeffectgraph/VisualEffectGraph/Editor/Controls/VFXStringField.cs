@@ -44,8 +44,6 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
-
-
         bool m_Indeterminate;
 
         public bool indeterminate
@@ -68,7 +66,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected override void ValueToGUI(bool force)
         {
-            if( indeterminate)
+            if (indeterminate)
             {
                 m_TextField.value = "_";
                 m_TextField.SetEnabled(false);

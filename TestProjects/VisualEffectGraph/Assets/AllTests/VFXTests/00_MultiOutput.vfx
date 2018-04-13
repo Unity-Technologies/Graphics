@@ -2127,12 +2127,13 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: -1760.0001
+    y: -747.00006
+    width: 2785
+    height: 1839
 --- !u!114 &114900620605141148
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3153,16 +3154,16 @@ VisualEffectAsset:
       - nameId: sourceAttributeBuffer
         index: 1
       values:
-      - nameId: Lifetime_b
+      - nameId: Lifetime_a
         index: 28
-      - nameId: Velocity_c
+      - nameId: Velocity_b
         index: 25
       params:
       - nameId: bounds_center
         index: 24
       - nameId: bounds_size
         index: 22
-      processor: {fileID: 7200000, guid: 6f2644987256b90449a14ad59fb62956, type: 3}
+      processor: {fileID: 7200000, guid: e81dce09773d3ac4c8daa76b11a8b641, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -3172,14 +3173,14 @@ VisualEffectAsset:
       - nameId: indirectBuffer
         index: 4
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 8
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 1
-      - nameId: deltaTime_c
+      - nameId: deltaTime_b
         index: 32
       params: []
-      processor: {fileID: 7200000, guid: 0612799d0e09ec643bd5787945213dd7, type: 3}
+      processor: {fileID: 7200000, guid: c580665ed29186949bb0b745b2139f13, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3190,7 +3191,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 32efff9c6bf53144e907acb0dfd18f65, type: 3}
+      processor: {fileID: 4800000, guid: 3b69d3af5f90d114a94d74ece262360b, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -3198,7 +3199,7 @@ VisualEffectAsset:
       - nameId: indirectBuffer
         index: 4
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 0
       - nameId: mainTexture
         index: 30
@@ -3207,28 +3208,28 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 4fead3dc2e7c17d498ddf9ddfa3c8ad7, type: 3}
+      processor: {fileID: 4800000, guid: 48f06f54d1c136d45aab1b611bb81702, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: Color_b
+      - nameId: Color_a
         index: 21
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 3
       - nameId: mainTexture
         index: 23
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 29fac1bc1dbdb2e49a6bdb17012c0a97, type: 3}
+      processor: {fileID: 4800000, guid: 62aad2a39eb6c194cba7ef448b59e3df, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 4
       - nameId: mainTexture
         index: 20
@@ -3239,7 +3240,7 @@ VisualEffectAsset:
         index: 27
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: e45ec4f6a55f5a040aa6a340a2e1b097, type: 3}
+      processor: {fileID: 4800000, guid: a27a73b4f1b211b4fac94e0ce9094a06, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

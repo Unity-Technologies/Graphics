@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Step : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         override public string name { get { return "Step"; } }

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(category = "Sampling")]
     class SampleCurve : VFXOperator
     {
         override public string name { get { return "Sample Curve"; } }
@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("The curve to sample from.")]
-            public AnimationCurve curve = new AnimationCurve();
+            public AnimationCurve curve = VFXResources.defaultResources.animationCurve;
             [Tooltip("The time along the curve to take a sample from.")]
             public float time = 0.0f;
         }

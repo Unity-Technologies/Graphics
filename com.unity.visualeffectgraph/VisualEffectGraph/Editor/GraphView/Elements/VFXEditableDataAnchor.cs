@@ -161,7 +161,6 @@ namespace UnityEditor.VFX.UI
             {
                 Remove(m_PropertyRM);
             }
-
             m_PropertyRM = PropertyRM.Create(controller, 100);
             if (m_PropertyRM != null)
             {
@@ -194,7 +193,7 @@ namespace UnityEditor.VFX.UI
                 controller.UpdateInfos();
                 bool editable = controller.editable;
                 m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
-                m_PropertyRM.indeterminate = ! editable && controller.indeterminate;
+                m_PropertyRM.indeterminate = !editable && controller.indeterminate;
                 m_PropertyRM.Update();
             }
         }

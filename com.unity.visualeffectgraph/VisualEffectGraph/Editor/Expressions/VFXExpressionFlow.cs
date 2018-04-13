@@ -107,6 +107,6 @@ namespace UnityEditor.VFX
             return base.Reduce(reducedParents);
         }
 
-        protected override int[] additionnalOperands { get { return new int[] { TypeToSize(parents[1].valueType) }; } }
+        protected override int[] additionnalOperands { get { return new int[] { (int)parents[1].valueType }; } }
     }
 }

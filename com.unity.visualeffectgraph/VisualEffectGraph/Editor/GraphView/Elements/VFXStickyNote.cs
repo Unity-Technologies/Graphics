@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
 
                 m_UI.stickyNoteInfos[m_Index].contents = value;
 
-                m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+                Modified();
             }
         }
         override protected VFXUI.StickyNoteInfo[] infos {get {return m_UI.stickyNoteInfos; }}
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.UI
             set
             {
                 m_UI.stickyNoteInfos[m_Index].theme = value;
-                m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+                Modified();
             }
         }
         public string textSize
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
             set
             {
                 m_UI.stickyNoteInfos[m_Index].textSize = value;
-                m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
+                Modified();
             }
         }
     }

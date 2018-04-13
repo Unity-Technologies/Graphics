@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VFXExpressionCombine : VFXExpressionFloatOperation
+    class VFXExpressionCombine : VFXExpressionNumericOperation
     {
         public VFXExpressionCombine() : this(VFXValue<float>.Default, VFXValue<float>.Default)
         {}

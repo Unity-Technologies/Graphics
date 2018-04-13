@@ -261,30 +261,23 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeOperatorMaskWithState()
         {
-            var expectedValue = new[] { Operator.ComponentMask.Component.X, Operator.ComponentMask.Component.Y, Operator.ComponentMask.Component.X };
+            var expectedValue = "xyxy";
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
                 {
-                    var mask = ScriptableObject.CreateInstance<Operator.ComponentMask>();
-                    mask.SetSettingValue("x", expectedValue[0]);
-                    mask.SetSettingValue("y", expectedValue[1]);
-                    mask.SetSettingValue("z", expectedValue[2]);
-
+                    var mask = ScriptableObject.CreateInstance<Operator.Swizzle>();
+                    mask.SetSettingValue("mask", expectedValue);
                     asset.GetOrCreateGraph().AddChild(mask);
-                    Assert.AreEqual(expectedValue[0], mask.x);
-                    Assert.AreEqual(expectedValue[1], mask.y);
-                    Assert.AreEqual(expectedValue[2], mask.z);
+                    Assert.AreEqual(expectedValue, mask.mask);
                 };
 
             Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
                 {
                     var graph = asset.GetOrCreateGraph();
                     Assert.AreEqual(1, graph.GetNbChildren());
-                    Assert.IsInstanceOf(typeof(Operator.ComponentMask), graph[0]);
-                    var mask = graph[0] as Operator.ComponentMask;
+                    Assert.IsInstanceOf(typeof(Operator.Swizzle), graph[0]);
+                    var mask = graph[0] as Operator.Swizzle;
 
-                    Assert.AreEqual(expectedValue[0], mask.x);
-                    Assert.AreEqual(expectedValue[1], mask.y);
-                    Assert.AreEqual(expectedValue[2], mask.z);
+                    Assert.AreEqual(expectedValue, mask.mask);
                 };
 
             InnerSaveAndReloadTest("Mask", write, read);
