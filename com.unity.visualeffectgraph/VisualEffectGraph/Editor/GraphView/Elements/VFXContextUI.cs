@@ -217,7 +217,6 @@ namespace UnityEditor.VFX.UI
             m_DragDisplay.AddToClassList("dragdisplay");
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
-            //this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
         bool m_CanHaveBlocks = false;
