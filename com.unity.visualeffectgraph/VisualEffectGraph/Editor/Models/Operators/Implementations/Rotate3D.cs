@@ -4,7 +4,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Vector")]
+    [VFXInfo(category = "Math/Vector")]
     class Rotate3D : VFXOperator
     {
         public class InputProperties

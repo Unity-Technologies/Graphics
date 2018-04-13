@@ -6,76 +6,68 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXExpressionUIntOperation : VFXExpression
+    abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUnaryNumericOperation
     {
-        protected VFXExpressionUIntOperation(VFXExpression[] parents)
-            : base(Flags.None, parents)
-        {
-        }
-
-        sealed public override VFXExpressionOperation operation { get { return m_Operation; } }
-        sealed protected override int[] additionnalOperands { get { return new int[1] { 1 }; } } // TODO only handle size of 1 atm
-
-        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            var newExpression = (VFXExpressionUIntOperation)CreateNewInstance();
-            newExpression.Initialize(Flags.None, reducedParents);
-            newExpression.m_Operation = m_Operation;
-            return newExpression;
-        }
-
-        protected VFXExpressionOperation m_Operation;
-    }
-
-    abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUIntOperation
-    {
-        protected VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOperation operation) : base(new VFXExpression[1] { parent })
+        public VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOperation operation) : base(parent, operation)
         {
             if (!IsUIntValueType(parent.valueType))
             {
                 throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
             }
-
-            m_Operation = operation;
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
+        sealed protected override int ProcessUnaryOperation(int input)
         {
-            return VFXValue.Constant(ProcessUnaryOperation(reducedParents[0].Get<uint>()));
+            throw new NotImplementedException();
         }
 
-        sealed public override string GetCodeString(string[] parents)
+        sealed protected override float ProcessUnaryOperation(float input)
         {
-            return GetUnaryOperationCode(parents[0]);
+            throw new NotImplementedException();
         }
 
-        abstract protected uint ProcessUnaryOperation(uint input);
+        sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
+        {
+            if (!IsUIntValueType(type))
+                throw new InvalidOperationException("VFXExpressionUnaryUIntOperation : Unexpected type");
+
+            return GetUnaryOperationCode(x);
+        }
+
         abstract protected string GetUnaryOperationCode(string x);
     }
 
-    abstract class VFXExpressionBinaryUIntOperation : VFXExpressionUIntOperation
+    abstract class VFXExpressionBinaryUIntOperation : VFXExpressionBinaryNumericOperation
     {
-        protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation) : base(new VFXExpression[2] { parentLeft, parentRight })
+        protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
+            : base(parentLeft, parentRight, operation)
         {
             if (!IsUIntValueType(parentLeft.valueType) || !IsUIntValueType(parentRight.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionBinaryUIntOperation (not uint type)");
+                throw new ArgumentException("Incorrect VFXExpressionBinaryUIntOperation");
+            }
+        }
+
+        sealed protected override int ProcessBinaryOperation(int x, int y)
+        {
+            throw new NotImplementedException();
+        }
+
+        sealed protected override float ProcessBinaryOperation(float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        sealed protected override string GetBinaryOperationCode(string x, string y, VFXValueType type)
+        {
+            if (!IsUIntValueType(type))
+            {
+                throw new InvalidOperationException("Invalid VFXExpressionBinaryUIntOperation");
             }
 
-            m_Operation = operation;
+            return GetBinaryOperationCode(x, y);
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] reducedParents)
-        {
-            return VFXValue.Constant(ProcessBinaryOperation(reducedParents[0].Get<uint>(), reducedParents[1].Get<uint>()));
-        }
-
-        sealed public override string GetCodeString(string[] parents)
-        {
-            return GetBinaryOperationCode(parents[0], parents[1]);
-        }
-
-        protected abstract uint ProcessBinaryOperation(uint left, uint right);
-        protected abstract string GetBinaryOperationCode(string a, string b);
+        protected abstract string GetBinaryOperationCode(string x, string y);
     }
 }

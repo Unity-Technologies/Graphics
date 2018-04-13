@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
-    class VFXExpressionExtractComponent : VFXExpressionFloatOperation
+    class VFXExpressionExtractComponent : VFXExpressionNumericOperation
     {
         public VFXExpressionExtractComponent() : this(VFXValue<Vector4>.Default, 0) {}
 
