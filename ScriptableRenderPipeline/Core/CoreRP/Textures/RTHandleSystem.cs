@@ -136,7 +136,8 @@ namespace UnityEngine.Experimental.Rendering
                     continue;
 
                 var rt = rth.m_RTs[i];
-                var scaledSize = rth.GetScaledSize(new Vector2Int(m_MaxWidths[i], m_MaxHeights[i]));
+                rth.referenceSize = new Vector2Int(m_MaxWidths[i], m_MaxHeights[i]);
+                var scaledSize = rth.GetScaledSize(rth.referenceSize);
                 scaledSize = Vector2Int.Max(Vector2Int.one, scaledSize);
 
                 var enableMSAA = i == (int)RTCategory.MSAA;
@@ -149,6 +150,9 @@ namespace UnityEngine.Experimental.Rendering
 
                     if (enableMSAA)
                         rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
+
+                    rt.width = scaledSize.x;
+                    rt.height = scaledSize.y;
 
                     rt.name = CoreUtils.GetRenderTargetAutoName(
                         rt.width, 
@@ -206,6 +210,8 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
             {
                 var rth = m_AutoSizedRTsArray[i];
+                rth.referenceSize = maxSize;
+                
                 var rt = rth.m_RTs[(int)category];
 
                 // This can happen if you create a RTH for MSAA. By default we only create the MSAA version of the target.
@@ -214,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     rt.Release();
 
-                    Vector2Int scaledSize = rth.GetScaledSize(maxSize);
+                    var scaledSize = rth.GetScaledSize(maxSize);
 
                     rt.width = Mathf.Max(scaledSize.x, 1);
                     rt.height = Mathf.Max(scaledSize.y, 1);
