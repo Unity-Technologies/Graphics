@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionMin(inputExpression[0], inputExpression[1]) };
+            return new[] { new VFXExpressionMax(inputExpression[0], inputExpression[1]) };
         }
     }
 }
