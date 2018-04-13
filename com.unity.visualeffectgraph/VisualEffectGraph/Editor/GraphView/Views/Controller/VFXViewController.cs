@@ -154,6 +154,7 @@ namespace UnityEditor.VFX.UI
                 foreach(var obj in objs)
                 {
                     List<Action> notifieds;
+                    Profiler.BeginSample("VFXViewController.Notify:"+obj.GetType().Name);
                     if (m_Notified.TryGetValue(obj, out notifieds))
                     {
                         foreach (var notified in notifieds.ToArray())
@@ -162,11 +163,12 @@ namespace UnityEditor.VFX.UI
                             cpt++;
                         }
                     }
+                    Profiler.EndSample();
                 }
                 objs.Clear();
             }
-
-            /*if (cpt > 0)
+            /* 
+            if (cpt > 0)
                 Debug.LogWarningFormat("{0} notification sent this frame", cpt);*/
             Profiler.EndSample();
 
@@ -843,18 +845,26 @@ namespace UnityEditor.VFX.UI
                 }
                 return;
             }
-
+            /*
             VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
             validation.ValidateGraph();
-
+            */
             bool groupNodeChanged = false;
+
+            Profiler.BeginSample("VFXViewController.GraphChanged:SyncControllerFromModel");
             SyncControllerFromModel(ref groupNodeChanged);
+            Profiler.EndSample();
 
+            Profiler.BeginSample("VFXViewController.GraphChanged:NotifyChange(AnyThing)");
             NotifyChange(AnyThing);
+            Profiler.EndSample();
 
-            NotifyChange(Change.groupNode);
-
-
+            //if( groupNodeChanged)
+            {
+                Profiler.BeginSample("VFXViewController.GraphChanged:NotifyChange(Change.groupNode)");
+                NotifyChange(Change.groupNode);
+                Profiler.EndSample();
+            }
         }
 
         protected void UIChanged()

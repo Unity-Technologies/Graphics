@@ -243,6 +243,7 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
+            Modified();
             string sampleName = GetType().Name + "-" + name + "-" + cause;
             Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try
@@ -257,7 +258,6 @@ namespace UnityEditor.VFX
 
         protected virtual void Invalidate(VFXModel model, InvalidationCause cause)
         {
-            Modified();
             OnInvalidate(model, cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);

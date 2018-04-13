@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
             title = controller.title;
 
 
-            var presenterContent = controller.nodes.ToArray();
+            var presenterContent = new HashSet<Controller>(controller.nodes);
             var elementContent = containedElements.OfType<IControlledElement>().Where(t => t.controller is VFXNodeController || t.controller is VFXStickyNoteController).ToArray();
 
             bool elementsChanged = false;
@@ -86,36 +86,38 @@ namespace UnityEditor.VFX.UI
                 elementsChanged = true;
             }
 
-            var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement>();
-
-            var elementToAdd = presenterContent.Select(t=>view.GetGroupNodeElement(t)).Except(elementContent.Cast<GraphElement>()).ToArray();
-
-            bool someNodeNotFound = false;
-            foreach (var element in elementToAdd)
+            if( presenterContent.Count() != elementContent.Count())
             {
-                if (element != null)
+                var elementToAdd = presenterContent.Select(t=>view.GetGroupNodeElement(t)).Except(elementContent.Cast<GraphElement>()).ToArray();
+
+                //bool someNodeNotFound = false;
+                foreach (var element in elementToAdd)
                 {
-                    this.AddElement(element as GraphElement);
-                    elementsChanged = true;
-                }
-                else
-                {
-                    someNodeNotFound = true;
+                    if (element != null)
+                    {
+                        this.AddElement(element as GraphElement);
+                        elementsChanged = true;
+                    }
+                    else
+                    {
+                        //someNodeNotFound = true;
+                    }
                 }
             }
 
             // only update position if the groupnode is empty otherwise the size should be computed from the content.
-            if (presenterContent.Length == 0)
+            if (presenterContent.Count() == 0)
             {
                 SetPosition(controller.position);
             }
             else
             {
-                UpdateGeometryFromContent();
+                if( elementsChanged)
+                    UpdateGeometryFromContent();
             }
 
             m_ModificationFromController = false;
-                inRemoveElement = false;
+            inRemoveElement = false;
         }
 
         bool m_ModificationFromController;
