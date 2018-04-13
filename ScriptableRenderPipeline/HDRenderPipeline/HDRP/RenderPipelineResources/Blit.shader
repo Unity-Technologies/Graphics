@@ -11,6 +11,7 @@
         SamplerState sampler_PointClamp;
         SamplerState sampler_LinearClamp;
         uniform float4 _BlitScaleBias;
+		uniform float4 _BlitScaleBiasRt;
         uniform float _BlitMipLevel;
 
         struct Attributes
@@ -31,6 +32,15 @@
             output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
+
+		Varyings VertQuad(Attributes input)
+		{
+			Varyings output;
+			output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+			output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+			output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+			return output;
+		}
 
         float4 FragNearest(Varyings input) : SV_Target
         {
@@ -69,6 +79,29 @@
                 #pragma fragment FragBilinear
             ENDHLSL
         }
+
+		// 2: Nearest quad
+		Pass
+		{
+			ZWrite Off ZTest Always Blend Off Cull Off
+
+			HLSLPROGRAM
+				#pragma vertex VertQuad
+				#pragma fragment FragNearest
+			ENDHLSL
+		}
+
+		// 3: Bilinear quad
+		Pass
+		{
+			ZWrite Off ZTest Always Blend Off Cull Off
+
+			HLSLPROGRAM
+				#pragma vertex VertQuad
+				#pragma fragment FragBilinear
+			ENDHLSL
+		}
+
     }
 
     Fallback Off
