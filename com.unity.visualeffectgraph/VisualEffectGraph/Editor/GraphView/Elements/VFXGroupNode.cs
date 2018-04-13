@@ -43,7 +43,6 @@ namespace UnityEditor.VFX.UI
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            
         }
 
         public void OnMoved()
@@ -63,6 +62,7 @@ namespace UnityEditor.VFX.UI
                 SelfChange();
             }
         }
+
         public void SelfChange()
         {
             // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
@@ -86,9 +86,9 @@ namespace UnityEditor.VFX.UI
                 elementsChanged = true;
             }
 
-            if( presenterContent.Count() != elementContent.Count())
+            if (presenterContent.Count() != elementContent.Count())
             {
-                var elementToAdd = presenterContent.Select(t=>view.GetGroupNodeElement(t)).Except(elementContent.Cast<GraphElement>()).ToArray();
+                var elementToAdd = presenterContent.Select(t => view.GetGroupNodeElement(t)).Except(elementContent.Cast<GraphElement>()).ToArray();
 
                 //bool someNodeNotFound = false;
                 foreach (var element in elementToAdd)
@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if( elementsChanged)
+                if (elementsChanged)
                     UpdateGeometryFromContent();
             }
 

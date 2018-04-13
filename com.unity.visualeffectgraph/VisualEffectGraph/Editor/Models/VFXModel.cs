@@ -16,9 +16,10 @@ namespace UnityEditor.VFX
         {
             Modified();
         }
+
         public void Modified()
         {
-            if(onModified != null)
+            if (onModified != null)
                 onModified(this);
         }
     }

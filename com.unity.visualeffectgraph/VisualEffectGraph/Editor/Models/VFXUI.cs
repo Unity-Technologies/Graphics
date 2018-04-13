@@ -10,7 +10,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-
     [Serializable]
     struct VFXNodeID
     {

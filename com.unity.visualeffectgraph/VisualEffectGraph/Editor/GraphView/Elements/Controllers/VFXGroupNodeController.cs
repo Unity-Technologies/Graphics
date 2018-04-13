@@ -33,6 +33,7 @@ namespace UnityEditor.VFX.UI
         {
             ModelChanged(m_UI);
         }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             if (m_Index == -1) return;
@@ -40,17 +41,16 @@ namespace UnityEditor.VFX.UI
             NotifyChange(AnyThing);
         }
 
-
         public override void OnDisable()
         {
-            m_ViewController.UnRegisterNotification(m_UI,OnModelChanged);
+            m_ViewController.UnRegisterNotification(m_UI, OnModelChanged);
             base.OnDisable();
         }
 
         public VFXUIController(VFXViewController viewController, VFXUI ui, int index) : base(ui)
         {
             m_UI = ui;
-            viewController.RegisterNotification(m_UI,OnModelChanged);
+            viewController.RegisterNotification(m_UI, OnModelChanged);
             m_Index = index;
             m_ViewController = viewController;
         }
@@ -163,7 +163,7 @@ namespace UnityEditor.VFX.UI
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Concat(Enumerable.Repeat(nodeID, 1)).Distinct().ToArray();
             else
                 m_UI.groupInfos[m_Index].contents = new VFXNodeID[] { nodeID };
-            
+
             Modified();
         }
 
@@ -191,13 +191,13 @@ namespace UnityEditor.VFX.UI
             if (m_UI.groupInfos[m_Index].contents == null)
                 return;
 
-            
+
             int id = nodeController.id;
-            var model = nodeController.model; 
-            if( ! m_UI.groupInfos[m_Index].contents.Any(t => t.model == model && t.id == id))
+            var model = nodeController.model;
+            if (!m_UI.groupInfos[m_Index].contents.Any(t => t.model == model && t.id == id))
                 return;
 
-                m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
+            m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
             Modified();
         }
 
@@ -209,10 +209,10 @@ namespace UnityEditor.VFX.UI
                 return;
 
 
-            if( ! m_UI.groupInfos[m_Index].contents.Any(t => t.isStickyNote && t.id == controller.index))
+            if (!m_UI.groupInfos[m_Index].contents.Any(t => t.isStickyNote && t.id == controller.index))
                 return;
 
-                m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != controller.index).ToArray();
+            m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != controller.index).ToArray();
             Modified();
         }
 

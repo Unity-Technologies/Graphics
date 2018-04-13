@@ -43,9 +43,9 @@ namespace UnityEditor.VFX.UI
 
         static HashSet<ScriptableObject>[] NewPrioritizedHashSet()
         {
-            HashSet<ScriptableObject>[] result = new HashSet<ScriptableObject>[(int)Priorities.Count];    
+            HashSet<ScriptableObject>[] result = new HashSet<ScriptableObject>[(int)Priorities.Count];
 
-            for(int i = 0 ; i < (int)Priorities.Count ; ++i)
+            for (int i = 0; i < (int)Priorities.Count; ++i)
             {
                 result[i] = new HashSet<ScriptableObject>();
             }
@@ -55,19 +55,19 @@ namespace UnityEditor.VFX.UI
 
         Priorities GetPriority(VFXObject obj)
         {
-            if( obj is IVFXSlotContainer)
+            if (obj is IVFXSlotContainer)
             {
                 return Priorities.Node;
             }
-            if( obj is VFXSlot)
+            if (obj is VFXSlot)
             {
                 return Priorities.Slot;
             }
-            if( obj is VFXUI)
+            if (obj is VFXUI)
             {
                 return Priorities.GroupNode;
             }
-            if( obj is VFXGraph)
+            if (obj is VFXGraph)
             {
                 return Priorities.Graph;
             }
@@ -151,10 +151,10 @@ namespace UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var objs in otherModifiedModels)
             {
-                foreach(var obj in objs)
+                foreach (var obj in objs)
                 {
                     List<Action> notifieds;
-                    Profiler.BeginSample("VFXViewController.Notify:"+obj.GetType().Name);
+                    Profiler.BeginSample("VFXViewController.Notify:" + obj.GetType().Name);
                     if (m_Notified.TryGetValue(obj, out notifieds))
                     {
                         foreach (var notified in notifieds.ToArray())
@@ -167,7 +167,7 @@ namespace UnityEditor.VFX.UI
                 }
                 objs.Clear();
             }
-            /* 
+            /*
             if (cpt > 0)
                 Debug.LogWarningFormat("{0} notification sent this frame", cpt);*/
             Profiler.EndSample();
@@ -845,10 +845,10 @@ namespace UnityEditor.VFX.UI
                 }
                 return;
             }
-            
+
             VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
             validation.ValidateGraph();
-            
+
             bool groupNodeChanged = false;
 
             Profiler.BeginSample("VFXViewController.GraphChanged:SyncControllerFromModel");
@@ -1193,8 +1193,6 @@ namespace UnityEditor.VFX.UI
         {
             bool changed = false;
             var ui = graph.UIInfos;
-            
-
 
 
             if (ui != null)
@@ -1206,13 +1204,13 @@ namespace UnityEditor.VFX.UI
 
                     for (int i = 0; i < ui.groupInfos.Length; ++i)
                     {
-                        for(int j = 0 ; j < ui.groupInfos[i].contents.Length ; ++j)
+                        for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                         {
-                            if( usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
+                            if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
                             {
                                 Debug.Log("Element present in multiple groupnodes");
                                 --j;
-                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t,k)=> k != j).ToArray();
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
                             }
                             else
                             {
