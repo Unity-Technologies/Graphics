@@ -293,17 +293,9 @@ namespace UnityEditor.VFX
 
         private static string GetInputModifier(VFXAttributeMode mode)
         {
-            bool write = (mode & VFXAttributeMode.Write) != 0;
-            bool read = (mode & VFXAttributeMode.Read) != 0;
-            if (read && write)
-            {
+            if ((mode & VFXAttributeMode.Write) != 0)
                 return "inout ";
-            }
 
-            if (write)
-            {
-                return "out ";
-            }
             return string.Empty;
         }
 
