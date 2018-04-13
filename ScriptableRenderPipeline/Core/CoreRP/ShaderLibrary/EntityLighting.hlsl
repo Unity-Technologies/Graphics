@@ -126,7 +126,7 @@ real4 PackEmissiveRGBM(real3 rgb)
 
 real3 UnpackLightmapRGBM(real4 rgbmInput, real4 decodeInstructions)
 {
-    return rgbmInput.rgb * pow(rgbmInput.a, decodeInstructions.y) * decodeInstructions.x;
+    return rgbmInput.rgb * PositivePow(rgbmInput.a, decodeInstructions.y) * decodeInstructions.x;
 }
 
 real3 UnpackLightmapDoubleLDR(real4 encodedColor, real4 decodeInstructions)
@@ -149,7 +149,7 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
     real alpha = max(decodeInstructions.w * (encodedIrradiance.a - 1.0) + 1.0, 0.0);
 
     // If Linear mode is not supported we can skip exponent part
-    return (decodeInstructions.x * pow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
+    return (decodeInstructions.x * PositivePow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
 }
 
 real3 SampleSingleLightmap(TEXTURE2D_ARGS(lightmapTex, lightmapSampler), float2 uv, float4 transform, bool encodedLightmap, real4 decodeInstructions)
