@@ -63,9 +63,8 @@ Shader "Hidden/VFX/GradientBorder"
 
                 float margingScale = 2 + (_Border/_Radius /_PixelScale);
 
-                o.height = _Size;
-
                 o.pos = float4(v.vertex.xy * size + v.uv* margingScale * v.vertex.xy* _Radius, 0, 0);
+                o.height = (v.vertex.y + 1)* 0.5;
                 o.vertex = UnityObjectToClipPos(o.pos);
                 o.uv = v.uv*margingScale;
                 float3 eyePos = UnityObjectToViewPos(o.pos );
@@ -92,9 +91,9 @@ Shader "Hidden/VFX/GradientBorder"
                 float pixelBorderSize = _Border*0.5 * pixelScale; // half border expressed on transformed pixel
                 borderDist = pixelBorderSize * (1 - borderDist) + 0.5; // signed distance from edge of line in transformed pixel
 
-                float height = 0.5 + i.pos.y / i.height * 0.5; // height expressed in size.y
+                //float height = 0.5 + i.pos.y / i.height * 0.5; // height expressed in size.y
 
-                fixed4 color = lerp(_ColorStart, _ColorEnd,height);
+                fixed4 color = lerp(_ColorStart, _ColorEnd,i.height);
                 return float4(color.rgb,color.a*saturate(borderDist)*clipA);
             }
             ENDCG
