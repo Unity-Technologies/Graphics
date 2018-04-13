@@ -314,16 +314,15 @@ namespace UnityEditor.VFX.UI
             m_ListContainer.Add(item);
             item.AddManipulator(new LineSelecter(this, item));
 
-            if( reorderable )
+            if (reorderable)
             {
                 AddDragToItem(item);
             }
 
             Select(m_ListContainer.childCount - 1);
-                
+
             m_Remove.SetEnabled(CanRemove());
         }
-
 
         void AddDragToItem(VisualElement item)
         {
@@ -336,28 +335,28 @@ namespace UnityEditor.VFX.UI
 
         void RemoveDragFromItem(VisualElement item)
         {
-            if( item.childCount < 1 || item.ElementAt(0).name != "DraggingHandle")
+            if (item.childCount < 1 || item.ElementAt(0).name != "DraggingHandle")
                 return;
 
             item.RemoveAt(0);
         }
 
-
         public bool toolbar
         {
-            get{return m_Toolbar.parent != null;}
+            get {return m_Toolbar.parent != null; }
 
-            set{
-                if( value )
+            set
+            {
+                if (value)
                 {
-                    if( m_Toolbar.parent == null)
+                    if (m_Toolbar.parent == null)
                     {
                         Add(m_Toolbar);
                     }
                 }
                 else
                 {
-                    if( m_Toolbar.parent != null)
+                    if (m_Toolbar.parent != null)
                     {
                         m_Toolbar.RemoveFromHierarchy();
                     }
@@ -375,18 +374,18 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                if( m_Reorderable != value)
+                if (m_Reorderable != value)
                 {
                     m_Reorderable = value;
-                    
-                    foreach(var item in m_ListContainer.Children())
+
+                    foreach (var item in m_ListContainer.Children())
                     {
-                        if(m_Reorderable)
+                        if (m_Reorderable)
                         {
                             AddDragToItem(item);
                         }
                         else
-                        {  
+                        {
                             RemoveDragFromItem(item);
                         }
                     }

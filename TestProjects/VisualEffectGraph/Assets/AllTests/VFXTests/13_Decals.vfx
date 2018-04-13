@@ -1821,6 +1821,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 0
@@ -1971,6 +1972,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
 --- !u!114 &114311686034390686
@@ -8027,7 +8029,6 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 36288
-    capacity: 4032
     layout:
     - name: velocity
       type: 3
@@ -8059,9 +8060,10 @@ VisualEffectAsset:
         bucket: 32256
         structure: 1
         element: 0
+    capacity: 4032
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -8069,14 +8071,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 4032
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -8149,24 +8155,24 @@ VisualEffectAsset:
       - nameId: sourceAttributeBuffer
         index: 1
       values:
-      - nameId: Velocity_b
+      - nameId: Velocity_a
         index: 83
-      - nameId: ArcSphere_sphere_center_c
+      - nameId: ArcSphere_sphere_center_b
         index: 82
-      - nameId: ArcSphere_sphere_radius_c
+      - nameId: ArcSphere_sphere_radius_b
         index: 81
-      - nameId: ArcSphere_arc_c
+      - nameId: ArcSphere_arc_b
         index: 74
-      - nameId: Min_d
+      - nameId: Min_c
         index: 73
-      - nameId: Max_d
+      - nameId: Max_c
         index: 72
       params:
       - nameId: bounds_center
         index: 79
       - nameId: bounds_size
         index: 78
-      processor: {fileID: 7200000, guid: 0877ef85666c6484aab9ffdfb5a72878, type: 3}
+      processor: {fileID: 7200000, guid: 790391e2cf780da46926dd88f3ccc4b5, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -8174,63 +8180,63 @@ VisualEffectAsset:
       - nameId: deadListOut
         index: 2
       values:
-      - nameId: InvFieldTransform_b
+      - nameId: InvFieldTransform_a
         index: 76
-      - nameId: FieldTransform_b
+      - nameId: FieldTransform_a
         index: 56
-      - nameId: Intensity_b
+      - nameId: Intensity_a
         index: 75
-      - nameId: DragCoefficient_b
+      - nameId: DragCoefficient_a
         index: 92
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 91
-      - nameId: Sphere_center_c
+      - nameId: Sphere_center_b
         index: 90
-      - nameId: Sphere_radius_c
+      - nameId: Sphere_radius_b
         index: 95
-      - nameId: Elasticity_c
+      - nameId: Elasticity_b
         index: 94
-      - nameId: Friction_c
+      - nameId: Friction_b
         index: 93
-      - nameId: LifetimeLoss_c
+      - nameId: LifetimeLoss_b
         index: 86
-      - nameId: Elasticity_d
+      - nameId: Elasticity_c
         index: 85
-      - nameId: Friction_d
+      - nameId: Friction_c
         index: 84
-      - nameId: LifetimeLoss_d
+      - nameId: LifetimeLoss_c
         index: 89
-      - nameId: VectorField_b
+      - nameId: VectorField_a
         index: 77
       params: []
-      processor: {fileID: 7200000, guid: fafe72017be1ff146903132cf5b32b40, type: 3}
+      processor: {fileID: 7200000, guid: a5c967a11c912c144a3f72c4cb94a8b0, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: Alpha_b
+      - nameId: Alpha_a
         index: 87
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 21
-      - nameId: uniform_d
+      - nameId: uniform_c
         index: 24
-      - nameId: uniform_e
+      - nameId: uniform_d
         index: 20
-      - nameId: SizeZ_d
+      - nameId: SizeZ_c
         index: 69
-      - nameId: Pivot_e
+      - nameId: Pivot_d
         index: 70
-      - nameId: Position_f
+      - nameId: Position_e
         index: 71
-      - nameId: uniform_i
+      - nameId: uniform_h
         index: 3
       - nameId: mainTexture
         index: 68
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 275bba78785b5e740b05b3bc9beae20f, type: 3}
+      processor: {fileID: 4800000, guid: 0f8d7e37bec9ba54995993e9ff031c58, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -8245,4 +8251,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

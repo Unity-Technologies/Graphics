@@ -175,15 +175,19 @@ namespace UnityEditor.VFX
             {
                 foreach (var linked in context.outputContexts)
                 {
-                    foreach (var attribute in linked.GetData().GetAttributes())
+                    var data = linked.GetData();
+                    if (data)
                     {
-                        if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !eventAttributeDescs.Any(o => o.name == attribute.attrib.name))
+                        foreach (var attribute in data.GetAttributes())
                         {
-                            eventAttributeDescs.Add(new VFXLayoutElementDesc()
+                            if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !eventAttributeDescs.Any(o => o.name == attribute.attrib.name))
                             {
-                                name = attribute.attrib.name,
-                                type = attribute.attrib.type
-                            });
+                                eventAttributeDescs.Add(new VFXLayoutElementDesc()
+                                {
+                                    name = attribute.attrib.name,
+                                    type = attribute.attrib.type
+                                });
+                            }
                         }
                     }
                 }
@@ -306,19 +310,33 @@ namespace UnityEditor.VFX
             }
             foreach (var spawnContext in spawners)
             {
-                var buffers = new VFXMapping[]
+                var buffers = new List<VFXMapping>();
+                buffers.Add(new VFXMapping()
                 {
-                    new VFXMapping()
+                    index = outContextSpawnToSpawnInfo[spawnContext].bufferIndex,
+                    name = "spawner_output"
+                });
+
+                for (int indexSlot = 0; indexSlot < 2; ++indexSlot)
+                {
+                    foreach (var input in spawnContext.inputFlowSlot[indexSlot].link)
                     {
-                        index = outContextSpawnToSpawnInfo[spawnContext].bufferIndex,
-                        name = "spawner_output"
+                        var inputContext = input.context as VFXContext;
+                        if (outContextSpawnToSpawnInfo.ContainsKey(inputContext))
+                        {
+                            buffers.Add(new VFXMapping()
+                            {
+                                index = outContextSpawnToSpawnInfo[inputContext].bufferIndex,
+                                name = "spawner_input_" + (indexSlot == 0 ? "OnPlay" : "OnStop")
+                            });
+                        }
                     }
-                };
+                }
 
                 var contextData = contextToCompiledData[spawnContext];
                 outSystemDescs.Add(new VFXSystemDesc()
                 {
-                    buffers = buffers,
+                    buffers = buffers.ToArray(),
                     capacity = 0u,
                     flags = VFXSystemFlag.SystemDefault,
                     layer = uint.MaxValue,
@@ -624,6 +642,11 @@ namespace UnityEditor.VFX
                 var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
+                IEnumerable<VFXContext> implicitContexts = Enumerable.Empty<VFXContext>();
+                foreach (var d in compilableData) // Flag compiled contexts
+                    implicitContexts = implicitContexts.Concat(d.InitImplicitContexts());
+                compilableContexts = compilableContexts.Concat(implicitContexts.ToArray());
+
                 foreach (var c in compilableContexts) // Flag compiled contexts
                     c.MarkAsCompiled(true);
 
@@ -649,7 +672,6 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
                 foreach (var context in compilableContexts)
                 {
-                    uint contextId = (uint)context.GetParent().GetIndex(context);
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
                     var contextData = contextToCompiledData[context];
                     contextData.cpuMapper = cpuMapper;

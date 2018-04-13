@@ -51,6 +51,13 @@ namespace UnityEditor.VFX
             Always
         }
 
+        public enum SortMode
+        {
+            Auto,
+            Off,
+            On
+        }
+
         [VFXSetting, SerializeField, Header("Render States")]
         protected BlendMode blendMode = BlendMode.Alpha;
 
@@ -73,13 +80,16 @@ namespace UnityEditor.VFX
         protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected SortMode sort = SortMode.Auto;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool indirectDraw = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool preRefraction = false;
 
-        public bool HasIndirectDraw() { return indirectDraw; }
-
+        public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
+        public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }

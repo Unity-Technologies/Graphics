@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.UI
 
         public static string GetTypeCSSClass(Type type)
         {
-            if( type == null)
+            if (type == null)
             {
                 return "typeUnknown";
             }

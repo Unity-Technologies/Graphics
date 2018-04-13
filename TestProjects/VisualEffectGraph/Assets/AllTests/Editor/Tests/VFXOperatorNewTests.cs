@@ -430,7 +430,7 @@ namespace UnityEditor.VFX.Test
             var resultUInt = context.Compile(moduloUInt.outputSlots[0].GetExpression());
             var resultFloat = context.Compile(moduloFloat.outputSlots[0].GetExpression());
 
-            
+
             Assert.AreEqual(a % b, resultUInt.Get<uint>());
             Assert.AreEqual(Mathf.Repeat(a, b), resultFloat.Get<float>());
         }

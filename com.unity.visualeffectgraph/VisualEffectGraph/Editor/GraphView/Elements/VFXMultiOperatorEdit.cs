@@ -13,7 +13,7 @@ using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXUniformOperatorEdit<T,U> : VisualElement, IControlledElement<T> where U : VFXOperatorDynamicOperand, IVFXOperatorUniform where T : VFXUniformOperatorController<U>
+    class VFXUniformOperatorEdit<T, U> : VisualElement, IControlledElement<T> where U : VFXOperatorDynamicOperand, IVFXOperatorUniform where T : VFXUniformOperatorController<U>
     {
         Label m_TypePopup;
         public VFXUniformOperatorEdit()

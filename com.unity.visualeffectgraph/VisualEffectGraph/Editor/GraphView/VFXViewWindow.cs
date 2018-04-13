@@ -170,10 +170,10 @@ namespace  UnityEditor.VFX.UI
             if (controller != null)
             {
                 controller.NotifyUpdate();
-                if( controller.model != null)
+                if (controller.model != null)
                 {
                     var graph = controller.graph;
-                    if( graph != null)
+                    if (graph != null)
                     {
                         filename = controller.model.name;
                         if (!graph.saved)

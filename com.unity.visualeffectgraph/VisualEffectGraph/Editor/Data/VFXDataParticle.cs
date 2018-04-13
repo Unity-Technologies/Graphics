@@ -134,6 +134,7 @@ namespace UnityEditor.VFX
             {
                 type = ComputeBufferType.Raw,
                 size = GetBufferSize(capacity),
+                stride = 4,
                 capacity = capacity,
                 layout = layout.ToArray()
             };
@@ -257,12 +258,44 @@ namespace UnityEditor.VFX
             return string.Format("attributeBuffer.Store{0}({1},{3}({2}))", GetByteAddressBufferMethodSuffix(attrib), m_layoutAttributeCurrent.GetCodeOffset(attrib, "index"), value, attrib.type == VFXValueType.Boolean ? "uint" : "asuint");
         }
 
+        public override IEnumerable<VFXContext> InitImplicitContexts()
+        {
+            if (!NeedsSort())
+            {
+                m_Contexts = m_Owners;
+                return Enumerable.Empty<VFXContext>();
+            }
+
+            m_Contexts = new List<VFXContext>(m_Owners.Count + 1);
+            int index = 0;
+
+            // First add init and updates
+            for (index = 0; index < m_Owners.Count; ++index)
+            {
+                if ((m_Owners[index].contextType == VFXContextType.kOutput))
+                    break;
+                m_Contexts.Add(m_Owners[index]);
+            }
+
+            // Then the camera sort
+            var cameraSort = VFXContext.CreateImplicitContext<VFXCameraSort>(this);
+            m_Contexts.Add(cameraSort);
+
+            // And finally output
+            for (; index < m_Owners.Count; ++index)
+                m_Contexts.Add(m_Owners[index]);
+
+            return new VFXContext[] { cameraSort };
+        }
+
         public bool NeedsIndirectBuffer()
         {
-            foreach (var output in owners.OfType<VFXAbstractParticleOutput>())
-                if (output.HasIndirectDraw())
-                    return true;
-            return false;
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
+        }
+
+        public bool NeedsSort()
+        {
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting());
         }
 
         public override void FillDescs(
@@ -303,20 +336,20 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemHasKill;
 
                 deadListBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
                 systemBufferMappings.Add(new VFXMapping("deadList", deadListBufferIndex));
 
                 deadListCountIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Raw, size = 1, stride = 4 });
                 systemBufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
             }
 
-            var initContext = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
+            var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
                 systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
-            if (owners.Count() > 0 && owners.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
+            if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
-                var mapper = contextToCompiledData[owners.First()].cpuMapper;
+                var mapper = contextToCompiledData[m_Contexts.First()].cpuMapper;
 
                 var boundsCenterExp = mapper.FromNameAndId("bounds_center", -1);
                 var boundsSizeExp = mapper.FromNameAndId("bounds_size", -1);
@@ -337,15 +370,32 @@ namespace UnityEditor.VFX
             {
                 systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
                 indirectBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
                 systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
             }
+
+            // sort buffers
+            int sortBufferAIndex = -1;
+            int sortBufferBIndex = -1;
+            bool needsSort = NeedsSort();
+            if (needsSort)
+            {
+                sortBufferAIndex = outBufferDescs.Count;
+                sortBufferBIndex = sortBufferAIndex + 1;
+
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 8 });
+                systemBufferMappings.Add(new VFXMapping("sortBufferA", sortBufferAIndex));
+
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 8 });
+                systemBufferMappings.Add(new VFXMapping("sortBufferB", sortBufferBIndex));
+            }
+
 
             var taskDescs = new List<VFXTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
 
-            foreach (var context in owners)
+            foreach (var context in m_Contexts)
             {
                 //if (!contextToCompiledData.ContainsKey(context))
                 //    continue;
@@ -360,7 +410,7 @@ namespace UnityEditor.VFX
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
 
-                if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput)
+                if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput && context.taskType != VFXTaskType.CameraSort)
                     bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn", deadListBufferIndex));
 
                 if (deadListCountIndex != -1 && context.contextType == VFXContextType.kInit)
@@ -373,7 +423,14 @@ namespace UnityEditor.VFX
                     (context.contextType == VFXContextType.kUpdate ||
                      (context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
                 {
-                    bufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
+                    bufferMappings.Add(new VFXMapping(context.taskType == VFXTaskType.CameraSort ? "inputBuffer" : "indirectBuffer", indirectBufferIndex));
+                }
+
+                if (context.taskType == VFXTaskType.CameraSort)
+                {
+                    bufferMappings.Add(new VFXMapping("outputBuffer", sortBufferAIndex));
+                    if (deadListCountIndex != -1)
+                        bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
                 }
 
                 uniformMappings.Clear();

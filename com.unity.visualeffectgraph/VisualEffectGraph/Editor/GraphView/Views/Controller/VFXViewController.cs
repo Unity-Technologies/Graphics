@@ -845,10 +845,10 @@ namespace UnityEditor.VFX.UI
                 }
                 return;
             }
-            /*
+            
             VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
             validation.ValidateGraph();
-            */
+            
             bool groupNodeChanged = false;
 
             Profiler.BeginSample("VFXViewController.GraphChanged:SyncControllerFromModel");

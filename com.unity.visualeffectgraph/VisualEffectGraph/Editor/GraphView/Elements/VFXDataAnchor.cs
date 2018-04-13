@@ -70,11 +70,12 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();
         }
+
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
 
-            if( op != null)
+            if (op != null)
                 evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
         }
 
@@ -315,10 +316,10 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<Type> validTypes = null;
 
-            if( mySlot == null)
+            if (mySlot == null)
             {
                 var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
-                if( op != null)
+                if (op != null)
                 {
                     validTypes = op.validTypes;
                 }
@@ -344,7 +345,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXSlot slot = getSlots(i);
 
-                if( mySlot != null)
+                if (mySlot != null)
                 {
                     if (slot.CanLink(mySlot))
                     {
@@ -352,9 +353,9 @@ namespace UnityEditor.VFX.UI
                         break;
                     }
                 }
-                else if( validTypes != null)
+                else if (validTypes != null)
                 {
-                    if( validTypes.Contains(slot.property.type))
+                    if (validTypes.Contains(slot.property.type))
                     {
                         oneFound = true;
                         break;
@@ -371,7 +372,7 @@ namespace UnityEditor.VFX.UI
             IEnumerable<Type> validTypes = null;
 
             var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
-            if( mySlot == null && op != null)
+            if (mySlot == null && op != null)
             {
                 validTypes = op.validTypes;
             }
@@ -394,8 +395,8 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < count; ++i)
             {
                 var port = ports[i];
-                
-                if( mySlot != null)
+
+                if (mySlot != null)
                 {
                     if (port.model.CanLink(mySlot))
                     {
@@ -403,17 +404,17 @@ namespace UnityEditor.VFX.UI
                         {
                             break;
                         }
-                    }   
+                    }
                 }
-                else if( validTypes != null )
+                else if (validTypes != null)
                 {
                     if (validTypes.Contains(port.model.property.type))
-                    {   
+                    {
                         if (viewController.CreateLink(controller, port))
                         {
                             break;
                         }
-                    } 
+                    }
                 }
             }
 
@@ -438,9 +439,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
-
-        
 
         void CopyValueToParameter(VFXParameter parameter)
         {

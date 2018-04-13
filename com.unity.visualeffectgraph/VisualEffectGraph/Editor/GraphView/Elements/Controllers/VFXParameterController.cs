@@ -242,10 +242,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(viewController,model)
+        public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(viewController, model)
         {
             m_Slot = model.outputSlots[0];
-            viewController.RegisterNotification(m_Slot,OnSlotChanged);
+            viewController.RegisterNotification(m_Slot, OnSlotChanged);
         }
 
         public const int ValueChanged = 1;
@@ -623,9 +623,9 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
-            if(!object.ReferenceEquals(m_Slot,null))
+            if (!object.ReferenceEquals(m_Slot, null))
             {
-                viewController.UnRegisterNotification(m_Slot,OnSlotChanged);
+                viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
             }
 
             base.OnDisable();

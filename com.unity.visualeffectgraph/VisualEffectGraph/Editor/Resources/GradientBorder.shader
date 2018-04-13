@@ -92,7 +92,7 @@ Shader "Hidden/VFX/GradientBorder"
                 float pixelBorderSize = _Border*0.5 * pixelScale; // half border expressed on transformed pixel
                 borderDist = pixelBorderSize * (1 - borderDist) + 0.5; // signed distance from edge of line in transformed pixel
 
-                float height = 0.5 + i.pos.y / i.height * 0.5; // height expressed in size.y 
+                float height = 0.5 + i.pos.y / i.height * 0.5; // height expressed in size.y
 
                 fixed4 color = lerp(_ColorStart, _ColorEnd,height);
                 return float4(color.rgb,color.a*saturate(borderDist)*clipA);

@@ -42,9 +42,9 @@ namespace UnityEditor.VFX.UI
             {
                 UnregisterAnchors();
             }
-            if (!object.ReferenceEquals(m_Data,null))
+            if (!object.ReferenceEquals(m_Data, null))
             {
-                viewController.UnRegisterNotification(m_Data,DataChanged);
+                viewController.UnRegisterNotification(m_Data, DataChanged);
                 m_Data = null;
             }
 
@@ -80,7 +80,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         VFXData m_Data = null;
 
         protected override void ModelChanged(UnityEngine.Object obj)
@@ -88,16 +87,16 @@ namespace UnityEditor.VFX.UI
             SyncControllers();
             // make sure we listen to the right data
 
-            if( !object.ReferenceEquals(m_Data,null) && context.GetData() != m_Data)
+            if (!object.ReferenceEquals(m_Data, null) && context.GetData() != m_Data)
             {
-                viewController.UnRegisterNotification(m_Data,DataChanged);
+                viewController.UnRegisterNotification(m_Data, DataChanged);
                 m_Data = null;
             }
-            if( m_Data == null && context.GetData() != null)
+            if (m_Data == null && context.GetData() != null)
             {
                 m_Data = context.GetData();
 
-                viewController.RegisterNotification(m_Data,DataChanged);
+                viewController.RegisterNotification(m_Data, DataChanged);
             }
 
             viewController.FlowEdgesMightHaveChanged();

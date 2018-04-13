@@ -27,9 +27,8 @@ namespace UnityEditor.VFX.UI
             get { return m_OutputPorts.AsReadOnly(); }
         }
 
-        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(viewController,model)
+        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(viewController, model)
         {
-
             var settings = model.GetSettings(true);
             m_Settings = new VFXSettingController[settings.Count()];
             int cpt = 0;
