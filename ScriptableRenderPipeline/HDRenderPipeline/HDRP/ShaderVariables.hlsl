@@ -40,6 +40,7 @@
 
 CBUFFER_START(UnityPerCamera)
     // Time (t = time since current level load) values from Unity
+    // DEPRECATED: use _CurrentTime, _PreviousTime, _DeltaTime, _SinCurrentTime, _CosCurrentTime
     float4 _Time; // (t/20, t, t*2, t*3)
     float4 _LastTime; // Last frame time (t/20, t, t*2, t*3)
     float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
@@ -47,6 +48,7 @@ CBUFFER_START(UnityPerCamera)
     float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
 
 #if !defined(USING_STEREO_MATRICES)
+    // DEPRECATED: use _CameraPositionWS
     float3 _WorldSpaceCameraPos;
 #endif
 
@@ -54,12 +56,14 @@ CBUFFER_START(UnityPerCamera)
     // y = near plane
     // z = far plane
     // w = 1/far plane
+    // DEPRECATED: use _FrustumParams, UNITY_UV_STARTS_AT_TOP
     float4 _ProjectionParams;
 
     // x = width
     // y = height
     // z = 1 + 1.0/width
     // w = 1 + 1.0/height
+    // DEPRECATED: use _ScreenSize
     float4 _ScreenParams;
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
@@ -72,12 +76,14 @@ CBUFFER_START(UnityPerCamera)
     // y = 1
     // z = x/far
     // w = 1/far
+    // DEPRECATED: use _DepthBufferParams
     float4 _ZBufferParams;
 
     // x = orthographic camera's width
     // y = orthographic camera's height
     // z = unused
     // w = 1.0 if camera is ortho, 0.0 if perspective
+    // DEPRECATED: use _FrustumParams, IsPerspectiveProjection()
     float4 unity_OrthoParams;
 CBUFFER_END
 
