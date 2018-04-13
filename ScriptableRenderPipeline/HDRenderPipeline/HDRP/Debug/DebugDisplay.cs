@@ -378,6 +378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     children =
                     {
                         new DebugUI.Value { displayName = string.Empty, getter = () => "Click in the scene view, or press 'End' key to select the pixel under the mouse in the scene view to debug." },
+                        new DebugUI.Value { displayName = string.Empty, getter = () => "Warning: In forward only mode, debugging information may not be representative of the rendered pixel." },
                         new DebugUI.Value { displayName = "SSRay Model", getter = () => screenSpaceTracingDebugData.tracingModel }
                     }
                 };

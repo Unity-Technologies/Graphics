@@ -267,12 +267,12 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
     hit.positionSS          = hitPositionSS;
     hit.linearDepth         = hitLinearDepth;
 
-    bool hitSuccessful      = true;
+    bool hitSuccessful      = hitLinearDepth > 0;       // Negative means that the hit is behind the camera
 
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, hit);
     
-    if (input.debug)
+    if (input.debug && _DebugScreenSpaceTracingData[0].tracingModel == -1)
     {
         ScreenSpaceTracingDebug debug;
         ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
@@ -461,7 +461,7 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch, SSRTID)(
         hit
     );
 
-    if (input.debug)
+    if (input.debug && _DebugScreenSpaceTracingData[0].tracingModel == -1)
     {
         // Build debug structure
         ScreenSpaceTracingDebug debug;
