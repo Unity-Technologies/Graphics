@@ -2154,42 +2154,52 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
-
-    switch(_DebugLightingMode)
+ 
+    if (_DebugLightingMode != 0)
     {
+        switch (_DebugLightingMode)
+        {
         case DEBUGLIGHTINGMODE_LUX_METER:
-        diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+            diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
             break;
+
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO:
-        diffuseLighting = indirectAmbientOcclusion;
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO:
-        diffuseLighting = specularOcclusion;
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-    #if GTAO_MULTIBOUNCE_APPROX
-        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO:
-        diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO:
-        diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-    #endif
-        case DEBUGMIPMAPMODE_NONE:
-            diffuseLighting = bsdfData.diffuseColor;
+            diffuseLighting = indirectAmbientOcclusion;
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
+
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO:
+            diffuseLighting = specularOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            break;
+
+#if GTAO_MULTIBOUNCE_APPROX
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO:
+            diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            break;
+
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO:
+            diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            break;
+#endif
+
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-    {
+            {
                 diffuseLighting = lighting.indirect.specularTransmitted;
+                specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            }
+            break;
+        }
+    }
+    else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+    {
+        diffuseLighting = bsdfData.diffuseColor;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
-            break;
-    }
+
 #endif
 }
 
