@@ -24,11 +24,6 @@ namespace UnityEditor.VFX.UI
 
         static Mesh s_Mesh;
 
-        static VFXContextBorder()
-        {
-            Debug.Log("VFXContextBorder registered");
-        }
-
         public VFXContextBorder()
         {
             if (s_Mesh == null)

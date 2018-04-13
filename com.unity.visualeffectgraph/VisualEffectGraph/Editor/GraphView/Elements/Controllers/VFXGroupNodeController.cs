@@ -183,13 +183,21 @@ namespace UnityEditor.VFX.UI
             AddNodeID(new VFXNodeID(note.index));
         }
 
-        public void RemoveNode(VFXNodeController controller)
+        public void RemoveNode(VFXNodeController nodeController)
         {
-            if (controller == null || m_Index < 0)
+            if (nodeController == null || m_Index < 0)
                 return;
 
-            if (m_UI.groupInfos[m_Index].contents != null)
-                m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != controller.model || t.id != controller.id).ToArray();
+            if (m_UI.groupInfos[m_Index].contents == null)
+                return;
+
+
+            int id = nodeController.id;
+            var model = nodeController.model;
+            if (!m_UI.groupInfos[m_Index].contents.Any(t => t.model == model && t.id == id))
+                return;
+
+            m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
             Modified();
         }
 
@@ -197,9 +205,14 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null || m_Index < 0)
                 return;
+            if (m_UI.groupInfos[m_Index].contents == null)
+                return;
 
-            if (m_UI.groupInfos[m_Index].contents != null)
-                m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != controller.index).ToArray();
+
+            if (!m_UI.groupInfos[m_Index].contents.Any(t => t.isStickyNote && t.id == controller.index))
+                return;
+
+            m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != controller.index).ToArray();
             Modified();
         }
 

@@ -31,18 +31,61 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        HashSet<ScriptableObject> modifiedModels = new HashSet<ScriptableObject>();
-        HashSet<ScriptableObject> otherModifiedModels = new HashSet<ScriptableObject>();
-
-        public void OnObjectModified(ScriptableObject obj)
+        public enum Priorities
         {
-            modifiedModels.Add(obj);
+            Graph,
+            Node,
+            Slot,
+            Default,
+            GroupNode,
+            Count
+        }
+
+        static HashSet<ScriptableObject>[] NewPrioritizedHashSet()
+        {
+            HashSet<ScriptableObject>[] result = new HashSet<ScriptableObject>[(int)Priorities.Count];
+
+            for (int i = 0; i < (int)Priorities.Count; ++i)
+            {
+                result[i] = new HashSet<ScriptableObject>();
+            }
+
+            return result;
+        }
+
+        Priorities GetPriority(VFXObject obj)
+        {
+            if (obj is IVFXSlotContainer)
+            {
+                return Priorities.Node;
+            }
+            if (obj is VFXSlot)
+            {
+                return Priorities.Slot;
+            }
+            if (obj is VFXUI)
+            {
+                return Priorities.GroupNode;
+            }
+            if (obj is VFXGraph)
+            {
+                return Priorities.Graph;
+            }
+            return Priorities.Default;
+        }
+
+        HashSet<ScriptableObject>[] modifiedModels = NewPrioritizedHashSet();
+        HashSet<ScriptableObject>[] otherModifiedModels = NewPrioritizedHashSet();
+
+        public void OnObjectModified(VFXObject obj)
+        {
+            modifiedModels[(int)GetPriority(obj)].Add(obj);
         }
 
         Dictionary<ScriptableObject, List<Action>> m_Notified = new Dictionary<ScriptableObject, List<Action>>();
 
 
-        public void RegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
+        public void RegisterNotification(VFXObject target, Action action)
         {
             if (target == null)
                 return;
@@ -66,7 +109,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UnRegisterNotification<T>(T target, Action action) where T : ScriptableObject, IModifiable
+        public void UnRegisterNotification(VFXObject target, Action action)
         {
             if (object.ReferenceEquals(target, null))
                 return;
@@ -93,6 +136,11 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXViewController.NotifyUpdate");
             if (model == null || m_Graph == null || m_Graph != model.graph)
             {
+                // In this case the asset has been destroyed or reimported after having changed outside.
+                // Lets rebuild everything and clear the undo stack.
+                Clear();
+                if (model != null)
+                    InitializeUndoStack();
                 Debug.LogWarning("ModelChanged");
                 ModelChanged(model);
             }
@@ -102,22 +150,27 @@ namespace UnityEditor.VFX.UI
             otherModifiedModels = tmp;
 
             int cpt = 0;
-            foreach (var obj in otherModifiedModels)
+            foreach (var objs in otherModifiedModels)
             {
-                List<Action> notifieds;
-                if (m_Notified.TryGetValue(obj, out notifieds))
+                foreach (var obj in objs)
                 {
-                    foreach (var notified in notifieds.ToArray())
+                    List<Action> notifieds;
+                    Profiler.BeginSample("VFXViewController.Notify:" + obj.GetType().Name);
+                    if (m_Notified.TryGetValue(obj, out notifieds))
                     {
-                        notified();
-                        cpt++;
+                        foreach (var notified in notifieds.ToArray())
+                        {
+                            notified();
+                            cpt++;
+                        }
                     }
+                    Profiler.EndSample();
                 }
+                objs.Clear();
             }
-
-            /*if (cpt > 0)
+            /*
+            if (cpt > 0)
                 Debug.LogWarningFormat("{0} notification sent this frame", cpt);*/
-            otherModifiedModels.Clear();
             Profiler.EndSample();
 
             m_InNotify = false;
@@ -369,6 +422,8 @@ namespace UnityEditor.VFX.UI
         {
             public const int flowEdge = 1;
             public const int dataEdge = 2;
+
+            public const int groupNode = 3;
 
             public const int destroy = 666;
         }
@@ -723,7 +778,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = index; i < m_GroupNodeControllers.Count; ++i)
             {
-                m_GroupNodeControllers[i].index = index;
+                m_GroupNodeControllers[i].index = i;
             }
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
@@ -795,9 +850,22 @@ namespace UnityEditor.VFX.UI
             VFXGraphValidation validation = new VFXGraphValidation(m_Graph);
             validation.ValidateGraph();
 
-            SyncControllerFromModel();
+            bool groupNodeChanged = false;
 
+            Profiler.BeginSample("VFXViewController.GraphChanged:SyncControllerFromModel");
+            SyncControllerFromModel(ref groupNodeChanged);
+            Profiler.EndSample();
+
+            Profiler.BeginSample("VFXViewController.GraphChanged:NotifyChange(AnyThing)");
             NotifyChange(AnyThing);
+            Profiler.EndSample();
+
+            //if( groupNodeChanged)
+            {
+                Profiler.BeginSample("VFXViewController.GraphChanged:NotifyChange(Change.groupNode)");
+                NotifyChange(Change.groupNode);
+                Profiler.EndSample();
+            }
         }
 
         protected void UIChanged()
@@ -805,7 +873,8 @@ namespace UnityEditor.VFX.UI
             if (m_UI == null) return;
             if (m_Graph == null) return; // OnModelChange or OnDisable will take care of that later
 
-            RecreateUI();
+            bool groupNodeChanged = false;
+            RecreateUI(ref groupNodeChanged);
 
             NotifyChange(AnyThing);
         }
@@ -985,15 +1054,11 @@ namespace UnityEditor.VFX.UI
             }
             if (newNode != null)
             {
-                SyncControllerFromModel();
+                bool groupNodeChanged = false;
+                SyncControllerFromModel(ref groupNodeChanged);
 
                 List<VFXNodeController> nodeControllers = null;
                 m_SyncedModels.TryGetValue(newNode, out nodeControllers);
-
-                if (groupNode != null)
-                {
-                    groupNode.AddNode(nodeControllers.First());
-                }
 
                 if (newNode is VFXParameter)
                 {
@@ -1003,6 +1068,11 @@ namespace UnityEditor.VFX.UI
                 }
 
                 NotifyChange(AnyThing);
+
+                if (groupNode != null)
+                {
+                    groupNode.AddNode(nodeControllers.First());
+                }
 
                 return nodeControllers[0];
             }
@@ -1120,19 +1190,42 @@ namespace UnityEditor.VFX.UI
         List<VFXGroupNodeController> m_GroupNodeControllers = new List<VFXGroupNodeController>();
         List<VFXStickyNoteController> m_StickyNoteControllers = new List<VFXStickyNoteController>();
 
-        public bool RecreateUI()
+        public bool RecreateUI(ref bool groupNodeChanged)
         {
             bool changed = false;
             var ui = graph.UIInfos;
+
+
             if (ui != null)
             {
                 if (ui.groupInfos != null)
                 {
+                    HashSet<VFXNodeID> usedNodeIds = new HashSet<VFXNodeID>();
+                    // first make sure that nodesID are at most in one groupnode.
+
+                    for (int i = 0; i < ui.groupInfos.Length; ++i)
+                    {
+                        for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                        {
+                            if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
+                            {
+                                Debug.Log("Element present in multiple groupnodes");
+                                --j;
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
+                            }
+                            else
+                            {
+                                usedNodeIds.Add(ui.groupInfos[i].contents[j]);
+                            }
+                        }
+                    }
+
                     for (int i = m_GroupNodeControllers.Count; i < ui.groupInfos.Length; ++i)
                     {
                         VFXGroupNodeController groupNodeController = new VFXGroupNodeController(this, ui, i);
                         m_GroupNodeControllers.Add(groupNodeController);
                         changed = true;
+                        groupNodeChanged = true;
                     }
 
                     while (ui.groupInfos.Length < m_GroupNodeControllers.Count)
@@ -1140,6 +1233,7 @@ namespace UnityEditor.VFX.UI
                         m_GroupNodeControllers.Last().OnDisable();
                         m_GroupNodeControllers.RemoveAt(m_GroupNodeControllers.Count - 1);
                         changed = true;
+                        groupNodeChanged = true;
                     }
                 }
                 if (ui.stickyNoteInfos != null)
@@ -1148,6 +1242,7 @@ namespace UnityEditor.VFX.UI
                     {
                         VFXStickyNoteController stickyNoteController = new VFXStickyNoteController(this, ui, i);
                         m_StickyNoteControllers.Add(stickyNoteController);
+                        stickyNoteController.ApplyChanges();
                         changed = true;
                     }
 
@@ -1172,7 +1267,7 @@ namespace UnityEditor.VFX.UI
 
         bool m_Syncing;
 
-        public bool SyncControllerFromModel()
+        public bool SyncControllerFromModel(ref bool groupNodeChanged)
         {
             m_Syncing = true;
             bool changed = false;
@@ -1218,7 +1313,7 @@ namespace UnityEditor.VFX.UI
             changed |= RecreateNodeEdges();
             changed |= RecreateFlowEdges();
 
-            changed |= RecreateUI();
+            changed |= RecreateUI(ref groupNodeChanged);
 
             m_Syncing = false;
             return changed;

@@ -55,34 +55,42 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnControllerChanged(ControllerChangedEvent e)
+        void OnControllerChanged(ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {
-                // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
-                VFXView view = this.GetFirstAncestorOfType<VFXView>();
-                if (view == null) return;
+                SelfChange();
+            }
+        }
+
+        public void SelfChange()
+        {
+            // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+            if (view == null) return;
 
 
-                m_ModificationFromController = true;
-                title = controller.title;
+            m_ModificationFromController = true;
+            inRemoveElement = true;
+            title = controller.title;
 
 
-                var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<IControlledElement>().Where(t => t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
+            var presenterContent = new HashSet<Controller>(controller.nodes);
+            var elementContent = containedElements.OfType<IControlledElement>().Where(t => t.controller is VFXNodeController || t.controller is VFXStickyNoteController).ToArray();
 
-                bool elementsChanged = false;
-                var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
-                foreach (var element in elementToDelete)
-                {
-                    this.RemoveElement(element as GraphElement);
-                    elementsChanged = true;
-                }
+            bool elementsChanged = false;
+            var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
+            foreach (var element in elementToDelete)
+            {
+                this.RemoveElement(element as GraphElement);
+                elementsChanged = true;
+            }
 
-                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement>();
+            if (presenterContent.Count() != elementContent.Count())
+            {
+                var elementToAdd = presenterContent.Select(t => view.GetGroupNodeElement(t)).Except(elementContent.Cast<GraphElement>()).ToArray();
 
-                var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.controller == t) == null).Select(t => viewElements.FirstOrDefault(u => u.controller == t)).ToArray();
-
+                //bool someNodeNotFound = false;
                 foreach (var element in elementToAdd)
                 {
                     if (element != null)
@@ -90,20 +98,26 @@ namespace UnityEditor.VFX.UI
                         this.AddElement(element as GraphElement);
                         elementsChanged = true;
                     }
+                    else
+                    {
+                        //someNodeNotFound = true;
+                    }
                 }
-
-                // only update position if the groupnode is empty otherwise the size should be computed from the content.
-                if (presenterContent.Length == 0)
-                {
-                    SetPosition(controller.position);
-                }
-                else
-                {
-                    UpdateGeometryFromContent();
-                }
-
-                m_ModificationFromController = false;
             }
+
+            // only update position if the groupnode is empty otherwise the size should be computed from the content.
+            if (presenterContent.Count() == 0)
+            {
+                SetPosition(controller.position);
+            }
+            else
+            {
+                if (elementsChanged)
+                    UpdateGeometryFromContent();
+            }
+
+            m_ModificationFromController = false;
+            inRemoveElement = false;
         }
 
         bool m_ModificationFromController;

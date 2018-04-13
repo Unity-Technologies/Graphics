@@ -2374,6 +2374,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -2700,6 +2701,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 1
   preRefraction: 0
   useGeometryShader: 0
@@ -10163,7 +10165,6 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 69632
-    capacity: 4096
     layout:
     - name: velocity
       type: 3
@@ -10201,9 +10202,10 @@ VisualEffectAsset:
         bucket: 65536
         structure: 1
         element: 0
+    capacity: 4096
+    stride: 4
   - type: 1
     size: 36
-    capacity: 3
     layout:
     - name: velocity
       type: 3
@@ -10229,21 +10231,25 @@ VisualEffectAsset:
         bucket: 0
         structure: 12
         element: 8
+    capacity: 3
+    stride: 4
   - type: 2
     size: 4096
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 2
     size: 4096
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 53248
-    capacity: 4096
     layout:
     - name: position
       type: 3
@@ -10275,9 +10281,10 @@ VisualEffectAsset:
         bucket: 36864
         structure: 4
         element: 0
+    capacity: 4096
+    stride: 4
   - type: 1
     size: 4
-    capacity: 1
     layout:
     - name: position
       type: 3
@@ -10291,14 +10298,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 4
         element: 3
+    capacity: 1
+    stride: 4
   - type: 2
     size: 4096
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 10
@@ -10723,7 +10734,7 @@ VisualEffectAsset:
         index: 147
       - nameId: bounds_size
         index: 153
-      processor: {fileID: 7200000, guid: 6b9c628c9455a514fb2bc60e75228718, type: 3}
+      processor: {fileID: 7200000, guid: 887bd5eaf2d400443b9c8752efb6e422, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -10740,7 +10751,7 @@ VisualEffectAsset:
       - nameId: GravityVector_b
         index: 154
       params: []
-      processor: {fileID: 7200000, guid: d75e534839ca3df4383cd516806f1b6a, type: 3}
+      processor: {fileID: 7200000, guid: c7e0116f2c07c26479a821e5339dc416, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -10759,7 +10770,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 1bbae73ce3b2b6845b5f587647dfbd8e, type: 3}
+      processor: {fileID: 4800000, guid: 7b73a5a84bf1e2545b785a167a938b37, type: 3}
   - type: 2
     flags: 0
     capacity: 0
@@ -10829,7 +10840,7 @@ VisualEffectAsset:
         index: 141
       - nameId: bounds_size
         index: 144
-      processor: {fileID: 7200000, guid: 397ec27cbbc472147bc9b725b0769394, type: 3}
+      processor: {fileID: 7200000, guid: 2039be14df46c9a40879d7cf48e50bea, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -10840,7 +10851,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 155
       params: []
-      processor: {fileID: 7200000, guid: f01d6ede3dbee224eb9c955f8b45a05e, type: 3}
+      processor: {fileID: 7200000, guid: bfdf02766d649b34fa9b0a170468495f, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -10855,7 +10866,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: bca655aecff2ed046b2cc2c98ded6e5c, type: 3}
+      processor: {fileID: 4800000, guid: 8672b31bd7d3dfc4891d484dbed07deb, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 0000000001000000
@@ -10870,4 +10881,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4
