@@ -125,7 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 TextureCombiner maskMapCombiner = new TextureCombiner(
                     metallicMap, 0,                                                     // R: Metallic from red
                     occlusionMap, 1,                                                    // G: Occlusion from green
-                    detailMaskMap, 0,                                                   // B: Detail Mask from red
+                    detailMaskMap, 3,                                                   // B: Detail Mask from alpha
                     smoothnessMap, (srcMaterial.shader.name == Standard_Rough)?-4:3     // A: Smoothness Texture from inverse greyscale for roughness setup, or alpha
                 );
 
