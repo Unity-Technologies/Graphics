@@ -162,6 +162,9 @@ namespace UnityEditor.VFX
 
         public void CollectAttributes()
         {
+            if (m_Contexts == null) // Context hasnt been initialized (may happen in unity tests but not during actual compilation)
+                InitImplicitContexts();
+
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
 
@@ -183,8 +186,9 @@ namespace UnityEditor.VFX
                         attributes = attributes.Concat(block.attributes);
 
                     var mapper = context.GetExpressionMapper(GetCompilationTarget(context));
-                    foreach (var exp in mapper.expressions)
-                        attributes = attributes.Concat(CollectInputAttributes(exp, processedExp));
+                    if (mapper != null)
+                        foreach (var exp in mapper.expressions)
+                            attributes = attributes.Concat(CollectInputAttributes(exp, processedExp));
 
                     attributeContexts.Add(new VFXAttributeInfoContext
                     {

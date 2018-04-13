@@ -1035,8 +1035,8 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
-  indirectDraw: 0
   sort: 0
+  indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114799785256960774
@@ -1559,7 +1559,6 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 1664
-    capacity: 128
     layout:
     - name: velocity
       type: 3
@@ -1597,9 +1596,10 @@ VisualEffectAsset:
         bucket: 1536
         structure: 1
         element: 0
+    capacity: 128
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -1607,14 +1607,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 128
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -1687,18 +1691,18 @@ VisualEffectAsset:
       - nameId: sourceAttributeBuffer
         index: 1
       values:
-      - nameId: Velocity_b
+      - nameId: Velocity_a
         index: 21
-      - nameId: Color_c
+      - nameId: Color_b
         index: 19
-      - nameId: Lifetime_d
+      - nameId: Lifetime_c
         index: 13
       params:
       - nameId: bounds_center
         index: 17
       - nameId: bounds_size
         index: 18
-      processor: {fileID: 7200000, guid: f608fc27c71c9de48adb35f497b991ef, type: 3}
+      processor: {fileID: 7200000, guid: 2792884f47b0a7244bf51f1f18a57ed9, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1706,23 +1710,23 @@ VisualEffectAsset:
       - nameId: deadListOut
         index: 2
       values:
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 16
       params: []
-      processor: {fileID: 7200000, guid: 44b70cf7c8452da44acf7271d083ede0, type: 3}
+      processor: {fileID: 7200000, guid: d85a4303e8dffce4f8c643062ef48365, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: SizeX_b
+      - nameId: SizeX_a
         index: 15
       - nameId: mainTexture
         index: 14
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 63ce09913509b5348a6886e6dc186086, type: 3}
+      processor: {fileID: 4800000, guid: ee401aa8cae00f44db8cea551fb61ec4, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1737,4 +1741,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

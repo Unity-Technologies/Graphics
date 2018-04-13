@@ -35,5 +35,14 @@ namespace UnityEditor.VFX
 
             return null; // cpu
         }
+
+        public override IEnumerable<string> additionalDefines
+        {
+            get
+            {
+                if (GetData().IsAttributeStored(VFXAttribute.Alive))
+                    yield return "USE_DEAD_LIST_COUNT";
+            }
+        }
     }
 }
