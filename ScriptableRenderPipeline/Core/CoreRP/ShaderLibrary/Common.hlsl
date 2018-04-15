@@ -831,7 +831,7 @@ float2 GetQuadTexCoord(uint vertexID)
 {
 	uint topBit = vertexID >> 1;
 	uint botBit = (vertexID & 1);
-	float u = topBit; 
+	float u = topBit;
 	float v = (topBit + botBit) & 1; // produces 0 for indices 0,3 and 1 for 1,2
 #if UNITY_UV_STARTS_AT_TOP
 	v = 1.0 - v;
@@ -849,7 +849,7 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 	uint botBit = (vertexID & 1);
 	float x = topBit;
 	float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
-	return float4(x, y, z, 1.0); 
+	return float4(x, y, z, 1.0);
 }
 
 #if !defined(SHADER_API_GLES)
@@ -865,7 +865,7 @@ void LODDitheringTransition(uint2 positionSS, float ditherFactor)
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
-    // TODO: replace the test (ditherFactor >= 0.5) with (isLod0) to avoid the distracting pattern flip around 0.5.  
+    // TODO: replace the test (ditherFactor >= 0.5) with (isLod0) to avoid the distracting pattern flip around 0.5.
     p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
