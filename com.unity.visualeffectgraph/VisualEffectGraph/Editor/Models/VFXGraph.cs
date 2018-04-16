@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
+using System.Reflection;
 
 using Object = UnityEngine.Object;
 
@@ -137,6 +138,112 @@ namespace UnityEditor.VFX
                 }
                 return m_UIInfos;
             }
+        }
+
+
+        [Serializable]
+        public struct ParameterInfo
+        {
+            public ParameterInfo(string exposedName)
+            {
+                name = exposedName;
+                path = null;
+                min = Mathf.NegativeInfinity;
+                max = Mathf.Infinity;
+                descendantCount = 0;
+                sheetType = null;
+            }
+            public string name;
+            public string path;
+
+            public string sheetType;
+
+            public float min;
+            public float max;
+
+            public int descendantCount;
+        }
+
+        public ParameterInfo[] m_ParameterInfo;
+
+        public void BuildParameterInfo()
+        {
+            var parameters = children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+
+            List<ParameterInfo> infos = new List<ParameterInfo>();
+            List<ParameterInfo> subList = new List<ParameterInfo>();
+            foreach( var parameter in parameters)
+            {
+                string rootFieldName = VisualEffectUtility.GetTypeField(parameter.type);
+                
+                ParameterInfo paramInfo = new ParameterInfo(parameter.exposedName);
+                if( rootFieldName != null)
+                {
+                    paramInfo.sheetType = rootFieldName;
+                    paramInfo.path = paramInfo.name;
+                    if (parameter.hasRange)
+                    {
+                        float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
+                        float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
+                        paramInfo.min = min;
+                        paramInfo.max = max;
+                    }
+                    paramInfo.descendantCount = 0;
+                }
+                else
+                {
+                    paramInfo.descendantCount = RecurseBuildParameterInfo(subList,parameter.type,parameter.exposedName);
+                }
+
+                
+                
+                infos.Add(paramInfo);
+                infos.AddRange(subList);
+                subList.Clear();
+            }
+            m_ParameterInfo = infos.ToArray();
+        }
+        int RecurseBuildParameterInfo(List<ParameterInfo> infos,System.Type type, string path)
+        {
+            int count = 0;
+            if (type.IsValueType)
+            {
+                var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+                List<ParameterInfo> subList = new List<ParameterInfo>();
+                foreach (var field in fields)
+                {
+                    ParameterInfo info = new ParameterInfo(field.Name);
+
+                    info.path = path + "_" + field.Name;
+
+                    string fieldName = VisualEffectUtility.GetTypeField(field.FieldType);
+
+                    if (fieldName != null)
+                    {
+                        info.sheetType = fieldName;
+                        RangeAttribute attr = field.GetCustomAttributes(true).OfType<RangeAttribute>().FirstOrDefault();
+                        if( attr != null)
+                        {
+                            info.min = attr.min;
+                            info.max = attr.max;
+                        }
+                        info.descendantCount = 0;
+                        count++;
+                    }
+                    else
+                    {
+                        if( field.FieldType.IsEnum) // For space
+                            continue;
+                        info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType,info.path);
+                    }
+                    infos.Add(info);
+                    infos.AddRange(subList);
+                    subList.Clear();
+                    count += info.descendantCount;
+                }
+            }
+            return count;
         }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
@@ -272,7 +379,6 @@ namespace UnityEditor.VFX
                 {
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
-
             m_GraphSanitized = true;
         }
 
@@ -402,6 +508,11 @@ namespace UnityEditor.VFX
         {
             m_saved = false;
             base.OnInvalidate(model, cause);
+
+            if (model is VFXParameter)
+            {
+                BuildParameterInfo();
+            }
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {

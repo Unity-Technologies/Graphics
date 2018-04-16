@@ -133,111 +133,6 @@ static class VisualEffectUtility
         return null;
     }
 }
-
-//using UnityEngine.Experimental.VFX;
-/*
-public class SlotValueBinder : VFXPropertySlotObserver
-{
-    public SlotValueBinder(string name, VisualEffect component, VFXPropertySlot slot)
-    {
-        m_Name = name;
-        m_Component = component;
-        m_Slot = slot;
-
-        Update(); // Update before adding the observer in order not to receive a spurious event
-        m_Slot.AddObserver(this);
-    }
-
-    public bool Update()
-    {
-        switch (m_Slot.ValueType)
-        {
-            case VFXValueType.Int32:
-                if (m_Component.HasInt(m_Name))
-                    m_Slot.Set<int>(m_Component.GetInt(m_Name));
-                break;
-            case VFXValueType.Uint32:
-                if (m_Component.HasUInt(m_Name))
-                    m_Slot.Set<UInt32>(m_Component.GetUInt(m_Name));
-                break;
-            case VFXValueType.Float:
-                if (m_Component.HasFloat(m_Name))
-                    m_Slot.Set<float>(m_Component.GetFloat(m_Name));
-                break;
-            case VFXValueType.Float2:
-                if (m_Component.HasVector2(m_Name))
-                    m_Slot.Set<Vector2>(m_Component.GetVector2(m_Name));
-                break;
-            case VFXValueType.Float3:
-                if (m_Component.HasVector3(m_Name))
-                    m_Slot.Set<Vector3>(m_Component.GetVector3(m_Name));
-                break;
-            case VFXValueType.Float4:
-                if (m_Component.HasVector4(m_Name))
-                    m_Slot.Set<Vector4>(m_Component.GetVector4(m_Name));
-                break;
-            case VFXValueType.Texture2D:
-                if (m_Component.HasTexture2D(m_Name))
-                    m_Slot.Set<Texture2D>(m_Component.GetTexture2D(m_Name));
-                break;
-            case VFXValueType.Texture3D:
-                if (m_Component.HasTexture3D(m_Name))
-                    m_Slot.Set<Texture3D>(m_Component.GetTexture3D(m_Name));
-                break;
-        }
-
-        bool dirty = m_Dirty;
-        m_Dirty = false;
-        return dirty;
-    }
-
-    public void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
-    {
-        if (m_Slot != slot || type != VFXPropertySlot.Event.kValueUpdated)
-            throw new Exception("Something wrong went on !"); // This should never happen
-
-        if (!VisualEffectEditor.CanSetOverride) // Hack
-            return;
-
-        switch (slot.ValueType)
-        {
-            case VFXValueType.Float:
-                if (m_Component.HasFloat(m_Name))
-                    m_Component.SetFloat(m_Name, m_Slot.Get<float>());
-                break;
-            case VFXValueType.Float2:
-                if (m_Component.HasVector2(m_Name))
-                    m_Component.SetVector2(m_Name, m_Slot.Get<Vector2>());
-                break;
-            case VFXValueType.Float3:
-                if (m_Component.HasVector3(m_Name))
-                    m_Component.SetVector3(m_Name, m_Slot.Get<Vector3>());
-                break;
-            case VFXValueType.Float4:
-                if (m_Component.HasVector4(m_Name))
-                    m_Component.SetVector4(m_Name, m_Slot.Get<Vector4>());
-                break;
-            case VFXValueType.Texture2D:
-                if (m_Component.HasTexture2D(m_Name))
-                    m_Component.SetTexture2D(m_Name, m_Slot.Get<Texture2D>());
-                break;
-            case VFXValueType.Texture3D:
-                if (m_Component.HasTexture3D(m_Name))
-                    m_Component.SetTexture3D(m_Name, m_Slot.Get<Texture3D>());
-                break;
-        }
-
-        m_Dirty = true;
-    }
-
-    public string Name { get { return m_Name; } }
-
-    private string m_Name;
-    private VisualEffect m_Component;
-    private VFXPropertySlot m_Slot;
-    private bool m_Dirty = false;
-}
-*/
 [CustomEditor(typeof(VisualEffect))]
 public class VisualEffectEditor : Editor
 {
@@ -251,19 +146,6 @@ public class VisualEffectEditor : Editor
 
     private Contents m_Contents;
     private Styles m_Styles;
-    /*
-    private class ExposedData
-    {
-        public VFXOutputSlot slot;
-        public List<SlotValueBinder> valueBinders = new List<SlotValueBinder>();
-        public VFXUIWidget widget = null;
-    }
-
-    private List<ExposedData> m_ExposedData = new List<ExposedData>();*/
-    //private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
-    //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>();
-
-    //private VisualEffectDebugPanel m_DebugPanel;
     private bool m_ShowDebugStats = false;
 
     void OnEnable()
@@ -273,34 +155,8 @@ public class VisualEffectEditor : Editor
         m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
         m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
-        //EditorApplication.contextualPropertyMenu += PropertyMenuCallback;
-
-        InitSlots();
-
         m_Infos.Clear();
     }
-
-    /*
-    void PropertyMenuCallback(GenericMenu menu, SerializedProperty property)
-    {
-        if (property.serializedObject == serializedObject && property.propertyPath.StartsWith("m_PropertySheet.") && property.propertyPath.EndsWith(".m_Value"))
-        {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Revert to VisuaEffect Asset Value"), false, OnRevertToAsset, property.propertyPath);
-        }
-    }
-
-    void OnRevertToAsset(object pp)
-    {
-        string propertyPath = (string)pp;
-
-        string overridePath = propertyPath.Substring(0, propertyPath.Length - "m_Value".Length) + "m_Overridden";
-
-        var overrideProperty = serializedObject.FindProperty(overridePath);
-        if (overrideProperty != null)
-            overrideProperty.boolValue = false;
-        serializedObject.ApplyModifiedProperties();
-    }
-    */
     void OnDisable()
     {
         VisualEffect effect = ((VisualEffect)targets[0]);
@@ -327,7 +183,7 @@ public class VisualEffectEditor : Editor
         public string fieldName;
         public RangeAttribute rangeAttribute;
     }
-    void RecurseAddFieldNames(System.Type type, string rootName, List<FieldData> fieldNames)
+ /*   void RecurseAddFieldNames(System.Type type, string rootName, List<FieldData> fieldNames)
     {
         if (type.IsValueType)
         {
@@ -349,16 +205,19 @@ public class VisualEffectEditor : Editor
             }
         }
     }
+    */
 
-    void DisplayProperty(FieldData field, SerializedProperty overrideProperty, SerializedProperty property)
+    const float overrideWidth = 16;
+
+    void DisplayProperty(VFXGraph.ParameterInfo parameter, SerializedProperty overrideProperty, SerializedProperty property)
     {
         EditorGUILayout.BeginHorizontal();
 
-        GUIContent nameContent = EditorGUIUtility.TextContent(field.exposedName);
+        GUIContent nameContent = EditorGUIUtility.TextContent(parameter.name);
 
         if (!overrideProperty.hasMultipleDifferentValues)
         {
-            bool result = EditorGUILayout.Toggle(overrideProperty.boolValue, VisualEffectEditorStyles.toggleStyle, GUILayout.Width(16));
+            bool result = EditorGUILayout.Toggle(overrideProperty.boolValue, VisualEffectEditorStyles.toggleStyle, GUILayout.Width(overrideWidth));
 
             if (overrideProperty.boolValue != result)
             {
@@ -371,14 +230,14 @@ public class VisualEffectEditor : Editor
         }
 
         EditorGUI.BeginChangeCheck();
-        if (field.rangeAttribute != null)
+        if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
         {
-            if (field.type == typeof(float))
-                EditorGUILayout.Slider(property, field.rangeAttribute.min, field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
+            if (property.propertyType == SerializedPropertyType.Float)
+                EditorGUILayout.Slider(property, parameter.min, parameter.max, EditorGUIUtility.TextContent(parameter.name));
             else
-                EditorGUILayout.IntSlider(property, (int)field.rangeAttribute.min, (int)field.rangeAttribute.max, EditorGUIUtility.TextContent(field.exposedName));
+                EditorGUILayout.IntSlider(property, (int)parameter.min, (int)parameter.max, EditorGUIUtility.TextContent(parameter.name));
         }
-        else if (field.type == typeof(Color))
+        else if (property.propertyType == SerializedPropertyType.Color)
         {
             Vector4 vVal = property.vector4Value;
             Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
@@ -387,7 +246,7 @@ public class VisualEffectEditor : Editor
             if (c.r != vVal.x || c.g != vVal.y || c.b != vVal.z || c.a != vVal.w)
                 property.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
         }
-        else if (field.type == typeof(Vector4))
+        else if (property.propertyType == SerializedPropertyType.Vector4)
         {
             var oldVal = property.vector4Value;
             var newVal = EditorGUILayout.Vector4Field(nameContent, oldVal);
@@ -407,127 +266,6 @@ public class VisualEffectEditor : Editor
 
         EditorGUILayout.EndHorizontal();
     }
-
-    void OnParamGUI(VFXParameter parameter)
-    {
-        VisualEffect comp = (VisualEffect)target;
-
-        string rootFieldName = VisualEffectUtility.GetTypeField(parameter.type);
-
-
-        List<FieldData> fieldNames = new List<FieldData>();
-
-        if (rootFieldName != null)
-        {
-            RangeAttribute rangeAttribute = null;
-            if (parameter.hasRange)
-            {
-                float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
-                float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
-                rangeAttribute = new RangeAttribute(min, max);
-            }
-            fieldNames.Add(new FieldData { type = parameter.type, fieldName = rootFieldName, exposedName = parameter.exposedName, rangeAttribute = rangeAttribute });
-        }
-        else // check for a vfx type.
-        {
-            RecurseAddFieldNames(parameter.type, parameter.exposedName, fieldNames);
-        }
-
-        foreach (var field in fieldNames)
-        {
-            var vfxField = m_VFXPropertySheet.FindPropertyRelative(field.fieldName + ".m_Array");
-            SerializedProperty property = null;
-            if (vfxField != null)
-            {
-                for (int i = 0; i < vfxField.arraySize; ++i)
-                {
-                    property = vfxField.GetArrayElementAtIndex(i);
-                    var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                    if (nameProperty == field.exposedName)
-                    {
-                        break;
-                    }
-                    property = null;
-                }
-            }
-            if (property != null)
-            {
-                SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
-                property = property.FindPropertyRelative("m_Value");
-                string firstpropName = property.name;
-
-                Color previousColor = GUI.color;
-                var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
-                if (animated)
-                {
-                    GUI.color = AnimationMode.animatedPropertyColor;
-                }
-
-                DisplayProperty(field, overrideProperty, property);
-
-                if (animated)
-                {
-                    GUI.color = previousColor;
-                }
-            }
-        }
-    }
-
-    private void InitSlots()
-    {
-        /*foreach (var exposed in m_ExposedData)
-            exposed.slot.RemoveAllObservers();
-
-        m_ExposedData.Clear();
-        */
-        if (m_VisualEffectAsset == null)
-            return;
-
-        VisualEffectAsset asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-        if (asset == null)
-            return;
-
-
-        /*
-        int nbDescs = asset.GetNbEditorExposedDesc();
-        for (int i = 0; i < nbDescs; ++i)
-        {
-            string semanticType = asset.GetEditorExposedDescSemanticType(i);
-            string exposedName = asset.GetEditorExposedDescName(i);
-            bool worldSpace = asset.GetEditorExposedDescWorldSpace(i);
-
-            var dataBlock = VFXEditor.Block.GetDataBlock(semanticType);
-            if (dataBlock != null)
-            {
-                var property = new VFXProperty(dataBlock.Semantics, exposedName);
-                var slot = new VFXOutputSlot(property);
-                slot.WorldSpace = worldSpace;
-
-                var exposedData = new ExposedData();
-                exposedData.slot = slot;
-                m_ExposedData.Add(exposedData);
-
-                CreateValueBinders(exposedData,slot);
-            }
-        }*/
-    }
-
-    /*
-    private void CreateValueBinders(ExposedData data,VFXPropertySlot slot,string parentName = "")
-    {
-        string name = VFXPropertySlot.AggregateName(parentName, slot.Name);
-        if (slot.GetNbChildren() > 0)
-            for (int i = 0; i < slot.GetNbChildren(); ++i)
-            {
-                var child = slot.GetChild(i);
-                CreateValueBinders(data,child, name);
-            }
-        else
-        {
-            data.valueBinders.Add(new SlotValueBinder(name, (VisualEffect)target, slot));
-        }
-    }
-    */
     public void InitializeGUI()
     {
         if (m_Contents == null)
@@ -610,105 +348,6 @@ public class VisualEffectEditor : Editor
             VFXGizmo.OnDrawComponentGizmo(target as VisualEffect);
     }
 
-    /*
-    public void OnSceneGUI()
-    {
-        InitializeGUI();
-
-        if(m_ShowDebugStats)
-        {
-            m_DebugPanel.UpdateDebugData();
-            m_DebugPanel.OnSceneGUI();
-        }
-
-        GameObject sceneCamObj = GameObject.Find("SceneCamera");
-        if (sceneCamObj != null)
-        {
-            GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-            Handles.BeginGUI();
-            Camera cam = sceneCamObj.GetComponent<Camera>();
-            Rect windowRect = new Rect(cam.pixelWidth / 2 - 140, cam.pixelHeight - 64 , 324, 68);
-            GUI.Window(666, windowRect, DrawPlayControlsWindow, "VFX Playback Control");
-
-            if(m_ShowDebugStats)
-                m_DebugPanel.OnWindowGUI();
-
-            Handles.EndGUI();
-            GL.sRGBWrite = false;
-        }
-
-
-        CanSetOverride = true;
-        foreach (var exposed in m_ExposedData)
-            if (exposed.widget != null)
-                exposed.widget.OnSceneGUI(SceneView.currentDrawingSceneView);
-        CanSetOverride = false;
-    }
-
-    public void DrawPlayControlsWindow(int windowID)
-    {
-        var component = (VisualEffect)target;
-
-        m_ShowDebugStats = GUI.Toggle(new Rect(260,0,64,16),m_ShowDebugStats, m_Contents.infoButton, EditorStyles.miniButton);
-
-        // PLAY CONTROLS
-        using (new GUILayout.HorizontalScope())
-        {
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.miniButtonLeft, m_Styles.PlayControlsHeight))
-            {
-                component.pause = false;
-                component.Reinit();
-            }
-
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.miniButtonMid, m_Styles.PlayControlsHeight))
-                component.pause = false;
-
-            component.pause = GUILayout.Toggle(component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.miniButtonMid, m_Styles.PlayControlsHeight);
-
-
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.miniButtonMid, m_Styles.PlayControlsHeight))
-            {
-                component.pause = true;
-                component.Reinit();
-            }
-
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.miniButtonRight, m_Styles.PlayControlsHeight))
-            {
-                component.pause = true;
-                component.AdvanceOneFrame();
-            }
-        }
-
-        using (new GUILayout.HorizontalScope())
-        {
-            GUILayout.Label(m_Contents.PlayRate, GUILayout.Width(54));
-            // Play Rate
-            float r = component.playRate;
-            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(component.playRate), 0.0f, Mathf.Sqrt(8.0f)), 2.0f);
-            GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(36));
-            if (r != nr)
-                SetPlayRate(nr);
-
-            if (GUILayout.Button(m_Contents.SetPlayRate, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
-            {
-                GenericMenu toolsMenu = new GenericMenu();
-                float rate = component.playRate;
-                toolsMenu.AddItem(new GUIContent("800%"), rate == 8.0f, SetPlayRate, 8.0f);
-                toolsMenu.AddItem(new GUIContent("200%"), rate == 2.0f, SetPlayRate, 2.0f);
-                toolsMenu.AddItem(new GUIContent("100% (RealTime)"), rate == 1.0f, SetPlayRate, 1.0f);
-                toolsMenu.AddItem(new GUIContent("50%"), rate == 0.5f, SetPlayRate, 0.5f);
-                toolsMenu.AddItem(new GUIContent("25%"), rate == 0.25f, SetPlayRate, 0.25f);
-                toolsMenu.AddItem(new GUIContent("10%"), rate == 0.1f, SetPlayRate, 0.1f);
-                toolsMenu.AddItem(new GUIContent("1%"), rate == 0.01f, SetPlayRate, 0.01f);
-                toolsMenu.ShowAsContext();
-            }
-        }
-
-        // Handle click in window to avoid unselecting asset
-        if (Event.current.type == EventType.mouseDown)
-            Event.current.Use();
-    }*/
-
     private VisualEffectAsset m_asset;
     private VFXGraph m_graph;
 
@@ -765,10 +404,68 @@ public class VisualEffectEditor : Editor
 
         if (m_graph != null)
         {
-            var newList = m_graph.children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
-            foreach (var parameter in newList)
+            List<int> stack = new List<int>();
+            int currentCount = m_graph.m_ParameterInfo.Length;
+            foreach(var parameter in m_graph.m_ParameterInfo)
             {
-                OnParamGUI(parameter);
+                --currentCount;
+                if( currentCount == 0 && stack.Count > 0 )
+                {
+                    currentCount = stack.Last();
+                    stack.RemoveAt(stack.Count-1);
+                }
+                if( parameter.descendantCount > 0)
+                {
+                    stack.Add(currentCount);
+                    currentCount = parameter.descendantCount;
+                }
+                
+                if(string.IsNullOrEmpty(parameter.sheetType))
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(overrideWidth);
+                    EditorGUILayout.LabelField(parameter.name);
+                    GUILayout.EndHorizontal();
+                }
+                else
+                {
+                    var vfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
+                    SerializedProperty property = null;
+                    if (vfxField != null)
+                    {
+                        for (int i = 0; i < vfxField.arraySize; ++i)
+                        {
+                            property = vfxField.GetArrayElementAtIndex(i);
+                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                            if (nameProperty == parameter.path)
+                            {
+                                break;
+                            }
+                            property = null;
+                        }
+                    }
+                    if (property != null)
+                    {
+                        SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
+                        property = property.FindPropertyRelative("m_Value");
+                        string firstpropName = property.name;
+
+                        Color previousColor = GUI.color;
+                        var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
+                        if (animated)
+                        {
+                            GUI.color = AnimationMode.animatedPropertyColor;
+                        }
+
+                        DisplayProperty(parameter, overrideProperty, property);
+
+                        if (animated)
+                        {
+                            GUI.color = previousColor;
+                        }
+                    }
+                }
+                EditorGUI.indentLevel = stack.Count;
             }
         }
 
