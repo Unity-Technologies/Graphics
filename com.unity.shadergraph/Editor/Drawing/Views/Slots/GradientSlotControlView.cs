@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
-    public class GradientSlotControlView : VisualElement, INodeModificationListener
+    public class GradientSlotControlView : VisualElement
     {
         GradientInputMaterialSlot m_Slot;
 
@@ -23,42 +23,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         [SerializeField]
         SerializedProperty m_SerializedProperty;
 
-        IMGUIContainer m_Container;
-
         public GradientSlotControlView(GradientInputMaterialSlot slot)
         {
             m_Slot = slot;
+            AddStyleSheetPath("Styles/Controls/GradientSlotControlView");
+            
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
             m_SerializedObject = new SerializedObject(m_GradientObject);
             m_SerializedProperty = m_SerializedObject.FindProperty("gradient");
-            m_Container = new IMGUIContainer(OnGUIHandler);
-            Add(m_Container);
-        }
-
-        public void OnNodeModified(ModificationScope scope)
-        {
-            if (scope == ModificationScope.Node)
-                m_Container.Dirty(ChangeType.Repaint);
-        }
-
-        void OnGUIHandler()
-        {
-            m_SerializedObject.Update();
+            
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
             m_GradientObject.gradient.mode = m_Slot.value.mode;
 
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+            var gradientField = new GradientField() { value = m_GradientObject.gradient };
+            gradientField.OnValueChanged(OnValueChanged);
+            Add(gradientField);
+        }
+
+        void OnValueChanged(ChangeEvent<Gradient> evt)
+        {
+            m_SerializedObject.Update();
+            if (!evt.newValue.Equals(m_Slot.value))
             {
-                EditorGUILayout.PropertyField(m_SerializedProperty, new GUIContent(""), true, null);
+                m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
+                m_GradientObject.gradient.mode = evt.newValue.mode;
                 m_SerializedObject.ApplyModifiedProperties();
-                if (changeCheckScope.changed)
-                {
-                    m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
-                    m_Slot.value = m_GradientObject.gradient;
-                    m_Slot.owner.Dirty(ModificationScope.Node);
-                    m_Container.Dirty(ChangeType.Repaint);
-                }
+
+                m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
+                m_Slot.value = m_GradientObject.gradient;
+                m_Slot.owner.Dirty(ModificationScope.Node);
             }
         }
     }
