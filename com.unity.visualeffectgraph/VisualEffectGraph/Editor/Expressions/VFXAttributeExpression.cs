@@ -98,11 +98,13 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute Find(string attributeName)
         {
-            if (AllAttribute.Any(e => e.name == attributeName))
-                return AllAttribute.First(e => e.name == attributeName);
+            int index = Array.FindIndex(AllAttribute, e => e.name == attributeName);
+            if (index != -1)
+                return AllAttribute[index];
 
-            if (AllVariadicAttribute.Any(e => e.name == attributeName))
-                return AllVariadicAttribute.First(e => e.name == attributeName);
+            index = Array.FindIndex(AllVariadicAttribute, e => e.name == attributeName);
+            if (index != -1)
+                return AllVariadicAttribute[index];
 
             throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
         }
