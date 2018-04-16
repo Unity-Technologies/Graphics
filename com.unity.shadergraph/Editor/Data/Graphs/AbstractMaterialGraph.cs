@@ -434,14 +434,21 @@ namespace UnityEditor.ShaderGraph
             return displayName;
         }
 
-        public string SanitizePropertyReferenceName(string referenceName)
+        public string SanitizePropertyReferenceName(string referenceName, Guid guid = default(Guid))
         {
             referenceName = referenceName.Trim();
+
+            if (string.IsNullOrEmpty(referenceName))
+                return null;
+
+            if (!referenceName.StartsWith("_"))
+                referenceName = "_" + referenceName;
+
             referenceName = Regex.Replace(referenceName, @"\s+", "_");
             referenceName = Regex.Replace(referenceName, @"^[^A-Za-z_]", "_");
             referenceName = Regex.Replace(referenceName, @"[^A-Za-z_0-9]", "_");
 
-            // Similat to teh property names, duplicate names are handled by appending `_n`
+            // Similar to the property names, duplicate names are handled by appending `_n`
             // to the end of the referene name.
             if (m_Properties.Any(p => p.referenceName == referenceName && p.guid != guid))
             {
