@@ -131,12 +131,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-
-            foreach (var subShader in subShaders)
-            {
-                subShader.owner = this;
-                subShader.UpdateAfterDeserialization();
-            }
         }
 
         public VisualElement CreateSettingsElement()
@@ -145,12 +139,6 @@ namespace UnityEditor.ShaderGraph
             var commonSettingsElement = CreateCommonSettingsElement();
             if (commonSettingsElement != null)
                 container.Add(commonSettingsElement);
-            foreach (var subShader in subShaders)
-            {
-                var settingsElement = subShader.CreateSettingsElement();
-                if (settingsElement != null)
-                    container.Add(settingsElement);
-            }
 
             return container;
         }
