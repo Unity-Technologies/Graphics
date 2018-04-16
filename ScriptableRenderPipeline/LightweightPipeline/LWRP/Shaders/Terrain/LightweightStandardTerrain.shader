@@ -4,10 +4,10 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
     {
         // set by terrain engine
         [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
-        [HideInInspector] _Splat3("Layer 3 (A)", 2D) = "white" {}
-        [HideInInspector] _Splat2("Layer 2 (B)", 2D) = "white" {}
-        [HideInInspector] _Splat1("Layer 1 (G)", 2D) = "white" {}
-        [HideInInspector] _Splat0("Layer 0 (R)", 2D) = "white" {}
+        [HideInInspector] _Splat3("Layer 3 (A)", 2D) = "grey" {}
+        [HideInInspector] _Splat2("Layer 2 (B)", 2D) = "grey" {}
+        [HideInInspector] _Splat1("Layer 1 (G)", 2D) = "grey" {}
+        [HideInInspector] _Splat0("Layer 0 (R)", 2D) = "grey" {}
         [HideInInspector] _Normal3("Normal 3 (A)", 2D) = "bump" {}
         [HideInInspector] _Normal2("Normal 2 (B)", 2D) = "bump" {}
         [HideInInspector] _Normal1("Normal 1 (G)", 2D) = "bump" {}
@@ -16,13 +16,13 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
         [HideInInspector][Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0.0
         [HideInInspector][Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0.0
         [HideInInspector][Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness0("Smoothness 0", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness1("Smoothness 1", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness2("Smoothness 2", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness3("Smoothness 3", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness0("Smoothness 0", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _Smoothness1("Smoothness 1", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _Smoothness2("Smoothness 2", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _Smoothness3("Smoothness 3", Range(0.0, 1.0)) = 0.5
 
         // used in fallback on old cards & base map
-        [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "white" {}
+        [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
         [HideInInspector] _Color("Main Color", Color) = (1,1,1,1)
     }
 

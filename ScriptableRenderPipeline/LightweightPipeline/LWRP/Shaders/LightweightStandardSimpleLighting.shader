@@ -4,19 +4,19 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
     {
-        _Color("Color", Color) = (1,1,1,1)
+        _Color("Color", Color) = (0.5, 0.5, 0.5, 1)
         _MainTex("Base (RGB) Glossiness / Alpha (A)", 2D) = "white" {}
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        _Shininess("Shininess", Range(0.01, 1.0)) = 1.0
+        _Shininess("Shininess", Range(0.01, 1.0)) = 0.5
         _GlossMapScale("Smoothness Factor", Range(0.0, 1.0)) = 1.0
 
         _Glossiness("Glossiness", Range(0.0, 1.0)) = 0.5
         [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         [HideInInspector] _SpecSource("Specular Color Source", Float) = 0.0
-        _SpecColor("Specular", Color) = (1.0, 1.0, 1.0)
+        _SpecColor("Specular", Color) = (0.5, 0.5, 0.5)
         _SpecGlossMap("Specular", 2D) = "white" {}
         [HideInInspector] _GlossinessSource("Glossiness Source", Float) = 0.0
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
@@ -179,6 +179,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaSimple
 
