@@ -35,10 +35,6 @@ public class VFXContextEditor : VFXSlotContainerEditor
             spaceProperty = null;
         }
 
-        bShowContextInfo = false;
-        bShowSystemInfo = false;
-        bShowParticleInfo = false;
-
         base.OnEnable();
     }
 
@@ -74,80 +70,53 @@ public class VFXContextEditor : VFXSlotContainerEditor
         var context = (VFXContext)target;
         var data = (VFXData)dataObject.targetObject;
 
-
         // Particle context data
         if (data.type == VFXDataType.kParticle)
         {
             VFXDataParticle particleData = data as VFXDataParticle;
             EditorGUILayout.Space();
-            bShowParticleInfo = EditorGUILayout.Foldout(bShowParticleInfo, "Particle System Summary", Styles.foldout);
-            if (bShowParticleInfo)
             {
                 Styles.Row(Styles.header, "Name", "Value");
                 Styles.Row(Styles.cell, "Capacity", particleData.capacity.ToString());
-                Styles.Row(Styles.cell, "Source Count", particleData.sourceCount.ToString());
-            }
-        }
 
-        // Generic context data
-        EditorGUILayout.Space();
-        bShowContextInfo = EditorGUILayout.Foldout(bShowContextInfo, "Context Summary", Styles.foldout);
-        if (bShowContextInfo)
-        {
-            Styles.Row(Styles.header, "Name", "Value");
-            Styles.Row(Styles.cell, "Context Type", context.contextType.ToString());
-            Styles.Row(Styles.cell, "Input Data Type", context.inputType.ToString());
-            Styles.Row(Styles.cell, "Context Data Type", data.type.ToString());
-            Styles.Row(Styles.cell, "Output Type", context.outputType.ToString());
+                EditorGUILayout.Space();
 
-            Styles.Row(Styles.cell, "Source Count", data.sourceCount.ToString());
-            Styles.Row(Styles.cell, "Task Type", context.taskType.ToString());
-            Styles.Row(Styles.cell, "Can Be Compiled", context.CanBeCompiled().ToString());
-
-
-            EditorGUILayout.Space();
-
-            if (data.storedCurrentAttributes.Count > 0)
-            {
-                EditorGUILayout.LabelField("Stored Attributes", Styles.header);
-
-                foreach (var kvp in data.storedCurrentAttributes)
+                if (data.storedCurrentAttributes.Count > 0)
                 {
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        EditorGUILayout.LabelField(kvp.Key.name, Styles.cell);
-                        Styles.DataTypeLabel(kvp.Key.type.ToString(), kvp.Key.type, Styles.cell, GUILayout.Width(80));
-                        EditorGUILayout.LabelField(kvp.Value.ToString(), Styles.cell, GUILayout.Width(80));
-                    }
-                }
-            }
-            EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Attribute Layout", Styles.header);
 
-            if (data.attributesToContexts.Count > 0)
-            {
-                EditorGUILayout.LabelField("Local Attributes", Styles.header);
-
-                foreach (var attrib in data.localCurrentAttributes)
-                {
-                    using (new EditorGUILayout.HorizontalScope())
+                    foreach (var kvp in data.storedCurrentAttributes)
                     {
-                        EditorGUILayout.LabelField(attrib.name, Styles.cell);
-                        Styles.DataTypeLabel(attrib.type.ToString(), attrib.type, Styles.cell, GUILayout.Width(160));
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            EditorGUILayout.LabelField(kvp.Key.name, Styles.cell);
+                            Styles.DataTypeLabel(kvp.Key.type.ToString(), kvp.Key.type, Styles.cell, GUILayout.Width(80));
+                            int size = VFXExpressionHelper.GetSizeOfType(kvp.Key.type);
+                            EditorGUILayout.LabelField(size + " byte" + (size > 1? "s":"") , Styles.cell, GUILayout.Width(80));
+                        }
                     }
                 }
             }
         }
 
-        EditorGUILayout.Space();
-        bShowSystemInfo = EditorGUILayout.Foldout(bShowSystemInfo, "System Attribute Summary", Styles.foldout);
-        if (bShowSystemInfo)
+        if(EditorPrefs.GetBool("VFX.ExtraDebugInfo"))
         {
-            foreach (var ctx in data.owners)
+
+            // Extra debug data
+            EditorGUILayout.Space();
             {
+                Styles.Row(Styles.header, "Name", "Value");
+                Styles.Row(Styles.cell, "Context Type", context.contextType.ToString());
+                Styles.Row(Styles.cell, "Task Type", context.taskType.ToString());
+                Styles.Row(Styles.cell, "Input Data Type", context.inputType.ToString());
+                Styles.Row(Styles.cell, "Context Data Type", data.type.ToString());
+                Styles.Row(Styles.cell, "Can Be Compiled", context.CanBeCompiled().ToString());
+
+                EditorGUILayout.Space();
                 Dictionary<VFXAttribute, VFXAttributeMode> attributeInfos;
-                if (data.contextsToAttributes.TryGetValue(ctx, out attributeInfos))
+                if (data.contextsToAttributes.TryGetValue(context, out attributeInfos))
                 {
-                    EditorGUILayout.LabelField(string.Format("{0} ({1}) ", ctx.GetHashCode(), ctx.contextType), Styles.header);
+                    EditorGUILayout.LabelField("Attributes used by Context", Styles.header);
 
                     foreach (var kvp in attributeInfos)
                     {
@@ -159,11 +128,17 @@ public class VFXContextEditor : VFXSlotContainerEditor
                         }
                     }
                 }
-            }
-        }
-    }
 
-    bool bShowParticleInfo;
-    bool bShowContextInfo;
-    bool bShowSystemInfo;
+                EditorGUILayout.Space();
+
+                Styles.Row(Styles.header, "Blocks");
+                foreach (var block in context.activeChildrenWithImplicit)
+                    Styles.Row(Styles.cell, block.name, !context.children.Contains(block) ? "implicit" : "");
+
+                EditorGUILayout.Space();
+            }
+
+        }
+
+    }
 }

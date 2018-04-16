@@ -20,7 +20,6 @@ public class VFXBlockEditor : VFXSlotContainerEditor
 {
     SerializedObject dataObject;
 
-    bool bShowContextInfo;
     protected new void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXBlock>().Cast<UnityEngine.Object>().ToArray();
@@ -32,7 +31,6 @@ public class VFXBlockEditor : VFXSlotContainerEditor
         {
             dataObject = null;
         }
-        bShowContextInfo = true;
 
         base.OnEnable();
     }
@@ -44,10 +42,10 @@ public class VFXBlockEditor : VFXSlotContainerEditor
 
         base.OnInspectorGUI();
 
-        EditorGUILayout.Space();
-        bShowContextInfo = EditorGUILayout.Foldout(bShowContextInfo, "Block Summary", Styles.foldout);
-        if (bShowContextInfo)
+
+        if (EditorPrefs.GetBool("VFX.ExtraDebugInfo"))
         {
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Attributes", EditorStyles.boldLabel);
 
             VFXBlock block = dataObject.targetObject as VFXBlock;
