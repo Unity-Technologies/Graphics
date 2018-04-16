@@ -174,8 +174,6 @@ namespace UnityEditor.ShaderGraph
             return resultPass;
         }
 
-        public IMasterNode owner { get; set; }
-
         public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
         {
             var masterNode = inMasterNode as UnlitMasterNode;
@@ -203,15 +201,6 @@ namespace UnityEditor.ShaderGraph
             subShader.AddShaderChunk("}", true);
 
             return subShader.GetShaderString(0);
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return null;
-        }
-
-        public void UpdateAfterDeserialization()
-        {
         }
     }
 }
