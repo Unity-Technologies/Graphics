@@ -74,8 +74,8 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 											 _VBufferDepthDecodingParams,
 											 true, true);
 
-	fogFactor = 1 - volFog.a;                          // Opacity from transmittance
-	fogColor  = volFog.rgb * saturate(rcp(fogFactor)); // Un-premultiply, saturate to avoid (0 * INF = NaN)
+	fogFactor = 1 - volFog.a;                              // Opacity from transmittance
+	fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
 #else
 
 	if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
