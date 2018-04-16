@@ -3,6 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
@@ -29,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         public Gradient gradient = new Gradient();
     }
 
-    public class GradientControlView : VisualElement, INodeModificationListener
+    public class GradientControlView : VisualElement
     {
         GUIContent m_Label;
 
@@ -46,46 +47,49 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         [SerializeField]
         SerializedProperty m_SerializedProperty;
 
-        IMGUIContainer m_Container;
-
         public GradientControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
+            AddStyleSheetPath("Styles/Controls/GradientControlView");
+
             if (propertyInfo.PropertyType != typeof(Gradient))
                 throw new ArgumentException("Property must be of type Gradient.", "propertyInfo");
+            new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
+
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
             m_SerializedObject = new SerializedObject(m_GradientObject);
             m_SerializedProperty = m_SerializedObject.FindProperty("gradient");
-            m_Container = new IMGUIContainer(OnGUIHandler);
-            Add(m_Container);
-        }
 
-        public void OnNodeModified(ModificationScope scope)
-        {
-            if (scope == ModificationScope.Node)
-                m_Container.Dirty(ChangeType.Repaint);
-        }
-
-        void OnGUIHandler()
-        {
-            m_SerializedObject.Update();
             var gradient = (Gradient)m_PropertyInfo.GetValue(m_Node, null);
             m_GradientObject.gradient.SetKeys(gradient.colorKeys, gradient.alphaKeys);
             m_GradientObject.gradient.mode = gradient.mode;
 
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
+            var gradientPanel = new VisualElement { name = "gradientPanel" };
+            if (!string.IsNullOrEmpty(label))
+                gradientPanel.Add(new Label(label));
+
+            var gradientField = new GradientField() { value = m_GradientObject.gradient };
+            gradientField.OnValueChanged(OnValueChanged);
+            gradientPanel.Add(gradientField);
+
+            Add(gradientPanel);
+        }
+
+        void OnValueChanged(ChangeEvent<Gradient> evt)
+        {
+            m_SerializedObject.Update();
+            var value = (Gradient)m_PropertyInfo.GetValue(m_Node, null);
+            if (!evt.newValue.Equals(value))
             {
-                EditorGUILayout.PropertyField(m_SerializedProperty, m_Label, true, null);
+                m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
+                m_GradientObject.gradient.mode = evt.newValue.mode;
                 m_SerializedObject.ApplyModifiedProperties();
-                if (changeCheckScope.changed)
-                {
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
-                    Dirty(ChangeType.Repaint);
-                }
+
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
+                Dirty(ChangeType.Repaint);
             }
         }
     }
