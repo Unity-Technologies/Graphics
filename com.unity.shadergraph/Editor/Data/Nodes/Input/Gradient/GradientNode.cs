@@ -7,8 +7,8 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Gradient", "Gradient Asset")]
-    public class GradientAssetNode : AbstractMaterialNode, IGeneratesFunction
+    [Title("Input", "Gradient", "Gradient")]
+    public class GradientNode : AbstractMaterialNode, IGeneratesFunction
     {
         [SerializeField]
         private float m_Value;
@@ -16,9 +16,9 @@ namespace UnityEditor.ShaderGraph
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
-        public GradientAssetNode()
+        public GradientNode()
         {
-            name = "Gradient Asset";
+            name = "Gradient";
             UpdateNodeAfterDeserialization();
         }
 
