@@ -24,16 +24,16 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             public TestNode()
             {
-                slot1 = new Vector1MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, 0);
+                slot1 = new Vector1MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, 1);
                 AddSlot(slot1);
 
-                slot2 = new Vector2MaterialSlot(V2In, "V2In", "V2In", SlotType.Input, Vector2.zero);
+                slot2 = new Vector2MaterialSlot(V2In, "V2In", "V2In", SlotType.Input, Vector2.one);
                 AddSlot(slot2);
 
-                slot3 = new Vector3MaterialSlot(V3In, "V3In", "V3In", SlotType.Input, Vector3.zero);
+                slot3 = new Vector3MaterialSlot(V3In, "V3In", "V3In", SlotType.Input, Vector3.one);
                 AddSlot(slot3);
 
-                slot4 = new Vector4MaterialSlot(V4In, "V4In", "V4In", SlotType.Input, Vector4.zero);
+                slot4 = new Vector4MaterialSlot(V4In, "V4In", "V4In", SlotType.Input, Vector4.one);
                 AddSlot(slot4);
             }
         }
@@ -58,13 +58,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var displayName = "New Display Name";
 
-            Assert.AreEqual(displayName + "(1)", m_NodeA.slot1.displayName);
+            Assert.AreEqual("V1In(1)", m_NodeA.slot1.displayName);
 
-            Assert.AreEqual(displayName + "(2)", m_NodeA.slot2.displayName);
+            Assert.AreEqual("V2In(2)", m_NodeA.slot2.displayName);
 
-            Assert.AreEqual(displayName + "(3)", m_NodeA.slot3.displayName);
+            Assert.AreEqual("V3In(3)", m_NodeA.slot3.displayName);
 
-            Assert.AreEqual(displayName + "(4)", m_NodeA.slot4.displayName);
+            Assert.AreEqual("V4In(4)", m_NodeA.slot4.displayName);
         }
 
         [Test]
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var slot = m_NodeA.slot1;
             slot.value = 1;
-            Assert.AreEqual(Vector4.one, slot.defaultValue);
+            Assert.AreEqual(1, slot.defaultValue);
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var slot = m_NodeA.slot1;
             slot.value = 1;
-            Assert.AreEqual(Vector4.one, 1);
+            Assert.AreEqual(1, 1);
         }
 
         /*     [Test]
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual("6", result);
 
             m_NodeA.slot2.value = new Vector4(6, 6, 6, 1);
-            result = m_NodeA.slot1.GetDefaultValue(GenerationMode.ForReals);
+            result = m_NodeA.slot2.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half2 (6,6)", result);
 
             m_NodeA.slot3.value = new Vector4(6, 6, 6, 1);
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual("half3 (6,6,6)", result);
 
             m_NodeA.slot4.value = new Vector4(6, 6, 6, 1);
-            result = m_NodeA.slot3.GetDefaultValue(GenerationMode.ForReals);
+            result = m_NodeA.slot4.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half4 (6,6,6,1)", result);
         }
 

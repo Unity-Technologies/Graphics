@@ -80,7 +80,7 @@ Shader ""Hidden/GraphErrorShader2""
         ctx.SetMainObject(shader);
     }
 
-    static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
+    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
     {
         string shaderString = null;
         var shaderName = Path.GetFileNameWithoutExtension(path);

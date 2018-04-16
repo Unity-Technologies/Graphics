@@ -222,9 +222,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanNotAddNullSlotToTestNode()
         {
             var node = new TestNode();
-            node.AddSlot(null);
-            node.name = "Test Node";
-            Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
+            Assert.Throws<ArgumentException>(() => node.AddSlot(null));
         }
 
         [Test]
@@ -303,7 +301,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
 
             var slot = found.GetOutputSlots<ISlot>().FirstOrDefault();
-            Assert.AreEqual("output_updated", slot.displayName);
+            Assert.AreEqual("output_updated(4)", slot.displayName);
         }
 
         [Test]
@@ -360,9 +358,9 @@ namespace UnityEditor.Graphing.UnitTests
 
             var slot = node.GetOutputSlots<ISlot>().FirstOrDefault();
             Assert.IsNotNull(slot);
-            Assert.AreEqual("output", slot.displayName);
+            Assert.AreEqual("output(4)", slot.displayName);
             slot.displayName = "test";
-            Assert.AreEqual("test", slot.displayName);
+            Assert.AreEqual("test(4)", slot.displayName);
         }
 
         [Test]
