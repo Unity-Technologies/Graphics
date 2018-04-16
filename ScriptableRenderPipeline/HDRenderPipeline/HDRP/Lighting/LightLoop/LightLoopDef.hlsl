@@ -137,7 +137,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
             color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
-            
+
 #ifdef DEBUG_DISPLAY
             if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
                 color = float4(ndc.xy, 0, color.a);
@@ -300,4 +300,11 @@ LightData FetchLight(uint start, uint i)
     int j = FetchIndex(start, i);
 
     return _LightDatas[j];
+}
+
+EnvLightData FetchEnvLight(uint start, uint i)
+{
+    int j = FetchIndex(start, i);
+
+    return _EnvLightDatas[j];
 }
