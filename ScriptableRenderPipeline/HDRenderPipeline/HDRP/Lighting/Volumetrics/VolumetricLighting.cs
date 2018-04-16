@@ -9,6 +9,7 @@ public struct DensityVolumeProperties
 {
     public Vector3 scattering; // [0, 1], prefer sRGB
     public float   extinction; // [0, 1], prefer sRGB
+    public float   asymmetry;  // [-1, 1], linear, global parameter
 
     public static DensityVolumeProperties GetNeutralProperties()
     {
@@ -16,6 +17,7 @@ public struct DensityVolumeProperties
 
         properties.scattering = Vector3.zero;
         properties.extinction = 0;
+        properties.asymmetry  = 0;
 
         return properties;
     }
@@ -428,10 +430,9 @@ public class VolumetricLightingSystem
         DensityVolumeProperties globalVolumeProperties = (globalVolume != null) ? globalVolume.parameters.GetProperties()
                                                                                 : DensityVolumeProperties.GetNeutralProperties();
 
-        float asymmetry = globalVolume != null ? globalVolume.parameters.asymmetry : 0;
         cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, globalVolumeProperties.scattering);
         cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, globalVolumeProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  asymmetry);
+        cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  globalVolumeProperties.asymmetry);
 
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
@@ -439,7 +440,8 @@ public class VolumetricLightingSystem
         int w = 0, h = 0, d = 0;
         vBuffer.GetResolution(ref w, ref h, ref d);
 
-        SetPreconvolvedAmbientLightProbe(cmd, asymmetry);
+        SetPreconvolvedAmbientLightProbe(cmd, globalVolumeProperties.asymmetry);
+
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferSliceCount,          new Vector4(d, 1.0f / d));
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams, ComputeLogarithmicDepthEncodingParams(m_VBufferNearPlane, m_VBufferFarPlane, k_LogScale));
