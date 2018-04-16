@@ -31,61 +31,22 @@
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerCamera)
-    // Time (t = time since current level load) values from Unity
-    float4 _Time; // (t/20, t, t*2, t*3)
-    float4 _LastTime; // Last frame time (t/20, t, t*2, t*3)
-    float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-    float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-    float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
-
-#if !defined(USING_STEREO_MATRICES)
-    float3 _WorldSpaceCameraPos;
-#endif
-
-    // x = 1 or -1 (-1 if projection is flipped)
-    // y = near plane
-    // z = far plane
-    // w = 1/far plane
-    float4 _ProjectionParams;
-
-    // x = width
-    // y = height
-    // z = 1 + 1.0/width
-    // w = 1 + 1.0/height
-    float4 _ScreenParams;
-
-    // x = camera.pixelWidth / RTHandle.maxWidth
-    // y = camera.pixelHeight / RTHandle.maxHeight
-    float4 _ScreenToTargetScale;
-
-    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-    // x = 1-far/near
-    // y = far/near
-    // z = x/far
-    // w = y/far
-    // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
-    // x = -1+far/near
-    // y = 1
-    // z = x/far
-    // w = 1/far
-    float4 _ZBufferParams;
-
-    // x = orthographic camera's width
-    // y = orthographic camera's height
-    // z = unused
-    // w = 1.0 if camera is ortho, 0.0 if perspective
-    float4 unity_OrthoParams;
-CBUFFER_END
-
+//  *********************************************************
+//  *                                                       *
+//  *  UnityPerCameraRare has been deprecated. Do NOT use!  *
+//  *         Please refer to UnityPerView instead.         *
+//  *                                                       *
+//  *********************************************************
 
 CBUFFER_START(UnityPerCameraRare)
+    // DEPRECATED: use _FrustumPlanes
     float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)
     // Projection matrices of the camera. Note that this might be different from projection matrix
     // that is set right now, e.g. while rendering shadows the matrices below are still the projection
     // of original camera.
+    // DEPRECATED: use _ProjMatrix, _InvProjMatrix, _ViewMatrix, _InvViewMatrix
     float4x4 unity_CameraProjection;
     float4x4 unity_CameraInvProjection;
     float4x4 unity_WorldToCamera;
@@ -192,17 +153,6 @@ CBUFFER_START(UnityPerFrame)
 #endif
 
     float4 unity_ShadowColor;
-    float2 _TaaFrameRotation; // {x = sin(_TaaFrameIndex * PI/2), y = cos(_TaaFrameIndex * PI/2), z = unused}
-    uint   _TaaFrameIndex;    // [0, 7]
-    // Volumetric lighting.
-    float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-    float  _GlobalAsymmetry;
-    float3 _GlobalScattering;
-    float  _GlobalExtinction;
-    float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
-    float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
-    float4 _VBufferDepthEncodingParams; // See the call site for description
-    float4 _VBufferDepthDecodingParams; // See the call site for description
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
@@ -241,21 +191,79 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 // ----------------------------------------------------------------------------
 
 // TODO: all affine matrices should be 3x4.
-// TODO: sort these vars by the frequency of use (descending), and put commonly used vars together.
 // Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
-CBUFFER_START(UnityPerPass)
-float4x4 _PrevViewProjMatrix; // non-jittered
-float4x4 _ViewProjMatrix;
-float4x4 _NonJitteredViewProjMatrix;
-float4x4 _ViewMatrix;
-float4x4 _ProjMatrix;
-float4x4 _InvViewProjMatrix;
-float4x4 _InvViewMatrix;
-float4x4 _InvProjMatrix;
-float4   _ViewParam; // .x = ViewMatrix determinant
-float4   _InvProjParam;
-float4   _ScreenSize;       // {w, h, 1/w, 1/h}
-float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
+CBUFFER_START(UnityPerView)
+    float4x4 _ViewMatrix;
+    float4x4 _InvViewMatrix;
+    float4x4 _ProjMatrix;
+    float4x4 _InvProjMatrix;
+    float4x4 _ViewProjMatrix;
+    float4x4 _InvViewProjMatrix;
+    float4x4 _NonJitteredViewProjMatrix;
+    float4x4 _PrevViewProjMatrix;       // non-jittered
+
+    // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
+    // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
+#if defined(USING_STEREO_MATRICES)
+    float3 _Align16;
+#else
+    float3 _WorldSpaceCameraPos;
+#endif
+    float  _DetViewMatrix;              // determinant(_ViewMatrix)
+    float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
+    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight, 0, 0 }
+
+    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
+    // x = 1 - f/n
+    // y = f/n
+    // z = 1/f - 1/n
+    // w = 1/n
+    // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
+    // x = -1 + f/n
+    // y = 1
+    // z = -1/n + -1/f
+    // w = 1/f
+    float4 _ZBufferParams;
+
+    // x = 1 or -1 (-1 if projection is flipped)
+    // y = near plane
+    // z = far plane
+    // w = 1/far plane
+    float4 _ProjectionParams;
+
+    // x = orthographic camera's width
+    // y = orthographic camera's height
+    // z = unused
+    // w = 1.0 if camera is ortho, 0.0 if perspective
+    float4 unity_OrthoParams;
+
+    // x = width
+    // y = height
+    // z = 1 + 1.0/width
+    // w = 1 + 1.0/height
+    float4 _ScreenParams;
+
+    float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
+
+    // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
+
+    float4 _TaaFrameRotation;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
+    // t = animateMaterials ? Time.realtimeSinceStartup : 0.
+    float4 _Time;                       // { t/20, t, t*2, t*3 }
+    float4 _LastTime;                   // { t/20, t, t*2, t*3 }
+    float4 _SinTime;                    // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
+    float4 _CosTime;                    // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
+    float4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
+
+    // Volumetric lighting.
+    float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
+    float  _GlobalAsymmetry;
+    float3 _GlobalScattering;
+    float  _GlobalExtinction;
+    float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
+    float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
+    float4 _VBufferDepthEncodingParams; // See the call site for description
+    float4 _VBufferDepthDecodingParams; // See the call site for description
 CBUFFER_END
 
 // Custom generated by HDRP, not from Unity Engine (passed in via HDCamera)
