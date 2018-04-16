@@ -332,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             
             m_DebugScreenSpaceTracingData.Release();
 
-            HDCamera.CleanUnused();
+            HDCamera.ClearAll();
         }
 
 
@@ -1431,14 +1431,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Output split lighting for materials asking for it (masked in the stencil buffer)
                 options.outputSplitLighting = true;
-
-                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBuffer, depthTexture, options);
+                
+                m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBuffer, depthTexture, options, m_DebugScreenSpaceTracingData);
             }
 
             // Output combined lighting for all the other materials.
             options.outputSplitLighting = false;
 
-            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBuffer, depthTexture, options);
+            m_LightLoop.RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_CameraDepthStencilBuffer, depthTexture, options, m_DebugScreenSpaceTracingData);
         }
 
         void UpdateSkyEnvironment(HDCamera hdCamera, CommandBuffer cmd)
