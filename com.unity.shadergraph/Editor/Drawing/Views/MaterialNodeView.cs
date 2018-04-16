@@ -8,6 +8,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 #if UNITY_2018_1
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
@@ -32,6 +33,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
         VisualElement m_CollapseButton;
+
+        // Remove this after updated to the correct API call has landed in trunk. ------------
+        VisualElement m_TitleContainer;
+        VisualElement m_ButtonContainer;
+        // -----------------------------------------------------------------------------------
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -143,8 +149,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             m_PortInputContainer.SendToBack();
-            
+
             m_CollapseButton = this.Q("collapse-button");
+
+            // Remove this after updated to the correct API call has landed in trunk. ------------
+            m_TitleContainer = this.Q("title");
+            // -----------------------------------------------------------------------------------
 
             var settings = node as IHasSettings;
             if (settings != null)
@@ -161,8 +171,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     UpdateSettingsExpandedState(settings);
                 }));
-                titleButtonContainer.Add(m_SettingsButton);
-                titleButtonContainer.Add(m_CollapseButton);
+
+                // Remove this after updated to the correct API call has landed in trunk. ------------
+                m_ButtonContainer = new VisualElement{ name = "button-container" };
+                m_ButtonContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Row);
+                m_ButtonContainer.Add(m_SettingsButton);
+                m_ButtonContainer.Add(m_CollapseButton);
+                m_TitleContainer.Add(m_ButtonContainer);
+                // -----------------------------------------------------------------------------------
+                //titleButtonContainer.Add(m_SettingsButton);
+                //titleButtonContainer.Add(m_CollapseButton);
 
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }

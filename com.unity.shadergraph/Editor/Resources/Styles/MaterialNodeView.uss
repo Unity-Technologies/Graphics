@@ -147,3 +147,10 @@ MaterialNodeView > #settings-container {
     visibility: visible;
 }
 
+.node.collapsed > #node-border > #title > #button-container > #collapse-button > #icon {
+    background-image: resource("GraphView/Nodes/NodeChevronLeft.png");
+}
+
+.node.expanded > #node-border > #title > #button-container > #collapse-button > #icon {
+    background-image : resource("GraphView/Nodes/NodeChevronDown.png");
+}
