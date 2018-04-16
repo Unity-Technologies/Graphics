@@ -51,6 +51,27 @@ namespace UnityEngine.Experimental.Rendering
                 parameter.OnDisable();
         }
 
+        // You can override this to do your own blending. Either loop through the `parameters` list
+        // or reference direct fields (you'll need to cast `state` to your custom type and don't
+        // forget to use `SetValue` on parameters, do not assign directly to the state object - and
+        // of course you'll need to check for the `overrideState` manually).
+        protected internal virtual void Override(VolumeComponent state, float interpFactor)
+        {
+            int count = parameters.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                var stateParam = state.parameters[i];
+                var toParam = parameters[i];
+
+                // Keep track of the override state for debugging purpose
+                stateParam.overrideState = toParam.overrideState;
+
+                if (toParam.overrideState)
+                    stateParam.Interp(stateParam, toParam, interpFactor);
+            }
+        }
+
         public void SetAllOverridesTo(bool state)
         {
             SetAllOverridesTo(parameters, state);
