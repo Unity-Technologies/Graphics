@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            return new GradientAssetNode { gradient = value };
+            return new GradientNode { gradient = value };
         }
     }
 }
