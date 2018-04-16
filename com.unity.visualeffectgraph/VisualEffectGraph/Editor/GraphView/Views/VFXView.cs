@@ -1598,12 +1598,6 @@ namespace UnityEditor.VFX.UI
             }
 
             base.BuildContextualMenu(evt);
-            /*
-            if (evt.target is UIElements.GraphView.GraphView)
-            {
-                evt.menu.AppendAction("Paste", (e) => { PasteCallback(); },
-                    (e) => { return canPaste ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
-            }*/
         }
 
         private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
