@@ -9,11 +9,11 @@ namespace UnityEditor.VFX
     [Flags]
     enum VFXAttributeMode
     {
-        None        = 0,
+        None = 0,
         Read = 1 << 0,
         Write = 1 << 1,
         ReadWrite = Read | Write,
-        ReadSource  = 1 << 2,
+        ReadSource = 1 << 2,
     }
 
     struct VFXAttribute
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
             if (AllVariadicAttribute.Any(e => e.name == attributeName))
                 return AllVariadicAttribute.First(e => e.name == attributeName);
 
-            throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));          
+            throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
         }
 
         public string name;
@@ -144,6 +144,15 @@ namespace UnityEditor.VFX
         False = 0,
         True = 1
     }
+
+    enum VariadicChannelOptions
+    {
+        X = 0,
+        Y = 1,
+        Z = 2,
+        XY = 3,
+        XYZ = 4
+    };
 
     sealed class VFXAttributeExpression : VFXExpression
     {

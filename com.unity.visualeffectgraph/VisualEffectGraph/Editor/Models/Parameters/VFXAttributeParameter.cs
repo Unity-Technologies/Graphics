@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllReadWritable.Concat(VFXAttribute.AllVariadic).Cast<object>().ToArray() }
                 };
             }
         }
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX
                 if (attribute.variadic == VFXVariadic.True)
                 {
                     Type slotType = null;
-                    switch (GetMaskSize())
+                    switch (mask.Length)
                     {
                         case 1: slotType = typeof(float); break;
                         case 2: slotType = typeof(Vector2); break;
@@ -113,11 +113,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private int GetMaskSize()
-        {
-            return Math.Min(3, mask.Length);
-        }
-
         public override void Sanitize()
         {
             if (attribute == "phase") // Replace old phase attribute with random operator
@@ -133,9 +128,6 @@ namespace UnityEditor.VFX
             }
             else
             {
-                if (attribute == "size")   attribute = "sizeX";
-                else if (attribute == "angle")  attribute = "angleZ";
-
                 base.Sanitize();
             }
         }
@@ -149,7 +141,7 @@ namespace UnityEditor.VFX
                 var expressions = attributes.Select(a => new VFXAttributeExpression(a, location)).ToArray();
 
                 var componentStack = new Stack<VFXExpression>();
-                int outputSize = GetMaskSize();
+                int outputSize = mask.Length;
                 for (int iComponent = 0; iComponent < outputSize; iComponent++)
                 {
                     char componentChar = char.ToLower(mask[iComponent]);

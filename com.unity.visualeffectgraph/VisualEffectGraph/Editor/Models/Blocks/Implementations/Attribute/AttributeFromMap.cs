@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -22,13 +23,17 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
-        public string attribute = VFXAttribute.AllWritable.First();
+        public string attribute = VFXAttribute.AllWritable.Concat(VFXAttribute.AllVariadic).First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
         [VFXSetting, Tooltip("How to sample inside the AttributeMap")]
         public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomUniformPerParticle;
+
+        [VFXSetting]
+        public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
+        private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
         public override string name { get { return string.Format("{0} {1} from Map", VFXBlockUtility.GetNameString(Composition), attribute); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
@@ -37,10 +42,32 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(currentAttribute, Composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                var attrib = currentAttribute;
+                VFXAttributeMode attributeMode = (Composition == AttributeCompositionMode.Overwrite) ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
+                if (attrib.variadic == VFXVariadic.True)
+                {
+                    string channelsString = channels.ToString();
+                    for (int i = 0; i < channelsString.Length; i++)
+                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                }
+                else
+                {
+                    yield return new VFXAttributeInfo(attrib, attributeMode);
+                }
+
                 if (SampleMode == AttributeMapSampleMode.Sequential) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
                 if (SampleMode == AttributeMapSampleMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 if (SampleMode == AttributeMapSampleMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (string setting in base.filteredOutSettings) yield return setting;
+                var attrib = VFXAttribute.Find(attribute);
+                if (attrib.variadic == VFXVariadic.False) yield return "channels";
             }
         }
 
@@ -80,12 +107,18 @@ namespace UnityEditor.VFX.Block
                 }
 
                 // Scale and Bias for the values, depending on the property type
-                if (VFXExpression.IsUniform(currentAttribute.type))
+                var attrib = currentAttribute;
+                if (VFXExpression.IsUniform(attrib.type))
                 {
-                    string scaleInputPropertiesType = "InputPropertiesScaleFloat";
-                    int count = VFXExpression.TypeToSize(currentAttribute.type);
+                    int count = VFXExpression.TypeToSize(attrib.type);
+                    if (attrib.variadic == VFXVariadic.True)
+                        count = channels.ToString().Length;
+
+                    string scaleInputPropertiesType;
                     switch (count)
                     {
+                        default:
+                        case 1: scaleInputPropertiesType = "InputPropertiesScaleFloat"; break;
                         case 2: scaleInputPropertiesType = "InputPropertiesScaleFloat2"; break;
                         case 3: scaleInputPropertiesType = "InputPropertiesScaleFloat3"; break;
                         case 4: scaleInputPropertiesType = "InputPropertiesScaleFloat4"; break;
@@ -104,15 +137,30 @@ namespace UnityEditor.VFX.Block
             {
                 string biasScale = "value = (value  + valueBias) * valueScale;";
                 string output = "";
-                var attribute = currentAttribute;
-                string attributeName = attribute.name;
+                var attrib = currentAttribute;
+                string attributeName = attrib.name;
+                int loopCount = 1;
+
+                VFXValueType valueType = attrib.type;
+                if (attrib.variadic == VFXVariadic.True)
+                {
+                    loopCount = channels.ToString().Length;
+                    switch (loopCount)
+                    {
+                        case 1: valueType = VFXValueType.Float; break;
+                        case 2: valueType = VFXValueType.Float2; break;
+                        case 3: valueType = VFXValueType.Float3; break;
+                        default:
+                            break;
+                    }
+                }
 
                 if (SampleMode == AttributeMapSampleMode.Sample2DLOD || SampleMode == AttributeMapSampleMode.Sample3DLOD)
                 {
                     output += string.Format(@"
 {0} value = ({0})attributeMap.t.SampleLevel(attributeMap.s, SamplePosition, LOD);
 {1}
-", GetCompatTypeString(attribute), biasScale);
+", GetCompatTypeString(valueType), biasScale);
                 }
                 else // All other SampleModes
                 {
@@ -133,13 +181,23 @@ uint count = width * height;
 uint id = clamp(uint({0}), 0, count - 1);
 {1} value = ({1})attributeMap.t.Load(int3(id % width, id / width,0));
 {2}
-", samplePos, GetCompatTypeString(attribute), biasScale);
+", samplePos, GetCompatTypeString(valueType), biasScale);
                 }
 
-                if (Composition != AttributeCompositionMode.Blend)
-                    return output + VFXBlockUtility.GetComposeString(Composition, attributeName, "value");
-                else
-                    return output + VFXBlockUtility.GetComposeString(Composition, attributeName, "value", "blend");
+                for (int i = 0; i < loopCount; i++)
+                {
+                    string paramPostfix = (attrib.variadic == VFXVariadic.True) ? "." + channelNames[i] : "";
+                    string attributePostfix = (attrib.variadic == VFXVariadic.True) ? char.ToUpper(channels.ToString()[i]).ToString() : "";
+
+                    if (Composition != AttributeCompositionMode.Blend)
+                        output +=  VFXBlockUtility.GetComposeString(Composition, attributeName + attributePostfix, "value" + paramPostfix);
+                    else
+                        output += VFXBlockUtility.GetComposeString(Composition, attributeName + attributePostfix, "value" + paramPostfix, "blend");
+
+                    if (i < loopCount - 1)
+                        output += "\n";
+                }
+                return output;
             }
         }
 
@@ -217,12 +275,12 @@ uint id = clamp(uint({0}), 0, count - 1);
 
         private VFXAttribute currentAttribute { get { return VFXAttribute.Find(attribute); } }
 
-        private static string GetCompatTypeString(VFXAttribute attrib)
+        private static string GetCompatTypeString(VFXValueType valueType)
         {
-            if (!VFXExpression.IsUniform(attrib.type))
-                throw new InvalidOperationException("Trying to fetch an attribute of type: " + attrib.type);
+            if (!VFXExpression.IsUniform(valueType))
+                throw new InvalidOperationException("Trying to fetch an attribute of type: " + valueType);
 
-            return VFXExpression.TypeToCode(attrib.type);
+            return VFXExpression.TypeToCode(valueType);
         }
     }
 }
