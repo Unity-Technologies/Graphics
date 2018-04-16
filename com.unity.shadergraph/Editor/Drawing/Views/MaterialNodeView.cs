@@ -143,10 +143,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             m_PortInputContainer.SendToBack();
-            if (node.hasPreview)
-                m_PreviewFiller.BringToFront();
-
-
+            
             m_CollapseButton = this.Q("collapse-button");
 
             var settings = node as IHasSettings;
