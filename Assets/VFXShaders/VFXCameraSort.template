@@ -14,7 +14,7 @@ ByteAddressBuffer attributeBuffer;
 StructuredBuffer<uint> inputBuffer;
 
 #if USE_DEAD_LIST_COUNT
-Buffer<uint> deadListCount;
+ByteAddressBuffer deadListCount;
 #endif
 
 struct Kvp
@@ -30,7 +30,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 {
 	uint threshold = nbMax;
 #if USE_DEAD_LIST_COUNT
-	threshold -= deadListCount[0];
+	threshold -= deadListCount.Load(0);
 #endif	
 	if (id.x < threshold)
 	{
