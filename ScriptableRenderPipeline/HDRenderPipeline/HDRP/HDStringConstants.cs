@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int g_LayeredSingleIdxBuffer = Shader.PropertyToID("g_LayeredSingleIdxBuffer");
         public static readonly int _EnvLightIndexShift = Shader.PropertyToID("_EnvLightIndexShift");
+        public static readonly int _DensityVolumeIndexShift = Shader.PropertyToID("_DensityVolumeIndexShift");
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
 
@@ -122,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ViewTilesFlags = Shader.PropertyToID("_ViewTilesFlags");
         public static readonly int _MousePixelCoord = Shader.PropertyToID("_MousePixelCoord");
         public static readonly int _DebugFont = Shader.PropertyToID("_DebugFont");
+        public static readonly int _DebugExposure = Shader.PropertyToID("_DebugExposure");
 
         public static readonly int _DebugEnvironmentProxyDepthScale = Shader.PropertyToID("_DebugEnvironmentProxyDepthScale");
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterial");
@@ -226,6 +228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
         public static readonly int _EnableDBuffer = Shader.PropertyToID("_EnableDBuffer");
+        public static readonly int _DecalAtlasResolution = Shader.PropertyToID("_DecalAtlasResolution");
 
         public static readonly int[] _GBufferTexture =
         {
@@ -258,10 +261,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
-        public static readonly int _GaussianPyramidColorTexture = Shader.PropertyToID("_GaussianPyramidColorTexture");
-        public static readonly int _PyramidDepthTexture = Shader.PropertyToID("_PyramidDepthTexture");
-        public static readonly int _GaussianPyramidColorMipSize = Shader.PropertyToID("_GaussianPyramidColorMipSize");
-        public static readonly int _DepthPyramidMipSize = Shader.PropertyToID("_PyramidDepthMipSize");
+        public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
+        public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_DepthPyramidTexture");
+        public static readonly int _ColorPyramidSize = Shader.PropertyToID("_ColorPyramidSize");
+        public static readonly int _ColorPyramidScale = Shader.PropertyToID("_ColorPyramidScale");
+        public static readonly int _DepthPyramidSize = Shader.PropertyToID("_DepthPyramidSize");
+        public static readonly int _DepthPyramidScale = Shader.PropertyToID("_DepthPyramidScale");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
         public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
@@ -322,5 +327,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferLightingHistory     = Shader.PropertyToID("_VBufferLightingHistory");
         public static readonly int _VBufferLightingFeedback    = Shader.PropertyToID("_VBufferLightingFeedback");
         public static readonly int _VBufferSampleOffset        = Shader.PropertyToID("_VBufferSampleOffset");
+        public static readonly int _VolumeBounds               = Shader.PropertyToID("_VolumeBounds");
+        public static readonly int _VolumeProperties           = Shader.PropertyToID("_VolumeProperties");
+        public static readonly int _NumVisibleDensityVolumes   = Shader.PropertyToID("_NumVisibleDensityVolumes");
     }
 }

@@ -48,6 +48,7 @@ RWStructuredBuffer<uint> g_vLightList : register( u0 );				// don't support RWBu
 
 #define MAX_NR_COARSE_ENTRIES		64
 #define MAX_NR_PRUNED_ENTRIES		24
+#define CATEGORY_LIST_SIZE          (LIGHTCATEGORY_COUNT - 1) // Skip density volumes
 
 groupshared unsigned int coarseList[MAX_NR_COARSE_ENTRIES];
 groupshared unsigned int prunedList[MAX_NR_COARSE_ENTRIES];		// temporarily support room for all 64 while in LDS
@@ -60,7 +61,7 @@ groupshared uint ldsDoesLightIntersect[2];
 #endif
 groupshared int ldsNrLightsFinal;
 
-groupshared int ldsCategoryListCount[LIGHTCATEGORY_COUNT];
+groupshared int ldsCategoryListCount[CATEGORY_LIST_SIZE];
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;
@@ -208,6 +209,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
 	{
 #endif
+		// Skip density volumes (lights are sorted by category). TODO: improve data locality
+		if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { break; }
+
 		const float3 vMi = g_vBoundsBuffer[l];
 		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
 
@@ -247,8 +251,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	}
 #endif
 
-	//
-	if(t<LIGHTCATEGORY_COUNT) ldsCategoryListCount[t]=0;
+	if(t<CATEGORY_LIST_SIZE) ldsCategoryListCount[t]=0;
 #ifdef USE_FEATURE_FLAGS
 	if(t==0) ldsFeatureFlags=0;
 #endif
@@ -294,12 +297,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	// All our cull data are in the same list, but at render time envLights are separated so we need to shift the index
 	// to make it work correctly
-	int shiftIndex[LIGHTCATEGORY_COUNT];
-	ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-	shiftIndex[LIGHTCATEGORY_COUNT - 2] = _EnvLightIndexShift;
-	shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DecalIndexShift;
+	int shiftIndex[CATEGORY_LIST_SIZE];
+	ZERO_INITIALIZE_ARRAY(int, shiftIndex, CATEGORY_LIST_SIZE);
+	shiftIndex[CATEGORY_LIST_SIZE - 2] = _EnvLightIndexShift;
+	shiftIndex[CATEGORY_LIST_SIZE - 1] = _DecalIndexShift;
 
-	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
+	for(int category=0; category<CATEGORY_LIST_SIZE; category++)
 	{
 		int nrLightsFinal = ldsCategoryListCount[category];
 		int nrLightsFinalClamped = nrLightsFinal<MAX_NR_PRUNED_ENTRIES ? nrLightsFinal : MAX_NR_PRUNED_ENTRIES;

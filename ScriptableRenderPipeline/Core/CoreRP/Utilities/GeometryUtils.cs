@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -57,23 +57,32 @@ namespace UnityEngine.Experimental.Rendering
     [GenerateHLSL]
     public struct OrientedBBox
     {
-        public Vector3 center;
-        public float   extentX;
+        // 3 x float4 = 48 bytes.
+        // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.
         public Vector3 right;
-        public float   extentY;
+        public float   extentX;
         public Vector3 up;
+        public float   extentY;
+        public Vector3 center;
         public float   extentZ;
+
+        public Vector3 forward { get { return Vector3.Cross(up, right); } }
 
         public static OrientedBBox Create(Transform t)
         {
             OrientedBBox obb = new OrientedBBox();
 
+            Vector3 vecX = t.localToWorldMatrix.GetColumn(0);
+            Vector3 vecY = t.localToWorldMatrix.GetColumn(1);
+            Vector3 vecZ = t.localToWorldMatrix.GetColumn(2);
+
             obb.center  = t.position;
-            obb.right   = t.right;
-            obb.up      = t.up;
-            obb.extentX = 0.5f * t.localScale.x;
-            obb.extentY = 0.5f * t.localScale.y;
-            obb.extentZ = 0.5f * t.localScale.z;
+            obb.right   = vecX * (1.0f / vecX.magnitude);
+            obb.up      = vecY * (1.0f / vecY.magnitude);
+
+            obb.extentX = 0.5f * vecX.magnitude;
+            obb.extentY = 0.5f * vecY.magnitude;
+            obb.extentZ = 0.5f * vecZ.magnitude;
 
             return obb;
         }
@@ -82,16 +91,11 @@ namespace UnityEngine.Experimental.Rendering
     public static class GeometryUtils
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
-        // 'cameraRelativeOffset' can be used to intersect a world-space OBB with a camera-relative frustum.
-        public static bool Overlap(OrientedBBox obb, Vector3 cameraRelativeOffset,
-                                   Frustum frustum, int numPlanes, int numCorners)
+        public static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
         {
-            Vector3 center  = obb.center + cameraRelativeOffset;
-            Vector3 forward = Vector3.Cross(obb.up, obb.right);
-
             bool overlap = true;
 
-            // Test the OBB against frustum planes. Frustum planes have inward-facing.
+            // Test the OBB against frustum planes. Frustum planes are inward-facing.
             // The OBB is outside if it's entirely behind one of the frustum planes.
             // See "Real-Time Rendering", 3rd Edition, 16.10.2.
             for (int i = 0; overlap && i < numPlanes; i++)
@@ -102,10 +106,11 @@ namespace UnityEngine.Experimental.Rendering
                 // Max projection of the half-diagonal onto the normal (always positive).
                 float maxHalfDiagProj = obb.extentX * Mathf.Abs(Vector3.Dot(n, obb.right))
                                       + obb.extentY * Mathf.Abs(Vector3.Dot(n, obb.up)) 
-                                      + obb.extentZ * Mathf.Abs(Vector3.Dot(n, forward));
+                                      + obb.extentZ * Mathf.Abs(Vector3.Dot(n, obb.forward));
 
+                // Positive distance -> center in front of the plane.
                 // Negative distance -> center behind the plane (outside).
-                float centerToPlaneDist = Vector3.Dot(n, center) + d;
+                float centerToPlaneDist = Vector3.Dot(n, obb.center) + d;
 
                 // outside = maxHalfDiagProj < -centerToPlaneDist
                 // outside = maxHalfDiagProj + centerToPlaneDist < 0
@@ -125,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering
             planes[0].distance = obb.extentX;
             planes[1].normal   = obb.up;
             planes[1].distance = obb.extentY;
-            planes[2].normal   = forward;
+            planes[2].normal   = obb.forward;
             planes[2].distance = obb.extentZ;
 
             for (int i = 0; overlap && i < 3; i++)
@@ -139,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Merge 2 loops. Continue as long as all points are outside either plane.
                 for (int j = 0; j < numCorners; j++)
                 {
-                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - center);
+                    float proj = Vector3.Dot(plane.normal, frustum.corners[j] - obb.center);
                     outsidePos = outsidePos && ( proj > plane.distance);
                     outsideNeg = outsideNeg && (-proj > plane.distance);
                 }

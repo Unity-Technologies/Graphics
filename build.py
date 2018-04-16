@@ -135,14 +135,14 @@ def prepare(logger):
         unity_package_build.copy_file_to_project("CHANGELOG.md", ".", package_path, logger)
 
 def cleanup(logger):
-    logger.info("Removing temporary files:")
+    logger.info("Reverting temporary file changes:")
     files = []
     for name in publish_order:
         folder = sub_package_folders[name]
-#        files.append(os.path.join(folder, "package.json"))
+        files.append(os.path.join(folder, "package.json"))
     for file in files:
         logger.info("  {}".format(file))
-        os.remove(file)
+        subprocess.call(["git", "checkout", file], cwd=".")
 
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):

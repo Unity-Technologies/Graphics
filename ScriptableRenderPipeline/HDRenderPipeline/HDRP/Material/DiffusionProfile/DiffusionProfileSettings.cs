@@ -415,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ValidateArray(ref halfRcpVariancesAndWeights, DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 2);
             ValidateArray(ref filterKernelsBasic,         DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * DiffusionProfileConstants.SSS_BASIC_N_SAMPLES);
 
-            Debug.Assert(DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID <= 32, "Transmission and Texture flags (32-bit integer) cannot support more than 32 profiles.");
+            Debug.Assert(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT <= 32, "Transmission and Texture flags (32-bit integer) cannot support more than 32 profiles.");
 
             UpdateCache();
         }
@@ -438,6 +438,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             worldScales[neutralId] = Vector4.one;
             shapeParams[neutralId] = Vector4.zero;
+            transmissionTintsAndFresnel0[neutralId].w = 0.04f; // Match DEFAULT_SPECULAR_VALUE defined in Lit.hlsl
 
             for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
             {

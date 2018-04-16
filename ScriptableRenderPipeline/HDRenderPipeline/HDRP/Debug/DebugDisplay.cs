@@ -75,13 +75,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsDebugDisplayEnabled()
         {
-            return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled();
+            return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
         }
 
         public bool IsDebugMaterialDisplayEnabled()
         {
             return materialDebugSettings.IsDebugDisplayEnabled();
         }
+
+        public bool IsDebugFullScreenEnabled()
+        {
+            return fullScreenDebugMode != FullScreenDebugMode.None;
+        }
+
         public bool IsDebugMipMapDisplayEnabled()
         {
             return mipMapDebugSettings.IsDebugDisplayEnabled();
@@ -152,6 +158,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             //if (mipMapDebugSettings.debugMipMapMode != 0)
             //    Texture.SetStreamingTextureMaterialDebugProperties();
+        }
+
+        public bool DebugNeedsExposure()
+        {
+            DebugLightingMode debugLighting = lightingDebugSettings.debugLightingMode;
+            DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)materialDebugSettings.debugViewGBuffer;
+            return  (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
+                    (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
+                    (fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RegisterDisplayStatsDebug()
@@ -260,10 +275,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     {
                                         case FullScreenDebugMode.FinalColorPyramid:
                                         case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            id = HDShaderIDs._ColorPyramidScale;
                                             break;
                                         default:
-                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            id = HDShaderIDs._DepthPyramidScale;
                                             break;
                                     }
                                     var size = Shader.GetGlobalVector(id);
@@ -277,10 +292,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     {
                                         case FullScreenDebugMode.FinalColorPyramid:
                                         case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            id = HDShaderIDs._ColorPyramidScale;
                                             break;
                                         default:
-                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            id = HDShaderIDs._DepthPyramidScale;
                                             break;
                                     }
                                     var size = Shader.GetGlobalVector(id);
@@ -295,10 +310,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     {
                                         case FullScreenDebugMode.FinalColorPyramid:
                                         case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._GaussianPyramidColorMipSize;
+                                            id = HDShaderIDs._ColorPyramidScale;
                                             break;
                                         default:
-                                            id = HDShaderIDs._DepthPyramidMipSize;
+                                            id = HDShaderIDs._DepthPyramidScale;
                                             break;
                                     }
                                     var size = Shader.GetGlobalVector(id);
@@ -376,6 +391,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 });
             }
+
+            if (DebugNeedsExposure())
+                list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => lightingDebugSettings.debugExposure, setter = value => lightingDebugSettings.debugExposure = value });
 
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);

@@ -4,14 +4,14 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
 TEXTURE2D(_DistortionTexture);
-TEXTURE2D(_GaussianPyramidColorTexture);
+TEXTURE2D(_ColorPyramidTexture);
 RW_TEXTURE2D(float4, _CameraColorTexture);
 
-SamplerState sampler_GaussianPyramidColorTexture;
+SamplerState sampler_ColorPyramidTexture;
 
 CBUFFER_START(cb)
     float4 _Size;
-    float4 _GaussianPyramidColorMipSize;
+    float4 _ColorPyramidScale;
 CBUFFER_END
 
 #pragma kernel KMain
@@ -55,8 +55,8 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
      
     // Get source pixel for distortion
     float2 distordedUV = float2(dispatchThreadId + int2(distortion * _FetchBias)) * _Size.zw;
-    float mip = (_GaussianPyramidColorMipSize.z - 1) * clamp(distortionBlur, 0.0, 1.0);
-    float4 sampled = SAMPLE_TEXTURE2D_LOD(_GaussianPyramidColorTexture, sampler_GaussianPyramidColorTexture, distordedUV, mip);
+    float mip = (_ColorPyramidScale.z - 1) * clamp(distortionBlur, 0.0, 1.0);
+    float4 sampled = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, sampler_ColorPyramidTexture, distordedUV, mip);
 
     _CameraColorTexture[dispatchThreadId] = sampled;
 }

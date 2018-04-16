@@ -135,7 +135,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             //_Env2DCaptureVP is in capture space
             float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
 
-            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, 0).rgb;
+            color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
             color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
             
 #ifdef DEBUG_DISPLAY
@@ -276,14 +276,28 @@ uint GetTileSize()
     return 1;
 }
 
+uint FetchIndex(uint globalOffset, uint lightIndex)
+{
+    return globalOffset + lightIndex;
+}
+
 #endif // LIGHTLOOP_TILE_PASS
+
+uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
+{
+    if (i < count)
+    {
+        return FetchIndex(start, i);
+    }
+    else
+    {
+        return UINT_MAX;
+    }
+}
 
 LightData FetchLight(uint start, uint i)
 {
-#ifdef LIGHTLOOP_TILE_PASS
     int j = FetchIndex(start, i);
-#else
-    int j = start + i;
-#endif
+
     return _LightDatas[j];
 }
