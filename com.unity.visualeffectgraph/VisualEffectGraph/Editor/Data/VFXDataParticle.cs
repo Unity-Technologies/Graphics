@@ -569,6 +569,9 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping(context.taskType == VFXTaskType.CameraSort ? "inputBuffer" : "indirectBuffer", indirectBufferIndex));
                 }
 
+                if (deadListBufferIndex != -1 && context.contextType == VFXContextType.kOutput && (context as VFXAbstractParticleOutput).NeedsDeadListCount())
+                    bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
+
                 if (context.taskType == VFXTaskType.CameraSort)
                 {
                     bufferMappings.Add(new VFXMapping("outputBuffer", sortBufferAIndex));

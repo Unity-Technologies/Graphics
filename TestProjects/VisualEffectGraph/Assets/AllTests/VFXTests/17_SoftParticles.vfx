@@ -6114,6 +6114,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: invSoftParticlesFadeDistance
         index: 84

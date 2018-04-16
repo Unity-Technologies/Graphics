@@ -10834,6 +10834,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 6
+      - nameId: deadListCount
+        index: 5
       values:
       - nameId: uniform_a
         index: 36

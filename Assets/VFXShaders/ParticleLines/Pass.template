@@ -8,39 +8,29 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 {
 	uint index = id >> 1;
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-	o.VFX_VARYING_POSCS = -1;
-	if (index < asuint(nbMax))
-	{
-		#if VFX_HAS_INDIRECT_DRAW
-		index = indirectBuffer[index];
-		#endif
-		${VFXLoadAttributes:{alive}}
-		if (alive)
-		{
-			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-			${VFXProcessBlocks}
+	
+	${VFXLoadAttributesOrCull}
+	${VFXProcessBlocks}
 			
-			if (!alive)
-				return o;
+	if (!alive)
+		return o;
 
-			#if TARGET_FROM_ATTRIBUTES
+	#if TARGET_FROM_ATTRIBUTES
+	${VFXLoadSize}
+	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
 
-			${VFXLoadSize}
-			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
+	position = mul(elementToVFX,float4(0,0,0,1)).xyz;
+	
+	${VFXLoadParameter:{targetOffset}}
+	targetPosition = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;
+	#endif
+		
+	float3 vPos = id & 1 ? targetPosition : position;
+	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+	
+	${VFXVertexCommonProcess}
+	${VFXVertexAdditionalProcess}
 
-			position = mul(elementToVFX,float4(0,0,0,1)).xyz;
-			
-			${VFXLoadParameter:{targetOffset}}
-			targetPosition = mul(elementToVFX,float4(targetOffset * 2.0f,1)).xyz;
-			#endif
-				
-			float3 vPos = id & 1 ? targetPosition : position;
-			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
-			
-			${VFXVertexCommonProcess}
-			${VFXVertexAdditionalProcess}
-		}
-	}
 	return o;
 }
 

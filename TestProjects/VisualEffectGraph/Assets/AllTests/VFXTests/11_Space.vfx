@@ -5111,6 +5111,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 6
+      - nameId: deadListCount
+        index: 5
       values:
       - nameId: Color_a
         index: 57
@@ -5208,6 +5210,8 @@ VisualEffectAsset:
         index: 1
       - nameId: indirectBuffer
         index: 13
+      - nameId: deadListCount
+        index: 12
       values:
       - nameId: Color_a
         index: 44

@@ -6009,6 +6009,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 7
+      - nameId: deadListCount
+        index: 6
       values:
       - nameId: Alpha_a
         index: 71
@@ -6108,6 +6110,8 @@ VisualEffectAsset:
         index: 1
       - nameId: indirectBuffer
         index: 14
+      - nameId: deadListCount
+        index: 13
       values:
       - nameId: Alpha_a
         index: 71
@@ -6205,6 +6209,8 @@ VisualEffectAsset:
         index: 2
       - nameId: indirectBuffer
         index: 21
+      - nameId: deadListCount
+        index: 20
       values:
       - nameId: Alpha_a
         index: 71

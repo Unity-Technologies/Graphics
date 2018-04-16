@@ -21,6 +21,10 @@ ByteAddressBuffer attributeBuffer;
 StructuredBuffer<uint> indirectBuffer;	
 #endif	
 
+#if USE_DEAD_LIST_COUNT
+ByteAddressBuffer deadListCount;
+#endif
+
 CBUFFER_START(outputParams)
 	float nbMax;
 	float systemSeed;

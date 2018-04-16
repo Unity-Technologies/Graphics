@@ -3272,6 +3272,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: mainTexture
         index: 30
@@ -3287,6 +3289,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: uniform_a
         index: 0
@@ -3304,6 +3308,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: Color_a
         index: 25

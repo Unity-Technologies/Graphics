@@ -6329,6 +6329,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 7
+      - nameId: deadListCount
+        index: 6
       values:
       - nameId: mainTexture
         index: 101
