@@ -108,7 +108,11 @@ namespace UnityEditor.VFX
 
         public string GetCodeOffset(VFXAttribute attrib, string index)
         {
-            AttributeLayout layout = m_AttributeLayout[attrib];
+            AttributeLayout layout;
+            if (!m_AttributeLayout.TryGetValue(attrib, out layout))
+            {
+                throw new InvalidOperationException(string.Format("Cannot find attribute {0}", attrib.name));
+            }
             return string.Format("({2} * 0x{0:X} + 0x{1:X}) << 2", m_BucketSizes[layout.bucket], m_BucketOffsets[layout.bucket] + layout.offset, index);
         }
 
@@ -172,15 +176,48 @@ namespace UnityEditor.VFX
             get
             {
                 var init = owners.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
-                return init != null ? (uint)init.inputContexts.Count() : 0u;
+
+                if (init == null)
+                    return 0u;
+
+                var cpuCount = init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Count();
+                var gpuCount = init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawnerGPU).Count();
+
+                if (cpuCount != 0 && gpuCount != 0)
+                {
+                    throw new InvalidOperationException("Cannot mix GPU & CPU spawners in init");
+                }
+
+                if (cpuCount > 0)
+                {
+                    return (uint)cpuCount;
+                }
+                else if (gpuCount > 0)
+                {
+                    if (gpuCount > 1)
+                    {
+                        throw new InvalidOperationException("Don't support multiple GPU event (for now)");
+                    }
+                    var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
+                    return parent != null ? parent.m_Capacity : 0u;
+                }
+                return init != null ? (uint)init.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner /* Explicitly ignore spawner gpu */).Count() : 0u;
             }
         }
 
-        private uint attributeBufferSize
+        public uint attributeBufferSize
         {
             get
             {
                 return m_layoutAttributeCurrent.GetBufferSize(alignedCapacity);
+            }
+        }
+
+        public VFXGPUBufferDesc attributeBufferDesc
+        {
+            get
+            {
+                return m_layoutAttributeCurrent.GetBufferDesc(capacity);
             }
         }
 
@@ -192,7 +229,75 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
-            return m_Capacity > 0 && m_Owners.Count > 1 && m_Owners[0].contextType == VFXContextType.kInit && m_Owners[0].inputContexts.Count() > 0;
+            if (m_Owners.Count < 1 || m_Capacity <= 0)
+                return false;
+
+            if (m_Owners[0].contextType != VFXContextType.kInit)
+                return false;
+
+            var firstSpawnInput = m_Owners[0].inputContexts.FirstOrDefault();
+            if (firstSpawnInput == null)
+                return false;
+
+            if (firstSpawnInput.contextType == VFXContextType.kSpawner)
+                return true;
+
+            Func<VFXSlot, VFXContext> contextOwnerFromSlot = delegate(VFXSlot slot)
+                {
+                    if (slot.owner is VFXBlock)
+                    {
+                        var block = slot.owner as VFXBlock;
+                        if (block.enabled)
+                        {
+                            return block.GetParent();
+                        }
+                    }
+                    else if (slot.owner is VFXContext)
+                    {
+                        return slot.owner as VFXContext;
+                    }
+                    return null;
+                };
+
+            if (m_Owners.Last().contextType != VFXContextType.kOutput)
+            {
+                //< Check at least one output dependency is valid
+                if (m_Owners.Where(o => o.allLinkedOutputSlot.Where(s =>
+                    {
+                        var context = contextOwnerFromSlot(s);
+                        if (context != null && context.outputContexts.Where(c => c.CanBeCompiled()).Any())
+                        {
+                            return true;
+                        }
+                        return false;
+                    }).Any())
+                    .Any())
+                {
+                    return true;
+                }
+            }
+
+            if (firstSpawnInput.contextType == VFXContextType.kSpawnerGPU)
+            {
+                //< Check at least one input dependency is valid
+                if (firstSpawnInput.allLinkedInputSlot.Where(s =>
+                    {
+                        if (s.owner is VFXBlock)
+                        {
+                            var block = (s.owner as VFXBlock);
+                            return block.enabled && block.GetParent().CanBeCompiled();
+                        }
+                        else if (s.owner is VFXContext)
+                        {
+                            return (s.owner as VFXContext).CanBeCompiled();
+                        }
+                        return false;
+                    }).Any())
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override VFXDeviceTarget GetCompilationTarget(VFXContext context)
@@ -203,8 +308,18 @@ namespace UnityEditor.VFX
         public override void GenerateAttributeLayout()
         {
             m_layoutAttributeCurrent.GenerateAttributeLayout(alignedCapacity, m_StoredCurrentAttributes);
-            var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
-            m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
+            var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
+            if (parent != null)
+            {
+                m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, parent.m_StoredCurrentAttributes);
+                m_ownAttributeSourceBuffer = false;
+            }
+            else
+            {
+                var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
+                m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, readSourceAttribute);
+                m_ownAttributeSourceBuffer = true;
+            }
         }
 
         public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
@@ -303,34 +418,61 @@ namespace UnityEditor.VFX
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXData, int> attributeBuffer,
+            Dictionary<VFXData, int> eventBuffer)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
 
-            var attributeBufferIndex = -1;
-            var attributeSourceBufferIndex = -1;
             var deadListBufferIndex = -1;
             var deadListCountIndex = -1;
 
             var systemBufferMappings = new List<VFXMapping>();
             var systemValueMappings = new List<VFXMapping>();
 
-            if (attributeBufferSize > 0)
+            var attributeBufferIndex = attributeBuffer[this];
+
+            int attributeSourceBufferIndex = -1;
+            int eventGPUFrom = -1;
+            if (m_DependenciesIn.Any())
             {
-                attributeBufferIndex = outBufferDescs.Count;
+                if (m_DependenciesIn.Count != 1)
+                {
+                    throw new InvalidOperationException("Unexpected multiple input dependency for GPU event");
+                }
+                attributeSourceBufferIndex = attributeBuffer[m_DependenciesIn.FirstOrDefault()];
+                eventGPUFrom = eventBuffer[this];
+            }
+
+            if (attributeBufferIndex != -1)
+            {
                 outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity));
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
-            if (m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
+            if (m_ownAttributeSourceBuffer && m_layoutAttributeSource.GetBufferSize(sourceCount) > 0u)
             {
+                if (attributeSourceBufferIndex != -1)
+                {
+                    throw new InvalidOperationException("Unexpected source while filling description of data particle");
+                }
+
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                var bufferDesc = m_layoutAttributeSource.GetBufferDesc(sourceCount);
-                outBufferDescs.Add(bufferDesc);
+                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(sourceCount));
+            }
+
+            if (attributeSourceBufferIndex != -1)
+            {
                 systemBufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
             }
 
             var systemFlag = VFXSystemFlag.SystemDefault;
+            if (eventGPUFrom != -1)
+            {
+                systemFlag |= VFXSystemFlag.SystemReceivedEventGPU;
+                systemBufferMappings.Add(new VFXMapping("eventList", eventGPUFrom));
+            }
+
             if (hasKill)
             {
                 systemFlag |= VFXSystemFlag.SystemHasKill;
@@ -346,7 +488,7 @@ namespace UnityEditor.VFX
 
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.kInit);
             if (initContext != null)
-                systemBufferMappings.AddRange(initContext.inputContexts.Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
+                systemBufferMappings.AddRange(initContext.inputContexts.Where(o => o.contextType == VFXContextType.kSpawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
             if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.kInit) // TODO This test can be removed once we ensure priorly the system is valid
             {
                 var mapper = contextToCompiledData[m_Contexts.First()].cpuMapper;
@@ -395,11 +537,9 @@ namespace UnityEditor.VFX
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
 
-            foreach (var context in m_Contexts)
+            for (int i = 0; i < m_Contexts.Count; ++i)
             {
-                //if (!contextToCompiledData.ContainsKey(context))
-                //    continue;
-
+                var context = m_Contexts[i];
                 var contextData = contextToCompiledData[context];
 
                 var taskDesc = new VFXTaskDesc();
@@ -409,6 +549,9 @@ namespace UnityEditor.VFX
 
                 if (attributeBufferIndex != -1)
                     bufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
+
+                if (eventGPUFrom != -1 && context.contextType == VFXContextType.kInit)
+                    bufferMappings.Add(new VFXMapping("eventList", eventGPUFrom));
 
                 if (deadListBufferIndex != -1 && context.contextType != VFXContextType.kOutput && context.taskType != VFXTaskType.CameraSort)
                     bufferMappings.Add(new VFXMapping(context.contextType == VFXContextType.kUpdate ? "deadListOut" : "deadListIn", deadListBufferIndex));
@@ -433,6 +576,15 @@ namespace UnityEditor.VFX
                         bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
                 }
 
+                var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
+                    .Select(o => eventBuffer[o.GetData()])
+                    .ToArray();
+                for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
+                {
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(indexTarget);
+                    bufferMappings.Add(new VFXMapping(string.Format("eventListOut_{0}", prefix), gpuTarget[indexTarget]));
+                }
+
                 uniformMappings.Clear();
                 foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
@@ -451,12 +603,12 @@ namespace UnityEditor.VFX
             outSystemDescs.Add(new VFXSystemDesc()
             {
                 flags = systemFlag,
-                layer = uint.MaxValue,
                 tasks = taskDescs.ToArray(),
                 capacity = capacity,
                 buffers = systemBufferMappings.ToArray(),
                 values = systemValueMappings.ToArray(),
                 type = VFXSystemType.Particle,
+                layer = m_Layer
             });
         }
 
@@ -475,5 +627,7 @@ namespace UnityEditor.VFX
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeSource = new StructureOfArrayProvider();
+        [NonSerialized]
+        private bool m_ownAttributeSourceBuffer;
     }
 }

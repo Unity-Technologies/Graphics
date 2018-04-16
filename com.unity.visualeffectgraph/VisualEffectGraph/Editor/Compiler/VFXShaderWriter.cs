@@ -213,6 +213,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void WriteEventBuffer(string baseName, int count)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                var prefix = VFXCodeGeneratorHelper.GeneratePrefix((uint)i);
+                WriteLineFormat("AppendStructuredBuffer<uint> {0}_{1};", baseName, prefix);
+            }
+        }
+
         public void WriteCBuffer(VFXUniformMapper mapper, string bufferName)
         {
             var uniformValues = mapper.uniforms
@@ -293,17 +302,9 @@ namespace UnityEditor.VFX
 
         private static string GetInputModifier(VFXAttributeMode mode)
         {
-            bool write = (mode & VFXAttributeMode.Write) != 0;
-            bool read = (mode & VFXAttributeMode.Read) != 0;
-            if (read && write)
-            {
+            if ((mode & VFXAttributeMode.Write) != 0)
                 return "inout ";
-            }
 
-            if (write)
-            {
-                return "out ";
-            }
             return string.Empty;
         }
 

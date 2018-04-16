@@ -5878,6 +5878,53 @@ VisualEffectAsset:
     capacity: 65536
     stride: 4
   - type: 1
+    size: 1048576
+    layout:
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 4
+        element: 0
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 262144
+        structure: 1
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 327680
+        structure: 4
+        element: 0
+    - name: sizeX
+      type: 1
+      offset:
+        bucket: 589824
+        structure: 1
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 655360
+        structure: 1
+        element: 0
+    - name: color
+      type: 3
+      offset:
+        bucket: 720896
+        structure: 4
+        element: 0
+    - name: alive
+      type: 17
+      offset:
+        bucket: 983040
+        structure: 1
+        element: 0
+    capacity: 65536
+    stride: 4
+  - type: 1
     size: 1
     layout:
     - name: spawnCount
@@ -5961,19 +6008,19 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     - nameId: indirectBuffer
-      index: 4
-    - nameId: sortBufferA
       index: 5
-    - nameId: sortBufferB
+    - nameId: sortBufferA
       index: 6
+    - nameId: sortBufferB
+      index: 7
     values:
     - nameId: bounds_center
       index: 82
@@ -5985,11 +6032,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
       - nameId: ArcSphere_sphere_center_a
         index: 90
@@ -6016,15 +6063,15 @@ VisualEffectAsset:
         index: 82
       - nameId: bounds_size
         index: 86
-      processor: {fileID: 7200000, guid: 2e7d18c3c3d4910439d31ce0153eb453, type: 3}
+      processor: {fileID: 7200000, guid: 09241781bc682aa42ba75d674540f48b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: GravityVector_a
         index: 93
@@ -6045,28 +6092,28 @@ VisualEffectAsset:
       - nameId: gradient_c
         index: 83
       params: []
-      processor: {fileID: 7200000, guid: 8825b9aba8910d04e977114df84643fa, type: 3}
+      processor: {fileID: 7200000, guid: 66abd2cc46c979647b7bd728491d0b58, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: inputBuffer
-        index: 4
-      - nameId: outputBuffer
         index: 5
+      - nameId: outputBuffer
+        index: 6
       - nameId: deadListCount
-        index: 3
+        index: 4
       values:
       - nameId: localToWorld
         index: 78
       params: []
-      processor: {fileID: 7200000, guid: 16b19b15b0f057f46842576f8a5cad49, type: 3}
+      processor: {fileID: 7200000, guid: f7c128940783a734397ea3fa11711ba7, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: invSoftParticlesFadeDistance
         index: 84
@@ -6077,13 +6124,13 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 71b061f6a8ef04848b58123a9a84e75c, type: 3}
+      processor: {fileID: 4800000, guid: 1ebdcfa376986894ab4d60276e48c918, type: 3}
     - type: 1073741824
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: uniform_a
         index: 24
@@ -6100,13 +6147,13 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: c49edc255c763db458d046247772b29c, type: 3}
+      processor: {fileID: 4800000, guid: 46e952add9e58ea4f8e849c0a9ed1f16, type: 3}
     - type: 1073741825
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: uniform_a
         index: 24
@@ -6125,13 +6172,13 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: bc8b661271c86a846b3586452bdfb914, type: 3}
+      processor: {fileID: 4800000, guid: 7265faee1ef4382498b3809550328f1e, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: uniform_a
         index: 24
@@ -6152,7 +6199,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 4077f05b08c87e24abe036851c94c819, type: 3}
+      processor: {fileID: 4800000, guid: 6d06e87584342f64c8654ef9c8541c7f, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

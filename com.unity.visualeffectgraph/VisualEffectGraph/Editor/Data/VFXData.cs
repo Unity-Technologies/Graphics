@@ -59,7 +59,9 @@ namespace UnityEditor.VFX
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXData, int> attributeBuffer,
+            Dictionary<VFXData, int> eventBuffer)
         {
             // Empty implementation by default
         }
@@ -165,9 +167,44 @@ namespace UnityEditor.VFX
             if (m_Contexts == null) // Context hasnt been initialized (may happen in unity tests but not during actual compilation)
                 InitImplicitContexts();
 
+            m_DependenciesIn.Clear();
+            var inDependencies = m_Contexts.Where(o => o.contextType == VFXContextType.kInit)
+                .SelectMany(o => o.inputContexts.Where(i => i.contextType == VFXContextType.kSpawnerGPU))
+                .SelectMany(o => o.allLinkedInputSlot)
+                .Select(o =>
+                {
+                    if (o.owner is VFXBlock)
+                    {
+                        return (o.owner as VFXBlock).GetParent() as VFXContext;
+                    }
+                    else if (o.owner is VFXContext)
+                    {
+                        return o.owner as VFXContext;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unexpected linked slot on spawner GPU");
+                    }
+                })
+                .Select(o => o.GetData())
+                .Distinct();
+            foreach (var depend in inDependencies)
+            {
+                m_DependenciesIn.Add(depend);
+            }
+
+            m_DependenciesOut.Clear();
+            var outDependencies = owners.SelectMany(o => o.allLinkedOutputSlot)
+                .SelectMany(o => (o.owner as VFXContext).outputContexts)
+                .Select(o => o.GetData())
+                .Distinct();
+            foreach (var depend in outDependencies)
+            {
+                m_DependenciesOut.Add(depend);
+            }
+
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
-
             var processedExp = new HashSet<VFXExpression>();
 
             bool changed = true;
@@ -214,6 +251,27 @@ namespace UnityEditor.VFX
 
             //TMP Debug only
             DebugLogAttributes();
+        }
+
+        private static uint ComputeLayer(IEnumerable<VFXData> dependenciesIn)
+        {
+            if (dependenciesIn.Any())
+            {
+                return 1u + ComputeLayer(dependenciesIn.SelectMany(o => o.m_DependenciesIn));
+            }
+            return 0u;
+        }
+
+        public void ComputeLayer()
+        {
+            if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
+            {
+                m_Layer = uint.MaxValue; //Completely independent system
+            }
+            else
+            {
+                m_Layer = ComputeLayer(m_DependenciesIn);
+            }
         }
 
         protected bool HasImplicitInit(VFXAttribute attrib)
@@ -305,6 +363,8 @@ namespace UnityEditor.VFX
                     local = true;
                 if (!writtenInInit && (key & 0xAAAAAAAA) == 0) // no write mask
                     local = true;
+                if (VFXAttribute.AllAttributeLocalOnly.Contains(attribute))
+                    local = true;
 
                 if (local)
                     m_LocalCurrentAttributes.Add(attribute);
@@ -316,11 +376,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void GenerateAttributeLayout() {}
+        public abstract void GenerateAttributeLayout();
 
-        public virtual string GetAttributeDataDeclaration(VFXAttributeMode mode) { throw new NotImplementedException(); }
-        public virtual string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location) { throw new NotImplementedException(); }
-        public virtual string GetStoreAttributeCode(VFXAttribute attrib, string value)  { throw new NotImplementedException(); }
+        public abstract string GetAttributeDataDeclaration(VFXAttributeMode mode);
+        public abstract string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location);
+        public abstract string GetStoreAttributeCode(VFXAttribute attrib, string value);
 
         private bool AddAttribute(VFXContext context, VFXAttributeInfo attribInfo)
         {
@@ -419,6 +479,30 @@ namespace UnityEditor.VFX
             Debug.Log(builder.ToString());
         }
 
+        public uint layer
+        {
+            get
+            {
+                return m_Layer;
+            }
+        }
+
+        public IEnumerable<VFXData> dependenciesIn
+        {
+            get
+            {
+                return m_DependenciesIn;
+            }
+        }
+
+        public IEnumerable<VFXData> dependenciesOut
+        {
+            get
+            {
+                return m_DependenciesOut;
+            }
+        }
+
         [SerializeField]
         protected List<VFXContext> m_Owners;
 
@@ -437,5 +521,14 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         protected HashSet<VFXAttribute> m_ReadSourceAttributes = new HashSet<VFXAttribute>();
+
+        [NonSerialized]
+        protected HashSet<VFXData> m_DependenciesIn = new HashSet<VFXData>();
+
+        [NonSerialized]
+        protected HashSet<VFXData> m_DependenciesOut = new HashSet<VFXData>();
+
+        [NonSerialized]
+        protected uint m_Layer;
     }
 }

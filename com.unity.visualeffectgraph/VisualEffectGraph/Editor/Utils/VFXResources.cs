@@ -7,25 +7,44 @@ namespace UnityEditor.VFX
 {
     public class VFXResources : ScriptableObject
     {
-        public static VFXResources defaultResources { get { return s_Instance; } }
+        public static VFXResources defaultResources
+        {
+            get
+            {
+                if (s_Instance == null)
+                {
+                    Initialize();
+                }
+                return s_Instance;
+            }
+        }
         private static VFXResources s_Instance;
 
         private const string defaultFileName = "Editor/VFXDefaultResources.asset";
         private const string defaultPath = "Assets/VFXEditor/"; // Change this to a getter once we handle package mode paths
 
-        [InitializeOnLoadMethod]
-        public static void Initialize()
+        private static T SafeLoadAssetAtPath<T>(string assetPath) where T : Object
         {
-            var asset = AssetDatabase.LoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
+            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (asset == null)
+            {
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            }
+            return asset;
+        }
 
+        private static void Initialize()
+        {
+            var asset = SafeLoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
             if (asset == null)
             {
                 Debug.LogWarning("Could not find " + defaultFileName + ", creating...");
                 VFXResources newAsset = CreateInstance<VFXResources>();
 
-                newAsset.particleTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
-                newAsset.noiseTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
-                newAsset.vectorField = AssetDatabase.LoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
+                newAsset.particleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
+                newAsset.noiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
+                newAsset.vectorField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
                 newAsset.particleMesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
                 newAsset.animationCurve = new AnimationCurve(new Keyframe[]
                 {
@@ -49,7 +68,7 @@ namespace UnityEditor.VFX
                 };
 
                 AssetDatabase.CreateAsset(newAsset, defaultPath + defaultFileName);
-                asset = AssetDatabase.LoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
+                asset = SafeLoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
             }
             s_Instance = asset;
         }

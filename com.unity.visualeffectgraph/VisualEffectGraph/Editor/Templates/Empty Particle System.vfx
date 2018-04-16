@@ -714,14 +714,14 @@ VisualEffectAsset:
         index: 8
       - nameId: bounds_size
         index: 9
-      processor: {fileID: 7200000, guid: 0a0fd793b219fd34485113221c5c42fd, type: 3}
+      processor: {fileID: 7200000, guid: a25a439e33ae81647abeeb683228ffc9, type: 3}
     - type: 805306368
       buffers:
       - nameId: indirectBuffer
         index: 1
       values: []
       params: []
-      processor: {fileID: 7200000, guid: ca454b437c59f8d4fa16b8479f6ec734, type: 3}
+      processor: {fileID: 7200000, guid: 86d6014f56e75d942a5968213b2b0c63, type: 3}
     - type: 805306369
       buffers:
       - nameId: inputBuffer
@@ -732,7 +732,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 6
       params: []
-      processor: {fileID: 7200000, guid: 195d27ec1b02e1e408fb823e637dc13d, type: 3}
+      processor: {fileID: 7200000, guid: 04d25239bb03f024db94e81bbd8b91cb, type: 3}
     - type: 1073741826
       buffers:
       - nameId: indirectBuffer
@@ -745,7 +745,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 1f28c93a75dc34c418c968bdf3f296ed, type: 3}
+      processor: {fileID: 4800000, guid: 3ef8b28ff98a0434eb348384bc1b62ab, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

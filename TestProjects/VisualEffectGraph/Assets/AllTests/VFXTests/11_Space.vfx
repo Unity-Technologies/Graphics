@@ -4811,6 +4811,76 @@ VisualEffectAsset:
     capacity: 44
     stride: 4
   - type: 1
+    size: 440
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 44
+        structure: 4
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 220
+        structure: 4
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 220
+        structure: 4
+        element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 396
+        structure: 1
+        element: 0
+    capacity: 44
+    stride: 4
+  - type: 1
+    size: 440
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 44
+        structure: 4
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 220
+        structure: 4
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 220
+        structure: 4
+        element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 396
+        structure: 1
+        element: 0
+    capacity: 44
+    stride: 4
+  - type: 1
     size: 1
     layout:
     - name: spawnCount
@@ -4965,19 +5035,19 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
-      index: 2
-    - nameId: deadListCount
       index: 3
+    - nameId: deadList
+      index: 4
+    - nameId: deadListCount
+      index: 5
     - nameId: spawner_input
       index: 1
     - nameId: indirectBuffer
-      index: 4
-    - nameId: sortBufferA
-      index: 5
-    - nameId: sortBufferB
       index: 6
+    - nameId: sortBufferA
+      index: 7
+    - nameId: sortBufferB
+      index: 8
     values:
     - nameId: bounds_center
       index: 51
@@ -4989,11 +5059,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
+        index: 4
       - nameId: deadListCount
-        index: 3
+        index: 5
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 3
       values:
       - nameId: Lifetime_a
         index: 49
@@ -5006,41 +5076,41 @@ VisualEffectAsset:
         index: 51
       - nameId: bounds_size
         index: 45
-      processor: {fileID: 7200000, guid: 60709ed4252f08642b10e20e8ddb9f08, type: 3}
+      processor: {fileID: 7200000, guid: d751af21d7fb41746b0e21a97a946fe7, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
-      - nameId: indirectBuffer
         index: 4
+      - nameId: indirectBuffer
+        index: 6
       values:
       - nameId: GravityVector_a
         index: 48
       - nameId: deltaTime_a
         index: 53
       params: []
-      processor: {fileID: 7200000, guid: 096815e66bb0c83418aaab7d2dc07896, type: 3}
+      processor: {fileID: 7200000, guid: babdcdfcc7124fd488ab173abc3ad11b, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: inputBuffer
-        index: 4
+        index: 6
       - nameId: outputBuffer
-        index: 5
+        index: 7
       - nameId: deadListCount
-        index: 3
+        index: 5
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 82c146a1827ac8449b1b4c3d329475e5, type: 3}
+      processor: {fileID: 7200000, guid: b39223d538e8b364d8f58f4a85dd0dac, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 4
+        index: 6
       values:
       - nameId: Color_a
         index: 57
@@ -5051,28 +5121,28 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 4731ee82f5a793548867ee714abac7c5, type: 3}
+      processor: {fileID: 4800000, guid: 4198c1f5e40c3f7488b1e4f3c92b0cea, type: 3}
   - type: 1
     flags: 3
     capacity: 44
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 7
+      index: 1
     - nameId: sourceAttributeBuffer
-      index: 8
-    - nameId: deadList
-      index: 9
-    - nameId: deadListCount
       index: 10
+    - nameId: deadList
+      index: 11
+    - nameId: deadListCount
+      index: 12
     - nameId: spawner_input
       index: 1
     - nameId: indirectBuffer
-      index: 11
-    - nameId: sortBufferA
-      index: 12
-    - nameId: sortBufferB
       index: 13
+    - nameId: sortBufferA
+      index: 14
+    - nameId: sortBufferB
+      index: 15
     values:
     - nameId: bounds_center
       index: 46
@@ -5082,13 +5152,13 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 7
+        index: 1
       - nameId: deadListIn
-        index: 9
+        index: 11
       - nameId: deadListCount
-        index: 10
+        index: 12
       - nameId: sourceAttributeBuffer
-        index: 8
+        index: 10
       values:
       - nameId: Lifetime_a
         index: 54
@@ -5101,43 +5171,43 @@ VisualEffectAsset:
         index: 46
       - nameId: bounds_size
         index: 58
-      processor: {fileID: 7200000, guid: 9a03ba4e148655e4b89314952ef89a24, type: 3}
+      processor: {fileID: 7200000, guid: f0595e24f7b3a51488c83ad68cfc53a1, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 7
+        index: 1
       - nameId: deadListOut
-        index: 9
-      - nameId: indirectBuffer
         index: 11
+      - nameId: indirectBuffer
+        index: 13
       values:
       - nameId: GravityVector_a
         index: 47
       - nameId: deltaTime_a
         index: 53
       params: []
-      processor: {fileID: 7200000, guid: 236893f8d7e6ba84c984fb597632ac4e, type: 3}
+      processor: {fileID: 7200000, guid: 8733124398bc45047b887f0978b82018, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
-        index: 7
+        index: 1
       - nameId: inputBuffer
-        index: 11
+        index: 13
       - nameId: outputBuffer
-        index: 12
+        index: 14
       - nameId: deadListCount
-        index: 10
+        index: 12
       values:
       - nameId: localToWorld
         index: 41
       params: []
-      processor: {fileID: 7200000, guid: a5d310f919b225b41b44b51000702f0a, type: 3}
+      processor: {fileID: 7200000, guid: 3f6293af6c53b4a4081c19eb809308b9, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 7
+        index: 1
       - nameId: indirectBuffer
-        index: 11
+        index: 13
       values:
       - nameId: Color_a
         index: 44
@@ -5148,7 +5218,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 5df0423f65a502c4b8af42f2d7567bb2, type: 3}
+      processor: {fileID: 4800000, guid: 72e1a2046b1fd9d4080eb7b5f55bddaa, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

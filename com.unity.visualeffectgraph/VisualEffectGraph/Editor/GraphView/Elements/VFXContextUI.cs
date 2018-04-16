@@ -117,7 +117,6 @@ namespace UnityEditor.VFX.UI
             }
             m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
             Profiler.EndSample();
-
             if (controller.context.outputType == VFXDataType.kNone)
             {
                 if (m_Footer.parent != null)
@@ -448,7 +447,7 @@ namespace UnityEditor.VFX.UI
 
             var blocksUIs = new Dictionary<VFXBlockController, VFXBlockUI>();
 
-            bool somethingChanged = m_BlockContainer.childCount < blockControllerCount || (!m_CanHaveBlocks && m_NoBlock.parent != null) ;
+            bool somethingChanged = m_BlockContainer.childCount < blockControllerCount || (!m_CanHaveBlocks && m_NoBlock.parent != null);
 
             int cptBlock = 0;
             for (int i = 0; i < m_BlockContainer.childCount; ++i)
@@ -605,7 +604,7 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
             {
-                if( m_CanHaveBlocks )
+                if (m_CanHaveBlocks)
                 {
                     evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
                     evt.menu.AppendSeparator();
