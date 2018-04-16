@@ -247,12 +247,18 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+
+        VFXGroupNode GetPickedGroupNode(Vector2 panelPosition)
         {
             List<VisualElement> picked = new List<VisualElement>();
-            panel.PickAll(mPos, picked);
+            panel.PickAll(panelPosition, picked);
 
-            VFXGroupNode groupNode = picked.OfType<VFXGroupNode>().FirstOrDefault();
+            return picked.OfType<VFXGroupNode>().FirstOrDefault();
+        }
+
+        public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            var groupNode = GetPickedGroupNode(mPos);
 
             mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
 
@@ -270,10 +276,6 @@ namespace UnityEditor.VFX.UI
             else
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             return null;
-        }
-
-        void OnCreateThing(KeyDownEvent evt)
-        {
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -1028,11 +1030,11 @@ namespace UnityEditor.VFX.UI
             return controller.AddVFXParameter(pos, desc);
         }
 
-        void AddVFXParameter(Vector2 pos, VFXParameterController parameterController)
+        void AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNode groupNode)
         {
             if (controller == null || parameterController == null) return;
 
-            controller.AddVFXParameter(pos, parameterController);
+            controller.AddVFXParameter(pos, parameterController, groupNode != null ? groupNode.controller : null);
         }
 
         public EventPropagation Resync()
@@ -1631,9 +1633,12 @@ namespace UnityEditor.VFX.UI
             var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
 
             Vector2 mousePosition = contentViewContainer.WorldToLocal(evt.mousePosition);
+
+
+
             foreach (var row in rows)
             {
-                AddVFXParameter(mousePosition - new Vector2(100, 75), row.controller);
+                AddVFXParameter(mousePosition - new Vector2(100, 75), row.controller, null);
             }
 
             return true;
@@ -1657,13 +1662,15 @@ namespace UnityEditor.VFX.UI
 
         void OnDragPerform(DragPerformEvent e)
         {
+            var groupNode = GetPickedGroupNode(e.mousePosition);
+
             var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
             if (rows.Length > 0)
             {
                 Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                 foreach (var row in rows)
                 {
-                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller);
+                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller, groupNode);
                 }
             }
         }
