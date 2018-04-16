@@ -199,11 +199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // As we have our own default value, we need to initialize the light intensity correctly
         public static void InitDefaultHDAdditionalLightData(HDAdditionalLightData lightData)
         {
-            // At first init we need to initialize correctly the default value
-            lightData.ConvertPhysicalLightIntensityToLightIntensity();
-
-            // Special treatment for Unity builtin area light. Change it to our rectangle light
-
+            // Special treatment for Unity built-in area light. Change it to our rectangle light
             var light = lightData.gameObject.GetComponent<Light>();
 
             // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
@@ -211,7 +207,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
                 light.type = LightType.Point; // Same as in HDLightEditor
+#if UNITY_EDITOR
+                light.lightmapBakeType = LightmapBakeType.Realtime;
+#endif
             }
+
+            // At first init we need to initialize correctly the default value
+            lightData.ConvertPhysicalLightIntensityToLightIntensity();
         }
 
     }
