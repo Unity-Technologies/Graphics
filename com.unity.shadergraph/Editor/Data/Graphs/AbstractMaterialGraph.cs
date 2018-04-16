@@ -444,9 +444,7 @@ namespace UnityEditor.ShaderGraph
             if (!referenceName.StartsWith("_"))
                 referenceName = "_" + referenceName;
 
-            referenceName = Regex.Replace(referenceName, @"\s+", "_");
-            referenceName = Regex.Replace(referenceName, @"^[^A-Za-z_]", "_");
-            referenceName = Regex.Replace(referenceName, @"[^A-Za-z_0-9]", "_");
+            referenceName = Regex.Replace(referenceName, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
 
             // Similar to the property names, duplicate names are handled by appending `_n`
             // to the end of the referene name.

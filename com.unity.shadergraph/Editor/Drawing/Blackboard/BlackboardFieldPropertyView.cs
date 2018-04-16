@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_Property = property;
 
-            m_ReferenceNameField = new TextField(30, false, false, ' ');
+            m_ReferenceNameField = new TextField(512, false, false, ' ');
             AddRow("Reference", m_ReferenceNameField);
             m_ReferenceNameField.value = property.referenceName;
             m_ReferenceNameField.OnValueChanged(newName =>
