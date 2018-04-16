@@ -158,7 +158,6 @@ namespace UnityEditor.ShaderGraph
         protected override VisualElement CreateCommonSettingsElement()
         {
             return new PBRSettingsView(this);
-            //return null;
         }
     }
 }

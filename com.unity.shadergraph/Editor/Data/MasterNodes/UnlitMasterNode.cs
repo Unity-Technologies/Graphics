@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
 
-
         [SerializeField]
         SurfaceType m_SurfaceType;
 
