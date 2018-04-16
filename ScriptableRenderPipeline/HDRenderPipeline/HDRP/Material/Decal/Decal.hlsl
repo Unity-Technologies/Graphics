@@ -88,6 +88,7 @@
 
 CBUFFER_START(UnityDecalParameters)
 	uint _EnableDBuffer;
+	float2 _DecalAtlasResolution;
 CBUFFER_END
 
 UNITY_INSTANCING_BUFFER_START(Decal)      
@@ -102,6 +103,9 @@ StructuredBuffer<DecalData> _DecalDatas;
 
 TEXTURE2D_ARRAY(_DecalAtlas);          
 SAMPLER(sampler_DecalAtlas);
+
+TEXTURE2D(_DecalAtlas2D);
+SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
 
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData,

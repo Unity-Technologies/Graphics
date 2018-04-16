@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader colorPyramidCS;
         public ComputeShader depthPyramidCS;
         public ComputeShader copyChannelCS;
+        public ComputeShader texturePaddingCS;
         public ComputeShader applyDistortionCS;
 
         // Lighting tile pass resources

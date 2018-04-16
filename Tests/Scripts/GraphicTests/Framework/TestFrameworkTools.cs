@@ -206,8 +206,7 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
                 string absoluteScenesPath = s_Path.Aggregate(s_RootPath, Path.Combine);
 
-                string assetScenesPath = absoluteScenesPath.Replace(Application.dataPath, "");
-                assetScenesPath = Path.Combine("Assets", assetScenesPath.Remove(0, 1));
+                string assetScenesPath = absoluteScenesPath.Substring(absoluteScenesPath.IndexOf("Assets"));
 
                 string filesPath = Path.Combine(assetScenesPath, _pipelinePath);
 
