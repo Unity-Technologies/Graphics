@@ -26,7 +26,7 @@ float _DebugExposure;
 CBUFFER_END
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
-RWStructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData : register(u7);
+RWStructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData : register(u7); // TODO: Change the register number for PS4
 
 void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
 {
