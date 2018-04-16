@@ -518,42 +518,46 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
 #ifdef DEBUG_DISPLAY
 
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    if (_DebugLightingMode != 0)
     {
-        diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO)
-    {
-        // NEWLITTODO
-        //diffuseLighting = indirectAmbientOcclusion;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+
+        switch (_DebugLightingMode)
+        {
+        case DEBUGLIGHTINGMODE_LUX_METER:
+            //diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+            break;
+
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO:
+            //diffuseLighting = indirectAmbientOcclusion;
+            break;
+
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO:
+            //diffuseLighting = specularOcclusion;
+            break;
+
+#if GTAO_MULTIBOUNCE_APPROX
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO:
+            //diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
+            break;
+
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO:
+            //diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
+            break;
+#endif
+
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
+            //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
+                //diffuseLighting = lighting.indirect.specularTransmitted;
+            break;
+        }
     }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO)
-    {
-        // NEWLITTODO
-        //diffuseLighting = specularOcclusion;
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    #if GTAO_MULTIBOUNCE_APPROX
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO)
-    {
-        // NEWLITTODO
-        //diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO)
-    {
-        // NEWLITTODO
-        //diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    #endif
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        // NEWLITTODO
         //diffuseLighting = bsdfData.diffuseColor;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
+
 #endif
 }
 
