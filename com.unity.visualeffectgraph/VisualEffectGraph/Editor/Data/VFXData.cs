@@ -403,6 +403,13 @@ namespace UnityEditor.VFX
             Debug.Log(builder.ToString());
         }
 
+        public Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> contextsToAttributes { get { return m_ContextsToAttributes; } }
+        public Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> attributesToContexts { get { return m_AttributesToContexts; } }
+
+        public Dictionary<VFXAttribute, int> storedCurrentAttributes { get { return m_StoredCurrentAttributes; } }
+        public HashSet<VFXAttribute> localCurrentAttributes { get { return m_LocalCurrentAttributes; } }
+
+
         [SerializeField]
         protected List<VFXContext> m_Owners;
 

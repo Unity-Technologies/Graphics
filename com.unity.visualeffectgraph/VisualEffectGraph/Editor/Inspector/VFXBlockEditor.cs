@@ -19,6 +19,8 @@ using System.Reflection;
 public class VFXBlockEditor : VFXSlotContainerEditor
 {
     SerializedObject dataObject;
+
+    bool bShowContextInfo;
     protected new void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXBlock>().Cast<UnityEngine.Object>().ToArray();
@@ -30,7 +32,7 @@ public class VFXBlockEditor : VFXSlotContainerEditor
         {
             dataObject = null;
         }
-
+        bShowContextInfo = true;
 
         base.OnEnable();
     }
@@ -42,83 +44,55 @@ public class VFXBlockEditor : VFXSlotContainerEditor
 
         base.OnInspectorGUI();
 
-        //if (Event.current.type != EventType.Repaint) return;
-
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Attributes", EditorStyles.boldLabel);
-
-        VFXBlock block = dataObject.targetObject as VFXBlock;
-
-        using (new GUILayout.HorizontalScope())
+        bShowContextInfo = EditorGUILayout.Foldout(bShowContextInfo, "Block Summary", Styles.foldout);
+        if (bShowContextInfo)
         {
-            GUILayout.Label(Contents.name, Styles.header);
-            GUILayout.Label(Contents.type, Styles.header, GUILayout.Width(80));
-            GUILayout.Label(Contents.mode, Styles.header, GUILayout.Width(80));
-        }
+            EditorGUILayout.LabelField("Attributes", EditorStyles.boldLabel);
 
-        foreach (var attribute in block.attributes)
-        {
+            VFXBlock block = dataObject.targetObject as VFXBlock;
+
             using (new GUILayout.HorizontalScope())
             {
-                GUILayout.Label(attribute.attrib.name, Styles.cell);
-                GUILayout.Label(attribute.attrib.type.ToString(), Styles.cell, GUILayout.Width(80));
-                GUILayout.Label(attribute.mode.ToString(), Styles.cell, GUILayout.Width(80));
+                GUILayout.Label(Contents.name, Styles.header);
+                GUILayout.Label(Contents.type, Styles.header, GUILayout.Width(80));
+                GUILayout.Label(Contents.mode, Styles.header, GUILayout.Width(80));
             }
-        }
 
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
+            foreach (var attribute in block.attributes)
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(attribute.attrib.name, Styles.cell);
+                    Styles.DataTypeLabel(attribute.attrib.type.ToString(), attribute.attrib.type, Styles.cell, GUILayout.Width(80));
+                    Styles.AttributeModeLabel(attribute.mode.ToString(), attribute.mode, Styles.cell, GUILayout.Width(80));
+                }
+            }
 
-        using (new GUILayout.HorizontalScope())
-        {
-            GUILayout.Label(Contents.name, Styles.header);
-            GUILayout.Label(Contents.type, Styles.header, GUILayout.Width(160));
-        }
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Parameters", EditorStyles.boldLabel);
 
-        foreach (var param in block.parameters)
-        {
             using (new GUILayout.HorizontalScope())
             {
-                GUILayout.Label(param.name, Styles.cell);
-                GUILayout.Label(param.exp.valueType.ToString(), Styles.cell, GUILayout.Width(160));
+                GUILayout.Label(Contents.name, Styles.header);
+                GUILayout.Label(Contents.type, Styles.header, GUILayout.Width(160));
             }
-        }
 
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Computed Source Code", EditorStyles.boldLabel);
-        EditorGUILayout.TextArea(block.source);
-    }
+            foreach (var param in block.parameters)
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(param.name, Styles.cell);
+                    Styles.DataTypeLabel(param.exp.valueType.ToString(), param.exp.valueType, Styles.cell, GUILayout.Width(160));
+                }
+            }
 
-    class Contents
-    {
-        public static GUIContent name = new GUIContent("Name");
-        public static GUIContent type = new GUIContent("Type");
-        public static GUIContent mode = new GUIContent("Mode");
-    }
-
-    class Styles
-    {
-        public static GUIStyle header;
-        public static GUIStyle cell;
-        static Styles()
-        {
-            header = new GUIStyle(EditorStyles.toolbarButton);
-            header.fontStyle = FontStyle.Bold;
-            header.alignment = TextAnchor.MiddleLeft;
-
-            cell = new GUIStyle(EditorStyles.toolbarButton);
-            var bg = cell.onActive.background;
-
-            cell.active.background = bg;
-            cell.onActive.background = bg;
-            cell.normal.background = bg;
-            cell.onNormal.background = bg;
-            cell.focused.background = bg;
-            cell.onFocused.background = bg;
-            cell.hover.background = bg;
-            cell.onHover.background = bg;
-
-            cell.alignment = TextAnchor.MiddleLeft;
+            if (block.source != string.Empty)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Computed Source Code", EditorStyles.boldLabel);
+                EditorGUILayout.TextArea(block.source);
+            }
         }
     }
 }
