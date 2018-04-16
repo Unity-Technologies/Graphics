@@ -207,7 +207,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 var id = prop.guid.GetHashCode();
-                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue);
+                MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue, ShaderStageCapability.Fragment);
                 // copy default for texture for niceness
                 if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture)
                 {
@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var slot in NodeExtensions.GetInputSlots<MaterialSlot>(subGraphOutputNode))
                 {
-                    AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(), slot.shaderOutputName, SlotType.Output, Vector4.zero));
+                    AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(), slot.shaderOutputName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
                     validNames.Add(slot.id);
                 }
             }
