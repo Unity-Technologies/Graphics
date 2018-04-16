@@ -19,21 +19,29 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
 
+        IManipulator m_ResetReferenceMenu;
+
         public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
         {
             m_Graph = graph;
             m_Property = property;
 
             m_ReferenceNameField = new TextField(30, false, false, ' ');
-            AddRow("Reference name", m_ReferenceNameField);
+            AddRow("Reference", m_ReferenceNameField);
             m_ReferenceNameField.value = property.referenceName;
             m_ReferenceNameField.OnValueChanged(newName =>
             {
-                string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue);
+                string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
                 property.overrideReferenceName = newReferenceName;
-                m_ReferenceNameField.value = newReferenceName;
-                m_ReferenceNameField.style.fontStyle = StyleValue<FontStyle>.Create(FontStyle.Bold);
+                m_ReferenceNameField.value = property.referenceName;
+
+                if (string.IsNullOrEmpty(property.overrideReferenceName))
+                    m_ReferenceNameField.style.fontStyle = StyleValue<FontStyle>.Create(FontStyle.Normal);
+                else
+                    m_ReferenceNameField.style.fontStyle = StyleValue<FontStyle>.Create(FontStyle.Bold);
+
                 DirtyNodes(ModificationScope.Graph);
+                UpdateReferenceNameResetMenu();
             });
 
             if (!string.IsNullOrEmpty(property.overrideReferenceName))
@@ -260,12 +268,26 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             AddToClassList("sgblackboardFieldPropertyView");
 
-            this.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
+            UpdateReferenceNameResetMenu();
+        }
+
+        void UpdateReferenceNameResetMenu()
+        {
+            if (string.IsNullOrEmpty(m_Property.overrideReferenceName))
+            {
+                this.RemoveManipulator(m_ResetReferenceMenu);
+                m_ResetReferenceMenu = null;
+            }
+            else
+            {
+                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+                this.AddManipulator(m_ResetReferenceMenu);
+            }
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Reset reference name", e =>
+            evt.menu.AppendAction("Reset reference", e =>
             {
                 m_Property.overrideReferenceName = null;
                 m_ReferenceNameField.value = m_Property.referenceName;
