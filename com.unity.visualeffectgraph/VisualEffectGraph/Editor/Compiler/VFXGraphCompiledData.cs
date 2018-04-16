@@ -573,6 +573,32 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void FillDependentBuffer(IEnumerable<VFXData> compilableData, List<VFXGPUBufferDesc> bufferDescs, Dictionary<VFXData, int> attributeBufferDictionnary, Dictionary<VFXData, int> eventGpuBufferDictionnary)
+        {
+            foreach (var data in compilableData.OfType<VFXDataParticle>())
+            {
+                int attributeBufferIndex = -1;
+                if (data.attributeBufferSize > 0)
+                {
+                    attributeBufferIndex = bufferDescs.Count;
+                    bufferDescs.Add(data.attributeBufferDesc);
+                }
+                attributeBufferDictionnary.Add(data, attributeBufferIndex);
+            }
+
+            //Prepare GPU event buffer
+            foreach (var data in compilableData.SelectMany(o => o.dependenciesOut).Distinct().OfType<VFXDataParticle>())
+            {
+                var eventBufferIndex = -1;
+                if (data.capacity > 0)
+                {
+                    eventBufferIndex = bufferDescs.Count;
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity });
+                }
+                eventGpuBufferDictionnary.Add(data, eventBufferIndex);
+            }
+        }
+
         private class VFXImplicitContextOfExposedExpression : VFXContext
         {
             private VFXExpressionMapper mapper;
@@ -609,6 +635,7 @@ namespace UnityEditor.VFX
             }
         }
 
+
         public void Compile()
         {
             // Prevent doing anything ( and especially showing progesses ) in an empty graph.
@@ -629,7 +656,7 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.CompileAsset");
             try
             {
-                float nbSteps = 9.0f;
+                float nbSteps = 10.0f;
                 string progressBarTitle = "Compiling VFX...";
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Collect dependencies", 0 / nbSteps);
@@ -654,13 +681,17 @@ namespace UnityEditor.VFX
                 foreach (var data in compilableData)
                     data.CollectAttributes();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 2 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Compute layers", 2 / nbSteps);
+                foreach (var data in compilableData)
+                    data.ComputeLayer();
+
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Compile expression Graph", 3 / nbSteps);
                 m_ExpressionGraph = new VFXExpressionGraph();
                 var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();
                 exposedExpressionContext.FillExpression(m_Graph); //Force all exposed expression to be visible, only for registering in CompileExpressions
                 m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] { exposedExpressionContext }), VFXExpressionContextOption.Reduction);
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 3 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate bytecode", 4 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
                 var valueDescs = new List<VFXExpressionValueContainerDescAbstract>();
                 FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
@@ -669,7 +700,7 @@ namespace UnityEditor.VFX
                 foreach (var context in compilableContexts)
                     contextToCompiledData.Add(context, new VFXContextCompiledData());
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 4 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate mappings", 5 / nbSteps);
                 foreach (var context in compilableContexts)
                 {
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
@@ -684,7 +715,7 @@ namespace UnityEditor.VFX
                 var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
                 FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 5 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate Attribute layouts", 6 / nbSteps);
                 foreach (var data in compilableData)
                     data.GenerateAttributeLayout();
 
@@ -698,16 +729,16 @@ namespace UnityEditor.VFX
 
                 var generatedCodeData = new List<GeneratedCodeData>();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 6 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 7 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 7 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 8 / nbSteps);
                 SaveShaderFiles(m_Graph.visualEffectAsset, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
                 var systemDescs = new List<VFXSystemDesc>();
 
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 8 / nbSteps);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 9 / nbSteps);
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
                     capacity = 1u,
@@ -721,9 +752,21 @@ namespace UnityEditor.VFX
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts);
 
+                var attributeBufferDictionnary = new Dictionary<VFXData, int>();
+                var eventGpuBufferDictionnary = new Dictionary<VFXData, int>();
+                FillDependentBuffer(compilableData, bufferDescs, attributeBufferDictionnary, eventGpuBufferDictionnary);
+
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
-                    data.FillDescs(bufferDescs, systemDescs, m_ExpressionGraph, contextToCompiledData, contextSpawnToBufferIndex);
+                {
+                    data.FillDescs(bufferDescs,
+                        systemDescs,
+                        m_ExpressionGraph,
+                        contextToCompiledData,
+                        contextSpawnToBufferIndex,
+                        attributeBufferDictionnary,
+                        eventGpuBufferDictionnary);
+                }
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
                 m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());

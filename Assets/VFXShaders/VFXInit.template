@@ -6,14 +6,24 @@ RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
 
 CBUFFER_START(initParams)
-    uint nbSpawned;		// Numbers of particle spawned
-    uint spawnIndex;	// Index of the first particle spawned
+#if !VFX_USE_SPAWNER_FROM_GPU
+    uint nbSpawned;					// Numbers of particle spawned
+    uint spawnIndex;				// Index of the first particle spawned
+#else
+    uint offsetInAdditionalOutput;
+	uint nbMax;
+#endif
 	uint systemSeed;
 CBUFFER_END
 
-#if VFX_USE_ALIVE_CURRENT 
+#if VFX_USE_ALIVE_CURRENT
 ConsumeStructuredBuffer<uint> deadListIn;
 ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+#endif
+
+#if VFX_USE_SPAWNER_FROM_GPU
+StructuredBuffer<uint> eventList;
+Buffer<uint> inputAdditional;
 #endif
 
 ${VFXGeneratedBlockFunction}
@@ -21,35 +31,49 @@ ${VFXGeneratedBlockFunction}
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	uint maxThreadId = nbSpawned;
+#if VFX_USE_SPAWNER_FROM_GPU
+    uint maxThreadId = inputAdditional[offsetInAdditionalOutput * 2 + 0];
+    uint currentSpawnIndex = inputAdditional[offsetInAdditionalOutput * 2 + 1] - maxThreadId;
+#else
+    uint maxThreadId = nbSpawned;
+    uint currentSpawnIndex = spawnIndex;
+#endif
+
 #if VFX_USE_ALIVE_CURRENT
-	maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
+    maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
+#elif VFX_USE_SPAWNER_FROM_GPU
+    maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped on CPU
 #endif
 
     if (id.x < maxThreadId)
     {
-		uint particleIndex = id.x + spawnIndex;
-		${VFXComputeSourceIndex}
+#if VFX_USE_SPAWNER_FROM_GPU
+        int sourceIndex = eventList[id.x];
+#endif
+        uint particleIndex = id.x + currentSpawnIndex;
+		
+#if !VFX_USE_SPAWNER_FROM_GPU
+        ${VFXComputeSourceIndex}
+#endif
         ${VFXLoadAttributes}
-				
 #if VFX_USE_PARTICLEID_CURRENT
-		particleId = particleIndex;
+         particleId = particleIndex;
 #endif
 #if VFX_USE_SEED_CURRENT
-		seed = WangHash(particleIndex ^ systemSeed);
+        seed = WangHash(particleIndex ^ systemSeed);
 #endif
-		
+        
         ${VFXProcessBlocks}
 
-#if VFX_USE_ALIVE_CURRENT		
+#if VFX_USE_ALIVE_CURRENT
         if (alive)
-        {	
+        {
             uint index = deadListIn.Consume();
             ${VFXStoreAttributes}
         }
 #else
-		uint index = particleIndex;
-		${VFXStoreAttributes}
-#endif		
+        uint index = particleIndex;
+        ${VFXStoreAttributes}
+#endif
     }
 }

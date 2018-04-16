@@ -19,11 +19,12 @@ namespace UnityEditor.VFX
         kUpdate = 1 << 2,
         kOutput = 1 << 3,
         kEvent = 1 << 4,
+        kSpawnerGPU = 1 << 5,
 
         kInitAndUpdate = kInit | kUpdate,
         kInitAndUpdateAndOutput = kInit | kUpdate | kOutput,
         kUpdateAndOutput = kUpdate | kOutput,
-        kAll = kInit | kUpdate | kOutput | kSpawner,
+        kAll = kInit | kUpdate | kOutput | kSpawner | kSpawnerGPU,
     };
 
     [Flags]
@@ -377,6 +378,30 @@ namespace UnityEditor.VFX
             get
             {
                 return implicitPreBlock.Concat(children).Concat(implicitPostBlock).Where(o => o.enabled);
+            }
+        }
+
+        private IEnumerable<IVFXSlotContainer> allSlotContainer
+        {
+            get
+            {
+                return activeChildrenWithImplicit.OfType<IVFXSlotContainer>().Concat(Enumerable.Repeat(this as IVFXSlotContainer, 1));
+            }
+        }
+
+        public IEnumerable<VFXSlot> allLinkedOutputSlot
+        {
+            get
+            {
+                return allSlotContainer.SelectMany(o => o.outputSlots.SelectMany(s => s.LinkedSlots));
+            }
+        }
+
+        public IEnumerable<VFXSlot> allLinkedInputSlot
+        {
+            get
+            {
+                return allSlotContainer.SelectMany(o => o.inputSlots.SelectMany(s => s.LinkedSlots));
             }
         }
 

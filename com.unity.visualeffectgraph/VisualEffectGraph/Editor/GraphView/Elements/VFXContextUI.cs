@@ -117,7 +117,6 @@ namespace UnityEditor.VFX.UI
             }
             m_HeaderSpace.AddToClassList("space" + (controller.context.space).ToString());
             Profiler.EndSample();
-
             if (controller.context.outputType == VFXDataType.kNone)
             {
                 if (m_Footer.parent != null)
