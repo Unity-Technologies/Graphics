@@ -1488,7 +1488,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"49cb5aa34272b034d8b754c65d9cdbfa","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"039eecbca64d7d746baf0dd7d360fe32","type":3}}'
   m_Property:
     name: mainTexture
     m_serializedType:
@@ -1825,7 +1825,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.AnimationCurve, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"frames":[{"time":-0.0016937255859375,"value":0.0,"inTangent":1.4626307487487794,"outTangent":1.4626307487487794,"tangentMode":0},{"time":0.08659321069717407,"value":0.09507206082344055,"inTangent":0.07747309654951096,"outTangent":0.07747309654951096,"tangentMode":0},{"time":0.9144850969314575,"value":0.09781542420387268,"inTangent":0.12606382369995118,"outTangent":0.12606382369995118,"tangentMode":0},{"time":0.9957597255706787,"value":-0.004668831825256348,"inTangent":0.015929732471704484,"outTangent":0.015929732471704484,"tangentMode":0}],"preWrapMode":8,"postWrapMode":8}'
+      m_SerializableObject: '{"frames":[{"time":-0.0016937255859375,"value":0.0,"inTangent":1.4626307487487794,"outTangent":1.4626307487487794,"tangentMode":0},{"time":0.08659321069717407,"value":0.09507206082344055,"inTangent":0.07747309654951096,"outTangent":0.07747309654951096,"tangentMode":0},{"time":0.9144850969314575,"value":0.09781542420387268,"inTangent":0.12606382369995118,"outTangent":0.12606382369995118,"tangentMode":0},{"time":1.0,"value":0.0,"inTangent":0.015929732471704484,"outTangent":0.015929732471704484,"tangentMode":0}],"preWrapMode":8,"postWrapMode":8}'
   m_Property:
     name: curve
     m_serializedType:
@@ -2134,7 +2134,7 @@ MonoBehaviour:
   uiBounds:
     serializedVersion: 2
     x: -1760.0001
-    y: -747.00006
+    y: -746.99994
     width: 2785
     height: 1839
 --- !u!114 &114900620605141148
@@ -3000,8 +3000,8 @@ VisualEffectAsset:
             inWeight: 0
             outWeight: 0
           - serializedVersion: 3
-            time: 0.9957597
-            value: -0.004668832
+            time: 1
+            value: 0
             inSlope: 0.015929732
             outSlope: 0.015929732
             tangentMode: 0
@@ -3016,7 +3016,7 @@ VisualEffectAsset:
     m_NamedObject:
       m_Array:
       - m_ExpressionIndex: 22
-        m_Value: {fileID: 2800000, guid: 49cb5aa34272b034d8b754c65d9cdbfa, type: 3}
+        m_Value: {fileID: 2800000, guid: 039eecbca64d7d746baf0dd7d360fe32, type: 3}
       - m_ExpressionIndex: 23
         m_Value: {fileID: 0}
       - m_ExpressionIndex: 30

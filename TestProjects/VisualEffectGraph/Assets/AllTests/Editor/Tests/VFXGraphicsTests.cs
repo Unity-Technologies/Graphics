@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.Test
             uint waitFrameCount = (uint)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
-            var threshold = 0.051f;
+            var threshold = 0.01f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
