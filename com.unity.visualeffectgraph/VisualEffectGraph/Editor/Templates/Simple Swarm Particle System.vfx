@@ -2246,6 +2246,41 @@ VisualEffectAsset:
     capacity: 65536
     stride: 4
   - type: 1
+    size: 589824
+    layout:
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 0
+    - name: alive
+      type: 17
+      offset:
+        bucket: 0
+        structure: 8
+        element: 3
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 4
+    - name: age
+      type: 1
+      offset:
+        bucket: 0
+        structure: 8
+        element: 7
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 524288
+        structure: 1
+        element: 0
+    capacity: 65536
+    stride: 4
+  - type: 1
     size: 1
     layout:
     - name: spawnCount
@@ -2314,11 +2349,11 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     values:
@@ -2332,11 +2367,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
       - nameId: ArcSphere_sphere_center_a
         index: 36
@@ -2353,13 +2388,13 @@ VisualEffectAsset:
         index: 40
       - nameId: bounds_size
         index: 38
-      processor: {fileID: 7200000, guid: a1269d604f749ee46a5049ef35476419, type: 3}
+      processor: {fileID: 7200000, guid: a0b3723191fb4164ca52395800ba9fe6, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       values:
       - nameId: InvFieldTransform_a
         index: 43
@@ -2374,7 +2409,7 @@ VisualEffectAsset:
       - nameId: VectorField_a
         index: 42
       params: []
-      processor: {fileID: 7200000, guid: 92e67ec38e25725408c1a8d9132e3b44, type: 3}
+      processor: {fileID: 7200000, guid: 474f7d348cea91f46a7f56825660c09a, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -2391,7 +2426,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: ab8a2bb840bd8344f8f789e7c6b5e40b, type: 3}
+      processor: {fileID: 4800000, guid: ede3779804cd3b2479f54811a6b99105, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

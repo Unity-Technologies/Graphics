@@ -4342,6 +4342,23 @@ VisualEffectAsset:
     capacity: 10048
     stride: 4
   - type: 1
+    size: 80384
+    layout:
+    - name: color
+      type: 3
+      offset:
+        bucket: 0
+        structure: 4
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 40192
+        structure: 4
+        element: 0
+    capacity: 10048
+    stride: 4
+  - type: 1
     size: 1
     layout:
     - name: spawnCount
@@ -4417,15 +4434,15 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
+      index: 2
     - nameId: spawner_input
       index: 1
     - nameId: indirectBuffer
-      index: 2
-    - nameId: sortBufferA
       index: 3
-    - nameId: sortBufferB
+    - nameId: sortBufferA
       index: 4
+    - nameId: sortBufferB
+      index: 5
     values:
     - nameId: bounds_center
       index: 52
@@ -4437,7 +4454,7 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
       - nameId: uniform_a
         index: 12
@@ -4468,35 +4485,35 @@ VisualEffectAsset:
         index: 52
       - nameId: bounds_size
         index: 51
-      processor: {fileID: 7200000, guid: f4838bf982a5a6e46a3e0c2300b8d6e0, type: 3}
+      processor: {fileID: 7200000, guid: 7782d80db4442c34fb2bd93d2ee051cf, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 2
+        index: 3
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 39b0224a3430d9442b627d85ebcdabc9, type: 3}
+      processor: {fileID: 7200000, guid: 7a2cb3ffccd03f24eb277715a9326a01, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: inputBuffer
-        index: 2
-      - nameId: outputBuffer
         index: 3
+      - nameId: outputBuffer
+        index: 4
       values:
       - nameId: localToWorld
         index: 45
       params: []
-      processor: {fileID: 7200000, guid: c7406c2fd392b514ea3acaad4fc01781, type: 3}
+      processor: {fileID: 7200000, guid: adf36b8f4633dcc4a9840714405ed9a9, type: 3}
     - type: 1073741825
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 2
+        index: 3
       values:
       - nameId: AngleZ_a
         index: 55
@@ -4515,7 +4532,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 4309b7c2e203bb94489b346e9dfb3d34, type: 3}
+      processor: {fileID: 4800000, guid: ea3825a004900a54e8ae8e166f786bdc, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

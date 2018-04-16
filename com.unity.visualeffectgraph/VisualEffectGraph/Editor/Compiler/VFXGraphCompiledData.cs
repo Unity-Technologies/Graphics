@@ -593,7 +593,7 @@ namespace UnityEditor.VFX
                 if (data.capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = data.capacity, stride = 4 });
                 }
                 eventGpuBufferDictionnary.Add(data, eventBufferIndex);
             }

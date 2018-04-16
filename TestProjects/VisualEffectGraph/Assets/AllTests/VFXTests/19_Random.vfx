@@ -3935,6 +3935,41 @@ VisualEffectAsset:
     capacity: 20032
     stride: 4
   - type: 1
+    size: 140224
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 20032
+        structure: 4
+        element: 0
+    - name: particleId
+      type: 6
+      offset:
+        bucket: 20032
+        structure: 4
+        element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 100160
+        structure: 1
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 120192
+        structure: 1
+        element: 0
+    capacity: 20032
+    stride: 4
+  - type: 1
     size: 1
     layout:
     - name: spawnCount
@@ -4003,11 +4038,11 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     values:
@@ -4021,11 +4056,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
       - nameId: Lifetime_a
         index: 87
@@ -4050,18 +4085,18 @@ VisualEffectAsset:
         index: 82
       - nameId: bounds_size
         index: 88
-      processor: {fileID: 7200000, guid: 0a57d6781ac8aca469fcdae6001f71aa, type: 3}
+      processor: {fileID: 7200000, guid: 4a2da6f660d7e00479d956492065fc2e, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       values:
       - nameId: deltaTime_a
         index: 84
       params: []
-      processor: {fileID: 7200000, guid: aa701214ed12c314fb9fcfb2bd559b53, type: 3}
+      processor: {fileID: 7200000, guid: a2fc73104a8bfa64aa98629b90c1807d, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4088,7 +4123,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: f9aba11b69d09694f9f264df088fbb5f, type: 3}
+      processor: {fileID: 4800000, guid: a0de06dfbebb5c34ca0e4bd4e30e3c68, type: 3}
   - type: 2
     flags: 0
     capacity: 0

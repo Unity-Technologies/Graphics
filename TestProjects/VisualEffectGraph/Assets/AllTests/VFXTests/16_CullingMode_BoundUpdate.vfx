@@ -1959,6 +1959,35 @@ VisualEffectAsset:
     capacity: 65536
     stride: 4
   - type: 1
+    size: 458752
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 65536
+        structure: 4
+        element: 0
+    - name: alive
+      type: 17
+      offset:
+        bucket: 327680
+        structure: 2
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 327680
+        structure: 2
+        element: 1
+    capacity: 65536
+    stride: 4
+  - type: 1
     size: 1
     layout:
     - name: spawnCount
@@ -2042,19 +2071,19 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     - nameId: indirectBuffer
-      index: 4
-    - nameId: sortBufferA
       index: 5
-    - nameId: sortBufferB
+    - nameId: sortBufferA
       index: 6
+    - nameId: sortBufferB
+      index: 7
     values:
     - nameId: bounds_center
       index: 23
@@ -2066,11 +2095,11 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
       - nameId: Lifetime_a
         index: 25
@@ -2081,41 +2110,41 @@ VisualEffectAsset:
         index: 23
       - nameId: bounds_size
         index: 21
-      processor: {fileID: 7200000, guid: e96b89a5013c80f4494dea23be69db9b, type: 3}
+      processor: {fileID: 7200000, guid: 726dd1c6c61016a49bda85dcca96c48e, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: deltaTime_a
         index: 24
       params: []
-      processor: {fileID: 7200000, guid: 701050824c95d034ea44b0c3ef9706a9, type: 3}
+      processor: {fileID: 7200000, guid: a90c2645ce345844d90af92b7f3a276f, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: inputBuffer
-        index: 4
-      - nameId: outputBuffer
         index: 5
+      - nameId: outputBuffer
+        index: 6
       - nameId: deadListCount
-        index: 3
+        index: 4
       values:
       - nameId: localToWorld
         index: 20
       params: []
-      processor: {fileID: 7200000, guid: 4937dca6edc89304fa8881f0b075efa1, type: 3}
+      processor: {fileID: 7200000, guid: 31428cff046ba324e992fddf5c3ae515, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
-        index: 4
+        index: 5
       values:
       - nameId: SizeX_a
         index: 18
@@ -2128,7 +2157,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: baa1911b45a6b354d9e56c2aec8e6ce7, type: 3}
+      processor: {fileID: 4800000, guid: bf9aced934ed49a4b81ce2665d1b5d2b, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
