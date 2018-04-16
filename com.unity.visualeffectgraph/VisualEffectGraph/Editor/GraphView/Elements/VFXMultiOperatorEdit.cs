@@ -171,11 +171,6 @@ namespace UnityEditor.VFX.UI
                 operand.Set(op);
             }
 
-            VFXOperatorUI opUI = GetFirstAncestorOfType<VFXOperatorUI>();
-            if (opUI != null)
-            {
-                opUI.ForceRefreshLayout();
-            }
             m_SelfChanging = false;
         }
 
