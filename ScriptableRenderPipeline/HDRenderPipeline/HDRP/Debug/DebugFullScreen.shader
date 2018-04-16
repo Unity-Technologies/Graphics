@@ -19,12 +19,21 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "CoreRP/ShaderLibrary/Color.hlsl"
+            #include "CoreRP/ShaderLibrary/Debug.hlsl"
+            #include "HDRP/Material/Lit/Lit.cs.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "../Debug/DebugDisplay.cs.hlsl"
 
-            TEXTURE2D(_DebugFullScreenTexture);
+            CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
             float _RequireToFlipInputTexture;
+            float _ShowGrid;
+            float _ShowDepthPyramidDebug;
+            CBUFFER_END
+
+            TEXTURE2D(_DebugFullScreenTexture);
+            TEXTURE2D(_DepthPyramidTexture);
+            StructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData;
 
             struct Attributes
             {
@@ -139,16 +148,17 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float kGrid = 64.0;
 
                     // Arrow grid (aspect ratio is kept)
-                    float rows = floor(kGrid * _ScreenParams.y / _ScreenParams.x);
+                    float aspect = _ScreenSize.y * _ScreenSize.z;
+                    float rows = floor(kGrid * aspect);
                     float cols = kGrid;
-                    float2 size = _ScreenParams.xy / float2(cols, rows);
+                    float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
                     float2 texcoord = input.positionCS.xy;
                     float2 center = (floor(texcoord / size) + 0.5) * size;
                     texcoord -= center;
 
                     // Sample the center of the cell to get the current arrow vector
-                    float2 arrow_coord = center / _ScreenParams.xy;
+                    float2 arrow_coord = center * _ScreenSize.zw;
 
                     if (_RequireToFlipInputTexture > 0.0)
                     {
@@ -193,9 +203,82 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     // Reuse depth display function from DebugViewMaterial
                     float depth = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
-                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     return float4(linearDepth.xxx, 1.0);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_TRACING)
+                {
+                    const float circleRadius = 3.5;
+                    const float ringSize = 1.5;
+                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+
+                    ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
+
+                    // Fetch Depth Buffer and Position Inputs
+                    const float deviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, int2(input.positionCS.xy) >> debug.iterationMipLevel, debug.iterationMipLevel).r;
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+
+                    float4 col = float4(0, 0, 0, 1);
+
+                    // Common Pre Specific
+                    // Fetch debug data
+                    const uint2 loopStartPositionSS = uint2(debug.loopStartPositionSSX, debug.loopStartPositionSSY);
+                    const uint2 endPositionSS = uint2(debug.endPositionSSX, debug.endPositionSSY);
+
+                    float distanceToPosition = FLT_MAX;
+                    float positionSDF = 0;
+                    // Start position dot rendering
+                    const float distanceToStartPosition = length(int2(posInput.positionSS) - int2(loopStartPositionSS));
+                    const float startPositionSDF = clamp(circleRadius - distanceToStartPosition, 0, 1);
+                    // Line rendering
+                    const float distanceToRaySegment = DistanceToSegment(posInput.positionSS, loopStartPositionSS, endPositionSS);
+                    const float raySegmentSDF = clamp(1 - distanceToRaySegment, 0, 1);
+
+                    float cellSDF = 0;
+                    float debugLinearDepth = 0;
+                    if (debug.tracingModel == REFRACTIONSSRAYMODEL_HI_Z)
+                    {
+                        const uint2 iterationCellSize = uint2(debug.iterationCellSizeW, debug.iterationCellSizeH);
+                        const float hasData = iterationCellSize.x != 0 || iterationCellSize.y != 0;
+
+                        // Position dot rendering
+                        distanceToPosition = length(int2(posInput.positionSS) - int2(debug.iterationPositionSS.xy));
+                        positionSDF = clamp(circleRadius - distanceToPosition, 0, 1);
+
+                        // Grid rendering
+                        float2 distanceToCell = float2(posInput.positionSS % iterationCellSize);
+                        distanceToCell = min(distanceToCell, float2(iterationCellSize) - distanceToCell);
+                        distanceToCell = clamp(1 - distanceToCell, 0, 1);
+                        cellSDF = max(distanceToCell.x, distanceToCell.y) * _ShowGrid;
+
+                        debugLinearDepth = posInput.linearDepth;
+                    }
+
+                    col = float4(
+                        ( GetIndexColor(1) * startPositionSDF
+                        + GetIndexColor(3) * positionSDF
+                        + GetIndexColor(5) * cellSDF
+                        + GetIndexColor(7) * raySegmentSDF
+                        ),
+                        col.a
+                    );
+
+                    // Common Post Specific
+                    // Calculate SDF to draw a ring on both dots
+                    const float startPositionRingDistance = abs(distanceToStartPosition - circleRadius);
+                    const float startPositionRingSDF = clamp(ringSize - startPositionRingDistance, 0, 1);
+                    const float positionRingDistance = abs(distanceToPosition - circleRadius);
+                    const float positionRingSDF = clamp(ringSize - positionRingDistance, 0, 1);
+                    const float w = clamp(1 - startPositionRingSDF - positionRingSDF, 0, 1);
+                    col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
+
+                    if (_ShowDepthPyramidDebug == 1)
+                        color.rgb = frac(float3(debugLinearDepth, debugLinearDepth, debugLinearDepth) * 0.1);
+
+                    col = float4(col.rgb * col.a + color.rgb, 1);
+
+                    return col;
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

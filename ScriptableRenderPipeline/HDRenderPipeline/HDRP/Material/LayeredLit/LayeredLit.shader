@@ -450,7 +450,7 @@ Shader "HDRenderPipeline/LayeredLit"
     // Include
     //-------------------------------------------------------------------------------------
 
-    #include "CoreRP/ShaderLibrary/common.hlsl"
+    #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "CoreRP/ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"

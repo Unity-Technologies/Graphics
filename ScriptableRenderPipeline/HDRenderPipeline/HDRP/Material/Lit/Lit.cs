@@ -21,13 +21,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LitClearCoat            = 1 << 6
         };
 
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum RefractionMode
+        public enum RefractionModel
         {
             None = 0,
             Plane = 1,
             Sphere = 2
         };
+
+        [GenerateHLSL]
+        public enum RefractionSSRayModel
+        {
+            None = 0,
+            Proxy = 1,
+            HiZ = 2
+        };
+
+        [GenerateHLSL]
+        public enum HiZIntersectionKind
+        {
+            None,
+            Cell,
+            Depth
+        }
 
         //-----------------------------------------------------------------------------
         // SurfaceData

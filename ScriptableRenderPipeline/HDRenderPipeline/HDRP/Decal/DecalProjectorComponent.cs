@@ -83,6 +83,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public void Update()
+        {
+            if (m_Handle != null)
+            {
+                if (transform.hasChanged == true)
+                {
+                    DecalSystem.instance.UpdateCachedData(transform, m_DrawDistance, m_FadeScale, m_Handle);
+                    transform.hasChanged = false;
+                }
+            }
+        }
+
         private void DrawGizmo(bool selected)
         {
             var col = new Color(0.0f, 0.7f, 1f, 1.0f);

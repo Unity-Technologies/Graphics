@@ -149,11 +149,14 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 float4 mousePixelCoord = _MousePixelCoord;
                 if (_RequireToFlipInputTexture > 0.0)
                 {
-                    mousePixelCoord.y = _ScreenParams.y - mousePixelCoord.y;
+                    mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
                     // Note: We must not flip the mousePixelCoord.w coordinate
                 }
 
                 float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
+                // Reverse debug exposure in order to display the real values.
+                // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
+                mouseResult = mouseResult / exp2(_DebugExposure);
 
                 float4 finalResult = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
                 return finalResult;

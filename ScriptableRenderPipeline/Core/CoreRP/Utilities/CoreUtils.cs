@@ -461,5 +461,75 @@ namespace UnityEngine.Experimental.Rendering
             mesh.triangles = triangles;
             return mesh;
         }
+
+        public static void DisplayUnsupportedAPIMessage()
+        {
+            Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
+
+#if UNITY_EDITOR
+            foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                sv.ShowNotification(new GUIContent("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur"));
+#endif
+
+        }
+
+        // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
+        public static  bool AreAnimatedMaterialsEnabled(Camera camera)
+        {
+            bool animateMaterials = true;
+
+        #if UNITY_EDITOR
+            animateMaterials = Application.isPlaying;
+
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                animateMaterials = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showMaterialUpdate)
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
+            }
+            else if (camera.cameraType == CameraType.Preview)
+            {
+                animateMaterials = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.MaterialEditor med in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.MaterialEditor)))
+                {
+                    // Warning: currently, there's no way to determine whether a given camera corresponds to this MaterialEditor.
+                    // Therefore, if at least one of the visible MaterialEditors is in Play Mode, all of them will play.
+                    if (med.isVisible && med.RequiresConstantRepaint())
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
+            }
+            
+            // TODO: how to handle reflection views? We don't know the parent window they are being rendered into,
+            // so we don't know whether we can animate them...
+            //
+            // IMHO, a better solution would be:
+            // A window invokes a camera render. The camera knows which window called it, so it can query its properies
+            // (such as animated materials). This camera provides the space-time position. It should also be able
+            // to access the rendering settings somehow. Using this information, it is then able to construct the
+            // primary view with information about camera-relative rendering, LOD, time, rendering passes/features
+            // enabled, etc. We then render this view. It can have multiple sub-views (shadows, reflections).
+            // They inherit all the properties of the primary view, but also have the ability to override them
+            // (e.g. primary cam pos and time are retained, matrices are modified, SSS and tessellation are disabled).
+            // These views can then have multiple sub-views (probably not practical for games),
+            // which simply amounts to a recursive call, and then the story repeats itself.
+            //
+            // TLDR: we need to know the caller and its status/properties to make decisions.
+        #endif
+
+            return animateMaterials;
+        }
     }
 }

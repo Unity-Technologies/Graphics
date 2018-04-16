@@ -451,13 +451,21 @@ real Pow4(real x)
 // Texture utilities
 // ----------------------------------------------------------------------------
 
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
+{
+    float2 ddx_ = scale * uvdx;
+    float2 ddy_ = scale * uvdy;
+    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+
+    return max(0.5 * log2(d), 0.0);
+}
+
 float ComputeTextureLOD(float2 uv)
 {
     float2 ddx_ = ddx(uv);
     float2 ddy_ = ddy(uv);
-    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
-    return max(0.5 * log2(d), 0.0);
+    return ComputeTextureLOD(ddx_, ddy_, 1.0);
 }
 
 // x contains width, w contains height
@@ -522,7 +530,8 @@ float3 LatlongToDirectionCoordinate(float2 coord)
 // ----------------------------------------------------------------------------
 
 // Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
-// Does not correctly handle oblique view frustums.
+// Does NOT correctly handle oblique view frustums.
+// Does NOT work with orthographic projection.
 // zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
 float Linear01DepthFromNear(float depth, float4 zBufferParam)
 {
@@ -530,7 +539,8 @@ float Linear01DepthFromNear(float depth, float4 zBufferParam)
 }
 
 // Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
-// Does not correctly handle oblique view frustums.
+// Does NOT work with orthographic projections.
+// Does NOT correctly handle oblique view frustums.
 // zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
 float Linear01Depth(float depth, float4 zBufferParam)
 {
@@ -538,7 +548,8 @@ float Linear01Depth(float depth, float4 zBufferParam)
 }
 
 // Z buffer to linear depth.
-// Does not correctly handle oblique view frustums.
+// Does NOT correctly handle oblique view frustums.
+// Does NOT work with orthographic projection.
 // zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
 float LinearEyeDepth(float depth, float4 zBufferParam)
 {
@@ -546,22 +557,28 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
 }
 
 // Z buffer to linear depth.
-// Correctly handles oblique view frustums. Only valid for projection matrices!
+// Correctly handles oblique view frustums.
+// Does NOT work with orthographic projection.
 // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
 float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
 {
     float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
     float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
-    // The view space uses a right-handed coordinate system.
-    return -viewSpaceZ;
+
+    // If the matrix is right-handed, we have to flip the Z axis to get a positive value.
+    return abs(viewSpaceZ);
 }
 
 // Z buffer to linear depth.
-// Correctly handles oblique view frustums.
+// Works in all cases.
 // Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
-float LinearEyeDepth(float3 positionWS, float4x4 viewProjMatrix)
+// Assumes that the 'positionWS' is in front of the camera.
+float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
 {
-    return mul(viewProjMatrix, float4(positionWS, 1.0)).w;
+    float viewSpaceZ = mul(viewMatrix, float4(positionWS, 1.0)).z;
+
+    // If the matrix is right-handed, we have to flip the Z axis to get a positive value.
+    return abs(viewSpaceZ);
 }
 
 // 'z' is the view space Z position (linear depth).
@@ -647,6 +664,7 @@ float4 ComputeClipSpacePosition(float3 position, float4x4 clipSpaceTransform = k
     return mul(clipSpaceTransform, float4(position, 1.0));
 }
 
+// The returned Z value is the depth buffer value (and NOT linear view space Z value).
 // Use case examples:
 // (position = positionCS) => (clipSpaceTransform = use default)
 // (position = positionVS) => (clipSpaceTransform = UNITY_MATRIX_P)
@@ -740,9 +758,9 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
 {
     PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
-    posInput.deviceDepth = deviceDepth;
-    posInput.linearDepth = linearDepth;
-    posInput.positionWS  = positionWS;
+    posInput.positionWS     = positionWS;
+    posInput.deviceDepth    = deviceDepth;
+    posInput.linearDepth    = linearDepth;
 
     return posInput;
 }
@@ -755,32 +773,35 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float d
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix, uint2 tileCoord)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
+                                float4x4 invViewProjMatrix, float4x4 viewMatrix,
+                                uint2 tileCoord)
 {
     PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
-    posInput.deviceDepth = deviceDepth;
-    posInput.positionWS  = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
-
-    // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.linearDepth = mul(viewProjMatrix, float4(posInput.positionWS, 1.0)).w;
+    posInput.positionWS     = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
+    posInput.deviceDepth    = deviceDepth;
+    posInput.linearDepth    = LinearEyeDepth(posInput.positionWS, viewMatrix);
 
     return posInput;
 }
 
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float4x4 invViewProjMatrix, float4x4 viewProjMatrix)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
+                                float4x4 invViewProjMatrix, float4x4 viewMatrix)
 {
-    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewProjMatrix, uint2(0, 0));
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewMatrix, uint2(0, 0));
 }
 
 // The view direction 'V' points towards the camera.
 // 'depthOffsetVS' is always applied in the opposite direction (-V).
-void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float4x4 viewProjMatrix, inout PositionInputs posInput)
+void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewForwardDir, float4x4 viewProjMatrix, inout PositionInputs posInput)
 {
     posInput.positionWS += depthOffsetVS * (-V);
+    posInput.deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(posInput.positionWS, viewProjMatrix).z;
 
-    float4 positionCS    = mul(viewProjMatrix, float4(posInput.positionWS, 1.0));
-    posInput.linearDepth = positionCS.w;
-    posInput.deviceDepth = positionCS.z / positionCS.w;
+    // Transform the displacement along the view vector to the displacement along the forward vector.
+    // Use abs() to make sure we get the sign right.
+    // 'depthOffsetVS' applies in the direction away from the camera.
+    posInput.linearDepth += depthOffsetVS * abs(dot(V, viewForwardDir));
 }
 
 // ----------------------------------------------------------------------------
@@ -811,6 +832,39 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
     return float4(uv * 2.0 - 1.0, z, 1.0);
 }
 
+
+// draw procedural with 2 triangles has index order (0,1,2)  (0,2,3)
+
+// 0 - 0,0
+// 1 - 0,1
+// 2 - 1,1
+// 3 - 1,0
+
+float2 GetQuadTexCoord(uint vertexID)
+{
+	uint topBit = vertexID >> 1;
+	uint botBit = (vertexID & 1);
+	float u = topBit;
+	float v = (topBit + botBit) & 1; // produces 0 for indices 0,3 and 1 for 1,2
+#if UNITY_UV_STARTS_AT_TOP
+	v = 1.0 - v;
+#endif
+	return float2(u, v);
+}
+
+// 0 - 0,1
+// 1 - 0,0
+// 2 - 1,0
+// 3 - 1,1
+float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
+{
+	uint topBit = vertexID >> 1;
+	uint botBit = (vertexID & 1);
+	float x = topBit;
+	float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
+	return float4(x, y, z, 1.0);
+}
+
 #if !defined(SHADER_API_GLES)
 
 // LOD dithering transition helper
@@ -824,7 +878,7 @@ void LODDitheringTransition(uint2 positionSS, float ditherFactor)
 
     // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
     // this is handled by this test which reverse the pattern
-    // TODO: replace the test (ditherFactor >= 0.5) with (isLod0) to avoid the distracting pattern flip around 0.5.  
+    // TODO: replace the test (ditherFactor >= 0.5) with (isLod0) to avoid the distracting pattern flip around 0.5.
     p = (ditherFactor >= 0.5) ? p : 1 - p;
     clip(ditherFactor - p);
 }
