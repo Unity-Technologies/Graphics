@@ -178,20 +178,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (!component.active)
                     continue;
 
-                var target = stack.GetComponent(component.GetType());
-                int count = component.parameters.Count;
-
-                for (int i = 0; i < count; i++)
-                {
-                    var fromParam = target.parameters[i];
-                    var toParam = component.parameters[i];
-
-                    // Keep track of the override state for debugging purpose
-                    fromParam.overrideState = toParam.overrideState;
-
-                    if (toParam.overrideState)
-                        fromParam.Interp(fromParam, toParam, interpFactor);
-                }
+                var state = stack.GetComponent(component.GetType());
+                component.Override(state, interpFactor);
             }
         }
 
