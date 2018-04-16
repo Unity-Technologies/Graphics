@@ -35,6 +35,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         PopupField<string> m_PopupField;
         string[] m_ValueNames;
 
+        int m_PreviousChannelCount = -1;
+
         public ChannelEnumControlView(string label, int slotId, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             AddStyleSheetPath("Styles/Controls/ChannelEnumControlView");
@@ -75,15 +77,26 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void CreatePopup()
         {
-            if(m_PopupField != null)
-                Remove(m_PopupField);
-            
             int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot<MaterialSlot>(m_SlotId).concreteValueType);
+
+            if(m_PopupField != null)
+            {
+                if(channelCount == m_PreviousChannelCount)
+                    return;
+
+                Remove(m_PopupField);
+            }
+            
+            m_PreviousChannelCount = channelCount;
             List<string> popupEntries = new List<string>();
             for (int i = 0; i < channelCount; i++)
                 popupEntries.Add(m_ValueNames[i]);
 
-            m_PopupField = new PopupField<string>(popupEntries, (int)m_PropertyInfo.GetValue(m_Node, null));
+            var value = (int)m_PropertyInfo.GetValue(m_Node, null);
+            if(value >= channelCount)
+                value = 0;
+
+            m_PopupField = new PopupField<string>(popupEntries, value);
             m_PopupField.OnValueChanged(OnValueChanged);
             Add(m_PopupField);
         }
