@@ -539,6 +539,12 @@ namespace UnityEditor.VFX.UI
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
 
+
+        public int nodeCount
+        {
+            get {return m_Controllers.Count(); }
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             model.ValidateNodes();

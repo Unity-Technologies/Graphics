@@ -30,6 +30,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateInfos()
         {
+            base.UpdateInfos();
             if (model.direction == VFXSlot.Direction.kInput)
             {
                 System.Type newAnchorType = GetDisplayAnchorType(model);
@@ -39,8 +40,6 @@ namespace UnityEditor.VFX.UI
                     portType = newAnchorType;
                 }
             }
-            else
-                base.UpdateInfos();
         }
     }
 

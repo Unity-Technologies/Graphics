@@ -34,11 +34,44 @@ namespace UnityEditor.VFX.UI
 
         VFXGroupNodeController m_Controller;
 
+
+        VisualElement m_GroupDropArea;
+
         public VFXGroupNode()
         {
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            m_GroupDropArea = this.Query("dropArea");
+
+            RegisterCallback<DragPerformEvent>(DragPerform);
+            RegisterCallback<DragUpdatedEvent>(DragUpdated);
+            RegisterCallback<DragLeaveEvent>(DragLeave);
+        }
+
+        public bool CanAcceptDrop()
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null)
+                return false;
+            return view.selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null);
+        }
+
+        public void DragUpdated(DragUpdatedEvent evt)
+        {
+            if (CanAcceptDrop())
+                m_GroupDropArea.AddToClassList("dragEntered");
+        }
+
+        public void DragPerform(DragPerformEvent evt)
+        {
+            m_GroupDropArea.RemoveFromClassList("dragEntered");
+        }
+
+        public void DragLeave(DragLeaveEvent evt)
+        {
+            m_GroupDropArea.RemoveFromClassList("dragEntered");
         }
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
