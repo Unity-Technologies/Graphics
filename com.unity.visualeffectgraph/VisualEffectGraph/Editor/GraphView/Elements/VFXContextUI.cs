@@ -217,7 +217,6 @@ namespace UnityEditor.VFX.UI
             m_DragDisplay.AddToClassList("dragdisplay");
 
             RegisterCallback<ControllerChangedEvent>(OnChange);
-            //this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
         bool m_CanHaveBlocks = false;
@@ -449,7 +448,7 @@ namespace UnityEditor.VFX.UI
 
             var blocksUIs = new Dictionary<VFXBlockController, VFXBlockUI>();
 
-            bool somethingChanged = m_BlockContainer.childCount < blockControllerCount || (!m_CanHaveBlocks && m_NoBlock.parent != null) ;
+            bool somethingChanged = m_BlockContainer.childCount < blockControllerCount || (!m_CanHaveBlocks && m_NoBlock.parent != null);
 
             int cptBlock = 0;
             for (int i = 0; i < m_BlockContainer.childCount; ++i)
@@ -606,7 +605,7 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target is VFXContextUI || evt.target is VFXBlockUI)
             {
-                if( m_CanHaveBlocks )
+                if (m_CanHaveBlocks)
                 {
                     evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
                     evt.menu.AppendSeparator();
