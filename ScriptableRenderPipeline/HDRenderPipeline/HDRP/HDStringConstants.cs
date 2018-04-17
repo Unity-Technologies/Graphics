@@ -130,7 +130,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ShowGrid = Shader.PropertyToID("_ShowGrid");
         public static readonly int _ShowDepthPyramidDebug = Shader.PropertyToID("_ShowDepthPyramidDebug");
 
-        public static readonly int _DebugEnvironmentProxyDepthScale = Shader.PropertyToID("_DebugEnvironmentProxyDepthScale");
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterial");
         public static readonly int _DebugLightingMode = Shader.PropertyToID("_DebugLightingMode");
         public static readonly int _DebugLightingSubMode = Shader.PropertyToID("_DebugLightingSubMode");
