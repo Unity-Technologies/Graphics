@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int maxPlanarReflectionProbes = 128;
         public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
         public LayerMask skyLightingOverrideLayerMask = 0;
+        public int numLightIndicesPerClusteredTile = 8;
     }
 }
 
