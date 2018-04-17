@@ -13,29 +13,6 @@ TEXTURE2D(_GBufferTexture1);
 TEXTURE2D(_GBufferTexture2);
 TEXTURE2D(_GBufferTexture3);
 
-// Rough refraction texture
-// Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_ColorPyramidTexture);
-// Depth pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_DepthPyramidTexture);
-
-CBUFFER_START(UnityLightingParameters)
-// Buffer pyramid
-float4 _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4 _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
-float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
-
-// Screen space lighting
-float _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
-
-// Ambiant occlusion
-float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-CBUFFER_END
-
-// Ambient occlusion texture
-TEXTURE2D(_AmbientOcclusionTexture);
-
 // Area light textures
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
@@ -2029,47 +2006,20 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 {
     float3 bakeDiffuseLighting = bakeLightingData.bakeDiffuseLighting;
 
+    AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
-#define GTAO_MULTIBOUNCE_APPROX 1
-
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-
-    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, posInput.positionSS).x;
-    // Ambient occlusion use for direct lighting (directional, punctual, area)
-    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+#if 0
+    GetAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.specularOcclusion, aoFactor);
 #else
-    float indirectAmbientOcclusion = 1.0;
-    float directAmbientOcclusion = 1.0;
+    GetAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
 #endif
 
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
-#if GTAO_MULTIBOUNCE_APPROX
-    bakeDiffuseLighting *= GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
-#else
-    bakeDiffuseLighting *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
-#endif
+    bakeDiffuseLighting                 *= aoFactor.indirectAmbientOcclusion;
+    lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
+    lighting.direct.diffuse             *= aoFactor.directAmbientOcclusion;
 
-    float roughness         = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(preLightData.NdotV), indirectAmbientOcclusion, roughness);
-    // Try to mimic multibounce with specular color. Not the point of the original formula but ok result.
-    // Take the min of screenspace specular occlusion and visibility cone specular occlusion
-#if GTAO_MULTIBOUNCE_APPROX
-    lighting.indirect.specularReflected *= GTAOMultiBounce(min(bsdfData.specularOcclusion, specularOcclusion), bsdfData.fresnel0);
-#else
-    lighting.indirect.specularReflected *= lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(bsdfData.specularOcclusion, specularOcclusion));
-#endif
-
-    lighting.direct.diffuse *=
-#if GTAO_MULTIBOUNCE_APPROX
-                                GTAOMultiBounce(directAmbientOcclusion, bsdfData.diffuseColor);
-#else
-                                lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
-#endif
-
+    // Subsurface scattering mdoe
     uint   texturingMode        = (bsdfData.materialFeatures >> MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
     float3 modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
 
@@ -2100,11 +2050,11 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
-            diffuseLighting = indirectAmbientOcclusion;
+            diffuseLighting = aoFactor.indirectAmbientOcclusion;
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
-            diffuseLighting = specularOcclusion;
+            diffuseLighting = aoFactor.indirectSpecularOcclusion;
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
