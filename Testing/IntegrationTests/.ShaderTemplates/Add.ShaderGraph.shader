@@ -76,11 +76,11 @@ Shader "Add"
 					
 							SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 								SurfaceDescription surface = (SurfaceDescription)0;
-								float2 _Vector2_438531E7_Out = float2(2,4);
-								float4 _Vector4_CFE730D7_Out = float4(6,5,7,1);
-								float2 _Add_FCE490FF_Out;
-								Unity_Add_float2(_Vector2_438531E7_Out, (_Vector4_CFE730D7_Out.xy), _Add_FCE490FF_Out);
-								surface.Color = (float3(_Add_FCE490FF_Out, 0.0));
+								float2 _Vector2_6DA8EFA3_Out = float2(0.2,0.4);
+								float4 _Vector4_8E06BBAD_Out = float4(0.6,0.5,0.7,1);
+								float2 _Add_A3B07A07_Out;
+								Unity_Add_float2(_Vector2_6DA8EFA3_Out, (_Vector4_8E06BBAD_Out.xy), _Add_A3B07A07_Out);
+								surface.Color = (float3(_Add_A3B07A07_Out, 0.0));
 								surface.Alpha = 1;
 								surface.AlphaClipThreshold = 0;
 								return surface;
@@ -249,11 +249,11 @@ Shader "Add"
 					
 							SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 								SurfaceDescription surface = (SurfaceDescription)0;
-								float2 _Vector2_438531E7_Out = float2(2,4);
-								float4 _Vector4_CFE730D7_Out = float4(6,5,7,1);
-								float2 _Add_FCE490FF_Out;
-								Unity_Add_float2(_Vector2_438531E7_Out, (_Vector4_CFE730D7_Out.xy), _Add_FCE490FF_Out);
-								surface.Color = (float3(_Add_FCE490FF_Out, 0.0));
+								float2 _Vector2_6DA8EFA3_Out = float2(0.2,0.4);
+								float4 _Vector4_8E06BBAD_Out = float4(0.6,0.5,0.7,1);
+								float2 _Add_A3B07A07_Out;
+								Unity_Add_float2(_Vector2_6DA8EFA3_Out, (_Vector4_8E06BBAD_Out.xy), _Add_A3B07A07_Out);
+								surface.Color = (float3(_Add_A3B07A07_Out, 0.0));
 								surface.Alpha = 1;
 								return surface;
 							}
@@ -361,11 +361,11 @@ Shader "Add"
 					
 							SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 								SurfaceDescription surface = (SurfaceDescription)0;
-								float2 _Vector2_438531E7_Out = float2(2,4);
-								float4 _Vector4_CFE730D7_Out = float4(6,5,7,1);
-								float2 _Add_FCE490FF_Out;
-								Unity_Add_float2(_Vector2_438531E7_Out, (_Vector4_CFE730D7_Out.xy), _Add_FCE490FF_Out);
-								surface.Color = (float3(_Add_FCE490FF_Out, 0.0));
+								float2 _Vector2_6DA8EFA3_Out = float2(0.2,0.4);
+								float4 _Vector4_8E06BBAD_Out = float4(0.6,0.5,0.7,1);
+								float2 _Add_A3B07A07_Out;
+								Unity_Add_float2(_Vector2_6DA8EFA3_Out, (_Vector4_8E06BBAD_Out.xy), _Add_A3B07A07_Out);
+								surface.Color = (float3(_Add_A3B07A07_Out, 0.0));
 								surface.Alpha = 1;
 								return surface;
 							}
