@@ -1,7 +1,6 @@
 #ifndef LIGHTWEIGHT_PASS_META_INCLUDED
 #define LIGHTWEIGHT_PASS_META_INCLUDED
 
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
 CBUFFER_START(UnityMetaPass)
@@ -79,35 +78,8 @@ MetaVertexOuput LightweightVertexMeta(MetaVertexInput v)
 {
     MetaVertexOuput o;
     o.pos = MetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST);
-    o.uv = TransformMainTextureCoord(v.uv0);
+    o.uv = TRANSFORM_TEX(v.uv0, _MainTex);
     return o;
-}
-
-half4 LightweightFragmentMeta(MetaVertexOuput i) : SV_Target
-{
-    SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(i.uv, surfaceData);
-
-    BRDFData brdfData;
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-
-    MetaInput o;
-    o.Albedo = brdfData.diffuse + brdfData.specular * brdfData.roughness * 0.5;
-    o.SpecularColor = surfaceData.specular;
-    o.Emission = surfaceData.emission;
-
-    return MetaFragment(o);
-}
-
-half4 LightweightFragmentMetaSimple(MetaVertexOuput i) : SV_Target
-{
-    float2 uv = i.uv;
-    MetaInput o;
-    o.Albedo = _Color.rgb * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rgb;
-    o.SpecularColor = SpecularGloss(uv, 1.0).xyz;
-    o.Emission = Emission(uv);
-
-    return MetaFragment(o);
 }
 
 #endif
