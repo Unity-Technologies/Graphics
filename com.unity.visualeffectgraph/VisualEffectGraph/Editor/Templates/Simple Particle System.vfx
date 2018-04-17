@@ -1611,6 +1611,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: curve_b
         index: 17
