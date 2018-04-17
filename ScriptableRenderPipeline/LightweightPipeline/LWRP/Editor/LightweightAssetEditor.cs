@@ -25,11 +25,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.");
 
+            public static GUIContent requireOpaqueTexture = new GUIContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
+
+            public static GUIContent opaqueDownsampling = new GUIContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
+
             public static GUIContent shadowType = new GUIContent("Type",
                     "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
-
-            public static GUIContent shadowNearPlaneOffset = new GUIContent("Near Plane Offset",
-                    "Offset shadow near plane to account for large triangles being distorted by pancaking.");
 
             public static GUIContent shadowDistante = new GUIContent("Distance", "Max shadow rendering distance.");
 
@@ -47,9 +48,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
+            public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
         AnimBool m_ShowSoftParticles = new AnimBool();
+        AnimBool m_ShowOpaqueTextureScale = new AnimBool();
+
 
         private int kMaxSupportedPixelLights = 8;
         private float kMinRenderScale = 0.1f;
@@ -59,8 +63,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_SupportsVertexLightProp;
         private SerializedProperty m_RequireDepthTextureProp;
         private SerializedProperty m_RequireSoftParticlesProp;
+        private SerializedProperty m_RequireOpaqueTextureProp;
+        private SerializedProperty m_OpaqueDownsamplingProp;
         private SerializedProperty m_ShadowTypeProp;
-        private SerializedProperty m_ShadowNearPlaneOffsetProp;
         private SerializedProperty m_ShadowDistanceProp;
         private SerializedProperty m_ShadowAtlasResolutionProp;
         private SerializedProperty m_ShadowCascadesProp;
@@ -76,8 +81,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
+            m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
+            m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
-            m_ShadowNearPlaneOffsetProp = serializedObject.FindProperty("m_ShadowNearPlaneOffset");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
             m_ShadowAtlasResolutionProp = serializedObject.FindProperty("m_ShadowAtlasResolution");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
@@ -88,16 +94,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
+            m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
+            m_ShowOpaqueTextureScale.value = m_RequireOpaqueTextureProp.boolValue;
         }
 
         void OnDisable()
         {
             m_ShowSoftParticles.valueChanged.RemoveListener(Repaint);
+            m_ShowOpaqueTextureScale.valueChanged.RemoveListener(Repaint);
         }
 
         void UpdateAnimationValues()
         {
             m_ShowSoftParticles.target = m_RequireDepthTextureProp.boolValue;
+            m_ShowOpaqueTextureScale.target = m_RequireOpaqueTextureProp.boolValue;
         }
 
         void DrawAnimatedProperty(SerializedProperty prop, GUIContent content, AnimBool animation)
@@ -105,6 +115,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             using (var group = new EditorGUILayout.FadeGroupScope(animation.faded))
                 if (group.visible)
                     EditorGUILayout.PropertyField(prop, content);
+        }
+
+        void DrawAnimatedPopup(SerializedProperty prop, GUIContent content, string[] options, AnimBool animation)
+        {
+            using (var group = new EditorGUILayout.FadeGroupScope(animation.faded))
+                if (group.visible)
+                    CoreEditorUtils.DrawPopup(content, prop, options);
         }
 
         public override void OnInspectorGUI()
@@ -126,6 +143,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
             DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
+            EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
+            DrawAnimatedPopup(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling, Styles.opaqueDownsamplingOptions, m_ShowOpaqueTextureScale);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
 
@@ -137,7 +156,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel++;
             CoreEditorUtils.DrawPopup(Styles.shadowType, m_ShadowTypeProp, Styles.shadowTypeOptions);
             EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
-            EditorGUILayout.PropertyField(m_ShadowNearPlaneOffsetProp, Styles.shadowNearPlaneOffset);
             m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistante, m_ShadowDistanceProp.floatValue));
             CoreEditorUtils.DrawPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
