@@ -7708,6 +7708,8 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectBuffer
         index: 9
+      - nameId: deadListCount
+        index: 8
       values:
       - nameId: mainTexture
         index: 77
@@ -7824,6 +7826,8 @@ VisualEffectAsset:
         index: 1
       - nameId: indirectBuffer
         index: 15
+      - nameId: deadListCount
+        index: 14
       values:
       - nameId: mainTexture
         index: 64
@@ -7921,6 +7925,8 @@ VisualEffectAsset:
         index: 2
       - nameId: indirectBuffer
         index: 21
+      - nameId: deadListCount
+        index: 20
       values:
       - nameId: mainTexture
         index: 62

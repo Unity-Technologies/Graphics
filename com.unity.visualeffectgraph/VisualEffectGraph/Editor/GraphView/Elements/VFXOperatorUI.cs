@@ -42,16 +42,13 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
+                    expanded = true;
+                    RefreshPorts(); // refresh port to make sure outputContainer is added before the editcontainer.
                     topContainer.Add(m_EditContainer);
                 }
-                ForceRefreshLayout();
-            }
-        }
 
-        public void ForceRefreshLayout()
-        {
-            (panel as BaseVisualElementPanel).ValidateLayout();
-            RefreshLayout();
+                UpdateCollapse();
+            }
         }
 
         VisualElement m_Middle;
@@ -126,6 +123,11 @@ namespace UnityEditor.VFX.UI
                 return edit;
             }
             return null;
+        }
+
+        public override bool superCollapsed
+        {
+            get { return base.superCollapsed && (m_EditContainer == null || m_EditContainer.parent == null); }
         }
 
         protected override void SelfChange()

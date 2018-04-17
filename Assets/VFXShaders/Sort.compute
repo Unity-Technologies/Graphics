@@ -67,7 +67,7 @@ RWStructuredBuffer<uint> sortedSequence;
 RWStructuredBuffer<KVP> sortedSequence;
 #endif
 
-Buffer<uint> deadElementCount;
+ByteAddressBuffer deadElementCount;
 
 // Layout of the scratch memory is as follows:
 // First all keys (potentially padded by a DWORD every LDS_PADDING_PERIOD
@@ -80,7 +80,7 @@ CBUFFER_END
 
 uint GetElementCount()
 {
-	return elementCount - deadElementCount[0];
+	return elementCount - deadElementCount.Load(0);
 }
 
 bool CompareKeys(float key0, float key1)

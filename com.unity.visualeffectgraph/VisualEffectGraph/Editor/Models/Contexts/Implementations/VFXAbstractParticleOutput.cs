@@ -90,6 +90,8 @@ namespace UnityEditor.VFX
 
         public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
         public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
+        public bool NeedsDeadListCount() { return HasIndirectDraw() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
+
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
         public override bool codeGeneratorCompute { get { return false; } }
@@ -178,6 +180,9 @@ namespace UnityEditor.VFX
                     if (flipbookMode == FlipbookMode.FlipbookBlend)
                         yield return "USE_FLIPBOOK_INTERPOLATION";
                 }
+
+                if (NeedsDeadListCount())
+                    yield return "USE_DEAD_LIST_COUNT";
             }
         }
 
