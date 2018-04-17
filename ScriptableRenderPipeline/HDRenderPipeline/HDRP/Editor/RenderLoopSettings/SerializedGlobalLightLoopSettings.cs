@@ -19,7 +19,6 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty maxPlanarReflectionProbes;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
-        public SerializedProperty numLightIndicesPerClusteredTile;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
@@ -41,8 +40,6 @@ namespace UnityEditor.Experimental.Rendering
 
             skyReflectionSize = root.Find((GlobalLightLoopSettings s) => s.skyReflectionSize);
             skyLightingOverrideLayerMask = root.Find((GlobalLightLoopSettings s) => s.skyLightingOverrideLayerMask);
-
-            numLightIndicesPerClusteredTile = root.Find((GlobalLightLoopSettings s) => s.numLightIndicesPerClusteredTile);
         }
     }
 }

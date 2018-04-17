@@ -14,8 +14,6 @@ namespace UnityEditor.Experimental.Rendering
                 CED.space,
                 SectionReflection,
                 CED.space,
-                SectionLighting,
-                CED.space,
                 SectionSky
             );
         }
@@ -24,7 +22,6 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionCookies = CED.Action(Drawer_SectionCookies);
         public static readonly CED.IDrawer SectionReflection = CED.Action(Drawer_SectionReflection);
-        public static readonly CED.IDrawer SectionLighting = CED.Action(Drawer_SectionLighting);
         public static readonly CED.IDrawer SectionSky = CED.Action(Drawer_SectionSky);
 
         public GlobalLightLoopSettingsUI()
@@ -59,14 +56,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
             EditorGUILayout.PropertyField(d.maxPlanarReflectionProbes, _.GetContent("Max Planar Probe Per Frame"));
             d.maxPlanarReflectionProbes.intValue = Mathf.Max(1, d.maxPlanarReflectionProbes.intValue);
-            --EditorGUI.indentLevel;
-        }
-
-        static void Drawer_SectionLighting(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
-        {
-            EditorGUILayout.LabelField(_.GetContent("Lighting"), EditorStyles.boldLabel);
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.numLightIndicesPerClusteredTile, _.GetContent("Maximum Number of Light Indices Per Cluster"));
             --EditorGUI.indentLevel;
         }
 
