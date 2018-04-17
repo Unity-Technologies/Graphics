@@ -356,8 +356,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private ComputeShader deferredDirectionalShadowComputeShader { get { return m_Resources.deferredDirectionalShadowComputeShader; } }
 
 
-        private GlobalLightLoopSettings m_LightLoopSettings = null;
-
         static int s_GenAABBKernel;
         static int s_GenListPerTileKernel;
         static int s_GenListPerVoxelKernel;
@@ -499,8 +497,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Resources = hdAsset.renderPipelineResources;
 
-            m_LightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugViewTilesShader);
             m_DebugShadowMapMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugShadowMapShader);
             m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(m_Resources.cubeToPanoShader);
@@ -517,16 +513,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
+            GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D("Cookie");
-            m_CookieTexArray.AllocTextureArray(m_LightLoopSettings.cookieTexArraySize, m_LightLoopSettings.cookieSize, m_LightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.cookieSize, gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
-            m_CubeCookieTexArray.AllocTextureArray(m_LightLoopSettings.cubeCookieTexArraySize, m_LightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+            m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
 
-            TextureFormat probeCacheFormat = m_LightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, m_LightLoopSettings.reflectionProbeCacheSize, m_LightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
+            TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
 
-            TextureFormat planarProbeCacheFormat = m_LightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, m_LightLoopSettings.planarReflectionProbeCacheSize, m_LightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
+            TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -740,7 +737,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int NumLightIndicesPerClusteredTile()
         {
-            return m_LightLoopSettings.numLightIndicesPerClusteredTile * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return 8 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         public void AllocResolutionDependentBuffers(int width, int height, bool stereoEnabled)
