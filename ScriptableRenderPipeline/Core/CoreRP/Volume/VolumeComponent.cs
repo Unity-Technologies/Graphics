@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering
         // or reference direct fields (you'll need to cast `state` to your custom type and don't
         // forget to use `SetValue` on parameters, do not assign directly to the state object - and
         // of course you'll need to check for the `overrideState` manually).
-        protected internal virtual void Override(VolumeComponent state, float interpFactor)
+        public virtual void Override(VolumeComponent state, float interpFactor)
         {
             int count = parameters.Count;
 
