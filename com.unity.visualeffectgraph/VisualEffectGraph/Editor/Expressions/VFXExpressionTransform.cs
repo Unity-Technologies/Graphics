@@ -87,14 +87,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -119,14 +111,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOperation.ExtractAnglesFromMatrix;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
             }
         }
 
@@ -157,14 +141,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -189,14 +165,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOperation.TransformPos;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
             }
         }
 
@@ -235,14 +203,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
-            }
-        }
-
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -275,14 +235,6 @@ namespace UnityEditor.VFX
             get
             {
                 return VFXExpressionOperation.TransformDir;
-            }
-        }
-
-        public override VFXValueType valueType
-        {
-            get
-            {
-                return VFXValueType.Float3;
             }
         }
 

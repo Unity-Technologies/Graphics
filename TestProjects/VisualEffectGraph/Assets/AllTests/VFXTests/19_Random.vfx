@@ -36,6 +36,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -2715,6 +2716,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 0
@@ -3297,7 +3299,7 @@ VisualEffectAsset:
       data[0]: 8
       data[1]: 9
       data[2]: -1
-      data[3]: 1
+      data[3]: 6
     - op: 1
       valueIndex: 23
       data[0]: -1
@@ -3387,7 +3389,7 @@ VisualEffectAsset:
       data[0]: 15
       data[1]: 9
       data[2]: -1
-      data[3]: 1
+      data[3]: 6
     - op: 1
       valueIndex: 38
       data[0]: -1
@@ -3399,7 +3401,7 @@ VisualEffectAsset:
       data[0]: 21
       data[1]: 9
       data[2]: -1
-      data[3]: 1
+      data[3]: 6
     - op: 1
       valueIndex: 40
       data[0]: -1
@@ -3899,7 +3901,6 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 140224
-    capacity: 20032
     layout:
     - name: lifetime
       type: 1
@@ -3931,9 +3932,45 @@ VisualEffectAsset:
         bucket: 120192
         structure: 1
         element: 0
+    capacity: 20032
+    stride: 4
+  - type: 1
+    size: 140224
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 20032
+        structure: 4
+        element: 0
+    - name: particleId
+      type: 6
+      offset:
+        bucket: 20032
+        structure: 4
+        element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 100160
+        structure: 1
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 120192
+        structure: 1
+        element: 0
+    capacity: 20032
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -3941,14 +3978,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 20032
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -3997,11 +4038,11 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     values:
@@ -4015,74 +4056,74 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
-      - nameId: Lifetime_b
+      - nameId: Lifetime_a
         index: 87
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 40
-      - nameId: uniform_d
+      - nameId: uniform_c
         index: 48
-      - nameId: uniform_e
+      - nameId: uniform_d
         index: 34
-      - nameId: uniform_f
+      - nameId: uniform_e
         index: 31
-      - nameId: uniform_g
+      - nameId: uniform_f
         index: 50
-      - nameId: uniform_h
+      - nameId: uniform_g
         index: 11
-      - nameId: uniform_i
+      - nameId: uniform_h
         index: 14
-      - nameId: uniform_j
+      - nameId: uniform_i
         index: 17
       params:
       - nameId: bounds_center
         index: 82
       - nameId: bounds_size
         index: 88
-      processor: {fileID: 7200000, guid: 5cdb5045e43001b4c97739620d451178, type: 3}
+      processor: {fileID: 7200000, guid: 4a2da6f660d7e00479d956492065fc2e, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       values:
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 84
       params: []
-      processor: {fileID: 7200000, guid: b0724b15825d20d4c8cf1659293bbecb, type: 3}
+      processor: {fileID: 7200000, guid: a2fc73104a8bfa64aa98629b90c1807d, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 11
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 14
-      - nameId: uniform_d
+      - nameId: uniform_c
         index: 17
-      - nameId: uniform_e
+      - nameId: uniform_d
         index: 32
-      - nameId: uniform_f
+      - nameId: uniform_e
         index: 38
-      - nameId: SizeX_c
+      - nameId: SizeX_b
         index: 90
-      - nameId: Front_d
+      - nameId: Front_c
         index: 94
-      - nameId: Up_d
+      - nameId: Up_c
         index: 91
       - nameId: mainTexture
         index: 85
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7f2645db352b8af48bd911929465c0f3, type: 3}
+      processor: {fileID: 4800000, guid: a0de06dfbebb5c34ca0e4bd4e30e3c68, type: 3}
   - type: 2
     flags: 0
     capacity: 0
@@ -4119,4 +4160,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

@@ -13,44 +13,36 @@ VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
 {
 	uint index = instanceID;
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-	if (index < asuint(nbMax))
-	{
-		#if VFX_HAS_INDIRECT_DRAW
-		index = indirectBuffer[index];
-		#endif
-		${VFXLoadAttributes:{alive}}
-		if (alive)
-		{
-			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-			${VFXProcessBlocks}
-			
-			if (!alive)
-				return o;
-			
-			o.VFX_VARYING_UV.xy = i.uv;
-			
-			${VFXLoadSize}
-			
-			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
-			float3 vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;
 
-			o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
-
-			${VFXVertexCommonProcess}
+	${VFXLoadAttributesOrCull}
+	${VFXProcessBlocks}
 			
-			#if USE_FLIPBOOK
-			${VFXLoadParameter:{flipBookSize}}
-			${VFXLoadParameter:{invFlipBookSize}}
-			#if USE_FLIPBOOK_INTERPOLATION
-			ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);
-			#else
-			ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV);
-			#endif
-			#endif
+	if (!alive)
+		return o;
+	
+	o.VFX_VARYING_UV.xy = i.uv;
+	
+	${VFXLoadSize}
+	
+	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
+	float3 vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;
 
-			${VFXVertexAdditionalProcess}
-		}
-	}
+	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+
+	${VFXVertexCommonProcess}
+	
+	#if USE_FLIPBOOK
+	${VFXLoadParameter:{flipBookSize}}
+	${VFXLoadParameter:{invFlipBookSize}}
+	#if USE_FLIPBOOK_INTERPOLATION
+	ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);
+	#else
+	ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV);
+	#endif
+	#endif
+
+	${VFXVertexAdditionalProcess}
+			
 	return o;
 }
 

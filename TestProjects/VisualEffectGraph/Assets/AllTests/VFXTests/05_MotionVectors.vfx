@@ -1192,6 +1192,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 0
@@ -3977,6 +3978,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
 --- !u!114 &114898393254782138
@@ -5120,7 +5122,6 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 17000000
-    capacity: 1000000
     layout:
     - name: position
       type: 3
@@ -5158,9 +5159,51 @@ VisualEffectAsset:
         bucket: 13000000
         structure: 4
         element: 0
+    capacity: 1000000
+    stride: 4
+  - type: 1
+    size: 17000000
+    layout:
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 0
+    - name: alive
+      type: 17
+      offset:
+        bucket: 0
+        structure: 8
+        element: 3
+    - name: age
+      type: 1
+      offset:
+        bucket: 0
+        structure: 8
+        element: 4
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 8000000
+        structure: 1
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 9000000
+        structure: 4
+        element: 0
+    - name: oldPosition
+      type: 3
+      offset:
+        bucket: 13000000
+        structure: 4
+        element: 0
+    capacity: 1000000
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -5168,14 +5211,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 1000000
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -5224,11 +5271,11 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     values:
@@ -5242,88 +5289,88 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
-      - nameId: Torus_center_b
+      - nameId: Torus_center_a
         index: 66
-      - nameId: Torus_majorRadius_b
+      - nameId: Torus_majorRadius_a
         index: 17
-      - nameId: Torus_minorRadius_b
+      - nameId: Torus_minorRadius_a
         index: 16
-      - nameId: Torus_arc_b
+      - nameId: Torus_arc_a
         index: 55
-      - nameId: volumeFactor_b
+      - nameId: volumeFactor_a
         index: 59
-      - nameId: r_b
+      - nameId: r_a
         index: 68
-      - nameId: uniform_h
+      - nameId: uniform_g
         index: 43
-      - nameId: Lifetime_d
+      - nameId: Lifetime_c
         index: 60
-      - nameId: box_center_e
+      - nameId: box_center_d
         index: 61
-      - nameId: box_size_e
+      - nameId: box_size_d
         index: 62
-      - nameId: Sphere_center_f
+      - nameId: Sphere_center_e
         index: 71
-      - nameId: Sphere_radius_f
+      - nameId: Sphere_radius_e
         index: 72
       params:
       - nameId: bounds_center
         index: 63
       - nameId: bounds_size
         index: 64
-      processor: {fileID: 7200000, guid: a1cfa6b937bf8cc41a0221c0becda46b, type: 3}
+      processor: {fileID: 7200000, guid: 9659863c8946f1240b201f6a9dec04fc, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       values:
-      - nameId: box_center_b
+      - nameId: box_center_a
         index: 61
-      - nameId: box_size_b
+      - nameId: box_size_a
         index: 62
-      - nameId: Elasticity_b
+      - nameId: Elasticity_a
         index: 73
-      - nameId: Friction_b
+      - nameId: Friction_a
         index: 70
-      - nameId: LifetimeLoss_b
+      - nameId: LifetimeLoss_a
         index: 67
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 69
-      - nameId: Sphere_center_c
+      - nameId: Sphere_center_b
         index: 71
-      - nameId: Sphere_radius_c
+      - nameId: Sphere_radius_b
         index: 72
-      - nameId: Elasticity_c
+      - nameId: Elasticity_b
         index: 52
-      - nameId: Friction_c
+      - nameId: Friction_b
         index: 53
-      - nameId: LifetimeLoss_c
+      - nameId: LifetimeLoss_b
         index: 57
-      - nameId: Force_d
+      - nameId: Force_c
         index: 58
       params: []
-      processor: {fileID: 7200000, guid: a311c1c93dc3e9c468d3ac901ed17f6c, type: 3}
+      processor: {fileID: 7200000, guid: 5bedf0ea4c7a9f1498584d67880ae5a5, type: 3}
     - type: 1073741824
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: gradient_b
+      - nameId: gradient_a
         index: 54
       - nameId: alphaThreshold
         index: 56
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 82c614c3b163bd24aa23df62190bd4f4, type: 3}
+      processor: {fileID: 4800000, guid: d0fffd3a2eeda68448cdc39abc9cc8e7, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5338,4 +5385,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

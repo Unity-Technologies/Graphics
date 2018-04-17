@@ -52,6 +52,29 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
+--- !u!114 &114015733338807876
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a971fa2e110a0ac42ac1d8dae408704b, type: 3}
+  m_Name: SetAttribute
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114978069437681324}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 114565023082114408}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: alpha
+  Composition: 0
+  Random: 0
 --- !u!114 &114024695333488094
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -287,12 +310,13 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: -506
+    y: 146.99994
+    width: 2613
+    height: 2021
 --- !u!114 &114097901432515210
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -973,7 +997,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: -505.31052, y: 929.83325}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -981,7 +1005,7 @@ MonoBehaviour:
   - {fileID: 114537105779611658}
   m_exposedName: NbSlices
   m_exposed: 0
-  m_Order: 0
+  m_Order: 1
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -990,7 +1014,15 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114537105779611658}
+      inputSlot: {fileID: 114323310008585670}
+    - outputSlot: {fileID: 114537105779611658}
+      inputSlot: {fileID: 114291253784287720}
+    position: {x: -505.31052, y: 929.83325}
+    expandedSlots: []
 --- !u!114 &114312238625360348
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1375,7 +1407,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114882977597121960}
   m_Children: []
-  m_UIPosition: {x: 883.53723, y: 139.33249}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1392,7 +1424,13 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114287871694759918}
+      inputSlot: {fileID: 114549458337918494}
+    position: {x: 883.53723, y: 139.33249}
+    expandedSlots: []
 --- !u!114 &114387342680083594
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2167,6 +2205,38 @@ MonoBehaviour:
   m_LinkedSlots:
   - {fileID: 114697155884213714}
   - {fileID: 114257740782448228}
+--- !u!114 &114565023082114408
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: VFXSlotFloat
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114565023082114408}
+  m_MasterData:
+    m_Owner: {fileID: 114015733338807876}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+  m_Property:
+    name: Alpha
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114566370008860848
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3642,6 +3712,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 114322036581150590}
   - {fileID: 114150574329384376}
+  - {fileID: 114015733338807876}
   - {fileID: 114239882570484514}
   - {fileID: 114717234107843558}
   m_UIPosition: {x: 1662.3885, y: 1583.5349}
@@ -3664,6 +3735,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   targetFromAttributes: 1
@@ -3774,7 +3846,7 @@ VisualEffectAsset:
       data[0]: 1
       data[1]: 2
       data[2]: -1
-      data[3]: 1
+      data[3]: 6
     - op: 1
       valueIndex: 5
       data[0]: -1
@@ -3819,13 +3891,13 @@ VisualEffectAsset:
       data[3]: 1
     - op: 41
       valueIndex: 12
-      data[0]: 10
+      data[0]: 9
       data[1]: -1
       data[2]: -1
       data[3]: 0
     - op: 41
       valueIndex: 13
-      data[0]: 9
+      data[0]: 10
       data[1]: -1
       data[2]: -1
       data[3]: 1
@@ -3835,24 +3907,24 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 1
+    - op: 4
       valueIndex: 15
+      data[0]: 14
+      data[1]: 14
+      data[2]: 14
+      data[3]: 14
+    - op: 1
+      valueIndex: 19
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
     - op: 4
-      valueIndex: 16
-      data[0]: 14
-      data[1]: 14
-      data[2]: 14
-      data[3]: 14
-    - op: 4
       valueIndex: 20
-      data[0]: 15
-      data[1]: 15
-      data[2]: 15
-      data[3]: 15
+      data[0]: 16
+      data[1]: 16
+      data[2]: 16
+      data[3]: 16
     - op: 1
       valueIndex: 24
       data[0]: -1
@@ -3871,10 +3943,10 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 1
+    - op: 26
       valueIndex: 27
-      data[0]: -1
-      data[1]: -1
+      data[0]: 18
+      data[1]: 8
       data[2]: -1
       data[3]: 1
     - op: 1
@@ -3913,10 +3985,10 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 26
+    - op: 1
       valueIndex: 34
-      data[0]: 18
-      data[1]: 8
+      data[0]: -1
+      data[1]: -1
       data[2]: -1
       data[3]: 1
     - op: 1
@@ -4009,79 +4081,91 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 3
-      valueIndex: 50
-      data[0]: 40
-      data[1]: 42
-      data[2]: 32
-      data[3]: -1
     - op: 1
-      valueIndex: 53
+      valueIndex: 50
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 3
-      valueIndex: 54
-      data[0]: 21
-      data[1]: 20
-      data[2]: 31
-      data[3]: -1
-    - op: 2
-      valueIndex: 57
-      data[0]: 39
-      data[1]: 43
+    - op: 9
+      valueIndex: 51
+      data[0]: -1
+      data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 2
-      valueIndex: 59
-      data[0]: 41
+    - op: 3
+      valueIndex: 67
+      data[0]: 38
       data[1]: 41
+      data[2]: 32
+      data[3]: -1
+    - op: 3
+      valueIndex: 70
+      data[0]: 30
+      data[1]: 20
+      data[2]: 19
+      data[3]: -1
+    - op: 2
+      valueIndex: 73
+      data[0]: 42
+      data[1]: 42
       data[2]: -1
       data[3]: -1
     - op: 3
-      valueIndex: 61
+      valueIndex: 75
+      data[0]: 22
+      data[1]: 23
+      data[2]: 24
+      data[3]: -1
+    - op: 2
+      valueIndex: 78
+      data[0]: 34
+      data[1]: 33
+      data[2]: -1
+      data[3]: -1
+    - op: 3
+      valueIndex: 80
+      data[0]: 43
+      data[1]: 39
+      data[2]: 40
+      data[3]: -1
+    - op: 3
+      valueIndex: 83
       data[0]: 37
       data[1]: 36
       data[2]: 35
       data[3]: -1
     - op: 3
-      valueIndex: 64
-      data[0]: 38
-      data[1]: 34
-      data[2]: 33
+      valueIndex: 86
+      data[0]: 28
+      data[1]: 27
+      data[2]: 31
       data[3]: -1
-    - op: 3
-      valueIndex: 67
-      data[0]: 22
-      data[1]: 24
-      data[2]: 19
-      data[3]: -1
+    - op: 1
+      valueIndex: 89
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: 1
     - op: 21
-      valueIndex: 70
+      valueIndex: 90
       data[0]: 25
       data[1]: 26
       data[2]: -1
       data[3]: 1
-    - op: 3
-      valueIndex: 71
-      data[0]: 27
-      data[1]: 29
-      data[2]: 23
-      data[3]: -1
     - op: 1
-      valueIndex: 74
+      valueIndex: 91
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 1
     - op: 25
-      valueIndex: 75
-      data[0]: 28
-      data[1]: 30
+      valueIndex: 92
+      data[0]: 21
+      data[1]: 29
       data[2]: -1
       data[3]: 1
-    m_NeedsLocalToWorld: 0
+    m_NeedsLocalToWorld: 1
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
   m_PropertySheet:
@@ -4101,15 +4185,13 @@ VisualEffectAsset:
         m_Value: 1
       - m_ExpressionIndex: 14
         m_Value: 0
-      - m_ExpressionIndex: 15
+      - m_ExpressionIndex: 16
         m_Value: 2
       - m_ExpressionIndex: 18
         m_Value: 6.2831855
       - m_ExpressionIndex: 19
         m_Value: 0
       - m_ExpressionIndex: 20
-        m_Value: 0
-      - m_ExpressionIndex: 21
         m_Value: 0
       - m_ExpressionIndex: 22
         m_Value: 0
@@ -4121,39 +4203,43 @@ VisualEffectAsset:
         m_Value: 100
       - m_ExpressionIndex: 27
         m_Value: 1
-      - m_ExpressionIndex: 29
+      - m_ExpressionIndex: 28
         m_Value: 1
-      - m_ExpressionIndex: 30
+      - m_ExpressionIndex: 29
         m_Value: 6.2831855
+      - m_ExpressionIndex: 30
+        m_Value: 0
       - m_ExpressionIndex: 31
         m_Value: 0
       - m_ExpressionIndex: 32
         m_Value: -0.2
       - m_ExpressionIndex: 33
-        m_Value: -0.0026590824
-      - m_ExpressionIndex: 34
-        m_Value: 0.0030828118
-      - m_ExpressionIndex: 35
-        m_Value: 2.1859431
-      - m_ExpressionIndex: 36
-        m_Value: 2.2123823
-      - m_ExpressionIndex: 37
-        m_Value: 2.2195816
-      - m_ExpressionIndex: 38
-        m_Value: -0.011615276
-      - m_ExpressionIndex: 39
-        m_Value: 0
-      - m_ExpressionIndex: 40
-        m_Value: 0
-      - m_ExpressionIndex: 41
-        m_Value: 10000
-      - m_ExpressionIndex: 42
-        m_Value: 0
-      - m_ExpressionIndex: 43
         m_Value: 1
-      - m_ExpressionIndex: 45
+      - m_ExpressionIndex: 34
+        m_Value: 0
+      - m_ExpressionIndex: 35
+        m_Value: -0.0026590824
+      - m_ExpressionIndex: 36
+        m_Value: 0.0030828118
+      - m_ExpressionIndex: 37
+        m_Value: -0.011615276
+      - m_ExpressionIndex: 38
+        m_Value: 0
+      - m_ExpressionIndex: 39
+        m_Value: 2.2123823
+      - m_ExpressionIndex: 40
+        m_Value: 2.1859431
+      - m_ExpressionIndex: 41
+        m_Value: 0
+      - m_ExpressionIndex: 42
+        m_Value: 10000
+      - m_ExpressionIndex: 43
+        m_Value: 2.2195816
+      - m_ExpressionIndex: 44
         m_Value: 0.5
       - m_ExpressionIndex: 54
+        m_Value: 0.5
+      - m_ExpressionIndex: 56
         m_Value: 1
     m_Vector2f:
       m_Array: []
@@ -4174,36 +4260,6 @@ VisualEffectAsset:
     m_Gradient:
       m_Array:
       - m_ExpressionIndex: 9
-        m_Value:
-          serializedVersion: 2
-          key0: {r: 0.24705882, g: 0, b: 1, a: 1}
-          key1: {r: 0, g: 0.70980394, b: 1, a: 1}
-          key2: {r: 0.36078432, g: 0.68235296, b: 1, a: 0}
-          key3: {r: 1, g: 1, b: 1, a: 0}
-          key4: {r: 0, g: 0, b: 0, a: 0}
-          key5: {r: 0, g: 0, b: 0, a: 0}
-          key6: {r: 0, g: 0, b: 0, a: 0}
-          key7: {r: 0, g: 0, b: 0, a: 0}
-          ctime0: 0
-          ctime1: 24952
-          ctime2: 42913
-          ctime3: 65535
-          ctime4: 0
-          ctime5: 0
-          ctime6: 0
-          ctime7: 0
-          atime0: 0
-          atime1: 65535
-          atime2: 0
-          atime3: 0
-          atime4: 0
-          atime5: 0
-          atime6: 0
-          atime7: 0
-          m_Mode: 0
-          m_NumColorKeys: 4
-          m_NumAlphaKeys: 2
-      - m_ExpressionIndex: 10
         m_Value:
           serializedVersion: 2
           key0: {r: 0.57254905, g: 0, b: 1, a: 1}
@@ -4233,6 +4289,36 @@ VisualEffectAsset:
           m_Mode: 0
           m_NumColorKeys: 4
           m_NumAlphaKeys: 2
+      - m_ExpressionIndex: 10
+        m_Value:
+          serializedVersion: 2
+          key0: {r: 0.24705882, g: 0, b: 1, a: 1}
+          key1: {r: 0, g: 0.70980394, b: 1, a: 1}
+          key2: {r: 0.36078432, g: 0.68235296, b: 1, a: 0}
+          key3: {r: 1, g: 1, b: 1, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 24952
+          ctime2: 42913
+          ctime3: 65535
+          ctime4: 0
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 65535
+          atime2: 0
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_NumColorKeys: 4
+          m_NumAlphaKeys: 2
     m_NamedObject:
       m_Array: []
     m_Bool:
@@ -4240,23 +4326,40 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 80384
-    capacity: 10048
     layout:
     - name: color
       type: 3
       offset:
         bucket: 0
-        structure: 8
+        structure: 4
         element: 0
     - name: position
       type: 3
       offset:
+        bucket: 40192
+        structure: 4
+        element: 0
+    capacity: 10048
+    stride: 4
+  - type: 1
+    size: 80384
+    layout:
+    - name: color
+      type: 3
+      offset:
         bucket: 0
-        structure: 8
-        element: 4
+        structure: 4
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 40192
+        structure: 4
+        element: 0
+    capacity: 10048
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -4264,6 +4367,23 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
+  - type: 2
+    size: 10048
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 0
+    size: 10048
+    layout: []
+    capacity: 0
+    stride: 8
+  - type: 0
+    size: 10048
+    layout: []
+    capacity: 0
+    stride: 8
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -4303,89 +4423,116 @@ VisualEffectAsset:
       - nameId: Count
         index: 48
       - nameId: Delay
-        index: 47
+        index: 50
       params: []
       processor: {fileID: 0}
   - type: 1
-    flags: 0
+    flags: 2
     capacity: 10048
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
+      index: 2
     - nameId: spawner_input
       index: 1
+    - nameId: indirectBuffer
+      index: 3
+    - nameId: sortBufferA
+      index: 4
+    - nameId: sortBufferB
+      index: 5
     values:
     - nameId: bounds_center
-      index: 50
+      index: 52
     - nameId: bounds_size
-      index: 49
+      index: 51
     tasks:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
-      - nameId: uniform_b
+      - nameId: uniform_a
         index: 12
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 5
-      - nameId: uniform_d
+      - nameId: uniform_c
         index: 4
-      - nameId: uniform_e
+      - nameId: uniform_d
         index: 6
-      - nameId: uniform_f
+      - nameId: uniform_e
         index: 13
-      - nameId: uniform_g
+      - nameId: uniform_f
         index: 0
-      - nameId: uniform_h
+      - nameId: uniform_g
         index: 7
+      - nameId: uniform_h
+        index: 15
       - nameId: uniform_i
-        index: 16
-      - nameId: uniform_j
         index: 17
-      - nameId: ArcSphere_sphere_center_c
-        index: 51
-      - nameId: ArcSphere_sphere_radius_c
-        index: 54
-      - nameId: ArcSphere_arc_c
-        index: 55
+      - nameId: ArcSphere_sphere_center_b
+        index: 49
+      - nameId: ArcSphere_sphere_radius_b
+        index: 56
+      - nameId: ArcSphere_arc_b
+        index: 57
       params:
       - nameId: bounds_center
-        index: 50
+        index: 52
       - nameId: bounds_size
-        index: 49
-      processor: {fileID: 7200000, guid: 2f19e71dd6923b146bd3066d4add1c8e, type: 3}
+        index: 51
+      processor: {fileID: 7200000, guid: 7782d80db4442c34fb2bd93d2ee051cf, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
+      - nameId: indirectBuffer
+        index: 3
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 22d07691c533ffd4a9a5298152ecbae7, type: 3}
+      processor: {fileID: 7200000, guid: 7a2cb3ffccd03f24eb277715a9326a01, type: 3}
+    - type: 805306369
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: inputBuffer
+        index: 3
+      - nameId: outputBuffer
+        index: 4
+      values:
+      - nameId: localToWorld
+        index: 45
+      params: []
+      processor: {fileID: 7200000, guid: adf36b8f4633dcc4a9840714405ed9a9, type: 3}
     - type: 1073741825
       buffers:
       - nameId: attributeBuffer
         index: 0
+      - nameId: indirectBuffer
+        index: 3
       values:
-      - nameId: AngleZ_b
-        index: 52
-      - nameId: Pivot_c
+      - nameId: AngleZ_a
+        index: 55
+      - nameId: Pivot_b
         index: 53
+      - nameId: Alpha_c
+        index: 54
       - nameId: SizeX_d
-        index: 45
-      - nameId: Position_e
-        index: 46
-      - nameId: targetOffset
         index: 44
+      - nameId: Position_e
+        index: 47
+      - nameId: targetOffset
+        index: 46
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 9827009732c4d704fb1716dbc4d9f8c6, type: 3}
+      - nameId: indirectDraw
+        index: 1
+      processor: {fileID: 4800000, guid: ea3825a004900a54e8ae8e166f786bdc, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -4400,4 +4547,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

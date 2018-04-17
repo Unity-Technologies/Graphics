@@ -149,7 +149,7 @@ namespace UnityEditor.VFX.UI
             {
                 copiedGroupUI = ScriptableObject.CreateInstance<VFXUI>();
 
-                var stickyNodeIndexToCopiedIndex = new Dictionary<int,int>();
+                var stickyNodeIndexToCopiedIndex = new Dictionary<int, int>();
 
                 if (stickyNotes.Length > 0)
                 {
@@ -178,11 +178,11 @@ namespace UnityEditor.VFX.UI
                         if (info.contents != null)
                         {
                             var groupInfo = copiedGroupUI.groupInfos[i];
-                            groupInfo.contents = info.contents.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model) || (t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id)) ).ToArray();
+                            groupInfo.contents = info.contents.Where(t => copiedContexts.Contains(t.model) || copiedSlotContainers.Contains(t.model) || (t.isStickyNote && stickyNodeIndexToCopiedIndex.ContainsKey(t.id))).ToArray();
 
-                            for(int j = 0 ; j < groupInfo.contents.Length ; ++j)
+                            for (int j = 0; j < groupInfo.contents.Length; ++j)
                             {
-                                if(groupInfo.contents[j].isStickyNote)
+                                if (groupInfo.contents[j].isStickyNote)
                                 {
                                     groupInfo.contents[j].id = stickyNodeIndexToCopiedIndex[groupInfo.contents[j].id];
                                 }
@@ -777,7 +777,7 @@ namespace UnityEditor.VFX.UI
             if (copiedUI != null)
             {
                 VFXUI ui = viewController.graph.UIInfos;
-                firstCopiedStickyNote = ui.stickyNoteInfos!= null ? ui.stickyNoteInfos.Length : 0;
+                firstCopiedStickyNote = ui.stickyNoteInfos != null ? ui.stickyNoteInfos.Length : 0;
 
                 if (copiedUI.groupInfos != null && copiedUI.groupInfos.Length > 0)
                 {
@@ -802,7 +802,7 @@ namespace UnityEditor.VFX.UI
                                     groupInfos.contents[i].id = paramInfo.idMap[groupInfos.contents[i].id];
                                 }
                             }
-                            else if( groupInfos.contents[i].isStickyNote)
+                            else if (groupInfos.contents[i].isStickyNote)
                             {
                                 groupInfos.contents[i].id += firstCopiedStickyNote;
                             }
