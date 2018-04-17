@@ -7,3 +7,4 @@ build/**
 .npmrc
 DebugOutput.meta
 DebugOutput/**
+Testing/IntegrationTests/.Failed

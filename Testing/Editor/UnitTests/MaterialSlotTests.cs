@@ -56,8 +56,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void SlotDisplayNameIsCorrect()
         {
-            var displayName = "New Display Name";
-
             Assert.AreEqual("V1In(1)", m_NodeA.slot1.displayName);
 
             Assert.AreEqual("V2In(2)", m_NodeA.slot2.displayName);
