@@ -23,7 +23,7 @@ ByteAddressBuffer deadListCount; // This is bad to use a SRV to fetch deadList c
 
 #if VFX_USE_SPAWNER_FROM_GPU
 StructuredBuffer<uint> eventList;
-Buffer<uint> inputAdditional;
+ByteAddressBuffer inputAdditional;
 #endif
 
 ${VFXGeneratedBlockFunction}
@@ -32,8 +32,8 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
 #if VFX_USE_SPAWNER_FROM_GPU
-    uint maxThreadId = inputAdditional[offsetInAdditionalOutput * 2 + 0];
-    uint currentSpawnIndex = inputAdditional[offsetInAdditionalOutput * 2 + 1] - maxThreadId;
+    uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);
+    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - maxThreadId;
 #else
     uint maxThreadId = nbSpawned;
     uint currentSpawnIndex = spawnIndex;

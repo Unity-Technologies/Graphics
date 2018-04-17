@@ -20,7 +20,7 @@ struct InputData //TODO use generic name (indexCount isn't always what it expect
 ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
 RWBuffer<uint> outputIndirectArgs;
-RWBuffer<uint> outputAdditional;
+RWByteAddressBuffer outputAdditional;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
@@ -95,9 +95,11 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 			case 0xffffffff: // dispatch
 			{
 				firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
+				
 				//Update total element count (spawnIndex)
-				outputAdditional[index * 2 + 0] = elementCount;
-				outputAdditional[index * 2 + 1] = outputAdditional[data.indexCount * 2 + 1] + elementCount;
+				outputAdditional.Store((index * 2 + 0) << 2, elementCount);
+				outputAdditional.Store((index * 2 + 1) << 2, outputAdditional.Load((data.indexCount * 2 + 1) << 2) + elementCount);
+				
 				secondArg = thirdArg = 1u;
 				break;
 			}
