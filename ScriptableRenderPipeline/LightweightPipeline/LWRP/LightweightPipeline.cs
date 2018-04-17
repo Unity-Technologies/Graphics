@@ -886,7 +886,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Lightweight pipeline also supports only a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, ref lightData);
-            SetupAdditionalListConstants(cmd, ref lightData);
+            SetupAdditionalLightConstants(cmd, ref lightData);
         }
 
         private void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
@@ -913,7 +913,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(PerCameraBuffer._MainLightColor, lightColor);
         }
 
-        private void SetupAdditionalListConstants(CommandBuffer cmd, ref LightData lightData)
+        private void SetupAdditionalLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             List<VisibleLight> lights = lightData.visibleLights;
             if (lightData.totalAdditionalLightsCount > 0)
