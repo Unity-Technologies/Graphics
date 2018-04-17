@@ -5,91 +5,84 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
 [GenerateHLSL]
-public struct DensityVolumeProperties
+public struct DensityVolumeData
 {
     public Vector3 scattering; // [0, 1], prefer sRGB
     public float   extinction; // [0, 1], prefer sRGB
-    public float   asymmetry;  // [-1, 1], linear, global parameter
 
-    public static DensityVolumeProperties GetNeutralProperties()
+    public static DensityVolumeData GetNeutralValues()
     {
-        DensityVolumeProperties properties = new DensityVolumeProperties();
+        DensityVolumeData data;
 
-        properties.scattering = Vector3.zero;
-        properties.extinction = 0;
-        properties.asymmetry  = 0;
+        data.scattering = Vector3.zero;
+        data.extinction = 0;
 
-        return properties;
+        return data;
     }
 } // struct VolumeProperties
 
-[Serializable]
-public class DensityVolumeParameters
+public class VolumeRenderingUtils
 {
-    public bool  isLocal;      // Enables voxelization
-    public Color albedo;       // Single scattering albedo [0, 1]
-    public float meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
-    public float asymmetry;    // Only used if (isLocal == false)
-
-    public DensityVolumeParameters()
+    public static float MeanFreePathFromExtinction(float extinction)
     {
-        isLocal      = true;
-        albedo       = new Color(0.5f, 0.5f, 0.5f);
-        meanFreePath = 10.0f;
-        asymmetry    = 0.0f;
+        return 1.0f / extinction;
     }
 
-    public bool IsLocalVolume()
-    {
-        return isLocal;
-    }
-
-    public Vector3 GetAbsorptionCoefficient()
-    {
-        float   extinction = GetExtinctionCoefficient();
-        Vector3 scattering = GetScatteringCoefficient();
-
-        return Vector3.Max(new Vector3(extinction, extinction, extinction) - scattering, Vector3.zero);
-    }
-
-    public Vector3 GetScatteringCoefficient()
-    {
-        float extinction = GetExtinctionCoefficient();
-
-        return new Vector3(albedo.r * extinction, albedo.g * extinction, albedo.b * extinction);
-    }
-
-    public float GetExtinctionCoefficient()
+    public static float ExtinctionFromMeanFreePath(float meanFreePath)
     {
         return 1.0f / meanFreePath;
     }
+
+    public static Vector3 AbsorptionFromExtinctionAndScattering(float extinction, Vector3 scattering)
+    {
+        return new Vector3(extinction, extinction, extinction) - scattering;
+    }
+
+    public static Vector3 ScatteringFromExtinctionAndAlbedo(float extinction, Vector3 albedo)
+    {
+        return extinction * albedo;
+    }
+
+    public static Vector3 AlbedoFromMeanFreePathAndScattering(float meanFreePath, Vector3 scattering)
+    {
+        return meanFreePath * scattering;
+    }
+}
+
+[Serializable]
+public struct DensityVolumeParameters
+{
+    public Color albedo;       // Single scattering albedo [0, 1]. Alpha is ignored
+    public float meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
+    public float asymmetry;    // Only used if (isLocal == false)
 
     public void Constrain()
     {
         albedo.r = Mathf.Clamp01(albedo.r);
         albedo.g = Mathf.Clamp01(albedo.g);
         albedo.b = Mathf.Clamp01(albedo.b);
+        albedo.a = 1.0f;
 
-        meanFreePath = Mathf.Max(meanFreePath, 1.0f);
+        meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
 
         asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
     }
 
-    public DensityVolumeProperties GetProperties()
+    public DensityVolumeData GetData()
     {
-        DensityVolumeProperties properties = new DensityVolumeProperties();
+        DensityVolumeData data = new DensityVolumeData();
 
-        properties.scattering = GetScatteringCoefficient();
-        properties.extinction = GetExtinctionCoefficient();
+        data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
+        data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
 
-        return properties;
+        return data;
     }
 } // class VolumeParameters
 
 public struct DensityVolumeList
 {
-    public List<OrientedBBox>            bounds;
-    public List<DensityVolumeProperties> properties;
+    public List<OrientedBBox>      bounds;
+    public List<DensityVolumeData> density;
 }
 
 public class VolumetricLightingSystem
@@ -214,14 +207,14 @@ public class VolumetricLightingSystem
     ComputeShader m_VolumeVoxelizationCS = null;
     ComputeShader m_VolumetricLightingCS = null;
 
-    List<VBuffer>                 m_VBuffers                = null;
-    List<OrientedBBox>            m_VisibleVolumeBounds     = null;
-    List<DensityVolumeProperties> m_VisibleVolumeProperties = null;
-    public const int              k_MaxVisibleVolumeCount   = 512;
+    List<VBuffer>           m_VBuffers              = null;
+    List<OrientedBBox>      m_VisibleVolumeBounds   = null;
+    List<DensityVolumeData> m_VisibleVolumeData     = null;
+    public const int        k_MaxVisibleVolumeCount = 512;
 
     // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
     static ComputeBuffer s_VisibleVolumeBoundsBuffer     = null;
-    static ComputeBuffer s_VisibleVolumePropertiesBuffer = null;
+    static ComputeBuffer s_VisibleVolumeDataBuffer = null;
 
     float       m_VBufferNearPlane = 0.5f;  // Distance in meters; dynamic modifications not handled by reprojection
     float       m_VBufferFarPlane  = 64.0f; // Distance in meters; dynamic modifications not handled by reprojection
@@ -235,9 +228,9 @@ public class VolumetricLightingSystem
         m_VolumetricLightingCS          = asset.renderPipelineResources.volumetricLightingCS;
         m_VBuffers                      = new List<VBuffer>();
         m_VisibleVolumeBounds           = new List<OrientedBBox>();
-        m_VisibleVolumeProperties       = new List<DensityVolumeProperties>();
+        m_VisibleVolumeData       = new List<DensityVolumeData>();
         s_VisibleVolumeBoundsBuffer     = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
-        s_VisibleVolumePropertiesBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeProperties)));
+        s_VisibleVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeData)));
     }
 
     public void Cleanup()
@@ -254,10 +247,10 @@ public class VolumetricLightingSystem
 
         m_VBuffers                = null;
         m_VisibleVolumeBounds     = null;
-        m_VisibleVolumeProperties = null;
+        m_VisibleVolumeData = null;
 
         CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
-        CoreUtils.SafeRelease(s_VisibleVolumePropertiesBuffer);
+        CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
     }
 
     public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
@@ -424,23 +417,16 @@ public class VolumetricLightingSystem
         // Warning: it can screw up the reprojection. However, we have to do it in order for clustered lighting to work correctly.
         m_VBufferNearPlane = camera.camera.nearClipPlane;
 
-        HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
-
-        // TODO: may want to cache these results somewhere.
-        DensityVolumeProperties globalVolumeProperties = (globalVolume != null) ? globalVolume.parameters.GetProperties()
-                                                                                : DensityVolumeProperties.GetNeutralProperties();
-
-        cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, globalVolumeProperties.scattering);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, globalVolumeProperties.extinction);
-        cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  globalVolumeProperties.asymmetry);
-
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         Debug.Assert(vBuffer != null);
 
         int w = 0, h = 0, d = 0;
         vBuffer.GetResolution(ref w, ref h, ref d);
 
-        SetPreconvolvedAmbientLightProbe(cmd, globalVolumeProperties.asymmetry);
+        // Get the interpolated asymmetry value.
+        var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+
+        SetPreconvolvedAmbientLightProbe(cmd, fog.asymmetry);
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,          new Vector4(w, h, 1.0f / w, 1.0f / h));
         cmd.SetGlobalVector( HDShaderIDs._VBufferSliceCount,          new Vector4(d, 1.0f / d));
@@ -455,6 +441,10 @@ public class VolumetricLightingSystem
 
         if (preset == VolumetricLightingPreset.Off) return densityVolumes;
 
+        var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+
+        if (visualEnvironment.fogType != FogType.Volumetric) return densityVolumes;
+
         using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
         {
             Vector3 camPosition = camera.camera.transform.position;
@@ -466,7 +456,7 @@ public class VolumetricLightingSystem
             }
 
             m_VisibleVolumeBounds.Clear();
-            m_VisibleVolumeProperties.Clear();
+            m_VisibleVolumeData.Clear();
 
             // Collect all visible finite volume data, and upload it to the GPU.
             HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
@@ -476,7 +466,7 @@ public class VolumetricLightingSystem
                 HomogeneousDensityVolume volume = volumes[i];
 
                 // Only test active finite volumes.
-                if (volume.enabled && volume.parameters.IsLocalVolume())
+                if (volume.enabled)
                 {
                     // TODO: cache these?
                     var obb = OrientedBBox.Create(volume.transform);
@@ -488,20 +478,20 @@ public class VolumetricLightingSystem
                     if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
                     {
                         // TODO: cache these?
-                        var properties = volume.parameters.GetProperties();
+                        var data = volume.parameters.GetData();
 
                         m_VisibleVolumeBounds.Add(obb);
-                        m_VisibleVolumeProperties.Add(properties);
+                        m_VisibleVolumeData.Add(data);
                     }
                 }
             }
 
             s_VisibleVolumeBoundsBuffer.SetData(m_VisibleVolumeBounds);
-            s_VisibleVolumePropertiesBuffer.SetData(m_VisibleVolumeProperties);
+            s_VisibleVolumeDataBuffer.SetData(m_VisibleVolumeData);
 
             // Fill the struct with pointers in order to share the data with the light loop.
             densityVolumes.bounds     = m_VisibleVolumeBounds;
-            densityVolumes.properties = m_VisibleVolumeProperties;
+            densityVolumes.density = m_VisibleVolumeData;
 
             return densityVolumes;
         }
@@ -539,10 +529,10 @@ public class VolumetricLightingSystem
             float     vFoV       = camera.camera.fieldOfView * Mathf.Deg2Rad;
             Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
             Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
-                                   
-            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,   vBuffer.GetDensityBuffer());
-            cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,     s_VisibleVolumeBoundsBuffer);
-            cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeProperties, s_VisibleVolumePropertiesBuffer);
+
+            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, vBuffer.GetDensityBuffer());
+            cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,   s_VisibleVolumeBoundsBuffer);
+            cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,     s_VisibleVolumeDataBuffer);
 
             // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,  transform);
@@ -598,22 +588,20 @@ public class VolumetricLightingSystem
 
         using (new ProfilingSample(cmd, "Volumetric Lighting"))
         {
-            VBuffer vBuffer = FindVBuffer(camera.GetViewID());
-            Debug.Assert(vBuffer != null);
+            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
 
-            HomogeneousDensityVolume globalVolume = HomogeneousDensityVolume.GetGlobalHomogeneousDensityVolume();
-            float asymmetry = globalVolume != null ? globalVolume.parameters.asymmetry : 0;
-
-            if (globalVolume == null)
+            if (visualEnvironment.fogType != FogType.Volumetric)
             {
                 // Clear the render target instead of running the shader.
-                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetLightingIntegralBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetLightingFeedbackBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetDensityBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 // return;
 
                 // Clearing 3D textures does not seem to work!
                 // Use the workaround by running the full shader with 0 density.
             }
+
+            VBuffer vBuffer = FindVBuffer(camera.GetViewID());
+            Debug.Assert(vBuffer != null);
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             bool enableClustered    = settings.lightLoopSettings.enableTileAndCluster;
@@ -661,11 +649,14 @@ public class VolumetricLightingSystem
             int sampleIndex = rfc % 7;
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], rfc);
 
+            // Get the interpolated asymmetry value.
+            var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+
             // TODO: set 'm_VolumetricLightingPreset'.
             // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
-            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(asymmetry));
+            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.asymmetry));
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          vBuffer.GetDensityBuffer());          // Read
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
             if (enableReprojection)

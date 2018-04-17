@@ -34,11 +34,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // (not just the atmospheric scattering one) receive neutral parameters.
             if (ShaderConfig.s_VolumetricLightingPreset != 0)
             {
-                var properties = DensityVolumeProperties.GetNeutralProperties();
+                var data = DensityVolumeData.GetNeutralValues();
 
-                cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, properties.scattering);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, properties.extinction);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  properties.asymmetry);
+                cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, data.extinction);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  0.0f);
             }
         }
 
