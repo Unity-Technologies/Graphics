@@ -1957,11 +1957,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Don't do clear coating for refraction
     float3 coatR = preLightData.coatIblR;
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, coatR, weight);
-
-#ifdef DEBUG_DISPLAY
-    float3 radiusToProxy = R;
-#endif
+    {
+        float unusedWeight = 0.0;
+        EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, coatR, unusedWeight);
+    }
 
     // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
     // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
@@ -1970,20 +1969,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
     float3 sampleDirectionDiscardWS = lightData.sampleDirectionDiscardWS;
-    if (dot(sampleDirectionDiscardWS, R) < 0)
+    if (dot(sampleDirectionDiscardWS, R) < 0) // Use by planar reflection to early reject opposite plan reflection, neutral for reflection probe
         return lighting;
 
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
-
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
-    weight *= preLD.a; // Not used by reflection probe currently, allow the texture to mask itself (fallback to sky)
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_PROXY_VOLUME)
-        preLD = ApplyDebugProjectionVolume(preLD, radiusToProxy, _DebugEnvironmentProxyDepthScale);
-#endif
+    weight *= preLD.a; // Used by planar reflection to discard pixel
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
     {

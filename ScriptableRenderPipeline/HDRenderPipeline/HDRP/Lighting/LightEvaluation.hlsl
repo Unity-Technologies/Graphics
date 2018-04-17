@@ -182,11 +182,11 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
 
-    float3x3 worldToIS = WorldToInfluenceSpace(lightData);
+    float3x3 worldToIS = WorldToInfluenceSpace(lightData); // IS: Influence space
     float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
     float3 dirIS = mul(R, worldToIS);
 
-    float3x3 worldToPS = WorldToProxySpace(lightData);
+    float3x3 worldToPS = WorldToProxySpace(lightData); // PS: Proxy space
     float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
     float3 dirPS = mul(R, worldToPS);
 
