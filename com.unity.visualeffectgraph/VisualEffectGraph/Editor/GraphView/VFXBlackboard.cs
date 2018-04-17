@@ -452,10 +452,15 @@ namespace  UnityEditor.VFX.UI
             m_ExposedSection = new BlackboardSection() { title = "parameters"};
             Add(m_ExposedSection);
 
+            m_ComponentSection = new VFXComponentBlackboardSection() { title = "attach to component"};
+            Add(m_ComponentSection);
+
             AddStyleSheetPath("VFXBlackboard");
         }
 
         BlackboardSection m_ExposedSection;
+
+        VFXComponentBlackboardSection m_ComponentSection;
 
         void OnAddParameter(object parameter)
         {
@@ -555,6 +560,18 @@ namespace  UnityEditor.VFX.UI
         public void OnMoved()
         {
             SaveBlackboardPosition(GetPosition());
+        }
+    }
+
+    public class VFXComponentBlackboardSection : BlackboardSection
+    {
+        public VFXComponentBlackboardSection()
+        {
+            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBlackboardSection.uxml")) as VisualTreeAsset;
+
+            tpl.CloneTree(contentContainer, new Dictionary<string, VisualElement>());
+
+            contentContainer.AddStyleSheetPath("VFXComponentBlackboardSection");
         }
     }
 }

@@ -1,0 +1,76 @@
+VFXComponentBlackboardSection, #component-container
+{
+    flex-direction:column;
+    align-items:stretch;
+}
+
+#attach
+{
+    height:16;
+    width:100;
+}
+
+#component-path
+{
+    height:16;
+}
+
+#particle-count-container, #attach-container
+{
+    flex-direction:row;
+}
+#particle-count-container > #particle-count
+{
+    flex:1;
+}
+
+#toolbar
+{
+    flex-direction:row;
+}
+
+#toolbar Button
+{
+    flex:1;
+    height:24;
+    align-items:center;
+}
+
+#toolbar Button#stop #icon
+{
+    image:resource("VFX/Stop");
+}
+#toolbar Button#play #icon
+{
+    image:resource("VFX/Play");
+}
+#toolbar Button#step #icon
+{
+    image:resource("VFX/Step");
+}
+#toolbar Button#restart #icon
+{
+    image:resource("VFX/Restart");
+}
+
+#play-rate-container
+{
+    flex-direction:row;
+    height:28;
+    align-items: center;
+}
+
+#play-rate-container #play-rate-slider
+{
+    flex:1;
+}
+
+#play-rate-container #play-rate-field
+{
+    width:80;
+}
+
+#play-rate-container #play-rate-menu
+{
+    width:80;
+}
