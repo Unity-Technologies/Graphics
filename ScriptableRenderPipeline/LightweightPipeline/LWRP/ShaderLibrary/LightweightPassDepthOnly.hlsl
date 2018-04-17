@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_PASS_DEPTH_ONLY_INCLUDED
 
 #include "LWRP/ShaderLibrary/Core.hlsl"
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 
 struct VertexInput
 {
@@ -22,14 +21,14 @@ VertexOutput DepthOnlyVertex(VertexInput v)
     VertexOutput o = (VertexOutput)0;
     UNITY_SETUP_INSTANCE_ID(v);
 
-    o.uv = TransformMainTextureCoord(v.texcoord);
+    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
     o.clipPos = TransformObjectToHClip(v.position.xyz);
     return o;
 }
 
 half4 DepthOnlyFragment(VertexOutput IN) : SV_TARGET
 {
-    Alpha(MainTexture(IN.uv).a);
+    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
     return 0;
 }
 #endif
