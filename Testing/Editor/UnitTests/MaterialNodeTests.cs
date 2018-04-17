@@ -84,6 +84,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void CanConvertConcreteSlotValueTypeToOutputChunkProperly()
         {
             Assert.AreEqual("float", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector1));
+            Assert.AreEqual("float", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Boolean));
             Assert.AreEqual("float2", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector2));
             Assert.AreEqual("float3", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector3));
             Assert.AreEqual("float4", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector4));
@@ -92,6 +93,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual("float3x3", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Matrix3));
             Assert.AreEqual("float4x4", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Matrix4));
             Assert.AreEqual("SamplerState", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.SamplerState));
+            Assert.AreEqual("Cubemap", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Cubemap));
         }
 
         [Test]
