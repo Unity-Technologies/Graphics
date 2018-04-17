@@ -311,7 +311,7 @@ namespace UnityEditor.VFX
             var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
             if (parent != null)
             {
-                m_layoutAttributeSource.GenerateAttributeLayout(sourceCount, parent.m_StoredCurrentAttributes);
+                m_layoutAttributeSource.GenerateAttributeLayout(parent.alignedCapacity, parent.m_StoredCurrentAttributes);
                 m_ownAttributeSourceBuffer = false;
             }
             else
