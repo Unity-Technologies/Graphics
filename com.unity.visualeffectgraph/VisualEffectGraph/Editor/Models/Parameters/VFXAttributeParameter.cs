@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllExceptLocalOnly;
+            return VFXAttribute.AllExceptLocalOnly.Concat(VFXAttribute.AllVariadic).ToArray();
         }
     }
 
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllReadWritable;
+            return VFXAttribute.AllReadWritable.Concat(VFXAttribute.AllVariadic).ToArray();
         }
     }
 
