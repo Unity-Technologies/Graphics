@@ -528,33 +528,23 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
             //diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
             break;
 
-        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION_FROM_SSAO:
+        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
             //diffuseLighting = indirectAmbientOcclusion;
             break;
 
-        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION_FROM_SSAO:
+        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
             //diffuseLighting = specularOcclusion;
             break;
 
-#if GTAO_MULTIBOUNCE_APPROX
-        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_GTAO_FROM_SSAO:
-            //diffuseLighting = GTAOMultiBounce(indirectAmbientOcclusion, bsdfData.diffuseColor);
-            break;
-
-        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_GTAO_FROM_SSAO:
-            //diffuseLighting = GTAOMultiBounce(specularOcclusion, bsdfData.fresnel0);
-            break;
-#endif
-
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-                //diffuseLighting = lighting.indirect.specularTransmitted;
+            //    diffuseLighting = lighting.indirect.specularTransmitted;
             break;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        //diffuseLighting = bsdfData.diffuseColor;
+        diffuseLighting = bsdfData.diffuseColor;
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
 
