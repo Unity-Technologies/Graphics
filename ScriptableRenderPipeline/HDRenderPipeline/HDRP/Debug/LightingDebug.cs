@@ -10,10 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SpecularLighting,
         LuxMeter,
         VisualizeCascade,
-        IndirectDiffuseOcclusionFromSsao,
-        IndirectDiffuseGtaoFromSsao,
-        IndirectSpecularOcclusionFromSsao,
-        IndirectSpecularGtaoFromSsao,
+        IndirectDiffuseOcclusion,
+        IndirectSpecularOcclusion,
         ScreenSpaceTracingRefraction,
         ScreenSpaceTracingReflection
     }
