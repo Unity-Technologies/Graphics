@@ -14,8 +14,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         IndirectDiffuseGtaoFromSsao,
         IndirectSpecularOcclusionFromSsao,
         IndirectSpecularGtaoFromSsao,
-        EnvironmentProxyVolume,
-        EnvironmentSampleCoordinates,
         ScreenSpaceTracingRefraction,
         ScreenSpaceTracingReflection
     }
