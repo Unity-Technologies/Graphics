@@ -84,14 +84,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var field = (BlackboardField)visualElement;
             var property = (IShaderProperty)field.userData;
-            if (newText != property.displayName)
+            if (!string.IsNullOrEmpty(newText) && newText != property.displayName)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Property Name");
+                newText = m_Graph.SanitizePropertyName(newText, property.guid);
                 property.displayName = newText;
                 field.text = newText;
                 DirtyNodes();
             }
         }
+
+
 
         public void HandleGraphChanges()
         {
@@ -122,6 +125,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_PropertyRows.ContainsKey(property.guid))
                 return;
+
+            if (create)
+                property.displayName = m_Graph.SanitizePropertyName(property.displayName);
+
             var field = new BlackboardField(m_ExposedIcon, property.displayName, property.propertyType.ToString()) { userData = property };
             var row = new BlackboardRow(field, new BlackboardFieldPropertyView(m_Graph, property));
             row.userData = property;
@@ -135,10 +142,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (create)
             {
-                field.OpenTextEditor();
                 row.expanded = true;
                 m_Graph.owner.RegisterCompleteObjectUndo("Create Property");
                 m_Graph.AddShaderProperty(property);
+                field.OpenTextEditor();
             }
         }
 
