@@ -32,7 +32,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             CBUFFER_END
 
             TEXTURE2D(_DebugFullScreenTexture);
-            TEXTURE2D(_DepthPyramidTexture);
             StructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData;
 
             struct Attributes
