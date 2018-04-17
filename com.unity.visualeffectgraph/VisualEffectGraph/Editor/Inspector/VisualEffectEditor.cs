@@ -404,68 +404,79 @@ public class VisualEffectEditor : Editor
 
         if (m_graph != null)
         {
-            List<int> stack = new List<int>();
-            int currentCount = m_graph.m_ParameterInfo.Length;
-            foreach(var parameter in m_graph.m_ParameterInfo)
+
+            if( m_graph.m_ParameterInfo == null)
             {
-                --currentCount;
-                if( currentCount == 0 && stack.Count > 0 )
+                m_graph.BuildParameterInfo();
+            }
+            if( m_graph.m_ParameterInfo != null)
+            {
+                List<int> stack = new List<int>();
+                int currentCount = m_graph.m_ParameterInfo.Length;
+                foreach(var parameter in m_graph.m_ParameterInfo)
                 {
-                    currentCount = stack.Last();
-                    stack.RemoveAt(stack.Count-1);
-                }
-                if( parameter.descendantCount > 0)
-                {
-                    stack.Add(currentCount);
-                    currentCount = parameter.descendantCount;
-                }
-                
-                if(string.IsNullOrEmpty(parameter.sheetType))
-                {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Space(overrideWidth);
-                    EditorGUILayout.LabelField(parameter.name);
-                    GUILayout.EndHorizontal();
-                }
-                else
-                {
-                    var vfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
-                    SerializedProperty property = null;
-                    if (vfxField != null)
+                    --currentCount;
+                    if( currentCount == 0 && stack.Count > 0 )
                     {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
+                        currentCount = stack.Last();
+                        stack.RemoveAt(stack.Count-1);
+                    }
+                    if( parameter.descendantCount > 0)
+                    {
+                        stack.Add(currentCount);
+                        currentCount = parameter.descendantCount;
+                    }
+                    
+                    if(string.IsNullOrEmpty(parameter.sheetType))
+                    {
+                        if( parameter.name != null)
                         {
-                            property = vfxField.GetArrayElementAtIndex(i);
-                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                            if (nameProperty == parameter.path)
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Space(overrideWidth + 4); // the 4 is so that Labels are aligned with elements having an override toggle.
+                            EditorGUILayout.LabelField(parameter.name);
+                            GUILayout.EndHorizontal();
+                        }
+                    }
+                    else if( parameter.sheetType != null)
+                    {
+                        var vfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
+                        SerializedProperty property = null;
+                        if (vfxField != null)
+                        {
+                            for (int i = 0; i < vfxField.arraySize; ++i)
                             {
-                                break;
+                                property = vfxField.GetArrayElementAtIndex(i);
+                                var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
+                                if (nameProperty == parameter.path)
+                                {
+                                    break;
+                                }
+                                property = null;
                             }
-                            property = null;
+                        }
+                        if (property != null)
+                        {
+                            SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
+                            property = property.FindPropertyRelative("m_Value");
+                            string firstpropName = property.name;
+
+                            Color previousColor = GUI.color;
+                            var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
+                            if (animated)
+                            {
+                                GUI.color = AnimationMode.animatedPropertyColor;
+                            }
+
+                            DisplayProperty(parameter, overrideProperty, property);
+
+                            if (animated)
+                            {
+                                GUI.color = previousColor;
+                            }
                         }
                     }
-                    if (property != null)
-                    {
-                        SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
-                        property = property.FindPropertyRelative("m_Value");
-                        string firstpropName = property.name;
-
-                        Color previousColor = GUI.color;
-                        var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
-                        if (animated)
-                        {
-                            GUI.color = AnimationMode.animatedPropertyColor;
-                        }
-
-                        DisplayProperty(parameter, overrideProperty, property);
-
-                        if (animated)
-                        {
-                            GUI.color = previousColor;
-                        }
-                    }
+                    EditorGUI.indentLevel = stack.Count;
                 }
-                EditorGUI.indentLevel = stack.Count;
             }
         }
 
