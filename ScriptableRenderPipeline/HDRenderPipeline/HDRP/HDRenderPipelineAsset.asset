@@ -75,6 +75,7 @@ MonoBehaviour:
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 256
+      numLightIndicesPerClusteredTile: 8
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
