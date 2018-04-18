@@ -32,6 +32,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
 
         Pass
         {
+            Name "TerrainAddLit"
             Tags { "LightMode" = "LightweightForward" }
             Blend One One
             HLSLPROGRAM
