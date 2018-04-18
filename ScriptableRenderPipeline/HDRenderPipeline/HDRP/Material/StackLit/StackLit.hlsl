@@ -6,11 +6,51 @@
 //#include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 //#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
-//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:
+//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used: 
 //
 // We need this for AO, Depth/Color pyramids, LTC lights data, FGD pre-integrated data.
 //
 // Also add options at the top of this file, see Lit.hlsl.
+
+//-----------------------------------------------------------------------------
+// Texture and constant buffer declaration
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Definition
+//-----------------------------------------------------------------------------
+
+#define DEFAULT_SPECULAR_VALUE 0.04
+
+//-----------------------------------------------------------------------------
+// Configuration
+//-----------------------------------------------------------------------------
+// TODO: once we use FGD pre-integration data
+//#define LIT_USE_GGX_ENERGY_COMPENSATION
+
+
+//-----------------------------------------------------------------------------
+// Helper functions/variable specific to this material
+//-----------------------------------------------------------------------------
+
+// This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
+// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
+bool HasFeatureFlag(uint featureFlags, uint flag)
+{
+    return ((featureFlags & flag) != 0);
+}
+
+float3 ComputeDiffuseColor(float3 baseColor, float metallic)
+{
+    return baseColor * (1.0 - metallic);
+}
+
+float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
+{
+    return lerp(dielectricF0.xxx, baseColor, metallic);
+}
+
+
 
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -49,11 +89,11 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
 // This function is similar to ApplyDebugToSurfaceData but for BSDFData
 //
-// NOTE:
+// NOTE: 
 //
-// This will be available and used in ShaderPassForward.hlsl since in StackLit.shader,
-// just before including the core code of the pass (ShaderPassForward.hlsl) we include
-// Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us,
+// This will be available and used in ShaderPassForward.hlsl since in StackLit.shader, 
+// just before including the core code of the pass (ShaderPassForward.hlsl) we include 
+// Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us, 
 // StackLit.shader, via the #if defined(UNITY_MATERIAL_*) glue mechanism.
 //
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
@@ -61,7 +101,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
     // this can be use also in case of debug lighting mode like specular only
-
+    
     //NEWLITTODO
     //bool overrideSpecularColor = _DebugLightingSpecularColor.x != 0.0;
 
@@ -82,9 +122,28 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    // NEWLITTODO: will be much more involved obviously, and use metallic, etc.
-    bsdfData.diffuseColor = surfaceData.baseColor;
+    // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
+    bsdfData.materialFeatures = surfaceData.materialFeatures;
+
+    // Two lobe base material
     bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
+    bsdfData.perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessB);
+    bsdfData.lobeMix = surfaceData.lobeMix;
+
+    // There is no metallic with SSS and specular color mode
+    //todo: float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+    float metallic = surfaceData.metallic;
+
+    bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    bsdfData.fresnel0 = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+
+    // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
+    // perceptualRoughness is not clamped, and is meant to be used for IBL.
+    // TODO: add ui inputs, +tangent map, tangentws to use anisotropy; for now bsdfData.anisotropy = 0,
+    // so only bsdfData.roughnessT is used.
+    ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughnessA, bsdfData.anisotropy, bsdfData.roughnessAT, bsdfData.roughnessAB);
+    ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughnessB, bsdfData.anisotropy, bsdfData.roughnessBT, bsdfData.roughnessBB);
 
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
@@ -101,7 +160,7 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     // Overide debug value output to be more readable
     switch (paramId)
     {
-        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_VIEW_SPACE:
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
             result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
             break;
@@ -115,7 +174,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     // Overide debug value output to be more readable
     switch (paramId)
     {
-        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_VIEW_SPACE:
+        case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
             result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
             break;
@@ -124,8 +183,8 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 
 
 //-----------------------------------------------------------------------------
-// PreLightData
-//
+// PreLightData 
+// 
 // Make sure we respect naming conventions to reuse ShaderPassForward as is,
 // ie struct (even if opaque to the ShaderPassForward) name is PreLightData,
 // GetPreLightData prototype.
@@ -135,7 +194,10 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
-    //NEWLITTODO
+
+    // GGX
+    float partLambdaV[2]; // One for each lobe
+    float energyCompensation;
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
@@ -146,8 +208,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
 
-    //float NdotV = ClampNdotV(preLightData.NdotV);
+    float NdotV = ClampNdotV(preLightData.NdotV);
+    preLightData.partLambdaV[0] = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughnessAT);
+    preLightData.partLambdaV[1] = GetSmithJointGGXPartLambdaV(NdotV, bsdfData.roughnessBT);
 
+    // TODO: LIT_USE_GGX_ENERGY_COMPENSATION
 
     return preLightData;
 }
@@ -260,18 +325,40 @@ void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting ds
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-// NEWLITTODO
 
 // This function apply BSDF. Assumes that NdotL is positive.
 void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
+    float3 N = bsdfData.normalWS;
+
+    // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
+    float LdotV    = dot(L, V);
+    float invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));            // invLenLV = rcp(length(L + V)), clamp to avoid rsqrt(0) = NaN
+    float NdotH    = saturate((NdotL + preLightData.NdotV) * invLenLV); // Do not clamp NdotV here
+    float LdotH    = saturate(invLenLV * LdotV + invLenLV);
+    float NdotV    = ClampNdotV(preLightData.NdotV);
+
+    // TODO: Proper Fresnel
+    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+
+    // TODO: with iridescence, will be per light sample.
+
+    float DV[2];
+
+    DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
+    DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+
+    specularLighting = F * lerp(DV[0], DV[1], bsdfData.lobeMix);
+
+    // TODO: config option + diffuse GGX
     float  diffuseTerm = Lambert();
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     diffuseLighting = diffuseTerm;
-    specularLighting = float3(0.0, 0.0, 0.0);
+
+    // TODO: coat
 }
 
 //-----------------------------------------------------------------------------
@@ -292,7 +379,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     //float  LdotV = dot(L, V);
 
-    // color and attenuation are outputted  by EvaluateLight:
+    // color and attenuation are outputted  by EvaluateLight: 
     float3 color;
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
@@ -412,7 +499,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     return lighting;
 }
 
-// NEWLITTODO: For a refence rendering option for area light, like LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> :
+// NEWLITTODO: For a refence rendering option for area light, like LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> : 
 //#include "LitReference.hlsl"
 
 //-----------------------------------------------------------------------------
