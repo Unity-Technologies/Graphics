@@ -31,7 +31,7 @@ namespace UnityEditor
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
         }
 
-        [MenuItem("Assets/Create/VFX/Visual Effect Graph", false, 306)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
         public static void CreateVisualEffectAsset()
         {
             VisualEffectAsset asset = new VisualEffectAsset();

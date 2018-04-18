@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
 {
     public class VFXDebugWindow : EditorWindow
     {
-        [MenuItem("Window/VFX/VFXEditor Debug Window", priority = 6500)]
+        [MenuItem("Window/Visual Effects/VFXEditor Debug Window",false, 3011, true)]
         public static void OpenWindow()
         {
             GetWindow<VFXDebugWindow>();

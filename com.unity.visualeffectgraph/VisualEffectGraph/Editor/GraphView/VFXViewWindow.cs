@@ -38,7 +38,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/VFX/Visual Effect Graph Editor", false, 2030)]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3010)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
