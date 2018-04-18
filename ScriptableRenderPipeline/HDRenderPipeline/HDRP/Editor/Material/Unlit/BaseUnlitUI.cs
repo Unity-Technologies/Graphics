@@ -185,7 +185,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableMotionVectorForVertexAnimation = FindProperty(kEnableMotionVectorForVertexAnimation, props, false);
         }
 
-        SurfaceType surfaceTypeValue
+        protected SurfaceType surfaceTypeValue
         {
             get { return surfaceType != null ? (SurfaceType)surfaceType.floatValue : defaultSurfaceType; }
         }
