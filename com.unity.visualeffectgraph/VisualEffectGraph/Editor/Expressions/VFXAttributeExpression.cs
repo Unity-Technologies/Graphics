@@ -26,14 +26,14 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3);
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
         public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize));
-        public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize));
-        public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.Float);
         public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.Float);
-        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float);
-        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float);
-        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float);
+        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.Float);
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
         public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.Float3);
@@ -66,6 +66,11 @@ namespace UnityEditor.VFX
         };
 
         public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();
+
+        public static readonly string[] AllIncludingVariadic = AllAttribute.Where(e => e.variadic != VFXVariadic.BelongsToVariadic).Select(e => e.name).ToArray().Concat(AllVariadic).ToArray();
+        public static readonly string[] AllIncludingVariadicExceptLocalOnly = AllIncludingVariadic.Except(AllLocalOnly).ToArray();
+        public static readonly string[] AllIncludingVariadicWritable = AllIncludingVariadic.Except(AllReadOnly).ToArray();
+        public static readonly string[] AllIncludingVariadicReadWritable = AllIncludingVariadic.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
@@ -144,7 +149,8 @@ namespace UnityEditor.VFX
     enum VFXVariadic
     {
         False = 0,
-        True = 1
+        True = 1,
+        BelongsToVariadic = 2
     }
 
     enum VariadicChannelOptions

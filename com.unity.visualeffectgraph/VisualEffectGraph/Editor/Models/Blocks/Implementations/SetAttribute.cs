@@ -6,11 +6,11 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritableWithVariadic))]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritable))]
     class SetAttribute : VFXBlock
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
-        public string attribute = VFXAttribute.All.Concat(VFXAttribute.AllVariadic).First();
+        public string attribute = VFXAttribute.AllIncludingVariadic.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;

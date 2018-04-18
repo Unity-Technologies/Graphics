@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritableWithVariadic))]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritable))]
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
-        public string attribute = VFXAttribute.AllWritable.Concat(VFXAttribute.AllVariadic).First();
+        public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;

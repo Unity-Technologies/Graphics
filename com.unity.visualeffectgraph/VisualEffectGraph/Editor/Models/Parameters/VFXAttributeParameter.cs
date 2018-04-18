@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllExceptLocalOnly.Concat(VFXAttribute.AllVariadic).ToArray();
+            return VFXAttribute.AllIncludingVariadicExceptLocalOnly.ToArray();
         }
     }
 
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString()
         {
-            return VFXAttribute.AllReadWritable.Concat(VFXAttribute.AllVariadic).ToArray();
+            return VFXAttribute.AllIncludingVariadicReadWritable.ToArray();
         }
     }
 
@@ -29,13 +29,13 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllExceptLocalOnly.Concat(VFXAttribute.AllVariadic).Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllIncludingVariadicExceptLocalOnly.Cast<object>().ToArray() }
                 };
             }
         }
     }
 
-    class AttributeVariantReadWritableWithVariadic : IVariantProvider
+    class AttributeVariantReadWritable : IVariantProvider
     {
         public Dictionary<string, object[]> variants
         {
@@ -43,13 +43,13 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllReadWritable.Concat(VFXAttribute.AllVariadic).Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() }
                 };
             }
         }
     }
 
-    class AttributeVariantReadWritable : IVariantProvider
+    class AttributeVariantReadWritableNoVariadic : IVariantProvider
     {
         public Dictionary<string, object[]> variants
         {
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
     class VFXAttributeParameter : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
-        public string attribute = VFXAttribute.All.Concat(VFXAttribute.AllVariadic).First();
+        public string attribute = VFXAttribute.AllIncludingVariadic.First();
 
         [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
         public VFXAttributeLocation location = VFXAttributeLocation.Current;
