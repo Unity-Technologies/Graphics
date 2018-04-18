@@ -98,11 +98,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void DrawGizmo(bool selected)
         {
             var col = new Color(0.0f, 0.7f, 1f, 1.0f);
-            col.a = selected ? 0.3f : 0.1f;
-            Gizmos.color = col;
             Matrix4x4 offset = Matrix4x4.Translate(new Vector3(0.0f, -0.5f, 0.0f));
             Gizmos.matrix = transform.localToWorldMatrix * offset;
-            Gizmos.DrawCube(Vector3.zero, Vector3.one);
             col.a = selected ? 0.5f : 0.2f;
             Gizmos.color = col;
             Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
