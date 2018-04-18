@@ -21,7 +21,6 @@ float4 _DebugLightingNormal; // x == bool override
 float4 _DebugLightingSpecularColor; // x == bool override, yzw = specular color
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
-float _DebugEnvironmentProxyDepthScale;
 float _DebugExposure;
 CBUFFER_END
 

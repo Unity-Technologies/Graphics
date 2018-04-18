@@ -101,15 +101,6 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real Nd
     return lerp(N, R, lerpFactor);
 }
 
-// To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
-// which allow to fake an anisotropic specular lobe.
-// Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
-real AnisotropicStrechAtGrazingAngle(real perceptualRoughness, real NdotV)
-{
-    real p = perceptualRoughness;
-    return p * lerp(saturate(NdotV * 2.0) * p, p, p);
-}
-
 // ----------------------------------------------------------------------------
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
