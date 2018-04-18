@@ -12,6 +12,15 @@ SAMPLER(sampler_EmissiveColorMap);
 TEXTURE2D(_BaseColorMap);
 SAMPLER(sampler_BaseColorMap);
 
+TEXTURE2D(_MaskMapA);
+SAMPLER(sampler_MaskMapA);
+
+TEXTURE2D(_MaskMapB);
+SAMPLER(sampler_MaskMapB);
+
+TEXTURE2D(_NormalMap);
+SAMPLER(sampler_NormalMap);
+
 
 CBUFFER_START(UnityPerMaterial)
 
@@ -19,6 +28,20 @@ float4 _BaseColor;
 float4 _BaseColorMap_ST;
 float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
+
+float _Metallic;
+float _SmoothnessA;
+float _SmoothnessARemapMin;
+float _SmoothnessARemapMax;
+float _SmoothnessB;
+float _SmoothnessBRemapMin;
+float _SmoothnessBRemapMax;
+float _LobeMix;
+
+float _NormalScale;
+
+float4 _UVMappingMask;
+
 
 float3 _EmissiveColor;
 float4 _EmissiveColorMap_ST;
