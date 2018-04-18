@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Spawner", variantProvider = typeof(AttributeVariantReadWritable))]
+    [VFXInfo(category = "Spawn", variantProvider = typeof(AttributeVariantReadWritable))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting, StringProvider(typeof(AttributeProvider))]

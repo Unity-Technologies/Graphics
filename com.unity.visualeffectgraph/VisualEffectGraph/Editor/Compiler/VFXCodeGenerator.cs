@@ -493,7 +493,7 @@ namespace UnityEditor.VFX
 
             var renderPipePath = VFXManager.renderPipeSettingsPath;
 
-            string renderPipeCommon = "Assets/VFXShaders/Common/VFXCommonCompute.cginc";
+            string renderPipeCommon = "Assets/VFXEditor/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
             {
@@ -512,7 +512,7 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == CoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
 
-            globalIncludeContent.WriteLine("#include \"Assets/VFXShaders/VFXCommon.cginc\"");
+            globalIncludeContent.WriteLine("#include \"Assets/VFXEditor/Shaders/VFXCommon.cginc\"");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();

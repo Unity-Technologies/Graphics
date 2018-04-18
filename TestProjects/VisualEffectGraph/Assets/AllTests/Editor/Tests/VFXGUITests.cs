@@ -13,8 +13,8 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXGUITests
     {
-        [MenuItem("VFX Editor/Run GUI Tests")]
-        static void RunGUITests()
+        //[MenuItem("VFX Editor/Run GUI Tests")]
+        public static void RunGUITests()
         {
             VFXGUITests tests = new VFXGUITests();
 

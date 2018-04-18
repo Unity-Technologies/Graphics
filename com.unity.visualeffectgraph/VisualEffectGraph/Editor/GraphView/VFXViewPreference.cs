@@ -15,7 +15,7 @@ public static class VFXViewPreference
         }
     }
 
-    public const string experimentalOperatorKey = "displayExperimentalOperatorKey";
+    public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
 
     private static void LoadIfNeeded()
     {
@@ -26,11 +26,11 @@ public static class VFXViewPreference
         }
     }
 
-    [PreferenceItem("VFX")]
+    [PreferenceItem("Visual Effects")]
     public static void PreferencesGUI()
     {
         LoadIfNeeded();
-        m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Allow experimental operator", m_DisplayExperimentalOperator);
+        m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Experimental Operators/Blocks", m_DisplayExperimentalOperator);
 
         if (GUI.changed)
         {

@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    foreach (var file in Directory.GetFiles("Assets/VFXTests/", "*.unity"))
+                    foreach (var file in Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity"))
                     {
                         if (file.Contains("MotionVectors")) continue; //disable explicitly instable test
                         yield return new SceneTest
