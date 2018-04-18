@@ -3,8 +3,12 @@ using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public partial class Lit : RenderPipelineMaterial
+    public partial class LTCAreaLight
     {
+        //-------------------------------------------------------------------------------------------
+        // LTC area light Look up table (fit for Disney Diffuse)
+        //-------------------------------------------------------------------------------------------
+
         public static double[,] s_LtcDisneyDiffuseMatrixData = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim]
         {
             {1.018309, 0, 0.000000, 0, 1.018309, 0, 0.000000, 0, 1},
