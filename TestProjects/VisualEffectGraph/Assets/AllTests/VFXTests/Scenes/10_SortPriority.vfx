@@ -5974,7 +5974,7 @@ VisualEffectAsset:
         index: 74
       - nameId: bounds_size
         index: 75
-      processor: {fileID: 7200000, guid: 3eef5a067d75205498537aef69ac9e57, type: 3}
+      processor: {fileID: 7200000, guid: d552609dc8768c1448c36c4788c442fa, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5987,7 +5987,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 80
       params: []
-      processor: {fileID: 7200000, guid: 9c38c8ac235517340b873bcc1387f62d, type: 3}
+      processor: {fileID: 7200000, guid: 1cf14daab125a4347996d570c295b8eb, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
@@ -6002,7 +6002,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 54
       params: []
-      processor: {fileID: 7200000, guid: f9195a27ecdc8c34295faa71579837ea, type: 3}
+      processor: {fileID: 7200000, guid: cb9189f23be3bff4db1ab7c7f387a72f, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -6023,7 +6023,7 @@ VisualEffectAsset:
         index: 2
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 8963485bd06006c42ae16739d4b1b98f, type: 3}
+      processor: {fileID: 4800000, guid: 83918a442dc9fc34eb89b3250cbebac8, type: 3}
   - type: 1
     flags: 3
     capacity: 10000
@@ -6075,7 +6075,7 @@ VisualEffectAsset:
         index: 63
       - nameId: bounds_size
         index: 68
-      processor: {fileID: 7200000, guid: dbad16a829cafe2448821f0c591ae59d, type: 3}
+      processor: {fileID: 7200000, guid: 04dcb36eac214ba468a9c04a9057fde2, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -6088,7 +6088,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 80
       params: []
-      processor: {fileID: 7200000, guid: 5c2527387f8b0e14f9a2fb4308b4b967, type: 3}
+      processor: {fileID: 7200000, guid: 857f9b18b5e960d4ca38bd674f64dcc9, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
@@ -6103,7 +6103,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 54
       params: []
-      processor: {fileID: 7200000, guid: eb003ca68a85c4a4794683aecc9dc3cc, type: 3}
+      processor: {fileID: 7200000, guid: 8355e6ae49aec874eaa75cc80c1c9a0c, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -6124,7 +6124,7 @@ VisualEffectAsset:
         index: 1
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 17f438cf5d55c2a45858abaea862d762, type: 3}
+      processor: {fileID: 4800000, guid: 225db71860e51c247a0da06ea6c8349b, type: 3}
   - type: 1
     flags: 3
     capacity: 10000
@@ -6174,7 +6174,7 @@ VisualEffectAsset:
         index: 67
       - nameId: bounds_size
         index: 70
-      processor: {fileID: 7200000, guid: dece47757038a6c4382644b79479f380, type: 3}
+      processor: {fileID: 7200000, guid: 77ac4984741192e41a151ca35ea2406a, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -6187,7 +6187,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 80
       params: []
-      processor: {fileID: 7200000, guid: 23c110d905aaa3a40b557dcc26980cae, type: 3}
+      processor: {fileID: 7200000, guid: 4060ca4e15ecd3640973e910c95b24e9, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
@@ -6202,7 +6202,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 54
       params: []
-      processor: {fileID: 7200000, guid: db694e6b24d0afd4280d07d9dbb74e1b, type: 3}
+      processor: {fileID: 7200000, guid: c56e649a549debd4faa238cb90caf549, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -6223,7 +6223,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: c9ab11aa60c95a84b8fb9d06f713ecc1, type: 3}
+      processor: {fileID: 4800000, guid: 4cf8158d8f2f18a49aa5538b96f1b39e, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

@@ -2110,7 +2110,7 @@ VisualEffectAsset:
         index: 23
       - nameId: bounds_size
         index: 21
-      processor: {fileID: 7200000, guid: 726dd1c6c61016a49bda85dcca96c48e, type: 3}
+      processor: {fileID: 7200000, guid: 5ff73ca40a7a45b4990cf8f55ac9d97b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -2123,7 +2123,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 24
       params: []
-      processor: {fileID: 7200000, guid: a90c2645ce345844d90af92b7f3a276f, type: 3}
+      processor: {fileID: 7200000, guid: df408f597168bbe4a82da4787af26816, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
@@ -2138,7 +2138,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 20
       params: []
-      processor: {fileID: 7200000, guid: 31428cff046ba324e992fddf5c3ae515, type: 3}
+      processor: {fileID: 7200000, guid: 0d2b6b47dd44a784bb2130da4570a4e4, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -2159,7 +2159,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: bf9aced934ed49a4b81ce2665d1b5d2b, type: 3}
+      processor: {fileID: 4800000, guid: fce15118db0bf754cbe08cdb39df903d, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
