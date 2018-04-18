@@ -737,7 +737,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int NumLightIndicesPerClusteredTile()
         {
-            return 8 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return 32 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         public void AllocResolutionDependentBuffers(int width, int height, bool stereoEnabled)
@@ -2339,8 +2339,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
-                hdCamera.SetupComputeShader(deferredDirectionalShadowComputeShader, cmd);
-
                 // TODO: Update for stereo
                 cmd.DispatchCompute(deferredDirectionalShadowComputeShader, kernel, numTilesX, numTilesY, 1);
 
@@ -2389,9 +2387,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numVariants = 1;
                     if (enableFeatureVariants)
                         numVariants = LightDefinitions.s_NumFeatureVariants;
-
-
-                    hdCamera.SetupComputeShader(deferredComputeShader, cmd);
 
                     for (int variant = 0; variant < numVariants; variant++)
                     {
@@ -2504,9 +2499,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
         {
             LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
-
-            if (lightingDebug.debugLightingMode == DebugLightingMode.EnvironmentProxyVolume)
-                cmd.SetGlobalFloat(HDShaderIDs._DebugEnvironmentProxyDepthScale, lightingDebug.environmentProxyDepthScale);
 
             using (new ProfilingSample(cmd, "Tiled/cluster Lighting Debug", CustomSamplerId.TPTiledLightingDebug.GetSampler()))
             {

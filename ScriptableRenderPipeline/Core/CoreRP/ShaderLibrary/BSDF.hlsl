@@ -67,10 +67,32 @@ real3 F_Transm_Schlick(real3 f0, real u)
 
 // Ref: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 // Fresnel dieletric / dielectric
-real F_Fresnel(real ior, real u)
+real F_FresnelDieletric(real ior, real u)
 {
     real g = sqrt(Sq(ior) + Sq(u) - 1.0);
     return 0.5 * Sq((g - u) / (g + u)) * (1.0 + Sq(((g + u) * u - 1.0) / ((g - u) * u + 1.0)));
+}
+
+// Fresnel dieletric / conductor
+real3 F_FresnelConductor(real3 eta, real3 etak, real cosTheta)
+{
+    real cosTheta2 = cosTheta * cosTheta;
+    real sinTheta2 = 1.0 - cosTheta2;
+    real3 eta2 = eta * eta;
+    real3 etak2 = etak * etak;
+
+    real3 t0 = eta2 - etak2 - sinTheta2;
+    real3 a2plusb2 = sqrt(t0 * t0 + 4.0 * eta2 * etak2);
+    real3 t1 = a2plusb2 + cosTheta2;
+    real3 a = sqrt(0.5 * (a2plusb2 + t0));
+    real3 t2 = 2.0 * a * cosTheta;
+    real3 Rs = (t1 - t2) / (t1 + t2);
+
+    real3 t3 = cosTheta2 * a2plusb2 + sinTheta2 * sinTheta2;
+    real3 t4 = t2 * sinTheta2;
+    real3 Rp = Rs * (t3 - t4) / (t3 + t4);
+
+    return 0.5 * (Rp + Rs);
 }
 
 //-----------------------------------------------------------------------------
