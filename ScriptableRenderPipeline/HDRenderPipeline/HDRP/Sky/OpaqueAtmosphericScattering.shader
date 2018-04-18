@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
+﻿Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 {
     SubShader
     {
@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag

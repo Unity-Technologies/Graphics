@@ -1,4 +1,4 @@
-//
+﻿//
 // This is a modified version of the BlurCS compute shader from Microsoft's MiniEngine
 // library. The copyright notice from the original version is included below.
 //
@@ -21,7 +21,7 @@
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 Texture2D<float4> _Source;
 RWTexture2D<float4> _Result;

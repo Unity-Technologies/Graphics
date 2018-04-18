@@ -1,4 +1,4 @@
-#pragma kernel Deferred_Direct_Fptl                                SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl
+﻿#pragma kernel Deferred_Direct_Fptl                                SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl
 #pragma kernel Deferred_Direct_Fptl_DebugDisplay                   SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl_DebugDisplay             DEBUG_DISPLAY
 #pragma kernel Deferred_Direct_ShadowMask_Fptl                     SHADE_OPAQUE_ENTRY=Deferred_Direct_ShadowMask_Fptl               SHADOWS_SHADOWMASK
 #pragma kernel Deferred_Direct_ShadowMask_Fptl_DebugDisplay        SHADE_OPAQUE_ENTRY=Deferred_Direct_ShadowMask_Fptl_DebugDisplay  SHADOWS_SHADOWMASK  DEBUG_DISPLAY
@@ -84,7 +84,7 @@
 #include "../../Debug/DebugDisplay.hlsl"
 #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //-------------------------------------------------------------------------------------
 // variable declaration
