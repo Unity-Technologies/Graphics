@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritable))]
+    [VFXInfo(category = "Attribute/Map", variantProvider = typeof(AttributeVariantReadWritable))]
     class AttributeFromMap : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
