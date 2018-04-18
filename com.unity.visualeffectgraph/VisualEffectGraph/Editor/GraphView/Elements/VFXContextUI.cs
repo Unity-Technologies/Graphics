@@ -214,8 +214,6 @@ namespace UnityEditor.VFX.UI
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");
-
-            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         bool m_CanHaveBlocks = false;
