@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
-                            return string.Format("({0}3({1}.x, {1}.y, 0.0))", node.precision, rawOutput);
+                            return string.Format("({0}3({1}, 0.0))", node.precision, rawOutput);
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xyz)", rawOutput);
                         default:
@@ -154,9 +154,9 @@ namespace UnityEditor.ShaderGraph
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
-                            return string.Format("({0}4({1}.x, {1}.y, 0.0, 1.0))", node.precision, rawOutput);
+                            return string.Format("({0}4({1}, 0.0, 1.0))", node.precision, rawOutput);
                         case ConcreteSlotValueType.Vector3:
-                            return string.Format("({0}4({1}.x, {1}.y, {1}.z, 1.0))", node.precision, rawOutput);
+                            return string.Format("({0}4({1}, 1.0))", node.precision, rawOutput);
                         default:
                             return kErrorString;
                     }
