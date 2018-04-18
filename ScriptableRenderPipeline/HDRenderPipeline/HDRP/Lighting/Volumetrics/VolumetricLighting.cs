@@ -224,13 +224,13 @@ public class VolumetricLightingSystem
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        m_VolumeVoxelizationCS          = asset.renderPipelineResources.volumeVoxelizationCS;
-        m_VolumetricLightingCS          = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers                      = new List<VBuffer>();
-        m_VisibleVolumeBounds           = new List<OrientedBBox>();
-        m_VisibleVolumeData       = new List<DensityVolumeData>();
-        s_VisibleVolumeBoundsBuffer     = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
-        s_VisibleVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeData)));
+        m_VolumeVoxelizationCS      = asset.renderPipelineResources.volumeVoxelizationCS;
+        m_VolumetricLightingCS      = asset.renderPipelineResources.volumetricLightingCS;
+        m_VBuffers                  = new List<VBuffer>();
+        m_VisibleVolumeBounds       = new List<OrientedBBox>();
+        m_VisibleVolumeData         = new List<DensityVolumeData>();
+        s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
+        s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeData)));
     }
 
     public void Cleanup()
@@ -245,9 +245,9 @@ public class VolumetricLightingSystem
             m_VBuffers[i].Destroy();
         }
 
-        m_VBuffers                = null;
-        m_VisibleVolumeBounds     = null;
-        m_VisibleVolumeData = null;
+        m_VBuffers            = null;
+        m_VisibleVolumeBounds = null;
+        m_VisibleVolumeData   = null;
 
         CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
         CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
