@@ -6,7 +6,7 @@ using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
 namespace UnityEditor.VFX.UI
 {
-    class SpaceablePropertyRM<T> : PropertyRM<T> where T : ISpaceable
+    abstract class SpaceablePropertyRM<T> : PropertyRM<T>
     {
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -26,9 +26,22 @@ namespace UnityEditor.VFX.UI
             return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
+        private CoordinateSpace Space
+        {
+            get
+            {
+                return m_Provider.space;
+            }
+
+            set
+            {
+                m_Provider.space = value;
+            }
+        }
+
         void OnButtonClick()
         {
-            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % CoordinateSpaceInfo.SpaceCount);
+            Space = (CoordinateSpace)((int)(Space + 1) % CoordinateSpaceInfo.SpaceCount);
             NotifyValueChanged();
         }
 
@@ -36,13 +49,13 @@ namespace UnityEditor.VFX.UI
         {
             foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
-                if (m_Value.space.ToString() != name)
+                if (Space.ToString() != name)
                     m_Button.RemoveFromClassList("space" + name);
             }
 
             if (m_Value != null)
             {
-                m_Button.AddToClassList("space" + m_Value.space.ToString());
+                m_Button.AddToClassList("space" + Space.ToString());
             }
         }
 
@@ -73,7 +86,7 @@ namespace UnityEditor.VFX.UI
         public override bool showsEverything { get { return false; } }
     }
 
-    abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : ISpaceable
+    abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T>
     {
         public Vector3SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {

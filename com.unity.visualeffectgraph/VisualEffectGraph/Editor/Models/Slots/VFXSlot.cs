@@ -76,6 +76,38 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool Spaceable
+        {
+            get
+            {
+                return property.type.GetCustomAttributes(typeof(VFXSpaceable), true).Any();
+            }
+        }
+
+        public CoordinateSpace Space
+        {
+            get
+            {
+                return GetMasterData().m_Space;
+            }
+
+            set
+            {
+                if (Spaceable)
+                {
+                    if (Space != value)
+                    {
+                        GetMasterData().m_Space = value;
+                        Invalidate(InvalidationCause.kConnectionChanged);
+                    }
+                }
+                else
+                {
+                    Debug.LogError("TODOPAUL : Better message");
+                }
+            }
+        }
+
         private void SetValueInternal(object value, bool notify)
         {
             if (!IsMasterSlot()) // Must be a master node
@@ -250,9 +282,12 @@ namespace UnityEditor.VFX
         {
             var slot = CreateSub(property, direction); // First create slot tree
 
-            var masterData = new MasterData();
-            masterData.m_Owner = null;
-            masterData.m_Value = new VFXSerializableObject(property.type, value);
+            var masterData = new MasterData()
+            {
+                m_Owner = null,
+                m_Value = new VFXSerializableObject(property.type, value),
+                m_Space = CoordinateSpace.Local
+            };
 
             slot.PropagateToChildren(s => {
                     s.m_MasterSlot = slot;
@@ -487,9 +522,12 @@ namespace UnityEditor.VFX
         {
             base.OnRemoved();
 
-            var masterData = new MasterData();
-            masterData.m_Owner = null;
-            masterData.m_Value = new VFXSerializableObject(property.type, value);
+            var masterData = new MasterData()
+            {
+                m_Owner = null,
+                m_Value = new VFXSerializableObject(property.type, value),
+                m_Space = CoordinateSpace.Local
+            };
 
             PropagateToChildren(s => {
                     s.m_MasterData = null;
@@ -675,6 +713,14 @@ namespace UnityEditor.VFX
             foreach (var startSlot in startSlots)
             {
                 startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
+                /* hacky */
+                if (startSlot.m_LinkedInSlot != null)
+                {
+                    if (startSlot.Spaceable)
+                    {
+                        startSlot.Space = startSlot.m_LinkedInSlot.Space; //-_-'
+                    }
+                }
                 startSlot.PropagateToChildren(s =>
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
@@ -820,6 +866,7 @@ namespace UnityEditor.VFX
         {
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
+            public CoordinateSpace m_Space; //TODOPAUL : More generic
         }
 
         [SerializeField]

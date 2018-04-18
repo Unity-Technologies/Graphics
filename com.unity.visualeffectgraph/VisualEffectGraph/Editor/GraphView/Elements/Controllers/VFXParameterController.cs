@@ -24,6 +24,19 @@ namespace UnityEditor.VFX.UI
         object[] m_CustomAttributes;
         VFXPropertyAttribute[] m_Attributes;
 
+        public CoordinateSpace space
+        {
+            get
+            {
+                //TODOPAUL
+                return CoordinateSpace.Local;
+            }
+
+            set
+            {
+                //TODOPAUL
+            }
+        }
 
         public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
         {
@@ -199,6 +212,20 @@ namespace UnityEditor.VFX.UI
         public bool editable
         {
             get { return true; }
+        }
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                //TODOPAUL
+                return ((IPropertyRMProvider)m_Owner).space;
+            }
+
+            set
+            {
+                ((IPropertyRMProvider)m_Owner).space = value;
+            }
         }
 
         public void ExpandPath()
@@ -616,6 +643,18 @@ namespace UnityEditor.VFX.UI
         }
 
         public int depth { get { return 0; } }
+        public CoordinateSpace space
+        {
+            get
+            {
+                return CoordinateSpace.Local;
+            }
+
+            set
+            {
+                //TODODPAUL
+            }
+        }
 
         public void ExpandPath()
         {

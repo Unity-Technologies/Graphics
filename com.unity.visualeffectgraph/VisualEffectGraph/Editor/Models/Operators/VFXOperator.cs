@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -107,6 +108,23 @@ namespace UnityEditor.VFX
 
         public override void UpdateOutputExpressions()
         {
+            //TODOPAUL : not sure it's the right place
+            var outputSlotSpaceable = outputSlots.Where(o => o.Spaceable);
+            if (outputSlotSpaceable.Any())
+            {
+                var space = CoordinateSpace.Local;
+                var inputSlotSpaceable = inputSlots.Where(o => o.Spaceable);
+                if (inputSlotSpaceable.Any())
+                {
+                    space = inputSlots.Select(o => o.Space).Distinct().OrderBy(o => (int)o).First();
+                }
+
+                foreach (var slot in outputSlotSpaceable)
+                {
+                    slot.Space = space;
+                }
+            }
+
             var inputExpressions = GetInputExpressions();
             var outputExpressions = BuildExpression(inputExpressions.ToArray());
             SetOutputExpressions(outputExpressions);

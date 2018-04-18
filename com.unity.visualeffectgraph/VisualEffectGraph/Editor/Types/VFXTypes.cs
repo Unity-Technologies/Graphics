@@ -11,6 +11,10 @@ namespace UnityEditor.VFX
     public class VFXTypeAttribute : Attribute
     {}
 
+    [AttributeUsage(AttributeTargets.Struct)]
+    public class VFXSpaceable : Attribute
+    {
+    }
 
     public class ShowAsColorAttribute : Attribute
     {}
@@ -26,11 +30,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Circle : ISpaceable
+    struct Circle
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The centre of the circle.")]
         public Vector3 center;
         [Tooltip("The radius of the circle.")]
@@ -40,11 +41,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct ArcCircle : ISpaceable
+    struct ArcCircle
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         public Circle circle;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the circle is used.")]
         public float arc;
@@ -53,11 +51,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Sphere : ISpaceable
+    struct Sphere
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The centre of the sphere.")]
         public Vector3 center;
         [Tooltip("The radius of the sphere.")]
@@ -67,10 +62,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct ArcSphere : ISpaceable
+    struct ArcSphere
     {
-        CoordinateSpace ISpaceable.space { get { return sphere.space; } set { sphere.space = value; } }
-
         public Sphere sphere;
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the sphere is used.")]
         public float arc;
@@ -79,11 +72,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct OrientedBox : ISpaceable
+    struct OrientedBox
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The centre of the box.")]
         public Vector3 center;
         [Angle, Tooltip("The orientation of the box.")]
@@ -95,11 +85,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct AABox : ISpaceable
+    struct AABox
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The centre of the box.")]
         public Vector3 center;
         [Tooltip("The size of the box along each axis.")]
@@ -109,13 +96,10 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Plane : ISpaceable
+    struct Plane
     {
-        public Plane(Vector3 direction) { space = CoordinateSpace.Local; position = Vector3.zero; normal = direction; }
+        public Plane(Vector3 direction) { position = Vector3.zero; normal = direction; }
 
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The position of the plane.")]
         public Vector3 position;
         [Normalize, Tooltip("The direction of the plane.")]
@@ -125,11 +109,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Cylinder : ISpaceable
+    struct Cylinder
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The center of the cylinder.")]
         public Vector3 center;
         [Tooltip("The radius of the cylinder.")]
@@ -141,11 +122,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Cone : ISpaceable
+    struct Cone
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The center of the cone.")]
         public Vector3 center;
         [Tooltip("The first radius of the cone.")]
@@ -159,11 +137,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct ArcCone : ISpaceable
+    struct ArcCone
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The center of the cone.")]
         public Vector3 center;
         [Tooltip("The first radius of the cone.")]
@@ -179,11 +154,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Torus : ISpaceable
+    struct Torus
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The centre of the torus.")]
         public Vector3 center;
         [Tooltip("The radius of the torus ring.")]
@@ -195,11 +167,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct ArcTorus : ISpaceable
+    struct ArcTorus
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The centre of the torus.")]
         public Vector3 center;
         [Tooltip("The radius of the torus ring.")]
@@ -213,11 +182,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Line : ISpaceable
+    struct Line
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The start position of the line.")]
         public Vector3 start;
         [Tooltip("The end position of the line.")]
@@ -227,11 +193,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Transform : ISpaceable
+    struct Transform
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The transform position.")]
         public Vector3 position;
         [Angle, Tooltip("The euler angles of the transform.")]
@@ -242,12 +205,9 @@ namespace UnityEditor.VFX
         public static Transform defaultValue = new Transform { scale = Vector3.one };
     }
 
-    [VFXType, Serializable]
-    struct Position : ISpaceable
+    [VFXType, VFXSpaceable, Serializable]
+    struct Position
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The position.")]
         public Vector3 position;
 
@@ -255,11 +215,8 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct DirectionType : ISpaceable
+    struct DirectionType
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The normalized direction.")]
         public Vector3 direction;
 
@@ -267,24 +224,19 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
-    struct Vector : ISpaceable
+    struct Vector
     {
-        CoordinateSpace ISpaceable.space { get { return this.space; } set { this.space = value; } }
-
-        public CoordinateSpace space;
         [Tooltip("The vector.")]
         public Vector3 vector;
 
         public Vector(float x, float y, float z)
         {
             vector = new Vector3(x, y, z);
-            space = CoordinateSpace.Local;
         }
 
         public Vector(Vector3 v)
         {
             vector = v;
-            space = CoordinateSpace.Local;
         }
 
         public static Vector defaultValue = new Vector();

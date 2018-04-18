@@ -95,6 +95,18 @@ namespace UnityEditor.VFX.UI
             get { return m_Infos; }
         }
 
+        public CoordinateSpace space
+        {
+            get
+            {
+                return CoordinateSpace.Local;
+            }
+            set
+            {
+                //TODOPAUL
+            }
+        }
+
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             var anchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);

@@ -13,8 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         void Connect(VFXEdgeController edgeController);
         void Disconnect(VFXEdgeController edgeController);
-
-        Direction direction {get; }
+        Direction direction { get; }
     }
 
     abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IValueController
@@ -26,6 +25,18 @@ namespace UnityEditor.VFX.UI
             get
             {
                 return m_SourceNode;
+            }
+        }
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                return model.Space;
+            }
+            set
+            {
+                model.Space = value;
             }
         }
 
@@ -142,7 +153,7 @@ namespace UnityEditor.VFX.UI
 
                 var children = model.children;
 
-                if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+                if (model.property.type.GetCustomAttributes(typeof(VFXSpaceable), true).Any() && model.children.Count() == 1)
                 {
                     children = children.First().children;
                 }

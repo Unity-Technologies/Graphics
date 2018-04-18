@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -94,6 +95,20 @@ namespace UnityEditor.VFX.UI
             {
                 var customAttributes = owner.GetType().GetField(path, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetCustomAttributes(true);
                 return customAttributes;
+            }
+        }
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                //TODOPAUL
+                return CoordinateSpace.Local;
+            }
+
+            set
+            {
+                //TODOPAUL
             }
         }
 

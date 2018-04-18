@@ -14,6 +14,8 @@ namespace UnityEditor.VFX.UI
         object value { get; set; }
 
         System.Type portType { get; }
+
+        CoordinateSpace space { get; }
     }
 
 
@@ -154,7 +156,7 @@ namespace UnityEditor.VFX.UI
         {
             Position pos = (Position)anchor.value;
 
-            if (PositionGizmo(component, pos.space, ref pos.position))
+            if (PositionGizmo(component, anchor.space, ref pos.position))
             {
                 anchor.value = pos;
             }
@@ -170,7 +172,7 @@ namespace UnityEditor.VFX.UI
             Vector3 center = circle.center;
             float radius = circle.radius;
             float arc = arcCircle.arc * Mathf.Rad2Deg;
-            if (circle.space == CoordinateSpace.Local)
+            if (anchor.space == CoordinateSpace.Local)
             {
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
@@ -178,7 +180,7 @@ namespace UnityEditor.VFX.UI
             // Draw circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            if (PositionGizmo(component, circle.space, ref circle.center))
+            if (PositionGizmo(component, anchor.space, ref circle.center))
             {
                 arcCircle.circle = circle;
                 anchor.value = arcCircle;
@@ -245,7 +247,7 @@ namespace UnityEditor.VFX.UI
 
             Vector3 center = sphere.center;
             float radius = sphere.radius;
-            if (sphere.space == CoordinateSpace.Local)
+            if (anchor.space == CoordinateSpace.Local)
             {
                 center = component.transform.localToWorldMatrix.MultiplyPoint(center);
             }
@@ -254,7 +256,7 @@ namespace UnityEditor.VFX.UI
             Handles.DrawWireArc(center, Vector3.up, Vector3.right, 360f, radius);
             Handles.DrawWireArc(center, Vector3.right, Vector3.forward, 360f, radius);
 
-            if (PositionGizmo(component, sphere.space, ref sphere.center))
+            if (PositionGizmo(component, anchor.space, ref sphere.center))
             {
                 anchor.value = sphere;
             }
@@ -290,7 +292,7 @@ namespace UnityEditor.VFX.UI
             Vector3 center = sphere.center;
             float radius = sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
-            if (sphere.space == CoordinateSpace.Local)
+            if (anchor.space == CoordinateSpace.Local)
             {
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
@@ -310,7 +312,7 @@ namespace UnityEditor.VFX.UI
             // Draw 3rd circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            if (PositionGizmo(component, sphere.space, ref sphere.center))
+            if (PositionGizmo(component, anchor.space, ref sphere.center))
             {
                 arcSphere.sphere = sphere;
                 anchor.value = arcSphere;
@@ -378,12 +380,12 @@ namespace UnityEditor.VFX.UI
             float majorRadius = torus.majorRadius;
             float minorRadius = torus.minorRadius;
             float arc = torus.arc * Mathf.Rad2Deg;
-            if (torus.space == CoordinateSpace.Local)
+            if (anchor.space == CoordinateSpace.Local)
             {
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
-            if (PositionGizmo(component, torus.space, ref torus.center))
+            if (PositionGizmo(component, anchor.space, ref torus.center))
             {
                 anchor.value = torus;
             }
@@ -505,7 +507,7 @@ namespace UnityEditor.VFX.UI
         {
             AABox box = (AABox)anchor.value;
 
-            if (OnDrawBoxDataAnchorGizmo(anchor, component, box.space, ref box.center, ref box.size, Vector3.zero))
+            if (OnDrawBoxDataAnchorGizmo(anchor, component, anchor.space, ref box.center, ref box.size, Vector3.zero))
             {
                 anchor.value = box;
             }
@@ -515,11 +517,11 @@ namespace UnityEditor.VFX.UI
         {
             OrientedBox box = (OrientedBox)anchor.value;
 
-            if (OnDrawBoxDataAnchorGizmo(anchor, component, box.space, ref box.center, ref box.size, box.angles))
+            if (OnDrawBoxDataAnchorGizmo(anchor, component, anchor.space, ref box.center, ref box.size, box.angles))
             {
                 anchor.value = box;
             }
-            if (RotationGizmo(component, box.space, box.center, ref box.angles))
+            if (RotationGizmo(component, anchor.space, box.center, ref box.angles))
             {
                 anchor.value = box;
             }
@@ -534,7 +536,7 @@ namespace UnityEditor.VFX.UI
 
             Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
-            if (PositionGizmo(component, plane.space, ref plane.position))
+            if (PositionGizmo(component, anchor.space, ref plane.position))
             {
                 anchor.value = plane;
             }
@@ -604,7 +606,7 @@ namespace UnityEditor.VFX.UI
             bottomCap += center;
 
 
-            if (cylinder.space == CoordinateSpace.Local)
+            if (anchor.space == CoordinateSpace.Local)
             {
                 Matrix4x4 mat = component.transform.localToWorldMatrix;
 
@@ -628,7 +630,7 @@ namespace UnityEditor.VFX.UI
                 Handles.DrawLine(extremities[i], extremities[i + extremities.Length / 2]);
             }
 
-            if (PositionGizmo(component, cylinder.space, ref cylinder.center))
+            if (PositionGizmo(component, anchor.space, ref cylinder.center))
             {
                 anchor.value = cylinder;
             }
@@ -874,7 +876,7 @@ namespace UnityEditor.VFX.UI
             topCap += center;
             bottomCap += center;
 
-            if (cone.space == CoordinateSpace.Local)
+            if (anchor.space == CoordinateSpace.Local)
             {
                 Matrix4x4 mat = component.transform.localToWorldMatrix;
 
@@ -898,7 +900,7 @@ namespace UnityEditor.VFX.UI
                 Handles.DrawLine(extremities[i], extremities[i + extremities.Length / 2]);
             }
 
-            if (PositionGizmo(component, cone.space, ref cone.center))
+            if (PositionGizmo(component, anchor.space, ref cone.center))
             {
                 anchor.value = cone;
             }
@@ -975,7 +977,7 @@ namespace UnityEditor.VFX.UI
         {
             Position pos = (Position)anchor.value;
 
-            if (PositionGizmo(component, pos.space, ref pos.position))
+            if (PositionGizmo(component, anchor.space, ref pos.position))
             {
                 anchor.value = pos;
             }

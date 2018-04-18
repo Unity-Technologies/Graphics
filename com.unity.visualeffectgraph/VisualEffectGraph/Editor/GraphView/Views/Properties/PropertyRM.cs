@@ -10,6 +10,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 using UnityEngine.Profiling;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -18,6 +19,7 @@ namespace UnityEditor.VFX.UI
         bool expanded { get; }
         bool expandable { get; }
         object value { get; set; }
+        CoordinateSpace space { get; set; }
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
         object[] customAttributes { get; }
@@ -41,6 +43,8 @@ namespace UnityEditor.VFX.UI
             m_Setter = setter;
             m_Name = name;
         }
+
+        CoordinateSpace IPropertyRMProvider.space { get { return CoordinateSpace.Local; } set {} }
 
         bool IPropertyRMProvider.expanded { get { return false; } }
         bool IPropertyRMProvider.expandable { get { return false; } }
