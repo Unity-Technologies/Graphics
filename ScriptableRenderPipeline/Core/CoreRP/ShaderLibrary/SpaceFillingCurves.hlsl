@@ -13,7 +13,7 @@ uint Part1By1(uint x)
     return x;
 }
 
-// "Insert" two 0 bits after each of the 10 low bits of x/
+// "Insert" two 0 bits after each of the 10 low bits of x.
 // Ref: https://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
 uint Part1By2(uint x)
 {
@@ -25,7 +25,7 @@ uint Part1By2(uint x)
     return x;
 }
 
-// Inverse of Part1By1 - "delete" all odd-indexed bits/
+// Inverse of Part1By1 - "delete" all odd-indexed bits.
 // Ref: https://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
 uint Compact1By1(uint x)
 {
@@ -37,7 +37,7 @@ uint Compact1By1(uint x)
     return x;
 }
 
-// Inverse of Part1By2 - "delete" all bits not at positions divisible by 3/
+// Inverse of Part1By2 - "delete" all bits not at positions divisible by 3.
 // Ref: https://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
 uint Compact1By2(uint x)
 {
