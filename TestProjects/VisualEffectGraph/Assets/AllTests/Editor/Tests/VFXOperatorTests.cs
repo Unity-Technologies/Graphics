@@ -212,6 +212,10 @@ namespace UnityEditor.VFX.Test
         {
             foreach (var attribute in VFXAttribute.All)
             {
+                var referenceAttribute = VFXAttribute.Find(attribute);
+                if (referenceAttribute.variadic == VFXVariadic.BelongsToVariadic)
+                    continue;
+
                 var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXAttributeParameter));
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
@@ -219,7 +223,6 @@ namespace UnityEditor.VFX.Test
                 Assert.IsNotNull(b);
                 Assert.AreNotEqual(a, b);
 
-                var referenceAttribute = VFXAttribute.Find(attribute);
                 var reference = new VFXAttributeExpression(referenceAttribute);
                 Assert.AreEqual(reference, a.outputSlots[0].GetExpression());
                 Assert.AreEqual(reference, b.outputSlots[0].GetExpression());

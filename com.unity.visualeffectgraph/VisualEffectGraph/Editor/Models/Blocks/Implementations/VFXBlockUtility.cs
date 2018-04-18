@@ -78,10 +78,10 @@ namespace UnityEditor.VFX.Block
                 case RandomMode.Off:
                     return parameters[0] + postfix;
                 case RandomMode.Uniform:
-                    return string.Format("lerp({0},{1},RAND)", parameters.Select(s => s + postfix));
+                    return string.Format("lerp({0},{1},RAND)", parameters.Select(s => s + postfix).ToArray());
                 case RandomMode.PerComponent:
                     string rand = GetRandStringFromSize(attributeSize);
-                    return string.Format("lerp({0},{1}," + rand + ")", parameters.Select(s => s + postfix));
+                    return string.Format("lerp({0},{1}," + rand + ")", parameters.Select(s => s + postfix).ToArray());
                 default: throw new System.NotImplementedException("VFXBlockUtility.GetRandomMacroString() does not implement return string for RandomMode : " + mode.ToString());
             }
         }
