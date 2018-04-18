@@ -9,8 +9,23 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
+    class VFXObject : ScriptableObject
+    {
+        public Action<VFXObject> onModified;
+        void OnValidate()
+        {
+            Modified();
+        }
+
+        public void Modified()
+        {
+            if (onModified != null)
+                onModified(this);
+        }
+    }
+
     [Serializable]
-    abstract class VFXModel : ScriptableObject
+    abstract class VFXModel : VFXObject
     {
         public enum InvalidationCause
         {
@@ -131,6 +146,19 @@ namespace UnityEditor.VFX
             return m_Parent;
         }
 
+        public T GetFirstParentOfType<T>() where T : VFXModel
+        {
+            var parent = GetParent();
+
+            if (parent == null)
+                return null;
+
+            if (parent is T)
+                return parent as T;
+
+            return parent.GetFirstParentOfType<T>();
+        }
+
         public void Attach(VFXModel parent, bool notify = true)
         {
             parent.AddChild(this, -1, notify);
@@ -229,6 +257,7 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
+            Modified();
             string sampleName = GetType().Name + "-" + name + "-" + cause;
             Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try

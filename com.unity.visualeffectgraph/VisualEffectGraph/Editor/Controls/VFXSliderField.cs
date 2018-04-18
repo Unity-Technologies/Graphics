@@ -152,7 +152,7 @@ namespace UnityEditor.VFX.UIElements
             set
             {
                 (m_Field as FloatField).indeterminate = value;
-                m_Slider.SetEnabled(value);
+                m_Slider.SetEnabled(!value);
             }
         }
     }

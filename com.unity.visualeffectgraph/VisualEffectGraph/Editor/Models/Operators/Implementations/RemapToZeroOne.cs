@@ -19,9 +19,9 @@ namespace UnityEditor.VFX.Operator
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
+            var type = inputExpression[0].valueType;
 
-            var zerofive = VFXOperatorUtility.HalfExpression[size];
+            var zerofive = VFXOperatorUtility.HalfExpression[type];
             var expression = VFXOperatorUtility.Mad(inputExpression[0], zerofive, zerofive);
 
             if (Clamp)

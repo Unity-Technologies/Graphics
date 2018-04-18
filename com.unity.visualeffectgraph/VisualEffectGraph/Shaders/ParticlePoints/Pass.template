@@ -1,0 +1,26 @@
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.
+#endif
+
+#pragma vertex vert
+
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+{
+	uint index = id;
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+	
+	${VFXLoadAttributesOrCull}
+	${VFXProcessBlocks}
+			
+	if (!alive)
+		return o;
+					
+	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(position);
+
+	${VFXVertexCommonProcess}
+	${VFXVertexAdditionalProcess}
+			
+	return o;
+}
+
+${VFXFragmentCommonFunctions}
