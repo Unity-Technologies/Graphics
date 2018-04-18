@@ -266,7 +266,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114564606616422122}
   m_Children: []
-  m_UIPosition: {x: 5182.982, y: 857.6316}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -274,7 +274,7 @@ MonoBehaviour:
   - {fileID: 114626334562317016}
   m_exposedName: exposedName
   m_exposed: 0
-  m_Order: 0
+  m_Order: 1
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -283,7 +283,15 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114626334562317016}
+      inputSlot: {fileID: 114984837047147800}
+    - outputSlot: {fileID: 114626334562317016}
+      inputSlot: {fileID: 114348169820544874}
+    position: {x: 5182.982, y: 857.6316}
+    expandedSlots: []
 --- !u!114 &114113402494952554
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -408,10 +416,10 @@ MonoBehaviour:
   stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: 4141
+    y: -580
+    width: 3566
+    height: 2095
 --- !u!114 &114122360804666982
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2292,7 +2300,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114564606616422122}
   m_Children: []
-  m_UIPosition: {x: 4305.933, y: 90.90363}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2309,7 +2317,22 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114921894400159754}
+      inputSlot: {fileID: 114626585541364586}
+    - outputSlot: {fileID: 114921894400159754}
+      inputSlot: {fileID: 114481823276025452}
+    - outputSlot: {fileID: 114782034906201374}
+      inputSlot: {fileID: 114758300661100464}
+    - outputSlot: {fileID: 114782034906201374}
+      inputSlot: {fileID: 114347238819162004}
+    - outputSlot: {fileID: 114782034906201374}
+      inputSlot: {fileID: 114463208667591858}
+    position: {x: 4305.933, y: 90.90363}
+    expandedSlots:
+    - {fileID: 114649673960739854}
 --- !u!114 &114544697710028902
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5439,7 +5462,7 @@ VisualEffectAsset:
         index: 64
       - nameId: bounds_size
         index: 79
-      processor: {fileID: 7200000, guid: 3c28d7cb3f127b447ad2e339caaa898d, type: 3}
+      processor: {fileID: 7200000, guid: 00607a84cbe85d7459bd145a5316b98c, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -5454,7 +5477,7 @@ VisualEffectAsset:
       - nameId: deltaTime_b
         index: 18
       params: []
-      processor: {fileID: 7200000, guid: af8b9ebe0fbeca140a800bf321026a99, type: 3}
+      processor: {fileID: 7200000, guid: 3b69f7ec45e3e2c458a6c76adf5b4569, type: 3}
     - type: 1073741827
       buffers:
       - nameId: attributeBuffer
@@ -5477,7 +5500,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: c138fb2563797f64ab68fc460ebd2333, type: 3}
+      processor: {fileID: 4800000, guid: 09bd78371363e584d9ae4fbbde34c261, type: 3}
   - type: 2
     flags: 0
     capacity: 0
