@@ -8,6 +8,8 @@ using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
+using System.Text;
+using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -408,37 +410,11 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        const string blackBoardPositionPref = "VFXBlackboardRect";
+        VFXView m_View;
 
-
-        Rect LoadBlackBoardPosition()
+        public VFXBlackboard(VFXView view)
         {
-            string str = EditorPrefs.GetString(blackBoardPositionPref);
-            Rect blackBoardPosition = new Rect(100, 100, 300, 500);
-            if (!string.IsNullOrEmpty(str))
-            {
-                var rectValues = str.Split(',');
-
-                if (rectValues.Length == 4)
-                {
-                    float x, y, width, height;
-                    if (float.TryParse(rectValues[0], out x) && float.TryParse(rectValues[1], out y) && float.TryParse(rectValues[2], out width) && float.TryParse(rectValues[3], out height))
-                    {
-                        blackBoardPosition = new Rect(x, y, width, height);
-                    }
-                }
-            }
-
-            return blackBoardPosition;
-        }
-
-        void SaveBlackboardPosition(Rect r)
-        {
-            EditorPrefs.SetString(blackBoardPositionPref, string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
-        }
-
-        public VFXBlackboard()
-        {
+            m_View = view;
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
             moveItemRequested = OnMoveItem;
@@ -447,20 +423,23 @@ namespace  UnityEditor.VFX.UI
             this.scrollable = true;
 
 
-            SetPosition(LoadBlackBoardPosition());
+            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, new Rect(100, 100, 300, 500)));
 
             m_ExposedSection = new BlackboardSection() { title = "parameters"};
             Add(m_ExposedSection);
 
-            m_ComponentSection = new VFXComponentBlackboardSection() { title = "attach to component"};
-            Add(m_ComponentSection);
-
             AddStyleSheetPath("VFXBlackboard");
+
+            RegisterCallback<MouseDownEvent>(OnMouseClick,Capture.Capture);
+        }
+
+
+        void OnMouseClick(MouseDownEvent e)
+        {
+            m_View.SetBoardToFront(this);
         }
 
         BlackboardSection m_ExposedSection;
-
-        VFXComponentBlackboardSection m_ComponentSection;
 
         void OnAddParameter(object parameter)
         {
@@ -559,19 +538,8 @@ namespace  UnityEditor.VFX.UI
 
         public void OnMoved()
         {
-            SaveBlackboardPosition(GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard,GetPosition());
         }
     }
 
-    public class VFXComponentBlackboardSection : BlackboardSection
-    {
-        public VFXComponentBlackboardSection()
-        {
-            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBlackboardSection.uxml")) as VisualTreeAsset;
-
-            tpl.CloneTree(contentContainer, new Dictionary<string, VisualElement>());
-
-            contentContainer.AddStyleSheetPath("VFXComponentBlackboardSection");
-        }
-    }
 }

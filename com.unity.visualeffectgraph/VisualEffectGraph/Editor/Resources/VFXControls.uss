@@ -92,3 +92,8 @@ VFXStringFieldPushButton Button
 {
 	background-color:#999;
 }
+
+Button.MiniDropDown
+{
+	slice-right: 12;
+}

@@ -1,7 +1,13 @@
-<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:uie="UnityEditor.Experimental.UIElements">
+<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:uie="UnityEditor.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+    <ui:VisualElement name="header" pickingMode="Ignore">
+        <ui:VisualElement name="labelContainer" pickingMode="Ignore">
+            <ui:Label name="titleLabel" text="Attach To VisualEffect" />
+            <ui:Label name="subTitleLabel" text="Activate Component specific features" />
+        </ui:VisualElement>
+    </ui:VisualElement>
     <ui:VisualElement name="attach-container">
         <ui:Button name="attach" text="Attach" />
-        <ui:Label name="component-path" text="Scene > Toto > Titi" pickingMode="Ignore"/>
+        <ui:Label name="component-path" text="" pickingMode="Ignore"/>
     </ui:VisualElement>
     <ui:VisualElement name="component-container">
         <ui:VisualElement name="parameter-container" pickingMode="Ignore"/>
@@ -28,8 +34,9 @@
                 <ui:Label text="Play Rate" />
                 <ui:Slider name="play-rate-slider" direction="Horizontal" />
                 <uie:IntegerField name="play-rate-field"/>
-                <ui:Button name="play-rate-menu" text="Set" />
+                <ui:Button name="play-rate-menu" text="Set" class="MiniDropDown"/>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
+    <vfx:ResizableElement pickingMode="Ignore" />
 </UXML>

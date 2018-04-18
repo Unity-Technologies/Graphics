@@ -15,6 +15,42 @@ using EditMode = UnityEditorInternal.EditMode;
 using UnityObject = UnityEngine.Object;
 using System.Reflection;
 
+public static class VisualEffectControl
+{
+    public static void ControlStop(this VisualEffect effect)
+    {
+        effect.Reinit();
+        effect.pause = true;
+    }
+    public static void ControlPlayPause(this VisualEffect effect)
+    {
+        effect.pause = !effect.pause;
+    }
+
+    public static void ControlStep(this VisualEffect effect)
+    {
+        effect.pause = true;
+        effect.AdvanceOneFrame();
+    }
+
+    public static void ControlRestart(this VisualEffect effect)
+    {
+        effect.Reinit();
+        effect.pause = false;
+    }
+
+
+    public const float minSlider = 1;
+    public const float maxSlider = 4000;
+
+    public const float playRateToValue = 100.0f;
+    public const float valueToPlayRate = 1.0f / playRateToValue;
+
+
+    public const float sliderPower = 10;
+
+    public static readonly int[] setPlaybackValues = new int[] { 1, 10, 50, 100, 200, 500, 1000, 4000 };
+}
 
 static class VisualEffectEditorStyles
 {
@@ -537,13 +573,6 @@ public class VisualEffectEditor : Editor
             m_Styles = new Styles();
     }
 
-    public static bool s_IsEditingAsset = false;
-
-
-    const float minSlider = 1;
-    const float maxSlider = 4000;
-
-    readonly int[] setPlaybackValues = new int[] { 1, 10, 50, 100, 200, 500, 1000, 4000 };
 
     private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
     {
@@ -553,40 +582,45 @@ public class VisualEffectEditor : Editor
         GUILayout.BeginHorizontal();
         if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Stop), buttonWidth))
         {
-            effect.Reinit();
-            effect.pause = true;
+            effect.ControlStop();
         }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play), buttonWidth))
+        if( effect.pause)
         {
-            effect.pause = false;
+            if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play), buttonWidth))
+            {
+                effect.ControlPlayPause();
+            }
         }
-        if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause), buttonWidth))
+        else
         {
-            effect.pause = !effect.pause;
+            if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause), buttonWidth))
+            {
+                effect.ControlPlayPause();
+            }
         }
+
+        
         if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step), buttonWidth))
         {
-            effect.pause = true;
-            effect.AdvanceOneFrame();
+            effect.ControlStep();
         }
         if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Restart), buttonWidth))
         {
-            effect.Reinit();
-            effect.pause = false;
+            effect.ControlRestart();
         }
         GUILayout.EndHorizontal();
 
-        float playRate = effect.playRate * 100.0f;
+        float playRate = effect.playRate * VisualEffectControl.playRateToValue;
 
         GUILayout.BeginHorizontal();
         GUILayout.Label("Playback Rate", GUILayout.Width(84));
-        playRate = EditorGUILayout.PowerSlider("", playRate, minSlider, maxSlider, 10, GUILayout.Width(138));
-        effect.playRate = playRate * 0.01f;
+        playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(138));
+        effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
         if (EditorGUILayout.DropdownButton(EditorGUIUtility.TextContent("Set"), FocusType.Passive, GUILayout.Width(36)))
         {
             GenericMenu menu = new GenericMenu();
             Rect buttonRect = GUILayoutUtility.topLevel.GetLast();
-            foreach (var value in setPlaybackValues)
+            foreach (var value in VisualEffectControl.setPlaybackValues)
             {
                 menu.AddItem(EditorGUIUtility.TextContent(string.Format("{0}%", value)), false, SetPlayRate, value);
             }
@@ -595,9 +629,10 @@ public class VisualEffectEditor : Editor
         GUILayout.EndHorizontal();
     }
 
+
     void SetPlayRate(object value)
     {
-        float rate = (float)((int)value) / 100.0f;
+        float rate = (float)((int)value)  * VisualEffectControl.valueToPlayRate;
         VisualEffect effect = ((VisualEffect)targets[0]);
         effect.playRate = rate;
     }
@@ -778,22 +813,7 @@ public class VisualEffectEditor : Editor
             component.Reinit();
         }
 
-        EditMode.DoEditModeInspectorModeButton(
-            EditMode.SceneViewEditMode.Collider,
-            "Edit Asset Values",
-            UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle.editModeButton,
-            this
-            );
         GUI.enabled = true;
-
-        s_IsEditingAsset = EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this);
-
-        if (s_IsEditingAsset && !m_WasEditingAsset)
-        {
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.LoadAsset(component.visualEffectAsset);
-        }
-        m_WasEditingAsset = s_IsEditingAsset;
     }
 
     bool m_WasEditingAsset;
