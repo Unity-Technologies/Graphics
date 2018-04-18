@@ -43,7 +43,7 @@ public class VFXBlockEditor : VFXSlotContainerEditor
         base.OnInspectorGUI();
 
 
-        if (EditorPrefs.GetBool("VFX.ExtraDebugInfo"))
+        if (VFXViewPreference.displayExtraDebugInfo)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Attributes", EditorStyles.boldLabel);

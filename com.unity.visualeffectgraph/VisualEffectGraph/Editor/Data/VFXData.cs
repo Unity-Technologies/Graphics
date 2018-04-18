@@ -478,7 +478,7 @@ namespace UnityEditor.VFX
 
             Debug.Log(builder.ToString());
         }
-        
+
         public uint layer
         {
             get
@@ -502,7 +502,7 @@ namespace UnityEditor.VFX
                 return m_DependenciesOut;
             }
         }
-        
+
 
         public Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> contextsToAttributes { get { return m_ContextsToAttributes; } }
         public Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> attributesToContexts { get { return m_AttributesToContexts; } }
@@ -510,23 +510,6 @@ namespace UnityEditor.VFX
         public Dictionary<VFXAttribute, int> storedCurrentAttributes { get { return m_StoredCurrentAttributes; } }
         public HashSet<VFXAttribute> localCurrentAttributes { get { return m_LocalCurrentAttributes; } }
 
-
-
-        public IEnumerable<VFXData> dependenciesIn
-        {
-            get
-            {
-                return m_DependenciesIn;
-            }
-        }
-
-        public IEnumerable<VFXData> dependenciesOut
-        {
-            get
-            {
-                return m_DependenciesOut;
-            }
-        }
 
         [SerializeField]
         protected List<VFXContext> m_Owners;

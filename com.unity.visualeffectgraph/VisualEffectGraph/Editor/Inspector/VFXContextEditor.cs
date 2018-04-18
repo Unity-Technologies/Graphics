@@ -99,7 +99,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
             }
         }
 
-        if(EditorPrefs.GetBool("VFX.ExtraDebugInfo"))
+        if(VFXViewPreference.displayExtraDebugInfo)
         {
 
             // Extra debug data
