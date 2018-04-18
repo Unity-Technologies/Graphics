@@ -10,11 +10,14 @@ namespace UnityEditor.VFX
     class VFXLineOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Line Output"; } }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLines"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate(native ? "VFXParticleLinesHW" : "VFXParticleLinesSW"); } }
+        public override VFXTaskType taskType { get { return native ? VFXTaskType.ParticleLineOutput : VFXTaskType.ParticleQuadOutput; } }
 
         [VFXSetting, SerializeField]
         protected bool targetFromAttributes = true;
+
+        [VFXSetting, SerializeField]
+        protected bool native = false;
 
         protected override IEnumerable<string> filteredOutSettings
         {
