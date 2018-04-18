@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    class AttributeVariantReadWritable : IVariantProvider
+    class AttributeVariantReadWritableWithVariadic : IVariantProvider
     {
         public Dictionary<string, object[]> variants
         {
@@ -44,6 +44,20 @@ namespace UnityEditor.VFX
                 return new Dictionary<string, object[]>
                 {
                     { "attribute", VFXAttribute.AllReadWritable.Concat(VFXAttribute.AllVariadic).Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+
+    class AttributeVariantReadWritable : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() }
                 };
             }
         }
