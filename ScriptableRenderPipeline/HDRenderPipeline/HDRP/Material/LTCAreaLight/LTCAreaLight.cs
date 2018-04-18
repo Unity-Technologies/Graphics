@@ -18,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        bool m_isInit;
         int m_refCounting;
 
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
@@ -29,7 +28,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         LTCAreaLight()
         {
-            m_isInit = false;
             m_refCounting = 0;
         }
 
@@ -84,36 +82,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Build()
         {
-            m_refCounting++;
+            Debug.Assert(m_refCounting >= 0);
 
-            m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+            if (m_refCounting == 0)
             {
-                hideFlags = HideFlags.HideAndDontSave,
-                wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Bilinear,
-                name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 3, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
-            };
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+                {
+                    hideFlags = HideFlags.HideAndDontSave,
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear,
+                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 3, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                };
 
-            LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
-            LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
-            // TODO: switch to RGBA64 when it becomes available.
-            LoadLUT(m_LtcData, 2, TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData, s_LtcGGXFresnelData, s_LtcDisneyDiffuseMagnitudeData);
+                LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
+                LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
+                // TODO: switch to RGBA64 when it becomes available.
+                LoadLUT(m_LtcData, 2, TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData, s_LtcGGXFresnelData, s_LtcDisneyDiffuseMagnitudeData);
 
-            m_LtcData.Apply();
+                m_LtcData.Apply();
+            }
 
-            m_isInit = true;
+            m_refCounting++;
         }
 
         public void Cleanup()
         {
             m_refCounting--;
 
-            if (m_refCounting <= 0)
+            if (m_refCounting == 0)
             {
                 CoreUtils.Destroy(m_LtcData);
             }
 
-            m_isInit = false;
+            Debug.Assert(m_refCounting >= 0);
         }
 
         public void Bind()

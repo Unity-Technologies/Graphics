@@ -14,8 +14,7 @@ TEXTURE2D(_GBufferTexture2);
 TEXTURE2D(_GBufferTexture3);
 
 #include "../LTCAreaLight/LTCAreaLight.hlsl"
-
-TEXTURE2D(_PreIntegratedFGD);
+#include "../PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
 //-----------------------------------------------------------------------------
 // Definition

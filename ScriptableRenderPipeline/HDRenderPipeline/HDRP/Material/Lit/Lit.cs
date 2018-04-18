@@ -211,24 +211,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool m_isInit;
 
-        // For image based lighting
-        Material      m_InitPreFGD;
-        RenderTexture m_PreIntegratedFGD;
-
         public Lit() {}
 
         public override void Build(HDRenderPipelineAsset hdAsset)
         {
-            m_InitPreFGD = CoreUtils.CreateEngineMaterial("Hidden/HDRenderPipeline/PreIntegratedFGD");
-
-            m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
-            m_PreIntegratedFGD.hideFlags = HideFlags.HideAndDontSave;
-            m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
-            m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
-            m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
-            m_PreIntegratedFGD.name = CoreUtils.GetRenderTargetAutoName(128, 128, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD");
-            m_PreIntegratedFGD.Create();
-
+            PreIntegratedFGD.instance.Build();
             LTCAreaLight.instance.Build();
 
             m_isInit = false;
@@ -236,9 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void Cleanup()
         {
-            CoreUtils.Destroy(m_InitPreFGD);
-            CoreUtils.Destroy(m_PreIntegratedFGD);
-
+            PreIntegratedFGD.instance.Cleanup();
             LTCAreaLight.instance.Cleanup();
 
             m_isInit = false;
@@ -249,17 +234,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_isInit)
                 return;
 
-            using (new ProfilingSample(cmd, "Init PreFGD"))
-            {
-                CoreUtils.DrawFullScreen(cmd, m_InitPreFGD, new RenderTargetIdentifier(m_PreIntegratedFGD));
-            }
+            PreIntegratedFGD.instance.RenderInit(cmd);
 
             m_isInit = true;
         }
 
         public override void Bind()
         {
-            Shader.SetGlobalTexture("_PreIntegratedFGD", m_PreIntegratedFGD);
+            PreIntegratedFGD.instance.Bind();
             LTCAreaLight.instance.Bind();
         }
     }
