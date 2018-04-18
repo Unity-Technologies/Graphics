@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DebugUI.Widget[] m_DebugLightingItems;
         DebugUI.Widget[] m_DebugRenderingItems;
         DebugUI.Widget[] m_DebugScreenSpaceTracingItems;
-        
+
 
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
@@ -108,12 +108,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Lit.RefractionSSRayModel m_LastSSRayModel = Lit.RefractionSSRayModel.None;
         ScreenSpaceTracingDebug m_ScreenSpaceTracingDebugData;
-        public ScreenSpaceTracingDebug screenSpaceTracingDebugData 
+        public ScreenSpaceTracingDebug screenSpaceTracingDebugData
         {
             get { return m_ScreenSpaceTracingDebugData; }
-            internal set 
+            internal set
             {
-                m_ScreenSpaceTracingDebugData = value; 
+                m_ScreenSpaceTracingDebugData = value;
                 if (m_LastSSRayModel != m_ScreenSpaceTracingDebugData.tracingModel)
                 {
                     m_LastSSRayModel = m_ScreenSpaceTracingDebugData.tracingModel;
@@ -196,6 +196,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
         }
 
+        public bool IsDebugDisplayRemovePostprocess()
+        {
+            // We want to keep post process when only the override more are enabled and none of the other
+            return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayRemovePostprocess() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
+        }
+
         public bool IsDebugMaterialDisplayEnabled()
         {
             return materialDebugSettings.IsDebugDisplayEnabled();
@@ -274,7 +280,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsScreenSpaceTracingRefractionDebugEnabled()
         {
-            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing 
+            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
                 && lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction;
         }
 
@@ -342,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var refractionContainer = new DebugUI.Container
             {
                 displayName = "Refraction",
-                children = 
+                children =
                 {
                     new DebugUI.BoolField { displayName = "Debug Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
                 }

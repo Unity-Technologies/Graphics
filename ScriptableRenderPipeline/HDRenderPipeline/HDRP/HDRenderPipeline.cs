@@ -786,7 +786,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
 
                     // Disable post process if we enable debug mode or if the post process layer is disabled
-                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
                     {
                         m_FrameSettings.enablePostprocess = false;
                     }
@@ -950,7 +950,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
-                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); 
+                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
                             hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
                             if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
