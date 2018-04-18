@@ -108,8 +108,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kLayerMaskMap = "_LayerMaskMap";
         MaterialProperty layerInfluenceMaskMap = null;
         const string kLayerInfluenceMaskMap = "_LayerInfluenceMaskMap";
-        MaterialProperty vertexColorMode = null;
-        const string kVertexColorMode = "_VertexColorMode";
         MaterialProperty objectScaleAffectTile = null;
         const string kObjectScaleAffectTile = "_ObjectScaleAffectTile";
         MaterialProperty UVBlendMask = null;
@@ -155,7 +153,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             layerCount = FindProperty(kLayerCount, props);
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerInfluenceMaskMap = FindProperty(kLayerInfluenceMaskMap, props);
-            vertexColorMode = FindProperty(kVertexColorMode, props);
             objectScaleAffectTile = FindProperty(kObjectScaleAffectTile, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
@@ -400,8 +397,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.TextureScaleOffsetProperty(layerMaskMap);
             EditorGUI.indentLevel--;
 
-            m_MaterialEditor.ShaderProperty(vertexColorMode, styles.vertexColorModeText);
-
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
             bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
@@ -631,23 +626,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
 
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
-
-            VertexColorMode VCMode = (VertexColorMode)material.GetFloat(kVertexColorMode);
-            if (VCMode == VertexColorMode.Multiply)
-            {
-                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", true);
-                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
-            }
-            else if (VCMode == VertexColorMode.Add)
-            {
-                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
-                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", true);
-            }
-            else
-            {
-                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_MUL", false);
-                CoreUtils.SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR_ADD", false);
-            }
 
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
