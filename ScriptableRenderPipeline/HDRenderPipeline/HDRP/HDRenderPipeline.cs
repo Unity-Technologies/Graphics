@@ -557,6 +557,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
                 if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
 
+                cmd.SetGlobalInt(HDShaderIDs._SSReflectionEnabled, m_FrameSettings.enableSSR ? 1 : 0);
+
                 var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
                 if (previousDepthPyramidRT != null)
                 {
@@ -591,8 +593,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2), 
                         0.0f
                     ));
-            }
-                
+                }
             }
         }
 
@@ -755,8 +756,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 if (camera.cameraType != CameraType.Reflection)
+                {
                     // TODO: Render only visible probes
                     ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
+                    // Frame settings state was updated by previous render, we must recalculate it
+                    FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref m_FrameSettings);
+                }
+                    
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
@@ -1132,7 +1138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Assign -1 in tracing model to notifiy we took the data.
                     // When debugging in forward, we want only the first time the pixel is drawn
-                    data.tracingModel = (Lit.SSRayModel)(-1);
+                    data.tracingModel = (Lit.ProjectionModel)(-1);
                     m_DebugScreenSpaceTracingDataArray[0] = data;
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }

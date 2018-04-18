@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
                                                         // Used to debug SSRay model
         // 1x32 bits
-        public Lit.SSRayModel tracingModel;
+        public Lit.ProjectionModel tracingModel;
 
         // 6x32 bits
         public uint loopStartPositionSSX;                           // Proxy, HiZ
@@ -106,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static GUIContent[] debugScreenSpaceTracingHiZStrings = null;
         public static int[] debugScreenSpaceTracingHiZValues = null;
 
-        Lit.SSRayModel m_LastSSRayModel = Lit.SSRayModel.None;
+        Lit.ProjectionModel m_LastProjectionModel = Lit.ProjectionModel.None;
         ScreenSpaceTracingDebug m_ScreenSpaceTracingDebugData;
         public ScreenSpaceTracingDebug screenSpaceTracingDebugData 
         {
@@ -114,13 +114,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             internal set 
             {
                 m_ScreenSpaceTracingDebugData = value; 
-                if (m_LastSSRayModel != m_ScreenSpaceTracingDebugData.tracingModel)
+                if (m_LastProjectionModel != m_ScreenSpaceTracingDebugData.tracingModel)
                 {
-                    m_LastSSRayModel = m_ScreenSpaceTracingDebugData.tracingModel;
-                    RefreshScreenSpaceTracingDebug<Lit.SSRayModel>(null, m_LastSSRayModel);
+                    m_LastProjectionModel = m_ScreenSpaceTracingDebugData.tracingModel;
+                    RefreshScreenSpaceTracingDebug<Lit.ProjectionModel>(null, m_LastProjectionModel);
                 }
 
-                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.SSRayModel.HiZ)
+                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.ProjectionModel.HiZ)
                 {
                     showSSRayDepthPyramid = false;
                     showSSRayGrid = false;
@@ -386,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 switch (screenSpaceTracingDebugData.tracingModel)
                 {
-                    case Lit.SSRayModel.Proxy:
+                    case Lit.ProjectionModel.Proxy:
                     {
                         debugSettingsContainer.children.Add(
                             new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
@@ -409,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         );
                         break;
                     }
-                    case Lit.SSRayModel.HiZ:
+                    case Lit.ProjectionModel.HiZ:
                     {
                         debugSettingsContainer.children.Insert(1, new DebugUI.Value { displayName = string.Empty, getter = () => "Press PageUp/PageDown to Increase/Decrease the HiZ step." });
                         debugSettingsContainer.children.Add(

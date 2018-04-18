@@ -2373,6 +2373,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var camera = hdCamera.camera;
 
+                var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>() ?? ScreenSpaceReflection.@default;
+
                 // Compute path
                 if (m_FrameSettings.lightLoopSettings.enableTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation)
                 {
@@ -2416,6 +2418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
+                        cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs._SSReflectionProjectionModel, (int)ssReflection.deferredProjectionModel.value);
 
                         if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection)
                             cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs._DebugScreenSpaceTracingData, debugSSTBuffer);

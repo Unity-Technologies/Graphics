@@ -268,14 +268,16 @@ CBUFFER_END
 
 CBUFFER_START(UnityLightingParameters)
 // Buffer pyramid
-float4 _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4 _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4 _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
-float4 _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
+float4  _ColorPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4  _DepthPyramidSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
+float4  _ColorPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
+float4  _DepthPyramidScale;      // (x,y) = Screen Scale, z = lod count, w = unused
 
                                 // Screen space lighting
-float _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
-float _SSReflectionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
+float   _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
+float   _SSReflectionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
+int     _SSReflectionEnabled;
+int     _SSReflectionProjectionModel;
 
                                                 // Ambiant occlusion
 float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
