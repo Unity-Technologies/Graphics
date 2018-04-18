@@ -34,14 +34,23 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	float2 dir = ndcPos0 - ndcPos1;
 	float2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));
 	
-	float2 minThickness0 = 2.0f * pos0.w / float2(UNITY_MATRIX_P[0][0] * _ScreenParams.x,UNITY_MATRIX_P[1][1] * _ScreenParams.y);
-	float2 minThickness1 = 2.0f * pos1.w / float2(UNITY_MATRIX_P[0][0] * _ScreenParams.x,UNITY_MATRIX_P[1][1] * _ScreenParams.y);
+#if IS_OPAQUE_PARTICLE
+	const float thicknessMul = 1.0f; // pixel perfect
+#else
+	const float thicknessMul = 2.0f; // for AA
+#endif
+	float minThickness = thicknessMul / sqrt(dot(normal * normal,_ScreenParams.xy * _ScreenParams.xy)); // min thickness based on normal orientation and aspect ratio
+	float minThickness0 = minThickness * pos0.w;
+	float minThickness1 = minThickness * pos1.w;
 	
-	float2 dPos = normal * 0.0f;
-	float4 dPos0 = float4(sign(normal) * max(minThickness0,abs(dPos)), 0.0f, 0.0f);
-	float4 dPos1 = float4(sign(normal) * max(minThickness1,abs(dPos)), 0.0f, 0.0f);
+	const float thickness = 0.0f; // tmp
+	float4 dPos0 = float4(normal * max(abs(minThickness0),thickness), 0.0f, 0.0f);
+	float4 dPos1 = float4(normal * max(abs(minThickness1),thickness), 0.0f, 0.0f);
 	float4 vPos[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};
 	
+	#ifdef VFX_VARYING_PIXELOFFSET
+	o.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f : 1.0f;
+	#endif
 	o.VFX_VARYING_POSCS = vPos[id & 3];
 	
 	${VFXVertexCommonProcess}
