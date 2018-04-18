@@ -154,32 +154,28 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // First loop iteration
     if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
     {
-    float reflectionHierarchyWeight = 0.0; // Max: 1.0
-    float refractionHierarchyWeight = 0.0; // Max: 1.0
+        float reflectionHierarchyWeight = 0.0; // Max: 1.0
+        float refractionHierarchyWeight = 0.0; // Max: 1.0
 
         uint envLightStart, envLightCount;
 
         // Fetch first env light to provide the scene proxy for screen space computation
-            #ifdef LIGHTLOOP_TILE_PASS
-                GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-            #else
-                envLightCount = _EnvLightCount;
+#ifdef LIGHTLOOP_TILE_PASS
+        GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+#else
+        envLightCount = _EnvLightCount;
         envLightStart = 0;
-            #endif
+#endif
 
         // Reflection / Refraction hierarchy is
         //  1. Screen Space Refraction / Reflection
         //  2. Environment Reflection / Refraction
         //  3. Sky Reflection / Refraction
         EnvLightData envLightData;
-            if (envLightCount > 0)
-            {
+        if (envLightCount > 0)
             envLightData = FetchEnvLight(envLightStart, 0);
-            }
-            else
-        {
-                envLightData = InitSkyEnvLightData(0);
-        }
+        else
+            envLightData = InitSkyEnvLightData(0);
 
         if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
         {
@@ -195,12 +191,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
 
-            if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
+        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
         {
             IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
                                                                     GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
-    }
+        }
 
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)

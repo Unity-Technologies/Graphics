@@ -64,6 +64,7 @@
 #define LIGHTLOOP_TILE_PASS 1
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
+#define _REFLECTION_SSRAY_PROXY
 
 //#pragma enable_d3d11_debug_symbols
 
