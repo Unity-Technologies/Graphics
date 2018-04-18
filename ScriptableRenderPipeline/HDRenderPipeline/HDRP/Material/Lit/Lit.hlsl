@@ -13,16 +13,9 @@ TEXTURE2D(_GBufferTexture1);
 TEXTURE2D(_GBufferTexture2);
 TEXTURE2D(_GBufferTexture3);
 
-// Area light textures
-// TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
+#include "../LTCAreaLight/LTCAreaLight.hlsl"
+
 TEXTURE2D(_PreIntegratedFGD);
-TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
-#define LTC_GGX_MATRIX_INDEX 0 // RGBA
-#define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
-#define LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX 2 // RGB, A unused
-#define LTC_LUT_SIZE   64
-#define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
-#define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
 
 //-----------------------------------------------------------------------------
 // Definition
@@ -1858,9 +1851,9 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
             float3 preLD = SAMPLE_TEXTURE2D_LOD(
-                _ColorPyramidTexture, 
-                s_trilinear_clamp_sampler, 
-                hit.positionNDC * _ColorPyramidScale.xy, 
+                _ColorPyramidTexture,
+                s_trilinear_clamp_sampler,
+                hit.positionNDC * _ColorPyramidScale.xy,
                 preLightData.transparentSSMipLevel
             ).rgb;
 
@@ -2028,7 +2021,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
-    // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
+    // Physically speaking, transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
     diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
 #endif
@@ -2038,7 +2031,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
- 
+
     if (_DebugLightingMode != 0)
     {
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
