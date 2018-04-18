@@ -598,10 +598,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         PreLightData preLightData, BSDFData bsdfData, BakeLightingData bakeLightingData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
+    // TODO: AO, SSS, Refraction, energy conservation fudge for GGX multi-scattering losses.
+
     // Apply the albedo to the direct diffuse lighting and that's about it.
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
     diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
-    specularLighting = lighting.direct.specular; // should be 0 for now.
+    specularLighting = lighting.direct.specular;
 
 #ifdef DEBUG_DISPLAY
 
@@ -612,15 +614,15 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
         switch (_DebugLightingMode)
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
-            //diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+            diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
-            //diffuseLighting = indirectAmbientOcclusion;
+            //diffuseLighting = aoFactor.indirectAmbientOcclusion;
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
-            //diffuseLighting = specularOcclusion;
+            //diffuseLighting = aoFactor.indirectSpecularOcclusion;
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
