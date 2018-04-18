@@ -270,14 +270,6 @@ Shader "HDRenderPipeline/Terrain"
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
-        // Wind
-        [ToggleUI]  _EnableWind("Enable Wind", Float) = 0.0
-        _InitialBend("Initial Bend", float) = 1.0
-        _Stiffness("Stiffness", float) = 1.0
-        _Drag("Drag", float) = 1.0
-        _ShiverDrag("Shiver Drag", float) = 0.2
-        _ShiverDirectionality("Shiver Directionality", Range(0.0, 1.0)) = 0.5
-
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -425,7 +417,6 @@ Shader "HDRenderPipeline/Terrain"
     //-------------------------------------------------------------------------------------
 
     #include "CoreRP/ShaderLibrary/Common.hlsl"
-    #include "CoreRP/ShaderLibrary/Wind.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
 

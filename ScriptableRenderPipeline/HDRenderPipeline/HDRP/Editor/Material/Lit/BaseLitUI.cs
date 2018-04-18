@@ -203,12 +203,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
 
             // Wind
-            windEnable = FindProperty(kWindEnabled, props);
-            windInitialBend = FindProperty(kWindInitialBend, props);
-            windStiffness = FindProperty(kWindStiffness, props);
-            windDrag = FindProperty(kWindDrag, props);
-            windShiverDrag = FindProperty(kWindShiverDrag, props);
-            windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
+            windEnable = FindProperty(kWindEnabled, props, false);
+            windInitialBend = FindProperty(kWindInitialBend, props, false);
+            windStiffness = FindProperty(kWindStiffness, props, false);
+            windDrag = FindProperty(kWindDrag, props, false);
+            windShiverDrag = FindProperty(kWindShiverDrag, props, false);
+            windShiverDirectionality = FindProperty(kWindShiverDirectionality, props, false);
 
             // Decal
             supportDBuffer = FindProperty(kSupportDBuffer, props);
@@ -320,6 +320,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
+            if (windEnable == null)
+                return;
+
             EditorGUILayout.LabelField(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
@@ -394,7 +397,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
             CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
 
-            bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
+            bool windEnabled = material.HasProperty(kWindEnabled) && material.GetFloat(kWindEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", windEnabled);
 
             // Depth offset is only enabled if per pixel displacement is
