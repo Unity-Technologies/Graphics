@@ -10,12 +10,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SpecularLighting,
         LuxMeter,
         VisualizeCascade,
-        IndirectDiffuseOcclusionFromSsao,
-        IndirectDiffuseGtaoFromSsao,
-        IndirectSpecularOcclusionFromSsao,
-        IndirectSpecularGtaoFromSsao,
-        EnvironmentProxyVolume,
-        EnvironmentSampleCoordinates,
+        IndirectDiffuseOcclusion,
+        IndirectSpecularOcclusion,
+        ScreenSpaceTracingRefraction,
+        ScreenSpaceTracingReflection
+    }
+
+    [GenerateHLSL]
+    public enum DebugScreenSpaceTracing
+    {
+        None,
+        Color,
+        RayDirWS,
+        HitDepth,
+        HitSuccess,
+        HiZPositionNDC,
+        HiZRayDirNDC,
+        HiZIterationCount,
+        HiZMaxUsedMipLevel,
+        HiZIntersectionKind
     }
 
     public enum ShadowMapDebugMode
@@ -34,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
+        public DebugScreenSpaceTracing debugScreenSpaceTracingMode = DebugScreenSpaceTracing.None;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
@@ -55,6 +69,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                skyReflectionMipmap = 0.0f;
 
         public float                environmentProxyDepthScale = 20;
+
+        public float                debugExposure = 0.0f;
 
         public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
         public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;

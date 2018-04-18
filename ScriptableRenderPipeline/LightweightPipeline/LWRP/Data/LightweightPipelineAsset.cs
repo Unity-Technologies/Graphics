@@ -36,6 +36,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         _8x = 8
     }
 
+    public enum Downsampling
+    {
+        None = 0,
+        _2xBilinear,
+        _4xBox,
+        _4xBilinear
+    }
+
     public enum DefaultMaterialType
     {
         Standard = 0,
@@ -57,12 +65,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsVertexLight = false;
         [SerializeField] private bool m_RequireDepthTexture = false;
         [SerializeField] private bool m_RequireSoftParticles = false;
+        [SerializeField] private bool m_RequireOpaqueTexture = false;
+        [SerializeField] private Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
-        [SerializeField] private float m_ShadowNearPlaneOffset = 2.0f;
         [SerializeField] private float m_ShadowDistance = 50.0f;
         [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
         [SerializeField] private float m_Cascade2Split = 0.25f;
@@ -83,7 +92,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 "LightweightAsset.asset", null, null);
         }
 
-
         //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipelineResources()
         {
@@ -97,7 +105,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var instance = CreateInstance<LightweightPipelineEditorResources>();
             AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightPipelineEditorResources).Name));
         }
-
 
         class CreateLightweightPipelineAsset : EndNameEditAction
         {
@@ -113,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private static T LoadResourceFile<T>() where T : ScriptableObject
         {
             T resourceAsset = null;
-            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new []{m_SearchPathProject});
+            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] {m_SearchPathProject});
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -208,11 +215,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool RequireDepthTexture
         {
             get { return m_RequireDepthTexture; }
+            set { m_RequireDepthTexture = value; }
         }
 
         public bool RequireSoftParticles
         {
             get { return m_RequireSoftParticles; }
+        }
+
+        public bool RequireOpaqueTexture
+        {
+            get { return m_RequireOpaqueTexture; }
+            set { m_RequireOpaqueTexture = value; }
+        }
+
+        public Downsampling OpaqueDownsampling
+        {
+            get { return m_OpaqueDownsampling; }
+            set { m_OpaqueDownsampling = value; }
         }
 
         public bool SupportsHDR
@@ -242,12 +262,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return (int)m_ShadowAtlasResolution; }
             private set { m_ShadowAtlasResolution = (ShadowResolution)value; }
-        }
-
-        public float ShadowNearOffset
-        {
-            get { return m_ShadowNearPlaneOffset; }
-            private set { m_ShadowNearPlaneOffset = value; }
         }
 
         public float ShadowDistance
@@ -343,6 +357,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader ScreenSpaceShadowShader
         {
             get { return resources != null ? resources.ScreenSpaceShadowShader : null; }
+        }
+
+        public Shader SamplingShader
+        {
+            get { return resources != null ? resources.SamplingShader : null; }
         }
     }
 }

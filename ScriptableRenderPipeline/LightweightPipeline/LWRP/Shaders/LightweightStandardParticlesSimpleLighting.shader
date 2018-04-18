@@ -69,6 +69,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
             #pragma multi_compile __ SOFTPARTICLES_ON
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma shader_feature _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
@@ -91,12 +92,15 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
                 OUTPUT_NORMAL(v, o);
 
-                o.color = v.color * _Color;
                 o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz).xyz;
                 o.posWS.w = ComputeFogFactor(o.clipPos.z);
                 o.clipPos = TransformWorldToHClip(o.posWS.xyz);
                 o.viewDirShininess.xyz = VertexViewDirWS(GetCameraPositionWS() - o.posWS.xyz);
                 o.viewDirShininess.w = _Shininess * 128.0h;
+                o.color = v.color;
+
+                // TODO: Instancing
+                // vertColor(o.color);
                 vertTexcoord(v, o);
                 vertFading(o, o.posWS, o.clipPos);
                 return o;
@@ -104,12 +108,12 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
             half4 ParticlesLitFragment(VertexOutputLit IN) : SV_Target
             {
-                half4 albedo = Albedo(IN);
-                half alpha = AlphaBlendAndTest(albedo.a);
-                half3 diffuse = AlphaModulate(albedo.rgb, alpha);
-                half3 normalTS = NormalTS(IN);
-                half3 emission = Emission(IN);
-                half4 specularGloss = SpecularGloss(IN, albedo.a);
+                half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+                half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
+                half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
+                half3 normalTS = SampleNormalTS(IN, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+                half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
+                half4 specularGloss = SampleSpecularGloss(IN, albedo.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
                 half shininess = IN.viewDirShininess.w;
 
                 InputData inputData;
