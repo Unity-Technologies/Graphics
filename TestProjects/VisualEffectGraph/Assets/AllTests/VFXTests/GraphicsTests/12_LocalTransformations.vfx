@@ -276,6 +276,7 @@ MonoBehaviour:
   indirectDraw: 0
   preRefraction: 0
   targetFromAttributes: 1
+  useNativeLines: 0
 --- !u!114 &114060225690558048
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -351,6 +352,7 @@ MonoBehaviour:
   indirectDraw: 0
   preRefraction: 0
   targetFromAttributes: 1
+  useNativeLines: 0
 --- !u!114 &114065694532094138
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -518,6 +520,7 @@ MonoBehaviour:
   indirectDraw: 0
   preRefraction: 0
   targetFromAttributes: 1
+  useNativeLines: 0
 --- !u!114 &114093393999456778
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7140,7 +7143,7 @@ VisualEffectAsset:
         index: 83
       - nameId: bounds_size
         index: 82
-      processor: {fileID: 7200000, guid: a6a49c4d6e2a3d54e89ca6bf0862055a, type: 3}
+      processor: {fileID: 7200000, guid: 43c841b020bd1d54d84c5a54ae805eb8, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -7159,8 +7162,8 @@ VisualEffectAsset:
       - nameId: deltaTime_e
         index: 58
       params: []
-      processor: {fileID: 7200000, guid: dbd02f811ae662f488bc91bb4a46aa54, type: 3}
-    - type: 1073741825
+      processor: {fileID: 7200000, guid: abf83be329d227e48b354f12e00e5091, type: 3}
+    - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
@@ -7178,8 +7181,8 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 351fd1e6c8c02b64eb7202049d56d4a0, type: 3}
-    - type: 1073741825
+      processor: {fileID: 4800000, guid: a99be8da22a802b41b9b378fcd836b8b, type: 3}
+    - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
@@ -7197,8 +7200,8 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7139815952d52014f93b39bbde32fd56, type: 3}
-    - type: 1073741825
+      processor: {fileID: 4800000, guid: 26d805b317f4fa345a75de846813c2fb, type: 3}
+    - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
@@ -7216,7 +7219,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 8a75b71b47d8a7a4d9adbc6baf897e22, type: 3}
+      processor: {fileID: 4800000, guid: 0148460d2e0626b44a369950386ba641, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -7241,7 +7244,7 @@ VisualEffectAsset:
         index: 88
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 9ac0926a503fd8a42a7d68f7cf297937, type: 3}
+      processor: {fileID: 4800000, guid: 02d85fc666b18964a8aa3d495bd670c1, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -7258,7 +7261,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: -1
-      processor: {fileID: 4800000, guid: 0cdc6e4ed5bbe1442bf3ecc13c4c15b1, type: 3}
+      processor: {fileID: 4800000, guid: abedc87ddfbfd8345965b89e4061abcb, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
