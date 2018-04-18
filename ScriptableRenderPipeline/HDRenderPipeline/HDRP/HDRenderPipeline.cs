@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -147,6 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Use to detect frame changes
         int m_FrameCount;
+        float m_LastTime, m_Time;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
@@ -184,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ValidAPI = false;
 
                 return ;
-            }            
+            }
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
@@ -329,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-            
+
             m_DebugScreenSpaceTracingData.Release();
 
             HDCamera.ClearAll();
@@ -372,6 +374,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!IsSupportedPlatform())
             {
                 CoreUtils.DisplayUnsupportedAPIMessage();
+
+                return false;
+            }
+
+            // VR is not supported currently in HD
+            if (XRSettings.isDeviceActive)
+            {
+                CoreUtils.DisplayUnsupportedXRMessage();
 
                 return false;
             }
@@ -529,10 +539,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                hdCamera.SetupGlobalParams(cmd);
-                if (m_FrameSettings.enableStereo)
-                    hdCamera.SetupGlobalStereoParams(cmd);
-
+                // Set up UnityPerFrame CBuffer.
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
@@ -545,6 +552,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>()
                     ?? ScreenSpaceReflection.@default;
                 ssReflection.PushShaderParameters(cmd);
+
+                // Set up UnityPerView CBuffer.
+                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
+                if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
 
                 var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
                 if (previousDepthPyramidRT != null)
@@ -581,7 +592,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         0.0f
                     ));
             }
-        }
+                
+            }
         }
 
         bool IsConsolePlatform()
@@ -653,10 +665,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
-            if (m_FrameCount != Time.frameCount)
+            {
+                // SRP.Render() can be called several times per frame.
+                // Also, most Time variables do not consistently update in the Scene View.
+                // This makes reliable detection of the start of the new frame VERY hard.
+                // One of the exceptions is 'Time.realtimeSinceStartup'.
+                // Therefore, outside of the Play Mode we update the time at 60 fps,
+                // and in the Play Mode we rely on 'Time.frameCount'.
+                float t = Time.realtimeSinceStartup;
+                int   c = Time.frameCount;
+
+                bool newFrame;
+
+                if (Application.isPlaying)
+                {
+                    newFrame = m_FrameCount != c;
+
+                    m_FrameCount = c;
+                }
+                else
+                {
+                    newFrame = (t - m_Time) > 0.0166f;
+
+                    if (newFrame) m_FrameCount++;
+                }
+
+                if (newFrame)
             {
                 HDCamera.CleanUnused();
-                m_FrameCount = Time.frameCount;
+
+                    // Make sure both are never 0.
+                    m_LastTime = (m_Time > 0) ? m_Time : t;
+                    m_Time  = t;
+                }
             }
 
             // TODO: Render only visible probes
@@ -842,7 +883,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible
-                            DecalSystem.instance.CreateDrawData();                  // prepare data is separate from draw
+                            DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                         }
                     }
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
@@ -945,9 +986,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
                         {
+                            // This call overwrites camera properties passed to the shader system.
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
-                            // TODO: check if statement below still apply
-                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
+
+                            // Overwrite camera properties set during the shadow pass with the original camera properties.
+                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); 
+                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
+                            if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
 
                         using (new ProfilingSample(cmd, "Deferred directional shadows", CustomSamplerId.RenderDeferredDirectionalShadow.GetSampler()))
@@ -1240,7 +1285,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, colorPyramidRT);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBuffer);
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
-                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
 
                 cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
             }
@@ -1518,7 +1562,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
                         if (debugSSTThisPass)
                     {
-                            cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
                             cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
                     }
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);

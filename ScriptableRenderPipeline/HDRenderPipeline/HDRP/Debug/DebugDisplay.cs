@@ -526,17 +526,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => lightingDebugSettings.shadowMaxValue, setter = value => lightingDebugSettings.shadowMaxValue = value });
 
             list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug });
-            if (lightingDebugSettings.debugLightingMode == DebugLightingMode.EnvironmentProxyVolume)
-            {
-                list.Add(new DebugUI.Container
-                {
-                    children =
-                    {
-                        new DebugUI.FloatField { displayName = "Debug Environment Proxy Depth Scale", getter = () => lightingDebugSettings.environmentProxyDepthScale, setter = value => lightingDebugSettings.environmentProxyDepthScale = value, min = () => 0.1f, max = () => 50f }
-                    }
-                });
-            }
-
             list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = lightingFullScreenDebugStrings, enumValues = lightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug });
             switch (fullScreenDebugMode)
             {
