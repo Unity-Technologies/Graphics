@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -16,6 +17,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private SerializedProperty m_DrawDistanceProperty;
         private SerializedProperty m_FadeScaleProperty;
 
+        public class DecalBoundsHandle :  BoxBoundsHandle
+        {
+            protected override Bounds OnHandleChanged(HandleDirection handle, Bounds boundsOnClick, Bounds newBounds)
+            {
+                // special case for Y axis because decal mesh is centered at 0, -0.5, 0
+                if (handle == HandleDirection.NegativeY)
+                {
+                    m_Translation = Vector3.zero;
+                    m_Scale = newBounds.size;
+                }
+                else if (handle == HandleDirection.PositiveY)
+                {
+                    m_Translation = (newBounds.center + newBounds.extents - (m_Center + 0.5f * m_Size));
+                    m_Scale = (m_Size + m_Translation);
+                }
+                else
+                {
+                    m_Translation = newBounds.center - m_Center;
+                    m_Scale = newBounds.size;
+                }
+                return newBounds;
+            }
+
+            public void SetSizeAndCenter(Vector3 inSize, Vector3 inCenter)
+            {
+                // boundsOnClick implies that it gets refreshed only if the handle is clicked on again, but we need actual center and scale which we set before handle is drawn every frame
+                m_Center = inCenter;
+                m_Size = inSize;
+                center = inCenter;
+                size = inSize;
+            }
+
+            private Vector3 m_Center;
+            private Vector3 m_Size;
+
+            public Vector3 m_Translation;
+            public Vector3 m_Scale;
+        }
+        
+        private DecalBoundsHandle m_Handle = new DecalBoundsHandle();
 
         private void OnEnable()
         {
@@ -38,6 +79,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 			// Update material editor with the new material
 			m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
 		}
+
+        void OnSceneGUI()
+        {
+            EditorGUI.BeginChangeCheck();
+            var mat = Handles.matrix;
+            var col = Handles.color;
+
+            Handles.color = Color.white;
+            // decal mesh is centered at (0, -0.5, 0)
+            // zero out the local scale in the matrix so that handle code gives us back the actual scale
+            Handles.matrix = Matrix4x4.TRS(m_DecalProjectorComponent.transform.position, m_DecalProjectorComponent.transform.rotation, Vector3.one) * Matrix4x4.Translate(new Vector3(0.0f, -0.5f* m_DecalProjectorComponent.transform.localScale.y, 0.0f));
+            // pass in the scale 
+            m_Handle.SetSizeAndCenter(m_DecalProjectorComponent.transform.localScale, Vector3.zero);
+            m_Handle.DrawHandle();
+            if (EditorGUI.EndChangeCheck())
+            {
+                // adjust decal transform if handle changed
+                m_DecalProjectorComponent.transform.Translate(m_Handle.m_Translation);                
+                m_DecalProjectorComponent.transform.localScale = m_Handle.m_Scale;
+                Repaint();
+            }
+
+            Handles.matrix = mat;
+            Handles.color = col;
+        } 
 
         public override void OnInspectorGUI()
         {
