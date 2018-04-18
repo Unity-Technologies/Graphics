@@ -536,6 +536,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
             m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled;
+            bool canSkipDepthCopy = !m_RequireDepthTexture;
             if (postProcessEnabled)
             {
                 m_RequireDepthTexture = true;
@@ -551,9 +552,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             if (sceneViewCamera)
+            {
                 m_RequireDepthTexture = true;
+                canSkipDepthCopy = false;
+            }
 
             m_RequireDepthTexture = m_RequireDepthTexture || screenspaceShadows;
+            canSkipDepthCopy = canSkipDepthCopy && !screenspaceShadows;
 
             if (msaaEnabled)
             {
@@ -563,24 +568,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (m_RequireDepthTexture)
             {
-                // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
-                // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
-                // Screen space shadows require depth before opaque shading.
-                if (!msaaEnabled && !screenspaceShadows)
-                {
-                    bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None || m_Asset.CopyDepthShader.isSupported;
-                    m_DepthRenderBuffer = true;
-                    intermediateTexture = true;
+                bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None || m_Asset.CopyDepthShader.isSupported;
+                bool requiresDepthPrepassToResolveMSAA = msaaEnabled && (SystemInfo.supportsMultisampledTextures == 0);
+                bool requiresDepthPrepass = !supportsDepthCopy || screenspaceShadows || requiresDepthPrepassToResolveMSAA;
 
-                    // If requiring a camera depth texture we need separate depth as it reads/write to depth at same time
-                    // Post process doesn't need the copy
-                    if (!m_Asset.RequireDepthTexture && postProcessEnabled)
-                        configuration |= (supportsDepthCopy) ? FrameRenderingConfiguration.DepthCopy : FrameRenderingConfiguration.DepthPrePass;
-                }
-                else
-                {
+                m_DepthRenderBuffer = !requiresDepthPrepass;
+                intermediateTexture = intermediateTexture || m_DepthRenderBuffer;
+
+                if (supportsDepthCopy && !canSkipDepthCopy)
+                    configuration |= FrameRenderingConfiguration.DepthCopy;
+                if (requiresDepthPrepass)
                     configuration |= FrameRenderingConfiguration.DepthPrePass;
-                }
             }
 
             Rect cameraRect = m_CurrCamera.rect;
