@@ -251,11 +251,6 @@ Shader "HDRenderPipeline/Terrain"
         [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Vertex displacement, 1, Pixel displacement, 2)] _DisplacementMode("DisplacementMode", Int) = 0
-        [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
-        [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
-        [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
-
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
@@ -330,10 +325,7 @@ Shader "HDRenderPipeline/Terrain"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-    #pragma shader_feature _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature _DOUBLESIDED_ON
 
     #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
@@ -403,7 +395,7 @@ Shader "HDRenderPipeline/Terrain"
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
     // This shader support vertex modification
-    #define HAVE_VERTEX_MODIFICATION
+    #define HAVE_VERTEX_MODIFICATION // TODO: Implement ApplyVertexModification for terrain heightmap sampling
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)

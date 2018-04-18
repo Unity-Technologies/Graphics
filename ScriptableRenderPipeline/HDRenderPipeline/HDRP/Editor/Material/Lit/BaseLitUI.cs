@@ -175,15 +175,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             base.FindBaseMaterialProperties(props);
 
             doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode, props);
-            depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
+            depthOffsetEnable = FindProperty(kDepthOffsetEnable, props, false);
 
             // MaterialID
             materialID = FindProperty(kMaterialID, props);
             transmissionEnable = FindProperty(kTransmissionEnable, props);
 
-            displacementMode = FindProperty(kDisplacementMode, props);
-            displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
-            displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props);
+            displacementMode = FindProperty(kDisplacementMode, props, false);
+            displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props, false);
+            displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props, false);
 
             // Per pixel displacement
             ppdMinSamples = FindProperty(kPpdMinSamples, props);
@@ -260,36 +260,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (enableMotionVectorForVertexAnimation != null)
                 m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseUnlit.enableMotionVectorForVertexAnimationText);
 
-            EditorGUI.BeginChangeCheck();
-            m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
-            if(EditorGUI.EndChangeCheck())
+            if (displacementMode != null)
             {
-                UpdateDisplacement();
-            }
+                EditorGUI.BeginChangeCheck();
+                m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateDisplacement();
+                }
 
-            if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(displacementLockObjectScale, StylesBaseLit.lockWithObjectScaleText);
-                m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
-                EditorGUI.indentLevel--;
-            }
+                if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(displacementLockObjectScale, StylesBaseLit.lockWithObjectScaleText);
+                    m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
+                    EditorGUI.indentLevel--;
+                }
 
-            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
-            {
-                EditorGUILayout.Space();
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(ppdMinSamples, StylesBaseLit.ppdMinSamplesText);
-                m_MaterialEditor.ShaderProperty(ppdMaxSamples, StylesBaseLit.ppdMaxSamplesText);
-                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
-                m_MaterialEditor.ShaderProperty(ppdPrimitiveLength, StylesBaseLit.ppdPrimitiveLength);
-                ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
-                m_MaterialEditor.ShaderProperty(ppdPrimitiveWidth, StylesBaseLit.ppdPrimitiveWidth);
-                ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
-                invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
-                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
-                EditorGUI.indentLevel--;
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(ppdMinSamples, StylesBaseLit.ppdMinSamplesText);
+                    m_MaterialEditor.ShaderProperty(ppdMaxSamples, StylesBaseLit.ppdMaxSamplesText);
+                    ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                    m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
+                    m_MaterialEditor.ShaderProperty(ppdPrimitiveLength, StylesBaseLit.ppdPrimitiveLength);
+                    ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
+                    m_MaterialEditor.ShaderProperty(ppdPrimitiveWidth, StylesBaseLit.ppdPrimitiveWidth);
+                    ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+                    invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
+                    m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             EditorGUI.indentLevel--;
@@ -381,29 +384,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
             material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
-            bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
-            bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
-            bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
-            bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
+            if (material.HasProperty(kDisplacementMode))
+            {
+                bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
+                bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
+                bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
+                bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
 
-            CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
-            CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
-            // Only set if tessellation exist
-            CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
+                CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
+                CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
+                // Only set if tessellation exist
+                CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-            bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
-            bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
-            // Tessellation reuse vertex flag.
-            CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-            CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
-            CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
+                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
+                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
+                // Tessellation reuse vertex flag.
+                CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
+                CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
+                CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
+
+                // Depth offset is only enabled if per pixel displacement is
+                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
+                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+            }
 
             bool windEnabled = material.HasProperty(kWindEnabled) && material.GetFloat(kWindEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", windEnabled);
-
-            // Depth offset is only enabled if per pixel displacement is
-            bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
-            CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             if (material.HasProperty(kTessellationMode))
             {

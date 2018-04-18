@@ -67,8 +67,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent inheritBaseColorText = new GUIContent("BaseColor influence", "Inherit the base color from the base layer.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
 
-            public readonly GUIContent perPixelDisplacementLayersWarning = new GUIContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping");
-
             public readonly GUIContent materialReferencesText = new GUIContent("Material References");
 
             public StylesLayer()
@@ -690,46 +688,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 optionsChanged = true;
             }
-
-            // In case of pixel displacement and layered shader, all layers must used the same texture mapping for layer that have a heightmap
-            // (Else the algorithm will not work correctly)
-            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
-            {
-                float compareValue = -1.0f;
-                bool match = true;
-
-                if (material.GetTexture(kHeightMap + 0))
-                {
-                    compareValue = UVBase[0].floatValue;
-                }
-                if (material.GetTexture(kHeightMap + 1))
-                {
-                    if (compareValue == -1.0f)
-                        compareValue = UVBase[1].floatValue;
-                    else if (compareValue != UVBase[1].floatValue)
-                        match = false;
-                }
-                if (material.GetTexture(kHeightMap + 2))
-                {
-                    if (compareValue == -1.0f)
-                        compareValue = UVBase[2].floatValue;
-                    else if (compareValue != UVBase[2].floatValue)
-                        match = false;
-                }
-                if (material.GetTexture(kHeightMap + 3))
-                {
-                    if (compareValue == -1.0f)
-                        compareValue = UVBase[3].floatValue;
-                    else if (compareValue != UVBase[3].floatValue)
-                        match = false;
-                }
-
-                if (!match)
-                {
-                    EditorGUILayout.HelpBox(styles.perPixelDisplacementLayersWarning.text, MessageType.Warning);
-                }
-            }
-
 
             bool layerChanged = DoLayersGUI(materialImporter);
             EditorGUI.BeginChangeCheck();
