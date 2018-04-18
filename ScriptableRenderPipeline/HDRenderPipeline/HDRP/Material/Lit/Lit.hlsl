@@ -280,31 +280,6 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
     bsdfData.thickness = max(thickness, 0.0001);
 }
 
-// For image based lighting, a part of the BSDF is pre-integrated.
-// This is done both for specular and diffuse (in case of DisneyDiffuse)
-void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD, out float reflectivity)
-{
-    // Pre-integrate GGX FGD
-    // Integral{BSDF * <N,L> dw} =
-    // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
-    // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} + F0 * Integral{(BSDF / F) * <N,L> dw}=
-    // (1 - F0) * x + F0 * y = lerp(x, y, F0)
-    // Pre integrate DisneyDiffuse FGD:
-    // z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
-
-    specularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0);
-
-#ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    diffuseFGD = 1.0;
-#else
-    // Remap from the [0, 1] to the [0.5, 1.5] range.
-    diffuseFGD = preFGD.z + 0.5;
-#endif
-
-    reflectivity = preFGD.y;
-}
-
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
@@ -952,8 +927,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // IBL
 
     // Handle IBL +  multiscattering
-    float reflectivity;
-    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
+    float specularReflectivity;
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+    preLightData.diffuseFGD = 1.0;
+#endif
 
     iblR = reflect(-V, iblN);
     // This is a ad-hoc tweak to better match reference of anisotropic GGX.
@@ -969,7 +947,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // We deem the intensity difference of a couple of percent for high values of roughness
     // to not be worth the cost of another precomputed table.
     // Note: this formulation bakes the BSDF non-symmetric!
-    preLightData.energyCompensation = 1.0 / reflectivity - 1.0;
+    preLightData.energyCompensation = 1.0 / specularReflectivity - 1.0;
 #else
     preLightData.energyCompensation = 0.0;
 #endif // LIT_USE_GGX_ENERGY_COMPENSATION
