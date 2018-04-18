@@ -32,6 +32,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
         Pass
         {
+            Name "TerrainLit"
             Tags { "LightMode" = "LightweightForward" }
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -68,6 +69,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
         Pass
         {
+            Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
@@ -88,6 +90,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On

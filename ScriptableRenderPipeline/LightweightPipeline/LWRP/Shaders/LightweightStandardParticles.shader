@@ -53,6 +53,7 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
 
         Pass
         {
+            Name "ParticlesLit"
             Tags {"LightMode" = "LightweightForward"}
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library

@@ -67,6 +67,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         {
             // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Pipeline
+            Name "StandardLit"
             Tags{"LightMode" = "LightweightForward"}
 
             Blend[_SrcBlend][_DstBlend]
@@ -122,6 +123,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
         Pass
         {
+            Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
@@ -153,6 +155,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
@@ -185,6 +188,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
+            Name "Meta"
             Tags{"LightMode" = "Meta"}
 
             Cull Off

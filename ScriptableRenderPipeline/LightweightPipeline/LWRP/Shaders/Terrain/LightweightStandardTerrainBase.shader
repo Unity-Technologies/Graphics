@@ -16,6 +16,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
         //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
         {
+            Name "TerrainBaseLit"
             // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Pipeline
             Tags{"LightMode" = "LightweightForward"}
