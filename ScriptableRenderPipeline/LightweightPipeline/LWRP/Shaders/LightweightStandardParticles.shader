@@ -70,8 +70,6 @@ Shader "LightweightPipeline/Particles/Standard (Physically Based)"
             #pragma shader_feature _FADING_ON
             #pragma shader_feature _REQUIRE_UV2
 
-            #define NO_SHADOWS 1
-
             #include "LWRP/ShaderLibrary/ParticlesPBR.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"
 
