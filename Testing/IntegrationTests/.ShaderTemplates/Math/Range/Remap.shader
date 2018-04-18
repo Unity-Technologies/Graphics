@@ -1,4 +1,4 @@
-Shader "Add"
+Shader "Remap"
 {
 	Properties
 	{
@@ -28,6 +28,8 @@ Shader "Add"
 		    HLSLPROGRAM
 		    // Required to compile gles 2.0 with standard srp library
 		    #pragma prefer_hlslcc gles
+		    #pragma exclude_renderers d3d11_9x
+		
 		    #pragma vertex vert
 		    #pragma fragment frag
 		    #pragma multi_compile_fog
@@ -42,7 +44,7 @@ Shader "Add"
 		    #include "LWRP/ShaderLibrary/Core.hlsl"
 		    #include "LWRP/ShaderLibrary/Lighting.hlsl"
 		    #include "CoreRP/ShaderLibrary/Color.hlsl"
-		    #include "LWRP/ShaderLibrary/InputSurface.hlsl"
+		    #include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
 		    #include "ShaderGraphLibrary/Functions.hlsl"
 		
 		    
@@ -51,9 +53,9 @@ Shader "Add"
 							};
 					
 					
-					        void Unity_Add_float2(float2 A, float2 B, out float2 Out)
+					        void Unity_Remap_float3(float3 In, float2 InMinMax, float2 OutMinMax, out float3 Out)
 					        {
-					            Out = A + B;
+					            Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);
 					        }
 					
 							struct GraphVertexInput
@@ -76,11 +78,10 @@ Shader "Add"
 					
 							SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 								SurfaceDescription surface = (SurfaceDescription)0;
-								float2 _Vector2_6DA8EFA3_Out = float2(0.2,0.4);
-								float4 _Vector4_8E06BBAD_Out = float4(0.6,0.5,0.7,1);
-								float2 _Add_A3B07A07_Out;
-								Unity_Add_float2(_Vector2_6DA8EFA3_Out, (_Vector4_8E06BBAD_Out.xy), _Add_A3B07A07_Out);
-								surface.Color = (float3(_Add_A3B07A07_Out, 0.0));
+								float3 _Vector3_F3E5E285_Out = float3(3,42,118);
+								float3 _Remap_CE024839_Out;
+								Unity_Remap_float3(_Vector3_F3E5E285_Out, float2 (-4,1), float2 (-44,118), _Remap_CE024839_Out);
+								surface.Color = _Remap_CE024839_Out;
 								surface.Alpha = 1;
 								surface.AlphaClipThreshold = 0;
 								return surface;
@@ -127,7 +128,7 @@ Shader "Add"
 					AlphaClipThreshold = surf.AlphaClipThreshold;
 		
 				
-		 #if _AlphaClip
+		#if _AlphaClip
 		        clip(Alpha - AlphaClipThreshold);
 		#endif
 		    	return half4(Color, Alpha);
@@ -135,53 +136,37 @@ Shader "Add"
 		    ENDHLSL
 		}
 		
-		Pass
-		{
-			Tags{"LightMode" = "ShadowCaster"}
-		
-			ZWrite On
-			ZTest LEqual
-			Cull Back
-		
-			HLSLPROGRAM
-			// Required to compile gles 2.0 with standard srp library
-			#pragma prefer_hlslcc gles
-			#pragma target 2.0
-		
-			//--------------------------------------
-			// GPU Instancing
-			#pragma multi_compile_instancing
-		
-			#pragma vertex ShadowPassVertex
-			#pragma fragment ShadowPassFragment
-		
-			#include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
-		
-			ENDHLSL
-		}
 		
 		Pass
 		{
 			Tags{"LightMode" = "DepthOnly"}
 		
 			ZWrite On
+			Cull Back
 			ColorMask 0
 		
 			HLSLPROGRAM
 			// Required to compile gles 2.0 with standard srp library
 			#pragma prefer_hlslcc gles
+			#pragma exclude_renderers d3d11_9x
 			#pragma target 2.0
 		
 			#pragma vertex DepthOnlyVertex
 			#pragma fragment DepthOnlyFragment
 		
+			// -------------------------------------
+			// Material Keywords
+			#pragma shader_feature _ALPHATEST_ON
+		
 			//--------------------------------------
 			// GPU Instancing
 			#pragma multi_compile_instancing
 		
+			#include "LWRP/ShaderLibrary/InputSurfaceUnlit.hlsl"
 			#include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
 			ENDHLSL
 		}
+		
 	}
 	
 	SubShader
@@ -237,9 +222,9 @@ Shader "Add"
 							};
 					
 					
-					        void Unity_Add_float2(float2 A, float2 B, out float2 Out)
+					        void Unity_Remap_float3(float3 In, float2 InMinMax, float2 OutMinMax, out float3 Out)
 					        {
-					            Out = A + B;
+					            Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);
 					        }
 					
 							struct SurfaceDescription{
@@ -249,11 +234,10 @@ Shader "Add"
 					
 							SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 								SurfaceDescription surface = (SurfaceDescription)0;
-								float2 _Vector2_6DA8EFA3_Out = float2(0.2,0.4);
-								float4 _Vector4_8E06BBAD_Out = float4(0.6,0.5,0.7,1);
-								float2 _Add_A3B07A07_Out;
-								Unity_Add_float2(_Vector2_6DA8EFA3_Out, (_Vector4_8E06BBAD_Out.xy), _Add_A3B07A07_Out);
-								surface.Color = (float3(_Add_A3B07A07_Out, 0.0));
+								float3 _Vector3_F3E5E285_Out = float3(3,42,118);
+								float3 _Remap_CE024839_Out;
+								Unity_Remap_float3(_Vector3_F3E5E285_Out, float2 (-4,1), float2 (-44,118), _Remap_CE024839_Out);
+								surface.Color = _Remap_CE024839_Out;
 								surface.Alpha = 1;
 								return surface;
 							}
@@ -349,9 +333,9 @@ Shader "Add"
 							};
 					
 					
-					        void Unity_Add_float2(float2 A, float2 B, out float2 Out)
+					        void Unity_Remap_float3(float3 In, float2 InMinMax, float2 OutMinMax, out float3 Out)
 					        {
-					            Out = A + B;
+					            Out = OutMinMax.x + (In - InMinMax.x) * (OutMinMax.y - OutMinMax.x) / (InMinMax.y - InMinMax.x);
 					        }
 					
 							struct SurfaceDescription{
@@ -361,11 +345,10 @@ Shader "Add"
 					
 							SurfaceDescription PopulateSurfaceData(SurfaceInputs IN) {
 								SurfaceDescription surface = (SurfaceDescription)0;
-								float2 _Vector2_6DA8EFA3_Out = float2(0.2,0.4);
-								float4 _Vector4_8E06BBAD_Out = float4(0.6,0.5,0.7,1);
-								float2 _Add_A3B07A07_Out;
-								Unity_Add_float2(_Vector2_6DA8EFA3_Out, (_Vector4_8E06BBAD_Out.xy), _Add_A3B07A07_Out);
-								surface.Color = (float3(_Add_A3B07A07_Out, 0.0));
+								float3 _Vector3_F3E5E285_Out = float3(3,42,118);
+								float3 _Remap_CE024839_Out;
+								Unity_Remap_float3(_Vector3_F3E5E285_Out, float2 (-4,1), float2 (-44,118), _Remap_CE024839_Out);
+								surface.Color = _Remap_CE024839_Out;
 								surface.Alpha = 1;
 								return surface;
 							}
