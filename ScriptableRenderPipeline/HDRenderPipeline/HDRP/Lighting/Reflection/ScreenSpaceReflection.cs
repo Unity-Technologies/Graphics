@@ -4,6 +4,9 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
+    public sealed class LitProjectionModelParameter : VolumeParameter<Lit.ProjectionModel> { }
+
+    [Serializable]
     public class ScreenSpaceReflection : ScreenSpaceLighting
     {
         static ScreenSpaceReflection s_Default = null;
@@ -20,6 +23,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        int m_DeferredProjectionModel;
+
+        public LitProjectionModelParameter                 deferredProjectionModel = new LitProjectionModelParameter();
+
         protected override void FetchIDs(
             out int rayMinLevelID,
             out int rayMaxLevelID,
@@ -33,6 +40,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             rayMaxIterationsID = HDShaderIDs._SSReflectionRayMaxIterations;
             rayDepthSuccessBiasID = HDShaderIDs._SSReflectionRayDepthSuccessBias;
             screenWeightDistanceID = HDShaderIDs._SSReflectionInvScreenWeightDistance;
+        }
+
+        public override void PushShaderParameters(CommandBuffer cmd)
+        {
+            base.PushShaderParameters(cmd);
+            cmd.SetGlobalInt(HDShaderIDs._SSReflectionProjectionModel, (int)deferredProjectionModel.value);
         }
     }
 }

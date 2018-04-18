@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         [GenerateHLSL]
-        public enum SSRayModel
+        public enum ProjectionModel
         {
             None = 0,
             Proxy = 1,

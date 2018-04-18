@@ -109,7 +109,7 @@ Shader "HDRenderPipeline/Lit"
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionModel("Refraction Model", Int) = 0
-        [Enum(Proxy, 1, HiZ, 2)]_RefractionSSRayModel("Refraction SSRay Model", Int) = 0
+        [Enum(Proxy, 1, HiZ, 2)]_RefractionProjectionModel("Refraction Projection Model", Int) = 0
         _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
@@ -118,7 +118,7 @@ Shader "HDRenderPipeline/Lit"
         [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         // SSReflection
-        [Enum(None, 0, Proxy, 1, HiZ, 2)]_ReflectionSSRayModel("Reflection SSRay Model", Int) = 0
+        [Enum(None, 0, Proxy, 1, HiZ, 2)]_ReflectionProjectionModel("Reflection Projection Model", Int) = 0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -221,8 +221,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _VERTEX_WIND
     #pragma shader_feature _ _REFRACTION_PLANE _REFRACTION_SPHERE
     #pragma shader_feature _ _REFRACTION_SSRAY_PROXY _REFRACTION_SSRAY_HIZ
-    #pragma shader_feature _ _REFLECTION_SSRAY_PROXY _REFLECTION_SSRAY_HIZ
-
+    
     #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE

@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<ScreenSpaceRefraction>(serializedObject);
+            var o = new PropertyFetcher<ScreenSpaceLighting>(serializedObject);
 
             m_RayMinLevel = Unpack(o.Find(x => x.rayMinLevel));
             m_RayMaxLevel = Unpack(o.Find(x => x.rayMaxLevel));
