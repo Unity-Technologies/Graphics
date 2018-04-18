@@ -1,8 +1,8 @@
-#include "CoreRP/ShaderLibrary/Common.hlsl"
+﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/BC6H.hlsl"
 #include "CoreRP/ShaderLibrary/Sampling/Sampling.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 TextureCube<float4> _Source;
 RWTexture2DArray<uint4> _Target;

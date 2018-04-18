@@ -1,4 +1,4 @@
-// ==================================================================================================
+﻿// ==================================================================================================
 //  This shader is a copy of sky-procedural available in legacy Unity
 //  It's been ported to HDRP in order to have a basic procedural sky
 //  It has been left mostly untouched but has been adapted to run per-pixel instead of per vertex
@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/Sky/ProceduralSky"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     #pragma multi_compile _ _ENABLE_SUN_DISK
 

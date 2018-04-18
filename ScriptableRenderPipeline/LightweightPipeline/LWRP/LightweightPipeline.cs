@@ -515,9 +515,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool screenspaceShadows, bool stereoEnabled, bool sceneViewCamera)
         {
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
+#if !UNITY_SWITCH
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 m_IntermediateTextureArray = true;
             else
+#endif
                 m_IntermediateTextureArray = false;
 
             bool hdrEnabled = m_Asset.SupportsHDR && m_CurrCamera.allowHDR;
@@ -596,9 +598,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureDescriptor CreateRTDesc(FrameRenderingConfiguration renderingConfig, float scaler = 1.0f)
         {
             RenderTextureDescriptor desc;
+#if !UNITY_SWITCH
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
                 desc = XRSettings.eyeTextureDesc;
             else
+#endif
                 desc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
 
             float renderScale = GetRenderScale();
@@ -625,7 +629,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupIntermediateRenderTextures(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, bool shadows, int msaaSamples)
         {
             RenderTextureDescriptor baseDesc = CreateRTDesc(renderingConfig);
-
             if (m_RequireDepthTexture)
             {
                 var depthRTDesc = baseDesc;
@@ -767,7 +770,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     return i;
             }
 
-            return -1;
+           return -1;
         }
 
         private void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
@@ -1048,8 +1051,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private bool IsStereoEnabled(Camera camera)
         {
+#if !UNITY_SWITCH
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             return XRSettings.isDeviceActive && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+#else
+            return false;
+#endif
         }
 
         private float GetRenderScale()

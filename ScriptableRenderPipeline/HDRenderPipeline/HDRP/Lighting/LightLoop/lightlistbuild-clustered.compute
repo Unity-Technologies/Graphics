@@ -1,4 +1,4 @@
-#pragma kernel TileLightListGen_NoDepthRT					LIGHTLISTGEN=TileLightListGen_NoDepthRT
+﻿#pragma kernel TileLightListGen_NoDepthRT					LIGHTLISTGEN=TileLightListGen_NoDepthRT
 #pragma kernel TileLightListGen_DepthRT						LIGHTLISTGEN=TileLightListGen_DepthRT			ENABLE_DEPTH_TEXTURE_BACKPLANE
 #pragma kernel TileLightListGen_DepthRT_MSAA				LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED
 #pragma kernel TileLightListGen_NoDepthRT_SrcBigTile		LIGHTLISTGEN=TileLightListGen_NoDepthRT_SrcBigTile																	USE_TWO_PASS_TILED_LIGHTING
@@ -16,7 +16,7 @@
 #include "SortingComputeUtils.hlsl"
 #endif
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS

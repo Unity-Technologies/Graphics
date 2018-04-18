@@ -1,4 +1,4 @@
-#ifndef UNITY_COMMON_INCLUDED
+﻿#ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
 // Convention:
@@ -148,6 +148,8 @@
 #include "API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
 #include "API/Vulkan.hlsl"
+#elif defined(SHADER_API_SWITCH)
+#include "API/Switch.hlsl"
 #elif defined(SHADER_API_GLCORE)
 #include "API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)

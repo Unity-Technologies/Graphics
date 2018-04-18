@@ -1,4 +1,4 @@
-// Given a cube map (passed as a 2D array), builds CDFs of two distributions:
+﻿// Given a cube map (passed as a 2D array), builds CDFs of two distributions:
 // 1. 1D texture with marginal densities, telling us the likelihood of selecting a particular row,
 // 2. 2D texture with conditional densities, which correspond to the PDF of the texel given its row.
 // Ref: PBRT v3, 13.6.7 "Piecewise-Constant 2D Distributions".
@@ -8,7 +8,7 @@
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../../ShaderVariables.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 /* --- Input --- */
 
