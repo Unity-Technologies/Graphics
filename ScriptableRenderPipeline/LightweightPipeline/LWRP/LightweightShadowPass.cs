@@ -219,7 +219,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            bool supportsLocalShadows = Application.isMobilePlatform || Application.platform == RuntimePlatform.WebGLPlayer;
+
+            // TODO: Add pipeline setting for this when we oficially add support to multiple shadow casting lights
+            bool supportsLocalShadows = true;
 
             m_ShadowSettings = ShadowSettings.Default;
             m_ShadowSettings.directionalShadowQuality = (LightShadows)pipelineAsset.ShadowSetting;

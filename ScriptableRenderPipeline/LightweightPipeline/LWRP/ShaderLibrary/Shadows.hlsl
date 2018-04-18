@@ -221,12 +221,7 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 
 half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
 {
-// TODO: We can't add more keywords to standard shaders. For now we use
-// same _SHADOWS_ENABLED keywords for local lights. In the future we can use
-// _LOCAL_SHADOWS_ENABLED keyword
-// For now disabling local shadows on mobile until we can get the keyword stripping
-//#if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
-#if defined(NO_SHADOWS) || !defined(_SHADOWS_ENABLED) || defined(SHADER_API_MOBILE)
+#if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
     return 1.0h;
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
