@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class TerrainGUI : LitGUI
+    public class TerrainLitGUI : LitGUI
     {
         public enum VertexColorMode
         {
@@ -90,7 +90,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const int kSyncButtonWidth = 58;
 
-        public TerrainGUI()
+        public TerrainLitGUI()
         {
             m_LayerCount = 4;
             m_PropertySuffixes[0] = "0";

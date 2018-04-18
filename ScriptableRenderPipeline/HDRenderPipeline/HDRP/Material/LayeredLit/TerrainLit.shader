@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/Terrain"
+Shader "HDRenderPipeline/TerrainLit"
 {
     Properties
     {
@@ -473,7 +473,7 @@ Shader "HDRenderPipeline/Terrain"
             #endif
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "LayeredLitData.hlsl"
+            #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -498,7 +498,7 @@ Shader "HDRenderPipeline/Terrain"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "LayeredLitData.hlsl"
+            #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -528,7 +528,7 @@ Shader "HDRenderPipeline/Terrain"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "LayeredLitData.hlsl"
+            #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -554,7 +554,7 @@ Shader "HDRenderPipeline/Terrain"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "LayeredLitData.hlsl"
+            #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -577,7 +577,7 @@ Shader "HDRenderPipeline/Terrain"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "LayeredLitData.hlsl"
+            #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -624,12 +624,12 @@ Shader "HDRenderPipeline/Terrain"
             #endif
             #include "../../Lighting/Lighting.hlsl"
             #include "../Lit/ShaderPass/LitSharePass.hlsl"
-            #include "LayeredLitData.hlsl"
+            #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
         }
     }
 
-    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainGUI"
+    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainLitGUI"
 }
