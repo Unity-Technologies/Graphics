@@ -97,17 +97,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void ConnectV2ToV3Fails()
+        public void ConnectV2ToV3Works()
         {
             m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V3In));
-            Assert.IsTrue(m_NodeB.hasError);
+            Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
-        public void ConnectV2ToV4Fails()
+        public void ConnectV2ToV4Works()
         {
             m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V4In));
-            Assert.IsTrue(m_NodeB.hasError);
+            Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
@@ -132,10 +132,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void ConnectV3ToV4Fails()
+        public void ConnectV3ToV4Works()
         {
             m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V4In));
-            Assert.IsTrue(m_NodeB.hasError);
+            Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
