@@ -1,7 +1,7 @@
 // TODO: no global variable or resource declarations in the Shader Library. Functions and macros only!
-TEXTURE2D(WIND_SETTINGS_TexNoise);
+TEXTURE2D(_WIND_SETTINGS_TexNoise);
 SAMPLER(sampler_WIND_SETTINGS_TexNoise);
-TEXTURE2D(WIND_SETTINGS_TexGust);
+TEXTURE2D(_WIND_SETTINGS_TexGust);
 SAMPLER(sampler_WIND_SETTINGS_TexGust);
 
 float4  WIND_SETTINGS_WorldDirectionAndSpeed;
@@ -37,12 +37,12 @@ struct WindData
 
 float3 texNoise(float3 worldPos, float LOD)
 {
-    return SAMPLE_TEXTURE2D_LOD(WIND_SETTINGS_TexNoise, sampler_WIND_SETTINGS_TexNoise, worldPos.xz, LOD).xyz -0.5;
+    return SAMPLE_TEXTURE2D_LOD(_WIND_SETTINGS_TexNoise, sampler_WIND_SETTINGS_TexNoise, worldPos.xz, LOD).xyz -0.5;
 }
 
 float texGust(float3 worldPos, float LOD)
 {
-    return SAMPLE_TEXTURE2D_LOD(WIND_SETTINGS_TexGust, sampler_WIND_SETTINGS_TexGust, worldPos.xz, LOD).x;
+    return SAMPLE_TEXTURE2D_LOD(_WIND_SETTINGS_TexGust, sampler_WIND_SETTINGS_TexGust, worldPos.xz, LOD).x;
 }
 
 

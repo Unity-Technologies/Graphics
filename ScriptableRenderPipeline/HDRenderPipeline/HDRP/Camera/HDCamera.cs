@@ -15,13 +15,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
-        public Vector4 screenSize;
-        public Frustum frustum;
+        public Vector4   worldSpaceCameraPos;
+        public float     detViewMatrix;
+        public Vector4   screenSize;
+        public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
-        public Camera camera;
-        public uint taaFrameIndex;
-        public Vector2 taaFrameRotation;
-        public Vector4 viewParam;
+        public Camera    camera;
+        public uint      taaFrameIndex;
+        public Vector2   taaFrameRotation;
+        public Vector4   zBufferParams;
+        public Vector4   unity_OrthoParams;
+        public Vector4   projectionParams;
+        public Vector4   screenParams;
+
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4[] viewMatrixStereo;
@@ -71,9 +77,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // avoid one-frame jumps/hiccups with temporal effects (motion blur, TAA...)
         public bool isFirstFrame { get; private set; }
 
+        // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+        // TODO: pass this as "_ZBufferParams" if the projection matrix is oblique.
         public Vector4 invProjParam
         {
-            // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
             get
             {
                 var p = projMatrix;
@@ -177,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // In stereo, this corresponds to the center eye position
             var pos = camera.transform.position;
+            worldSpaceCameraPos = pos;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -211,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
+            detViewMatrix = viewMatrix.determinant;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -219,7 +227,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
             }
 
-            frustum = Frustum.Create(viewProjMatrix, true, true);
+            float n = camera.nearClipPlane;
+            float f = camera.farClipPlane;
+
+            // Analyze the projection matrix.
+            // p[2][3] = (reverseZ ? 1 : -1) * (depth_0_1 ? 1 : 2) * (f * n) / (f - n)
+            float scale     = projMatrix[2, 3] / (f * n) * (f - n);
+            bool  depth_0_1 = Mathf.Abs(scale) < 1.5f;
+            bool  reverseZ  = scale > 0;
+            bool  flipProj  = projMatrix.inverse.MultiplyPoint(new Vector3(0, 1, 0)).y < 0;
+
+            // http://www.humus.name/temp/Linearize%20depth.txt
+            if (reverseZ)
+            {
+                zBufferParams = new Vector4(-1 + f/n, 1, -1/f + 1/n, 1/f);
+            }
+            else
+            {
+                zBufferParams = new Vector4(1 - f/n, f/n, 1/f - 1/n, 1/n);
+            }
+
+            projectionParams = new Vector4(flipProj ? -1 : 1, n, f, 1.0f / f);
+
+            float orthoHeight = camera.orthographic ? 2 * camera.orthographicSize : 0;
+            float orthoWidth  = orthoHeight * camera.aspect;
+            unity_OrthoParams = new Vector4(orthoWidth, orthoHeight, 0, camera.orthographic ? 1 : 0);
+
+            frustum = Frustum.Create(viewProjMatrix, depth_0_1, reverseZ);
 
             // Left, right, top, bottom, near, far.
             for (int i = 0; i < 6; i++)
@@ -254,7 +288,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
 
-            screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+            screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+            screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
         }
 
         // Stopgap method used to extract stereo combined matrix state.
@@ -266,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // What constants in UnityPerPass need updating for stereo considerations?
             // _ViewProjMatrix - It is used directly for generating tesselation factors. This should be the same
             //                   across both eyes for consistency, and to keep shadow-generation eye-independent
-            // _ViewParam -      Used for isFrontFace determination, should be the same for both eyes. There is the scenario
+            // _DetViewMatrix -  Used for isFrontFace determination, should be the same for both eyes. There is the scenario
             //                   where there might be multi-eye sets that are divergent enough where this assumption is not valid,
             //                   but that's a future problem
             // _InvProjParam -   Intention was for generating linear depths, but not currently used.  Will need to be stereo-ized if
@@ -296,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
 
-            viewParam = new Vector4(viewMatrix.determinant, 0.0f, 0.0f, 0.0f);
+            detViewMatrix = viewMatrix.determinant;
 
             frustum = Frustum.Create(viewProjMatrix, true, true);
 
@@ -396,23 +431,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Cleanup.Clear();
         }
 
-        public void SetupGlobalParams(CommandBuffer cmd)
+        // Set up UnityPerView CBuffer.
+        public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime)
         {
-            cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, viewMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, viewMatrix.inverse);
-            cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, projMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, projMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix,                projMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix,             projMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix,            viewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix,         viewProjMatrix.inverse);
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
-            cmd.SetGlobalVector(HDShaderIDs._ViewParam, viewParam);
-            cmd.SetGlobalVector(HDShaderIDs._InvProjParam, invProjParam);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, scaleBias);
-            cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix, prevViewProjMatrix);
-            cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
-            cmd.SetGlobalInt(HDShaderIDs._TaaFrameIndex, (int)taaFrameIndex);
-            cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation, taaFrameRotation);
+            cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
+            cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
+            cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
+            cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);
+            cmd.SetGlobalVector(HDShaderIDs._ProjectionParams,          projectionParams);
+            cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams,          unity_OrthoParams);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenParams,              screenParams);
+            cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation,          taaFrameRotation);
+            cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
+
+            // Time is also a part of the UnityPerView CBuffer.
+            // Different views can have different values of the "Animated Materials" setting.
+            bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(camera);
+
+            float  ct = animateMaterials ? time     : 0;
+            float  pt = animateMaterials ? lastTime : 0;
+            float  dt = Time.deltaTime;
+            float sdt = Time.smoothDeltaTime;
+
+            cmd.SetGlobalVector(HDShaderIDs._Time,           new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f));
+            cmd.SetGlobalVector(HDShaderIDs._LastTime,       new Vector4(pt * 0.05f, pt, pt * 2.0f, pt * 3.0f));
+            cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime, new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
+            cmd.SetGlobalVector(HDShaderIDs._SinTime,        new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
+            cmd.SetGlobalVector(HDShaderIDs._CosTime,        new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
         }
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)
@@ -441,19 +495,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewMatrixStereo, invViewStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
-        }
-
-        // TODO: We should set all the value below globally and not let it under the control of Unity,
-        // Need to test that because we are not sure in which order these value are setup, but we need to have control on them, or rename them in our shader.
-        // For now, apply it for all our compute shader to make it work
-        public void SetupComputeShader(ComputeShader cs, CommandBuffer cmd)
-        {
-            // Copy values set by Unity which are not configured in scripts.
-            cmd.SetComputeVectorParam(cs, HDShaderIDs.unity_OrthoParams, Shader.GetGlobalVector(HDShaderIDs.unity_OrthoParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProjectionParams, Shader.GetGlobalVector(HDShaderIDs._ProjectionParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenParams, Shader.GetGlobalVector(HDShaderIDs._ScreenParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._WorldSpaceCameraPos, Shader.GetGlobalVector(HDShaderIDs._WorldSpaceCameraPos));
         }
     }
 }
