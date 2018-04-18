@@ -4,7 +4,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Homogeneous Density Volume", 1100)]
     public class HomogeneousDensityVolume : MonoBehaviour
     {
-        public DensityVolumeParameters parameters = new DensityVolumeParameters();
+        public DensityVolumeParameters parameters;
+
+        public HomogeneousDensityVolume()
+        {
+            parameters.albedo       = new Color(0.5f, 0.5f, 0.5f);
+            parameters.meanFreePath = 10.0f;
+            parameters.asymmetry    = 0.0f;
+        }
 
         private void Awake()
         {
@@ -29,31 +36,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void OnDrawGizmos()
         {
-            if (parameters.IsLocalVolume())
-            {
-                Gizmos.color  = parameters.albedo;
-                Gizmos.matrix = transform.localToWorldMatrix;
-                Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-            }
-        }
-
-        // Returns NULL if a global fog component does not exist, or is not enabled.
-        public static HomogeneousDensityVolume GetGlobalHomogeneousDensityVolume()
-        {
-            HomogeneousDensityVolume globalVolume = null;
-
-            HomogeneousDensityVolume[] volumes = FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
-
-            foreach (HomogeneousDensityVolume volume in volumes)
-            {
-                if (volume.enabled && !volume.parameters.IsLocalVolume())
-                {
-                    globalVolume = volume;
-                    break;
-                }
-            }
-
-            return globalVolume;
+            Gizmos.color  = parameters.albedo;
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
