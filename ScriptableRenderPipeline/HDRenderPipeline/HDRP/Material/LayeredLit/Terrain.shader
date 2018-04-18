@@ -215,8 +215,6 @@ Shader "HDRenderPipeline/Terrain"
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
-        [Enum(None, 0, Multiply, 1, Add, 2)] _VertexColorMode("Vertex color mode", Float) = 0
-
         [ToggleUI]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
@@ -371,7 +369,6 @@ Shader "HDRenderPipeline/Terrain"
     #pragma shader_feature _THICKNESSMAP2
     #pragma shader_feature _THICKNESSMAP3
 
-    #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
     #pragma shader_feature _INFLUENCEMASK_MAP
     #pragma shader_feature _DENSITY_MODE
