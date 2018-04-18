@@ -229,6 +229,7 @@ namespace UnityEditor.VFX
     {
         Type GetOperandType();
         void SetOperandType(Type type);
+        IEnumerable<int> staticSlotIndex { get; }
     }
 
     abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew, IVFXOperatorUniform
@@ -256,6 +257,14 @@ namespace UnityEditor.VFX
 
             m_Type = type;
             Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        public IEnumerable<int> staticSlotIndex
+        {
+            get
+            {
+                return Enumerable.Empty<int>();
+            }
         }
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
