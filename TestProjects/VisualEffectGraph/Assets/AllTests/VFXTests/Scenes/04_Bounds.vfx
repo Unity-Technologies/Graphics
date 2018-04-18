@@ -508,6 +508,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -874,49 +875,55 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 1
+    - op: 6
       valueIndex: 11
       data[0]: -1
       data[1]: -1
       data[2]: -1
-      data[3]: 1
+      data[3]: -1
     - op: 1
       valueIndex: 12
       data[0]: -1
       data[1]: -1
       data[2]: -1
+      data[3]: 1
+    - op: 1
+      valueIndex: 13
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
       data[3]: 7
-    - op: 6
-      valueIndex: 14
+    - op: 9
+      valueIndex: 15
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: -1
-    - op: 26
-      valueIndex: 15
-      data[0]: 8
-      data[1]: 7
-      data[2]: -1
-      data[3]: 1
     - op: 3
-      valueIndex: 16
-      data[0]: 9
-      data[1]: 10
-      data[2]: 6
-      data[3]: -1
-    - op: 3
-      valueIndex: 19
+      valueIndex: 31
       data[0]: 5
       data[1]: 4
       data[2]: 3
       data[3]: -1
     - op: 3
-      valueIndex: 22
+      valueIndex: 34
+      data[0]: 9
+      data[1]: 10
+      data[2]: 6
+      data[3]: -1
+    - op: 26
+      valueIndex: 37
+      data[0]: 8
+      data[1]: 7
+      data[2]: -1
+      data[3]: 1
+    - op: 3
+      valueIndex: 38
       data[0]: 2
       data[1]: 1
       data[2]: 0
       data[3]: -1
-    m_NeedsLocalToWorld: 0
+    m_NeedsLocalToWorld: 1
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
   m_PropertySheet:
@@ -944,7 +951,7 @@ VisualEffectAsset:
         m_Value: 0.7
       - m_ExpressionIndex: 10
         m_Value: 1
-      - m_ExpressionIndex: 11
+      - m_ExpressionIndex: 12
         m_Value: 2
     m_Vector2f:
       m_Array: []
@@ -964,14 +971,13 @@ VisualEffectAsset:
       m_Array: []
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 12
+      - m_ExpressionIndex: 13
         m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
     m_Bool:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 180
-    capacity: 20
+    size: 200
     layout:
     - name: velocity
       type: 3
@@ -994,18 +1000,54 @@ VisualEffectAsset:
     - name: alive
       type: 17
       offset:
-        bucket: 80
-        structure: 4
-        element: 3
+        bucket: 160
+        structure: 1
+        element: 0
     - name: age
       type: 1
+      offset:
+        bucket: 180
+        structure: 1
+        element: 0
+    capacity: 20
+    stride: 4
+  - type: 1
+    size: 200
+    layout:
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 0
+        structure: 4
+        element: 0
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 4
+        element: 3
+    - name: position
+      type: 3
+      offset:
+        bucket: 80
+        structure: 4
+        element: 0
+    - name: alive
+      type: 17
       offset:
         bucket: 160
         structure: 1
         element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 180
+        structure: 1
+        element: 0
+    capacity: 20
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -1013,14 +1055,33 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 20
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
+  - type: 2
+    size: 20
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 0
+    size: 20
+    layout: []
+    capacity: 0
+    stride: 8
+  - type: 0
+    size: 20
+    layout: []
+    capacity: 0
+    stride: 8
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -1058,73 +1119,102 @@ VisualEffectAsset:
       buffers: []
       values:
       - nameId: Rate
-        index: 14
+        index: 17
       params: []
       processor: {fileID: 0}
   - type: 1
-    flags: 1
+    flags: 3
     capacity: 20
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
+    - nameId: indirectBuffer
+      index: 5
+    - nameId: sortBufferA
+      index: 6
+    - nameId: sortBufferB
+      index: 7
     values:
     - nameId: bounds_center
-      index: 15
+      index: 16
     - nameId: bounds_size
-      index: 17
+      index: 18
     tasks:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
-      - nameId: Velocity_b
-        index: 16
-      - nameId: Lifetime_c
-        index: 11
+      - nameId: Velocity_a
+        index: 15
+      - nameId: Lifetime_b
+        index: 12
       params:
       - nameId: bounds_center
-        index: 15
+        index: 16
       - nameId: bounds_size
-        index: 17
-      processor: {fileID: 7200000, guid: d116a677dcfab114791186d98e896f04, type: 3}
+        index: 18
+      processor: {fileID: 7200000, guid: 455bd83cb8130e842be166854c5c8bc3, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
+      - nameId: indirectBuffer
+        index: 5
       values:
-      - nameId: deltaTime_b
-        index: 13
+      - nameId: deltaTime_a
+        index: 11
       params: []
-      processor: {fileID: 7200000, guid: 772fd3402346e4042b1cb16eada98beb, type: 3}
+      processor: {fileID: 7200000, guid: 34987e3b9f9cd064687a20cbdd82b044, type: 3}
+    - type: 805306369
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: inputBuffer
+        index: 5
+      - nameId: outputBuffer
+        index: 6
+      - nameId: deadListCount
+        index: 4
+      values:
+      - nameId: localToWorld
+        index: 14
+      params: []
+      processor: {fileID: 7200000, guid: f517577f4216ae04fa822198033d291c, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
+      - nameId: indirectBuffer
+        index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: mainTexture
-        index: 12
+        index: 13
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 8c690800204fe2c4ab07fe33a7c5b225, type: 3}
+      - nameId: indirectDraw
+        index: 1
+      processor: {fileID: 4800000, guid: d3cabcfd3cd9a294191f57dea733fe5a, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -1139,4 +1229,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

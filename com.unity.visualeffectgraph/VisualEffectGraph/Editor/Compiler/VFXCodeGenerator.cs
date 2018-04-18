@@ -75,18 +75,30 @@ namespace UnityEditor.VFX
             foreach (var attribute in attributesCurrent.Select(o => o.attrib))
             {
                 var name = attribute.name;
-                if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
+                if (name != VFXAttribute.EventCount.name)
                 {
-                    r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Current));
+                    if (context.contextType != VFXContextType.kInit && context.GetData().IsAttributeStored(attribute))
+                    {
+                        r.WriteVariable(attribute.type, name, context.GetData().GetLoadAttributeCode(attribute, VFXAttributeLocation.Current));
+                    }
+                    else
+                    {
+                        r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
+                    }
                 }
                 else
                 {
+                    var linkedOutCount = context.allLinkedOutputSlot.Count();
+                    for (uint i = 0; i < linkedOutCount; ++i)
+                    {
+                        r.WriteLineFormat("uint {0}_{1} = 0u;", name, VFXCodeGeneratorHelper.GeneratePrefix(i));
+                    }
                     r.WriteVariable(attribute.type, name, attribute.value.GetCodeString(null));
                 }
                 r.WriteLine();
             }
 
-            //< Source Attribute (default temporary behavior, source is always the initial current value)
+            //< Source Attribute (default temporary behavior, source is always the initial current value except for init context)
             foreach (var attribute in attributesSource.Select(o => o.attrib))
             {
                 var name = string.Format("{0}_source", attribute.name);
@@ -111,7 +123,9 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static private StringBuilder GenerateStoreAttribute(string matching, VFXContext context)
+        private const string eventListOutName = "eventListOut";
+
+        static private StringBuilder GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
         {
             var r = new StringBuilder();
             var regex = new Regex(matching);
@@ -124,6 +138,17 @@ namespace UnityEditor.VFX
             {
                 r.Append(context.GetData().GetStoreAttributeCode(attribute, new VFXAttributeExpression(attribute).GetCodeString(null)));
                 r.AppendLine(";");
+            }
+
+            var eventCountName = VFXAttribute.EventCount.name;
+            if (regex.IsMatch(eventCountName))
+            {
+                for (uint i = 0; i < linkedOutCount; ++i)
+                {
+                    var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
+                    r.AppendFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, eventCountName, eventListOutName);
+                    r.AppendLine();
+                }
             }
             return r;
         }
@@ -228,24 +253,32 @@ namespace UnityEditor.VFX
         static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
         {
             var r = new VFXShaderWriter();
-            var spawnLinkCount = context.GetData().sourceCount;
-            r.WriteLine("int sourceIndex = 0;");
+            var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.Float);
+            if (!context.GetData().dependenciesIn.Any())
+            {
+                var spawnLinkCount = context.GetData().sourceCount;
+                r.WriteLine("int sourceIndex = 0;");
 
-            if (spawnLinkCount <= 1)
-                r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
+                if (spawnLinkCount <= 1)
+                    r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
 
-            r.WriteLine("uint currentSumSpawnCount = 0u;");
-            r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
-            r.EnterScope();
-            r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(new VFXAttribute("spawnCount", VFXValueType.Float), VFXAttributeLocation.Source));
-            r.WriteLine("if (id.x < currentSumSpawnCount)");
-            r.EnterScope();
-            r.WriteLine("break;");
-            r.ExitScope();
-            r.ExitScope();
+                r.WriteLine("uint currentSumSpawnCount = 0u;");
+                r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
+                r.EnterScope();
+                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(spawnCountAttribute, VFXAttributeLocation.Source));
+                r.WriteLine("if (id.x < currentSumSpawnCount)");
+                r.EnterScope();
+                r.WriteLine("break;");
+                r.ExitScope();
+                r.ExitScope();
 
-            if (spawnLinkCount <= 1)
-                r.WriteLine("*/");
+                if (spawnLinkCount <= 1)
+                    r.WriteLine("*/");
+            }
+            else
+            {
+                /* context invalid or GPU event */
+            }
             return r;
         }
 
@@ -351,6 +384,9 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteTexture(contextData.uniformMapper);
 
+            var linkedEventOut = context.allLinkedOutputSlot.ToList();
+            globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
+
             //< Block processor
             var blockFunction = new VFXShaderWriter();
             var blockCallFunction = new VFXShaderWriter();
@@ -416,11 +452,29 @@ namespace UnityEditor.VFX
                     }
                 }
 
+                var indexEventCount = parameters.FindIndex(o => o.name == VFXAttribute.EventCount.name);
+                if (indexEventCount != -1)
+                {
+                    if ((parameters[indexEventCount].mode & VFXAttributeMode.Read) != 0)
+                        throw new InvalidOperationException(string.Format("{0} isn't expected as read (special case)", VFXAttribute.EventCount.name));
+                    blockCallFunction.WriteLine(string.Format("{0} = 0u;", VFXAttribute.EventCount.name));
+                }
+
                 blockCallFunction.WriteCallFunction(methodName,
                     parameters,
                     contextData.gpuMapper,
                     expressionToNameLocal);
 
+                if (indexEventCount != -1)
+                {
+                    foreach (var outputSlot in block.outputSlots.SelectMany(o => o.LinkedSlots))
+                    {
+                        var eventIndex = linkedEventOut.IndexOf(outputSlot);
+                        if (eventIndex == -1)
+                            throw new InvalidOperationException("Cannot retrieve output slot index");
+                        blockCallFunction.WriteLineFormat("{0}_{1} += {0};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
+                    }
+                }
                 if (needScope)
                     blockCallFunction.ExitScope();
             }
@@ -509,7 +563,7 @@ namespace UnityEditor.VFX
             //< Store Attribute
             if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
             {
-                var storeAttribute = GenerateStoreAttribute(".*", context);
+                var storeAttribute = GenerateStoreAttribute(".*", context, (uint)linkedEventOut.Count);
                 ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute);
             }
 
@@ -517,7 +571,7 @@ namespace UnityEditor.VFX
             {
                 var str = match.Groups[0].Value;
                 var pattern = match.Groups[1].Value;
-                var storeAttributes = GenerateStoreAttribute(pattern, context);
+                var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)linkedEventOut.Count);
                 ReplaceMultiline(stringBuilder, str, storeAttributes);
             }
 

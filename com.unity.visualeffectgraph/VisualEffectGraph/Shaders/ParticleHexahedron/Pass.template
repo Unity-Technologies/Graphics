@@ -7,68 +7,60 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 {
 	uint index = (id >> 3) + instanceID * 1024;
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-	if (index < asuint(nbMax))
-	{
-		#if VFX_HAS_INDIRECT_DRAW
-		index = indirectBuffer[index];
-		#endif
-		${VFXLoadAttributes:{alive}}
-		if (alive)
-		{
-			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-			${VFXProcessBlocks}
+	
+	${VFXLoadAttributesOrCull}
+	${VFXProcessBlocks}
 			
-			if (!alive)
-				return o;
-			
-			float3 offsets = (float3)0;
-			offsets.x = float(id & 1);
-			offsets.y = float((id & 3) >> 1);
-			offsets.z = float((id & 7) >> 2);
-			offsets = offsets * 2.0f - 1.0f;
-			
-			${VFXLoadSize}
-			
-			float3x3 rot = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));
-			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,position);
-			
-			float3 vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;
-			float3 vPosWS = TransformPositionVFXToWorld(vPos);
-			
+	if (!alive)
+		return o;
+	
+	float3 offsets = (float3)0;
+	offsets.x = float(id & 1);
+	offsets.y = float((id & 3) >> 1);
+	offsets.z = float((id & 7) >> 2);
+	offsets = offsets * 2.0f - 1.0f;
+	
+	${VFXLoadSize}
+	
+	float3x3 rot = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));
+	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,position);
+	
+	float3 vPos = mul(elementToVFX,float4(offsets,1.0f)).xyz;
+	float3 vPosWS = TransformPositionVFXToWorld(vPos);
+	
 #ifdef VFX_VARYING_POSWS
-			o.VFX_VARYING_POSWS = vPosWS;
+	o.VFX_VARYING_POSWS = vPosWS;
 #endif
 #ifdef VFX_VARYING_OFFSETS
-			o.VFX_VARYING_OFFSETS = offsets;
+	o.VFX_VARYING_OFFSETS = offsets;
 #endif
 #ifdef VFX_VARYING_FACEID
-			o.VFX_VARYING_FACEID = (id & 7) % 5;
+	o.VFX_VARYING_FACEID = (id & 7) % 5;
 #endif
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
-			rot = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);
+	rot = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);
 #ifdef VFX_LOCAL_SPACE 
-			rot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);
+	rot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);
 #endif
-			o.VFX_VARYING_ROTX = rot[0];
-			o.VFX_VARYING_ROTY = rot[1];
+	o.VFX_VARYING_ROTX = rot[0];
+	o.VFX_VARYING_ROTY = rot[1];
 #endif
-			o.VFX_VARYING_POSCS = VFXTransformPositionWorldToClip(vPosWS);
+	o.VFX_VARYING_POSCS = VFXTransformPositionWorldToClip(vPosWS);
 
-			${VFXVertexCommonProcess}
-			
-			#if USE_FLIPBOOK
-			${VFXLoadParameter:{flipBookSize}}
-			${VFXLoadParameter:{invFlipBookSize}}
-			${VFXLoadParameter:{texIndex}}
-			
-			o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
-			o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
-			o.VFX_VARYING_TEXINDEX = texIndex;
-			#endif
-		
-			${VFXVertexAdditionalProcess}
-		}
-	}
+	${VFXVertexCommonProcess}
+	
+	#if USE_FLIPBOOK
+	${VFXLoadParameter:{flipBookSize}}
+	${VFXLoadParameter:{invFlipBookSize}}
+	${VFXLoadParameter:{texIndex}}
+	
+	o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
+	o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
+	o.VFX_VARYING_TEXINDEX = texIndex;
+	#endif
+
+	${VFXVertexAdditionalProcess}
+
 	return o;
 }
 

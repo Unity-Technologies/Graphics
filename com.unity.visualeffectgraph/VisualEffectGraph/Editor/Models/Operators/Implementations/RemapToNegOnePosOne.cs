@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
+            var type = inputExpression[0].valueType;
 
             VFXExpression input;
 
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Operator
             else
                 input = inputExpression[0];
 
-            return new[] { VFXOperatorUtility.Mad(input, VFXOperatorUtility.TwoExpression[size], VFXOperatorUtility.Negate(VFXOperatorUtility.OneExpression[size])) };
+            return new[] { VFXOperatorUtility.Mad(input, VFXOperatorUtility.TwoExpression[type], VFXOperatorUtility.Negate(VFXOperatorUtility.OneExpression[type])) };
         }
     }
 }

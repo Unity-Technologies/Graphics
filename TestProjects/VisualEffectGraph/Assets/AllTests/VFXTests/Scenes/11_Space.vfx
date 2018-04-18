@@ -257,6 +257,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -906,6 +907,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -2418,7 +2420,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"c4c66e4864ec59c4f826a03689258bb6","type":3}}'
   m_Property:
     name: mainTexture
     m_serializedType:
@@ -2725,7 +2727,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"c4c66e4864ec59c4f826a03689258bb6","type":3}}'
   m_Property:
     name: mainTexture
     m_serializedType:
@@ -2914,10 +2916,10 @@ MonoBehaviour:
   stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: 2360
+    y: -1277
+    width: 1840
+    height: 1819
 --- !u!114 &114592061595768178
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4767,15 +4769,14 @@ VisualEffectAsset:
     m_NamedObject:
       m_Array:
       - m_ExpressionIndex: 43
-        m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
+        m_Value: {fileID: 2800000, guid: c4c66e4864ec59c4f826a03689258bb6, type: 3}
       - m_ExpressionIndex: 56
-        m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
+        m_Value: {fileID: 2800000, guid: c4c66e4864ec59c4f826a03689258bb6, type: 3}
     m_Bool:
       m_Array: []
   m_Buffers:
   - type: 1
-    size: 396
-    capacity: 44
+    size: 440
     layout:
     - name: lifetime
       type: 1
@@ -4789,12 +4790,6 @@ VisualEffectAsset:
         bucket: 44
         structure: 4
         element: 0
-    - name: alive
-      type: 17
-      offset:
-        bucket: 44
-        structure: 4
-        element: 3
     - name: velocity
       type: 3
       offset:
@@ -4807,27 +4802,16 @@ VisualEffectAsset:
         bucket: 220
         structure: 4
         element: 3
-  - type: 1
-    size: 1
-    capacity: 1
-    layout:
-    - name: spawnCount
-      type: 1
+    - name: alive
+      type: 17
       offset:
-        bucket: 0
+        bucket: 396
         structure: 1
         element: 0
-  - type: 2
-    size: 44
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 1
-    capacity: 0
-    layout: []
-  - type: 1
-    size: 396
     capacity: 44
+    stride: 4
+  - type: 1
+    size: 440
     layout:
     - name: lifetime
       type: 1
@@ -4841,12 +4825,6 @@ VisualEffectAsset:
         bucket: 44
         structure: 4
         element: 0
-    - name: alive
-      type: 17
-      offset:
-        bucket: 44
-        structure: 4
-        element: 3
     - name: velocity
       type: 3
       offset:
@@ -4859,9 +4837,51 @@ VisualEffectAsset:
         bucket: 220
         structure: 4
         element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 396
+        structure: 1
+        element: 0
+    capacity: 44
+    stride: 4
+  - type: 1
+    size: 440
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 44
+        structure: 4
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 220
+        structure: 4
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 220
+        structure: 4
+        element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 396
+        structure: 1
+        element: 0
+    capacity: 44
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -4869,14 +4889,104 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 44
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
+  - type: 2
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 0
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 8
+  - type: 0
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 8
+  - type: 1
+    size: 440
+    layout:
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    - name: position
+      type: 3
+      offset:
+        bucket: 44
+        structure: 4
+        element: 0
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 220
+        structure: 4
+        element: 0
+    - name: age
+      type: 1
+      offset:
+        bucket: 220
+        structure: 4
+        element: 3
+    - name: alive
+      type: 17
+      offset:
+        bucket: 396
+        structure: 1
+        element: 0
+    capacity: 44
+    stride: 4
+  - type: 1
+    size: 1
+    layout:
+    - name: spawnCount
+      type: 1
+      offset:
+        bucket: 0
+        structure: 1
+        element: 0
+    capacity: 1
+    stride: 4
+  - type: 2
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 1
+    size: 1
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 2
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 0
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 8
+  - type: 0
+    size: 44
+    layout: []
+    capacity: 0
+    stride: 8
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -4918,20 +5028,26 @@ VisualEffectAsset:
       params: []
       processor: {fileID: 0}
   - type: 1
-    flags: 1
+    flags: 3
     capacity: 44
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
-      index: 2
-    - nameId: deadListCount
       index: 3
+    - nameId: deadList
+      index: 4
+    - nameId: deadListCount
+      index: 5
     - nameId: spawner_input
       index: 1
+    - nameId: indirectBuffer
+      index: 6
+    - nameId: sortBufferA
+      index: 7
+    - nameId: sortBufferB
+      index: 8
     values:
     - nameId: bounds_center
       index: 51
@@ -4943,65 +5059,92 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
+        index: 4
       - nameId: deadListCount
-        index: 3
+        index: 5
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 3
       values:
-      - nameId: Lifetime_b
+      - nameId: Lifetime_a
         index: 49
-      - nameId: uniform_c
+      - nameId: uniform_b
         index: 41
-      - nameId: Velocity_d
+      - nameId: Velocity_c
         index: 50
       params:
       - nameId: bounds_center
         index: 51
       - nameId: bounds_size
         index: 45
-      processor: {fileID: 7200000, guid: c2f949c70687bfc49b0d298ed81e9f2d, type: 3}
+      processor: {fileID: 7200000, guid: d751af21d7fb41746b0e21a97a946fe7, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 4
+      - nameId: indirectBuffer
+        index: 6
       values:
-      - nameId: GravityVector_b
+      - nameId: GravityVector_a
         index: 48
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 53
       params: []
-      processor: {fileID: 7200000, guid: c7074807379ccf44f8d3fee2050374c7, type: 3}
+      processor: {fileID: 7200000, guid: babdcdfcc7124fd488ab173abc3ad11b, type: 3}
+    - type: 805306369
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: inputBuffer
+        index: 6
+      - nameId: outputBuffer
+        index: 7
+      - nameId: deadListCount
+        index: 5
+      values: []
+      params: []
+      processor: {fileID: 7200000, guid: b39223d538e8b364d8f58f4a85dd0dac, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
+      - nameId: indirectBuffer
+        index: 6
+      - nameId: deadListCount
+        index: 5
       values:
-      - nameId: Color_b
+      - nameId: Color_a
         index: 57
       - nameId: mainTexture
         index: 56
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 604085f0407c33649b6696678ebd2070, type: 3}
+      - nameId: indirectDraw
+        index: 1
+      processor: {fileID: 4800000, guid: 4198c1f5e40c3f7488b1e4f3c92b0cea, type: 3}
   - type: 1
-    flags: 1
+    flags: 3
     capacity: 44
     layer: 4294967295
     buffers:
     - nameId: attributeBuffer
-      index: 4
+      index: 1
     - nameId: sourceAttributeBuffer
-      index: 5
+      index: 10
     - nameId: deadList
-      index: 6
+      index: 11
     - nameId: deadListCount
-      index: 7
+      index: 12
     - nameId: spawner_input
       index: 1
+    - nameId: indirectBuffer
+      index: 13
+    - nameId: sortBufferA
+      index: 14
+    - nameId: sortBufferB
+      index: 15
     values:
     - nameId: bounds_center
       index: 46
@@ -5011,52 +5154,75 @@ VisualEffectAsset:
     - type: 536870912
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       - nameId: deadListIn
-        index: 6
+        index: 11
       - nameId: deadListCount
-        index: 7
+        index: 12
       - nameId: sourceAttributeBuffer
-        index: 5
+        index: 10
       values:
-      - nameId: Lifetime_b
+      - nameId: Lifetime_a
         index: 54
-      - nameId: Position_c
+      - nameId: Position_b
         index: 55
-      - nameId: Velocity_d
+      - nameId: Velocity_c
         index: 0
       params:
       - nameId: bounds_center
         index: 46
       - nameId: bounds_size
         index: 58
-      processor: {fileID: 7200000, guid: 108efef2628a7e84faba52157aedde24, type: 3}
+      processor: {fileID: 7200000, guid: f0595e24f7b3a51488c83ad68cfc53a1, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
       - nameId: deadListOut
-        index: 6
+        index: 11
+      - nameId: indirectBuffer
+        index: 13
       values:
-      - nameId: GravityVector_b
+      - nameId: GravityVector_a
         index: 47
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 53
       params: []
-      processor: {fileID: 7200000, guid: c353d01e428d00541ba2af7323193c74, type: 3}
+      processor: {fileID: 7200000, guid: 8733124398bc45047b887f0978b82018, type: 3}
+    - type: 805306369
+      buffers:
+      - nameId: attributeBuffer
+        index: 1
+      - nameId: inputBuffer
+        index: 13
+      - nameId: outputBuffer
+        index: 14
+      - nameId: deadListCount
+        index: 12
+      values:
+      - nameId: localToWorld
+        index: 41
+      params: []
+      processor: {fileID: 7200000, guid: 3f6293af6c53b4a4081c19eb809308b9, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
-        index: 4
+        index: 1
+      - nameId: indirectBuffer
+        index: 13
+      - nameId: deadListCount
+        index: 12
       values:
-      - nameId: Color_b
+      - nameId: Color_a
         index: 44
       - nameId: mainTexture
         index: 43
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 4f82fd71b66cc6a4d874f832047c9547, type: 3}
+      - nameId: indirectDraw
+        index: 1
+      processor: {fileID: 4800000, guid: 72e1a2046b1fd9d4080eb7b5f55bddaa, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -5071,4 +5237,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Test
                 graph.RecompileIfNeeded();
             }
 
-            instance.camera.cameraType = CameraType.Preview;
+            instance.camera.cameraType = UnityEngine.CameraType.Preview;
             instance.camera.enabled = false;
 
             instance.camera.renderingPath = RenderingPath.Forward;
@@ -182,14 +182,14 @@ namespace UnityEditor.VFX.Test
             var sceneView = EditorWindow.GetWindow(typeof(SceneView));
             if (sceneView != null)
                 sceneView.Close();
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
 
             float simulateTime = 6.0f;
             float frequency = 1.0f / 20.0f;
             uint waitFrameCount = (uint)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
-            var threshold = 0.051f;
+            var threshold = 0.01f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");

@@ -53,14 +53,14 @@ namespace UnityEditor.VFX.UI
             inputContainer.style.width = labelWidth + controlWidth + 20;
         }
 
-        public bool superCollapsed
+        public virtual bool superCollapsed
         {
             get { return controller.model.superCollapsed; }
         }
-        protected override void SelfChange()
-        {
-            base.SelfChange();
 
+
+        public void UpdateCollapse()
+        {
             if (superCollapsed)
             {
                 AddToClassList("superCollapsed");
@@ -69,6 +69,13 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveFromClassList("superCollapsed");
             }
+        }
+
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+
+            UpdateCollapse();
         }
     }
 }

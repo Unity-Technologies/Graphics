@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
+    [VFXInfo(category = "Math/Vector")]
     class Swizzle : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Swizzle"; } }

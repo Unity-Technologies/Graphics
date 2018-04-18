@@ -9,8 +9,7 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
-
-using VFXEditableOperator = UnityEditor.VFX.Operator.MultiplyNew;
+using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -43,16 +42,13 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
+                    expanded = true;
+                    RefreshPorts(); // refresh port to make sure outputContainer is added before the editcontainer.
                     topContainer.Add(m_EditContainer);
                 }
-                ForceRefreshLayout();
-            }
-        }
 
-        public void ForceRefreshLayout()
-        {
-            (panel as BaseVisualElementPanel).ValidateLayout();
-            RefreshLayout();
+                UpdateCollapse();
+            }
         }
 
         VisualElement m_Middle;
@@ -92,30 +88,46 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void RefreshLayout()
-        {
-            if (!isEditable || m_EditContainer == null || m_EditContainer.parent == null)
-            {
-                bool changed = topContainer.style.height.value != 0;
-                if (changed)
-                {
-                    topContainer.ResetPositionProperties();
-                }
-                base.RefreshLayout();
-            }
-            else
-            {
-                topContainer.style.height = m_EditContainer.layout.height;
-                topContainer.Dirty(ChangeType.Layout);
-            }
-        }
-
         public bool isEditable
         {
             get
             {
-                return controller != null && controller.model is VFXEditableOperator;
+                return controller != null && controller.isEditable;
             }
+        }
+
+        protected VisualElement GetControllerEditor()
+        {
+            if (controller is VFXCascadedOperatorController)
+            {
+                var edit = new VFXCascadedOperatorEdit();
+                edit.controller = controller as VFXCascadedOperatorController;
+                return edit;
+            }
+            if (controller is VFXNumericUniformOperatorController)
+            {
+                var edit = new VFXUniformOperatorEdit<VFXNumericUniformOperatorController, VFXOperatorNumericUniformNew>();
+                edit.controller = controller as VFXNumericUniformOperatorController;
+                return edit;
+            }
+            if (controller is VFXBranchOperatorController)
+            {
+                var edit = new VFXUniformOperatorEdit<VFXBranchOperatorController, BranchNew>();
+                edit.controller = controller as VFXBranchOperatorController;
+                return edit;
+            }
+            if (controller is VFXUnifiedOperatorController)
+            {
+                var edit = new VFXUnifiedOperatorEdit();
+                edit.controller = controller as VFXUnifiedOperatorController;
+                return edit;
+            }
+            return null;
+        }
+
+        public override bool superCollapsed
+        {
+            get { return base.superCollapsed && (m_EditContainer == null || m_EditContainer.parent == null); }
         }
 
         protected override void SelfChange()
@@ -137,16 +149,18 @@ namespace UnityEditor.VFX.UI
 
             if (isEditable)
             {
+                VFXCascadedOperatorController cascadedController = controller as VFXCascadedOperatorController;
+
                 if (m_EditButton.parent == null)
                 {
                     titleContainer.Insert(1, m_EditButton);
                 }
                 if (m_EditContainer == null)
                 {
-                    m_EditContainer = new VFXMultiOperatorEdit();
-                    m_EditContainer.name = "edit-container";
+                    m_EditContainer = GetControllerEditor();
+                    if (m_EditContainer != null)
+                        m_EditContainer.name = "edit-container";
                 }
-                (m_EditContainer as VFXMultiOperatorEdit).controller = controller;
             }
             else
             {

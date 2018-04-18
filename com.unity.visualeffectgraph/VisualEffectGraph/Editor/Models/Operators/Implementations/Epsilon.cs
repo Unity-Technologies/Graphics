@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 
 namespace UnityEditor.VFX.Operator
@@ -19,7 +20,7 @@ namespace UnityEditor.VFX.Operator
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.EpsilonExpression[1] };
+            return new[] { VFXOperatorUtility.EpsilonExpression[VFXValueType.Float] };
         }
     }
 }

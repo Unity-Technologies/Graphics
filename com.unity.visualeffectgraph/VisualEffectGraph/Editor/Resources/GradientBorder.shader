@@ -46,21 +46,25 @@ Shader "Hidden/VFX/GradientBorder"
             float _Radius;
             float _PixelScale;
             float2 _Size;
-            float3 _ColorStart;
-            float3 _ColorEnd;
+            fixed4 _ColorStart;
+            fixed4 _ColorEnd;
 
             uniform float4x4 unity_GUIClipTextureMatrix;
             sampler2D _GUIClipTexture;
+
+            //#define _Radius 34
+            //#define _Border 4
 
             v2f vert (appdata v)
             {
                 v2f o;
 
-                float margingScale = 1 + (_Border/_Radius /_PixelScale);
+                float2 size = _Size - float2(_Radius,_Radius);
 
-                o.height = _Size.y + _Radius;
+                float margingScale = 2 + (_Border/_Radius /_PixelScale);
 
-                o.pos = float4(v.vertex.xy * _Size + v.uv* margingScale * v.vertex.xy* _Radius, 0, 0);
+                o.pos = float4(v.vertex.xy * size + v.uv* margingScale * v.vertex.xy* _Radius, 0, 0);
+                o.height = (v.vertex.y + 1)* 0.5;
                 o.vertex = UnityObjectToClipPos(o.pos);
                 o.uv = v.uv*margingScale;
                 float3 eyePos = UnityObjectToViewPos(o.pos );
@@ -71,26 +75,26 @@ Shader "Hidden/VFX/GradientBorder"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float pixelScale = _PixelScale;
+                float pixelScale = 1.0f/abs(ddx(i.pos.x));
 
-                float realBorder = _Border;
-                float2 uvMid = i.uv * (_Radius + realBorder); // coordinate to center of circle in pixels of middle of border
-                float dist = uvMid.x * uvMid.x + uvMid.y * uvMid.y; // distance to center of circle in pixels
-                float a = 1;
-
-                float distToBorder = abs(_Radius - sqrt(dist))*pixelScale; // distance to the border center
-                float onePixelAfterBorder = distToBorder - realBorder * 0.5f*pixelScale; //distance to edge of border
-
-                a = 1-saturate(onePixelAfterBorder / _Border);
-
+                float realRadius = (_Radius - _Border * 0.5 - 0.5); // radius at the center of the line. -0.5 to keep space for AA
+                float2 uvCenter = i.uv * _Radius / realRadius; // uv expressed in realRadius instead of _Radius
+                //float uvDist = 1-abs(1-length(uvCenter)); //
+                float uvDist = length(uvCenter); // distance to center expressed in realRadius
+                float uvBorder = _Border*0.5f / realRadius; // half border width expressed in realdRadius
+                float borderDist = abs((uvDist-1) / uvBorder); // distance from center of line expressed in half border
+                /*
+                if( borderDist > 1) // possible optim : is the early discard is more profitable than the branch ?
+                    discard;
+                */
                 float clipA = tex2D(_GUIClipTexture, i.clipUV).a;
+                float pixelBorderSize = _Border*0.5 * pixelScale; // half border expressed on transformed pixel
+                borderDist = pixelBorderSize * (1 - borderDist) + 0.5; // signed distance from edge of line in transformed pixel
 
-                float height = 0.5f + i.pos.y / i.height * 0.5f;
-                return float4(lerp(_ColorStart, _ColorEnd,height),a*clipA);
-                //return float4(height,height,height , a*clipA);
-                //return float4(_ColorEnd,1);
-                //return float4(1, 1, 0, 1);
+                //float height = 0.5 + i.pos.y / i.height * 0.5; // height expressed in size.y
 
+                fixed4 color = lerp(_ColorStart, _ColorEnd,i.height);
+                return float4(color.rgb,color.a*saturate(borderDist)*clipA);
             }
             ENDCG
         }

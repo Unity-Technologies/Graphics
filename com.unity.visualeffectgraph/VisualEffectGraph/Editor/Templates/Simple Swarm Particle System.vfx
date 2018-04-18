@@ -227,6 +227,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -2211,7 +2212,6 @@ VisualEffectAsset:
   m_Buffers:
   - type: 1
     size: 589824
-    capacity: 65536
     layout:
     - name: position
       type: 3
@@ -2243,9 +2243,45 @@ VisualEffectAsset:
         bucket: 524288
         structure: 1
         element: 0
+    capacity: 65536
+    stride: 4
+  - type: 1
+    size: 589824
+    layout:
+    - name: position
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 0
+    - name: alive
+      type: 17
+      offset:
+        bucket: 0
+        structure: 8
+        element: 3
+    - name: velocity
+      type: 3
+      offset:
+        bucket: 0
+        structure: 8
+        element: 4
+    - name: age
+      type: 1
+      offset:
+        bucket: 0
+        structure: 8
+        element: 7
+    - name: lifetime
+      type: 1
+      offset:
+        bucket: 524288
+        structure: 1
+        element: 0
+    capacity: 65536
+    stride: 4
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -2253,14 +2289,18 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
   - type: 2
     size: 65536
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   - type: 1
     size: 1
-    capacity: 0
     layout: []
+    capacity: 0
+    stride: 4
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -2309,11 +2349,11 @@ VisualEffectAsset:
     - nameId: attributeBuffer
       index: 0
     - nameId: sourceAttributeBuffer
-      index: 1
-    - nameId: deadList
       index: 2
-    - nameId: deadListCount
+    - nameId: deadList
       index: 3
+    - nameId: deadListCount
+      index: 4
     - nameId: spawner_input
       index: 1
     values:
@@ -2327,66 +2367,66 @@ VisualEffectAsset:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListIn
-        index: 2
-      - nameId: deadListCount
         index: 3
+      - nameId: deadListCount
+        index: 4
       - nameId: sourceAttributeBuffer
-        index: 1
+        index: 2
       values:
-      - nameId: ArcSphere_sphere_center_b
+      - nameId: ArcSphere_sphere_center_a
         index: 36
-      - nameId: ArcSphere_sphere_radius_b
+      - nameId: ArcSphere_sphere_radius_a
         index: 37
-      - nameId: ArcSphere_arc_b
+      - nameId: ArcSphere_arc_a
         index: 41
-      - nameId: Min_c
+      - nameId: Min_b
         index: 46
-      - nameId: Max_c
+      - nameId: Max_b
         index: 44
       params:
       - nameId: bounds_center
         index: 40
       - nameId: bounds_size
         index: 38
-      processor: {fileID: 7200000, guid: 8849a1b5b586e54428f30bae6323df47, type: 3}
+      processor: {fileID: 7200000, guid: 03825d983074a7d40a593275c66ef662, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: deadListOut
-        index: 2
+        index: 3
       values:
-      - nameId: InvFieldTransform_b
+      - nameId: InvFieldTransform_a
         index: 43
-      - nameId: FieldTransform_b
+      - nameId: FieldTransform_a
         index: 15
-      - nameId: Intensity_b
+      - nameId: Intensity_a
         index: 33
-      - nameId: DragCoefficient_b
+      - nameId: DragCoefficient_a
         index: 35
-      - nameId: deltaTime_b
+      - nameId: deltaTime_a
         index: 34
-      - nameId: VectorField_b
+      - nameId: VectorField_a
         index: 42
       params: []
-      processor: {fileID: 7200000, guid: 1d4a92c385e37ce4ea5eaa1be2ae364b, type: 3}
+      processor: {fileID: 7200000, guid: 5ee01ecbf3c55ea478334493ee1b56e0, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       values:
-      - nameId: SizeX_c
+      - nameId: SizeX_b
         index: 31
-      - nameId: SizeY_d
+      - nameId: SizeY_c
         index: 29
-      - nameId: gradient_e
+      - nameId: gradient_d
         index: 32
       - nameId: mainTexture
         index: 30
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 55247c292fa713c4b9385bae4014761c, type: 3}
+      processor: {fileID: 4800000, guid: 6cbf3188b928b474996e96c0cf6cf644, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -2401,4 +2441,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

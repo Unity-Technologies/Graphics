@@ -34,4 +34,25 @@ size.z = min(size.x,size.y);
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXEditor/Shaders/VFXCommonOutput.cginc"${VFXEnd}
+${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXShaders/VFXCommonOutput.cginc"${VFXEnd}
+
+${VFXBegin:VFXLoadAttributesOrCull}
+#if VFX_HAS_INDIRECT_DRAW
+#if USE_DEAD_LIST_COUNT
+	if (index >= asuint(nbMax) - deadListCount.Load(0))
+		return o;
+#endif
+
+	index = indirectBuffer[index];
+	${VFXLoadAttributes}
+#else
+	if (index >= asuint(nbMax))
+		return o;
+	
+	${VFXLoadAttributes:{alive}}
+	if (!alive)
+		return o;
+	
+	${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+#endif
+${VFXEnd}
