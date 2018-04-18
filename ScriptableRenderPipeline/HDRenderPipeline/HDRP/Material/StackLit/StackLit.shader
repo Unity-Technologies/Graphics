@@ -10,6 +10,26 @@ Shader "HDRenderPipeline/StackLit"
         _BaseColor("BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
+        _Metallic("Metallic", Range(0.0, 1.0)) = 0
+
+
+        _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
+        _SmoothnessARemapMin("SmoothnessARemapMin", Float) = 0.0
+        _SmoothnessARemapMax("SmoothnessARemapMax", Float) = 1.0
+        _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
+        _SmoothnessBRemapMin("SmoothnessBRemapMin", Float) = 0.0
+        _SmoothnessBRemapMax("SmoothnessBRemapMax", Float) = 1.0
+        _LobeMix("lobeMix", Range(0.0, 1.0)) = 0
+        _MaskMapA("MaskMapA", 2D) = "white" {}
+        _MaskMapB("MaskMapB", 2D) = "white" {}
+
+        _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
+
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
+        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
+
+
         _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
@@ -88,8 +108,16 @@ Shader "HDRenderPipeline/StackLit"
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DOUBLESIDED_ON
-    
-    
+
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE
+    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3 
+    // ...TODO: for surface gradient framework eg see litdata.hlsl, 
+    // but we need it right away for toggle with LayerTexCoord mapping so we might need them 
+    // from the Frag input right away. See also ShaderPass/StackLitSharePass.hlsl.
+
+    #pragma shader_feature _NORMALMAP
+    #pragma shader_feature _MASKMAPA
+    #pragma shader_feature _MASKMAPB
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
     // Keyword for transparent
