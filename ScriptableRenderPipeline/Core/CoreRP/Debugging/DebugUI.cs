@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             None        = 0,
             EditorOnly  = 1 << 1,
-            RuntimeOnly = 1 << 2
+            RuntimeOnly = 1 << 2,
+            EditorForceUpdate = 1 << 3
         }
 
         // Base class for all debug UI widgets

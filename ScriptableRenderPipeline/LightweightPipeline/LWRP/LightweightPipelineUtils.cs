@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -8,86 +9,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int Compare(Camera lhs, Camera rhs)
         {
             return (int)(lhs.depth - rhs.depth);
-        }
-    }
-
-    public class LightComparer : IComparer<VisibleLight>
-    {
-        public Camera CurrCamera { get; set; }
-
-        public int Compare(VisibleLight lhs, VisibleLight rhs)
-        {
-            Light lhsLight = lhs.light;
-            Light rhsLight = rhs.light;
-
-            // Particle Lights have the Light reference set to null
-            // They are at the end of the priority
-            if (lhsLight == null) return 1;
-            if (rhsLight == null) return -1;
-
-            // Prioritize lights marked as important
-            if (lhsLight.renderMode != rhsLight.renderMode)
-            {
-                if (lhsLight.renderMode == LightRenderMode.ForcePixel) return -1;
-                if (rhsLight.renderMode == LightRenderMode.ForcePixel) return 1;
-            }
-
-            // Prioritize Directional Lights
-            if (lhs.lightType != rhs.lightType)
-            {
-                if (lhs.lightType == LightType.Directional) return -1;
-                if (rhs.lightType == LightType.Directional) return 1;
-            }
-
-            // Prioritize Shadows Lights Soft > Hard > None
-            if (lhsLight.shadows != rhsLight.shadows)
-                return (int)rhsLight.shadows - (int)lhsLight.shadows;
-
-            // Prioritize lights with cookies
-            if (lhsLight.cookie != rhsLight.cookie)
-                return (lhsLight.cookie != null) ? -1 : 1;
-
-            // If directional sort by intensity
-            if (lhs.lightType == LightType.Directional)
-            {
-                return (int)(rhsLight.intensity * 100.0f) - (int)(lhsLight.intensity * 100.0f);
-            }
-
-            // Punctual lights are sorted per-object by the engine based on distance to object center + luminance
-            // Here we sort globally the light list per camera distance to fit the closest lights in the global light buffer
-            // Check MAX_VISIBLE_LIGHTS in the LightweightLighting.cginc to see the max global buffer list size
-            int lhsDistance = (int)(SquaredDistanceToCamera(lhsLight.transform.position) * 100.0f);
-            int rhsDistance = (int)(SquaredDistanceToCamera(rhsLight.transform.position) * 100.0f);
-            int result = lhsDistance - rhsDistance;
-            return result;
-        }
-
-        public float SquaredDistanceToCamera(Vector3 lightPos)
-        {
-            Vector3 lightCameraVector = lightPos - CurrCamera.transform.position;
-            return Vector3.Dot(lightCameraVector, lightCameraVector);
-        }
-    }
-
-    public class LightEqualityComparer : IEqualityComparer<VisibleLight>
-    {
-        public bool Equals(VisibleLight x, VisibleLight y)
-        {
-            if (x.light == null && y.light == null)
-                return true;
-
-            if (x.light == null || y.light == null)
-                return false;
-
-            return x.light.GetInstanceID() == y.light.GetInstanceID();
-        }
-
-        public int GetHashCode(VisibleLight obj)
-        {
-            if (obj.light == null) // Particle light weirdness
-                return obj.GetHashCode();
-
-            return obj.light.GetInstanceID();
         }
     }
 
@@ -107,6 +28,58 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class LightweightUtils
     {
+        static Mesh s_FullscreenMesh = null;
+        public static Mesh fullscreenMesh
+        {
+            get
+            {
+                if (s_FullscreenMesh != null)
+                    return s_FullscreenMesh;
+
+                float topV = 1.0f;
+                float bottomV = 0.0f;
+
+                Mesh mesh = new Mesh {name = "Fullscreen Quad"};
+                mesh.SetVertices(new List<Vector3>
+                {
+                    new Vector3(-1.0f, -1.0f, 0.0f),
+                    new Vector3(-1.0f,  1.0f, 0.0f),
+                    new Vector3( 1.0f, -1.0f, 0.0f),
+                    new Vector3( 1.0f,  1.0f, 0.0f)
+                });
+
+                mesh.SetUVs(0, new List<Vector2>
+                {
+                    new Vector2(0.0f, bottomV),
+                    new Vector2(0.0f, topV),
+                    new Vector2(1.0f, bottomV),
+                    new Vector2(1.0f, topV)
+                });
+
+                mesh.SetIndices(new[] { 0, 1, 2, 2, 1, 3 }, MeshTopology.Triangles, 0, false);
+                mesh.UploadMeshData(true);
+                return mesh;
+            }
+        }
+
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
+        }
+
+        public static void StartStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StartMultiEye(camera);
+        }
+
+        public static void StopStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
+        {
+            if (HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
+                context.StopMultiEye(camera);
+        }
+
         public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
         {
             cookieMatrix = Matrix4x4.Inverse(light.localToWorld);
@@ -169,41 +142,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static bool HasFlag(FrameRenderingConfiguration mask, FrameRenderingConfiguration flag)
         {
             return (mask & flag) != 0;
-        }
-
-        public static Mesh CreateQuadMesh(bool uvStartsAtTop)
-        {
-            float topV, bottomV;
-            if (uvStartsAtTop)
-            {
-                topV = 0.0f;
-                bottomV = 1.0f;
-            }
-            else
-            {
-                topV = 1.0f;
-                bottomV = 0.0f;
-            }
-
-            Mesh mesh = new Mesh();
-            mesh.vertices = new Vector3[]
-            {
-                new Vector3(-1.0f, -1.0f, 0.0f),
-                new Vector3(-1.0f,  1.0f, 0.0f),
-                new Vector3(1.0f, -1.0f, 0.0f),
-                new Vector3(1.0f,  1.0f, 0.0f)
-            };
-
-            mesh.uv = new Vector2[]
-            {
-                new Vector2(0.0f, bottomV),
-                new Vector2(0.0f, topV),
-                new Vector2(1.0f, bottomV),
-                new Vector2(1.0f, topV)
-            };
-
-            mesh.triangles = new int[] { 0, 1, 2, 2, 1, 3 };
-            return mesh;
         }
     }
 }

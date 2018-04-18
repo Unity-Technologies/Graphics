@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,9 +18,58 @@ public abstract class LightweightShaderGUI : ShaderGUI
         Multiply
     }
 
-    public abstract void FindProperties(MaterialProperty[] props);
-    public abstract void ShaderPropertiesGUI(Material material);
+    private static class Styles
+    {
+        public static string renderingOptionsLabel = "Rendering Options";
+        public static string surfaceType = "Surface Type";
+        public static string blendingMode = "Blending Mode";
+        public static GUIContent twoSidedText = new GUIContent("Two Sided", "Render front and back faces");
+        public static GUIContent alphaClipText = new GUIContent("Alpha Clip", "Enable Alpha Clip");
+        public static GUIContent alphaClipThresholdText = new GUIContent("Clip Threshold", "Threshold for alpha clip");
+        public static readonly string[] surfaceNames = Enum.GetNames(typeof(SurfaceType));
+        public static readonly string[] blendNames = Enum.GetNames(typeof(BlendMode));
+    }
+
+    protected MaterialEditor m_MaterialEditor;
+    protected MaterialProperty surfaceTypeProp;
+    protected MaterialProperty blendModeProp;
+    protected MaterialProperty cullingProp;
+    protected MaterialProperty alphaClipProp;
+    protected MaterialProperty alphaCutoffProp;
+    private bool m_FirstTimeApply = true;
+
     public abstract void MaterialChanged(Material material);
+
+    public virtual void FindProperties(MaterialProperty[] properties)
+    {
+        surfaceTypeProp = FindProperty("_Surface", properties);
+        blendModeProp = FindProperty("_Blend", properties);
+        cullingProp = FindProperty("_Cull", properties);
+        alphaClipProp = FindProperty("_AlphaClip", properties);
+        alphaCutoffProp = FindProperty("_Cutoff", properties);
+    }
+
+    public virtual void ShaderPropertiesGUI(Material material)
+    {
+        DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceNames);
+        if ((SurfaceType)material.GetFloat("_Surface") == SurfaceType.Transparent)
+            DoPopup(Styles.blendingMode, blendModeProp, Styles.blendNames);
+
+        EditorGUI.BeginChangeCheck();
+        bool twoSidedEnabled = EditorGUILayout.Toggle(Styles.twoSidedText, cullingProp.floatValue == 0);
+        if (EditorGUI.EndChangeCheck())
+            cullingProp.floatValue = twoSidedEnabled ? 0 : 2;
+
+        EditorGUI.BeginChangeCheck();
+        bool alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipText, alphaClipProp.floatValue == 1);
+        if (EditorGUI.EndChangeCheck())
+            alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
+
+        if (alphaClipProp.floatValue == 1)
+            m_MaterialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
+
+        EditorGUILayout.Space();
+    }
 
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
@@ -38,32 +88,16 @@ public abstract class LightweightShaderGUI : ShaderGUI
         ShaderPropertiesGUI(material);
     }
 
-    protected void DoPopup(string label, MaterialProperty property, string[] options)
-    {
-        EditorGUI.showMixedValue = property.hasMixedValue;
-
-        var mode = property.floatValue;
-        EditorGUI.BeginChangeCheck();
-        mode = EditorGUILayout.Popup(label, (int)mode, options);
-        if (EditorGUI.EndChangeCheck())
-        {
-            m_MaterialEditor.RegisterPropertyChangeUndo(label);
-            property.floatValue = (float)mode;
-        }
-
-        EditorGUI.showMixedValue = false;
-    }
-
     public static void SetupMaterialBlendMode(Material material)
     {
         bool alphaClip = material.GetFloat("_AlphaClip") == 1;
-        if(alphaClip)
+        if (alphaClip)
             material.EnableKeyword("_ALPHATEST_ON");
         else
             material.DisableKeyword("_ALPHATEST_ON");
 
         SurfaceType surfaceType = (SurfaceType)material.GetFloat("_Surface");
-        if(surfaceType == SurfaceType.Opaque)
+        if (surfaceType == SurfaceType.Opaque)
         {
             material.SetOverrideTag("RenderType", "");
             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
@@ -74,7 +108,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
             material.SetShaderPassEnabled("ShadowCaster", true);
         }
         else
-        { 
+        {
             BlendMode blendMode = (BlendMode)material.GetFloat("_Blend");
             switch (blendMode)
             {
@@ -118,6 +152,27 @@ public abstract class LightweightShaderGUI : ShaderGUI
         }
     }
 
-    protected MaterialEditor m_MaterialEditor;
-    private bool m_FirstTimeApply = true;
+    protected void DoPopup(string label, MaterialProperty property, string[] options)
+    {
+        EditorGUI.showMixedValue = property.hasMixedValue;
+
+        var mode = property.floatValue;
+        EditorGUI.BeginChangeCheck();
+        mode = EditorGUILayout.Popup(label, (int)mode, options);
+        if (EditorGUI.EndChangeCheck())
+        {
+            m_MaterialEditor.RegisterPropertyChangeUndo(label);
+            property.floatValue = (float)mode;
+        }
+
+        EditorGUI.showMixedValue = false;
+    }
+
+    protected void DoMaterialRenderingOptions()
+    {
+        EditorGUILayout.Space();
+        GUILayout.Label(Styles.renderingOptionsLabel, EditorStyles.boldLabel);
+        m_MaterialEditor.EnableInstancingField();
+        m_MaterialEditor.DoubleSidedGIField();
+    }
 }

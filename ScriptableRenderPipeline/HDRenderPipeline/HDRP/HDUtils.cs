@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return null;
             }
         }
+        public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -210,6 +211,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public static void BlitQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 2 : 3, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
@@ -307,6 +317,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
+        }
+
+        // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
+        public static Vector4 GetMouseClickCoordinates(HDCamera camera)
+        {
+            Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
         }
     }

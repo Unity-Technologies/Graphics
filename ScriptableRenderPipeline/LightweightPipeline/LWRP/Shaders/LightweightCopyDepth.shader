@@ -11,6 +11,7 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma vertex vert
             #pragma fragment frag
 

@@ -116,7 +116,6 @@ float3 GetCameraRelativePositionWS(float3 positionWS)
     return positionWS;
 }
 
-// Note: '_WorldSpaceCameraPos' is set by the legacy Unity code.
 float3 GetPrimaryCameraPosition()
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -133,7 +132,7 @@ float3 GetCurrentViewPosition()
     return GetPrimaryCameraPosition();
 #else
     // This is a generic solution.
-    // However, for the primary camera, using '_WorldSpaceCameraPos' is better for cache locality,
+    // However, using '_WorldSpaceCameraPos' is better for cache locality,
     // and in case we enable camera-relative rendering, we can statically set the position is 0.
     return UNITY_MATRIX_I_V._14_24_34;
 #endif
@@ -152,6 +151,8 @@ bool IsPerspectiveProjection()
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     return (unity_OrthoParams.w == 0);
 #else
+    // This is a generic solution.
+    // However, using 'unity_OrthoParams' is better for cache locality.
     // TODO: set 'unity_OrthoParams' during the shadow pass.
     return UNITY_MATRIX_P[3][3] == 0;
 #endif
