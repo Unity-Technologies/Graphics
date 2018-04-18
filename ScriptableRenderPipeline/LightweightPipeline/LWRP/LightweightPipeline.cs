@@ -568,7 +568,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Screen space shadows require depth before opaque shading.
                 if (!msaaEnabled && !screenspaceShadows)
                 {
-                    bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
+                    bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None || m_Asset.CopyDepthShader.isSupported;
                     m_DepthRenderBuffer = true;
                     intermediateTexture = true;
 
