@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve the quality of volumetric lighting reprojection.
 - Optimize Morton Order code in the Subsurface Scattering pass.
 - Planar Reflection Probe support roughness (gaussian convolution of captured probe)
+- Only store decal textures to atlas if decal is visible, debounce out of memory decal atlas warning.
 
 ### Features
 - Screen Space Refraction projection model (Proxy raycasting, HiZ raymarching)
