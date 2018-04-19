@@ -220,6 +220,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic *= _Metallic;
 
     // These static material feature allow compile time optimization
+    // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_LIT_* with #ifdef 
+    // on corresponding _MATERIAL_FEATURE_* shader_feature kerwords (set by UI) so the compiler 
+    // knows the value of surfaceData.materialFeatures.
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
     // -------------------------------------------------------------
