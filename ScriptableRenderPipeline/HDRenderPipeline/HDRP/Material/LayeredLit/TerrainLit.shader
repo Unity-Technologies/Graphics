@@ -245,10 +245,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        // For layering, due to combinatorial explosion, we only support SSS/Transmission and Standard. We let other case for the shader graph
-        [Enum(Subsurface Scattering, 0, Standard, 1, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
-        [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
-
         _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
         _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
         _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
@@ -377,10 +373,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
     #pragma shader_feature _DISABLE_DBUFFER
 
-    // MaterialFeature are used as shader feature to allow compiler to optimize properly
-    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
-
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -393,11 +385,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #define SURFACE_GRADIENT
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION // TODO: Implement ApplyVertexModification for terrain heightmap sampling
-
-    // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    #define OUTPUT_SPLIT_LIGHTING
-    #endif
 
     //-------------------------------------------------------------------------------------
     // Include
