@@ -245,6 +245,22 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
+        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
+        {
+            if (targetSlot.Spaceable)
+            {
+                if (targetSlot.Space != space)
+                {
+                    if (targetSlot.property.type == typeof(Position))
+                    {
+                        var matrix = space == CoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
+                        input = new VFXExpressionTransformPosition(matrix, input);
+                    }
+                }
+            }
+            return input;
+        }
+
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
         {
             foreach (var master in slotContainer.inputSlots)
@@ -266,22 +282,7 @@ namespace UnityEditor.VFX
                 foreach (var slot in master.GetExpressionSlots())
                 {
                     var expression = slot.GetExpression();
-                    if (slot.Spaceable)
-                    {
-                        if (slot.Space != inheritSpace)
-                        {
-                            if (slot.property.type == typeof(Position))
-                            {
-                                var matrix = inheritSpace == CoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
-                                expression = new VFXExpressionTransformPosition(matrix, expression);
-                            }
-                            else
-                            {
-                                Debug.LogErrorFormat("It's hacky"); //TODOPAUL
-                            }
-                        }
-                    }
-                    yield return new VFXNamedExpression(expression, slot.fullName);
+                    yield return new VFXNamedExpression(ConvertSpace(expression, slot, inheritSpace), slot.fullName);
                 }
             }
         }

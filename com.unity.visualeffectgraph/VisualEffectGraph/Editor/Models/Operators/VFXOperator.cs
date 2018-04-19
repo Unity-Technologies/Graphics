@@ -14,49 +14,20 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        private IEnumerable<VFXExpression> GetRawInputExpressions()
-        {
-            List<VFXExpression> results = new List<VFXExpression>();
-            GetInputExpressionsRecursive(results, inputSlots);
-            return results;
-        }
-
-        private IEnumerable<VFXExpression> GetInputExpressions()
-        {
-            return GetRawInputExpressions();
-        }
-
-        protected static void GetInputExpressionsRecursive(List<VFXExpression> results, IEnumerable<VFXSlot> slots)
+        private static void GetSlotPredicateRecursive(List<VFXSlot> result, IEnumerable<VFXSlot> slots, Func<VFXSlot, bool> fnTest)
         {
             foreach (var s in slots)
             {
-                if (s.GetExpression() != null)
-                {
-                    results.Add(s.GetExpression());
-                }
-                else
-                {
-                    GetInputExpressionsRecursive(results, s.children);
-                }
-            }
-        }
-
-        private static void GetOutputWithExpressionSlotRecursive(List<VFXSlot> result, IEnumerable<VFXSlot> slots)
-        {
-            foreach (var s in slots)
-            {
-                if (s.DefaultExpr != null) /* actually GetExpression, but this way, we avoid a recursion  */
+                if (fnTest(s))
                 {
                     result.Add(s);
                 }
                 else
                 {
-                    GetOutputWithExpressionSlotRecursive(result, s.children);
+                    GetSlotPredicateRecursive(result, s.children, fnTest);
                 }
             }
         }
-
-        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         // As connections changed can be triggered from ResyncSlots, we need to make sure it is not reentrant
         [NonSerialized]
@@ -95,45 +66,43 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        private void SetOutputExpressions(VFXExpression[] outputExpressions)
+        public override sealed void UpdateOutputExpressions()
         {
             var outputSlotWithExpression = new List<VFXSlot>();
-            GetOutputWithExpressionSlotRecursive(outputSlotWithExpression, outputSlots);
+            var inputSlotWithExpression = new List<VFXSlot>();
+            GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
+            GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
+
+            var currentSpace = CoordinateSpace.Local;
+            var inputSlotSpaceable = inputSlots.Where(o => o.Spaceable);
+            if (inputSlotSpaceable.Any())
+            {
+                currentSpace = inputSlots.Select(o => o.Space).Distinct().OrderBy(o => (int)o).First();
+            }
+
+            var inputExpressions = inputSlotWithExpression.Select(o => ConvertSpace(o.GetExpression(), o, currentSpace));
+            inputExpressions = ApplyPatchInputExpression(inputExpressions);
+
+            var outputExpressions = BuildExpression(inputExpressions.ToArray());
             if (outputExpressions.Length != outputSlotWithExpression.Count)
                 throw new Exception(string.Format("Numbers of output expressions ({0}) does not match number of output (with expression)s slots ({1})", outputExpressions.Length, outputSlotWithExpression.Count));
 
             for (int i = 0; i < outputSlotWithExpression.Count; ++i)
-                outputSlotWithExpression[i].SetExpression(outputExpressions[i]);
-        }
-
-        public override sealed void UpdateOutputExpressions()
-        {
-            //TODOPAUL : It is the right place ? *WIP*
-            var outputSlotSpaceable = outputSlots.Where(o => o.Spaceable);
-            if (outputSlotSpaceable.Any())
             {
-                var space = CoordinateSpace.Local;
-                var inputSlotSpaceable = inputSlots.Where(o => o.Spaceable);
-                if (inputSlotSpaceable.Any())
+                var slot = outputSlotWithExpression[i];
+                if (slot.Spaceable)
                 {
-                    space = inputSlots.Select(o => o.Space).Distinct().OrderBy(o => (int)o).First();
+                    slot.Space = currentSpace;
                 }
-
-                foreach (var slot in outputSlotSpaceable)
-                {
-                    slot.Space = space;
-                }
+                slot.SetExpression(outputExpressions[i]);
             }
-
-            var inputExpressions = GetInputExpressions();
-            inputExpressions = ApplyPatchInputExpression(inputExpressions);
-            var outputExpressions = BuildExpression(inputExpressions.ToArray());
-            SetOutputExpressions(outputExpressions);
         }
 
         protected virtual IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
             return inputExpression;
         }
+
+        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
     }
 }
