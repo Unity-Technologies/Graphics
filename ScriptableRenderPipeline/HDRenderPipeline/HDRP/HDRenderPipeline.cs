@@ -1128,7 +1128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Assign -1 in tracing model to notifiy we took the data.
                     // When debugging in forward, we want only the first time the pixel is drawn
-                    data.tracingModel = (Lit.SSRayModel)(-1);
+                    data.tracingModel = (Lit.RefractionSSRayModel)(-1);
                     m_DebugScreenSpaceTracingDataArray[0] = data;
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
@@ -1650,7 +1650,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer, cameraRT);
 
             Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
-            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RenderDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
@@ -1665,7 +1665,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture(), cameraRT);
 
             Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
-            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
+            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
         }
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
