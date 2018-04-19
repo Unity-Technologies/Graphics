@@ -184,6 +184,7 @@ namespace UnityEditor.VFX.UI
 
         void DisconnectController()
         {
+            SceneView.onSceneGUIDelegate -= OnDrawGizmo;
             m_Controller.UnregisterHandler(this);
             m_Controller.useCount--;
 
@@ -227,6 +228,24 @@ namespace UnityEditor.VFX.UI
             elementAddedToGroup = ElementAddedToGroupNode;
             elementRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
+
+
+            //VisualEffectAsset.drawVisualEffectGizmo += OnDrawGizmo;
+            SceneView.onSceneGUIDelegate += OnDrawGizmo;
+        }
+
+        void OnDrawGizmo(SceneView sv)
+        {
+            VisualEffect component = m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
+            if (selection.Count != 1)
+                return;
+
+            VFXNodeUI selectedObject = selection.First() as VFXNodeUI;
+
+            if (selectedObject != null)
+            {
+                selectedObject.controller.DrawGizmos(component);
+            }
         }
 
         public VFXViewController controller
@@ -404,7 +423,7 @@ namespace UnityEditor.VFX.UI
 
 
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
-            if(componentBoardVisible)
+            if (componentBoardVisible)
                 ShowComponentBoard();
 
             Add(toolbar);
@@ -425,9 +444,8 @@ namespace UnityEditor.VFX.UI
 
         public void SetBoardToFront(GraphElement board)
         {
-            if( ElementAt(childCount - 1) != board)
+            if (ElementAt(childCount - 1) != board)
                 Insert(childCount - 1, board);
-
         }
 
         void OnUndoPerformed()
@@ -452,10 +470,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         void ShowComponentBoard()
         {
-            if( m_ComponentBoard == null)
+            if (m_ComponentBoard == null)
             {
                 m_ComponentBoard = new VFXComponentBoard(this);
 
@@ -586,7 +603,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Blackboard.controller = controller;
 
-            if( m_ComponentBoard != null)
+            if (m_ComponentBoard != null)
             {
                 m_ComponentBoard.controller = controller;
             }

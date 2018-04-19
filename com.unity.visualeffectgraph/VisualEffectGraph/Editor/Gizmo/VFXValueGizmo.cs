@@ -19,7 +19,191 @@ namespace UnityEditor.VFX.UI
 
     public class VFXValueGizmo
     {
-        static Dictionary<System.Type, System.Action<IValueController, VisualEffect>> s_DrawFunctions;
+        static Dictionary<System.Type, System.Action<Context, VisualEffect>> s_DrawFunctions;
+
+        public class Context
+        {
+            // Provider
+            internal Context(VFXDataAnchorController controller)
+            {
+                m_Controller = controller;
+            }
+
+            VFXDataAnchorController m_Controller;
+
+
+            public Type portType
+            {
+                get {return m_Controller.portType; }
+            }
+
+            public void Prepare()
+            {
+                var type = m_Controller.portType;
+
+                if (!type.IsValueType)
+                {
+                    Debug.LogError("No support for class types in Gizmos");
+                    return;
+                }
+                m_ReadOnlyMembers.Clear();
+
+                if (m_Controller.model.HasLink(false))
+                {
+                    m_Value = m_Controller.value;
+                    m_FullReadOnly = true;
+                }
+                if (m_Controller.model.HasLink(true))
+                {
+                    bool valueSet = false;
+                    if (m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))// this is for Vector type that the system knows how to compute
+                    {
+                        m_Value = m_Controller.value;
+                        valueSet = true;
+                    }
+                    else // this is for compound types that has to be build recursively
+                    {
+                        m_Value = System.Activator.CreateInstance(type);
+                        valueSet = false;
+                    }
+
+                    BuildValue(m_Value, m_Controller.model, "", valueSet);
+                }
+                else
+                {
+                    m_Value = m_Controller.value;
+                    m_FullReadOnly = false;
+                }
+            }
+
+            public const string separator = ".";
+
+
+            void BuildValue(object value, VFXSlot slot, string memberPath, bool valueSet)
+            {
+                foreach (var field in slot.property.type.GetFields())
+                {
+                    VFXSlot subSlot = slot.children.FirstOrDefault<VFXSlot>(t => t.name == field.Name);
+
+                    if (subSlot != null)
+                    {
+                        string subMemberPath = field.Name;
+                        if (memberPath.Length > 0)
+                        {
+                            subMemberPath = memberPath + separator + subMemberPath;
+                        }
+                        bool subValueSet = false;
+                        if (!valueSet)
+                        {
+                            object subValue = null;
+                            subValueSet = false;
+
+                            if (m_Controller.viewController.CanGetEvaluatedContent(slot))
+                            {
+                                subValue = subSlot.value;
+                                subValueSet = true;
+                            }
+                            else
+                            {
+                                subValue = System.Activator.CreateInstance(field.FieldType);
+
+                                BuildValue(subValue, subSlot, subMemberPath, false);
+                            }
+
+                            field.SetValue(value, subValue);
+                        }
+
+                        if (subSlot.HasLink(false))
+                        {
+                            m_ReadOnlyMembers.Add(subMemberPath);
+                        }
+                        else if (subSlot.HasLink(true))
+                        {
+                            if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
+                            // for the moment we can edit only part of a position or rotation so mark it as read only if one of the children has a link
+                            {
+                                m_ReadOnlyMembers.Add(subMemberPath);
+                            }
+                            if (subValueSet || valueSet)
+                            {
+                                BuildValue(null, subSlot, subMemberPath, true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            object m_Value;
+
+            // Consumer
+            public object value
+            {
+                get
+                {
+                    VFXViewController viewController = m_Controller.viewController;
+
+                    if (viewController.CanGetEvaluatedContent(m_Controller.model))
+                    {
+                        return VFXConverter.ConvertTo(viewController.GetEvaluatedContent(m_Controller.model), m_Controller.portType);
+                    }
+
+                    return m_Controller.model.value;
+                }
+            }
+
+            public bool IsMemberEditable(string memberPath)
+            {
+                if (m_FullReadOnly) return false;
+                while (true)
+                {
+                    if (m_ReadOnlyMembers.Contains(memberPath))
+                        return false;
+                    int index = memberPath.LastIndexOf(separator);
+                    if (index == -1)
+                        return true;
+
+                    memberPath = memberPath.Substring(0, index);
+                }
+            }
+
+            public void SetMemberValue(string memberPath, object value)
+            {
+                if (string.IsNullOrEmpty(memberPath))
+                {
+                    m_Controller.value = value;
+                    return;
+                }
+
+                SetSubMemberValue(memberPath, m_Controller.model, value);
+            }
+
+            void SetSubMemberValue(string memberPath, VFXSlot slot, object value)
+            {
+                int index = memberPath.IndexOf(separator);
+
+                if (index == -1)
+                {
+                    VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberPath);
+                    if (subSlot != null)
+                    {
+                        m_Controller.sourceNode.inputPorts.First(t => t.model == subSlot).value = value;
+                    }
+                }
+                else
+                {
+                    string memberName = memberPath.Substring(0, index);
+
+                    VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberName);
+                    if (subSlot != null)
+                    {
+                        SetSubMemberValue(memberPath.Substring(index + 1), subSlot, value);
+                    }
+                }
+            }
+
+            bool m_FullReadOnly;
+            HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
+        }
 
 
         const float handleSize = 0.1f;
@@ -27,18 +211,18 @@ namespace UnityEditor.VFX.UI
 
         static VFXValueGizmo()
         {
-            s_DrawFunctions = new Dictionary<System.Type, System.Action<IValueController, VisualEffect>>();
+            s_DrawFunctions = new Dictionary<System.Type, System.Action<Context, VisualEffect>>();
 
             s_DrawFunctions[typeof(ArcCircle)] = OnDrawArcCircleDataAnchorGizmo;
-            s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
-            s_DrawFunctions[typeof(ArcSphere)] = OnDrawArcSphereDataAnchorGizmo;
+            //s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
+            //s_DrawFunctions[typeof(ArcSphere)] = OnDrawArcSphereDataAnchorGizmo;
             s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
-            s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
-            s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
-            s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
-            s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
-            s_DrawFunctions[typeof(ArcTorus)] = OnDrawArcTorusDataAnchorGizmo;
-            s_DrawFunctions[typeof(ArcCone)] = OnDrawArcConeDataAnchorGizmo;
+            //s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
+            //s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
+            //s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
+            //s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
+            //s_DrawFunctions[typeof(ArcTorus)] = OnDrawArcTorusDataAnchorGizmo;
+            //s_DrawFunctions[typeof(ArcCone)] = OnDrawArcConeDataAnchorGizmo;
 
             foreach (Type type in typeof(VFXValueGizmo).Assembly.GetTypes())
             {
@@ -50,7 +234,7 @@ namespace UnityEditor.VFX.UI
 
                     if (info != null)
                     {
-                        s_DrawFunctions[gizmoedType] = (System.Action<IValueController, VisualEffect>)Delegate.CreateDelegate(typeof(System.Action<IValueController, VisualEffect>), info);
+                        s_DrawFunctions[gizmoedType] = (System.Action<Context, VisualEffect>)Delegate.CreateDelegate(typeof(System.Action<IValueController, VisualEffect>), info);
                     }
                 }
             }
@@ -70,11 +254,12 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        static internal void Draw(IValueController anchor, VisualEffect component)
+        static internal void Draw(Context anchor, VisualEffect component)
         {
-            System.Action<IValueController, VisualEffect> func;
+            System.Action<Context, VisualEffect> func;
             if (s_DrawFunctions.TryGetValue(anchor.portType, out func))
             {
+                anchor.Prepare();
                 func(anchor, component);
             }
         }
@@ -87,6 +272,7 @@ namespace UnityEditor.VFX.UI
 
             if (space == CoordinateSpace.Local)
             {
+                if (component == null) return false;
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
@@ -110,6 +296,7 @@ namespace UnityEditor.VFX.UI
             EditorGUI.BeginChangeCheck();
             if (space == CoordinateSpace.Local)
             {
+                if (component == null) return false;
                 position = component.transform.worldToLocalMatrix.MultiplyPoint(position);
             }
 
@@ -132,6 +319,7 @@ namespace UnityEditor.VFX.UI
             EditorGUI.BeginChangeCheck();
             if (space == CoordinateSpace.Local)
             {
+                if (component == null) return false;
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
@@ -150,17 +338,20 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        static void OnDrawPositionDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawPositionDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Position pos = (Position)anchor.value;
 
-            if (PositionGizmo(component, pos.space, ref pos.position))
+            if (anchor.IsMemberEditable(""))
             {
-                anchor.value = pos;
+                if (PositionGizmo(component, pos.space, ref pos.position))
+                {
+                    anchor.SetMemberValue("", pos);
+                }
             }
         }
 
-        static void OnDrawArcCircleDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawArcCircleDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
@@ -172,74 +363,80 @@ namespace UnityEditor.VFX.UI
             float arc = arcCircle.arc * Mathf.Rad2Deg;
             if (circle.space == CoordinateSpace.Local)
             {
+                if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
             // Draw circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            if (PositionGizmo(component, circle.space, ref circle.center))
+            if (anchor.IsMemberEditable("circle.center") && PositionGizmo(component, circle.space, ref circle.center))
             {
                 arcCircle.circle = circle;
-                anchor.value = arcCircle;
+                anchor.SetMemberValue("circle.center", circle.center);
             }
 
             // Radius controls
-            foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
+            if (anchor.IsMemberEditable("circle.radius"))
             {
-                EditorGUI.BeginChangeCheck();
-                Vector3 sliderPos = center + dist * radius;
-                Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
-
-                if (GUI.changed)
+                foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
                 {
-                    circle.radius = (result - center).magnitude;
+                    EditorGUI.BeginChangeCheck();
+                    Vector3 sliderPos = center + dist * radius;
+                    Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
 
-                    if (float.IsNaN(circle.radius))
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        circle.radius = 0;
-                    }
+                        radius = (result - center).magnitude;
 
-                    arcCircle.circle = circle;
-                    anchor.value = arcCircle;
+                        if (float.IsNaN(radius))
+                        {
+                            radius = 0;
+                        }
+                        anchor.SetMemberValue("circle.radius", radius);
+                    }
                 }
-                EditorGUI.EndChangeCheck();
             }
 
-            Handles.DrawLine(Vector3.zero, Vector3.up * radius);
+            Handles.DrawLine(center, center + Vector3.up * radius);
 
             // Arc handle control
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            if (anchor.IsMemberEditable("arc"))
             {
-                Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
-                EditorGUI.BeginChangeCheck();
+                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
                 {
-                    arcHandlePosition = Handles.Slider2D(
-                            arcHandlePosition,
-                            Vector3.up,
-                            Vector3.forward,
-                            Vector3.right,
-                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
-                            DefaultAngleHandleDrawFunction,
-                            0
-                            );
+                    Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        arcHandlePosition = Handles.Slider2D(
+                                arcHandlePosition,
+                                Vector3.up,
+                                Vector3.forward,
+                                Vector3.right,
+                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
+                                DefaultAngleHandleDrawFunction,
+                                0
+                                );
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                        arc += Mathf.DeltaAngle(arc, newArc);
+                        arc = Mathf.Repeat(arc, 360.0f);
+                        anchor.SetMemberValue("arc", arc * Mathf.Deg2Rad);
+                    }
                 }
-                if (EditorGUI.EndChangeCheck())
-                {
-                    float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
-                    arc += Mathf.DeltaAngle(arc, newArc);
-                    arc = Mathf.Repeat(arc, 360.0f);
-                    arcCircle.arc = arc * Mathf.Deg2Rad;
-
-                    arcCircle.circle = circle;
-                    anchor.value = arcCircle;
-                }
+            }
+            else
+            {
+                Handles.DrawLine(center, center +  Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);
             }
 
             Handles.matrix = oldMatrix;
         }
 
-        static void OnDrawSphereDataAnchorGizmo(IValueController anchor, VisualEffect component)
+#if false
+        static void OnDrawSphereDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Sphere sphere = (Sphere)anchor.value;
 
@@ -247,6 +444,7 @@ namespace UnityEditor.VFX.UI
             float radius = sphere.radius;
             if (sphere.space == CoordinateSpace.Local)
             {
+                if (component == null) return;
                 center = component.transform.localToWorldMatrix.MultiplyPoint(center);
             }
 
@@ -280,7 +478,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawArcSphereDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawArcSphereDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
@@ -292,6 +490,7 @@ namespace UnityEditor.VFX.UI
             float arc = arcSphere.arc * Mathf.Rad2Deg;
             if (sphere.space == CoordinateSpace.Local)
             {
+                if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
@@ -368,7 +567,7 @@ namespace UnityEditor.VFX.UI
             Handles.matrix = oldMatrix;
         }
 
-        static void OnDrawArcTorusDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawArcTorusDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
@@ -380,6 +579,7 @@ namespace UnityEditor.VFX.UI
             float arc = torus.arc * Mathf.Rad2Deg;
             if (torus.space == CoordinateSpace.Local)
             {
+                if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
@@ -487,6 +687,8 @@ namespace UnityEditor.VFX.UI
             Handles.matrix = oldMatrix;
         }
 
+#endif
+
         private static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             Handles.DrawLine(Vector3.zero, position);
@@ -501,7 +703,10 @@ namespace UnityEditor.VFX.UI
                 Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
         }
 
-        static void OnDrawAABoxDataAnchorGizmo(IValueController anchor, VisualEffect component)
+/* */
+
+#if false
+        static void OnDrawAABoxDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             AABox box = (AABox)anchor.value;
 
@@ -511,7 +716,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawOrientedBoxDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawOrientedBoxDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             OrientedBox box = (OrientedBox)anchor.value;
 
@@ -525,7 +730,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static void OnDrawPlaneDataAnchorGizmo(IValueController anchor, VisualEffect component)
+#endif
+#if false
+
+        static void OnDrawPlaneDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Plane plane = (Plane)anchor.value;
 
@@ -558,7 +766,7 @@ namespace UnityEditor.VFX.UI
             EditorGUI.EndChangeCheck();
         }
 
-        static void OnDrawCylinderDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawCylinderDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             Cylinder cylinder = (Cylinder)anchor.value;
 
@@ -606,6 +814,7 @@ namespace UnityEditor.VFX.UI
 
             if (cylinder.space == CoordinateSpace.Local)
             {
+                if (component == null) return;
                 Matrix4x4 mat = component.transform.localToWorldMatrix;
 
                 center = mat.MultiplyPoint(center);
@@ -675,11 +884,12 @@ namespace UnityEditor.VFX.UI
             EditorGUI.EndChangeCheck();
         }
 
-        static bool OnDrawBoxDataAnchorGizmo(IValueController anchor, VisualEffect component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
+        static bool OnDrawBoxDataAnchorGizmo(Context anchor, VisualEffect component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
         {
             var saveMatrix = Handles.matrix;
             if (space == CoordinateSpace.Local)
             {
+                if (component == null) return false;
                 Matrix4x4 addMat = Matrix4x4.Rotate(Quaternion.Euler(additionnalRotation));
 
                 addMat *= component.transform.localToWorldMatrix;
@@ -830,7 +1040,7 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        static void OnDrawArcConeDataAnchorGizmo(IValueController anchor, VisualEffect component)
+        static void OnDrawArcConeDataAnchorGizmo(Context anchor, VisualEffect component)
         {
             ArcCone cone = (ArcCone)anchor.value;
 
@@ -876,6 +1086,7 @@ namespace UnityEditor.VFX.UI
 
             if (cone.space == CoordinateSpace.Local)
             {
+                if (component == null) return;
                 Matrix4x4 mat = component.transform.localToWorldMatrix;
 
                 center = mat.MultiplyPoint(center);
@@ -935,9 +1146,11 @@ namespace UnityEditor.VFX.UI
 
             EditorGUI.EndChangeCheck();
         }
+
+#endif
     }
 
-    class Gizmo
+    class VFXGizmo
     {
     }
 
@@ -950,6 +1163,7 @@ namespace UnityEditor.VFX.UI
             Vector3 worldPosition = position;
             if (space == CoordinateSpace.Local)
             {
+                if (component == null) return false;
                 worldPosition = component.transform.localToWorldMatrix.MultiplyPoint(position);
             }
 
@@ -968,10 +1182,10 @@ namespace UnityEditor.VFX.UI
             return false;
         }
     }
-
+#if false
     class VFXPositionGizmo : VFXGizmo<Position>
     {
-        public static void OnDrawGizmo(IValueController anchor, VisualEffect component)
+        public static void OnDrawGizmo(VFXValueGizmo.Context anchor, VisualEffect component)
         {
             Position pos = (Position)anchor.value;
 
@@ -981,4 +1195,5 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
+#endif
 }

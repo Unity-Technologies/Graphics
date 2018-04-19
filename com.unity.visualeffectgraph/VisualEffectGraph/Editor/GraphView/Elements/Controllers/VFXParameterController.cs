@@ -532,7 +532,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var controller in m_SubControllers)
                 {
-                    VFXValueGizmo.Draw(controller, component);
+                    //VFXValueGizmo.Draw(new VFXValueGizmo.Context(controller), component);
                 }
             }
         }

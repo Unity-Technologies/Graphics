@@ -15,7 +15,7 @@ namespace  UnityEditor.VFX.UI
 {
     static class BoardPreferenceHelper
     {
-       public  enum Board
+        public  enum Board
         {
             blackboard,
             componentBoard
@@ -26,21 +26,21 @@ namespace  UnityEditor.VFX.UI
         const string visiblePreferenceFormat = "vfx-{0}-visible";
 
 
-        public static bool IsVisible(Board board,bool defaultState)
+        public static bool IsVisible(Board board, bool defaultState)
         {
-            return EditorPrefs.GetBool(string.Format(visiblePreferenceFormat,board),defaultState);
+            return EditorPrefs.GetBool(string.Format(visiblePreferenceFormat, board), defaultState);
         }
 
         public static void SetVisible(Board board, bool value)
         {
-            EditorPrefs.SetBool(string.Format(visiblePreferenceFormat,board),value);
+            EditorPrefs.SetBool(string.Format(visiblePreferenceFormat, board), value);
         }
 
         public static Rect LoadPosition(Board board, Rect defaultPosition)
         {
-            string str = EditorPrefs.GetString(string.Format(rectPreferenceFormat,board));
+            string str = EditorPrefs.GetString(string.Format(rectPreferenceFormat, board));
 
-            Rect blackBoardPosition = defaultPosition;;
+            Rect blackBoardPosition = defaultPosition;
             if (!string.IsNullOrEmpty(str))
             {
                 var rectValues = str.Split(',');
@@ -58,9 +58,9 @@ namespace  UnityEditor.VFX.UI
             return blackBoardPosition;
         }
 
-        public static void SavePosition(Board board,Rect r)
+        public static void SavePosition(Board board, Rect r)
         {
-            EditorPrefs.SetString(string.Format(rectPreferenceFormat,board), string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
+            EditorPrefs.SetString(string.Format(rectPreferenceFormat, board), string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
         }
     }
 
@@ -95,7 +95,7 @@ namespace  UnityEditor.VFX.UI
         }
 
         VFXView m_View;
-        
+
         public VFXComponentBoard(VFXView view)
         {
             m_View = view;
@@ -125,8 +125,8 @@ namespace  UnityEditor.VFX.UI
             m_Restart.clickable.clicked += EffectRestart;
 
             m_PlayRateSlider = this.Query<Slider>("play-rate-slider");
-            m_PlayRateSlider.lowValue = Mathf.Pow(VisualEffectControl.minSlider,1/VisualEffectControl.sliderPower);
-            m_PlayRateSlider.highValue = Mathf.Pow(VisualEffectControl.maxSlider,1/VisualEffectControl.sliderPower);
+            m_PlayRateSlider.lowValue = Mathf.Pow(VisualEffectControl.minSlider, 1 / VisualEffectControl.sliderPower);
+            m_PlayRateSlider.highValue = Mathf.Pow(VisualEffectControl.maxSlider, 1 / VisualEffectControl.sliderPower);
             m_PlayRateSlider.valueChanged += OnEffectSlider;
             m_PlayRateField = this.Query<IntegerField>("play-rate-field");
 
@@ -144,11 +144,10 @@ namespace  UnityEditor.VFX.UI
 
             RegisterCallback<ControllerChangedEvent>(ControllerChanged);
 
-            RegisterCallback<MouseDownEvent>(OnMouseClick,Capture.Capture);
+            RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, new Rect(200, 100, 300, 300)));
         }
-
 
         void OnMouseClick(MouseDownEvent e)
         {
@@ -167,7 +166,7 @@ namespace  UnityEditor.VFX.UI
 
         void SetPlayRate(object value)
         {
-            if( m_AttachedComponent == null)
+            if (m_AttachedComponent == null)
                 return;
             float rate = (float)((int)value)  * VisualEffectControl.valueToPlayRate;
             m_AttachedComponent.playRate = rate;
@@ -176,54 +175,63 @@ namespace  UnityEditor.VFX.UI
 
         void OnEffectSlider(float f)
         {
-            if( m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
             {
-                m_AttachedComponent.playRate = VisualEffectControl.valueToPlayRate * Mathf.Pow(f,VisualEffectControl.sliderPower);
+                m_AttachedComponent.playRate = VisualEffectControl.valueToPlayRate * Mathf.Pow(f, VisualEffectControl.sliderPower);
                 UpdatePlayRate();
             }
         }
+
         void EffectStop()
         {
-            if( m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlStop();
         }
+
         void EffectPlay()
         {
-            if( m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlPlayPause();
         }
 
         void EffectStep()
         {
-            if( m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlStep();
         }
+
         void EffectRestart()
         {
-            if( m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
                 m_AttachedComponent.ControlRestart();
         }
+
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             Selection.selectionChanged += OnSelectionChanged;
         }
+
         void OnDetachToPanel(DetachFromPanelEvent e)
         {
             Selection.selectionChanged -= OnSelectionChanged;
         }
 
-
         VisualEffect m_SelectionCandidate;
 
         VisualEffect m_AttachedComponent;
 
+        public VisualEffect GetAttachedComponent()
+        {
+            return m_AttachedComponent;
+        }
+
         void OnSelectionChanged()
         {
             m_SelectionCandidate = null;
-            if(Selection.activeGameObject != null && controller != null)
+            if (Selection.activeGameObject != null && controller != null)
             {
                 m_SelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
-                if( m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.model)
+                if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.model)
                 {
                     m_SelectionCandidate = null;
                 }
@@ -232,17 +240,16 @@ namespace  UnityEditor.VFX.UI
             UpdateAttachButton();
         }
 
-
         bool m_LastKnownPauseState;
         void UpdatePlayButton()
         {
-            if( m_AttachedComponent == null )
+            if (m_AttachedComponent == null)
                 return;
 
-            if( m_LastKnownPauseState != m_AttachedComponent.pause)
+            if (m_LastKnownPauseState != m_AttachedComponent.pause)
             {
                 m_LastKnownPauseState = m_AttachedComponent.pause;
-                if( m_LastKnownPauseState )
+                if (m_LastKnownPauseState)
                 {
                     m_Play.AddToClassList("paused");
                 }
@@ -262,13 +269,13 @@ namespace  UnityEditor.VFX.UI
 
         void Detach()
         {
-            if( m_AttachedComponent != null)
+            if (m_AttachedComponent != null)
             {
                 m_AttachedComponent.playRate = 1;
                 m_AttachedComponent.pause = false;
             }
             m_AttachedComponent = null;
-            if( m_UpdateItem != null)
+            if (m_UpdateItem != null)
             {
                 m_UpdateItem.Pause();
             }
@@ -278,19 +285,19 @@ namespace  UnityEditor.VFX.UI
 
         void Attach()
         {
-            if( m_SelectionCandidate != null)
+            if (m_SelectionCandidate != null)
             {
                 m_AttachedComponent = m_SelectionCandidate;
                 UpdateAttachButton();
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
                 UpdatePlayButton();
 
-                if( m_UpdateItem == null)
+                if (m_UpdateItem == null)
                     m_UpdateItem = schedule.Execute(Update).Every(100);
                 else
                     m_UpdateItem.Resume();
             }
-            if( m_ComponentContainer.parent == null)
+            if (m_ComponentContainer.parent == null)
                 Add(m_ComponentContainer);
         }
 
@@ -304,29 +311,29 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
-            if( m_AttachedComponent == null || controller == null)
+            if (m_AttachedComponent == null || controller == null)
             {
                 Detach();
                 return;
             }
 
             string path = m_AttachedComponent.name;
-            
+
             UnityEngine.Transform current = m_AttachedComponent.transform.parent;
-            while(current != null)
+            while (current != null)
             {
                 path = current.name + " > " + path;
             }
 
-            if( EditorSceneManager.loadedSceneCount > 1)
+            if (EditorSceneManager.loadedSceneCount > 1)
             {
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
 
-            if( m_ComponentPath.text != path)
+            if (m_ComponentPath.text != path)
                 m_ComponentPath.text = path;
 
-            if( m_LastKnownParticleCount != m_AttachedComponent.aliveParticleCount)
+            if (m_LastKnownParticleCount != m_AttachedComponent.aliveParticleCount)
             {
                 m_LastKnownParticleCount = m_AttachedComponent.aliveParticleCount;
                 m_ParticleCount.text = m_LastKnownParticleCount.ToString();
@@ -338,19 +345,19 @@ namespace  UnityEditor.VFX.UI
 
         void UpdatePlayRate()
         {
-            if( m_LastKnownPlayRate != m_AttachedComponent.playRate)
+            if (m_LastKnownPlayRate != m_AttachedComponent.playRate)
             {
                 m_LastKnownPlayRate = m_AttachedComponent.playRate;
                 float playRateValue = m_AttachedComponent.playRate * VisualEffectControl.playRateToValue;
-                m_PlayRateSlider.value = Mathf.Pow(playRateValue,1/ VisualEffectControl.sliderPower);
-                if( ! m_PlayRateField.HasFocus())
+                m_PlayRateSlider.value = Mathf.Pow(playRateValue, 1 / VisualEffectControl.sliderPower);
+                if (!m_PlayRateField.HasFocus())
                     m_PlayRateField.value = Mathf.RoundToInt(playRateValue);
             }
         }
 
         void ToggleAttach()
         {
-            if( ! object.ReferenceEquals(m_AttachedComponent,null))
+            if (!object.ReferenceEquals(m_AttachedComponent, null))
             {
                 Detach();
             }
@@ -381,17 +388,20 @@ namespace  UnityEditor.VFX.UI
         {
             Detach();
         }
+
         public void ControllerChanged(ControllerChangedEvent e)
         {
         }
+
         public void OnMoved()
         {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard,GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
-        void IVFXResizable.OnStartResize(){}
+
+        void IVFXResizable.OnStartResize() {}
         public void OnResized()
         {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard,GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
 }

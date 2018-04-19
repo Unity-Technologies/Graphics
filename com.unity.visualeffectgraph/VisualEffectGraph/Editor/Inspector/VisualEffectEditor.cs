@@ -22,6 +22,7 @@ public static class VisualEffectControl
         effect.Reinit();
         effect.pause = true;
     }
+
     public static void ControlPlayPause(this VisualEffect effect)
     {
         effect.pause = !effect.pause;
@@ -38,7 +39,6 @@ public static class VisualEffectControl
         effect.Reinit();
         effect.pause = false;
     }
-
 
     public const float minSlider = 1;
     public const float maxSlider = 4000;
@@ -573,7 +573,6 @@ public class VisualEffectEditor : Editor
             m_Styles = new Styles();
     }
 
-
     private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
     {
         VisualEffect effect = ((VisualEffect)targets[0]);
@@ -584,7 +583,7 @@ public class VisualEffectEditor : Editor
         {
             effect.ControlStop();
         }
-        if( effect.pause)
+        if (effect.pause)
         {
             if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play), buttonWidth))
             {
@@ -599,7 +598,7 @@ public class VisualEffectEditor : Editor
             }
         }
 
-        
+
         if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step), buttonWidth))
         {
             effect.ControlStep();
@@ -629,7 +628,6 @@ public class VisualEffectEditor : Editor
         GUILayout.EndHorizontal();
     }
 
-
     void SetPlayRate(object value)
     {
         float rate = (float)((int)value)  * VisualEffectControl.valueToPlayRate;
@@ -640,9 +638,6 @@ public class VisualEffectEditor : Editor
     protected virtual void OnSceneGUI()
     {
         SceneViewOverlay.Window(ParticleSystemInspector.playBackTitle, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
-
-        if (EditMode.editMode == EditMode.SceneViewEditMode.Collider && EditMode.IsOwner(this))
-            VFXGizmo.OnDrawComponentGizmo(target as VisualEffect);
     }
 
     /*
