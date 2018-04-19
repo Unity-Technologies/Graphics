@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -83,15 +84,22 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            Profiler.BeginSample("VFXDataAnchorController.ModelChanged");
             if (expandedSelf != m_Expanded)
             {
                 m_Expanded = expandedSelf;
                 UpdateHiddenRecursive(m_Hidden, true);
             }
+            Profiler.BeginSample("VFXDataAnchorController.ModelChanged:UpdateInfos");
             UpdateInfos();
+            Profiler.EndSample();
 
             sourceNode.DataEdgesMightHaveChanged();
+
+            Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         public override void OnDisable()

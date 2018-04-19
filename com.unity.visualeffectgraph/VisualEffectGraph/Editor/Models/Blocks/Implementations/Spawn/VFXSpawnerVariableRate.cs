@@ -4,7 +4,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Spawner")]
+    [VFXInfo(category = "Spawn")]
     class VFXSpawnerVariableRate : VFXAbstractSpawner
     {
         public override string name { get { return "VariableRate"; } }

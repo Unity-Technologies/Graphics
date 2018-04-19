@@ -149,6 +149,7 @@ namespace UnityEditor.VFX.UI
             modifiedModels = otherModifiedModels;
             otherModifiedModels = tmp;
 
+
             int cpt = 0;
             foreach (var objs in otherModifiedModels)
             {
@@ -174,6 +175,11 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
 
             m_InNotify = false;
+
+            if( m_DataEdgesMightHaveChangedAsked)
+            {
+                DataEdgesMightHaveChanged();
+            }
         }
 
         public VFXGraph graph { get {return model.graph as VFXGraph; }}
@@ -238,12 +244,14 @@ namespace UnityEditor.VFX.UI
 
         public override void OnDisable()
         {
+            Profiler.BeginSample("VFXViewController.OnDisable");
             GraphLost();
             ReleaseUndoStack();
             Undo.undoRedoPerformed -= SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord -= WillFlushUndoRecord;
 
             base.OnDisable();
+            Profiler.EndSample();
         }
 
         public IEnumerable<VFXNodeController> AllSlotContainerControllers
@@ -305,9 +313,20 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
+
+        bool m_DataEdgesMightHaveChangedAsked;
+
         public void DataEdgesMightHaveChanged()
         {
             if (m_Syncing) return;
+
+            if( m_InNotify)
+            {
+                m_DataEdgesMightHaveChangedAsked =true;
+                return;
+            }
+
+            Profiler.BeginSample("VFXViewController.DataEdgesMightHaveChanged");
 
             bool change = RecreateNodeEdges();
 
@@ -315,6 +334,8 @@ namespace UnityEditor.VFX.UI
             {
                 NotifyChange(Change.dataEdge);
             }
+
+            Profiler.EndSample();
         }
 
         public bool RecreateInputSlotEdge(HashSet<VFXDataEdgeController> unusedEdges, VFXNodeController slotContainer, VFXDataAnchorController input)

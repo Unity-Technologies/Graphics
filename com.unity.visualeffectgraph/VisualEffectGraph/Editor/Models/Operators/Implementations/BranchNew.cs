@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-    [VFXInfo(category = "Math", variantProvider = typeof(BranchNewTypeProvider), experimental = true)] //This provider is only a test waiting a real interface
+    [VFXInfo(category = "Math", experimental = true)]
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Operator
             public Sphere False = Sphere.defaultValue;
         }
 
-        public sealed override string name { get { return "BranchNew " + ((Type)m_Type).UserFriendlyName(); } }
+        public sealed override string name { get { return "BranchNew"; } }
 
         public Type GetOperandType()
         {
@@ -58,6 +58,14 @@ namespace UnityEditor.VFX.Operator
 
             m_Type = type;
             Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        public IEnumerable<int> staticSlotIndex
+        {
+            get
+            {
+                yield return 0;
+            }
         }
 
         public override IEnumerable<Type> validTypes

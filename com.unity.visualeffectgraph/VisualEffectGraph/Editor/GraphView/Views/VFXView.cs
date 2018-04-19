@@ -200,8 +200,11 @@ namespace UnityEditor.VFX.UI
             m_GeometrySet = false;
 
             // Remove all in view now that the controller has been disconnected.
-            var graphElements = this.graphElements.ToList();
-            foreach (var element in graphElements)
+            foreach (var element in rootGroupNodeElements.Values)
+            {
+                RemoveElement(element);
+            }
+            foreach (var element in groupNodes.Values)
             {
                 RemoveElement(element);
             }

@@ -786,7 +786,7 @@ namespace UnityEditor.VFX.Test
             Func<VFXContextController> fnSpawner = delegate()
                 {
                     var controller = fnContextController();
-                    return controller.FirstOrDefault(o => o.model.name.Contains("Spawner"));
+                    return controller.FirstOrDefault(o => o.model.name.Contains("Spawn"));
                 };
 
             Func<string, VFXContextController> fnEvent = delegate(string name)
@@ -812,7 +812,7 @@ namespace UnityEditor.VFX.Test
                     return m_ViewController.allChildren.OfType<VFXFlowEdgeController>().Count();
                 };
 
-            var contextSpawner = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Spawner"));
+            var contextSpawner = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Spawn"));
             var contextEvent = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Event"));
 
             m_ViewController.AddVFXContext(new Vector2(1, 1), contextSpawner);

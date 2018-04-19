@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
         /* expected emptiness */
     };
 
-    [VFXInfo]
+    [VFXInfo(experimental = true)]
     class VFXBasicGPUEvent : VFXContext
     {
         public VFXBasicGPUEvent() : base(VFXContextType.kSpawnerGPU, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
-            return false;
+            return outputContexts.Any(c => c.CanBeCompiled());
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block.Test
 {
-    [VFXInfo(category = "GPUEvent")]
+    [VFXInfo(category = "GPUEvent", experimental = true)]
     class GPUEventAlways : VFXBlock
     {
         public override string name { get { return "Trigger Event Always"; } }

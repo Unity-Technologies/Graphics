@@ -166,19 +166,36 @@ namespace UnityEditor.VFX.UI
 
         public void Update()
         {
+
+            Profiler.BeginSample("PropertyRM.Update");
+
+            Profiler.BeginSample("PropertyRM.Update:Angle");
             if (VFXPropertyAttribute.IsAngle(m_Provider.attributes))
                 SetMultiplier(Mathf.PI / 180.0f);
+            Profiler.EndSample();
 
-            if (m_Provider.value != null)
+            Profiler.BeginSample("PropertyRM.Update:Regex");
+
+            object value = m_Provider.value;
+
+            if (value != null)
             {
-                string regex = VFXPropertyAttribute.ApplyRegex(m_Provider.attributes, m_Provider.value.ToString());
+                string regex = VFXPropertyAttribute.ApplyRegex(m_Provider.attributes, value);
                 if (regex != null)
-                    m_Provider.value = regex;
+                    value = m_Provider.value = regex;
             }
+            Profiler.EndSample();
 
             UpdateExpandable();
 
-            SetValue(m_Provider.value);
+            Profiler.BeginSample("PropertyRM.Update:SetValue");
+
+            SetValue(value);
+
+            Profiler.EndSample();
+
+
+            Profiler.BeginSample("PropertyRM.Update:Name");
 
             string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
@@ -186,7 +203,8 @@ namespace UnityEditor.VFX.UI
             m_Label.text = text;
 
             TooltipExtension.AddTooltip(m_Label, tooltip);
-            //m_Label.AddTooltip(tooltip);
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         bool m_IconClickableAdded;
