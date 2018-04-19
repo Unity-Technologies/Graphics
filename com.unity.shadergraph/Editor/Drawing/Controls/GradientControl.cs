@@ -44,9 +44,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         [SerializeField]
         SerializedObject m_SerializedObject;
 
-        [SerializeField]
-        SerializedProperty m_SerializedProperty;
-
         public GradientControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
@@ -60,7 +57,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
             m_SerializedObject = new SerializedObject(m_GradientObject);
-            m_SerializedProperty = m_SerializedObject.FindProperty("gradient");
 
             var gradient = (Gradient)m_PropertyInfo.GetValue(m_Node, null);
             m_GradientObject.gradient.SetKeys(gradient.colorKeys, gradient.alphaKeys);
