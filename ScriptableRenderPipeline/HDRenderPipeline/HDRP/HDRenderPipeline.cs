@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentHeight;
 
         // Use to detect frame changes
-        int m_FrameCount;
+        int   m_FrameCount;
         float m_LastTime, m_Time;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ValidAPI = false;
 
                 return ;
-            }            
+            }
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
@@ -548,9 +548,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
                     ?? ScreenSpaceRefraction.@default;
                 ssRefraction.PushShaderParameters(cmd);
-                var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>()
-                    ?? ScreenSpaceReflection.@default;
-                ssReflection.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
@@ -676,13 +673,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool newFrame;
 
                 if (Application.isPlaying)
-            {
+                {
                     newFrame = m_FrameCount != c;
 
                     m_FrameCount = c;
                 }
                 else
-            {
+                {
                     newFrame = (t - m_Time) > 0.0166f;
 
                     if (newFrame) m_FrameCount++;
@@ -690,12 +687,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (newFrame)
                 {
-                HDCamera.CleanUnused();
+                    HDCamera.CleanUnused();
 
                     // Make sure both are never 0.
                     m_LastTime = (m_Time > 0) ? m_Time : t;
                     m_Time  = t;
-            }
+                }
             }
 
             // TODO: Render only visible probes
@@ -881,7 +878,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible
-                            DecalSystem.instance.CreateDrawData();                  // prepare data is separate from draw
+                            DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                         }
                     }
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
@@ -1510,62 +1507,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
                 var debugScreenSpaceTracing = m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing;
 
-                switch (pass)
+                if (pass == ForwardPass.Opaque)
                 {
-                        // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
-                        if (m_FrameSettings.enableSubsurfaceScattering)
-                        {
-                            RenderTargetIdentifier[] m_MRTWithSSS =
-                                new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
-                            m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
-                            m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
-                            for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
-                            {
-                                m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
-                            }
-
-                            HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_CameraDepthStencilBuffer);
-                        }
-                        else
-                        {
-                            HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                        }
-
-                        m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
-                            HDShaderPassNames.s_ForwardOnlyName;
-                        m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
-
-                        var passNames = m_FrameSettings.enableForwardRenderingOnly
-                            ? m_ForwardAndForwardOnlyPassNames
-                            : m_ForwardOnlyPassNames;
-                        var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
-                        if (debugSSTThisPass)
-                        {
-                            cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                            cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
-                        }
-                        RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
-                        if (debugSSTThisPass)
-                            cmd.ClearRandomWriteTargets();
-                        break;
+                    // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
+                    if (m_FrameSettings.enableSubsurfaceScattering)
                     {
-                    default:
+                        RenderTargetIdentifier[] m_MRTWithSSS =
+                            new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
+                        m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
+                        m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
+                        for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                        {
+                            m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
+                        }
+
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_CameraDepthStencilBuffer);
+                    }
+                    else
                     {
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                        if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
-                            DecalSystem.instance.SetAtlas(cmd); // for clustered decals
-
-                        var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
-                        if (debugSSTThisPass)
-                        {
-                            cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                            cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
-                        }
-                        RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
-
-                        if (debugSSTThisPass)
-                            cmd.ClearRandomWriteTargets();
                     }
+
+                    m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
+                        HDShaderPassNames.s_ForwardOnlyName;
+                    m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
+
+                    var passNames = m_FrameSettings.enableForwardRenderingOnly
+                        ? m_ForwardAndForwardOnlyPassNames
+                        : m_ForwardOnlyPassNames;
+                    var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
+                    if (debugSSTThisPass)
+                    {
+                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                        cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
+                    }
+                    RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
+                    if (debugSSTThisPass)
+                        cmd.ClearRandomWriteTargets();
+                }
+                else
+                {
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
+                    if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    {
+                        DecalSystem.instance.SetAtlas(cmd); // for clustered decals
+                    }
+
+                    var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
+                    if (debugSSTThisPass)
+                    {
+                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                        cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
+                    }
+                    RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
+                    if (debugSSTThisPass)
+                        cmd.ClearRandomWriteTargets();
                 }
             }
         }
