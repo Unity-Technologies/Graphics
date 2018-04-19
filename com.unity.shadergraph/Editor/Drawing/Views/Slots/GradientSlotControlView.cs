@@ -20,9 +20,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         [SerializeField]
         SerializedObject m_SerializedObject;
 
-        [SerializeField]
-        SerializedProperty m_SerializedProperty;
-
         public GradientSlotControlView(GradientInputMaterialSlot slot)
         {
             m_Slot = slot;
@@ -31,7 +28,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
             m_SerializedObject = new SerializedObject(m_GradientObject);
-            m_SerializedProperty = m_SerializedObject.FindProperty("gradient");
             
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
             m_GradientObject.gradient.mode = m_Slot.value.mode;
