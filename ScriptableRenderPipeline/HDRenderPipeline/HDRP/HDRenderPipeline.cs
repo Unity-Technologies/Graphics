@@ -151,6 +151,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
+        public int GetDecalAtlasMipCount()
+        {
+            int highestDim = Math.Max(renderPipelineSettings.decalSettings.atlasWidth, renderPipelineSettings.decalSettings.atlasHeight);
+            return (int)Math.Log(highestDim, 2);
+        }
+
         public int GetShadowSliceCount(uint atlasIndex) { return m_LightLoop.GetShadowSliceCount(atlasIndex); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -1799,6 +1805,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_LightLoop.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
+
+                DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 
                 if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
                 {
