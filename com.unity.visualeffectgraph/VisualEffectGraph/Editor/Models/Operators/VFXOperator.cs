@@ -14,14 +14,14 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        protected IEnumerable<VFXExpression> GetRawInputExpressions()
+        private IEnumerable<VFXExpression> GetRawInputExpressions()
         {
             List<VFXExpression> results = new List<VFXExpression>();
             GetInputExpressionsRecursive(results, inputSlots);
             return results;
         }
 
-        virtual protected IEnumerable<VFXExpression> GetInputExpressions()
+        private IEnumerable<VFXExpression> GetInputExpressions()
         {
             return GetRawInputExpressions();
         }
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)
+        protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kConnectionChanged)
             {
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        protected void SetOutputExpressions(VFXExpression[] outputExpressions)
+        private void SetOutputExpressions(VFXExpression[] outputExpressions)
         {
             var outputSlotWithExpression = new List<VFXSlot>();
             GetOutputWithExpressionSlotRecursive(outputSlotWithExpression, outputSlots);
@@ -106,9 +106,9 @@ namespace UnityEditor.VFX
                 outputSlotWithExpression[i].SetExpression(outputExpressions[i]);
         }
 
-        public override void UpdateOutputExpressions()
+        public override sealed void UpdateOutputExpressions()
         {
-            //TODOPAUL : not sure it's the right place
+            //TODOPAUL : It is the right place ? *WIP*
             var outputSlotSpaceable = outputSlots.Where(o => o.Spaceable);
             if (outputSlotSpaceable.Any())
             {
@@ -126,8 +126,14 @@ namespace UnityEditor.VFX
             }
 
             var inputExpressions = GetInputExpressions();
+            inputExpressions = ApplyPatchInputExpression(inputExpressions);
             var outputExpressions = BuildExpression(inputExpressions.ToArray());
             SetOutputExpressions(outputExpressions);
+        }
+
+        protected virtual IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
+        {
+            return inputExpression;
         }
     }
 }

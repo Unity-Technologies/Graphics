@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
         public static readonly Type[] kExpectedTypeOrdering = new[]
         {
             typeof(Vector4),
+            typeof(Position),
             typeof(Vector3),
             typeof(Vector2),
             typeof(float),
@@ -125,7 +126,7 @@ namespace UnityEditor.VFX
             return kExpectedTypeOrdering[minIndex];
         }
 
-        protected sealed override IEnumerable<VFXPropertyWithValue> outputProperties
+        protected override sealed IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
@@ -146,7 +147,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected sealed override object GetDefaultValueForType(Type vtype)
+        protected override sealed object GetDefaultValueForType(Type vtype)
         {
             var type = VFXExpression.GetVFXValueTypeFromType(vtype);
             switch (type)
@@ -167,7 +168,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        protected IEnumerable<VFXExpression> UnifyExpression(IEnumerable<VFXExpression> inputExpression)
+        protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
             var minIndex = inputExpression.Select(o => Array.IndexOf(kExpectedTypeOrdering, VFXExpression.TypeToType(o.valueType))).Min();
             var unifiedType = VFXExpression.GetVFXValueTypeFromType(kExpectedTypeOrdering[minIndex]);
@@ -293,18 +294,11 @@ namespace UnityEditor.VFX
                 }
             }
         }
-
-        public sealed override void UpdateOutputExpressions()
-        {
-            var inputExpression = GetInputExpressions();
-            var outputExpression = BuildExpression(inputExpression.ToArray());
-            SetOutputExpressions(outputExpression.ToArray());
-        }
     }
 
     interface IVFXOperatorNumericUnifiedNew
     {
-        int operandCount {get; }
+        int operandCount { get; }
         Type GetOperandType(int index);
         void SetOperandType(int index, Type type);
     }
@@ -366,14 +360,6 @@ namespace UnityEditor.VFX
                         yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name), GetDefaultValueForType(itType.Current));
                 }
             }
-        }
-
-        public sealed override void UpdateOutputExpressions()
-        {
-            var inputExpression = GetInputExpressions();
-            inputExpression = UnifyExpression(inputExpression);
-            var outputExpression = BuildExpression(inputExpression.ToArray());
-            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 
@@ -511,24 +497,20 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
-        public override void UpdateOutputExpressions()
+        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var inputExpression = GetInputExpressions();
-
-            //Unify behavior (actually, also temporary, since it should handle int to float conversion in some cases)
-            inputExpression = UnifyExpression(inputExpression);
-
             //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
             while (outputExpression.Count > 1)
             {
                 var a = outputExpression.Pop();
                 var b = outputExpression.Pop();
-                var compose = BuildExpression(new[] { a, b })[0];
+                var compose = ComposeExpression(a, b);
                 outputExpression.Push(compose);
             }
-
-            SetOutputExpressions(outputExpression.ToArray());
+            return outputExpression.ToArray();
         }
+
+        protected abstract VFXExpression ComposeExpression(VFXExpression a, VFXExpression b);
     }
 }

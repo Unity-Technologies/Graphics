@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
     struct Sphere
     {
         [Tooltip("The centre of the sphere.")]
-        public Vector3 center;
+        public Position center;
         [Tooltip("The radius of the sphere.")]
         public float radius;
 
@@ -212,6 +212,16 @@ namespace UnityEditor.VFX
         public Vector3 position;
 
         public static Position defaultValue = new Position { position = Vector3.zero };
+
+        public static implicit operator Position(Vector3 p)
+        {
+            return new Position() { position = p };
+        }
+
+        public static implicit operator Vector3(Position p)
+        {
+            return p.position;
+        }
     }
 
     [VFXType, Serializable]
