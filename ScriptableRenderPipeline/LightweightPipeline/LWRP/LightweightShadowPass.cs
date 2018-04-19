@@ -7,18 +7,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     [Serializable]
     public class ShadowSettings
     {
-        public LightShadows directionalShadowQuality;
+        public bool supportsDirectionalShadows;
         public bool screenSpace;
         public int directionalShadowAtlasWidth;
         public int directionalShadowAtlasHeight;
-        public LightShadows localLightsShadowQuality;
-        public int localShadowAtlasWidth;
-        public int localShadowAtlasHeight;
-        public int bufferBitCount;
-
         public float maxShadowDistance;
         public int directionalLightCascadeCount;
         public Vector3 directionalLightCascades;
+        public bool supportsLocalShadows;
+        public int localShadowAtlasWidth;
+        public int localShadowAtlasHeight;
+        public bool supportsSoftShadows;
+        public int bufferBitCount;
 
         public RenderTextureFormat shadowmapTextureFormat;
         public RenderTextureFormat screenspaceShadowmapTextureFormat;
@@ -32,17 +32,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (defaultShadowSettings == null)
                 {
                     defaultShadowSettings = new ShadowSettings();
-                    defaultShadowSettings.directionalShadowQuality = LightShadows.None;
+                    defaultShadowSettings.supportsDirectionalShadows = true;
                     defaultShadowSettings.screenSpace = true;
                     defaultShadowSettings.directionalShadowAtlasHeight = defaultShadowSettings.directionalShadowAtlasWidth = 2048;
-                    defaultShadowSettings.localLightsShadowQuality = LightShadows.None;
+                    defaultShadowSettings.directionalLightCascadeCount = 1;
+                    defaultShadowSettings.directionalLightCascades = new Vector3(0.067f, 0.2f, 0.467f);
+                    defaultShadowSettings.supportsLocalShadows = true;
                     defaultShadowSettings.localShadowAtlasWidth = 512;
                     defaultShadowSettings.localShadowAtlasHeight = 512;
                     defaultShadowSettings.bufferBitCount = 16;
-                    defaultShadowSettings.directionalLightCascadeCount = 1;
-                    defaultShadowSettings.directionalLightCascades = new Vector3(0.05F, 0.2F, 0.3F);
                     defaultShadowSettings.shadowmapTextureFormat = RenderTextureFormat.Shadowmap;
                     defaultShadowSettings.screenspaceShadowmapTextureFormat = RenderTextureFormat.R8;
+                    defaultShadowSettings.supportsSoftShadows = false;
+
                 }
                 return defaultShadowSettings;
             }
@@ -66,11 +68,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightShadowPass
     {
-        public bool IsDirectionalShadowsEnabled { get { return m_ShadowSettings.directionalShadowQuality != LightShadows.None; } }
-        public bool IsLocalShadowsEnabled { get { return m_ShadowSettings.localLightsShadowQuality != LightShadows.None; }}
+        public bool IsDirectionalShadowsEnabled { get { return m_ShadowSettings.supportsDirectionalShadows; } }
+        public bool IsLocalShadowsEnabled { get { return m_ShadowSettings.supportsLocalShadows; } }
         public bool RequireScreenSpaceShadowmap { get { return IsDirectionalShadowsEnabled && m_ShadowSettings.screenSpace; } }
-        public bool HasDirectionalShadowmap { get { return m_DirectionalShadowmapQuality != LightShadows.None; } }
-        public bool HasLocalLightsShadowmap { get { return m_LocalShadowmapQuality != LightShadows.None; } }
+        public bool DirectionalShadowsRendered { get { return m_DirectionalShadowmapQuality != LightShadows.None; } }
+        public bool LocalShadowsRendered { get { return m_LocalShadowmapQuality != LightShadows.None; } }
+        public bool IsSoftShadowsEnabled { get { return m_ShadowSettings.supportsSoftShadows; } }
 
         public float RenderingDistance { get { return m_ShadowSettings.maxShadowDistance; } }
 
@@ -220,25 +223,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            // TODO: Add pipeline setting for this when we oficially add support to multiple shadow casting lights
-            bool supportsLocalShadows = true;
-
             m_ShadowSettings = ShadowSettings.Default;
-            m_ShadowSettings.directionalShadowQuality = (LightShadows)pipelineAsset.ShadowSetting;
-
-            m_ShadowSettings.screenSpace = supportsScreenSpaceShadows;
+            m_ShadowSettings.supportsDirectionalShadows = pipelineAsset.IsDirectionalShadowsSupported;
+            m_ShadowSettings.screenSpace = m_ShadowSettings.supportsDirectionalShadows && supportsScreenSpaceShadows;
             m_ShadowSettings.directionalLightCascadeCount = (m_ShadowSettings.screenSpace) ? pipelineAsset.CascadeCount : 1;
 
-            m_ShadowSettings.directionalShadowAtlasWidth = pipelineAsset.ShadowAtlasResolution;
-            m_ShadowSettings.directionalShadowAtlasHeight = pipelineAsset.ShadowAtlasResolution;
+            m_ShadowSettings.directionalShadowAtlasWidth = pipelineAsset.DirectionalShadowAtlasResolution;
+            m_ShadowSettings.directionalShadowAtlasHeight = pipelineAsset.DirectionalShadowAtlasResolution;
             m_ShadowSettings.maxShadowDistance = pipelineAsset.ShadowDistance;
-            m_ShadowSettings.shadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
-                ? RenderTextureFormat.Shadowmap
-                : RenderTextureFormat.Depth;
-
-            m_ShadowSettings.screenspaceShadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
-                ? RenderTextureFormat.R8
-                : RenderTextureFormat.ARGB32;
 
             switch (m_ShadowSettings.directionalLightCascadeCount)
             {
@@ -255,8 +247,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     break;
             }
 
-            // Until we can have keyword stripping we disable local light shadows on mobile
-            m_ShadowSettings.localLightsShadowQuality = (supportsLocalShadows) ? LightShadows.Hard : LightShadows.None;
+            m_ShadowSettings.supportsLocalShadows = pipelineAsset.IsLocalShadowsSupported;
+            m_ShadowSettings.localShadowAtlasWidth = m_ShadowSettings.localShadowAtlasHeight = pipelineAsset.LocalShadowAtlasResolution;
+            m_ShadowSettings.supportsSoftShadows = pipelineAsset.IsSoftShadowsSupported;
+
+            m_ShadowSettings.bufferBitCount = 16;
+
+            m_ShadowSettings.shadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+                ? RenderTextureFormat.Shadowmap
+                : RenderTextureFormat.Depth;
+
+            m_ShadowSettings.screenspaceShadowmapTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
+                ? RenderTextureFormat.R8
+                : RenderTextureFormat.ARGB32;
         }
 
         private void Clear()
@@ -355,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (success)
             {
-                m_DirectionalShadowmapQuality = (m_ShadowSettings.directionalShadowQuality != LightShadows.Soft) ? LightShadows.Hard : light.shadows;
+                m_DirectionalShadowmapQuality = (IsSoftShadowsEnabled) ? light.shadows : LightShadows.Hard;
 
                 // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
                 // GLES2 platform is forced to hard single cascade shadows.
@@ -445,7 +448,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SetupLocalLightsShadowReceiverConstants(cmd, ref context);
 
-            m_LocalShadowmapQuality = (LightShadows)Math.Min(shadowSampling, (int)m_ShadowSettings.directionalShadowQuality);
+            m_LocalShadowmapQuality = (IsSoftShadowsEnabled) ? (LightShadows)shadowSampling : LightShadows.Hard;
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

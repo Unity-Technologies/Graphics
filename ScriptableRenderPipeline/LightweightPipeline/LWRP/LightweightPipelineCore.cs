@@ -48,10 +48,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (pipelineAsset.SupportsVertexLight)
                 pipelineCapabilities |= PipelineCapabilities.VertexLights;
 
-            if (pipelineAsset.ShadowSetting != ShadowType.NO_SHADOW)
+            if (pipelineAsset.IsDirectionalShadowsSupported)
                 pipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
 
-            pipelineCapabilities |= PipelineCapabilities.LocalShadows;
+            if (pipelineAsset.IsLocalShadowsSupported)
+                pipelineCapabilities |= PipelineCapabilities.LocalShadows;
         }
     }
 }
