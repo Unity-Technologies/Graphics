@@ -17,6 +17,10 @@ public class ScriptableCullingTests
     void Setup(string testName, string cameraName)
     {
         string scenePath = string.Format("Assets/ScriptableRenderLoop/Tests/GraphicsTests/Core/Scenes/{0}.unity", testName);
+
+        BackupSceneManagerSetup();
+        EditorSceneManager.OpenScene(scenePath);
+
         string fullCameraName = string.Format("Camera_{0}", cameraName);
 
         var cameras = UnityEngine.Object.FindObjectsOfType(typeof(Camera)) as Camera[];
@@ -27,9 +31,6 @@ public class ScriptableCullingTests
             // Throw?
             Assert.IsTrue(false, string.Format("Cannot find camera: {0}", cameraName) );
         }
-
-        BackupSceneManagerSetup();
-        EditorSceneManager.OpenScene(scenePath);
     }
 
     void TearDown()
@@ -92,6 +93,28 @@ public class ScriptableCullingTests
         Assert.AreEqual(2, lightCullResult.visibleShadowCastingLights.Length);
         Assert.AreEqual(2, lightCullResult.visibleOffscreenVertexLights.Length);
         Assert.AreEqual(1, lightCullResult.visibleOffscreenShadowCastingVertexLights.Length);
+
+        TearDown();
+    }
+
+    [Test(Description = "Reflection Probe simple frustum culling test")]
+    public void ReflectionProbeFrustumCulling()
+    {
+        Setup("FrustumCullingTest", "FrustumCullingTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        CullingRequests requests = new CullingRequests();
+        requests.AddRequest(cullingParams);
+
+        var reflectionCullingResults = Culling.CullReflectionProbes(requests);
+
+        var result = reflectionCullingResults.GetResult(0);
+        Assert.AreEqual(2, result.visibleReflectionProbes.Length);
+
+        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbeInside"));
+        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbePartial"));
 
         TearDown();
     }

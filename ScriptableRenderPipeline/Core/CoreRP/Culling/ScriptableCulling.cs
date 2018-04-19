@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         public static void FillCullingParameters(Camera camera, ref CullingParameters parameters)
         {
-            parameters.dummy = camera.GetInstanceID();
+            CullResults.GetCullingParameters(camera, false, out parameters.parameters);
         }
     }
 }
