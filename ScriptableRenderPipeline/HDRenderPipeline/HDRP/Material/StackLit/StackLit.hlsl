@@ -219,6 +219,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
+    preLightData.iblPerceptualRoughness[0] = bsdfData.perceptualRoughnessA;
+    preLightData.iblPerceptualRoughness[1] = bsdfData.perceptualRoughnessB;
 
     float NdotV = ClampNdotV(preLightData.NdotV);
 
