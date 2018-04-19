@@ -169,6 +169,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty supportDBuffer = null;
         protected const string kSupportDBuffer = "_SupportDBuffer";
 
+        protected virtual MaterialId defaultMaterialID { get { return MaterialId.LitStandard; } }
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -178,8 +179,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             depthOffsetEnable = FindProperty(kDepthOffsetEnable, props, false);
 
             // MaterialID
-            materialID = FindProperty(kMaterialID, props);
-            transmissionEnable = FindProperty(kTransmissionEnable, props);
+            materialID = FindProperty(kMaterialID, props, false);
+            transmissionEnable = FindProperty(kTransmissionEnable, props, false);
 
             displacementMode = FindProperty(kDisplacementMode, props, false);
             displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props, false);
@@ -246,13 +247,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
-
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+            if (materialID != null)
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
-                EditorGUI.indentLevel--;
+                m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
+
+                if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
