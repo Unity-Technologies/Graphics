@@ -1,9 +1,6 @@
-using UnityEngine;
 using System;
+using UnityEngine.Rendering;
 
-//-----------------------------------------------------------------------------
-// structure definition
-//-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class StackLit : RenderPipelineMaterial
@@ -72,5 +69,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         };
+        //-----------------------------------------------------------------------------
+        // Init precomputed textures
+        //-----------------------------------------------------------------------------
+
+        bool m_isInit;
+
+        public StackLit() {}
+
+        public override void Build(HDRenderPipelineAsset hdAsset)
+        {
+            PreIntegratedFGD.instance.Build();
+            //LTCAreaLight.instance.Build();
+
+            m_isInit = false;
+        }
+
+        public override void Cleanup()
+        {
+            PreIntegratedFGD.instance.Cleanup();
+            //LTCAreaLight.instance.Cleanup();
+
+            m_isInit = false;
+        }
+
+        public override void RenderInit(CommandBuffer cmd)
+        {
+            if (m_isInit)
+                return;
+
+            PreIntegratedFGD.instance.RenderInit(cmd);
+
+            m_isInit = true;
+        }
+
+        public override void Bind()
+        {
+            PreIntegratedFGD.instance.Bind();
+            //LTCAreaLight.instance.Bind();
+        }
+
     }
 }
