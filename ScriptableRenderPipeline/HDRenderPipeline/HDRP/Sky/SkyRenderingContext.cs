@@ -6,10 +6,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     internal class SkyRenderingContext
     {
         IBLFilterGGX            m_IBLFilterGGX;
-        RTHandle                m_SkyboxCubemapRT;
-        RTHandle                m_SkyboxGGXCubemapRT;
-        RTHandle                m_SkyboxMarginalRowCdfRT;
-        RTHandle                m_SkyboxConditionalCdfRT;
+        RTHandleSystem.RTHandle m_SkyboxCubemapRT;
+        RTHandleSystem.RTHandle m_SkyboxGGXCubemapRT;
+        RTHandleSystem.RTHandle m_SkyboxMarginalRowCdfRT;
+        RTHandleSystem.RTHandle m_SkyboxConditionalCdfRT;
         Vector4                 m_CubemapScreenSize;
         Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];

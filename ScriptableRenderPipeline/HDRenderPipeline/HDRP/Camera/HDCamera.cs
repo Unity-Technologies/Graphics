@@ -423,10 +423,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void ClearAll()
         {
-            int frameCheck = Time.frameCount - 1;
-
             foreach (var cam in s_Cameras)
-                cam.Value.historyRTSystem.ReleaseAll();
+                cam.Value.ReleaseHistoryBuffer();
 
             s_Cameras.Clear();
             s_Cleanup.Clear();
@@ -439,7 +437,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var kvp in s_Cameras)
             {
-                if (kvp.Value.m_LastFrameActive != frameCheck)
+                if (kvp.Value.m_LastFrameActive < frameCheck)
                     s_Cleanup.Add(kvp.Key);
             }
 
@@ -544,6 +542,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_HistoryRTSystem = new BufferedRTHandleSystem();
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        void ReleaseHistoryBuffer()
+        {
+            if (m_HistoryRTSystem != null)
+                m_HistoryRTSystem.ReleaseAll();
         }
     }
 }
