@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 
 
 ### Bug fixes
+- Fix fog flags in scene view is now taken into account
+- Fix sky in preview windows that were disappearing after a load of a new level
 - Fix numerical issues in IntersectRayAABB().
 - Fix alpha blending of volumetric lighting with transparent objects.
 - Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
