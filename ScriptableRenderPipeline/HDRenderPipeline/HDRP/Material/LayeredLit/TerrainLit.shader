@@ -245,13 +245,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        _PPDMinSamples("Min sample for POM", Range(1.0, 64.0)) = 5
-        _PPDMaxSamples("Max sample for POM", Range(1.0, 64.0)) = 15
-        _PPDLodThreshold("Start lod to fade out the POM effect", Range(0.0, 16.0)) = 5
-        _PPDPrimitiveLength("Primitive length for POM", Float) = 1
-        _PPDPrimitiveWidth("Primitive width for POM", Float) = 1
-        [HideInInspector] _InvPrimScale("Inverse primitive scale for non-planar POM", Vector) = (1, 1, 0, 0)
-
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
@@ -303,9 +296,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
         [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
         [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
-
-        // Transparency
-        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
