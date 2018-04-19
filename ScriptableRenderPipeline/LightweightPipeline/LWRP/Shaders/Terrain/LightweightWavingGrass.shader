@@ -31,6 +31,7 @@ Shader "Hidden/TerrainEngine/Details/WavingDoublePass" // Has to override the in
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
             #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords

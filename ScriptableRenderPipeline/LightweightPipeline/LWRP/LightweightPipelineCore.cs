@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         VertexLights = (1 << 1),
         DirectionalShadows = (1 << 2),
         LocalShadows = (1 << 3),
+        SoftShadows = (1 << 4),
     }
 
     public class LightweightKeywords
@@ -20,6 +21,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string MainLightCookieText = "_MAIN_LIGHT_COOKIE";
         public static readonly string DirectionalShadowsText = "_SHADOWS_ENABLED";
         public static readonly string LocalShadowsText = "_LOCAL_SHADOWS_ENABLED";
+        public static readonly string SoftShadowsText = "_SHADOWS_SOFT";
+        public static readonly string CascadeShadowsText = "_SHADOWS_CASCADE";
         
         public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(AdditionalLightsText);
         public static readonly ShaderKeyword VertexLights = new ShaderKeyword(VertexLightsText);
@@ -27,6 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly ShaderKeyword MainLightCookie = new ShaderKeyword(MainLightCookieText);
         public static readonly ShaderKeyword DirectionalShadows = new ShaderKeyword(DirectionalShadowsText);
         public static readonly ShaderKeyword LocalShadows = new ShaderKeyword(LocalShadowsText);
+        public static readonly ShaderKeyword SoftShadows = new ShaderKeyword(SoftShadowsText);
     }
 
     public partial class LightweightPipeline
@@ -53,6 +57,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (pipelineAsset.IsLocalShadowsSupported)
                 pipelineCapabilities |= PipelineCapabilities.LocalShadows;
+
+            bool anyShadows = pipelineAsset.IsDirectionalShadowsSupported || pipelineAsset.IsLocalShadowsSupported;
+            if (pipelineAsset.IsSoftShadowsSupported && anyShadows)
+                pipelineCapabilities |= PipelineCapabilities.SoftShadows;
         }
     }
 }

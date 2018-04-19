@@ -150,7 +150,7 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sample
         #else
             float fetchesWeights[9];
             float2 fetchesUV[9];
-            SampleShadow_ComputeSamples_Tent_5x5(_ShadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
+            SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
             attenuation  = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z));
             attenuation += fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z));

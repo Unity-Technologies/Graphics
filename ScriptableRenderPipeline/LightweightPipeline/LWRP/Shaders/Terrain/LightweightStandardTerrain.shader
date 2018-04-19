@@ -52,6 +52,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
+            #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords

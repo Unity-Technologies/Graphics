@@ -56,6 +56,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
                 return true;
 
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.SoftShadows) &&
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.SoftShadows))
+                return true;
+
             return false;
         }
 
