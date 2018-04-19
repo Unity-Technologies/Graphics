@@ -396,9 +396,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-           
-           
-
             public void RenderIntoDBuffer(CommandBuffer cmd)
             {
                 if(m_NumResults == 0)
@@ -618,6 +615,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // set to null so that they get recreated
             m_DecalMesh = null;
             m_Atlas = null;
+        }
+
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+        {
+            if(debugDisplaySettings.decalsDebugSettings.m_DisplayAtlas)
+            { 
+                using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
+                {
+                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1,1,0,0), new Vector4(width / hdCamera.actualWidth, overlaySize / hdCamera.actualHeight, x / hdCamera.actualWidth, y / hdCamera.actualHeight), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
+                }
+            }
         }
     }
 }
