@@ -1,5 +1,5 @@
 
-Shader "Sign"
+Shader "Fresnel Effect"
 {
     SubShader
     {
