@@ -295,6 +295,9 @@ namespace UnityEngine.Experimental.Rendering
             newRT.m_EnableRandomWrite = enableRandomWrite;
             newRT.m_EnableMSAA = enableMSAA;
             newRT.m_Name = name;
+
+            newRT.referenceSize = new Vector2Int(width, height);
+            
             return newRT;
         }
 
@@ -351,6 +354,8 @@ namespace UnityEngine.Experimental.Rendering
                 memoryless,
                 name
             );
+
+            rth.referenceSize = new Vector2Int(width, height);
 
             rth.scaleFactor = scaleFactor;
             return rth;
@@ -415,6 +420,8 @@ namespace UnityEngine.Experimental.Rendering
                 memoryless,
                 name
             );
+
+            rth.referenceSize = new Vector2Int(width, height);
 
             rth.scaleFunc = scaleFunc;
             return rth;
