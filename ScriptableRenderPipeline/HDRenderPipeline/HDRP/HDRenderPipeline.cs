@@ -883,8 +883,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             DecalSystem.instance.EndCull();
                             m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
-                            DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
+                            DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
                         }
                     }
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
