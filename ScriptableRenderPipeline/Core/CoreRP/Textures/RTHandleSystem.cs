@@ -1,90 +1,88 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
     public delegate Vector2Int ScaleFunc(Vector2Int size);
 
-    public enum DepthBits
+    public partial class RTHandleSystem : IDisposable
     {
-        None = 0,
-        Depth8 = 8,
-        Depth16 = 16,
-        Depth24 = 24
-    }
+        public enum ResizeMode
+        {
+            Auto,
+            OnDemand
+        }
 
-    public enum MSAASamples
-    {
-        None = 1,
-        MSAA2x = 2,
-        MSAA4x = 4,
-        MSAA8x = 8
-    }
-
-    public class RTHandle
-    {
-        enum RTCategory
+        internal enum RTCategory
         {
             Regular = 0,
             MSAA = 1,
             Count
         }
 
-        // Static management.
-        public static int s_MaxWidth { get { return s_MaxWidths[(int)RTCategory.Regular]; } }
-        public static int s_MaxHeight { get { return s_MaxHeights[(int)RTCategory.Regular]; } }
-
-        public static int s_MaxWidthMSAAA { get { return s_MaxWidths[(int)RTCategory.MSAA]; } }
-        public static int s_MaxHeightMSAA { get { return s_MaxHeights[(int)RTCategory.MSAA]; } }
-
-        private static int GetMaxWidth(RTCategory category) { return s_MaxWidths[(int)category]; }
-        private static int GetMaxHeight(RTCategory category) { return s_MaxHeights[(int)category]; }
-
-
         // Parameters for auto-scaled Render Textures
-        static bool             s_ScaledRTSupportsMSAA = false;
-        static MSAASamples      s_ScaledRTCurrentMSAASamples = MSAASamples.None;
-        static List<RTHandle>   s_AutoSizedRTs;
-        static RTCategory       s_ScaledRTCurrentCategory = RTCategory.Regular;
+        bool                m_ScaledRTSupportsMSAA = false;
+        MSAASamples         m_ScaledRTCurrentMSAASamples = MSAASamples.None;
+        HashSet<RTHandle>   m_AutoSizedRTs;
+        RTHandle[]          m_AutoSizedRTsArray; // For fast iteration
+        HashSet<RTHandle>   m_ResizeOnDemandRTs;
+        RTCategory          m_ScaledRTCurrentCategory = RTCategory.Regular;
 
-        static int[] s_MaxWidths = new int[(int)RTCategory.Count];
-        static int[] s_MaxHeights = new int[(int)RTCategory.Count];
+        int[] m_MaxWidths = new int[(int)RTCategory.Count];
+        int[] m_MaxHeights = new int[(int)RTCategory.Count];
 
-        public static int maxWidth { get { return GetMaxWidth(s_ScaledRTCurrentCategory); } }
-        public static int maxHeight { get { return GetMaxHeight(s_ScaledRTCurrentCategory); } }
+        int maxWidthRegular { get { return GetMaxWidth(RTCategory.Regular); } }
+        int maxHeightRegular { get { return GetMaxHeight(RTCategory.Regular); } }
 
-        static RTHandle()
+        int maxWidthMSAA { get { return GetMaxWidth(RTCategory.MSAA); } }
+        int maxHeightMSAA { get { return GetMaxHeight(RTCategory.MSAA); } }
+
+        public int maxWidth { get { return GetMaxWidth(m_ScaledRTCurrentCategory); } }
+        public int maxHeight { get { return GetMaxHeight(m_ScaledRTCurrentCategory); } }
+
+        public RTHandleSystem()
         {
-            s_AutoSizedRTs = new List<RTHandle>();
+            m_AutoSizedRTs = new HashSet<RTHandle>();
+            m_ResizeOnDemandRTs = new HashSet<RTHandle>();
             for (int i = 0; i < (int)RTCategory.Count; ++i)
             {
-                s_MaxWidths[i] = 1;
-                s_MaxHeights[i] = 1;
+                m_MaxWidths[i] = 1;
+                m_MaxHeights[i] = 1;
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
 
         // Call this once to set the initial size and allow msaa targets or not.
-        public static void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
+        public void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
         {
-            Debug.Assert(s_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture.");
+            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture.");
 
             for (int i = 0; i < (int)RTCategory.Count; ++i)
             {
-                s_MaxWidths[i] = width;
-                s_MaxHeights[i] = height;
+                m_MaxWidths[i] = width;
+                m_MaxHeights[i] = height;
             }
 
-            s_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
-            s_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
+            m_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
+            m_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
         }
 
-        public static void Release(RTHandle rth)
+        public void Release(RTHandle rth)
         {
             if(rth != null)
+            {
+                Assert.AreEqual(this, rth.m_Owner);
                 rth.Release();
+            }
         }
 
-        public static void SetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
+        public void SetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
         {
             // Technically, the enum could be passed as argument directly but let's not pollute public API with unnecessary complexity for now.
             RTCategory category = msaa ? RTCategory.MSAA : RTCategory.Regular;
@@ -92,12 +90,12 @@ namespace UnityEngine.Experimental.Rendering
             width = Mathf.Max(width, 1);
             height = Mathf.Max(height, 1);
 
-            bool msaaSamplesChanged = msaa && (msaaSamples != s_ScaledRTCurrentMSAASamples);
+            bool msaaSamplesChanged = msaa && (msaaSamples != m_ScaledRTCurrentMSAASamples);
             if (width > GetMaxWidth(category) || height > GetMaxHeight(category) || msaaSamplesChanged)
                 Resize(width, height, category, msaaSamples);
         }
 
-        public static void ResetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
+        public void ResetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
         {
             // Technically, the enum could be passed as argument directly but let's not pollute public API with unnecessary complexity for now.
             RTCategory category = msaa ? RTCategory.MSAA : RTCategory.Regular;
@@ -105,22 +103,115 @@ namespace UnityEngine.Experimental.Rendering
             width = Mathf.Max(width, 1);
             height = Mathf.Max(height, 1);
 
-            bool msaaSamplesChanged = msaa && (msaaSamples != s_ScaledRTCurrentMSAASamples);
+            bool msaaSamplesChanged = msaa && (msaaSamples != m_ScaledRTCurrentMSAASamples);
             if (width != GetMaxWidth(category) || height != GetMaxHeight(category) || msaaSamplesChanged)
                 Resize(width, height, category, msaaSamples);
         }
 
-        static void Resize(int width, int height, RTCategory category, MSAASamples msaaSamples)
+        public void SwitchResizeMode(RTHandle rth, ResizeMode mode)
         {
-            s_MaxWidths[(int)category] = width;
-            s_MaxHeights[(int)category] = height;
-            s_ScaledRTCurrentMSAASamples = msaaSamples;
+            switch (mode)
+            {
+                case ResizeMode.OnDemand:
+                    m_AutoSizedRTs.Remove(rth);
+                    m_ResizeOnDemandRTs.Add(rth);
+                    break;
+                case ResizeMode.Auto:
+                    // Resize now so it is consistent with other auto resize RTHs
+                    if (m_ResizeOnDemandRTs.Contains(rth))
+                        DemandResize(rth);
+                    m_ResizeOnDemandRTs.Remove(rth);
+                    m_AutoSizedRTs.Add(rth);
+                    break;
+            }
+        }
+
+        public void DemandResize(RTHandle rth)
+        {
+            Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), string.Format("The RTHandle {0} is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.", rth));
+            
+            for (int i = 0, c = (int)RTCategory.Count; i < c; ++i)
+            {
+                if (rth.m_RTs[i] == null)
+                    continue;
+
+                var rt = rth.m_RTs[i];
+                rth.referenceSize = new Vector2Int(m_MaxWidths[i], m_MaxHeights[i]);
+                var scaledSize = rth.GetScaledSize(rth.referenceSize);
+                scaledSize = Vector2Int.Max(Vector2Int.one, scaledSize);
+
+                var enableMSAA = i == (int)RTCategory.MSAA;
+                var sizeChanged = rt.width != scaledSize.x || rt.height != scaledSize.y;
+                var msaaSampleChanged = enableMSAA && rt.antiAliasing != (int)m_ScaledRTCurrentMSAASamples;
+
+                if (sizeChanged || msaaSampleChanged)
+                {
+                    rt.Release();
+
+                    if (enableMSAA)
+                        rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
+
+                    rt.width = scaledSize.x;
+                    rt.height = scaledSize.y;
+
+                    rt.name = CoreUtils.GetRenderTargetAutoName(
+                        rt.width, 
+                        rt.height, 
+                        rt.format, 
+                        rth.m_Name, 
+                        mips: rt.useMipMap, 
+                        enableMSAA : enableMSAA, 
+                        msaaSamples: m_ScaledRTCurrentMSAASamples
+                    );
+                    rt.Create();
+                }
+            }
+        }
+
+        int GetMaxWidth(RTCategory category) { return m_MaxWidths[(int)category]; }
+        int GetMaxHeight(RTCategory category) { return m_MaxHeights[(int)category]; }
+
+        void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+                m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
+                {
+                    var rt = m_AutoSizedRTsArray[i];
+                    Release(rt);
+                }
+                m_AutoSizedRTs.Clear();
+
+                Array.Resize(ref m_AutoSizedRTsArray, m_ResizeOnDemandRTs.Count);
+                m_ResizeOnDemandRTs.CopyTo(m_AutoSizedRTsArray);
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
+                {
+                    var rt = m_AutoSizedRTsArray[i];
+                    Release(rt);
+                }
+                m_ResizeOnDemandRTs.Clear();
+                m_AutoSizedRTsArray = null;
+            }
+        }
+
+        void Resize(int width, int height, RTCategory category, MSAASamples msaaSamples)
+        {
+            m_MaxWidths[(int)category] = width;
+            m_MaxHeights[(int)category] = height;
+            m_ScaledRTCurrentMSAASamples = msaaSamples;
 
             var maxSize = new Vector2Int(width, height);
-            s_ScaledRTCurrentCategory = category;
+            m_ScaledRTCurrentCategory = category;
 
-            foreach (var rth in s_AutoSizedRTs)
+            Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+            m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
+            for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
             {
+                var rth = m_AutoSizedRTsArray[i];
+                rth.referenceSize = maxSize;
+                
                 var rt = rth.m_RTs[(int)category];
 
                 // This can happen if you create a RTH for MSAA. By default we only create the MSAA version of the target.
@@ -129,15 +220,15 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     rt.Release();
 
-                    Vector2Int scaledSize = rth.GetScaledSize(maxSize);
+                    var scaledSize = rth.GetScaledSize(maxSize);
 
                     rt.width = Mathf.Max(scaledSize.x, 1);
                     rt.height = Mathf.Max(scaledSize.y, 1);
 
                     if (category == RTCategory.MSAA)
-                        rt.antiAliasing = (int)s_ScaledRTCurrentMSAASamples;
+                        rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
 
-                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: s_ScaledRTCurrentMSAASamples);
+                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
                     rt.Create();
                 }
             }
@@ -146,7 +237,7 @@ namespace UnityEngine.Experimental.Rendering
 
         // This method wraps around regular RenderTexture creation.
         // There is no specific logic applied to RenderTextures created this way.
-        public static RTHandle Alloc(
+        public RTHandle Alloc(
                 int width,
                 int height,
                 int slices = 1,
@@ -198,12 +289,15 @@ namespace UnityEngine.Experimental.Rendering
             rt.Create();
 
             RTCategory category = enableMSAA ? RTCategory.MSAA : RTCategory.Regular;
-            var newRT = new RTHandle();
+            var newRT = new RTHandle(this);
             newRT.SetRenderTexture(rt, category);
             newRT.useScaling = false;
             newRT.m_EnableRandomWrite = enableRandomWrite;
             newRT.m_EnableMSAA = enableMSAA;
             newRT.m_Name = name;
+
+            newRT.referenceSize = new Vector2Int(width, height);
+            
             return newRT;
         }
 
@@ -212,7 +306,7 @@ namespace UnityEngine.Experimental.Rendering
         // RenderTextures allocated this way are meant to be defined by a scale of camera resolution (full/half/quarter resolution for example).
         // The idea is that internally the system will scale up the size of all render texture so that it amortizes with time and not reallocate when a smaller size is required (which is what happens with TemporaryRTs).
         // Since MSAA cannot be changed on the fly for a given RenderTexture, a separate instance will be created if the user requires it. This instance will be the one used after the next call of SetReferenceSize if MSAA is required.
-        public static RTHandle Alloc(
+        public RTHandle Alloc(
                 Vector2 scaleFactor,
                 DepthBits depthBufferBits = DepthBits.None,
                 RenderTextureFormat colorFormat = RenderTextureFormat.Default,
@@ -233,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering
                 string name = ""
             )
         {
-            bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
+            bool allocForMSAA = m_ScaledRTSupportsMSAA ? enableMSAA : false;
             RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             int width = Mathf.Max(Mathf.RoundToInt(scaleFactor.x * GetMaxWidth(category)), 1);
@@ -261,6 +355,8 @@ namespace UnityEngine.Experimental.Rendering
                 name
             );
 
+            rth.referenceSize = new Vector2Int(width, height);
+
             rth.scaleFactor = scaleFactor;
             return rth;
         }
@@ -275,7 +371,7 @@ namespace UnityEngine.Experimental.Rendering
         //     [...]
         // );
         //
-        public static RTHandle Alloc(
+        public RTHandle Alloc(
                 ScaleFunc scaleFunc,
                 DepthBits depthBufferBits = DepthBits.None,
                 RenderTextureFormat colorFormat = RenderTextureFormat.Default,
@@ -296,7 +392,7 @@ namespace UnityEngine.Experimental.Rendering
                 string name = ""
             )
         {
-            bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
+            bool allocForMSAA = m_ScaledRTSupportsMSAA ? enableMSAA : false;
             RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             var scaleFactor = scaleFunc(new Vector2Int(GetMaxWidth(category), GetMaxHeight(category)));
@@ -325,12 +421,14 @@ namespace UnityEngine.Experimental.Rendering
                 name
             );
 
+            rth.referenceSize = new Vector2Int(width, height);
+
             rth.scaleFunc = scaleFunc;
             return rth;
         }
 
         // Internal function
-        static RTHandle AllocAutoSizedRenderTexture(
+        RTHandle AllocAutoSizedRenderTexture(
                 int width,
                 int height,
                 int slices,
@@ -360,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS = false;
             }
 
-            bool allocForMSAA = s_ScaledRTSupportsMSAA ? enableMSAA : false;
+            bool allocForMSAA = m_ScaledRTSupportsMSAA ? enableMSAA : false;
             // Here we purposefully disable MSAA so we just force the bindMS param to false.
             if (!allocForMSAA)
             {
@@ -375,7 +473,7 @@ namespace UnityEngine.Experimental.Rendering
                 UAV = false;
             }
 
-            int msaaSamples = allocForMSAA ? (int)s_ScaledRTCurrentMSAASamples : 1;
+            int msaaSamples = allocForMSAA ? (int)m_ScaledRTCurrentMSAASamples : 1;
             RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
             var rt = new RenderTexture(width, height, (int)depthBufferBits, colorFormat, sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear)
@@ -395,160 +493,32 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : s_ScaledRTCurrentMSAASamples)
+                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : m_ScaledRTCurrentMSAASamples)
             };
             rt.Create();
 
-            RTHandle rth = new RTHandle();
+            var rth = new RTHandle(this);
             rth.SetRenderTexture(rt, category);
             rth.m_EnableMSAA = enableMSAA;
             rth.m_EnableRandomWrite = enableRandomWrite;
             rth.useScaling = true;
             rth.m_Name = name;
-            s_AutoSizedRTs.Add(rth);
+            m_AutoSizedRTs.Add(rth);
             return rth;
         }
 
-        public static implicit operator RenderTexture(RTHandle handle)
-        {
-            return handle.rt;
-        }
-
-        public static implicit operator RenderTargetIdentifier(RTHandle handle)
-        {
-            return handle.nameID;
-        }
-
-        public static string DumpRTInfo()
+        public string DumpRTInfo()
         {
             string result = "";
-            for (int i = 0; i < s_AutoSizedRTs.Count; ++i)
+            Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+            m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
+            for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
             {
-                RenderTexture rt = s_AutoSizedRTs[i].rt;
+                var rt = m_AutoSizedRTsArray[i].rt;
                 result = string.Format("{0}\nRT ({1})\t Format: {2} W: {3} H {4}\n", result, i, rt.format, rt.width, rt.height );
             }
 
             return result;
-        }
-
-        // Instance data
-        RenderTexture[]             m_RTs = new RenderTexture[2];
-        RenderTargetIdentifier[]    m_NameIDs = new RenderTargetIdentifier[2];
-        bool                        m_EnableMSAA = false;
-        bool                        m_EnableRandomWrite = false;
-        string                      m_Name;
-
-        Vector2 scaleFactor = Vector2.one;
-        ScaleFunc scaleFunc;
-
-        public bool useScaling { get; private set; }
-
-        public RenderTexture rt
-        {
-            get
-            {
-                if(!useScaling)
-                {
-                    return m_EnableMSAA ? m_RTs[(int)RTCategory.MSAA] : m_RTs[(int)RTCategory.Regular];
-                }
-                else
-                {
-                    RTCategory category = (m_EnableMSAA && s_ScaledRTCurrentCategory == RTCategory.MSAA) ? RTCategory.MSAA : RTCategory.Regular;
-                    CreateIfNeeded(category);
-                    return m_RTs[(int)category];
-                }
-            }
-        }
-
-        public RenderTargetIdentifier nameID
-        {
-            get
-            {
-                if (!useScaling)
-                {
-                    return m_EnableMSAA ? m_NameIDs[(int)RTCategory.MSAA] : m_RTs[(int)RTCategory.Regular];
-                }
-                else
-                {
-                    RTCategory category = (m_EnableMSAA && s_ScaledRTCurrentCategory == RTCategory.MSAA) ? RTCategory.MSAA : RTCategory.Regular;
-                    CreateIfNeeded(category);
-                    return m_NameIDs[(int)category];
-                }
-            }
-        }
-
-        // Keep constructor private
-        RTHandle()
-        {
-        }
-
-        void SetRenderTexture(RenderTexture rt, RTCategory category)
-        {
-            m_RTs[(int)category] = rt;
-            m_NameIDs[(int)category] = new RenderTargetIdentifier(rt);
-        }
-
-        void CreateIfNeeded(RTCategory category)
-        {
-            // If a RT was first created for MSAA then the regular one might be null, in this case we create it.
-            // That's why we never test the MSAA version: It should always be there if RT was declared correctly.
-            if(category == RTCategory.Regular && m_RTs[(int)RTCategory.Regular] == null)
-            {
-                RenderTexture refRT = m_RTs[(int)RTCategory.MSAA];
-                Debug.Assert(refRT != null);
-                Vector2Int scaledSize = GetScaledSize(new Vector2Int(s_MaxWidth, s_MaxHeight));
-
-                RenderTexture newRT = new RenderTexture(scaledSize.x, scaledSize.y, refRT.depth, refRT.format, refRT.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear)
-                {
-                    hideFlags = HideFlags.HideAndDontSave,
-                    volumeDepth = refRT.volumeDepth,
-                    filterMode = refRT.filterMode,
-                    wrapMode = refRT.wrapMode,
-                    dimension = refRT.dimension,
-                    enableRandomWrite = m_EnableRandomWrite, // We cannot take the info from the msaa rt since we force it to 1
-                    useMipMap = refRT.useMipMap,
-                    autoGenerateMips = refRT.autoGenerateMips,
-                    anisoLevel = refRT.anisoLevel,
-                    mipMapBias = refRT.mipMapBias,
-                    antiAliasing = 1, // No MSAA for the regular version of the texture.
-                    bindTextureMS = false, // Somehow, this can be true even if antiAliasing == 1. Leads to Unity-internal binding errors.
-                    useDynamicScale = refRT.useDynamicScale,
-                    vrUsage = refRT.vrUsage,
-                    memorylessMode = refRT.memorylessMode,
-                    name = CoreUtils.GetRenderTargetAutoName(refRT.width, refRT.height, refRT.format, m_Name, mips : refRT.useMipMap)
-                };
-                newRT.Create();
-
-                m_RTs[(int)RTCategory.Regular] = newRT;
-                m_NameIDs[(int)RTCategory.Regular] = new RenderTargetIdentifier(newRT);
-            }
-        }
-
-        public void Release()
-        {
-
-            s_AutoSizedRTs.Remove(this);
-            for (int i = 0; i < (int)RTCategory.Count; ++i)
-            {
-                CoreUtils.Destroy(m_RTs[i]);
-                m_NameIDs[i] = BuiltinRenderTextureType.None;
-                m_RTs[i] = null;
-            }
-        }
-
-        public Vector2Int GetScaledSize(Vector2Int refSize)
-        {
-            if (scaleFunc != null)
-            {
-                return scaleFunc(refSize);
-            }
-            else
-            {
-                return new Vector2Int(
-                    x: Mathf.RoundToInt(scaleFactor.x * refSize.x),
-                    y: Mathf.RoundToInt(scaleFactor.y * refSize.y)
-                );
-            }
         }
     }
 }
