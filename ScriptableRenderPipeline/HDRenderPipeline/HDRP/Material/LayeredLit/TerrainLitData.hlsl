@@ -2,6 +2,14 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
+#ifdef ATTRIBUTES_NEED_TANGENT
+    #define COMPUTE_TANGENT
+    float4 ComputeTangent(AttributesMesh input)
+    {
+        return float4(cross(input.normalOS, float3(0, 0, 1)), 1);
+    }
+#endif
+
 #include "../Lit/LitData.hlsl"
 
 #define LAYERS_HEIGHTMAP_ENABLE (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3)))
@@ -641,10 +649,6 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-    LODDitheringTransition(posInput.positionSS, unity_LODFade.x);
-#endif
-
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
@@ -653,10 +657,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks);
-
-#ifdef _DEPTHOFFSET_ON
-    ApplyDepthOffsetPositionInput(V, depthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
-#endif
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;
     float3 normalTS0, normalTS1, normalTS2, normalTS3;
@@ -672,10 +672,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // For layered shader, alpha of base color is used as either an opacity mask, a composition mask for inheritance parameters or a density mask.
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
-
-#ifdef _ALPHATEST_ON
-    DoAlphaTest(alpha, _AlphaCutoff);
-#endif
 
     float3 normalTS;
     float3 bentNormalTS;
