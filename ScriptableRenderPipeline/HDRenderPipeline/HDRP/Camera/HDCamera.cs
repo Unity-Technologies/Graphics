@@ -150,18 +150,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HDAdditionalCameraData m_AdditionalCameraData;
 
         // Fallback used when the HDAdditionalCameraData is missing
-        BufferedRTHandleSystem m_HistoryRTSystemFallback = null;
-        public BufferedRTHandleSystem historyRTSystem 
+        BufferedRTHandleSystem m_HistoryRTSystem = null;
+        BufferedRTHandleSystem historyRTSystem 
         {
              get 
              { 
-                 if (m_AdditionalCameraData == null)
-                 {
-                     if (m_HistoryRTSystemFallback == null)
-                        m_HistoryRTSystemFallback = new BufferedRTHandleSystem();
-                    return m_HistoryRTSystemFallback;
-                 }
-                 return m_AdditionalCameraData.historyRTSystem;
+                if (m_HistoryRTSystem == null)
+                    m_HistoryRTSystem = new BufferedRTHandleSystem();
+                return m_HistoryRTSystem;
              } 
         }
 
@@ -298,9 +294,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-            historyRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-            historyRTSystem.Swap();
-            
+            if (m_HistoryRTSystem != null)
+            {
+                m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+                m_HistoryRTSystem.Swap();
+            }
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
@@ -458,10 +456,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             foreach (var cam in s_Cleanup)
             {
                 var hdCam = s_Cameras[cam];
-                if (hdCam.m_HistoryRTSystemFallback != null)
+                if (hdCam.m_HistoryRTSystem != null)
                 {
-                    hdCam.m_HistoryRTSystemFallback.Dispose();
-                    hdCam.m_HistoryRTSystemFallback = null;
+                    hdCam.m_HistoryRTSystem.Dispose();
+                    hdCam.m_HistoryRTSystem = null;
                 }
                 s_Cameras.Remove(cam);
             }
