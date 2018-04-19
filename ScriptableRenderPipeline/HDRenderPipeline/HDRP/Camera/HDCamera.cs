@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         HDAdditionalCameraData m_AdditionalCameraData;
 
-        BufferedRTHandleSystem m_HistoryRTSystem = null;
+        BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
 
         public HDCamera(Camera cam)
         {
@@ -284,11 +284,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-            if (m_HistoryRTSystem != null)
-            {
-                m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-                m_HistoryRTSystem.Swap();
-            }
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            m_HistoryRTSystem.Swap();
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
@@ -523,31 +520,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
         {
-            return m_HistoryRTSystem != null
-                ? m_HistoryRTSystem.GetFrameRT(id, 1)
-                : null;
+            return m_HistoryRTSystem.GetFrameRT(id, 1);
         }
 
         public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
         {
-            return m_HistoryRTSystem != null
-                ? m_HistoryRTSystem.GetFrameRT(id, 0)
-                : null;
+            return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
         // Allocate buffers frames and return current frame
         public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
         {
-            if (m_HistoryRTSystem == null)
-                m_HistoryRTSystem = new BufferedRTHandleSystem();
             m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
         void ReleaseHistoryBuffer()
         {
-            if (m_HistoryRTSystem != null)
-                m_HistoryRTSystem.ReleaseAll();
+            m_HistoryRTSystem.ReleaseAll();
         }
     }
 }
