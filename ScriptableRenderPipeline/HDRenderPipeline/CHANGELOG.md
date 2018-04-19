@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Miscellaneous improvements
 - Port Global Density Volumes to the Interpolation Volume System.
 - Optimize ImportanceSampleLambert() to not require the tangent frame.
-- Generalize and SampleVBuffer() to handle different sampling and reconstruction methods.
+- Generalize SampleVBuffer() to handle different sampling and reconstruction methods.
 - Improve the quality of volumetric lighting reprojection.
 - Optimize Morton Order code in the Subsurface Scattering pass.
 
