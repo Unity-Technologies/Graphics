@@ -98,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private Texture2DAtlas m_Atlas = null;
         public bool m_AllocationSuccess = true;
+        public bool m_PrevAllocationSuccess = true;
 
         public Texture2DAtlas Atlas
         {
@@ -323,7 +324,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_NumResults == 0)
                     return;
-
+                // only add if anything in this decal set is visible.
+                AddToTextureList(ref instance.m_TextureList);
                 int instanceCount = 0;
                 int batchCount = 0;
                 Matrix4x4[] decalToWorldBatch = null;
@@ -555,12 +557,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // updates textures, texture atlas indices and blend value
         public void UpdateCachedMaterialData()
         {
-            //instance.m_AllocationSuccess = true;
             m_TextureList.Clear();
             foreach (var pair in m_DecalSets)
             {
-                pair.Value.InitializeMaterialValues();
-                pair.Value.AddToTextureList(ref m_TextureList);
+                pair.Value.InitializeMaterialValues();                
             }
         }
 
@@ -583,11 +583,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     AddTexture(cmd, textureScaleBias);
                 }
 
-                if(!m_AllocationSuccess) // still failed to allocate, decal atlas size needs to increase
+                if(!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
                 {
                     Debug.LogWarning("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
                 }
             }
+            m_PrevAllocationSuccess = m_AllocationSuccess;
         }
 
         public void CreateDrawData()
