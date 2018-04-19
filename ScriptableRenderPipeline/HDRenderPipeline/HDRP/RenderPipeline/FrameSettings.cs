@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableMSAA = false;
         public MSAASamples msaaSampleCount { get; private set; }
 
-        public bool enableShadowMask = false;
+        public bool enableShadowMask = true;
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
