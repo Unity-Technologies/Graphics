@@ -246,6 +246,17 @@ namespace UnityEditor.VFX.UI
             {
                 selectedObject.controller.DrawGizmos(component);
             }
+            else 
+            {
+                VFXBlackboardField field = selection.First() as VFXBlackboardField;
+
+                if( field != null)
+                {
+                    VFXBlackboardRow row = field.GetFirstAncestorOfType<VFXBlackboardRow>();
+                    if( row != null)
+                        row.controller.DrawGizmos(component);
+                }
+            }
         }
 
         public VFXViewController controller

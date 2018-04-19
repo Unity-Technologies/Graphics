@@ -238,9 +238,10 @@ namespace UnityEditor.VFX.UI
 
         public virtual void DrawGizmos(VisualEffect component)
         {
-            foreach (VFXDataAnchorController controller in inputPorts.Cast<VFXDataAnchorController>())
+            foreach (VFXDataAnchorController controller in inputPorts)
             {
-                controller.DrawGizmo(component);
+                if( controller.model.IsMasterSlot())
+                    controller.DrawGizmo(component);
             }
         }
 

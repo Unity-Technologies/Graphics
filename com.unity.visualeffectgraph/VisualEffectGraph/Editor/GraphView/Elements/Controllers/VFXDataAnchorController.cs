@@ -382,19 +382,20 @@ namespace UnityEditor.VFX.UI
             if( ! model.IsMasterSlot())
             {
                 var parentController = sourceNode.inputPorts.FirstOrDefault(t=>t.model == model.GetParent());
-                parentController.RefreshGizmo();
+                if( parentController != null)
+                    parentController.RefreshGizmo();
             }
         }
 
-        VFXValueGizmo.Context m_GizmoContext;
+        VFXDataAnchorGizmoContext m_GizmoContext;
 
         public void DrawGizmo(VisualEffect component)
         {
             if(m_GizmoContext == null)
             {
-                m_GizmoContext = new VFXValueGizmo.Context(this);
+                m_GizmoContext = new VFXDataAnchorGizmoContext(this);
             }
-            VFXValueGizmo.Draw(new VFXValueGizmo.Context(this), component);
+            VFXValueGizmo.Draw(new VFXDataAnchorGizmoContext(this), component);
         }
     }
 
@@ -496,6 +497,180 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXParameter.NodeLinkedSlot();
+        }
+    }
+
+    public class VFXDataAnchorGizmoContext : VFXValueGizmo.Context
+    {
+        // Provider
+        internal VFXDataAnchorGizmoContext(VFXDataAnchorController controller)
+        {
+            m_Controller = controller;
+        }
+
+        VFXDataAnchorController m_Controller;
+
+        public override Type portType
+        {
+            get {return m_Controller.portType; }
+        }
+
+
+
+        List<object> stack= new List<object>();
+        public override object value 
+        {
+            get
+            {
+                stack.Clear();
+                int stackSize = stack.Count;
+                foreach(var action in m_ValueBuilder)
+                {
+                    action(stack);
+                    stackSize = stack.Count;
+                }
+
+                return stack.First();
+            }
+        }
+
+        List<Action<List<object>>> m_ValueBuilder = new List<Action<List<object>>>();
+
+        protected override void InternalPrepare()
+        {
+            var type = m_Controller.portType;
+
+            if (!type.IsValueType)
+            {
+                Debug.LogError("No support for class types in Gizmos");
+                return;
+            }
+            m_ReadOnlyMembers.Clear();
+            m_ValueBuilder.Clear();
+
+            bool valueSet = false;
+            m_ValueBuilder.Add(o=>o.Add(m_Controller.value));
+            m_FullReadOnly = false;
+
+            if (m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))// this is for Vector type that the system knows how to compute
+            {
+                valueSet = true;
+                m_FullReadOnly = true;
+            }
+            else if (m_Controller.model.HasLink(false))
+            {
+                m_Indeterminate = true;
+                return;
+            }
+            else if (m_Controller.model.HasLink(true))
+            {
+                BuildValue( m_Controller.model, "", valueSet);
+            }
+        }
+
+
+        void BuildValue(VFXSlot slot, string memberPath, bool valueSet)
+        {
+            foreach (var field in slot.property.type.GetFields())
+            {
+                VFXSlot subSlot = slot.children.FirstOrDefault<VFXSlot>(t => t.name == field.Name);
+
+                if (subSlot != null)
+                {
+                    string subMemberPath = field.Name;
+                    if (memberPath.Length > 0)
+                    {
+                        subMemberPath = memberPath + separator + subMemberPath;
+                    }
+                    bool subValueSet = false;
+                    if (!valueSet)
+                    {
+                        subValueSet = false;
+
+
+                        if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
+                        {
+                            m_ValueBuilder.Add(o=>o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
+                            subValueSet = true;
+                        }
+                        else if( slot.HasLink(false))
+                        {
+                            m_Indeterminate = true;
+                            return;
+                        }
+                        else
+                        {
+                            m_ValueBuilder.Add(o=>o.Add(subSlot.value));
+
+                            BuildValue(subSlot, subMemberPath, false);
+                            if( m_Indeterminate) return;
+                        }
+                        /*
+                        m_ValueBuilder.Add(o=>
+                            {
+                                int target = o.Count-2;
+                                int member = o.Count-1;
+                                field.SetValue(o[target], o[member]);
+                            }
+                        );*/
+                        m_ValueBuilder.Add(o=>field.SetValue(o[o.Count-2], o[ o.Count-1]));
+                        m_ValueBuilder.Add(o=>o.RemoveAt(o.Count-1));
+                    }
+
+                    if (subSlot.HasLink(false))
+                    {
+                        m_ReadOnlyMembers.Add(subMemberPath);
+                    }
+                    else if (subSlot.HasLink(true))
+                    {
+                        if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
+                        // for the moment we can edit only part of a position or rotation so mark it as read only if one of the children has a link
+                        {
+                            m_ReadOnlyMembers.Add(subMemberPath);
+                        }
+                        else if (subValueSet || valueSet)
+                        {
+                            BuildValue( subSlot, subMemberPath, true);
+                            if( m_Indeterminate) return;
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void SetMemberValue(string memberPath, object value)
+        {
+            if (string.IsNullOrEmpty(memberPath))
+            {
+                m_Controller.value = value;
+                return;
+            }
+
+            SetSubMemberValue(memberPath, m_Controller.model, value);
+        }
+
+        void SetSubMemberValue(string memberPath, VFXSlot slot, object value)
+        {
+            int index = memberPath.IndexOf(separator);
+
+            if (index == -1)
+            {
+                VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberPath);
+                if (subSlot != null)
+                {
+                    m_Controller.sourceNode.inputPorts.First(t => t.model == subSlot).value = value;
+                }
+            }
+            else
+            {
+                string memberName = memberPath.Substring(0, index);
+
+                VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberName);
+                if (subSlot != null)
+                {
+                    SetSubMemberValue(memberPath.Substring(index + 1), subSlot, value);
+                }
+            }
         }
     }
 }

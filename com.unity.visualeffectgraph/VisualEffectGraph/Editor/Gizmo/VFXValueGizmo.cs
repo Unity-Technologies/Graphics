@@ -17,24 +17,18 @@ namespace UnityEditor.VFX.UI
     }
 
 
+
     public class VFXValueGizmo
     {
         static Dictionary<System.Type, System.Action<Context, VisualEffect>> s_DrawFunctions;
 
-        public class Context
+        public abstract class Context
         {
-            // Provider
-            internal Context(VFXDataAnchorController controller)
+
+
+            public abstract Type portType
             {
-                m_Controller = controller;
-            }
-
-            VFXDataAnchorController m_Controller;
-
-
-            public Type portType
-            {
-                get {return m_Controller.portType; }
+                get;
             }
 
             bool m_Prepared;
@@ -49,127 +43,16 @@ namespace UnityEditor.VFX.UI
                 if( m_Prepared)
                     return;
                 m_Prepared = true;
-                var type = m_Controller.portType;
-
-                if (!type.IsValueType)
-                {
-                    Debug.LogError("No support for class types in Gizmos");
-                    return;
-                }
-                m_ReadOnlyMembers.Clear();
-
-                if (m_Controller.model.HasLink(false))
-                {
-                    m_Value = m_Controller.value;
-                    m_FullReadOnly = true;
-                }
-                if (m_Controller.model.HasLink(true))
-                {
-                    bool valueSet = false;
-                    if (m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))// this is for Vector type that the system knows how to compute
-                    {
-                        m_Value = m_Controller.value;
-                        valueSet = true;
-                    }
-                    else if( m_Controller.model.HasLink(false))
-                    {
-                        m_Indeterminate = true;
-                        return;
-                    }
-                    else // this is for compound types that has to be build recursively
-                    {
-                        m_Value = System.Activator.CreateInstance(type);
-                        valueSet = false;
-                    }
-
-                    BuildValue(m_Value, m_Controller.model, "", valueSet);
-                }
-                else
-                {
-                    m_Value = m_Controller.value;
-                    m_FullReadOnly = false;
-                }
+                InternalPrepare();
             }
+
+            protected abstract void InternalPrepare();
 
             public const string separator = ".";
 
-
-            void BuildValue(object value, VFXSlot slot, string memberPath, bool valueSet)
+            public abstract object value
             {
-                foreach (var field in slot.property.type.GetFields())
-                {
-                    VFXSlot subSlot = slot.children.FirstOrDefault<VFXSlot>(t => t.name == field.Name);
-
-                    if (subSlot != null)
-                    {
-                        string subMemberPath = field.Name;
-                        if (memberPath.Length > 0)
-                        {
-                            subMemberPath = memberPath + separator + subMemberPath;
-                        }
-                        bool subValueSet = false;
-                        if (!valueSet)
-                        {
-                            object subValue = null;
-                            subValueSet = false;
-
-
-                            if (m_Controller.viewController.CanGetEvaluatedContent(slot))
-                            {
-                                subValue = subSlot.value;
-                                subValueSet = true;
-                            }
-                            else if( slot.HasLink(false))
-                            {
-                                m_Indeterminate = true;
-                                return;
-                            }
-                            else
-                            {
-                                subValue = System.Activator.CreateInstance(field.FieldType);
-
-                                BuildValue(subValue, subSlot, subMemberPath, false);
-                            }
-
-                            field.SetValue(value, subValue);
-                        }
-
-                        if (subSlot.HasLink(false))
-                        {
-                            m_ReadOnlyMembers.Add(subMemberPath);
-                        }
-                        else if (subSlot.HasLink(true))
-                        {
-                            if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
-                            // for the moment we can edit only part of a position or rotation so mark it as read only if one of the children has a link
-                            {
-                                m_ReadOnlyMembers.Add(subMemberPath);
-                            }
-                            else if (subValueSet || valueSet)
-                            {
-                                BuildValue(null, subSlot, subMemberPath, true);
-                            }
-                        }
-                    }
-                }
-            }
-
-            object m_Value;
-
-            // Consumer
-            public object value
-            {
-                get
-                {
-                    VFXViewController viewController = m_Controller.viewController;
-
-                    if (viewController.CanGetEvaluatedContent(m_Controller.model))
-                    {
-                        return VFXConverter.ConvertTo(viewController.GetEvaluatedContent(m_Controller.model), m_Controller.portType);
-                    }
-
-                    return m_Controller.model.value;
-                }
+                get;
             }
 
             public bool IsMemberEditable(string memberPath)
@@ -189,7 +72,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            bool m_Indeterminate;
+            protected bool m_Indeterminate;
 
             public bool IsIndeterminate()
             {
@@ -197,43 +80,10 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            public void SetMemberValue(string memberPath, object value)
-            {
-                if (string.IsNullOrEmpty(memberPath))
-                {
-                    m_Controller.value = value;
-                    return;
-                }
+            public abstract void SetMemberValue(string memberPath, object value);
 
-                SetSubMemberValue(memberPath, m_Controller.model, value);
-            }
-
-            void SetSubMemberValue(string memberPath, VFXSlot slot, object value)
-            {
-                int index = memberPath.IndexOf(separator);
-
-                if (index == -1)
-                {
-                    VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberPath);
-                    if (subSlot != null)
-                    {
-                        m_Controller.sourceNode.inputPorts.First(t => t.model == subSlot).value = value;
-                    }
-                }
-                else
-                {
-                    string memberName = memberPath.Substring(0, index);
-
-                    VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberName);
-                    if (subSlot != null)
-                    {
-                        SetSubMemberValue(memberPath.Substring(index + 1), subSlot, value);
-                    }
-                }
-            }
-
-            bool m_FullReadOnly;
-            HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
+            protected bool m_FullReadOnly;
+            protected HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
         }
 
 

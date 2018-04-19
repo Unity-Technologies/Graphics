@@ -21,13 +21,18 @@ namespace UnityEditor.VFX.UI
 
         VFXSubParameterController[] m_Children;
 
+
         object[] m_CustomAttributes;
         VFXPropertyAttribute[] m_Attributes;
 
 
-        public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
+        string m_MemberPath;
+
+
+        public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath,string memberPath)
         {
             m_Parameter = parameter;
+            m_MemberPath = memberPath;
             //m_Field = field;
 
             System.Type type = m_Parameter.portType;
@@ -51,7 +56,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Children == null)
                 {
-                    m_Children = m_Parameter.ComputeSubControllers(portType, m_FieldPath);
+                    m_Children = m_Parameter.ComputeSubControllers(portType, m_FieldPath, m_MemberPath);
                 }
                 return m_Children;
             }
@@ -256,8 +261,9 @@ namespace UnityEditor.VFX.UI
                 return;
             NotifyChange(ValueChanged);
         }
+        Dictionary<string,VFXSubParameterController> m_ChildrenByPath = new Dictionary<string,VFXSubParameterController>();
 
-        public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
+        public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath,string memberPath)
         {
             FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -275,7 +281,9 @@ namespace UnityEditor.VFX.UI
 
             for (int i = startIndex; i < count + startIndex; ++i)
             {
-                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)));
+                string path = memberPath + VFXValueGizmo.Context.separator + fields[i].Name;
+                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)),path);
+                m_ChildrenByPath[path] = subControllers[i - startIndex];
             }
 
             return subControllers;
@@ -287,7 +295,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_SubControllers == null)
             {
-                m_SubControllers = ComputeSubControllers(portType, fieldPath);
+                m_SubControllers = ComputeSubControllers(portType, fieldPath,"");
             }
             VFXSubParameterController[] currentArray = m_SubControllers;
 
@@ -314,6 +322,16 @@ namespace UnityEditor.VFX.UI
             HashSet<string> allNames = new HashSet<string>(viewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
 
             return MakeNameUnique(name, allNames);
+        }
+
+
+        public void SetMemberValue(string memberPath,object value)
+        {
+            VFXSubParameterController subParameterController = null;
+            if(m_ChildrenByPath.TryGetValue(memberPath,out subParameterController))
+            {
+                subParameterController.value = value;
+            }
         }
 
         public static string MakeNameUnique(string name, HashSet<string> allNames)
@@ -526,15 +544,16 @@ namespace UnityEditor.VFX.UI
                 return model.GetOutputSlot(0).property.type;
             }
         }
+
+
+        ParameterGizmoContext m_Context;
         public void DrawGizmos(VisualEffect component)
         {
-            if (m_SubControllers != null)
+            if( m_Context == null)
             {
-                foreach (var controller in m_SubControllers)
-                {
-                    //VFXValueGizmo.Draw(new VFXValueGizmo.Context(controller), component);
-                }
+                m_Context = new ParameterGizmoContext(this);
             }
+            VFXValueGizmo.Draw(m_Context,component);
         }
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
@@ -635,6 +654,33 @@ namespace UnityEditor.VFX.UI
             }
 
             base.OnDisable();
+        }
+    }
+
+    public class ParameterGizmoContext : VFXValueGizmo.Context
+    {
+        internal ParameterGizmoContext(VFXParameterController controller)
+        {
+            m_Controller = controller;
+        }
+        VFXParameterController m_Controller;
+
+        public override Type portType
+        {
+            get{return m_Controller.portType;}
+        }
+
+        public override object value
+        {
+            get{ return m_Controller.value; }
+        }
+
+
+        protected override void InternalPrepare(){}
+
+        public override void SetMemberValue(string memberPath, object value)
+        {
+            m_Controller.SetMemberValue(memberPath,value);
         }
     }
 }

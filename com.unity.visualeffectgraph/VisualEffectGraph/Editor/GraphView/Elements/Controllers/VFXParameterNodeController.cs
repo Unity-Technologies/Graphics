@@ -183,8 +183,6 @@ namespace UnityEditor.VFX.UI
 
         public override void DrawGizmos(VisualEffect component)
         {
-            VFXValueGizmo.Draw(new VFXValueGizmo.Context(outputPorts[0]), component);
-
             m_ParentController.DrawGizmos(component);
         }
 
