@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
-    class ShaderPreprocessor : IPreprocessShaders
+    public class ShaderPreprocessor : IPreprocessShaders
     {
         int totalVariantsInputCount = 0;
         int totalVariantsOutputCount = 0;
@@ -18,7 +19,25 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         private bool StripUnusedVariant(ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            if (snippetData.passName == "Meta")
+            if (snippetData.passType == PassType.Meta)
+                return true;
+
+            PipelineCapabilities capabilities = UnityEngine.Experimental.Rendering.LightweightPipeline.LightweightPipeline.GetPipelineCapabilities();
+
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.AdditionalLights) &&
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.AdditionalLights))
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.VertexLights) &&
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.VertexLights))
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.DirectionalShadows) &&
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows))
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.LocalShadows) &&
+                !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
                 return true;
 
             return false;
@@ -26,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
-           int initDataCount = data.Count;
+            int initDataCount = data.Count;
 
             for (int i = 0; i < data.Count; ++i)
             {
