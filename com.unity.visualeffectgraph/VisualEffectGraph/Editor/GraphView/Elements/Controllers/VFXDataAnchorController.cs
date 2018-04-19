@@ -605,14 +605,6 @@ namespace UnityEditor.VFX.UI
                             BuildValue(subSlot, subMemberPath, false);
                             if( m_Indeterminate) return;
                         }
-                        /*
-                        m_ValueBuilder.Add(o=>
-                            {
-                                int target = o.Count-2;
-                                int member = o.Count-1;
-                                field.SetValue(o[target], o[member]);
-                            }
-                        );*/
                         m_ValueBuilder.Add(o=>field.SetValue(o[o.Count-2], o[ o.Count-1]));
                         m_ValueBuilder.Add(o=>o.RemoveAt(o.Count-1));
                     }

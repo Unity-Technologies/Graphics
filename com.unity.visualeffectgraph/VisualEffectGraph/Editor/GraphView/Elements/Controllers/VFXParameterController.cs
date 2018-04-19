@@ -77,7 +77,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandable { get { return false; } }
 
-        string IPropertyRMProvider.name
+        public string name
         {
             get { return m_FieldInfos[m_FieldInfos.Length - 1].Name; }
         }
@@ -281,7 +281,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = startIndex; i < count + startIndex; ++i)
             {
-                string path = memberPath + VFXValueGizmo.Context.separator + fields[i].Name;
+                string path = string.IsNullOrEmpty(memberPath)? fields[i].Name : memberPath + VFXValueGizmo.Context.separator + fields[i].Name;
                 subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)),path);
                 m_ChildrenByPath[path] = subControllers[i - startIndex];
             }
@@ -295,7 +295,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_SubControllers == null)
             {
-                m_SubControllers = ComputeSubControllers(portType, fieldPath,"");
+                m_SubControllers = ComputeSubControllers(portType, new List<int>(),"");
             }
             VFXSubParameterController[] currentArray = m_SubControllers;
 
@@ -327,11 +327,50 @@ namespace UnityEditor.VFX.UI
 
         public void SetMemberValue(string memberPath,object value)
         {
+            if (m_SubControllers == null)
+            {
+                m_SubControllers = ComputeSubControllers(portType, new List<int>(),"");
+            }
             VFXSubParameterController subParameterController = null;
             if(m_ChildrenByPath.TryGetValue(memberPath,out subParameterController))
             {
                 subParameterController.value = value;
             }
+            else
+            {
+                string parentMemberPath = memberPath;
+
+                List<string> members = new List<string>();
+                
+                while(true)
+                {
+                    int index = parentMemberPath.LastIndexOf(VFXValueGizmo.Context.separator);
+                    if( index == -1)
+                    {
+                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        return;
+                    }
+
+                    members.Add(parentMemberPath.Substring(index+1));
+                    parentMemberPath = parentMemberPath.Substring(0,index);
+                    if( m_ChildrenByPath.TryGetValue(parentMemberPath,out subParameterController))
+                    {
+                        break;
+                    }
+                }
+
+                foreach(var member in members)
+                {
+                    subParameterController = subParameterController.children.FirstOrDefault(t=>t.name == member);
+                    if( subParameterController == null)
+                    {
+                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        return;
+                    }
+                }
+                
+            }
+
         }
 
         public static string MakeNameUnique(string name, HashSet<string> allNames)
