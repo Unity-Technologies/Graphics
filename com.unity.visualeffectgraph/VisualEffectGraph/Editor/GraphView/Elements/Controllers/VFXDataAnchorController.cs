@@ -225,11 +225,13 @@ namespace UnityEditor.VFX.UI
         public virtual void Connect(VFXEdgeController edgeController)
         {
             m_Connections.Add(edgeController as VFXDataEdgeController);
+            RefreshGizmo();
         }
 
         public virtual void Disconnect(VFXEdgeController edgeController)
         {
             m_Connections.Remove(edgeController as VFXDataEdgeController);
+            RefreshGizmo();
         }
 
         public bool connected
@@ -373,8 +375,25 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void RefreshGizmo()
+        {
+            if( m_GizmoContext != null)m_GizmoContext.Unprepare();
+
+            if( ! model.IsMasterSlot())
+            {
+                var parentController = sourceNode.inputPorts.FirstOrDefault(t=>t.model == model.GetParent());
+                parentController.RefreshGizmo();
+            }
+        }
+
+        VFXValueGizmo.Context m_GizmoContext;
+
         public void DrawGizmo(VisualEffect component)
         {
+            if(m_GizmoContext == null)
+            {
+                m_GizmoContext = new VFXValueGizmo.Context(this);
+            }
             VFXValueGizmo.Draw(new VFXValueGizmo.Context(this), component);
         }
     }

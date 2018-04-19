@@ -37,8 +37,18 @@ namespace UnityEditor.VFX.UI
                 get {return m_Controller.portType; }
             }
 
+            bool m_Prepared;
+
+            public void Unprepare()
+            {
+                m_Prepared = false;
+            }
+
             public void Prepare()
             {
+                if( m_Prepared)
+                    return;
+                m_Prepared = true;
                 var type = m_Controller.portType;
 
                 if (!type.IsValueType)
@@ -60,6 +70,11 @@ namespace UnityEditor.VFX.UI
                     {
                         m_Value = m_Controller.value;
                         valueSet = true;
+                    }
+                    else if( m_Controller.model.HasLink(false))
+                    {
+                        m_Indeterminate = true;
+                        return;
                     }
                     else // this is for compound types that has to be build recursively
                     {
@@ -98,10 +113,16 @@ namespace UnityEditor.VFX.UI
                             object subValue = null;
                             subValueSet = false;
 
+
                             if (m_Controller.viewController.CanGetEvaluatedContent(slot))
                             {
                                 subValue = subSlot.value;
                                 subValueSet = true;
+                            }
+                            else if( slot.HasLink(false))
+                            {
+                                m_Indeterminate = true;
+                                return;
                             }
                             else
                             {
@@ -124,7 +145,7 @@ namespace UnityEditor.VFX.UI
                             {
                                 m_ReadOnlyMembers.Add(subMemberPath);
                             }
-                            if (subValueSet || valueSet)
+                            else if (subValueSet || valueSet)
                             {
                                 BuildValue(null, subSlot, subMemberPath, true);
                             }
@@ -153,6 +174,7 @@ namespace UnityEditor.VFX.UI
 
             public bool IsMemberEditable(string memberPath)
             {
+                if( m_Indeterminate) return false;
                 if (m_FullReadOnly) return false;
                 while (true)
                 {
@@ -165,6 +187,15 @@ namespace UnityEditor.VFX.UI
                     memberPath = memberPath.Substring(0, index);
                 }
             }
+
+
+            bool m_Indeterminate;
+
+            public bool IsIndeterminate()
+            {
+                return m_Indeterminate;
+            }
+
 
             public void SetMemberValue(string memberPath, object value)
             {
@@ -260,7 +291,8 @@ namespace UnityEditor.VFX.UI
             if (s_DrawFunctions.TryGetValue(anchor.portType, out func))
             {
                 anchor.Prepare();
-                func(anchor, component);
+                if( ! anchor.IsIndeterminate())
+                    func(anchor, component);
             }
         }
 
