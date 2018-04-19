@@ -459,7 +459,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
                 {
                     m_CopyDepthMSAAMaterial.SetFloat(m_SampleCount, (float)m_MSAASamples);
-                    CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
+                    bool forceBlit = m_CopyDepthMaterial == m_CopyDepthMSAAMaterial;
+                    CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
                     cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_CopyDepth);
