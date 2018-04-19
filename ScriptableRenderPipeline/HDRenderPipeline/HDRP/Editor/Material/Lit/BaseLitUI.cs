@@ -187,12 +187,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props, false);
 
             // Per pixel displacement
-            ppdMinSamples = FindProperty(kPpdMinSamples, props);
-            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
-            ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
-            ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props);
-            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props);
-            invPrimScale = FindProperty(kInvPrimScale, props);
+            ppdMinSamples = FindProperty(kPpdMinSamples, props, false);
+            ppdMaxSamples = FindProperty(kPpdMaxSamples, props, false);
+            ppdLodThreshold = FindProperty(kPpdLodThreshold, props, false);
+            ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props, false);
+            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props, false);
+            invPrimScale = FindProperty(kInvPrimScale, props, false);
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
