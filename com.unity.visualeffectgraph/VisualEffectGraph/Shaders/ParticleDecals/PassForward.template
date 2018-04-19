@@ -64,8 +64,8 @@ o.screenToDecal2 = screenToDecal[2];
 		
 		float3 clipPos;
 		clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
-		clipPos.z = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos));
-		clipPos *= LinearEyeDepth(clipPos.z);
+		clipPos.z = VFXSampleDepth(i.projPos);
+		clipPos *= VFXLinearEyeDepth(clipPos.z);
 		
 		float4 worldPos;
 		worldPos.x = clipPos.x / UNITY_MATRIX_P[0][0];
