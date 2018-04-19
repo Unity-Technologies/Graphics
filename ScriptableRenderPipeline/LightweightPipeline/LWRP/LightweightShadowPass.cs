@@ -292,8 +292,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetShadowCollectPassKeywords(CommandBuffer cmd)
         {
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_SOFT", m_DirectionalShadowmapQuality == LightShadows.Soft);
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_CASCADE", m_ShadowSettings.directionalLightCascadeCount > 1);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, m_DirectionalShadowmapQuality == LightShadows.Soft);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.CascadeShadowsText, m_ShadowSettings.directionalLightCascadeCount > 1);
         }
 
         private bool RenderDirectionalCascadeShadowmap(ref CullResults cullResults, ref LightData lightData, ref ScriptableRenderContext context)

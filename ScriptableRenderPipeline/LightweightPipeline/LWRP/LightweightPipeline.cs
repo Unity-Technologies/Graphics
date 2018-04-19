@@ -966,8 +966,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //TIM: Not used in shader for V1 to reduce keywords
             CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
+            bool anyShadowsEnabled = m_ShadowPass.IsDirectionalShadowsEnabled || m_ShadowPass.IsLocalShadowsEnabled;
             CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, m_ShadowPass.DirectionalShadowsRendered);
             CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, m_ShadowPass.LocalShadowsRendered);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, m_ShadowPass.IsSoftShadowsEnabled && anyShadowsEnabled);
             
             // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
