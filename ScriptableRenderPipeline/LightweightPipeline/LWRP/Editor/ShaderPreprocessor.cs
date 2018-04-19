@@ -17,13 +17,29 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
-        private bool StripUnusedVariant(ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        private bool StripUnusedShader(PipelineCapabilities capabilities, Shader shader)
+        {
+            if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) &&
+                shader.name.Contains("ScreenSpaceShadows"))
+                return true;
+
+            return false;
+        }
+
+        private bool StripUnusedPass(PipelineCapabilities capabilities, ShaderSnippetData snippetData)
         {
             if (snippetData.passType == PassType.Meta)
                 return true;
 
-            PipelineCapabilities capabilities = UnityEngine.Experimental.Rendering.LightweightPipeline.LightweightPipeline.GetPipelineCapabilities();
+            if (snippetData.passType == PassType.ShadowCaster)
+                if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) && !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
+                    return true;
 
+            return false;
+        }
+
+        private bool StripUnusedVariant(PipelineCapabilities capabilities, ShaderCompilerData compilerData)
+        {
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.AdditionalLights) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.AdditionalLights))
                 return true;
@@ -43,13 +59,28 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
+        private bool StripUnused(PipelineCapabilities capabilities, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        {
+            if (StripUnusedShader(capabilities, shader))
+                return true;
+
+            if (StripUnusedPass(capabilities, snippetData))
+                return true;
+
+            if (StripUnusedVariant(capabilities, compilerData))
+                return true;
+
+            return false;
+        }
+
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
+            PipelineCapabilities capabilities = UnityEngine.Experimental.Rendering.LightweightPipeline.LightweightPipeline.GetPipelineCapabilities();
             int initDataCount = data.Count;
 
             for (int i = 0; i < data.Count; ++i)
             {
-                if (StripUnusedVariant(snippet, data[i]))
+                if (StripUnused(capabilities, shader, snippet, data[i]))
                 {
                     data.RemoveAt(i);
                     --i;
