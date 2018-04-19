@@ -989,7 +989,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
 
-                if (m_RequireDepthTexture)
+                if (m_DepthRenderBuffer)
                     depthRT = m_DepthRT;
             }
 
