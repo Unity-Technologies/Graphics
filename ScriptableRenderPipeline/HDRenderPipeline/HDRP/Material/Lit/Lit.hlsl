@@ -1915,10 +1915,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
-    float3 sampleDirectionDiscardWS = lightData.sampleDirectionDiscardWS;
-    if (dot(sampleDirectionDiscardWS, R) < 0) // Use by planar reflection to early reject opposite plan reflection, neutral for reflection probe
-        return lighting;
-
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
