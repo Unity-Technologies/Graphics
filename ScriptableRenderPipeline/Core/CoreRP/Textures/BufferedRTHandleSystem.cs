@@ -12,23 +12,23 @@ namespace UnityEngine.Experimental.Rendering
         RTHandleSystem m_RTHandleSystem = new RTHandleSystem();
         bool m_DisposedValue = false;
 
-        public RTHandleSystem.RTHandle GetFrameRT(int id, int index)
+        public RTHandleSystem.RTHandle GetFrameRT(int historyId, int frameIndex)
         {
-            if (!m_RTHandles.ContainsKey(id))
+            if (!m_RTHandles.ContainsKey(historyId))
                 return null;
 
-            Assert.IsTrue(index >= 0 && index < m_RTHandles[id].Length);
+            Assert.IsTrue(frameIndex >= 0 && frameIndex < m_RTHandles[historyId].Length);
 
-            return m_RTHandles[id][index];
+            return m_RTHandles[historyId][frameIndex];
         }
 
         public void AllocBuffer(
             int id, 
             Func<RTHandleSystem, int, RTHandleSystem.RTHandle> allocator,
-            int bufferSize
+            int bufferCount
         )
         {
-            var buffer = new RTHandleSystem.RTHandle[bufferSize];
+            var buffer = new RTHandleSystem.RTHandle[bufferCount];
             m_RTHandles.Add(id, buffer);
 
             // First is autoresized
