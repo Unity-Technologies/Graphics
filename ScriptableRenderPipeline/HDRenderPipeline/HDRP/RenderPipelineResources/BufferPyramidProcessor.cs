@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Result, dest);
                 cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(
                     srcWorkMip.width, srcWorkMip.height,
-                    (1.0f / srcWorkMip.width) * scale.x, (1.0f / srcWorkMip.height) * scale.y)
+                    (1.0f / srcMip.width) * scale.x, (1.0f / srcMip.height) * scale.y)
                 );
 
                 cmd.DispatchCompute(
