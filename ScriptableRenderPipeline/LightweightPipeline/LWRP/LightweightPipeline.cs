@@ -92,6 +92,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
 
         private float m_RenderScale;
+        private int m_MSAASamples;
 
         private bool m_IntermediateTextureArray;
         private bool m_RequireDepthTexture;
@@ -128,10 +129,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private CameraComparer m_CameraComparer = new CameraComparer();
 
         private Material m_BlitMaterial;
+        private Material m_CopyDepthNoMSAAMaterial;
+        private Material m_CopyDepthMSAAMaterial;
         private Material m_CopyDepthMaterial;
         private Material m_ErrorMaterial;
         private Material m_SamplingMaterial;
         private int m_SampleOffset;
+        private int m_SampleCount;
         private int m_BlitTexID = Shader.PropertyToID("_BlitTex");
 
         private CopyTextureSupport m_CopyTextureSupport;
@@ -166,6 +170,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CameraRenderTargetID.opaque = Shader.PropertyToID("_CameraOpaqueTexture");
 
             m_SampleOffset = Shader.PropertyToID("_SampleOffset");
+            m_SampleCount = Shader.PropertyToID("_SampleCount");
 
             m_ColorRT = new RenderTargetIdentifier(CameraRenderTargetID.color);
             m_CopyColorRT = new RenderTargetIdentifier(CameraRenderTargetID.copyColor);
@@ -195,7 +200,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Shader.globalRenderPipeline = "LightweightPipeline";
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
-            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
+            m_CopyDepthNoMSAAMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
+            m_CopyDepthMSAAMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthMSAAShader);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_Asset.SamplingShader);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
@@ -207,8 +213,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
+            m_CopyDepthMaterial = null;
             CoreUtils.Destroy(m_ErrorMaterial);
-            CoreUtils.Destroy(m_CopyDepthMaterial);
+            CoreUtils.Destroy(m_CopyDepthNoMSAAMaterial);
+            CoreUtils.Destroy(m_CopyDepthMSAAMaterial);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
 
@@ -450,9 +458,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
                 {
-                    CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial);
+                    m_CopyDepthMSAAMaterial.SetFloat(m_SampleCount, (float)m_MSAASamples);
+                    bool forceBlit = m_CopyDepthMaterial == m_CopyDepthMSAAMaterial;
+                    CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
+                    cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_CopyDepth);
                 }
 
                 if (setRenderTarget)
@@ -461,7 +472,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CommandBufferPool.Release(cmd);
             }
             
-            if(m_Asset.RequireOpaqueTexture)
+            if (m_Asset.RequireOpaqueTexture)
             {
                 OpaqueTexturePass(ref context, config);
             }
@@ -514,6 +525,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool screenspaceShadows, bool stereoEnabled, bool sceneViewCamera)
         {
+            m_CopyDepthMaterial = null;
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 m_IntermediateTextureArray = true;
@@ -536,6 +548,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: PostProcessing and SoftParticles are currently not support for VR
             bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
             m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled;
+            bool canSkipDepthCopy = !m_RequireDepthTexture;
             if (postProcessEnabled)
             {
                 m_RequireDepthTexture = true;
@@ -551,35 +564,37 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             if (sceneViewCamera)
+            {
                 m_RequireDepthTexture = true;
+                canSkipDepthCopy = false;
+            }
 
             m_RequireDepthTexture = m_RequireDepthTexture || screenspaceShadows;
+            canSkipDepthCopy = canSkipDepthCopy && !screenspaceShadows;
 
             if (msaaEnabled)
             {
                 configuration |= FrameRenderingConfiguration.Msaa;
                 intermediateTexture = intermediateTexture || !LightweightUtils.PlatformSupportsMSAABackBuffer();
+                canSkipDepthCopy = false;
             }
 
             if (m_RequireDepthTexture)
             {
-                // If msaa is enabled we don't use a depth renderbuffer as we might not have support to Texture2DMS to resolve depth.
-                // Instead we use a depth prepass and whenever depth is needed we use the 1 sample depth from prepass.
-                // Screen space shadows require depth before opaque shading.
-                if (!msaaEnabled && !screenspaceShadows)
-                {
-                    bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None && m_Asset.CopyDepthShader.isSupported;
-                    m_DepthRenderBuffer = true;
-                    intermediateTexture = true;
+                bool copyShaderSupported = (msaaEnabled && m_Asset.CopyDepthMSAAShader.isSupported) || (!msaaEnabled && m_Asset.CopyDepthShader.isSupported);
+                bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None || copyShaderSupported;
+                bool requiresDepthPrepassToResolveMSAA = msaaEnabled && (SystemInfo.supportsMultisampledTextures == 0);
+                bool requiresDepthPrepass = !supportsDepthCopy || screenspaceShadows || requiresDepthPrepassToResolveMSAA;
 
-                    // If requiring a camera depth texture we need separate depth as it reads/write to depth at same time
-                    // Post process doesn't need the copy
-                    if (!m_Asset.RequireDepthTexture && postProcessEnabled)
-                        configuration |= (supportsDepthCopy) ? FrameRenderingConfiguration.DepthCopy : FrameRenderingConfiguration.DepthPrePass;
-                }
-                else
-                {
+                m_DepthRenderBuffer = !requiresDepthPrepass;
+                intermediateTexture = intermediateTexture || m_DepthRenderBuffer;
+
+                if (requiresDepthPrepass)
                     configuration |= FrameRenderingConfiguration.DepthPrePass;
+                else if (supportsDepthCopy && !canSkipDepthCopy)
+                {
+                    configuration |= FrameRenderingConfiguration.DepthCopy;
+                    m_CopyDepthMaterial = msaaEnabled ? m_CopyDepthMSAAMaterial : m_CopyDepthNoMSAAMaterial;
                 }
             }
 
@@ -613,6 +628,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             int msaaSamples = (m_IsOffscreenCamera) ? Math.Min(m_CurrCamera.targetTexture.antiAliasing, m_Asset.MSAASampleCount) : m_Asset.MSAASampleCount;
             msaaSamples = (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Msaa)) ? msaaSamples : 1;
+            m_MSAASamples = msaaSamples;
             m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
 
             if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture) || m_RequireDepthTexture)
@@ -632,10 +648,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 depthRTDesc.colorFormat = RenderTextureFormat.Depth;
                 depthRTDesc.depthBufferBits = kDepthStencilBufferBits;
 
+                // This also means we don't do a depth copy
+                bool doesDepthPrepass = LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPrePass);
+                if (!doesDepthPrepass)
+                {
+                    depthRTDesc.bindMS = msaaSamples > 1;
+                    depthRTDesc.msaaSamples = msaaSamples;
+                }
+
                 cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Point);
 
-                if (LightweightUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthCopy))
+                if (!doesDepthPrepass)
+                {
+                    depthRTDesc.bindMS = false;
+                    depthRTDesc.msaaSamples = 1;
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Point);
+                }
 
                 m_ShadowPass.InitializeResources(cmd, baseDesc);
             }
@@ -991,7 +1019,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!m_IsOffscreenCamera)
                     colorRT = m_CurrCameraColorRT;
 
-                if (m_RequireDepthTexture)
+                if (m_DepthRenderBuffer)
                     depthRT = m_DepthRT;
             }
 
